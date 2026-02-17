@@ -30,6 +30,9 @@ gem "jbuilder"
 # Authentication with Devise [https://github.com/heartcombo/devise]
 gem "devise"
 
+# Haml templates for Rails [https://github.com/haml/haml-rails]
+gem "haml-rails"
+
 # Use Redis adapter to run Action Cable in production
 # gem "redis", "~> 4.0"
 

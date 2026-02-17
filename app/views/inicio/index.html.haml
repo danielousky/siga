@@ -1,0 +1,12 @@
+%h1 Inicio#index
+%p Find me in app/views/inicio/index.html.haml
+
+%li.nav-item.badge.bg-warning.fs-6.ms-2.rounded-pill
+  %a.nav-link.text-dark{href: "/users/sign_in/"} Ingresar
+
+%li.nav-item.badge.bg-warning.fs-6.ms-2.rounded-pill
+  %a.nav-link.text-dark{href: "/users/sign_up/"} Registrarse
+
+- if user_signed_in?
+  %li.nav-item.badge.bg-danger.fs-6.ms-2.rounded-pill
+    = button_to "Cerrar sesion", destroy_user_session_path, method: :delete, class: "nav-link text-light bg-danger border-0", form: { class: "d-inline" }
