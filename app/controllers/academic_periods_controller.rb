@@ -1,4 +1,5 @@
 class AcademicPeriodsController < ApplicationController
+  before_action :require_admin_access!
   before_action :set_academic_period, only: [:show, :edit, :update, :destroy]
 
   def index
@@ -46,5 +47,11 @@ class AcademicPeriodsController < ApplicationController
 
   def academic_period_params
     params.require(:academic_period).permit(:name, :school_id, :start_date, :end_date)
+  end
+
+  def require_admin_access!
+    unless administrador? && can_manage_academic_config?
+      redirect_to dashboard_path_for_user, alert: "Acceso no autorizado. Esta función es solo para administradores."
+    end
   end
 end

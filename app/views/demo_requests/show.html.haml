@@ -1,0 +1,51 @@
+.card-academic
+  .card-academic-header
+    %h1= "Solicitud ##{@demo_request.id}"
+    = link_to "← Volver", demo_requests_path, class: "btn btn-secondary"
+
+.card-academic
+  %h2 Información del Solicitante
+
+  .detail-grid{style: "display: grid; gap: var(--space-lg); margin-top: var(--space-lg);"}
+    .detail-item
+      %label{style: "display: block; font-weight: 600; color: var(--text-secondary); font-size: 13px; margin-bottom: var(--space-xs);"} Nombre:
+      %p{style: "margin: 0; font-size: 16px;"}= @demo_request.name
+
+    .detail-item
+      %label{style: "display: block; font-weight: 600; color: var(--text-secondary); font-size: 13px; margin-bottom: var(--space-xs);"} Email:
+      %p{style: "margin: 0; font-size: 16px;"}
+        = mail_to @demo_request.email, @demo_request.email
+
+    .detail-item
+      %label{style: "display: block; font-weight: 600; color: var(--text-secondary); font-size: 13px; margin-bottom: var(--space-xs);"} Institución:
+      %p{style: "margin: 0; font-size: 16px;"}= @demo_request.institution
+
+    .detail-item
+      %label{style: "display: block; font-weight: 600; color: var(--text-secondary); font-size: 13px; margin-bottom: var(--space-xs);"} Teléfono:
+      %p{style: "margin: 0; font-size: 16px;"}= @demo_request.phone || "No proporcionado"
+
+    .detail-item
+      %label{style: "display: block; font-weight: 600; color: var(--text-secondary); font-size: 13px; margin-bottom: var(--space-xs);"} Fecha de solicitud:
+      %p{style: "margin: 0; font-size: 16px;"}
+        = @demo_request.created_at.strftime("%d de %B de %Y a las %H:%M")
+
+    - if @demo_request.message.present?
+      .detail-item{style: "grid-column: 1 / -1;"}
+        %label{style: "display: block; font-weight: 600; color: var(--text-secondary); font-size: 13px; margin-bottom: var(--space-xs);"} Mensaje:
+        %p{style: "margin: 0; font-size: 16px; line-height: 1.6; padding: var(--space-md); background: var(--surface-canvas); border-radius: var(--radius-sm);"}
+          = simple_format(@demo_request.message)
+
+.card-academic
+  %h2 Gestión de Estado
+
+  = form_with model: @demo_request, url: demo_request_path(@demo_request), method: :patch, local: true do |f|
+    .form-group
+      = f.label :status, "Estado actual:", class: "form-label"
+      = f.select :status,
+        DemoRequest.statuses.keys.map { |status| [status.titleize, status] },
+        {},
+        class: "form-select",
+        style: "max-width: 300px;"
+
+    .form-group{style: "margin-top: var(--space-lg);"}
+      = f.submit "Actualizar Estado", class: "btn btn-primary"

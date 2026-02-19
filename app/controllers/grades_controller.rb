@@ -1,4 +1,5 @@
 class GradesController < ApplicationController
+  before_action :require_admin_access!
   before_action :set_grade, only: [:show, :edit, :update, :destroy]
 
   def index
@@ -49,5 +50,11 @@ class GradesController < ApplicationController
 
   def grade_params
     params.require(:grade).permit(:name, :level, :leader_teacher_id)
+  end
+
+  def require_admin_access!
+    unless administrador? && can_manage_academic_config?
+      redirect_to dashboard_path_for_user, alert: "Acceso no autorizado. Esta función es solo para administradores."
+    end
   end
 end

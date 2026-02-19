@@ -2,6 +2,21 @@ Rails.application.routes.draw do
   devise_for :users
   get 'inicio/index'
 
+  # Solicitudes de demo (público)
+  resources :demo_requests, only: [:new, :create, :index, :show, :update] do
+    collection do
+      get :success
+    end
+  end
+
+  # Dashboards específicos por rol
+  namespace :dashboards do
+    get 'administrador', to: 'administrador#index'
+    # Preparado para futuro:
+    # get 'profesor', to: 'profesor#index'
+    # get 'estudiante', to: 'estudiante#index'
+  end
+
   resources :evaluation_moments
   resources :grades do
     resources :grade_subjects, only: [:create, :destroy]

@@ -1,38 +1,200 @@
-- if user_signed_in?
-  .card-academic
-    %h1{style: "margin-bottom: var(--space-md);"} Bienvenido al Sistema SIGA
-    %p{style: "color: var(--text-secondary); font-size: 16px; margin-bottom: var(--space-xl);"}
-      Sistema Integrado de Gestión Académica - Utilice la navegación lateral para acceder a los diferentes módulos del sistema.
+- if user_signed_in? && !administrador?
+  / Vista temporal para usuarios autenticados sin dashboard
+  .container-academic
+    .card-academic{style: "max-width: 700px; margin: var(--space-2xl) auto; text-align: center;"}
+      = image_tag 'siga-logo.png', alt: 'SIGA Logo', style: 'width: 150px; margin: 0 auto var(--space-lg);'
+      %h1{style: "margin-bottom: var(--space-md);"} Bienvenido a SIGA
+      - if profesor?
+        %p{style: "color: var(--text-secondary); font-size: 16px; margin-bottom: var(--space-xl);"}
+          Hola, Profesor #{current_user.name}. Tu dashboard personalizado está en desarrollo.
+          Pronto podrás gestionar tus secciones y calificaciones desde aquí.
+      - elsif estudiante?
+        %p{style: "color: var(--text-secondary); font-size: 16px; margin-bottom: var(--space-xl);"}
+          Hola, #{current_user.name}. Tu dashboard estudiantil está en desarrollo.
+          Pronto podrás consultar tus calificaciones y horarios desde aquí.
+      - else
+        %p{style: "color: var(--text-secondary); font-size: 16px; margin-bottom: var(--space-xl);"}
+          Tu cuenta no tiene un rol asignado. Por favor, contacta al administrador.
 
-  .card-academic
-    %h2 Acceso Rápido
-    %div{style: "display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-lg); margin-top: var(--space-lg);"}
-      = link_to students_path, style: "text-decoration: none;" do
-        %div{style: "padding: var(--space-lg); border: 1px solid var(--border-standard); border-radius: var(--radius-md); transition: all var(--transition-fast);", onmouseover: "this.style.borderColor='var(--brand-primary)'; this.style.background='var(--brand-subtle)'", onmouseout: "this.style.borderColor='var(--border-standard)'; this.style.background='transparent'"}
-          %h3{style: "color: var(--brand-primary); margin-bottom: var(--space-xs);"} Estudiantes
-          %p{style: "color: var(--text-secondary); font-size: 14px; margin: 0;"} Consultar y gestionar el registro de estudiantes
-
-      = link_to teachers_path, style: "text-decoration: none;" do
-        %div{style: "padding: var(--space-lg); border: 1px solid var(--border-standard); border-radius: var(--radius-md); transition: all var(--transition-fast);", onmouseover: "this.style.borderColor='var(--brand-primary)'; this.style.background='var(--brand-subtle)'", onmouseout: "this.style.borderColor='var(--border-standard)'; this.style.background='transparent'"}
-          %h3{style: "color: var(--brand-primary); margin-bottom: var(--space-xs);"} Profesores
-          %p{style: "color: var(--text-secondary); font-size: 14px; margin: 0;"} Consultar y gestionar el registro de profesores
-
-      = link_to subjects_path, style: "text-decoration: none;" do
-        %div{style: "padding: var(--space-lg); border: 1px solid var(--border-standard); border-radius: var(--radius-md); transition: all var(--transition-fast);", onmouseover: "this.style.borderColor='var(--brand-primary)'; this.style.background='var(--brand-subtle)'", onmouseout: "this.style.borderColor='var(--border-standard)'; this.style.background='transparent'"}
-          %h3{style: "color: var(--brand-primary); margin-bottom: var(--space-xs);"} Materias
-          %p{style: "color: var(--text-secondary); font-size: 14px; margin: 0;"} Consultar el catálogo de materias
-
-      = link_to sections_path, style: "text-decoration: none;" do
-        %div{style: "padding: var(--space-lg); border: 1px solid var(--border-standard); border-radius: var(--radius-md); transition: all var(--transition-fast);", onmouseover: "this.style.borderColor='var(--brand-primary)'; this.style.background='var(--brand-subtle)'", onmouseout: "this.style.borderColor='var(--border-standard)'; this.style.background='transparent'"}
-          %h3{style: "color: var(--brand-primary); margin-bottom: var(--space-xs);"} Secciones
-          %p{style: "color: var(--text-secondary); font-size: 14px; margin: 0;"} Consultar secciones del período actual
+      %div{style: "margin-top: var(--space-xl); padding: var(--space-lg); background: var(--brand-subtle); border-radius: var(--radius-md);"}
+        %p{style: "color: var(--text-secondary); margin: 0; font-size: 14px;"}
+          Mientras tanto, puedes cerrar sesión o esperar a que tu dashboard esté disponible.
 
 - else
-  .card-academic{style: "max-width: 500px; margin: var(--space-2xl) auto;"}
-    %h1{style: "text-align: center; margin-bottom: var(--space-md);"} Sistema SIGA
-    %p{style: "text-align: center; color: var(--text-secondary); margin-bottom: var(--space-xl);"}
-      Sistema Integrado de Gestión Académica
+  / Landing page para usuarios NO autenticados
+  .landing-page
+  / Hero Section - Sección principal con logo
+  .hero-section
+    .hero-content
+      = image_tag 'siga-logo.png', alt: 'SIGA Logo', class: 'hero-logo'
+      %h1.hero-title Sistema Integrado de Gestión Académica
+      %p.hero-subtitle
+        Transformando la administración educativa con tecnología moderna.
+        Gestiona estudiantes, profesores, calificaciones y más desde una plataforma centralizada.
+      .hero-actions
+        = link_to new_user_session_path, class: 'btn-hero btn-hero-primary' do
+          Iniciar Sesión
+        = link_to new_demo_request_path, class: 'btn-hero btn-hero-secondary' do
+          Solicitar Demo
 
-    %div{style: "display: flex; flex-direction: column; gap: var(--space-md);"}
-      = link_to "Iniciar Sesión", new_user_session_path, class: "btn btn-primary", style: "justify-content: center;"
-      = link_to "Registrarse", new_user_registration_path, class: "btn btn-secondary", style: "justify-content: center;"
+  / Features Section - Características principales
+  .features-section
+    .features-container
+      %h2.section-title ¿Qué ofrece SIGA?
+
+      .features-grid
+        .feature-card
+          .feature-icon 👨‍🎓
+          %h3 Gestión de Estudiantes
+          %p
+            Registra, consulta y administra toda la información de tus estudiantes.
+            Histórico académico completo y actualizado en tiempo real.
+
+        .feature-card
+          .feature-icon 👨‍🏫
+          %h3 Control de Profesores
+          %p
+            Asigna profesores a materias y secciones. Gestiona horarios y
+            distribución de carga académica de forma eficiente.
+
+        .feature-card
+          .feature-icon 📊
+          %h3 Calificaciones Digitales
+          %p
+            Sistema completo de registro y consulta de calificaciones.
+            Reportes automáticos y seguimiento del rendimiento estudiantil.
+
+        .feature-card
+          .feature-icon 📅
+          %h3 Períodos Académicos
+          %p
+            Organiza el año escolar en períodos configurables.
+            Gestiona inscripciones y secciones por período lectivo.
+
+        .feature-card
+          .feature-icon 🏛️
+          %h3 Organización Institucional
+          %p
+            Estructura completa: departamentos, grados, materias y secciones.
+            Refleja fielmente la organización de tu institución.
+
+        .feature-card
+          .feature-icon 🔒
+          %h3 Seguro y Confiable
+          %p
+            Control de acceso por roles. Diferentes niveles de permisos
+            para administradores, profesores y estudiantes.
+
+  / Benefits Carousel - Carrusel de beneficios
+  .benefits-section
+    .benefits-container
+      %h2.section-title Beneficios para tu Institución
+
+      .benefits-carousel{data: {controller: "carousel"}}
+        .benefit-slide.active{data: {carousel_target: "slide"}}
+          .benefit-content
+            .benefit-image-placeholder
+              %span.placeholder-icon 📚
+            .benefit-text
+              %h3 Para Administradores
+              %p
+                Toma decisiones informadas con estadísticas en tiempo real.
+                Acceso completo a reportes institucionales, gestión de personal
+                y configuración del sistema académico.
+
+        .benefit-slide{data: {carousel_target: "slide"}}
+          .benefit-content
+            .benefit-image-placeholder
+              %span.placeholder-icon 🎓
+            .benefit-text
+              %h3 Para Profesores
+              %p
+                Gestiona tus secciones y calificaciones desde cualquier lugar.
+                Registro rápido de notas, consulta de listas de estudiantes
+                y seguimiento del progreso académico.
+
+        .benefit-slide{data: {carousel_target: "slide"}}
+          .benefit-content
+            .benefit-image-placeholder
+              %span.placeholder-icon 📱
+            .benefit-text
+              %h3 Para Estudiantes
+              %p
+                Consulta tus calificaciones actualizadas en tiempo real.
+                Accede a tu histórico académico, horarios de clases
+                y estado de inscripciones desde cualquier dispositivo.
+
+      .carousel-dots
+        %button.dot.active{data: {carousel_target: "dot", slide: "0", action: "click->carousel#goToSlide"}}
+        %button.dot{data: {carousel_target: "dot", slide: "1", action: "click->carousel#goToSlide"}}
+        %button.dot{data: {carousel_target: "dot", slide: "2", action: "click->carousel#goToSlide"}}
+
+  / Stats Section - Estadísticas impactantes
+  .stats-section
+    .stats-container
+      .stat-item
+        %h3.stat-number 100%
+        %p.stat-label Digital
+
+      .stat-item
+        %h3.stat-number 24/7
+        %p.stat-label Disponible
+
+      .stat-item
+        %h3.stat-number
+          %span{style: "font-size: 0.8em;"} ∞
+        %p.stat-label Usuarios
+
+      .stat-item
+        %h3.stat-number
+          %i{style: "font-style: normal;"} ⚡
+        %p.stat-label Rápido
+
+  / CTA Section - Llamado a la acción final
+  .cta-section
+    .cta-container
+      %h2.cta-title ¿Listo para modernizar tu gestión académica?
+      %p.cta-subtitle
+        Únete a las instituciones educativas que han transformado su
+        administración con SIGA. Comienza hoy mismo.
+
+      .cta-actions
+        = link_to new_demo_request_path, class: 'btn-cta btn-cta-primary' do
+          Solicitar Demostración
+        = link_to new_user_session_path, class: 'btn-cta btn-cta-outline' do
+          Ya tengo cuenta
+
+  / Footer
+  .landing-footer
+    .footer-content
+      .footer-section
+        %h4 SIGA
+        %p Sistema Integrado de Gestión Académica
+        %p.footer-tagline Educación del siglo XXI
+
+      .footer-section
+        %h4 Producto
+        %ul
+          %li
+            %a{href: "#features"} Características
+          %li
+            %a{href: "#benefits"} Beneficios
+          %li
+            = link_to "Solicitar Demo", new_demo_request_path
+
+      .footer-section
+        %h4 Soporte
+        %ul
+          %li
+            = link_to "Documentación", "#"
+          %li
+            = link_to "Ayuda", "#"
+          %li
+            = link_to "Solicitar Demo", new_demo_request_path
+          %li
+            = link_to "Iniciar Sesión", new_user_session_path
+
+    .footer-bottom
+      %p
+        &copy; #{Time.current.year} SIGA - Sistema Integrado de Gestión Académica.
+        Todos los derechos reservados.

@@ -1,4 +1,5 @@
 class SectionsController < ApplicationController
+  before_action :require_admin_access!
   before_action :set_section, only: [:show, :edit, :update, :destroy]
 
   def index
@@ -51,5 +52,11 @@ class SectionsController < ApplicationController
 
   def section_params
     params.require(:section).permit(:name, :grade_id, :academic_period_id, :capacity, :classroom)
+  end
+
+  def require_admin_access!
+    unless administrador? && can_manage_sections?
+      redirect_to dashboard_path_for_user, alert: "Acceso no autorizado. Esta función es solo para administradores."
+    end
   end
 end

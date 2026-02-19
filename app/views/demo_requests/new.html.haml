@@ -1,0 +1,49 @@
+.landing-page
+  .hero-section{style: "min-height: 40vh;"}
+    .hero-content
+      = image_tag 'siga-logo.png', alt: 'SIGA Logo', class: 'hero-logo', style: 'width: 180px;'
+      %h1.hero-title Solicitar Demostración
+      %p.hero-subtitle
+        Descubre cómo SIGA puede transformar la gestión académica de tu institución.
+        Completa el formulario y nos pondremos en contacto contigo.
+
+  .features-section{style: "padding: 60px var(--space-lg);"}
+    .features-container{style: "max-width: 700px;"}
+      .card-academic
+        %h2{style: "margin-bottom: var(--space-lg); color: var(--brand-primary);"} Información de Contacto
+
+        = form_with model: @demo_request, url: demo_requests_path, class: "form-academic" do |f|
+          .form-group
+            = f.label :name, "Nombre completo *", class: "form-label"
+            = f.text_field :name, class: "form-control", placeholder: "Ej: María González", required: true, autofocus: true
+
+          .form-group
+            = f.label :email, "Correo electrónico *", class: "form-label"
+            = f.email_field :email, class: "form-control", placeholder: "tu@email.com", required: true
+
+          .form-group
+            = f.label :institution, "Institución educativa *", class: "form-label"
+            = f.text_field :institution, class: "form-control", placeholder: "Nombre de tu colegio o universidad", required: true
+
+          .form-group
+            = f.label :phone, "Teléfono de contacto", class: "form-label"
+            = f.telephone_field :phone, class: "form-control", placeholder: "Ej: +58 424 123 4567"
+
+          .form-group
+            = f.label :message, "Mensaje (opcional)", class: "form-label"
+            = f.text_area :message, class: "form-control", rows: 4, placeholder: "Cuéntanos sobre tus necesidades específicas o preguntas..."
+
+          .form-group{style: "margin-top: var(--space-xl);"}
+            = f.submit "Enviar Solicitud", class: "btn btn-primary", style: "width: 100%; font-size: 16px; padding: 14px;"
+
+          .form-group{style: "text-align: center; margin-top: var(--space-md);"}
+            = link_to "Volver al inicio", root_path, class: "btn btn-secondary", style: "width: 100%;"
+
+      .card-academic{style: "margin-top: var(--space-lg); background: var(--brand-subtle); border: none;"}
+        %h3{style: "color: var(--brand-primary); font-size: 18px; margin-bottom: var(--space-md);"} ¿Qué sigue después?
+
+        %ul{style: "color: var(--text-secondary); line-height: 1.8; padding-left: var(--space-lg);"}
+          %li Revisaremos tu solicitud en las próximas 24 horas
+          %li Te contactaremos por email o teléfono para agendar una demostración
+          %li Te mostraremos cómo SIGA puede adaptarse a tu institución
+          %li Responderemos todas tus preguntas sobre el sistema

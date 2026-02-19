@@ -1,0 +1,81 @@
+.card-academic
+  .card-academic-header
+    %h1 Solicitudes de Demostración
+    %span.badge{style: "background: var(--brand-primary); color: white; padding: 6px 12px; border-radius: var(--radius-sm); font-size: 14px;"}
+      = "#{@pending_count} pendiente#{@pending_count != 1 ? 's' : ''}"
+
+.card-academic
+  - if @demo_requests.any?
+    %table.table-academic
+      %thead
+        %tr
+          %th ID
+          %th Nombre
+          %th Email
+          %th Institución
+          %th Teléfono
+          %th Estado
+          %th Fecha
+          %th Acciones
+      %tbody
+        - @demo_requests.each do |request|
+          %tr
+            %td= request.id
+            %td= request.name
+            %td= request.email
+            %td= request.institution
+            %td= request.phone || "—"
+            %td
+              %span.status-badge{class: "status-#{request.status}"}
+                = request.status.titleize
+            %td= request.created_at.strftime("%d/%m/%Y")
+            %td.actions-group
+              = link_to "Ver", demo_request_path(request), class: "btn btn-sm btn-secondary"
+
+    .pagy-container
+      = pagy_nav(@pagy).html_safe if @pagy.pages > 1
+
+  - else
+    .empty-state
+      %h3 No hay solicitudes de demo
+      %p Cuando alguien solicite una demostración, aparecerá aquí.
+
+:css
+  .status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+
+  .status-pendiente {
+    background: var(--warning-bg);
+    color: var(--warning-text);
+    border: 1px solid var(--warning-border);
+  }
+
+  .status-contactado {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #93c5fd;
+  }
+
+  .status-demo_programado {
+    background: #e0e7ff;
+    color: #4338ca;
+    border: 1px solid #c7d2fe;
+  }
+
+  .status-completado {
+    background: var(--success-bg);
+    color: var(--success-text);
+    border: 1px solid var(--success-border);
+  }
+
+  .status-rechazado {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
+  }

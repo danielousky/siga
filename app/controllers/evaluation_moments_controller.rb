@@ -1,4 +1,5 @@
 class EvaluationMomentsController < ApplicationController
+  before_action :require_admin_access!
   before_action :set_evaluation_moment, only: [:show, :edit, :update, :destroy]
 
   def index
@@ -46,5 +47,11 @@ class EvaluationMomentsController < ApplicationController
 
   def evaluation_moment_params
     params.require(:evaluation_moment).permit(:name, :weight)
+  end
+
+  def require_admin_access!
+    unless administrador? && can_manage_academic_config?
+      redirect_to dashboard_path_for_user, alert: "Acceso no autorizado. Esta función es solo para administradores."
+    end
   end
 end

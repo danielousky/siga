@@ -1,4 +1,5 @@
 class AdminsController < ApplicationController
+  before_action :require_admin_access!
   before_action :set_admin, only: [:show, :edit, :update, :destroy]
 
   def index
@@ -48,5 +49,11 @@ class AdminsController < ApplicationController
   def admin_params
     params.require(:admin).permit(:school_id, :role,
       user_attributes: [:id, :name, :last_name, :id_card, :email, :password, :password_confirmation])
+  end
+
+  def require_admin_access!
+    unless administrador? && (current_user.admin.desarrollador? || current_user.admin.director?)
+      redirect_to dashboard_path_for_user, alert: "Acceso no autorizado. Esta función es solo para administradores con rol de desarrollador o director."
+    end
   end
 end

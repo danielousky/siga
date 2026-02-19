@@ -1,0 +1,38 @@
+.landing-page
+  .hero-section
+    .hero-content
+      = image_tag 'siga-logo.png', alt: 'SIGA Logo', class: 'hero-logo', style: 'width: 200px;'
+      %h1.hero-title{style: "color: #4ade80;"} ¡Solicitud Enviada!
+      %p.hero-subtitle
+        Gracias por tu interés en SIGA. Hemos recibido tu solicitud de demostración
+        y nuestro equipo se pondrá en contacto contigo en las próximas 24 horas.
+
+      .hero-actions{style: "margin-top: var(--space-2xl);"}
+        = link_to root_path, class: 'btn-hero btn-hero-primary' do
+          Volver al Inicio
+
+  .features-section{style: "padding: 60px var(--space-lg);"}
+    .features-container{style: "max-width: 900px;"}
+      %h2.section-title{style: "font-size: 32px;"} Mientras Esperas...
+
+      .features-grid{style: "grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));"}
+        .feature-card
+          .feature-icon 📧
+          %h3 Revisa tu Email
+          %p
+            Te hemos enviado un email de confirmación. Revisa también tu carpeta
+            de spam por si acaso.
+
+        .feature-card
+          .feature-icon 📱
+          %h3 Mantén tu Teléfono Cerca
+          %p
+            Nuestro equipo podría contactarte por teléfono para agendar la
+            demostración en el mejor horario para ti.
+
+        .feature-card
+          .feature-icon 💡
+          %h3 Prepara tus Preguntas
+          %p
+            Piensa en las necesidades específicas de tu institución para
+            aprovechar al máximo la demostración.

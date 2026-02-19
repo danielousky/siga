@@ -1,0 +1,55 @@
+.sidebar-section
+  .sidebar-section-title Dashboard
+  %ul.sidebar-nav
+    %li.sidebar-nav-item
+      = link_to "Panel Administrativo", dashboards_administrador_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/administrador'}"
+
+.sidebar-section
+  .sidebar-section-title Académico
+  %ul.sidebar-nav
+    - if can_manage_academic_config?
+      %li.sidebar-nav-item
+        = link_to "Grados", grades_path, class: "sidebar-nav-link #{'active' if controller_name == 'grades'}"
+    %li.sidebar-nav-item
+      = link_to "Materias", subjects_path, class: "sidebar-nav-link #{'active' if controller_name == 'subjects'}"
+    %li.sidebar-nav-item
+      = link_to "Departamentos", departments_path, class: "sidebar-nav-link #{'active' if controller_name == 'departments'}"
+    %li.sidebar-nav-item
+      = link_to "Momentos de Evaluación", evaluation_moments_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_moments'}"
+
+.sidebar-section
+  .sidebar-section-title Períodos
+  %ul.sidebar-nav
+    - if can_manage_academic_config?
+      %li.sidebar-nav-item
+        = link_to "Períodos Académicos", academic_periods_path, class: "sidebar-nav-link #{'active' if controller_name == 'academic_periods'}"
+    - if can_manage_sections?
+      %li.sidebar-nav-item
+        = link_to "Secciones", sections_path, class: "sidebar-nav-link #{'active' if controller_name == 'sections'}"
+      %li.sidebar-nav-item
+        = link_to "Inscripciones", enrollments_path, class: "sidebar-nav-link #{'active' if controller_name == 'enrollments'}"
+
+.sidebar-section
+  .sidebar-section-title Personas
+  %ul.sidebar-nav
+    - if can_manage_students?
+      %li.sidebar-nav-item
+        = link_to "Estudiantes", students_path, class: "sidebar-nav-link #{'active' if controller_name == 'students'}"
+    - if can_manage_teachers?
+      %li.sidebar-nav-item
+        = link_to "Profesores", teachers_path, class: "sidebar-nav-link #{'active' if controller_name == 'teachers'}"
+    - if current_user.admin.desarrollador? || current_user.admin.director?
+      %li.sidebar-nav-item
+        = link_to "Administradores", admins_path, class: "sidebar-nav-link #{'active' if controller_name == 'admins'}"
+
+.sidebar-section
+  .sidebar-section-title Sistema
+  %ul.sidebar-nav
+    - if current_user.admin.desarrollador? || current_user.admin.director?
+      %li.sidebar-nav-item
+        = link_to demo_requests_path, class: "sidebar-nav-link #{'active' if controller_name == 'demo_requests'}" do
+          Solicitudes Demo
+          - pending_count = DemoRequest.pending.count
+          - if pending_count > 0
+            %span{style: "margin-left: auto; background: var(--brand-primary); color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;"}
+              = pending_count

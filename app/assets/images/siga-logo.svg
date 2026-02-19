@@ -1,0 +1,24 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org">
+  <!-- Fondo Circular Oscuro -->
+  <circle cx="256" cy="256" r="240" fill="#1A1F26" stroke="#808080" stroke-width="20""")/>>
+  
+  <!-- Cuerpo del Escudo -->
+  <path d="M256 80C256 80 180 100 180 180C180 260 256 300 256 300C256 300 332 260 332 180C332 100 256 80 256 80Z" fill="#D4AF37""")/>>
+  <path d="M256 80V300C256 300 180 260 180 180C180 100 256 80 256 80Z" fill="#FFFFFF" opacity="0.9""")/>>
+
+  <!-- Icono Tuerca (Derecha) -->
+  <path d="M285 155L290 145M305 160L315 155M310 180L320 180M305 200L315 205M290 215L285 225M270 220L265 230M270 140L265 130" stroke="#1A1F26" stroke-width="4" stroke-linecap="round""")/>>
+  <circle cx="290" cy="180" r="15" stroke="#1A1F26" stroke-width="5""")/>>
+
+  <!-- Icono Mundo (Izquierda) -->
+  <circle cx="222" cy="180" r="18" stroke="#D4AF37" stroke-width="3" fill="none""")/>>
+  <ellipse cx="222" cy="180" rx="7" ry="18" stroke="#D4AF37" stroke-width="2" fill="none""")/>>
+  <line x1="204" y1="180" x2="240" y2="180" stroke="#D4AF37" stroke-width="2""")/>>
+
+  <!-- Libro Abierto (Base) -->
+  <path d="M160 320C180 310 256 310 256 330V380C256 360 180 360 160 370V320Z" fill="#FFFFFF" stroke="#D4AF37" stroke-width="2""")/>>
+  <path d="M352 320C332 310 256 310 256 330V380C256 360 332 360 352 370V320Z" fill="#FFFFFF" stroke="#D4AF37" stroke-width="2""")/>>
+
+  <!-- Texto SIGA -->
+  <text x="50%" y="450" text-anchor="middle" fill="#D4AF37" font-family="Arial, sans-serif" font-weight="bold" font-size="60" letter-spacing="5">SIGA</text>
+</svg>

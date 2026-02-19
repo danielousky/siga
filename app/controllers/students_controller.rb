@@ -1,4 +1,5 @@
 class StudentsController < ApplicationController
+  before_action :require_admin_access!
   before_action :set_student, only: [:show, :edit, :update, :destroy]
 
   def index
@@ -48,5 +49,11 @@ class StudentsController < ApplicationController
   def student_params
     params.require(:student).permit(:school_card, :school_id,
       user_attributes: [:id, :name, :last_name, :id_card, :email, :password, :password_confirmation])
+  end
+
+  def require_admin_access!
+    unless administrador? && can_manage_students?
+      redirect_to dashboard_path_for_user, alert: "Acceso no autorizado. Esta función es solo para administradores."
+    end
   end
 end

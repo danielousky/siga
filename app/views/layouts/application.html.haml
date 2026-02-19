@@ -26,37 +26,22 @@
 
       .app-layout
         %aside.sidebar-index
-          .sidebar-section
-            .sidebar-section-title Académico
-            %ul.sidebar-nav
-              %li.sidebar-nav-item
-                = link_to "Grados", grades_path, class: "sidebar-nav-link #{'active' if controller_name == 'grades'}"
-              %li.sidebar-nav-item
-                = link_to "Materias", subjects_path, class: "sidebar-nav-link #{'active' if controller_name == 'subjects'}"
-              %li.sidebar-nav-item
-                = link_to "Departamentos", departments_path, class: "sidebar-nav-link #{'active' if controller_name == 'departments'}"
-              %li.sidebar-nav-item
-                = link_to "Momentos de Evaluación", evaluation_moments_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_moments'}"
-
-          .sidebar-section
-            .sidebar-section-title Períodos
-            %ul.sidebar-nav
-              %li.sidebar-nav-item
-                = link_to "Períodos Académicos", academic_periods_path, class: "sidebar-nav-link #{'active' if controller_name == 'academic_periods'}"
-              %li.sidebar-nav-item
-                = link_to "Secciones", sections_path, class: "sidebar-nav-link #{'active' if controller_name == 'sections'}"
-              %li.sidebar-nav-item
-                = link_to "Inscripciones", enrollments_path, class: "sidebar-nav-link #{'active' if controller_name == 'enrollments'}"
-
-          .sidebar-section
-            .sidebar-section-title Personas
-            %ul.sidebar-nav
-              %li.sidebar-nav-item
-                = link_to "Estudiantes", students_path, class: "sidebar-nav-link #{'active' if controller_name == 'students'}"
-              %li.sidebar-nav-item
-                = link_to "Profesores", teachers_path, class: "sidebar-nav-link #{'active' if controller_name == 'teachers'}"
-              %li.sidebar-nav-item
-                = link_to "Administradores", admins_path, class: "sidebar-nav-link #{'active' if controller_name == 'admins'}"
+          - if administrador?
+            = render 'shared/sidebar_administrador'
+          - elsif profesor?
+            .sidebar-section
+              .sidebar-section-title Dashboard
+              %ul.sidebar-nav
+                %li.sidebar-nav-item
+                  = link_to "Mi Dashboard", root_path, class: "sidebar-nav-link active"
+              %p{style: "padding: var(--space-lg); color: var(--text-tertiary); font-size: 13px;"} Dashboard de profesor en desarrollo...
+          - elsif estudiante?
+            .sidebar-section
+              .sidebar-section-title Dashboard
+              %ul.sidebar-nav
+                %li.sidebar-nav-item
+                  = link_to "Mi Dashboard", root_path, class: "sidebar-nav-link active"
+              %p{style: "padding: var(--space-lg); color: var(--text-tertiary); font-size: 13px;"} Dashboard de estudiante en desarrollo...
 
         %main.container-academic
           - if notice.present?

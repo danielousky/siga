@@ -1,4 +1,5 @@
 class EnrollmentsController < ApplicationController
+  before_action :require_admin_access!
   before_action :set_enrollment, only: [:show, :edit, :update, :destroy]
 
   def index
@@ -46,5 +47,11 @@ class EnrollmentsController < ApplicationController
 
   def enrollment_params
     params.require(:enrollment).permit(:student_id, :section_id, :enrollment_date, :status)
+  end
+
+  def require_admin_access!
+    unless administrador? && can_manage_sections?
+      redirect_to dashboard_path_for_user, alert: "Acceso no autorizado. Esta función es solo para administradores."
+    end
   end
 end
