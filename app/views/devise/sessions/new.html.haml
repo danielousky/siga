@@ -1,20 +1,24 @@
-%h2 Log in
+.card-academic{style: "max-width: 480px; margin: var(--space-2xl) auto;"}
+  %h1{style: "text-align: center; margin-bottom: var(--space-md);"} Iniciar Sesión
+  %p{style: "text-align: center; color: var(--text-secondary); margin-bottom: var(--space-xl);"} Acceda al Sistema Integrado de Gestión Académica
 
-= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f|
-  .field
-    %p= f.label :email
-    %p= f.email_field :email, autofocus: true, autocomplete: "email"
+  = form_for(resource, as: resource_name, url: session_path(resource_name)) do |f|
+    .form-group
+      = f.label :email, "Correo Electrónico", class: "form-label"
+      = f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control", placeholder: "usuario@ejemplo.com"
 
-  .field
-    %p= f.label :password
-    %p= f.password_field :password, autocomplete: "current-password"
+    .form-group
+      = f.label :password, "Contraseña", class: "form-label"
+      = f.password_field :password, autocomplete: "current-password", class: "form-control", placeholder: "Ingrese su contraseña"
 
-  - if devise_mapping.rememberable?
-    .field
-      %p= f.check_box :remember_me
-      %p= f.label :remember_me
+    - if devise_mapping.rememberable?
+      .form-group
+        %label{style: "display: flex; align-items: center; gap: var(--space-xs); font-size: 14px; color: var(--text-secondary); cursor: pointer;"}
+          = f.check_box :remember_me, style: "margin: 0;"
+          %span Recordarme
 
-  .actions
-    = f.submit "Log in"
+    .form-group
+      = f.submit "Iniciar Sesión", class: "btn btn-primary", style: "width: 100%; justify-content: center;"
 
-= render "devise/shared/links"
+  %div{style: "margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: 1px solid var(--border-subtle); text-align: center; font-size: 14px;"}
+    = render "devise/shared/links"

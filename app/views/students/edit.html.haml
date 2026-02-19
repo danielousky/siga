@@ -1,5 +1,7 @@
-%h1 Editar Estudiante
+%h1 Editar Registro de Estudiante
+
+%p{style: "color: var(--text-secondary); margin-bottom: var(--space-xl);"}
+  Modificando registro de
+  %strong= "#{@student.user.name} #{@student.user.last_name}"
 
 = render "form", student: @student
-
-= link_to "Volver", students_path, class: "btn btn-outline-primary mt-3"

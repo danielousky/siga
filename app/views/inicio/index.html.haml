@@ -1,12 +1,38 @@
-%h1 Inicio#index
-%p Find me in app/views/inicio/index.html.haml
-
-%li.nav-item.badge.bg-warning.fs-6.ms-2.rounded-pill
-  %a.nav-link.text-dark{href: "/users/sign_in/"} Ingresar
-
-%li.nav-item.badge.bg-warning.fs-6.ms-2.rounded-pill
-  %a.nav-link.text-dark{href: "/users/sign_up/"} Registrarse
-
 - if user_signed_in?
-  %li.nav-item.badge.bg-danger.fs-6.ms-2.rounded-pill
-    = button_to "Cerrar sesion", destroy_user_session_path, method: :delete, class: "nav-link text-light bg-danger border-0", form: { class: "d-inline" }
+  .card-academic
+    %h1{style: "margin-bottom: var(--space-md);"} Bienvenido al Sistema SIGA
+    %p{style: "color: var(--text-secondary); font-size: 16px; margin-bottom: var(--space-xl);"}
+      Sistema Integrado de Gestión Académica - Utilice la navegación lateral para acceder a los diferentes módulos del sistema.
+
+  .card-academic
+    %h2 Acceso Rápido
+    %div{style: "display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-lg); margin-top: var(--space-lg);"}
+      = link_to students_path, style: "text-decoration: none;" do
+        %div{style: "padding: var(--space-lg); border: 1px solid var(--border-standard); border-radius: var(--radius-md); transition: all var(--transition-fast);", onmouseover: "this.style.borderColor='var(--brand-primary)'; this.style.background='var(--brand-subtle)'", onmouseout: "this.style.borderColor='var(--border-standard)'; this.style.background='transparent'"}
+          %h3{style: "color: var(--brand-primary); margin-bottom: var(--space-xs);"} Estudiantes
+          %p{style: "color: var(--text-secondary); font-size: 14px; margin: 0;"} Consultar y gestionar el registro de estudiantes
+
+      = link_to teachers_path, style: "text-decoration: none;" do
+        %div{style: "padding: var(--space-lg); border: 1px solid var(--border-standard); border-radius: var(--radius-md); transition: all var(--transition-fast);", onmouseover: "this.style.borderColor='var(--brand-primary)'; this.style.background='var(--brand-subtle)'", onmouseout: "this.style.borderColor='var(--border-standard)'; this.style.background='transparent'"}
+          %h3{style: "color: var(--brand-primary); margin-bottom: var(--space-xs);"} Profesores
+          %p{style: "color: var(--text-secondary); font-size: 14px; margin: 0;"} Consultar y gestionar el registro de profesores
+
+      = link_to subjects_path, style: "text-decoration: none;" do
+        %div{style: "padding: var(--space-lg); border: 1px solid var(--border-standard); border-radius: var(--radius-md); transition: all var(--transition-fast);", onmouseover: "this.style.borderColor='var(--brand-primary)'; this.style.background='var(--brand-subtle)'", onmouseout: "this.style.borderColor='var(--border-standard)'; this.style.background='transparent'"}
+          %h3{style: "color: var(--brand-primary); margin-bottom: var(--space-xs);"} Materias
+          %p{style: "color: var(--text-secondary); font-size: 14px; margin: 0;"} Consultar el catálogo de materias
+
+      = link_to sections_path, style: "text-decoration: none;" do
+        %div{style: "padding: var(--space-lg); border: 1px solid var(--border-standard); border-radius: var(--radius-md); transition: all var(--transition-fast);", onmouseover: "this.style.borderColor='var(--brand-primary)'; this.style.background='var(--brand-subtle)'", onmouseout: "this.style.borderColor='var(--border-standard)'; this.style.background='transparent'"}
+          %h3{style: "color: var(--brand-primary); margin-bottom: var(--space-xs);"} Secciones
+          %p{style: "color: var(--text-secondary); font-size: 14px; margin: 0;"} Consultar secciones del período actual
+
+- else
+  .card-academic{style: "max-width: 500px; margin: var(--space-2xl) auto;"}
+    %h1{style: "text-align: center; margin-bottom: var(--space-md);"} Sistema SIGA
+    %p{style: "text-align: center; color: var(--text-secondary); margin-bottom: var(--space-xl);"}
+      Sistema Integrado de Gestión Académica
+
+    %div{style: "display: flex; flex-direction: column; gap: var(--space-md);"}
+      = link_to "Iniciar Sesión", new_user_session_path, class: "btn btn-primary", style: "justify-content: center;"
+      = link_to "Registrarse", new_user_registration_path, class: "btn btn-secondary", style: "justify-content: center;"
