@@ -5,6 +5,8 @@ class Section < ApplicationRecord
   has_many :enrollments, dependent: :restrict_with_error
   has_many :students, through: :enrollments
   has_many :evaluation_activities, dependent: :restrict_with_error
+  has_many :teacher_sections, dependent: :destroy
+  has_many :teachers, through: :teacher_sections
 
   validates :name, presence: true, uniqueness: { scope: [:grade_id, :academic_period_id] }
   validates :capacity, presence: true, numericality: { greater_than: 0 }

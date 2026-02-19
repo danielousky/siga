@@ -1,0 +1,42 @@
+%h1= @grade.name
+
+.card.mb-4
+  .card-body
+    %dl.row
+      %dt.col-sm-3 Nombre
+      %dd.col-sm-9= @grade.name
+      %dt.col-sm-3 Nivel
+      %dd.col-sm-9= @grade.level.humanize
+      %dt.col-sm-3 Profesor Guía
+      %dd.col-sm-9= @grade.leader_teacher&.user&.name || "—"
+
+%h3 Materias Asignadas
+- if @grade_subjects.any?
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Código
+        %th Materia
+        %th Acciones
+    %tbody
+      - @grade_subjects.each do |gs|
+        %tr
+          %td= gs.subject.code
+          %td= gs.subject.name
+          %td
+            = link_to "Quitar", grade_grade_subject_path(@grade, gs), data: { turbo_method: :delete, turbo_confirm: "¿Quitar esta materia?" }, class: "btn btn-sm btn-outline-danger"
+- else
+  %p.text-muted No hay materias asignadas.
+
+- if @available_subjects.any?
+  .card.mt-3
+    .card-body
+      %h5 Agregar Materia
+      = form_with(url: grade_grade_subjects_path(@grade), method: :post, class: "d-flex gap-2") do |f|
+        = f.select :subject_id, options_for_select(@available_subjects.map { |s| ["#{s.code} - #{s.name}", s.id] }), {}, class: "form-select"
+        = f.submit "Agregar", class: "btn btn-primary"
+
+.mt-3
+  = link_to "Editar", edit_grade_path(@grade), class: "btn btn-outline-secondary"
+  = link_to "Volver", grades_path, class: "btn btn-outline-primary"
+  = link_to "Eliminar", @grade, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro?" }, class: "btn btn-outline-danger"

@@ -1,0 +1,16 @@
+= form_with(model: grade, class: "mb-3") do |f|
+  = render "shared/errors", object: grade
+
+  .mb-3
+    = f.label :name, "Nombre", class: "form-label"
+    = f.text_field :name, class: "form-control"
+
+  .mb-3
+    = f.label :level, "Nivel", class: "form-label"
+    = f.select :level, Grade.levels.keys.map { |l| [l.humanize, l] }, { include_blank: "Seleccione..." }, class: "form-select"
+
+  .mb-3
+    = f.label :leader_teacher_id, "Profesor Guía", class: "form-label"
+    = f.select :leader_teacher_id, Teacher.includes(:user).map { |t| [t.user.name + " " + t.user.last_name, t.user_id] }, { include_blank: "Ninguno" }, class: "form-select"
+
+  = f.submit class: "btn btn-primary"

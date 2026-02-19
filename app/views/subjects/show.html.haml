@@ -1,0 +1,18 @@
+%h1= @subject.name
+
+.card
+  .card-body
+    %dl.row
+      %dt.col-sm-3 Código
+      %dd.col-sm-9= @subject.code
+      %dt.col-sm-3 Nombre
+      %dd.col-sm-9= @subject.name
+      %dt.col-sm-3 Departamento
+      %dd.col-sm-9= @subject.department.name
+      %dt.col-sm-3 Escuela
+      %dd.col-sm-9= @subject.department.school.name
+
+.mt-3
+  = link_to "Editar", edit_subject_path(@subject), class: "btn btn-outline-secondary"
+  = link_to "Volver", subjects_path, class: "btn btn-outline-primary"
+  = link_to "Eliminar", @subject, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro?" }, class: "btn btn-outline-danger"

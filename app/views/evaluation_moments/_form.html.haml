@@ -1,0 +1,12 @@
+= form_with(model: evaluation_moment, class: "mb-3") do |f|
+  = render "shared/errors", object: evaluation_moment
+
+  .mb-3
+    = f.label :name, "Nombre", class: "form-label"
+    = f.text_field :name, class: "form-control"
+
+  .mb-3
+    = f.label :weight, "Peso (%)", class: "form-label"
+    = f.number_field :weight, class: "form-control", step: 0.01, min: 0, max: 100
+
+  = f.submit class: "btn btn-primary"

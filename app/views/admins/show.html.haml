@@ -1,0 +1,22 @@
+%h1= "#{@admin.user.name} #{@admin.user.last_name}"
+
+.card
+  .card-body
+    %dl.row
+      %dt.col-sm-3 Nombre
+      %dd.col-sm-9= @admin.user.name
+      %dt.col-sm-3 Apellido
+      %dd.col-sm-9= @admin.user.last_name
+      %dt.col-sm-3 Cédula
+      %dd.col-sm-9= @admin.user.id_card || "—"
+      %dt.col-sm-3 Email
+      %dd.col-sm-9= @admin.user.email
+      %dt.col-sm-3 Rol
+      %dd.col-sm-9= @admin.role.humanize
+      %dt.col-sm-3 Escuela
+      %dd.col-sm-9= @admin.school.name
+
+.mt-3
+  = link_to "Editar", edit_admin_path(@admin), class: "btn btn-outline-secondary"
+  = link_to "Volver", admins_path, class: "btn btn-outline-primary"
+  = link_to "Eliminar", @admin, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro?" }, class: "btn btn-outline-danger"

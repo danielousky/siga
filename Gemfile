@@ -33,6 +33,9 @@ gem "devise"
 # Haml templates for Rails [https://github.com/haml/haml-rails]
 gem "haml-rails"
 
+# Pagination [https://github.com/ddnexus/pagy]
+gem "pagy"
+
 # Use Redis adapter to run Action Cable in production
 # gem "redis", "~> 4.0"
 

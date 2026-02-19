@@ -5,6 +5,7 @@ class Admin < ApplicationRecord
 
   belongs_to :user
   belongs_to :school
+  accepts_nested_attributes_for :user
 
   validates :role, presence: true
 end

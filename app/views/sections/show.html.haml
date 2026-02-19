@@ -1,0 +1,54 @@
+%h1= @section.name
+
+.card.mb-4
+  .card-body
+    %dl.row
+      %dt.col-sm-3 Nombre
+      %dd.col-sm-9= @section.name
+      %dt.col-sm-3 Grado
+      %dd.col-sm-9= @section.grade.name
+      %dt.col-sm-3 Período Académico
+      %dd.col-sm-9= @section.academic_period.name
+      %dt.col-sm-3 Capacidad
+      %dd.col-sm-9= @section.capacity
+      %dt.col-sm-3 Aula
+      %dd.col-sm-9= @section.classroom || "—"
+
+%h3 Profesores Asignados
+- if @teacher_sections.any?
+  %table.table.table-striped
+    %thead
+      %tr
+        %th Profesor
+        %th Cédula
+        %th Materia
+        %th Acciones
+    %tbody
+      - @teacher_sections.each do |ts|
+        %tr
+          %td= "#{ts.teacher.user.name} #{ts.teacher.user.last_name}"
+          %td= ts.teacher.user.id_card || "—"
+          %td= "#{ts.subject.code} - #{ts.subject.name}"
+          %td
+            = link_to "Quitar", section_teacher_section_path(@section, ts), data: { turbo_method: :delete, turbo_confirm: "¿Quitar este profesor?" }, class: "btn btn-sm btn-outline-danger"
+- else
+  %p.text-muted No hay profesores asignados.
+
+- if @available_subjects.any? && @available_teachers.any?
+  .card.mt-3
+    .card-body
+      %h5 Asignar Profesor a Materia
+      = form_with(url: section_teacher_sections_path(@section), method: :post, class: "row g-2 align-items-end") do |f|
+        .col-md-5
+          %label.form-label Materia
+          = f.select :subject_id, options_for_select(@available_subjects.map { |s| ["#{s.code} - #{s.name}", s.id] }), {}, class: "form-select"
+        .col-md-5
+          %label.form-label Profesor
+          = f.select :teacher_id, options_for_select(@available_teachers.map { |t| ["#{t.user.name} #{t.user.last_name} (#{t.user.id_card})", t.user_id] }), {}, class: "form-select"
+        .col-md-2
+          = f.submit "Asignar", class: "btn btn-primary w-100"
+
+.mt-3
+  = link_to "Editar", edit_section_path(@section), class: "btn btn-outline-secondary"
+  = link_to "Volver", sections_path, class: "btn btn-outline-primary"
+  = link_to "Eliminar", @section, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro?" }, class: "btn btn-outline-danger"

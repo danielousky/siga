@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_02_18_210017) do
+ActiveRecord::Schema[7.0].define(version: 2026_02_19_021639) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -213,6 +213,18 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_18_210017) do
     t.index ["department_id"], name: "index_subjects_on_department_id"
   end
 
+  create_table "teacher_sections", force: :cascade do |t|
+    t.bigint "teacher_id", null: false
+    t.bigint "section_id", null: false
+    t.bigint "subject_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["section_id", "subject_id"], name: "index_teacher_sections_on_section_and_subject", unique: true
+    t.index ["section_id"], name: "index_teacher_sections_on_section_id"
+    t.index ["subject_id"], name: "index_teacher_sections_on_subject_id"
+    t.index ["teacher_id"], name: "index_teacher_sections_on_teacher_id"
+  end
+
   create_table "teachers", primary_key: "user_id", force: :cascade do |t|
     t.bigint "school_id", null: false
     t.datetime "created_at", null: false
@@ -263,6 +275,9 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_18_210017) do
   add_foreign_key "students", "schools"
   add_foreign_key "students", "users"
   add_foreign_key "subjects", "departments"
+  add_foreign_key "teacher_sections", "sections"
+  add_foreign_key "teacher_sections", "subjects"
+  add_foreign_key "teacher_sections", "teachers", primary_key: "user_id"
   add_foreign_key "teachers", "schools"
   add_foreign_key "teachers", "users"
 end

@@ -1,0 +1,33 @@
+= form_with(model: teacher, class: "mb-3") do |f|
+  = render "shared/errors", object: teacher
+
+  %fieldset.mb-4
+    %legend Datos del Usuario
+    = f.fields_for :user do |u|
+      .mb-3
+        = u.label :name, "Nombre", class: "form-label"
+        = u.text_field :name, class: "form-control"
+      .mb-3
+        = u.label :last_name, "Apellido", class: "form-label"
+        = u.text_field :last_name, class: "form-control"
+      .mb-3
+        = u.label :id_card, "Cédula", class: "form-label"
+        = u.text_field :id_card, class: "form-control"
+      .mb-3
+        = u.label :email, "Email", class: "form-label"
+        = u.email_field :email, class: "form-control"
+      - if teacher.new_record?
+        .mb-3
+          = u.label :password, "Contraseña", class: "form-label"
+          = u.password_field :password, class: "form-control"
+        .mb-3
+          = u.label :password_confirmation, "Confirmar Contraseña", class: "form-label"
+          = u.password_field :password_confirmation, class: "form-control"
+
+  %fieldset.mb-4
+    %legend Datos del Profesor
+    .mb-3
+      = f.label :school_id, "Escuela", class: "form-label"
+      = f.select :school_id, School.all.map { |s| [s.name, s.id] }, { include_blank: "Seleccione..." }, class: "form-select"
+
+  = f.submit class: "btn btn-primary"

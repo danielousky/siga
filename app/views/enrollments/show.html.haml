@@ -1,0 +1,23 @@
+%h1 Inscripción
+
+.card
+  .card-body
+    %dl.row
+      %dt.col-sm-3 Estudiante
+      %dd.col-sm-9= "#{@enrollment.student.user.name} #{@enrollment.student.user.last_name}"
+      %dt.col-sm-3 Sección
+      %dd.col-sm-9= @enrollment.section.name
+      %dt.col-sm-3 Grado
+      %dd.col-sm-9= @enrollment.section.grade.name
+      %dt.col-sm-3 Período
+      %dd.col-sm-9= @enrollment.section.academic_period.name
+      %dt.col-sm-3 Fecha Inscripción
+      %dd.col-sm-9= @enrollment.enrollment_date
+      %dt.col-sm-3 Estado
+      %dd.col-sm-9
+        %span.badge{class: @enrollment.regular? ? "bg-success" : "bg-warning"}= @enrollment.status.humanize
+
+.mt-3
+  = link_to "Editar", edit_enrollment_path(@enrollment), class: "btn btn-outline-secondary"
+  = link_to "Volver", enrollments_path, class: "btn btn-outline-primary"
+  = link_to "Eliminar", @enrollment, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro?" }, class: "btn btn-outline-danger"
