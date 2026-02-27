@@ -779,15 +779,31 @@ textarea.form-control {
 /* ---- Hero Section ---- */
 
 .hero-section {
-  min-height: 90vh;
+  min-height: 82vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1e4a7a 0%, #0f2538 100%);
+  background: #081430;
   color: white;
   padding: var(--space-2xl) var(--space-lg);
   position: relative;
   overflow: hidden;
+}
+
+.hero-section-bg-logo {
+  background-repeat: no-repeat;
+  background-position: center 5%;
+  background-size: min(520px, 62vw);
+}
+
+.hero-section-bg-logo .hero-content {
+  padding-top: clamp(180px, 20vw, 280px);
+}
+
+.hero-section-fullwidth {
+  width: calc(100% + (var(--space-2xl) * 2));
+  margin-left: calc(var(--space-2xl) * -1);
+  margin-right: calc(var(--space-2xl) * -1);
 }
 
 .hero-section::before {
@@ -797,9 +813,7 @@ textarea.form-control {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image:
-    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+  background: none;
   pointer-events: none;
 }
 
@@ -811,11 +825,16 @@ textarea.form-control {
 }
 
 .hero-logo {
-  width: 280px;
+  width: min(420px, 78vw);
   height: auto;
-  margin: 0 auto var(--space-xl);
+  margin: 0 auto var(--space-lg);
   display: block;
-  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+  mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(circle at 50% 46%, #000 0%, #000 58%, rgba(0, 0, 0, 0.78) 70%, rgba(0, 0, 0, 0.35) 80%, transparent 90%);
+  mask-image: radial-gradient(circle at 50% 46%, #000 0%, #000 58%, rgba(0, 0, 0, 0.78) 70%, rgba(0, 0, 0, 0.35) 80%, transparent 90%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  filter: drop-shadow(0 0 34px rgba(74, 201, 255, 0.35));
   animation: fadeInDown 1s ease-out;
 }
 
@@ -1257,6 +1276,21 @@ textarea.form-control {
 /* ---- Responsive ---- */
 
 @media (max-width: 768px) {
+  .hero-section-bg-logo {
+    background-position: center 8%;
+    background-size: min(420px, 86vw);
+  }
+
+  .hero-section-bg-logo .hero-content {
+    padding-top: clamp(145px, 30vw, 230px);
+  }
+
+  .hero-section-fullwidth {
+    width: calc(100% + (var(--space-lg) * 2));
+    margin-left: calc(var(--space-lg) * -1);
+    margin-right: calc(var(--space-lg) * -1);
+  }
+
   .hero-title {
     font-size: 36px;
   }

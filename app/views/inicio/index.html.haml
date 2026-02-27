@@ -24,9 +24,8 @@
   / Landing page para usuarios NO autenticados
   .landing-page
   / Hero Section - Sección principal con logo
-  .hero-section
+  .hero-section.hero-section-fullwidth.hero-section-bg-logo{style: "background-image: url('#{asset_path('siga_hero.png')}');"}
     .hero-content
-      = image_tag 'siga-logo.png', alt: 'SIGA Logo', class: 'hero-logo'
       %h1.hero-title Sistema Integrado de Gestión Académica
       %p.hero-subtitle
         Transformando la administración educativa con tecnología moderna.
