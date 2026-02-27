@@ -403,6 +403,37 @@ textarea.form-control {
   min-height: 100px;
 }
 
+.password-toggle-group {
+  position: relative;
+}
+
+.password-toggle-group .form-control {
+  padding-right: 52px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: var(--space-xs);
+  top: 50%;
+  transform: translateY(-50%);
+  border: 1px solid var(--border-standard);
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  line-height: 1;
+  width: 34px;
+  height: 30px;
+  padding: 0;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.password-toggle-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
 /* ---- Alerts ---- */
 
 .alert {

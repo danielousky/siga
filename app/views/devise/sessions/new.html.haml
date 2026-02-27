@@ -9,7 +9,14 @@
 
     .form-group
       = f.label :password, "Contraseña", class: "form-label"
-      = f.password_field :password, autocomplete: "current-password", class: "form-control", placeholder: "Ingrese su contraseña"
+      .password-toggle-group{data: {controller: "password-visibility"}}
+        = f.password_field :password,
+          autocomplete: "current-password",
+          class: "form-control",
+          placeholder: "Ingrese su contraseña",
+          data: {password_visibility_target: "input"}
+        %button.password-toggle-btn{type: "button", data: {action: "click->password-visibility#toggle", password_visibility_target: "button"}, aria: {label: "Mostrar contraseña", pressed: "false"}}
+          %i.fa-solid.fa-eye{data: {password_visibility_target: "icon"}}
 
     - if devise_mapping.rememberable?
       .form-group
