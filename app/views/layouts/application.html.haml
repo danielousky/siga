@@ -5,6 +5,7 @@
     %meta{name: "viewport", content: "width=device-width,initial-scale=1"}
     = csrf_meta_tags
     = csp_meta_tag
+    = favicon_link_tag 'logo.png'
 
     = stylesheet_link_tag "application", "data-turbo-track": "reload"
     = javascript_importmap_tags
@@ -12,7 +13,9 @@
   %body
     %nav.nav-institutional
       .container-fluid
-        %a.navbar-brand{href: root_path} SIGA
+        = link_to root_path, class: 'navbar-brand' do
+          = image_tag 'logo.png', alt: 'SIGA', class: 'navbar-brand-logo'
+          %span.navbar-brand-text SIGA
         - if user_signed_in?
           .d-flex.align-items-center
             %span.user-info= current_user.name

@@ -26,10 +26,13 @@
   / Hero Section - Sección principal con logo
   .hero-section.hero-section-fullwidth.hero-section-bg-logo{style: "background-image: url('#{asset_path('siga_hero.png')}');"}
     .hero-content
-      %h1.hero-title Sistema Integrado de Gestión Académica
-      %p.hero-subtitle
-        Transformando la administración educativa con tecnología moderna.
-        Gestiona estudiantes, profesores, calificaciones y más desde una plataforma centralizada.
+      %h1.hero-title
+        %span.hero-title-accent SIGA:
+        %br/
+        Sistema Integral
+        %br/
+        Gestión Académica
+      %p.hero-subtitle Optimiza tu futuro académico
       .hero-actions
         = link_to new_user_session_path, class: 'btn-hero btn-hero-primary' do
           Iniciar Sesión

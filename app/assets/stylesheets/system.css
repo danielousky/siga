@@ -141,6 +141,9 @@ a:hover {
 }
 
 .nav-institutional .navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
   font-family: var(--font-serif);
   font-size: 20px;
   font-weight: 600;
@@ -152,6 +155,16 @@ a:hover {
 
 .nav-institutional .navbar-brand:hover {
   color: var(--brand-hover);
+}
+
+.nav-institutional .navbar-brand-logo {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
+.nav-institutional .navbar-brand-text {
+  line-height: 1;
 }
 
 .nav-institutional .nav-link {
@@ -489,7 +502,7 @@ textarea.form-control {
 .container-academic {
   flex: 1;
   max-width: 100%;
-  padding: var(--space-xl) var(--space-2xl);
+  padding: 0 var(--space-2xl) var(--space-xl);
 }
 
 @media (max-width: 768px) {
@@ -779,28 +792,40 @@ textarea.form-control {
 /* ---- Hero Section ---- */
 
 .hero-section {
-  min-height: 82vh;
+  min-height: 78vh;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   background: #081430;
   color: white;
-  padding: var(--space-2xl) var(--space-lg);
+  padding: 0 var(--space-lg) var(--space-2xl);
   position: relative;
   overflow: hidden;
 }
 
 .hero-section-bg-logo {
   background-repeat: no-repeat;
-  background-position: center 5%;
-  background-size: min(520px, 62vw);
+  background-position: 76% 46%;
+  background-size: min(640px, 55vw);
 }
 
 .hero-section-bg-logo .hero-content {
-  padding-top: clamp(180px, 20vw, 280px);
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  padding-top: clamp(48px, 7vw, 25px);
 }
 
 .hero-section-fullwidth {
+  width: calc(100% + (var(--space-2xl) * 2));
+  margin-left: calc(var(--space-2xl) * -1);
+  margin-right: calc(var(--space-2xl) * -1);
+}
+
+.features-section,
+.benefits-section,
+.stats-section,
+.cta-section,
+.landing-footer {
   width: calc(100% + (var(--space-2xl) * 2));
   margin-left: calc(var(--space-2xl) * -1);
   margin-right: calc(var(--space-2xl) * -1);
@@ -813,13 +838,16 @@ textarea.form-control {
   left: 0;
   right: 0;
   bottom: 0;
-  background: none;
+  background-image:
+    linear-gradient(90deg, rgba(8, 20, 48, 0.9) 0%, rgba(8, 20, 48, 0.6) 36%, rgba(8, 20, 48, 0.08) 70%),
+    repeating-linear-gradient(90deg, rgba(79, 225, 255, 0.06) 0 1px, transparent 1px 110px),
+    repeating-linear-gradient(0deg, rgba(79, 225, 255, 0.04) 0 1px, transparent 1px 90px);
   pointer-events: none;
 }
 
 .hero-content {
-  max-width: 900px;
-  text-align: center;
+  max-width: 640px;
+  text-align: left;
   position: relative;
   z-index: 1;
 }
@@ -839,30 +867,38 @@ textarea.form-control {
 }
 
 .hero-title {
-  font-family: var(--font-serif);
-  font-size: 48px;
-  font-weight: 600;
+  font-family: var(--font-sans);
+  font-size: clamp(48px, 7vw, 62px);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
   margin: 0 0 var(--space-lg) 0;
-  line-height: 1.2;
-  color: #f4e8d0;
+  line-height: 1.03;
+  color: #9ce9ff;
   animation: fadeInUp 1s ease-out 0.2s both;
 }
 
+.hero-title-accent {
+  color: #2a9de4;
+}
+
 .hero-subtitle {
-  font-size: 20px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1.05;
+  color: rgba(218, 227, 255, 0.92);
   margin: 0 0 var(--space-2xl) 0;
-  max-width: 700px;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 520px;
+  margin-left: 0;
+  margin-right: 0;
   animation: fadeInUp 1s ease-out 0.4s both;
 }
 
 .hero-actions {
   display: flex;
   gap: var(--space-md);
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
   animation: fadeInUp 1s ease-out 0.6s both;
 }
@@ -1277,12 +1313,12 @@ textarea.form-control {
 
 @media (max-width: 768px) {
   .hero-section-bg-logo {
-    background-position: center 8%;
-    background-size: min(420px, 86vw);
+    background-position: center 12%;
+    background-size: min(500px, 95vw);
   }
 
   .hero-section-bg-logo .hero-content {
-    padding-top: clamp(145px, 30vw, 230px);
+    padding-top: clamp(110px, 24vw, 170px);
   }
 
   .hero-section-fullwidth {
@@ -1291,12 +1327,22 @@ textarea.form-control {
     margin-right: calc(var(--space-lg) * -1);
   }
 
+  .features-section,
+  .benefits-section,
+  .stats-section,
+  .cta-section,
+  .landing-footer {
+    width: calc(100% + (var(--space-lg) * 2));
+    margin-left: calc(var(--space-lg) * -1);
+    margin-right: calc(var(--space-lg) * -1);
+  }
+
   .hero-title {
-    font-size: 36px;
+    font-size: clamp(38px, 10vw, 60px);
   }
 
   .hero-subtitle {
-    font-size: 18px;
+    font-size: clamp(24px, 7vw, 34px);
   }
 
   .hero-logo {
