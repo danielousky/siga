@@ -3,7 +3,10 @@ class EnrollmentsController < ApplicationController
   before_action :set_enrollment, only: [:show, :edit, :update, :destroy]
 
   def index
-    @enrollments = Enrollment.includes(student: :user, section: [:grade, :academic_period]).all
+    @pagy, @enrollments = pagy(
+      Enrollment.includes(student: :user, section: [:grade, :academic_period])
+                .order("users.last_name, users.name")
+    )
   end
 
   def show; end

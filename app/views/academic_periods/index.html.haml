@@ -1,25 +1,28 @@
-%h1 Períodos Académicos
+.card-academic
+  .card-academic-header
+    %h1 Períodos Académicos
+    = link_to "Nuevo Período", new_academic_period_path, class: "btn btn-primary"
 
-= link_to "Nuevo Período Académico", new_academic_period_path, class: "btn btn-primary mb-3"
-
-%table.table.table-striped.table-hover
-  %thead
-    %tr
-      %th Nombre
-      %th Escuela
-      %th Fecha Inicio
-      %th Fecha Fin
-      %th Acciones
-  %tbody
-    - @academic_periods.each do |period|
+  %table.table-academic
+    %thead
       %tr
-        %td= period.name
-        %td= period.school.name
-        %td= l(period.start_date, format: :long) rescue period.start_date
-        %td= l(period.end_date, format: :long) rescue period.end_date
-        %td
-          = link_to "Ver", period, class: "btn btn-sm btn-outline-primary"
-          = link_to "Editar", edit_academic_period_path(period), class: "btn btn-sm btn-outline-secondary"
-          = link_to "Eliminar", period, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro?" }, class: "btn btn-sm btn-outline-danger"
+        %th Nombre
+        %th Escuela
+        %th Fecha Inicio
+        %th Fecha Fin
+        %th Acciones
+    %tbody
+      - @academic_periods.each do |period|
+        %tr
+          %td= period.name
+          %td= period.school.name
+          %td= period.start_date.strftime("%d/%m/%Y")
+          %td= period.end_date.strftime("%d/%m/%Y")
+          %td
+            .actions-group
+              = link_to "Ver", period, class: "btn btn-secondary btn-sm"
+              = link_to "Editar", edit_academic_period_path(period), class: "btn btn-secondary btn-sm"
+              = link_to "Eliminar", period, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar este período?" }, class: "btn btn-danger btn-sm"
 
-!= pagy_bootstrap_nav(@pagy)
+  .pagy-nav
+    != pagy_nav(@pagy)

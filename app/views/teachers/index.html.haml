@@ -24,6 +24,7 @@
             .actions-group
               = link_to "Ver", teacher, class: "btn btn-secondary btn-sm"
               = link_to "Editar", edit_teacher_path(teacher), class: "btn btn-secondary btn-sm"
-              = link_to "Eliminar", teacher, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar este registro?" }, class: "btn btn-outline-danger btn-sm"
+              = link_to "Eliminar", teacher, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar este registro?" }, class: "btn btn-danger btn-sm"
 
-!= pagy_bootstrap_nav(@pagy)
+  .pagy-nav
+    != pagy_nav(@pagy)

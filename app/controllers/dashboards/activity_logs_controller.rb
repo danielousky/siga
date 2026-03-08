@@ -2,11 +2,19 @@ class Dashboards::ActivityLogsController < ApplicationController
   before_action :require_admin!
 
   def index
-    @logs = ActivityLog.includes(:user)
-                       .recent
+    @logs = ActivityLog.includes(:user).recent
 
-    @logs = @logs.by_user(params[:user_id])   if params[:user_id].present?
-    @logs = @logs.by_action(params[:action])  if params[:action].present?
+    if params[:usuario_q].present?
+      q = "%#{params[:usuario_q].strip}%"
+      user_ids = User.where(
+        "name ILIKE :q OR last_name ILIKE :q OR email ILIKE :q OR id_card ILIKE :q",
+        q: q
+      ).pluck(:id)
+      @logs = @logs.where(user_id: user_ids)
+      @usuario_match = User.where(id: user_ids).order(:last_name, :name).limit(5)
+    end
+
+    @logs = @logs.by_action(params[:activity_action]) if params[:activity_action].present?
 
     if params[:from].present?
       to = params[:to].present? ? Date.parse(params[:to]) : Date.today
@@ -14,7 +22,6 @@ class Dashboards::ActivityLogsController < ApplicationController
     end
 
     @pagy, @logs = pagy(@logs, items: 50)
-    @users        = User.order(:last_name, :name).select(:id, :name, :last_name)
   end
 
   private

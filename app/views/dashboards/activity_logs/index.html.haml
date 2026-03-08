@@ -5,60 +5,83 @@
 
 .card-academic
   %h2 Filtros
-  = form_with url: dashboards_activity_logs_path, method: :get, local: true do |f|
+  = form_with url: dashboards_activity_logs_path, method: :get, local: false,
+      data: { controller: "search-filter", turbo_frame: "activity-results", action: "submit->search-filter#hideSpinner" } do |f|
+
     .form-row
+      .form-group{style: "flex: 2; min-width: 260px;"}
+        = f.label :usuario_q, "Usuario", class: "form-label"
+        .search-input-wrap
+          = f.text_field :usuario_q,
+              value: params[:usuario_q],
+              placeholder: "Nombre, apellido, cédula o correo...",
+              class: "form-select",
+              autocomplete: "off",
+              data: { "search-filter-target": "input", action: "input->search-filter#search" }
+          %span.search-spinner.hidden{data: { "search-filter-target": "spinner" }}
+
       .form-group
-        = f.label :user_id, "Usuario", class: "form-label"
-        = f.select :user_id,
-            [["Todos los usuarios", ""]] + @users.map { |u| ["#{u.last_name}, #{u.name}", u.id] },
-            { selected: params[:user_id] },
-            class: "form-select"
-      .form-group
-        = f.label :action, "Tipo de acción", class: "form-label"
-        = f.select :action,
+        = f.label :activity_action, "Tipo de acción", class: "form-label"
+        = f.select :activity_action,
             [["Todas las acciones", ""]] + ActivityLog::LABELS.map { |k, v| [v, k] },
-            { selected: params[:action] },
-            class: "form-select"
+            { selected: params[:activity_action] },
+            { class: "form-select", data: { action: "change->search-filter#search" } }
+
       .form-group
         = f.label :from, "Desde", class: "form-label"
-        = f.date_field :from, value: params[:from], class: "form-select"
+        = f.date_field :from, value: params[:from], class: "form-select",
+            data: { action: "change->search-filter#search" }
+
       .form-group
         = f.label :to, "Hasta", class: "form-label"
-        = f.date_field :to, value: params[:to], class: "form-select"
-      .form-group{style: "display: flex; align-items: flex-end;"}
+        = f.date_field :to, value: params[:to], class: "form-select",
+            data: { action: "change->search-filter#search" }
+
+      .form-group{style: "display: flex; align-items: flex-end; gap: 8px;"}
         = f.submit "Filtrar", class: "btn btn-primary"
-        - if params.except("controller", "action").any?(&:second.method(:present?).to_proc)
-          = link_to "Limpiar", dashboards_activity_logs_path, class: "btn btn-secondary", style: "margin-left: 8px;"
+        = link_to "Limpiar", dashboards_activity_logs_path, class: "btn btn-secondary"
 
-.card-academic
-  .card-academic-header
-    %h2 Actividad Registrada
-    %span.role-badge= "#{@pagy.count} registros"
+    - if params[:usuario_q].present? && @usuario_match&.any?
+      .filter-pills
+        %span{style: "font-size: 13px; color: var(--text-secondary);"} Filtrando por:
+        - @usuario_match.each do |u|
+          %span.filter-pill
+            = "#{u.last_name}, #{u.name}"
 
-  - if @logs.any?
-    %table.table-academic
-      %thead
-        %tr
-          %th Fecha y hora
-          %th Usuario
-          %th Tipo
-          %th Descripción
-          %th IP
-      %tbody
-        - @logs.each do |log|
+= turbo_frame_tag "activity-results" do
+  .card-academic
+    .card-academic-header
+      %h2 Actividad Registrada
+      %span.role-badge= "#{@pagy.count} #{'registro'.then { |w| @pagy.count == 1 ? w : w + 's' }}"
+
+    - if @logs.any?
+      %table.table-academic
+        %thead
           %tr
-            %td{style: "white-space: nowrap; color: var(--text-secondary); font-size: 13px;"}
-              = log.created_at.strftime("%d/%m/%Y %H:%M")
-            %td= "#{log.user.last_name}, #{log.user.name}"
-            %td
-              %span.activity-badge{class: "activity-badge--#{log.action.split('_').last}"}
-                = log.label
-            %td= log.message
-            %td{style: "font-size: 12px; color: var(--text-tertiary);"}= log.ip_address || "—"
+            %th Fecha y hora
+            %th Usuario
+            %th Tipo
+            %th Descripción
+            %th IP
+        %tbody
+          - @logs.each do |log|
+            %tr
+              %td{style: "white-space: nowrap; color: var(--text-secondary); font-size: 13px;"}
+                = log.created_at.strftime("%d/%m/%Y %H:%M")
+              %td= "#{log.user.last_name}, #{log.user.name}"
+              %td
+                %span.activity-badge{class: "activity-badge--#{log.action.split('_').last}"}
+                  = log.label
+              %td= log.message
+              %td{style: "font-size: 12px; color: var(--text-tertiary);"}= log.ip_address || "—"
 
-    .pagy-nav
-      != pagy_nav(@pagy)
-  - else
-    .empty-state
-      %h3 Sin registros
-      %p No hay actividad registrada con los filtros seleccionados.
+      .pagy-nav
+        != pagy_nav(@pagy)
+    - else
+      .empty-state
+        %h3 Sin registros
+        - if params[:usuario_q].present?
+          %p No se encontraron usuarios con "#{params[:usuario_q]}"
+          %p{style: "font-size: 13px; color: var(--text-tertiary);"} Intente con el nombre completo, número de expediente o correo institucional
+        - else
+          %p No hay actividad registrada con los filtros seleccionados.

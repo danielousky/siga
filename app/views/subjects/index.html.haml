@@ -23,6 +23,7 @@
             .actions-group
               = link_to "Ver", subject, class: "btn btn-secondary btn-sm"
               = link_to "Editar", edit_subject_path(subject), class: "btn btn-secondary btn-sm"
-              = link_to "Eliminar", subject, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar este registro?" }, class: "btn btn-outline-danger btn-sm"
+              = link_to "Eliminar", subject, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar este registro?" }, class: "btn btn-danger btn-sm"
 
-!= pagy_bootstrap_nav(@pagy)
+  .pagy-nav
+    != pagy_nav(@pagy)

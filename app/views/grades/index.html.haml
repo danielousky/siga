@@ -1,23 +1,26 @@
-%h1 Grados
+.card-academic
+  .card-academic-header
+    %h1 Grados
+    = link_to "Nuevo Grado", new_grade_path, class: "btn btn-primary"
 
-= link_to "Nuevo Grado", new_grade_path, class: "btn btn-primary mb-3"
-
-%table.table.table-striped.table-hover
-  %thead
-    %tr
-      %th Nombre
-      %th Nivel
-      %th Profesor Guía
-      %th Acciones
-  %tbody
-    - @grades.each do |grade|
+  %table.table-academic
+    %thead
       %tr
-        %td= grade.name
-        %td= grade.level.humanize
-        %td= grade.leader_teacher&.user&.name || "—"
-        %td
-          = link_to "Ver", grade, class: "btn btn-sm btn-outline-primary"
-          = link_to "Editar", edit_grade_path(grade), class: "btn btn-sm btn-outline-secondary"
-          = link_to "Eliminar", grade, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro?" }, class: "btn btn-sm btn-outline-danger"
+        %th Nombre
+        %th Nivel
+        %th Profesor Guía
+        %th Acciones
+    %tbody
+      - @grades.each do |grade|
+        %tr
+          %td= grade.name
+          %td= grade.level.humanize
+          %td= grade.leader_teacher&.user&.then { |u| "#{u.name} #{u.last_name}" } || "—"
+          %td
+            .actions-group
+              = link_to "Ver", grade, class: "btn btn-secondary btn-sm"
+              = link_to "Editar", edit_grade_path(grade), class: "btn btn-secondary btn-sm"
+              = link_to "Eliminar", grade, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar este grado?" }, class: "btn btn-danger btn-sm"
 
-!= pagy_bootstrap_nav(@pagy)
+  .pagy-nav
+    != pagy_nav(@pagy)
