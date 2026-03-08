@@ -3,7 +3,15 @@ class StudentsController < ApplicationController
   before_action :set_student, only: [:show, :edit, :update, :destroy]
 
   def index
-    @pagy, @students = pagy(Student.includes(:user, :school))
+    scope = Student.includes(:user, :school)
+    if params[:q].present?
+      q = "%#{params[:q].strip}%"
+      scope = scope.joins(:user).where(
+        "users.name ILIKE :q OR users.last_name ILIKE :q OR users.id_card ILIKE :q OR students.school_card ILIKE :q",
+        q: q
+      )
+    end
+    @pagy, @students = pagy(scope.order("users.last_name, users.name"))
   end
 
   def show; end

@@ -3,27 +3,38 @@
     %h1 Secciones
     = link_to "Nueva Sección", new_section_path, class: "btn btn-primary"
 
-  %table.table-academic
-    %thead
-      %tr
-        %th Grado
-        %th Sección
-        %th Período
-        %th Capacidad
-        %th Aula
-        %th Acciones
-    %tbody
-      - @sections.each do |section|
-        %tr
-          %td= section.grade.name
-          %td= section.name
-          %td= section.academic_period.name
-          %td= "#{section.enrollments.size} / #{section.capacity}"
-          %td= section.classroom || "—"
-          %td
-            = link_to "Ver", section, class: "btn btn-secondary btn-sm"
-            = link_to "Editar", edit_section_path(section), class: "btn btn-secondary btn-sm"
-            = link_to "Eliminar", section, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar esta sección?" }, class: "btn btn-danger btn-sm"
+= render "shared/search_filter",
+    url:      sections_path,
+    frame_id: "sections-results",
+    clear_url: sections_path,
+    fields: [
+      { type: :select, name: :grade_id,           label: "Grado",            options: @grades_options },
+      { type: :select, name: :academic_period_id,  label: "Período académico", options: @periods_options }
+    ]
 
-  .pagy-nav
-    != pagy_nav(@pagy)
+= turbo_frame_tag "sections-results" do
+  .card-academic
+    %table.table-academic
+      %thead
+        %tr
+          %th Grado
+          %th Sección
+          %th Período
+          %th Capacidad
+          %th Aula
+          %th Acciones
+      %tbody
+        - @sections.each do |section|
+          %tr
+            %td= section.grade.name
+            %td= section.name
+            %td= section.academic_period.name
+            %td= "#{section.enrollments.size} / #{section.capacity}"
+            %td= section.classroom || "—"
+            %td
+              = link_to "Ver", section, class: "btn btn-secondary btn-sm"
+              = link_to "Editar", edit_section_path(section), class: "btn btn-secondary btn-sm"
+              = link_to "Eliminar", section, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar esta sección?" }, class: "btn btn-danger btn-sm"
+
+    .pagy-nav
+      != pagy_nav(@pagy)

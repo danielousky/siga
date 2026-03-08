@@ -3,50 +3,23 @@
     %h1 Registro de Actividad
     %p{style: "color: var(--text-secondary); font-size: 14px; margin: 0;"} Auditoría completa de acciones del sistema
 
-.card-academic
-  %h2 Filtros
-  = form_with url: dashboards_activity_logs_path, method: :get, local: false,
-      data: { controller: "search-filter", turbo_frame: "activity-results", action: "submit->search-filter#hideSpinner" } do |f|
+= render "shared/search_filter",
+    url:      dashboards_activity_logs_path,
+    frame_id: "activity-results",
+    clear_url: dashboards_activity_logs_path,
+    fields: [
+      { type: :text,   name: :usuario_q,      label: "Usuario",         placeholder: "Nombre, apellido, cédula o correo...", flex: 2 },
+      { type: :select, name: :activity_action, label: "Tipo de acción",  options: [["Todas las acciones", ""]] + ActivityLog::LABELS.map { |k, v| [v, k] } },
+      { type: :date,   name: :from,            label: "Desde" },
+      { type: :date,   name: :to,              label: "Hasta" }
+    ]
 
-    .form-row
-      .form-group{style: "flex: 2; min-width: 260px;"}
-        = f.label :usuario_q, "Usuario", class: "form-label"
-        .search-input-wrap
-          = f.text_field :usuario_q,
-              value: params[:usuario_q],
-              placeholder: "Nombre, apellido, cédula o correo...",
-              class: "form-select",
-              autocomplete: "off",
-              data: { "search-filter-target": "input", action: "input->search-filter#search" }
-          %span.search-spinner.hidden{data: { "search-filter-target": "spinner" }}
-
-      .form-group
-        = f.label :activity_action, "Tipo de acción", class: "form-label"
-        = f.select :activity_action,
-            [["Todas las acciones", ""]] + ActivityLog::LABELS.map { |k, v| [v, k] },
-            { selected: params[:activity_action] },
-            { class: "form-select", data: { action: "change->search-filter#search" } }
-
-      .form-group
-        = f.label :from, "Desde", class: "form-label"
-        = f.date_field :from, value: params[:from], class: "form-select",
-            data: { action: "change->search-filter#search" }
-
-      .form-group
-        = f.label :to, "Hasta", class: "form-label"
-        = f.date_field :to, value: params[:to], class: "form-select",
-            data: { action: "change->search-filter#search" }
-
-      .form-group{style: "display: flex; align-items: flex-end; gap: 8px;"}
-        = f.submit "Filtrar", class: "btn btn-primary"
-        = link_to "Limpiar", dashboards_activity_logs_path, class: "btn btn-secondary"
-
-    - if params[:usuario_q].present? && @usuario_match&.any?
-      .filter-pills
-        %span{style: "font-size: 13px; color: var(--text-secondary);"} Filtrando por:
-        - @usuario_match.each do |u|
-          %span.filter-pill
-            = "#{u.last_name}, #{u.name}"
+- if params[:usuario_q].present? && @usuario_match&.any?
+  .filter-pills
+    %span{style: "font-size: 13px; color: var(--text-secondary);"} Filtrando por:
+    - @usuario_match.each do |u|
+      %span.filter-pill
+        = "#{u.last_name}, #{u.name}"
 
 = turbo_frame_tag "activity-results" do
   .card-academic

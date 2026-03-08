@@ -3,28 +3,38 @@
     %h1 Registro de Estudiantes
     = link_to "Registrar Nuevo Estudiante", new_student_path, class: "btn btn-primary"
 
-  %table.table-academic
-    %thead
-      %tr
-        %th Nombre
-        %th Apellido
-        %th Cédula
-        %th Carnet Escolar
-        %th Escuela
-        %th Acciones
-    %tbody
-      - @students.each do |student|
-        %tr
-          %td= student.user.name
-          %td= student.user.last_name
-          %td= student.user.id_card || "—"
-          %td= student.school_card
-          %td= student.school.name
-          %td
-            .actions-group
-              = link_to "Ver", student, class: "btn btn-secondary btn-sm"
-              = link_to "Editar", edit_student_path(student), class: "btn btn-secondary btn-sm"
-              = link_to "Eliminar", student, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar este registro?" }, class: "btn btn-danger btn-sm"
+= render "shared/search_filter",
+    url:      students_path,
+    frame_id: "students-results",
+    clear_url: students_path,
+    fields: [
+      { type: :text, name: :q, label: "Buscar", placeholder: "Nombre, apellido, cédula o carnet...", flex: 2 }
+    ]
 
-  .pagy-nav
-    != pagy_nav(@pagy)
+= turbo_frame_tag "students-results" do
+  .card-academic
+    %table.table-academic
+      %thead
+        %tr
+          %th Nombre
+          %th Apellido
+          %th Cédula
+          %th Carnet Escolar
+          %th Escuela
+          %th Acciones
+      %tbody
+        - @students.each do |student|
+          %tr
+            %td= student.user.name
+            %td= student.user.last_name
+            %td= student.user.id_card || "—"
+            %td= student.school_card
+            %td= student.school.name
+            %td
+              .actions-group
+                = link_to "Ver", student, class: "btn btn-secondary btn-sm"
+                = link_to "Editar", edit_student_path(student), class: "btn btn-secondary btn-sm"
+                = link_to "Eliminar", student, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar este registro?" }, class: "btn btn-danger btn-sm"
+
+    .pagy-nav
+      != pagy_nav(@pagy)

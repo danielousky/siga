@@ -3,10 +3,18 @@ class EnrollmentsController < ApplicationController
   before_action :set_enrollment, only: [:show, :edit, :update, :destroy]
 
   def index
-    @pagy, @enrollments = pagy(
-      Enrollment.includes(student: :user, section: [:grade, :academic_period])
-                .order("users.last_name, users.name")
-    )
+    scope = Enrollment.includes(student: :user, section: [:grade, :academic_period])
+                      .joins(student: :user, section: :grade)
+    if params[:q].present?
+      q = "%#{params[:q].strip}%"
+      scope = scope.where(
+        "users.name ILIKE :q OR users.last_name ILIKE :q OR users.id_card ILIKE :q",
+        q: q
+      )
+    end
+    scope = scope.where(sections: { grade_id: params[:grade_id] }) if params[:grade_id].present?
+    @pagy, @enrollments = pagy(scope.order("users.last_name, users.name"))
+    @grades_options = [["Todos los grados", ""]] + Grade.order(:name).pluck(:name, :id)
   end
 
   def show; end

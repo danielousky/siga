@@ -4,7 +4,12 @@ class SectionsController < ApplicationController
   before_action :set_section, only: [:show, :edit, :update, :destroy]
 
   def index
-    @pagy, @sections = pagy(Section.includes(:grade, :academic_period).order("grades.name, sections.name"))
+    scope = Section.includes(:grade, :academic_period).joins(:grade, :academic_period)
+    scope = scope.where(grade_id: params[:grade_id]) if params[:grade_id].present?
+    scope = scope.where(academic_period_id: params[:academic_period_id]) if params[:academic_period_id].present?
+    @pagy, @sections = pagy(scope.order("grades.name, sections.name"))
+    @grades_options = [["Todos los grados", ""]] + Grade.order(:name).pluck(:name, :id)
+    @periods_options = [["Todos los períodos", ""]] + AcademicPeriod.order(start_date: :desc).pluck(:name, :id)
   end
 
   def show
