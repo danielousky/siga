@@ -1,0 +1,13 @@
+.sidebar-section
+  .sidebar-section-title Mi Panel
+  %ul.sidebar-nav
+    %li.sidebar-nav-item
+      = link_to "Mi Dashboard", dashboards_profesor_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/profesor'}"
+
+.sidebar-section
+  .sidebar-section-title Mis Secciones
+  %ul.sidebar-nav
+    - current_user.teacher.teacher_sections.includes(section: :grade).each do |ts|
+      %li.sidebar-nav-item
+        = link_to section_path(ts.section), class: "sidebar-nav-link #{'active' if controller_name == 'sections' && params[:id] == ts.section_id.to_s}" do
+          = "#{ts.section.grade.name} – #{ts.section.name}"

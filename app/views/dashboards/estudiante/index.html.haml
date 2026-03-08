@@ -1,0 +1,54 @@
+.dashboard-estudiante
+  .card-academic
+    .card-academic-header
+      %h1 Mi Panel Estudiantil
+      .admin-info-badge
+        = current_user.name
+        %span.role-badge= @student.school_card
+
+  .stats-grid
+    .stat-card
+      %h3= @total_sections
+      %p Secciones Inscritas
+
+    .stat-card
+      %h3= @enrollments.map { |e| e.section.teacher_sections.size }.sum
+      %p Materias en Cursando
+
+    - if @current_period
+      .stat-card{style: "grid-column: span 2;"}
+        %h3{style: "font-size: 18px; margin-bottom: var(--space-xs);"}= @current_period.name
+        %p Período Académico Activo
+
+  - if @enrollments.any?
+    .card-academic
+      %h2 Mis Secciones Inscritas
+
+      - @enrollments.each do |enrollment|
+        - section = enrollment.section
+        .section-block
+          .section-block-header
+            .section-block-title
+              %h3= "#{section.grade.name} – #{section.name}"
+              %span.section-period= section.academic_period.name
+            .section-block-meta
+              %span.status-badge.status-pendiente{style: "background: var(--success-bg); color: var(--success-text); border-color: var(--success-border);"}
+                Regular
+
+          - if section.teacher_sections.any?
+            .section-subjects
+              - section.teacher_sections.each do |ts|
+                .subject-tag
+                  %span.subject-name= ts.subject.name
+                  - if ts.teacher&.user
+                    %span.subject-teacher= "· #{ts.teacher.user.last_name}"
+
+          .section-actions
+            %span{style: "font-size: 13px; color: var(--text-tertiary);"}
+              Inscrito el #{enrollment.enrollment_date.strftime('%d/%m/%Y')}
+
+  - else
+    .card-academic
+      .empty-state
+        %h3 Sin secciones inscritas
+        %p No tienes inscripciones activas en este momento. Contacta a la secretaría.

@@ -18,11 +18,21 @@
           = image_tag 'logo.png', alt: 'SIGA', class: 'navbar-brand-logo'
           %span.navbar-brand-text SIGA
         - if user_signed_in?
-          .d-flex.align-items-center
+          .session-menu.d-flex.align-items-center
             %span.user-info= current_user.name
             = link_to "Cerrar sesión", destroy_user_session_path, data: { turbo_method: :delete }, class: "btn btn-outline-light btn-sm"
 
-    - if user_signed_in?
+    - if user_signed_in? && current_user_type.nil?
+      / Usuario autenticado sin rol asignado
+      .container-academic
+        .no-role-container
+          .no-role-card
+            .no-role-icon ⚠️
+            %h2 Sin Rol Asignado
+            %p Usted no tiene un rol asignado en el sistema. Contacte al administrador para que le asigne uno.
+            = link_to "Cerrar Sesión", destroy_user_session_path, data: { turbo_method: :delete }, class: "btn btn-secondary"
+
+    - elsif user_signed_in?
       .academic-context
         .academic-context-inner
           .period-indicator Período Académico Activo
@@ -33,19 +43,9 @@
           - if administrador?
             = render 'shared/sidebar_administrador'
           - elsif profesor?
-            .sidebar-section
-              .sidebar-section-title Dashboard
-              %ul.sidebar-nav
-                %li.sidebar-nav-item
-                  = link_to "Mi Dashboard", root_path, class: "sidebar-nav-link active"
-              %p{style: "padding: var(--space-lg); color: var(--text-tertiary); font-size: 13px;"} Dashboard de profesor en desarrollo...
+            = render 'shared/sidebar_profesor'
           - elsif estudiante?
-            .sidebar-section
-              .sidebar-section-title Dashboard
-              %ul.sidebar-nav
-                %li.sidebar-nav-item
-                  = link_to "Mi Dashboard", root_path, class: "sidebar-nav-link active"
-              %p{style: "padding: var(--space-lg); color: var(--text-tertiary); font-size: 13px;"} Dashboard de estudiante en desarrollo...
+            = render 'shared/sidebar_estudiante'
 
         %main.container-academic
           - if notice.present?

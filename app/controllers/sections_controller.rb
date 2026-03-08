@@ -1,16 +1,22 @@
 class SectionsController < ApplicationController
-  before_action :require_admin_access!
+  before_action :require_admin_access!, except: [:show]
+  before_action :require_read_access!, only: [:show]
   before_action :set_section, only: [:show, :edit, :update, :destroy]
 
   def index
-    @sections = Section.includes(:grade, :academic_period).all
+    @pagy, @sections = pagy(Section.includes(:grade, :academic_period).order("grades.name, sections.name"))
   end
 
   def show
     @teacher_sections = @section.teacher_sections.includes(teacher: :user, subject: {})
-    assigned_subject_ids = @teacher_sections.pluck(:subject_id)
-    @available_subjects = @section.grade.subjects.where.not(id: assigned_subject_ids).order(:name)
-    @available_teachers = Teacher.includes(:user).order("users.last_name")
+    @enrollments = @section.enrollments.where(status: :regular).includes(student: :user).order("users.last_name")
+
+    # Solo los admins necesitan los datos de gestión
+    if administrador?
+      assigned_subject_ids = @teacher_sections.pluck(:subject_id)
+      @available_subjects = @section.grade.subjects.where.not(id: assigned_subject_ids).order(:name)
+      @available_teachers = Teacher.includes(:user).order("users.last_name")
+    end
   end
 
   def new
@@ -57,6 +63,20 @@ class SectionsController < ApplicationController
   def require_admin_access!
     unless administrador? && can_manage_sections?
       redirect_to dashboard_path_for_user, alert: "Acceso no autorizado. Esta función es solo para administradores."
+    end
+  end
+
+  # Profesores pueden ver sus propias secciones; admins pueden ver cualquiera
+  def require_read_access!
+    if administrador?
+      # ok
+    elsif profesor?
+      section = Section.find(params[:id])
+      unless current_user.teacher.sections.include?(section)
+        redirect_to dashboard_path_for_user, alert: "No tienes acceso a esta sección."
+      end
+    else
+      redirect_to dashboard_path_for_user, alert: "Acceso no autorizado."
     end
   end
 end

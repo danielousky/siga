@@ -1,0 +1,63 @@
+.dashboard-profesor
+  .card-academic
+    .card-academic-header
+      %h1 Panel del Profesor
+      .admin-info-badge
+        = current_user.name
+        - if @led_grades.any?
+          %span.role-badge Director de Grado
+
+  .stats-grid
+    .stat-card
+      %h3= @total_sections
+      %p Secciones Asignadas
+
+    .stat-card
+      %h3= @total_students
+      %p Estudiantes en Total
+
+    .stat-card
+      %h3= @total_subjects
+      %p #{@total_subjects == 1 ? 'Materia' : 'Materias'} Distintas
+
+    - if @led_grades.any?
+      .stat-card
+        %h3= @led_grades.size
+        %p #{@led_grades.size == 1 ? 'Grado Liderado' : 'Grados Liderados'}
+
+  - if @led_grades.any?
+    .card-academic
+      %h2 Grados que Lideras
+      .features-grid{style: "margin-top: var(--space-lg);"}
+        - @led_grades.each do |grade|
+          .feature-card{style: "padding: var(--space-md) var(--space-lg);"}
+            .feature-icon{style: "font-size: 32px; margin-bottom: var(--space-sm);"} 🏫
+            %h3{style: "font-size: 17px;"}= grade.name
+            %p= "#{grade.sections.count} sección#{grade.sections.count != 1 ? 'es' : ''} · #{grade.level.capitalize}"
+
+  .card-academic
+    %h2 Mis Secciones
+    - if @teacher_sections.any?
+      - @teacher_sections.group_by { |ts| ts.section }.each do |section, teacher_sections|
+        .section-block
+          .section-block-header
+            .section-block-title
+              %h3= "#{section.grade.name} – #{section.name}"
+              %span.section-period= section.academic_period.name
+            .section-block-meta
+              %span.section-student-count
+                👥 #{section.enrollments.count} estudiantes
+
+          .section-subjects
+            - teacher_sections.each do |ts|
+              .subject-tag
+                %span.subject-name= ts.subject.name
+
+          .section-actions
+            = link_to section_path(section), class: "btn btn-secondary btn-sm" do
+              Ver Sección
+
+    - else
+      .empty-state
+        %h3 Sin secciones asignadas
+        %p Aún no tienes secciones asignadas. Contacta al coordinador.

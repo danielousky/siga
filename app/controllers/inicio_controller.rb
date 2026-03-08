@@ -8,11 +8,9 @@ class InicioController < ApplicationController
       when :administrador
         redirect_to dashboards_administrador_path and return
       when :profesor
-        # Por ahora mostrar mensaje, después redirigir a dashboards_profesor_path
-        flash.now[:notice] = "Bienvenido, profesor. Tu dashboard está en desarrollo."
+        redirect_to dashboards_profesor_path and return
       when :estudiante
-        # Por ahora mostrar mensaje, después redirigir a dashboards_estudiante_path
-        flash.now[:notice] = "Bienvenido, estudiante. Tu dashboard está en desarrollo."
+        redirect_to dashboards_estudiante_path and return
       else
         # Usuario sin rol asignado, mostrar mensaje
         flash.now[:alert] = "Tu cuenta no tiene un rol asignado. Contacta al administrador."

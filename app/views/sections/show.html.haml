@@ -1,54 +1,137 @@
-%h1= @section.name
+.card-academic
+  .card-academic-header
+    %h1= "#{@section.grade.name} – Sección #{@section.name}"
+    - if administrador?
+      .actions-group
+        = link_to "Editar", edit_section_path(@section), class: "btn btn-secondary"
+        = link_to "Eliminar", @section, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar esta sección?" }, class: "btn btn-danger"
+    - else
+      = link_to "← Volver", dashboards_profesor_path, class: "btn btn-secondary"
 
-.card.mb-4
-  .card-body
-    %dl.row
-      %dt.col-sm-3 Nombre
-      %dd.col-sm-9= @section.name
-      %dt.col-sm-3 Grado
-      %dd.col-sm-9= @section.grade.name
-      %dt.col-sm-3 Período Académico
-      %dd.col-sm-9= @section.academic_period.name
-      %dt.col-sm-3 Capacidad
-      %dd.col-sm-9= @section.capacity
-      %dt.col-sm-3 Aula
-      %dd.col-sm-9= @section.classroom || "—"
+  .detail-row
+    .detail-item
+      %label.detail-label Período Académico
+      %p.detail-value= @section.academic_period.name
+    .detail-item
+      %label.detail-label Capacidad
+      %p.detail-value= "#{@enrollments.size} / #{@section.capacity} estudiantes"
+    - if @section.classroom.present?
+      .detail-item
+        %label.detail-label Aula
+        %p.detail-value= @section.classroom
 
-%h3 Profesores Asignados
-- if @teacher_sections.any?
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Profesor
-        %th Cédula
-        %th Materia
-        %th Acciones
-    %tbody
-      - @teacher_sections.each do |ts|
-        %tr
-          %td= "#{ts.teacher.user.name} #{ts.teacher.user.last_name}"
-          %td= ts.teacher.user.id_card || "—"
-          %td= "#{ts.subject.code} - #{ts.subject.name}"
-          %td
-            = link_to "Quitar", section_teacher_section_path(@section, ts), data: { turbo_method: :delete, turbo_confirm: "¿Quitar este profesor?" }, class: "btn btn-sm btn-outline-danger"
-- else
-  %p.text-muted No hay profesores asignados.
+/ =============================================
+/ VISTA PROFESOR: Solo lectura
+/ =============================================
+- if profesor?
+  .card-academic
+    %h2 Materias y Profesores
+    - if @teacher_sections.any?
+      %table.table-academic
+        %thead
+          %tr
+            %th Materia
+            %th Profesor
+        %tbody
+          - @teacher_sections.each do |ts|
+            %tr
+              %td= ts.subject.name
+              %td
+                - if ts.teacher.user_id == current_user.id
+                  %strong= "#{ts.teacher.user.name} #{ts.teacher.user.last_name}"
+                  %span{style: "margin-left: 6px; font-size: 12px; color: var(--brand-primary);"} (tú)
+                - else
+                  = "#{ts.teacher.user.name} #{ts.teacher.user.last_name}"
+    - else
+      .empty-state
+        %p No hay materias asignadas aún.
 
-- if @available_subjects.any? && @available_teachers.any?
-  .card.mt-3
-    .card-body
-      %h5 Asignar Profesor a Materia
-      = form_with(url: section_teacher_sections_path(@section), method: :post, class: "row g-2 align-items-end") do |f|
-        .col-md-5
-          %label.form-label Materia
-          = f.select :subject_id, options_for_select(@available_subjects.map { |s| ["#{s.code} - #{s.name}", s.id] }), {}, class: "form-select"
-        .col-md-5
-          %label.form-label Profesor
-          = f.select :teacher_id, options_for_select(@available_teachers.map { |t| ["#{t.user.name} #{t.user.last_name} (#{t.user.id_card})", t.user_id] }), {}, class: "form-select"
-        .col-md-2
-          = f.submit "Asignar", class: "btn btn-primary w-100"
+  .card-academic
+    %h2 Estudiantes Inscritos
+    %p{style: "color: var(--text-secondary); font-size: 14px; margin-bottom: var(--space-lg);"} #{@enrollments.size} estudiante#{@enrollments.size != 1 ? 's' : ''} en esta sección
 
-.mt-3
-  = link_to "Editar", edit_section_path(@section), class: "btn btn-outline-secondary"
-  = link_to "Volver", sections_path, class: "btn btn-outline-primary"
-  = link_to "Eliminar", @section, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro?" }, class: "btn btn-outline-danger"
+    - if @enrollments.any?
+      %table.table-academic
+        %thead
+          %tr
+            %th #
+            %th Nombre
+            %th Apellido
+            %th Nro. Expediente
+        %tbody
+          - @enrollments.each_with_index do |enrollment, i|
+            %tr
+              %td= i + 1
+              %td= enrollment.student.user.name
+              %td= enrollment.student.user.last_name
+              %td= enrollment.student.school_card
+    - else
+      .empty-state
+        %h3 Sin estudiantes inscritos
+        %p Esta sección aún no tiene estudiantes inscritos.
+
+/ =============================================
+/ VISTA ADMINISTRADOR: Gestión completa
+/ =============================================
+- if administrador?
+  .card-academic
+    %h2 Profesores Asignados
+    - if @teacher_sections.any?
+      %table.table-academic
+        %thead
+          %tr
+            %th Profesor
+            %th Cédula
+            %th Materia
+            %th Acciones
+        %tbody
+          - @teacher_sections.each do |ts|
+            %tr
+              %td= "#{ts.teacher.user.name} #{ts.teacher.user.last_name}"
+              %td= ts.teacher.user.id_card || "—"
+              %td= "#{ts.subject.code} - #{ts.subject.name}"
+              %td
+                = link_to "Quitar", section_teacher_section_path(@section, ts), data: { turbo_method: :delete, turbo_confirm: "¿Quitar este profesor de esta materia?" }, class: "btn btn-danger btn-sm"
+    - else
+      .empty-state
+        %p No hay profesores asignados.
+
+    - if @available_subjects&.any? && @available_teachers&.any?
+      %hr{style: "margin: var(--space-xl) 0; border-color: var(--border-standard);"}
+      %h3{style: "font-size: 16px; margin-bottom: var(--space-lg);"} Asignar Profesor a Materia
+      = form_with url: section_teacher_sections_path(@section), method: :post do |f|
+        .form-row
+          .form-group
+            = f.label :subject_id, "Materia", class: "form-label"
+            = f.select :subject_id, options_for_select(@available_subjects.map { |s| ["#{s.code} - #{s.name}", s.id] }), {}, class: "form-select"
+          .form-group
+            = f.label :teacher_id, "Profesor", class: "form-label"
+            = f.select :teacher_id, options_for_select(@available_teachers.map { |t| ["#{t.user.last_name}, #{t.user.name} (#{t.user.id_card})", t.user_id] }), {}, class: "form-select"
+          .form-group{style: "display: flex; align-items: flex-end;"}
+            = f.submit "Asignar", class: "btn btn-primary"
+
+  .card-academic
+    %h2 Estudiantes Inscritos
+    %p{style: "color: var(--text-secondary); font-size: 14px; margin-bottom: var(--space-lg);"} #{@enrollments.size} de #{@section.capacity} lugares ocupados
+
+    - if @enrollments.any?
+      %table.table-academic
+        %thead
+          %tr
+            %th #
+            %th Nombre
+            %th Apellido
+            %th Nro. Expediente
+            %th Inscrito el
+        %tbody
+          - @enrollments.each_with_index do |enrollment, i|
+            %tr
+              %td= i + 1
+              %td= enrollment.student.user.name
+              %td= enrollment.student.user.last_name
+              %td= enrollment.student.school_card
+              %td= enrollment.enrollment_date.strftime("%d/%m/%Y")
+    - else
+      .empty-state
+        %h3 Sin estudiantes inscritos
+        %p Aún no hay estudiantes inscritos en esta sección.

@@ -1,0 +1,12 @@
+.sidebar-section
+  .sidebar-section-title Mi Panel
+  %ul.sidebar-nav
+    %li.sidebar-nav-item
+      = link_to "Mi Dashboard", dashboards_estudiante_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/estudiante'}"
+
+.sidebar-section
+  .sidebar-section-title Mis Secciones
+  %ul.sidebar-nav
+    - current_user.student.enrollments.where(status: :regular).includes(section: :grade).each do |enrollment|
+      %li.sidebar-nav-item
+        = link_to "#{enrollment.section.grade.name} – #{enrollment.section.name}", "#", class: "sidebar-nav-link"

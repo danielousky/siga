@@ -11,8 +11,8 @@ class ApplicationController < ActionController::Base
   def after_sign_in_path_for(resource)
     case current_user_type
     when :administrador then dashboards_administrador_path
-    when :profesor then root_path  # Por ahora, hasta implementar
-    when :estudiante then root_path  # Por ahora, hasta implementar
+    when :profesor      then dashboards_profesor_path
+    when :estudiante    then dashboards_estudiante_path
     else root_path
     end
   end
@@ -59,4 +59,14 @@ class ApplicationController < ActionController::Base
   def show_recent_activity?
     administrador? && %w[desarrollador director].include?(current_user.admin.role)
   end
+
+  def dashboard_path_for_user
+    case current_user_type
+    when :administrador then dashboards_administrador_path
+    when :profesor      then dashboards_profesor_path
+    when :estudiante    then dashboards_estudiante_path
+    else root_path
+    end
+  end
+  helper_method :dashboard_path_for_user
 end
