@@ -12,8 +12,9 @@ Rails.application.routes.draw do
   # Dashboards específicos por rol
   namespace :dashboards do
     get 'administrador', to: 'administrador#index'
-    get 'profesor', to: 'profesor#index'
-    get 'estudiante', to: 'estudiante#index'
+    get 'profesor',      to: 'profesor#index'
+    get 'estudiante',    to: 'estudiante#index'
+    resources :activity_logs, only: [:index]
   end
 
   resources :evaluation_moments

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2026_02_19_042304) do
+ActiveRecord::Schema[7.0].define(version: 2026_03_08_004602) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -61,6 +61,22 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_19_042304) do
     t.index ["evaluation_activity_id", "student_id"], name: "index_activity_grades_on_activity_and_student", unique: true
     t.index ["evaluation_activity_id"], name: "index_activity_grades_on_evaluation_activity_id"
     t.index ["student_id"], name: "index_activity_grades_on_student_id"
+  end
+
+  create_table "activity_logs", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "action", null: false
+    t.string "message", null: false
+    t.string "subject_type"
+    t.bigint "subject_id"
+    t.jsonb "metadata", default: {}
+    t.string "ip_address"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["action"], name: "index_activity_logs_on_action"
+    t.index ["created_at"], name: "index_activity_logs_on_created_at"
+    t.index ["subject_type", "subject_id"], name: "index_activity_logs_on_subject"
+    t.index ["user_id"], name: "index_activity_logs_on_user_id"
   end
 
   create_table "addresses", force: :cascade do |t|
@@ -266,6 +282,7 @@ ActiveRecord::Schema[7.0].define(version: 2026_02_19_042304) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "activity_grades", "evaluation_activities"
   add_foreign_key "activity_grades", "students", primary_key: "user_id"
+  add_foreign_key "activity_logs", "users"
   add_foreign_key "addresses", "users"
   add_foreign_key "admins", "schools"
   add_foreign_key "admins", "users"

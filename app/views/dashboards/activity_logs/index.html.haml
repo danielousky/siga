@@ -1,0 +1,64 @@
+.card-academic
+  .card-academic-header
+    %h1 Registro de Actividad
+    %p{style: "color: var(--text-secondary); font-size: 14px; margin: 0;"} Auditoría completa de acciones del sistema
+
+.card-academic
+  %h2 Filtros
+  = form_with url: dashboards_activity_logs_path, method: :get, local: true do |f|
+    .form-row
+      .form-group
+        = f.label :user_id, "Usuario", class: "form-label"
+        = f.select :user_id,
+            [["Todos los usuarios", ""]] + @users.map { |u| ["#{u.last_name}, #{u.name}", u.id] },
+            { selected: params[:user_id] },
+            class: "form-select"
+      .form-group
+        = f.label :action, "Tipo de acción", class: "form-label"
+        = f.select :action,
+            [["Todas las acciones", ""]] + ActivityLog::LABELS.map { |k, v| [v, k] },
+            { selected: params[:action] },
+            class: "form-select"
+      .form-group
+        = f.label :from, "Desde", class: "form-label"
+        = f.date_field :from, value: params[:from], class: "form-select"
+      .form-group
+        = f.label :to, "Hasta", class: "form-label"
+        = f.date_field :to, value: params[:to], class: "form-select"
+      .form-group{style: "display: flex; align-items: flex-end;"}
+        = f.submit "Filtrar", class: "btn btn-primary"
+        - if params.except("controller", "action").any?(&:second.method(:present?).to_proc)
+          = link_to "Limpiar", dashboards_activity_logs_path, class: "btn btn-secondary", style: "margin-left: 8px;"
+
+.card-academic
+  .card-academic-header
+    %h2 Actividad Registrada
+    %span.role-badge= "#{@pagy.count} registros"
+
+  - if @logs.any?
+    %table.table-academic
+      %thead
+        %tr
+          %th Fecha y hora
+          %th Usuario
+          %th Tipo
+          %th Descripción
+          %th IP
+      %tbody
+        - @logs.each do |log|
+          %tr
+            %td{style: "white-space: nowrap; color: var(--text-secondary); font-size: 13px;"}
+              = log.created_at.strftime("%d/%m/%Y %H:%M")
+            %td= "#{log.user.last_name}, #{log.user.name}"
+            %td
+              %span.activity-badge{class: "activity-badge--#{log.action.split('_').last}"}
+                = log.label
+            %td= log.message
+            %td{style: "font-size: 12px; color: var(--text-tertiary);"}= log.ip_address || "—"
+
+    .pagy-nav
+      != pagy_nav(@pagy)
+  - else
+    .empty-state
+      %h3 Sin registros
+      %p No hay actividad registrada con los filtros seleccionados.

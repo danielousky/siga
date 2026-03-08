@@ -1585,3 +1585,49 @@ textarea.form-control {
   min-width: 200px;
   margin-bottom: 0;
 }
+
+/* ---- Activity Log Badges ---- */
+
+.activity-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: var(--brand-subtle);
+  color: var(--brand-primary);
+  border: 1px solid var(--border-standard);
+}
+
+.activity-badge--login,
+.activity-badge--logout {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border-color: #a5d6a7;
+}
+
+.activity-badge--created {
+  background: #e3f2fd;
+  color: #1565c0;
+  border-color: #90caf9;
+}
+
+.activity-badge--updated {
+  background: #fff8e1;
+  color: #f57f17;
+  border-color: #ffe082;
+}
+
+.activity-badge--destroyed {
+  background: #fce4ec;
+  color: #b71c1c;
+  border-color: #f48fb1;
+}
+
+.activity-badge--assigned,
+.activity-badge--removed {
+  background: #f3e5f5;
+  color: #6a1b9a;
+  border-color: #ce93d8;
+}

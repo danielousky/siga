@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
   include Pagy::Backend
+  include Auditable
   before_action :authenticate_user!
 
   # Hacer disponibles los helpers de rol en los controladores
@@ -9,12 +10,20 @@ class ApplicationController < ActionController::Base
 
   # Redirección post-login personalizada por tipo de usuario
   def after_sign_in_path_for(resource)
+    log_activity(
+      action:  "login",
+      message: "#{resource.name} #{resource.last_name} inició sesión"
+    )
     case current_user_type
     when :administrador then dashboards_administrador_path
     when :profesor      then dashboards_profesor_path
     when :estudiante    then dashboards_estudiante_path
     else root_path
     end
+  end
+
+  def after_sign_out_path_for(resource_or_scope)
+    root_path
   end
 
   private

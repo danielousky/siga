@@ -45,6 +45,9 @@
 .sidebar-section
   .sidebar-section-title Sistema
   %ul.sidebar-nav
+    %li.sidebar-nav-item
+      = link_to dashboards_activity_logs_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/activity_logs'}" do
+        Registro de Actividad
     - if current_user.admin.desarrollador? || current_user.admin.director?
       %li.sidebar-nav-item
         = link_to demo_requests_path, class: "sidebar-nav-link #{'active' if controller_name == 'demo_requests'}" do

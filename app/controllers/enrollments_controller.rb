@@ -17,6 +17,13 @@ class EnrollmentsController < ApplicationController
   def create
     @enrollment = Enrollment.new(enrollment_params)
     if @enrollment.save
+      log_activity(
+        action:  "enrollment_created",
+        message: "#{current_user.name} #{current_user.last_name} inscribió al estudiante " \
+                 "#{@enrollment.student.user.name} #{@enrollment.student.user.last_name} en " \
+                 "#{@enrollment.section.grade.name} – Sección #{@enrollment.section.name}",
+        subject: @enrollment
+      )
       redirect_to @enrollment, notice: "Inscripción creada exitosamente."
     else
       render :new, status: :unprocessable_entity
@@ -32,7 +39,14 @@ class EnrollmentsController < ApplicationController
   end
 
   def destroy
+    student_name = "#{@enrollment.student.user.name} #{@enrollment.student.user.last_name}"
+    section_name = "#{@enrollment.section.grade.name} – Sección #{@enrollment.section.name}"
     if @enrollment.destroy
+      log_activity(
+        action:  "enrollment_destroyed",
+        message: "#{current_user.name} #{current_user.last_name} anuló la inscripción de " \
+                 "#{student_name} en #{section_name}"
+      )
       redirect_to enrollments_url, notice: "Inscripción eliminada exitosamente."
     else
       redirect_to @enrollment, alert: @enrollment.errors.full_messages.join(", ")
