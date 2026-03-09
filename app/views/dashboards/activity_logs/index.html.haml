@@ -3,16 +3,12 @@
     %h1 Registro de Actividad
     %p{style: "color: var(--text-secondary); font-size: 14px; margin: 0;"} Auditoría completa de acciones del sistema
 
-= render "shared/search_filter",
-    url:      dashboards_activity_logs_path,
-    frame_id: "activity-results",
-    clear_url: dashboards_activity_logs_path,
-    fields: [
-      { type: :text,   name: :usuario_q,      label: "Usuario",         placeholder: "Nombre, apellido, cédula o correo...", flex: 2 },
-      { type: :select, name: :activity_action, label: "Tipo de acción",  options: [["Todas las acciones", ""]] + ActivityLog::LABELS.map { |k, v| [v, k] } },
-      { type: :date,   name: :from,            label: "Desde" },
-      { type: :date,   name: :to,              label: "Hasta" }
-    ]
+- activity_fields = []
+- activity_fields << { type: :text,   name: :usuario_q,      label: "Usuario",        placeholder: "Nombre, apellido, cédula o correo...", flex: 2 }
+- activity_fields << { type: :select, name: :activity_action, label: "Tipo de acción", options: [["Todas las acciones", ""]] + ActivityLog::LABELS.map { |k, v| [v, k] } }
+- activity_fields << { type: :date,   name: :from,            label: "Desde" }
+- activity_fields << { type: :date,   name: :to,              label: "Hasta" }
+= render "shared/search_filter", url: dashboards_activity_logs_path, frame_id: "activity-results", clear_url: dashboards_activity_logs_path, fields: activity_fields
 
 - if params[:usuario_q].present? && @usuario_match&.any?
   .filter-pills

@@ -3,14 +3,10 @@
     %h1 Secciones
     = link_to "Nueva Sección", new_section_path, class: "btn btn-primary"
 
-= render "shared/search_filter",
-    url:      sections_path,
-    frame_id: "sections-results",
-    clear_url: sections_path,
-    fields: [
-      { type: :select, name: :grade_id,           label: "Grado",            options: @grades_options },
-      { type: :select, name: :academic_period_id,  label: "Período académico", options: @periods_options }
-    ]
+- section_fields = []
+- section_fields << { type: :select, name: :grade_id,          label: "Grado",             options: @grades_options }
+- section_fields << { type: :select, name: :academic_period_id, label: "Período académico", options: @periods_options }
+= render "shared/search_filter", url: sections_path, frame_id: "sections-results", clear_url: sections_path, fields: section_fields
 
 = turbo_frame_tag "sections-results" do
   .card-academic

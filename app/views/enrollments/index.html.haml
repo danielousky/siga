@@ -3,14 +3,10 @@
     %h1 Inscripciones
     = link_to "Nueva Inscripción", new_enrollment_path, class: "btn btn-primary"
 
-= render "shared/search_filter",
-    url:      enrollments_path,
-    frame_id: "enrollments-results",
-    clear_url: enrollments_path,
-    fields: [
-      { type: :text,   name: :q,        label: "Estudiante", placeholder: "Nombre, apellido o cédula...", flex: 2 },
-      { type: :select, name: :grade_id, label: "Grado",      options: @grades_options }
-    ]
+- enrollment_fields = []
+- enrollment_fields << { type: :text,   name: :q,        label: "Estudiante", placeholder: "Nombre, apellido o cédula...", flex: 2 }
+- enrollment_fields << { type: :select, name: :grade_id, label: "Grado",      options: @grades_options }
+= render "shared/search_filter", url: enrollments_path, frame_id: "enrollments-results", clear_url: enrollments_path, fields: enrollment_fields
 
 = turbo_frame_tag "enrollments-results" do
   .card-academic

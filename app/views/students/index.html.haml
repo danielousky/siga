@@ -3,13 +3,9 @@
     %h1 Registro de Estudiantes
     = link_to "Registrar Nuevo Estudiante", new_student_path, class: "btn btn-primary"
 
-= render "shared/search_filter",
-    url:      students_path,
-    frame_id: "students-results",
-    clear_url: students_path,
-    fields: [
-      { type: :text, name: :q, label: "Buscar", placeholder: "Nombre, apellido, cédula o carnet...", flex: 2 }
-    ]
+- student_fields = []
+- student_fields << { type: :text, name: :q, label: "Buscar", placeholder: "Nombre, apellido, cédula o carnet...", flex: 2 }
+= render "shared/search_filter", url: students_path, frame_id: "students-results", clear_url: students_path, fields: student_fields
 
 = turbo_frame_tag "students-results" do
   .card-academic
