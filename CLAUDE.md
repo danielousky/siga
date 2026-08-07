@@ -19,16 +19,25 @@ actual vs. objetivo en el artifact enlazado al final.
   para no hacerles publicidad en el momento de máxima intención de compra.
 - Censo de la cartera del incumbente por certificate transparency → `docs/investigacion/`.
 - `CLAUDE.md` y `BACKLOG.md` escritos.
+- **Commiteado** en la rama `feat/encuesta-demo-y-backlog` (4 commits, `main` intacto, sin push).
+  `.claude/settings.local.json` y `.DS_Store` quedaron ignorados; `.mcp.json` sí se versiona.
+- **Linear autorizado y cargado.** Proyecto **SIGA · Plataforma de gestión académica**
+  (`MOR-82` a `MOR-119`) con las convenciones de COES-FAU: 5 milestones = las 5 épicas,
+  los 38 issues del backlog, y las dependencias `blockedBy` encadenadas.
+  → https://linear.app/morosdevelopment/project/siga-plataforma-de-gestion-academica-df900bfa9693
 
 **Pendiente inmediato, en orden:**
-1. **Autorizar Linear** — configurado en scope de usuario (`https://mcp.linear.app/mcp`, transporte
-   HTTP). Estado: *needs authentication*. Requiere `/mcp` + OAuth del usuario, Claude no puede hacerlo.
-   Al conectar: leer el proyecto **COES-FAU** como plantilla de convenciones, crear el proyecto
-   **SIGA** con esa misma estructura, y cargar los 36 issues pendientes de `BACKLOG.md`.
-2. **Commitear** — hay ~13 archivos sin commitear **sobre `main`**. Crear rama y dividir en commits
-   con sentido (el campo de la encuesta por un lado, la documentación por otro). Ojo: `.claude/`
-   contiene `settings.local.json`, que normalmente no se commitea.
-3. **E1 · Migraciones de tenancy** — el trabajo que bloquea todo lo demás. No depende de Linear.
+1. **E1 · Migraciones de tenancy** — el trabajo que bloquea todo lo demás. Empezar por `MOR-82`
+   (`school_id` en `grades`), que no está bloqueado por nada. Después `MOR-83`, `MOR-84`, `MOR-85`,
+   que son las tres migraciones restantes y juntas desbloquean `MOR-86` (`SchoolScoped`).
+2. **Decidir si `MOR-105` (CI + tests) se adelanta.** El backlog lo ubica en E3, pero E1 y la
+   subida de Ruby/Rails son cirugía mayor sin red: hoy la única verificación es hacer clic.
+   Ya quedó como bloqueante de `MOR-100` y `MOR-90`.
+3. **Push de la rama y PR**, cuando E1 empiece a producir commits.
+
+**Trazabilidad:** cada issue de Linear cierra con `Referencia: BACKLOG.md § E1-01`, así que
+`BACKLOG.md` sigue siendo la fuente legible desde el repo y Linear el tablero de ejecución.
+Si se agrega un issue en Linear, agregar la entrada correspondiente en `BACKLOG.md`.
 
 **Datos de trabajo:** base `siga_development` creada y con seeds cargados. Server: `bin/rails server`.
 

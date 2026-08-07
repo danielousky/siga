@@ -3,6 +3,12 @@
 Estado al 4 de agosto de 2026. Este archivo es la fuente para crear los issues en Linear.
 Prioridades: **P0** bloqueante · **P1** alta · **P2** media · **P3** baja.
 
+> **Cargado en Linear el 7 de agosto de 2026** — proyecto *SIGA · Plataforma de gestión académica*,
+> issues `MOR-82` a `MOR-119`, con las cinco épicas como milestones. Cada issue de Linear referencia
+> su sección de acá (`Referencia: BACKLOG.md § E1-01`). Este archivo queda como la vista legible
+> desde el repo; Linear es el tablero de ejecución. Al agregar uno, agregarlo en los dos lados.
+> https://linear.app/morosdevelopment/project/siga-plataforma-de-gestion-academica-df900bfa9693
+
 ---
 
 ## E1 · Aislamiento multi-tenant
@@ -195,7 +201,8 @@ aísla el segmento del beachhead.
 Certificate transparency sobre `asistescolar.com`: 4.095 certificados → **195 subdominios de
 colegio**, ~87 % activos. SAE declara +900 instituciones ⇒ **~78 % de su cartera usa el producto
 de escritorio, sin portal web**. Ese es el beachhead: ya compran software, les falta el acceso web.
-Listado en `/tmp/sae_schools.txt` — **mover a un lugar permanente del repo o de Drive.**
+Listado en `docs/investigacion/sae-cartera-subdominios.txt`, método y fecha en el `README.md` de esa
+carpeta.
 
 ### E5-03 · Validar la estimación de "sin sistema" con muestreo — P2
 La cifra de 60–70 % sin sistema es inferencia, no dato. Tomar 150–200 colegios privados del
