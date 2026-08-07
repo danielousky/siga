@@ -32,3 +32,10 @@
 
 # Reference files
 /references
+
+# Ruido del Finder.
+.DS_Store
+
+# Permisos locales de Claude Code: son de cada máquina, no del proyecto.
+# .mcp.json sí se versiona — define los servidores MCP compartidos.
+/.claude/settings.local.json
