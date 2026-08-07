@@ -2,9 +2,47 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+---
+
+## 🔖 Punto de retome — actualizado 7 de agosto de 2026
+
+> Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
+
+**Contexto de las sesiones previas.** Se hizo un análisis completo del proyecto (propuesta comercial,
+modelo ER, código) corriendo la app con datos de dos colegios. Los hallazgos y decisiones están en
+`## ⚠️ Estado conocido` más abajo, el detalle ejecutable en `BACKLOG.md`, y el diagrama del modelo
+actual vs. objetivo en el artifact enlazado al final.
+
+**Hecho:**
+- Campo "¿qué usan hoy?" en el formulario de demo (`current_system` + `current_system_detail`).
+  Pregunta por la forma de la solución —con internet / sin internet— y **no nombra competidores**,
+  para no hacerles publicidad en el momento de máxima intención de compra.
+- Censo de la cartera del incumbente por certificate transparency → `docs/investigacion/`.
+- `CLAUDE.md` y `BACKLOG.md` escritos.
+
+**Pendiente inmediato, en orden:**
+1. **Autorizar Linear** — configurado en scope de usuario (`https://mcp.linear.app/mcp`, transporte
+   HTTP). Estado: *needs authentication*. Requiere `/mcp` + OAuth del usuario, Claude no puede hacerlo.
+   Al conectar: leer el proyecto **COES-FAU** como plantilla de convenciones, crear el proyecto
+   **SIGA** con esa misma estructura, y cargar los 36 issues pendientes de `BACKLOG.md`.
+2. **Commitear** — hay ~13 archivos sin commitear **sobre `main`**. Crear rama y dividir en commits
+   con sentido (el campo de la encuesta por un lado, la documentación por otro). Ojo: `.claude/`
+   contiene `settings.local.json`, que normalmente no se commitea.
+3. **E1 · Migraciones de tenancy** — el trabajo que bloquea todo lo demás. No depende de Linear.
+
+**Datos de trabajo:** base `siga_development` creada y con seeds cargados. Server: `bin/rails server`.
+
+---
+
 ## Project Overview
 
-SIGA (Sistema Integrado de Gestión Académica) is a web application built with Rails 7.0.10, Ruby 3.1.2, and PostgreSQL. The project is in early development stage. Project documentation and ER diagrams are in `docs owns/`.
+SIGA (Sistema Integrado de Gestión Académica) es un SaaS de gestión académica para
+instituciones educativas de Venezuela (preescolar, primaria, secundaria), vendido por
+suscripción mensual según matrícula: $25 (hasta 150 alumnos) / $50 (151–400) / $90 (401–800).
+
+Documentación de referencia (PDF/PNG del proyecto, contrato y diagramas ER) en `references/`
+— ese directorio está en `.gitignore`, los originales `.pages` viven en el directorio padre
+`SIGA/`.
 
 ## Common Commands
 
@@ -12,6 +50,7 @@ SIGA (Sistema Integrado de Gestión Académica) is a web application built with 
 # Setup
 bin/setup                          # Initial project setup
 bin/rails db:create db:migrate     # Create and migrate database
+bin/rails db:seed                  # Datos de prueba: 2 colegios, 290 alumnos, 15 profesores
 
 # Development
 bin/rails server                   # Start dev server (localhost:3000)
@@ -20,30 +59,93 @@ bin/rails console                  # Rails console
 # Database
 bin/rails db:migrate               # Run pending migrations
 bin/rails db:rollback              # Rollback last migration
-bin/rails db:seed                  # Seed database
 
 # Tests
 bin/rails test                     # Run all tests
-bin/rails test test/models/        # Run model tests
-bin/rails test test/models/user_test.rb        # Run single test file
 bin/rails test test/models/user_test.rb:10     # Run single test by line
-
-# Generators
-bin/rails generate model Name field:type       # Generate model with migration
-bin/rails generate controller Name action      # Generate controller
 ```
+
+Credenciales de los seeds (contraseña universal `123123`):
+`director.bolivar@siga.edu` (admin) · `prof.garcia@bolivar.edu` (profesor) ·
+`alvaro.lopez001@bolivar.edu` (estudiante).
 
 ## Architecture
 
-- **Ruby 3.1.2 / Rails 7.0.10** with PostgreSQL (`siga_development` / `siga_test` databases)
-- **Views**: Haml (`.html.haml`) — not ERB. All views and Devise templates use Haml.
-- **Frontend**: Hotwire (Turbo + Stimulus) with Importmap (no Node.js/Webpack)
-- **Authentication**: Devise on `User` model. `ApplicationController` enforces `authenticate_user!` globally — new controllers must `skip_before_action` for public pages.
-- **Routing**: Root points to `inicio#index`. Devise routes at `/users/sign_in`, `/users/sign_up`, etc.
-- **Module name**: `Siga` (see `config/application.rb`)
+- **Ruby 3.1.2 / Rails 7.0.10** con PostgreSQL (`siga_development` / `siga_test`)
+- **Views**: Haml (`.html.haml`) — no ERB. Todas las vistas y plantillas de Devise usan Haml.
+- **Frontend**: Hotwire (Turbo + Stimulus) con Importmap (sin Node.js/Webpack)
+- **Auth**: Devise sobre `User`. `ApplicationController` aplica `authenticate_user!` global —
+  los controllers nuevos deben hacer `skip_before_action` para páginas públicas.
+- **Roles**: `User` tiene `has_one` a `Student` / `Teacher` / `Admin` (PK = `user_id`).
+  `Admin#role` es un enum: desarrollador, director, finanzas, coordinador, secretaria.
+  Los helpers de autorización viven en `ApplicationController` (`can_manage_students?`, etc.).
+- **Paginación**: Pagy. **Auditoría**: concern `Auditable` + modelo `ActivityLog`.
+- **Módulo**: `Siga` (ver `config/application.rb`)
 
 ## Conventions
 
-- Views must be written in **Haml**, not ERB
-- Spanish is used for controller/view naming (e.g., `InicioController`, not `HomeController`)
-- All routes require authentication by default; explicitly skip for public endpoints
+- Vistas en **Haml**, no ERB
+- Nombres en español para controllers/vistas (`InicioController`, no `HomeController`)
+- Todas las rutas requieren autenticación por defecto; hay que saltarla explícitamente
+- Los enums de dominio llevan etiquetas en constantes del modelo (ver `DemoRequest`)
+
+## ⚠️ Estado conocido — leer antes de tocar el modelo
+
+### 1. La app NO es multi-tenant. Los datos se cruzan entre colegios.
+
+Verificado en la app corriendo con dos colegios en la base:
+
+- No existe **ninguna** consulta filtrada por escuela en toda la app.
+- El panel de admin muestra los totales de **toda la plataforma**, no los del colegio.
+- `GET /students/:id` de otro colegio devuelve **200** y permite editar (IDOR).
+- `grades` y `evaluation_moments` **no tienen `school_id`**. La validación de pesos de
+  `EvaluationMoment` suma globalmente: si un colegio ocupa el 100 %, ningún otro puede
+  crear un momento de evaluación.
+- Índices únicos globales que deberían ser por colegio: `grades.name`, `subjects.code`,
+  `students.school_card`. Los seeds ya lo esquivan nombrando `"1er Año - Bolívar"`.
+- `Enrollment` no valida que el colegio del alumno coincida con el de la sección.
+
+**Decisión tomada (pendiente de implementar): dos capas.**
+`default_scope` vía concern `SchoolScoped` + **PostgreSQL RLS con `FORCE ROW LEVEL SECURITY`**.
+La razón del RLS es que un filtro olvidado deje de ser una fuga silenciosa y pase a devolver
+cero filas. Dos puntos donde Rails rompe y hay que atacar explícitamente:
+la variable de sesión de Postgres se setea **por transacción** (`around_action`, no initializer),
+y los **background jobs** corren sin request, así que el tenant va explícito en el payload.
+
+Requisito que condiciona el diseño: las redes de colegios (AVEC, ANDIEP, Fe y Alegría)
+necesitan **vista consolidada entre colegios**, así que el aislamiento no puede ser un silo puro.
+
+### 2. El módulo de evaluación existe en la base y no tiene interfaz.
+
+`evaluation_activities`, `activity_grades`, `moment_grades` y `final_grade_books` tienen
+modelos, validaciones y el servicio `GradeCalculator` (promedio ponderado de lapso y anual),
+pero **cero controllers, rutas y vistas**. Un profesor no puede cargar una nota y nadie puede
+ver una. Es el núcleo del producto y está desconectado.
+
+### 3. Otros pendientes
+
+- Ruby 3.1 y Rails 7.0 están **fuera de soporte de seguridad**. Subir antes del primer cliente.
+- `config.force_ssl` comentado en `config/environments/production.rb`.
+- `action_mailer` sin configurar en producción → "olvidé mi contraseña" no envía nada.
+- `User` tiene `:registerable`: cualquiera puede crear cuenta en `/users/sign_up`.
+- `db/seeds.rb` crea usuarios con contraseña `123123` sin guard de entorno.
+- Sin CI, sin Dockerfile, sin monitoreo. Tests prácticamente vacíos.
+- Colisión de nombres: `Grade` es "grado escolar", pero `ActivityLog::LABELS` traduce
+  `grade_created` como "Calificación registrada". Dos conceptos, un nombre.
+
+## Contexto de mercado (investigado, agosto 2026)
+
+- ~3.900 colegios privados en Venezuela (ANDIEP), tras cerrar 1.200 entre 2019 y 2023.
+  Matrícula privada cayó de 3,2 M a ~1,4 M → **promedio ~360 alumnos por colegio**.
+- Incumbente: **Sistemas SAE** (Barquisimeto, 25+ años, declara +900 instituciones).
+  Censo por certificate transparency: **~195 subdominios de colegio**, ~87 % activos.
+  → el ~78 % de su cartera usa el producto de escritorio, **sin portal web**.
+- **Ese es el beachhead**: ~800 colegios que ya pagan software pero no tienen acceso web.
+- Educasis declara "2+ instituciones"; SGE Pro no tiene subdominios verificables.
+- SAE está concentrado en centro-occidente (Guanare, Bolívar, Carora, Lara).
+  Caracas y Maracaibo aparecen ausentes de su listado.
+- Venezuela **no tiene ley de protección de datos** ni autoridad de control. El riesgo de un
+  cruce de datos es reputacional y de churn en red, no regulatorio.
+
+Backlog completo en `BACKLOG.md`. Diagrama del modelo actual y objetivo:
+https://claude.ai/code/artifact/0e167ba9-8e21-4264-ac29-f7a2d9fe5523
