@@ -4,6 +4,26 @@
     %span.badge{style: "background: var(--brand-primary); color: white; padding: 6px 12px; border-radius: var(--radius-sm); font-size: 14px;"}
       = "#{@pending_count} pendiente#{@pending_count != 1 ? 's' : ''}"
 
+- if @system_distribution.any?
+  .card-academic
+    %h2{style: "font-size: 18px; margin-bottom: var(--space-xs);"} ¿Qué usan hoy?
+    %p{style: "color: var(--text-tertiary); font-size: 13px; margin-bottom: var(--space-lg);"}
+      Sobre las solicitudes que respondieron la pregunta.
+    .system-distribution
+      - @system_distribution.each do |system, data|
+        .system-row
+          %span.system-name= DemoRequest::CURRENT_SYSTEM_SHORT[system]
+          .system-bar-track
+            .system-bar{style: "width: #{data[:percent]}%;"}
+          %span.system-figure
+            = "#{data[:percent]}% (#{data[:count]})"
+
+    - if @named_systems.any?
+      %p{style: "margin-top: var(--space-lg); margin-bottom: var(--space-xs); font-weight: 600; font-size: 14px;"}
+        Sistemas que nombraron
+      %p{style: "color: var(--text-secondary); font-size: 14px; margin: 0;"}
+        = @named_systems.map { |name, count| count > 1 ? "#{name} (#{count})" : name }.join(" · ")
+
 .card-academic
   - if @demo_requests.any?
     %table.table-academic
@@ -14,6 +34,7 @@
           %th Email
           %th Institución
           %th Teléfono
+          %th Sistema actual
           %th Estado
           %th Fecha
           %th Acciones
@@ -25,6 +46,7 @@
             %td= request.email
             %td= request.institution
             %td= request.phone || "—"
+            %td= request.current_system_summary
             %td
               %span.status-badge{class: "status-#{request.status}"}
                 = request.status.titleize
@@ -41,6 +63,51 @@
       %p Cuando alguien solicite una demostración, aparecerá aquí.
 
 :css
+  .system-distribution {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  .system-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 110px;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  .system-name {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .system-bar-track {
+    background: var(--surface-canvas);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    height: 18px;
+    overflow: hidden;
+  }
+
+  .system-bar {
+    background: var(--brand-primary);
+    height: 100%;
+    min-width: 2px;
+  }
+
+  .system-figure {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 640px) {
+    .system-row { grid-template-columns: 1fr; gap: var(--space-micro); }
+    .system-figure { text-align: left; }
+  }
+
   .status-badge {
     display: inline-block;
     padding: 4px 10px;

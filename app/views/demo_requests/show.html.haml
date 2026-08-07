@@ -25,6 +25,13 @@
       %p{style: "margin: 0; font-size: 16px;"}= @demo_request.phone || "No proporcionado"
 
     .detail-item
+      %label{style: "display: block; font-weight: 600; color: var(--text-secondary); font-size: 13px; margin-bottom: var(--space-xs);"} Sistema actual:
+      %p{style: "margin: 0; font-size: 16px;"}= @demo_request.current_system_label
+      - if @demo_request.current_system_detail.present?
+        %p{style: "margin: var(--space-micro) 0 0; font-size: 14px; color: var(--text-secondary);"}
+          = "Lo llaman: #{@demo_request.current_system_detail}"
+
+    .detail-item
       %label{style: "display: block; font-weight: 600; color: var(--text-secondary); font-size: 13px; margin-bottom: var(--space-xs);"} Fecha de solicitud:
       %p{style: "margin: 0; font-size: 16px;"}
         = @demo_request.created_at.strftime("%d de %B de %Y a las %H:%M")

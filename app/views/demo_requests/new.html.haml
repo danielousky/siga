@@ -30,6 +30,19 @@
             = f.telephone_field :phone, class: "form-control", placeholder: "Ej: +58 424 123 4567"
 
           .form-group
+            = f.label :current_system, "¿Qué usan hoy para gestionar notas y pagos?", class: "form-label"
+            = f.select :current_system,
+              DemoRequest::CURRENT_SYSTEM_LABELS.map { |value, label| [label, value] },
+              { include_blank: "Selecciona una opción" },
+              class: "form-select"
+            %small{style: "display: block; margin-top: var(--space-micro); color: var(--text-tertiary); font-size: 13px;"}
+              Nos ayuda a preparar la demostración según tu situación actual.
+
+          .form-group
+            = f.label :current_system_detail, "¿Cómo se llama el sistema? (opcional)", class: "form-label"
+            = f.text_field :current_system_detail, class: "form-control", maxlength: 120, placeholder: "Si no lo recuerdas, déjalo en blanco"
+
+          .form-group
             = f.label :message, "Mensaje (opcional)", class: "form-label"
             = f.text_area :message, class: "form-control", rows: 4, placeholder: "Cuéntanos sobre tus necesidades específicas o preguntas..."
 

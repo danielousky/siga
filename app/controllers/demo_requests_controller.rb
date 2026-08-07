@@ -6,6 +6,10 @@ class DemoRequestsController < ApplicationController
   def index
     @pagy, @demo_requests = pagy(DemoRequest.recent, items: 20)
     @pending_count = DemoRequest.pending.count
+    @system_distribution = DemoRequest.current_system_distribution
+    @named_systems = DemoRequest.where.not(current_system_detail: [nil, ""])
+                                .group(:current_system_detail).count
+                                .sort_by { |_name, count| -count }
   end
 
   def show
@@ -44,7 +48,8 @@ class DemoRequestsController < ApplicationController
   end
 
   def demo_request_params
-    params.require(:demo_request).permit(:name, :email, :institution, :phone, :message)
+    params.require(:demo_request).permit(:name, :email, :institution, :phone, :message,
+                                         :current_system, :current_system_detail)
   end
 
   def admin_update_params
