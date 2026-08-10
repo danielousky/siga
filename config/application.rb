@@ -9,7 +9,14 @@ Bundler.require(*Rails.groups)
 module Siga
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 7.0
+    config.load_defaults 7.1
+
+    # Please, add to the `ignore` list any other `lib` subdirectories that do
+    # not contain `.rb` files, or that should not be reloaded or eager loaded.
+    # Common ones are `templates`, `generators`, or `middleware`, for example.
+    config.autoload_lib(ignore: %w(assets tasks))
+
+    # La interfaz es en español; el inglés queda disponible para no cerrar la puerta.
     config.i18n.default_locale = :es
     config.i18n.available_locales = [:es, :en]
 
