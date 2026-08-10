@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## 🔖 Punto de retome — actualizado 7 de agosto de 2026
+## 🔖 Punto de retome — actualizado 10 de agosto de 2026
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 
@@ -25,15 +25,24 @@ actual vs. objetivo en el artifact enlazado al final.
   (`MOR-82` a `MOR-119`) con las convenciones de COES-FAU: 5 milestones = las 5 épicas,
   los 38 issues del backlog, y las dependencias `blockedBy` encadenadas.
   → https://linear.app/morosdevelopment/project/siga-plataforma-de-gestion-academica-df900bfa9693
+  La **ficha general** del proyecto (visión, negocio, mercado, rentabilidad, etapas) vive en la
+  descripción del proyecto; el detalle técnico, en el documento *Estado técnico del código*.
+  Todos los issues llevan la etiqueta `SIGA` para filtrarlos en Views.
+- **`MOR-100` · Upgrade de Ruby y Rails — hecho.** Ruby 3.1.2 → **3.4.9**, Rails 7.0.10 → **8.1.3.1**,
+  en la rama `chore/upgrade-ruby-rails` (7 commits, sin push). Se subió versión por versión
+  (7.1 → 7.2 → 8.0 → 8.1), y valió la pena: **7.2 avisó que los enums con keyword arguments quedaban
+  deprecados y 8.0 los elimina**. Saltando directo, la app se rompía sin aviso.
 
 **Pendiente inmediato, en orden:**
 1. **E1 · Migraciones de tenancy** — el trabajo que bloquea todo lo demás. Empezar por `MOR-82`
    (`school_id` en `grades`), que no está bloqueado por nada. Después `MOR-83`, `MOR-84`, `MOR-85`,
    que son las tres migraciones restantes y juntas desbloquean `MOR-86` (`SchoolScoped`).
-2. **Decidir si `MOR-105` (CI + tests) se adelanta.** El backlog lo ubica en E3, pero E1 y la
-   subida de Ruby/Rails son cirugía mayor sin red: hoy la única verificación es hacer clic.
-   Ya quedó como bloqueante de `MOR-100` y `MOR-90`.
-3. **Push de la rama y PR**, cuando E1 empiece a producir commits.
+2. **`MOR-105` · CI y tests.** El upgrade se verificó con un script de humo (20 checks HTTP por
+   rol) que vive en el scratchpad de la sesión, **no en el repo**. Vale rescatarlo como punto de
+   partida de la suite. Rails 8.1 además trajo `bin/ci` y `config/ci.rb`, que ya encadenan
+   `bin/rails test` y el replant de seeds — decidir si se adoptan o se va a GitHub Actions.
+3. **Push de las dos ramas y PR.** `feat/encuesta-demo-y-backlog` y `chore/upgrade-ruby-rails`
+   (esta última construida sobre la primera). `main` sigue intacto.
 
 **Trazabilidad:** cada issue de Linear cierra con `Referencia: BACKLOG.md § E1-01`, así que
 `BACKLOG.md` sigue siendo la fuente legible desde el repo y Linear el tablero de ejecución.
@@ -80,7 +89,7 @@ Credenciales de los seeds (contraseña universal `123123`):
 
 ## Architecture
 
-- **Ruby 3.1.2 / Rails 7.0.10** con PostgreSQL (`siga_development` / `siga_test`)
+- **Ruby 3.4.9 / Rails 8.1.3.1** con PostgreSQL (`siga_development` / `siga_test`)
 - **Views**: Haml (`.html.haml`) — no ERB. Todas las vistas y plantillas de Devise usan Haml.
 - **Frontend**: Hotwire (Turbo + Stimulus) con Importmap (sin Node.js/Webpack)
 - **Auth**: Devise sobre `User`. `ApplicationController` aplica `authenticate_user!` global —
@@ -133,7 +142,8 @@ ver una. Es el núcleo del producto y está desconectado.
 
 ### 3. Otros pendientes
 
-- Ruby 3.1 y Rails 7.0 están **fuera de soporte de seguridad**. Subir antes del primer cliente.
+- ~~Ruby 3.1 y Rails 7.0 fuera de soporte de seguridad~~ → **resuelto**: Ruby 3.4.9 / Rails 8.1.3.1.
+  Los enums migraron a la sintaxis posicional (`enum :status, {...}`), obligatoria desde Rails 8.
 - `config.force_ssl` comentado en `config/environments/production.rb`.
 - `action_mailer` sin configurar en producción → "olvidé mi contraseña" no envía nada.
 - `User` tiene `:registerable`: cualquiera puede crear cuenta en `/users/sign_up`.
