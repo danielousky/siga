@@ -1,6 +1,6 @@
 class DemoRequest < ApplicationRecord
   # Enums para el estado de la solicitud
-  enum status: {
+  enum :status, {
     pendiente: 0,
     contactado: 1,
     demo_programado: 2,
@@ -13,13 +13,13 @@ class DemoRequest < ApplicationRecord
   # predice la venta es "sin acceso web" vs "con portal", y así el formulario
   # no le hace publicidad gratis a la competencia. El nombre del sistema, si lo
   # saben, entra por current_system_detail.
-  enum current_system: {
+  enum :current_system, {
     ninguno: 0,
     planillas: 1,
     escritorio: 2,
     portal_web: 3,
     otro: 4
-  }, _prefix: :sistema
+  }, prefix: :sistema
 
   CURRENT_SYSTEM_LABELS = {
     "ninguno"    => "Ninguno, todo en papel",

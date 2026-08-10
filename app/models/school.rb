@@ -1,5 +1,5 @@
 class School < ApplicationRecord
-  enum school_type: { primary: 0, secondary: 1 }
+  enum :school_type, { primary: 0, secondary: 1 }
 
   has_one_attached :logo
 

@@ -1,5 +1,5 @@
 class Enrollment < ApplicationRecord
-  enum status: { regular: 0, retirado: 1 }
+  enum :status, { regular: 0, retirado: 1 }
 
   belongs_to :section
   belongs_to :student, foreign_key: :student_id, primary_key: :user_id

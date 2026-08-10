@@ -1,5 +1,5 @@
 class Grade < ApplicationRecord
-  enum level: { primaria: 0, secundaria: 1 }
+  enum :level, { primaria: 0, secundaria: 1 }
 
   belongs_to :leader_teacher, class_name: "Teacher", primary_key: :user_id, optional: true
 
