@@ -2,12 +2,25 @@
 #
 # Los mensajes de error genéricos ("ya está en uso", "debe existir") los aporta
 # la gema rails-i18n. Lo que va acá es cómo se llama cada cosa en el dominio,
-# para que un error diga "Colegio debe existir" y no "School debe existir".
+# para que un error diga "Sección pertenece a otro colegio" y no "Section …".
 #
-# Cubre por ahora los modelos que toca MOR-82. El resto sigue mostrando el
-# nombre de atributo en inglés: completarlos a medida que se toquen.
+# Rails busca el nombre de un atributo en este orden:
+#   1. activerecord.attributes.<modelo>.<atributo>
+#   2. attributes.<atributo>              ← el bloque de abajo de todo
+#   3. el nombre humanizado en inglés
+#
+# Por eso los atributos que significan lo mismo en varios modelos (section,
+# subject, school…) van una sola vez en el fallback global, y arriba solo queda
+# lo que es específico de un modelo.
 es:
   activerecord:
+    errors:
+      messages:
+        # La usa el concern ValidatesSameSchool. Queda genérica a propósito: el
+        # nombre del atributo ya dice cuál de las dos partes no coincide, y Rails
+        # lo antepone solo ("Sección pertenece a otro colegio").
+        different_school: pertenece a otro colegio
+
     models:
       school:
         one: Colegio
@@ -27,39 +40,101 @@ es:
       student:
         one: Estudiante
         other: Estudiantes
+      teacher:
+        one: Profesor
+        other: Profesores
       department:
         one: Departamento
         other: Departamentos
+      section:
+        one: Sección
+        other: Secciones
+      enrollment:
+        one: Inscripción
+        other: Inscripciones
+      teacher_section:
+        one: Asignación de profesor
+        other: Asignaciones de profesor
+      evaluation_activity:
+        one: Actividad evaluativa
+        other: Actividades evaluativas
+      activity_grade:
+        one: Nota de actividad
+        other: Notas de actividad
+      moment_grade:
+        one: Nota del lapso
+        other: Notas del lapso
+      final_grade_book:
+        one: Nota final
+        other: Notas finales
+
     attributes:
       school:
         dea_code: Código DEA
-        name: Nombre
         location: Ubicación
         school_type: Tipo de institución
         logo: Logotipo
       grade:
-        school: Colegio
-        name: Nombre
         level: Nivel
-        leader_teacher: Profesor guía
       academic_period:
-        school: Colegio
-        name: Nombre
         start_date: Fecha de inicio
         end_date: Fecha de cierre
       evaluation_moment:
-        academic_period: Período académico
-        name: Nombre
         weight: Peso
-      subject:
-        school: Colegio
-        department: Departamento
-        code: Código
-        name: Nombre
       student:
-        school: Colegio
         school_card: Carnet
-        user: Usuario
-      department:
-        school: Colegio
-        name: Nombre
+      evaluation_activity:
+        description: Descripción
+        weight_percentage: Ponderación
+        date_scheduled: Fecha prevista
+      activity_grade:
+        score: Nota
+      moment_grade:
+        final_moment_score: Nota del lapso
+      final_grade_book:
+        annual_average: Promedio anual
+        remedial_exam_score: Nota de reparación
+        final_score: Nota definitiva
+        comments: Observaciones
+      enrollment:
+        enrollment_date: Fecha de inscripción
+        status: Estado
+
+  # Fallback global: atributos que significan lo mismo en todos los modelos.
+  # Va DENTRO de `es:` y FUERA de `activerecord:` — Rails lo busca como
+  # `es.attributes.<atributo>` cuando no encuentra el del modelo. Si se escribe
+  # al nivel del documento, YAML lo interpreta como otro idioma y no se aplica.
+  attributes:
+    school: Colegio
+    grade: Grado
+    section: Sección
+    subject: Materia
+    student: Estudiante
+    teacher: Profesor
+    department: Departamento
+    enrollment: Inscripción
+    academic_period: Período académico
+    evaluation_moment: Momento de evaluación
+    evaluation_activity: Actividad evaluativa
+    leader_teacher: Profesor guía
+    user: Usuario
+    name: Nombre
+    code: Código
+    capacity: Capacidad
+    classroom: Aula
+
+    # Las validaciones que corren sobre la clave foránea (uniqueness con scope,
+    # sobre todo) reportan el error en `<algo>_id`, no en la asociación. Rails no
+    # los mapea solo, así que van explícitos.
+    school_id: Colegio
+    grade_id: Grado
+    section_id: Sección
+    subject_id: Materia
+    student_id: Estudiante
+    teacher_id: Profesor
+    department_id: Departamento
+    enrollment_id: Inscripción
+    academic_period_id: Período académico
+    evaluation_moment_id: Momento de evaluación
+    evaluation_activity_id: Actividad evaluativa
+    leader_teacher_id: Profesor guía

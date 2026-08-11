@@ -4,6 +4,7 @@ class EvaluationActivity < ApplicationRecord
   belongs_to :evaluation_moment
 
   derives_school_from :section
+  validates_same_school :subject
 
   has_many :activity_grades, dependent: :restrict_with_error
 

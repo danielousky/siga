@@ -5,6 +5,7 @@ class Enrollment < ApplicationRecord
   belongs_to :student, foreign_key: :student_id, primary_key: :user_id
 
   derives_school_from :student
+  validates_same_school :section
 
   has_many :moment_grades, dependent: :restrict_with_error
   has_many :final_grade_books, dependent: :restrict_with_error

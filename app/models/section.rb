@@ -3,6 +3,7 @@ class Section < ApplicationRecord
   belongs_to :academic_period
 
   derives_school_from :grade
+  validates_same_school :academic_period
 
   has_many :enrollments, dependent: :restrict_with_error
   has_many :students, through: :enrollments

@@ -4,6 +4,9 @@ class Grade < ApplicationRecord
   belongs_to :school
   belongs_to :leader_teacher, class_name: "Teacher", primary_key: :user_id, optional: true
 
+  # El profesor guía tiene que ser del mismo colegio que el grado.
+  validates_same_school :leader_teacher
+
   has_many :grade_subjects, dependent: :destroy
   has_many :subjects, through: :grade_subjects
   has_many :sections, dependent: :restrict_with_error
