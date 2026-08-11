@@ -1,0 +1,42 @@
+.card-academic
+  .card-academic-header
+    %h1= @evaluation_activity.description
+    = link_to "Volver", evaluation_activities_path, class: "btn btn-secondary"
+
+  .detail-row
+    .detail-item
+      .detail-label Sección
+      .detail-value= "#{@evaluation_activity.section.grade.name} – #{@evaluation_activity.section.name}"
+    .detail-item
+      .detail-label Materia
+      .detail-value= @evaluation_activity.subject.name
+
+  .detail-row
+    .detail-item
+      .detail-label Lapso
+      .detail-value= "#{@evaluation_activity.evaluation_moment.name} · #{@evaluation_activity.section.academic_period.name}"
+    .detail-item
+      .detail-label Fecha
+      .detail-value= l(@evaluation_activity.date_scheduled, format: :long)
+
+  .detail-row
+    .detail-item
+      .detail-label Peso dentro del lapso
+      - peso = @evaluation_activity.weight_percentage
+      .detail-value= "#{number_with_precision(peso, precision: peso.frac.zero? ? 0 : 2)} %"
+    .detail-item
+      .detail-label Notas cargadas
+      .detail-value= "#{@notas_cargadas} de #{@inscritos} inscritos"
+
+  - if profesor?
+    .section-actions
+      = link_to "Editar", edit_evaluation_activity_path(@evaluation_activity), class: "btn btn-secondary"
+      = link_to "Eliminar", @evaluation_activity, data: { turbo_method: :delete, turbo_confirm: "¿Eliminar «#{@evaluation_activity.description}»?" }, class: "btn btn-danger"
+
+- if @notas_cargadas.positive?
+  .card-academic
+    .alert.alert-warning
+      %strong Esta evaluación ya tiene #{@notas_cargadas} #{'nota'.pluralize(@notas_cargadas)} cargada#{'s' if @notas_cargadas != 1}.
+      %br
+      No se puede eliminar sin borrar antes esas notas. Cambiarle el peso sí es
+      posible, y recalcula los promedios del lapso.

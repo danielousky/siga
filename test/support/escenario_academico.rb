@@ -82,6 +82,16 @@ module EscenarioAcademico
     ActivityGrade.create!(evaluation_activity: actividad, student: alumno, score: puntaje)
   end
 
+  # Cuenta filas sin depender del contexto de colegio que haya quedado puesto.
+  #
+  # Hace falta en los tests de integración: la petición fija `siga.school_id` con
+  # `SET LOCAL` dentro de la transacción del test, así que sobrevive a la
+  # petición. Un `Modelo.count` antes y otro después corren con contextos
+  # distintos y la diferencia mide eso en vez de medir lo que hizo la acción.
+  def cantidad(modelo)
+    Current.sin_aislamiento { modelo.count }
+  end
+
   # Pone el colegio en las DOS capas: `Current.school` para el `default_scope` y
   # la variable de sesión de Postgres para el RLS. Sin la segunda, cualquier
   # INSERT lo rechaza el `WITH CHECK`.

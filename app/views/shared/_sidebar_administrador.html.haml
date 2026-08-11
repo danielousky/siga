@@ -16,6 +16,9 @@
       = link_to "Departamentos", departments_path, class: "sidebar-nav-link #{'active' if controller_name == 'departments'}"
     %li.sidebar-nav-item
       = link_to "Momentos de Evaluación", evaluation_moments_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_moments'}"
+    - if can_manage_sections?
+      %li.sidebar-nav-item
+        = link_to "Evaluaciones del Colegio", evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}"
 
 .sidebar-section
   .sidebar-section-title Períodos

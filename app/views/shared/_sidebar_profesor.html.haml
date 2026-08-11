@@ -3,6 +3,8 @@
   %ul.sidebar-nav
     %li.sidebar-nav-item
       = link_to "Mi Dashboard", dashboards_profesor_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/profesor'}"
+    %li.sidebar-nav-item
+      = link_to "Mis Evaluaciones", evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}"
 
 .sidebar-section
   .sidebar-section-title Mis Secciones

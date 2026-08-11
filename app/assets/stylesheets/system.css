@@ -1699,3 +1699,90 @@ nav.pagy a.gap {
   font-size: 13px;
   font-weight: 500;
 }
+
+.filter-pill:hover {
+  background: var(--brand-primary);
+  color: #fff;
+}
+
+.filter-pill.active {
+  background: var(--brand-primary);
+  color: #fff;
+}
+
+.filter-pill small {
+  opacity: 0.75;
+  font-weight: 400;
+}
+
+/* ============================================
+   Medidor de ponderación
+   --------------------------------------------
+   Cuánto del 100 % de un lapso está comprometido. Se usa en el listado (una
+   barra por grupo sección–materia–lapso) y dentro del formulario, donde además
+   muestra en otro tono lo que sumaría la evaluación que se está escribiendo.
+   ============================================ */
+
+.weight-meter-intro {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0 0 var(--space-md);
+}
+
+.weight-meter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-micro);
+  margin-bottom: var(--space-md);
+}
+
+.weight-meter-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.weight-meter-label strong {
+  color: var(--text-primary);
+}
+
+.weight-meter-bar {
+  display: flex;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-input);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.weight-meter-fill {
+  background: var(--brand-primary);
+  transition: width 120ms ease-out;
+}
+
+.weight-meter-fill--completo {
+  background: var(--success-text);
+}
+
+.weight-meter-fill--nuevo {
+  background: var(--success-text);
+  opacity: 0.55;
+}
+
+.weight-meter-fill--excedido {
+  background: var(--danger-text);
+  opacity: 1;
+}
+
+.weight-meter-value {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.weight-meter-value--excedido {
+  color: var(--danger-text);
+  font-weight: 600;
+}
+
+.weight-meter-falta {
+  color: var(--warning-text);
+}

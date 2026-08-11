@@ -110,6 +110,7 @@ if login "director.bolivar@siga.edu" "123123" "$JAR"; then
   check "inscripciones"    "/enrollments"               200 "$JAR"
   check "períodos"         "/academic_periods"          200 "$JAR"
   check "momentos eval."   "/evaluation_moments"        200 "$JAR"
+  check "evaluaciones"     "/evaluation_activities"     200 "$JAR"
   check "solicitudes demo" "/demo_requests"             200 "$JAR"
   check "auditoría"        "/dashboards/activity_logs"  200 "$JAR"
   check "alta de alumno"   "/students/new"              200 "$JAR"
@@ -120,7 +121,9 @@ echo "Profesor"
 JAR="${TMP}/prof.jar"
 if login "prof.garcia@bolivar.edu" "123123" "$JAR"; then
   echo "  ✓ login"
-  check "dashboard" "/dashboards/profesor" 200 "$JAR"
+  check "dashboard"           "/dashboards/profesor"        200 "$JAR"
+  check "mis evaluaciones"    "/evaluation_activities"      200 "$JAR"
+  check "nueva evaluación"    "/evaluation_activities/new"  200 "$JAR"
 fi
 
 echo

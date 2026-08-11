@@ -16,3 +16,7 @@ class ActiveSupport::TestCase
 
   teardown { Current.reset }
 end
+
+class ActionDispatch::IntegrationTest
+  include Devise::Test::IntegrationHelpers
+end

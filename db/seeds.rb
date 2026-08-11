@@ -486,8 +486,8 @@ lapsos_bol    = EvaluationMoment.where(academic_period: periodo_bolivar).order(:
 # Examen 40 % · Taller 30 % · Participación 30 % — suman el 100 % del lapso.
 PONDERACION = [["Examen", 40.0], ["Taller", 30.0], ["Participación", 30.0]].freeze
 
-def actividades_de(seccion, materia, lapso, mes)
-  PONDERACION.map.with_index do |(nombre, peso), i|
+def actividades_de(seccion, materia, lapso, mes, cuantas: PONDERACION.size)
+  PONDERACION.first(cuantas).map.with_index do |(nombre, peso), i|
     EvaluationActivity.find_or_create_by!(
       section: seccion, subject: materia, evaluation_moment: lapso,
       description: "#{nombre} — #{lapso.name}"
@@ -538,8 +538,15 @@ lapsos_bol.each_with_index do |lapso, li|
   end
 end
 
-# Castellano: SOLO el primer lapso. Un año a medio andar.
-actividades_len = actividades_de(seccion_notas, materia_len, lapsos_bol.first, 1)
+# Castellano: SOLO el primer lapso, y con el lapso a medio definir — Examen 40 %
+# y Taller 30 %, sin la Participación. Son dos casos de QA en uno:
+#
+#   · el medidor de ponderación tiene que mostrar "faltan 30 %"
+#   · el promedio se calcula sobre el 70 % cargado, no sobre 100
+#
+# Y como Castellano lo dicta otro profesor (prof.torres), sirve además para ver
+# que cada uno solo alcanza lo suyo: García no ve estas evaluaciones.
+actividades_len = actividades_de(seccion_notas, materia_len, lapsos_bol.first, 1, cuantas: 2)
 alumnos_notas.each_with_index do |alumno, ai|
   base = 11 + ((ai * 5) % 8)
   actividades_len.each_with_index do |act, i|

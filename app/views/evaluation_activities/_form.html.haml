@@ -1,0 +1,43 @@
+-# El medidor de peso vive en Stimulus y no en el servidor: el profesor tiene que
+-# ver cuánto le queda MIENTRAS elige, no después de que el formulario lo rechace.
+-# Los pesos ya comprometidos de todas sus asignaciones caben en un atributo de
+-# datos — un profesor tiene pocas secciones.
+= form_with(model: evaluation_activity, class: "mb-3",
+            data: { controller: "ponderacion",
+                    ponderacion_asignaciones_value: ponderacion_de_mis_asignaciones.to_json }) do |f|
+  = render "shared/errors", object: evaluation_activity
+
+  .form-group
+    = f.label :asignacion, "Sección y materia", class: "form-label"
+    = f.select :asignacion,
+      mis_asignaciones.map { |ts| ["#{ts.section.grade.name} – #{ts.section.name} · #{ts.subject.name}", "#{ts.section_id}:#{ts.subject_id}"] },
+      { include_blank: "Elegí una de tus secciones...", selected: ("#{evaluation_activity.section_id}:#{evaluation_activity.subject_id}" if evaluation_activity.section_id) },
+      class: "form-select", data: { ponderacion_target: "asignacion", action: "change->ponderacion#asignacionCambio" }
+
+  .form-group
+    = f.label :evaluation_moment_id, "Lapso", class: "form-label"
+    = f.select :evaluation_moment_id, [], { include_blank: "Elegí el lapso..." },
+      class: "form-select", data: { ponderacion_target: "lapso", action: "change->ponderacion#recalcular" }
+    %small.form-text.text-muted Solo aparecen los lapsos del año escolar de la sección elegida.
+
+  .form-group
+    = f.label :description, "Qué se evalúa", class: "form-label"
+    = f.text_field :description, class: "form-control", placeholder: "Examen del primer lapso"
+
+  .form-group
+    = f.label :weight_percentage, "Peso dentro del lapso (%)", class: "form-label"
+    = f.number_field :weight_percentage, class: "form-control", step: 0.01, min: 0.01, max: 100,
+      data: { ponderacion_target: "peso", action: "input->ponderacion#recalcular" }
+
+    .weight-meter{data: { ponderacion_target: "medidor" }, hidden: true}
+      .weight-meter-bar
+        .weight-meter-fill{data: { ponderacion_target: "barraUsado" }}
+        .weight-meter-fill.weight-meter-fill--nuevo{data: { ponderacion_target: "barraNuevo" }}
+      .weight-meter-value{data: { ponderacion_target: "leyenda" }}
+
+  .form-group
+    = f.label :date_scheduled, "Fecha", class: "form-label"
+    = f.date_field :date_scheduled, class: "form-control"
+
+  = f.submit class: "btn btn-primary"
+  = link_to "Cancelar", evaluation_activities_path, class: "btn btn-secondary"

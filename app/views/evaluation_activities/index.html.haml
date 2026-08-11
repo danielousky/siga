@@ -1,0 +1,74 @@
+- if @grupos.any?
+  .card-academic
+    .card-academic-header
+      %h1 Ponderación por Lapso
+
+    %p.weight-meter-intro
+      Cada lapso de una materia tiene que cerrar en 100 %. Lo que falta todavía no
+      se le descuenta a nadie: el promedio se calcula sobre lo cargado.
+
+    - @grupos.each do |grupo|
+      .weight-meter
+        .weight-meter-label
+          %strong= "#{grupo[:seccion].grade.name} – #{grupo[:seccion].name}"
+          = "· #{grupo[:materia].name} · #{grupo[:lapso].name}"
+        .weight-meter-bar
+          - usado = grupo[:usado].to_f
+          .weight-meter-fill{class: ("weight-meter-fill--completo" if usado >= 100), style: "width: #{[usado, 100].min}%"}
+        .weight-meter-value
+          = "#{number_with_precision(usado, precision: usado.to_d.frac.zero? ? 0 : 2)} %"
+          - if usado < 100
+            %span.weight-meter-falta= "· faltan #{number_with_precision(100 - usado, precision: (100 - usado).to_d.frac.zero? ? 0 : 2)} %"
+
+.card-academic
+  .card-academic-header
+    %h1= profesor? ? "Mis Evaluaciones" : "Evaluaciones del Colegio"
+    - if profesor?
+      = link_to "Nueva Evaluación", new_evaluation_activity_path, class: "btn btn-primary"
+
+  - if @lapsos_disponibles.many?
+    .filter-pills
+      = link_to "Todos los lapsos", evaluation_activities_path, class: "filter-pill #{'active' unless @lapso_filtrado}"
+      - @lapsos_disponibles.each do |lapso|
+        = link_to evaluation_activities_path(lapso: lapso.id), class: "filter-pill #{'active' if @lapso_filtrado == lapso}" do
+          = lapso.name
+          %small= " · #{lapso.academic_period.name}"
+
+  - if @evaluation_activities.any?
+    %table.table-academic
+      %thead
+        %tr
+          %th Sección
+          %th Materia
+          %th Lapso
+          %th Evaluación
+          %th Peso
+          %th Fecha
+          %th Acciones
+      %tbody
+        - @evaluation_activities.each do |actividad|
+          %tr
+            %td= "#{actividad.section.grade.name} – #{actividad.section.name}"
+            %td= actividad.subject.name
+            %td= actividad.evaluation_moment.name
+            %td= actividad.description
+            %td= "#{number_with_precision(actividad.weight_percentage, precision: actividad.weight_percentage.frac.zero? ? 0 : 2)} %"
+            %td= l(actividad.date_scheduled, format: :long)
+            %td
+              .actions-group
+                = link_to "Ver", actividad, class: "btn btn-secondary btn-sm"
+                - if profesor?
+                  = link_to "Editar", edit_evaluation_activity_path(actividad), class: "btn btn-secondary btn-sm"
+                  = link_to "Eliminar", actividad, data: { turbo_method: :delete, turbo_confirm: "¿Eliminar «#{actividad.description}»? Si ya tiene notas cargadas, el sistema lo va a impedir." }, class: "btn btn-danger btn-sm"
+
+    .pagy-nav
+      != pagy_nav(@pagy)
+
+  - else
+    .empty-state
+      %h3 Sin evaluaciones cargadas
+      - if profesor?
+        %p Definí cómo evaluás cada lapso: un examen, un taller, participación — cada uno con su peso.
+        = link_to "Crear la primera", new_evaluation_activity_path, class: "btn btn-primary"
+      - else
+        %p Todavía ningún profesor definió evaluaciones para este colegio.

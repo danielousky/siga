@@ -18,6 +18,7 @@ Rails.application.routes.draw do
   end
 
   resources :evaluation_moments
+  resources :evaluation_activities
   resources :grades do
     resources :grade_subjects, only: [:create, :destroy]
   end

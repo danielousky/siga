@@ -21,6 +21,13 @@ es:
         # lo antepone solo ("Sección pertenece a otro colegio").
         different_school: pertenece a otro colegio
 
+        # `dependent: :restrict_with_error`. El mensaje por defecto de Rails
+        # ("Cannot delete record because dependent activity grades exist") además
+        # de estar en inglés no dice qué hacer.
+        restrict_dependent_destroy:
+          has_one: "no se puede eliminar: tiene %{record} asociado"
+          has_many: "no se puede eliminar mientras tenga %{record} cargadas"
+
     models:
       school:
         one: Colegio
@@ -87,6 +94,7 @@ es:
         description: Descripción
         weight_percentage: Ponderación
         date_scheduled: Fecha prevista
+        evaluation_moment: Lapso
       activity_grade:
         score: Nota
       moment_grade:
