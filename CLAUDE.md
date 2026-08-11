@@ -38,17 +38,28 @@ enlazado al final.
   cambió **"Especificación para el agente" por "Rabbit holes" y "No-gos"** — la spec numerada
   precomprometía decisiones y en `MOR-86` mandaba a un `before_action` que `MOR-87` obliga a rehacer.
 
+- **Milestone `1 · Esquema por colegio` completo.** `MOR-82` a `MOR-85`, en la rama
+  `feat/mor-82-school-id-en-grades` (5 commits, sin push). Todas las tablas del dominio tienen
+  ahora `school_id` materializado, y los índices únicos que debían ser por colegio lo son.
+  Ver `## ⚠️ Estado conocido` para el detalle de qué quedó global a propósito.
+
 **Pendiente inmediato, en orden:**
-1. **`MOR-82` a `MOR-85` · Esquema por colegio.** Las cuatro migraciones. `MOR-82` no está bloqueado
-   por nada. **Ojo con el orden nuevo:** ya no se hace todo Cimientos de corrido — después del
-   esquema va el módulo de evaluación completo, y recién ahí el resto del aislamiento.
+1. **`MOR-86` · `SchoolScoped` y `Current.school`.** Ya no está bloqueado: las cuatro migraciones
+   están hechas. **Ojo:** resolver el punto de enganche del contexto **junto con `MOR-87`** — el RLS
+   necesita `around_action` porque la variable de sesión de Postgres es por transacción, y elegir
+   un `before_action` acá obliga a rehacerlo.
 2. **Módulo de evaluación de punta a punta** (`MOR-93` → `94` → `95` → `96` → `97`). Es lo único
    demostrable, y hay un formulario de demo vivo sin nada que mostrarle a quien lo llene.
-3. **`MOR-105` · CI y tests.** El script de humo del upgrade (20 checks HTTP por rol) vive en el
-   scratchpad de la sesión, **no en el repo**. Rescatarlo como punto de partida. Rails 8.1 trajo
-   `bin/ci` y `config/ci.rb` — decidir si se adoptan o se va a GitHub Actions.
-4. **Push de las dos ramas y PR.** `feat/encuesta-demo-y-backlog` y `chore/upgrade-ruby-rails`
-   (esta última construida sobre la primera). `main` sigue intacto.
+3. **`MOR-105` · CI y tests.** `bin/smoke` ya está en el repo (21 checks HTTP por rol) y es el punto
+   de partida. Rails 8.1 trajo `bin/ci` y `config/ci.rb` — decidir si se adoptan o GitHub Actions.
+4. **Push de las tres ramas y PR.** `feat/encuesta-demo-y-backlog` → `chore/upgrade-ruby-rails` →
+   `feat/mor-82-school-id-en-grades`, encadenadas. `main` sigue intacto.
+
+**Cómo se entrega, desde ahora** (convención escrita en el documento *Cómo trabajamos* de Linear):
+cada issue cerrado deja **transferencia de aprendizaje** (qué salió distinto, qué falló y cómo se
+descubrió, qué no hacer la próxima vez), **material visual** siempre que se pueda —diagramas ASCII,
+tablas, antes/después— y una **guía de QA** con datos sembrados que cubran el caso que el issue
+resuelve **y** el que rechaza. Nada se da por terminado sin poder verlo funcionando en la app.
 
 **Riesgo abierto que no está en ningún issue:** no hay estimaciones, ni fechas, ni cycles, ni
 horas/semana asignadas a SIGA. Con alcance fijo y tiempo indefinido, "Cimientos primero" no es una
@@ -122,12 +133,19 @@ Verificado en la app corriendo con dos colegios en la base:
 - No existe **ninguna** consulta filtrada por escuela en toda la app.
 - El panel de admin muestra los totales de **toda la plataforma**, no los del colegio.
 - `GET /students/:id` de otro colegio devuelve **200** y permite editar (IDOR).
-- `grades` y `evaluation_moments` **no tienen `school_id`**. La validación de pesos de
-  `EvaluationMoment` suma globalmente: si un colegio ocupa el 100 %, ningún otro puede
-  crear un momento de evaluación.
-- Índices únicos globales que deberían ser por colegio: `grades.name`, `subjects.code`,
-  `students.school_card`. Los seeds ya lo esquivan nombrando `"1er Año - Bolívar"`.
-- `Enrollment` no valida que el colegio del alumno coincida con el de la sección.
+- ~~`grades` y `evaluation_moments` no tienen `school_id`~~ → **resuelto** (`MOR-82`, `MOR-83`).
+  Los momentos cuelgan del **período académico**, no de la escuela: así la estructura de
+  evaluación de cada año queda congelada junto con sus notas. La validación de pesos suma
+  dentro del período.
+- ~~Índices únicos globales que deberían ser por colegio~~ → **resuelto** (`MOR-84`).
+  `grades.name`, `subjects.code` y `students.school_card` son compuestos con `school_id`.
+  Quedan globales **a propósito**: `schools.dea_code` (lo asigna el MPPE), `users.email`
+  (Devise autentica antes de saber el inquilino) y `users.id_card` (identifica a una persona,
+  no a un rol).
+- ~~Nueve tablas deducen su colegio por cadena~~ → **resuelto** (`MOR-85`). `school_id`
+  materializado y mantenido al día por el concern `DerivesSchoolFrom`. Es el prerrequisito
+  del RLS: una política de PostgreSQL evalúa columnas de la fila, no asociaciones.
+- `Enrollment` no valida que el colegio del alumno coincida con el de la sección → `MOR-89`.
 
 **Decisión tomada (pendiente de implementar): dos capas.**
 `default_scope` vía concern `SchoolScoped` + **PostgreSQL RLS con `FORCE ROW LEVEL SECURITY`**.
