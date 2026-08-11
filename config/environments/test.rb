@@ -50,4 +50,13 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # Rails valida las FK de las fixtures escribiendo en `pg_catalog.pg_constraint`
+  # (las invalida, reinserta y revalida). Eso exige SUPERUSER, y el rol de la app
+  # deliberadamente no lo es: si lo fuera, el RLS no se evaluaría nunca (MOR-87).
+  #
+  # Se pierde un chequeo de comodidad —una fixture que apunte a un label
+  # inexistente falla en el test en vez de al cargar—, no una garantía: las FK
+  # siguen existiendo y la base sigue rechazando la fila.
+  config.active_record.verify_foreign_keys_for_fixtures = false
 end

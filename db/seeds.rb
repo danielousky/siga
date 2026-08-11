@@ -3,6 +3,19 @@
 # Pensum venezolano completo con cobertura total de secciones
 # =============================================================================
 
+# Los seeds cargan DOS colegios, así que necesitan ver la plataforma entera.
+# Sin esto el RLS los dejaría en cero filas y el segundo colegio no se crearía.
+#
+# Se declara de forma explícita y no en bloque para no indentar el archivo
+# completo; el `at_exit` garantiza que la conexión no quede con el bypass puesto
+# aunque los seeds fallen a la mitad.
+Current.tenant_scope_disabled = true
+ActiveRecord::Base.connection.execute("SET siga.bypass_rls = 'on'")
+at_exit do
+  Current.tenant_scope_disabled = false
+  ActiveRecord::Base.connection.execute("SET siga.bypass_rls = 'off'") rescue nil
+end
+
 puts "🌱 Iniciando carga de datos de prueba..."
 puts ""
 

@@ -20,6 +20,14 @@ module Siga
     config.i18n.default_locale = :es
     config.i18n.available_locales = [:es, :en]
 
+    # El esquema se versiona como SQL, no como schema.rb.
+    #
+    # No es preferencia: schema.rb no puede representar las políticas de RLS
+    # (MOR-87). Con el formato Ruby, las políticas existirían en la base de
+    # desarrollo y desaparecerían en cualquier entorno creado con db:setup —
+    # o sea, en producción. El aislamiento se caería justo donde importa.
+    config.active_record.schema_format = :sql
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

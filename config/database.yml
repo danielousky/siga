@@ -21,18 +21,30 @@ default: &default
   # https://guides.rubyonrails.org/configuring.html#database-pooling
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
 
+# ⚠️ El usuario de esta conexión NO PUEDE ser superusuario ni tener BYPASSRLS.
+#
+# Un superusuario se salta las políticas de Row-Level Security por completo, y
+# `FORCE ROW LEVEL SECURITY` tampoco lo alcanza — FORCE solo somete al DUEÑO de
+# la tabla. Con un superusuario el aislamiento de la base parece configurado y
+# no se evalúa ni una vez.
+#
+# En macOS con Postgres de Homebrew el usuario por defecto ES superusuario, así
+# que hay que crear el rol de la app explícitamente:
+#
+#     bin/rails rls:crear_rol
+#     bin/rails rls:verificar     # confirma que no se salta el RLS
+#
+# Ver MOR-87.
+# `SIGA_DB_USER` permite entrar con otro rol para las operaciones que el rol de
+# la app no puede hacer: crearlo la primera vez y traspasarle las tablas.
+#
+#     SIGA_DB_USER=$(whoami) bin/rails rls:crear_rol
+#
+# El día a día —servidor, consola, migraciones— va siempre como `siga_app`.
 development:
   <<: *default
   database: siga_development
-
-  # The specified database role being used to connect to postgres.
-  # To create additional roles in postgres see `$ createuser --help`.
-  # When left blank, postgres will use the default role. This is
-  # the same name as the operating system user running Rails.
-  #username: siga
-
-  # The password associated with the postgres role (username).
-  #password:
+  username: <%= ENV.fetch("SIGA_DB_USER", "siga_app") %>
 
   # Connect on a TCP socket. Omitted by default since the client uses a
   # domain socket that doesn't need configuration. Windows does not have
@@ -58,6 +70,7 @@ development:
 test:
   <<: *default
   database: siga_test
+  username: <%= ENV.fetch("SIGA_DB_USER", "siga_app") %>
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
