@@ -1,4 +1,8 @@
 class ApplicationJob < ActiveJob::Base
+  # Todo job trabaja para un colegio, salvo que diga explícitamente lo contrario.
+  # Ver `CarriesSchool` — y MOR-88.
+  include CarriesSchool
+
   # Automatically retry jobs that encountered a deadlock
   # retry_on ActiveRecord::Deadlocked
 

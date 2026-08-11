@@ -38,7 +38,10 @@ echo "ruby  $(ruby -v | cut -d' ' -f2)"
 echo "rails $(bin/rails -v 2>/dev/null | cut -d' ' -f2)"
 echo
 
-bin/rails server -p "$PORT" -b 127.0.0.1 -e development > "$LOG" 2>&1 &
+# El pidfile va aparte: si no, choca con el `bin/rails server` que uno tenga
+# abierto para mirar la app y Puma se niega a arrancar ("A server is already
+# running"). El smoke tiene que poder correr sin bajar el server de desarrollo.
+bin/rails server -p "$PORT" -b 127.0.0.1 -e development --pid "${TMP}/smoke.pid" > "$LOG" 2>&1 &
 SERVER_PID=$!
 
 for _ in $(seq 1 60); do

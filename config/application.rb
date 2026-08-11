@@ -28,6 +28,12 @@ module Siga
     # o sea, en producción. El aislamiento se caería justo donde importa.
     config.active_record.schema_format = :sql
 
+    # Todo `deliver_later` lleva el colegio de quien lo disparó (MOR-88).
+    #
+    # El default de Rails es `ActionMailer::MailDeliveryJob`, que no hereda de
+    # ApplicationJob y por lo tanto no lleva contexto de inquilino.
+    config.action_mailer.delivery_job = "MailerDeliveryJob"
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
