@@ -22,6 +22,14 @@
 
   - if @enrollments.any?
     .card-academic
+      .card-academic-header
+        %h1 Mis Notas
+        = link_to "Ver todas", dashboards_notas_path, class: "btn btn-primary"
+      %p.nota-ayuda
+        El promedio de cada materia, las evaluaciones corregidas y las que todavía
+        están pendientes.
+
+    .card-academic
       %h2 Mis Secciones Inscritas
 
       - @enrollments.each do |enrollment|

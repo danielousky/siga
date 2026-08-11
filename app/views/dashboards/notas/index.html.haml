@@ -1,0 +1,115 @@
+- if @enrollment.nil?
+  .card-academic
+    .card-academic-header
+      %h1 Mis Notas
+    .empty-state
+      %h3 Sin inscripción activa
+      %p No tenés una inscripción vigente. Contactá a la secretaría del colegio.
+
+- else
+  .card-academic
+    .card-academic-header
+      %h1 Mis Notas
+      .admin-info-badge
+        = "#{@seccion.grade.name} – #{@seccion.name}"
+        %span.role-badge= @seccion.academic_period.name
+
+    .stats-grid
+      .stat-card
+        %h3= @promedio_general || "—"
+        %p= @vista_anual ? "Promedio anual" : "Promedio del lapso"
+      .stat-card
+        %h3= @materias.count { |m| m.nota_lapso.present? || (@vista_anual && m.libro&.final_score) }
+        %p Materias con nota
+      .stat-card
+        %h3= @pendientes_totales
+        %p= @pendientes_totales == 1 ? "Evaluación sin corregir" : "Evaluaciones sin corregir"
+
+    - if @lapsos.many? || @lapsos.any?
+      .filter-pills
+        - @lapsos.each do |lapso|
+          = link_to dashboards_notas_path(lapso: lapso.id), class: "filter-pill #{'active' if @lapso == lapso}" do
+            = lapso.name
+        = link_to "Año completo", dashboards_notas_path(lapso: "anual"), class: "filter-pill #{'active' if @vista_anual}"
+
+  - if @vista_anual
+    .card-academic
+      .card-academic-header
+        %h1 Calificaciones Definitivas
+      %table.table-academic
+        %thead
+          %tr
+            %th Materia
+            %th Anual
+            %th Reparación
+            %th Definitiva
+        %tbody
+          - @materias.each do |materia|
+            %tr
+              %td= materia.subject.name
+              %td= materia.libro&.annual_average&.to_i || "—"
+              %td= materia.libro&.remedial_exam_score&.to_i || "—"
+              %td
+                - definitiva = materia.libro&.final_score&.to_i
+                - if definitiva
+                  %span.nota-valor{class: definitiva >= 10 ? "nota-valor--aprobada" : "nota-valor--aplazada"}= definitiva
+                - else
+                  %span.nota-pendiente Sin nota
+      %p.nota-ayuda
+        La calificación definitiva es el promedio de los lapsos (Art. 111 del
+        Reglamento General de la LOE). Aprueba con 10.
+
+  - else
+    - @materias.each do |materia|
+      .card-academic
+        .card-academic-header
+          %h2= materia.subject.name
+          - if materia.nota_lapso
+            .nota-cabecera
+              %span.nota-valor{class: materia.nota_lapso >= 10 ? "nota-valor--aprobada" : "nota-valor--aplazada"}= materia.nota_lapso
+              - if materia.parcial?
+                %span.nota-parcial= "parcial · sobre #{number_with_precision(materia.peso_cargado, precision: materia.peso_cargado.frac.zero? ? 0 : 2)} % corregido"
+          - else
+            .nota-cabecera
+              %span.nota-pendiente Sin nota todavía
+
+        %table.table-academic
+          %thead
+            %tr
+              %th Evaluación
+              %th Fecha
+              %th Peso
+              %th Nota
+          %tbody
+            - materia.actividades.each do |fila|
+              %tr
+                %td= fila[:actividad].description
+                %td= l(fila[:actividad].date_scheduled, format: :long)
+                - peso = fila[:actividad].weight_percentage
+                %td= "#{number_with_precision(peso, precision: peso.frac.zero? ? 0 : 2)} %"
+                %td
+                  - if fila[:nota]
+                    %span.nota-valor{class: fila[:nota] >= 10 ? "nota-valor--aprobada" : "nota-valor--aplazada"}= fila[:nota]
+                  - else
+                    -# NUNCA un cero acá: el profesor todavía no corrigió.
+                    %span.nota-pendiente Pendiente
+
+        - if materia.peso_definido < 100
+          %p.nota-ayuda
+            El profesor definió el
+            = "#{number_with_precision(materia.peso_definido, precision: materia.peso_definido.frac.zero? ? 0 : 2)} %"
+            de este lapso. Falta definir el resto.
+
+    - if @sin_evaluaciones.any?
+      .card-academic
+        .card-academic-header
+          %h2 Todavía sin evaluaciones
+        %p.nota-ayuda
+          El profesor no cargó evaluaciones de estas materias para
+          = succeed "." do
+            = @lapso&.name&.downcase
+          No es que estés sin nota: todavía no hay nada que calificar.
+        .section-subjects
+          - @sin_evaluaciones.each do |materia|
+            .subject-tag
+              %span.subject-name= materia.subject.name

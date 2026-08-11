@@ -14,6 +14,7 @@ Rails.application.routes.draw do
     get 'administrador', to: 'administrador#index'
     get 'profesor',      to: 'profesor#index'
     get 'estudiante',    to: 'estudiante#index'
+    get 'notas',         to: 'notas#index'
     resources :activity_logs, only: [:index]
   end
 

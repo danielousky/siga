@@ -1941,3 +1941,100 @@ nav.pagy a.gap {
   .carga-alumno-nombre { font-size: 16px; }
   .carga-input { width: 72px; height: 48px; font-size: 20px; }
 }
+
+/* ============================================
+   Notas del estudiante
+   --------------------------------------------
+   Lo que NUNCA puede pasar acá es que una evaluación sin corregir se lea como
+   un cero: el alumno llama al colegio y deja de confiar en el sistema. Por eso
+   "Pendiente" es texto en gris y nunca un número.
+   ============================================ */
+
+.nota-cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.nota-valor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.nota-valor--aprobada {
+  background: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid var(--success-border);
+}
+
+.nota-valor--aplazada {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border: 1px solid var(--danger-border);
+}
+
+/* Gris y en palabras: no se puede confundir con una calificación. */
+.nota-pendiente {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.nota-parcial {
+  font-size: 12px;
+  color: var(--warning-text);
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  border-radius: 20px;
+  padding: 2px 10px;
+}
+
+.nota-ayuda {
+  margin: var(--space-sm) 0 0;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 600px) {
+  /* La tabla de evaluaciones se convierte en tarjetas: en un teléfono, cuatro
+     columnas obligan a scroll lateral y el alumno no encuentra su nota. */
+  .table-academic tbody tr {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px var(--space-sm);
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .table-academic tbody td {
+    border: none;
+    padding: 0;
+  }
+
+  .table-academic tbody td:first-child {
+    font-weight: 500;
+  }
+
+  .table-academic tbody td:last-child {
+    grid-row: 1 / span 3;
+    grid-column: 2;
+    align-self: center;
+  }
+
+  .table-academic tbody td:not(:first-child):not(:last-child) {
+    font-size: 12px;
+    color: var(--text-tertiary);
+  }
+
+  .table-academic thead {
+    display: none;
+  }
+}

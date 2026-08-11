@@ -486,14 +486,20 @@ lapsos_bol    = EvaluationMoment.where(academic_period: periodo_bolivar).order(:
 # Examen 40 % · Taller 30 % · Participación 30 % — suman el 100 % del lapso.
 PONDERACION = [["Examen", 40.0], ["Taller", 30.0], ["Participación", 30.0]].freeze
 
-def actividades_de(seccion, materia, lapso, mes, cuantas: PONDERACION.size)
+# Fechas dentro del año escolar 2025-2026: los lapsos venezolanos cierran en
+# diciembre, abril y julio (Art. 110 del Reglamento).
+MESES_POR_LAPSO = [[2025, 11], [2026, 3], [2026, 6]].freeze
+
+def actividades_de(seccion, materia, lapso, indice_lapso, cuantas: PONDERACION.size)
+  anio, mes = MESES_POR_LAPSO[indice_lapso]
+
   PONDERACION.first(cuantas).map.with_index do |(nombre, peso), i|
     EvaluationActivity.find_or_create_by!(
       section: seccion, subject: materia, evaluation_moment: lapso,
       description: "#{nombre} — #{lapso.name}"
     ) do |a|
       a.weight_percentage = peso
-      a.date_scheduled    = Date.new(2025, mes, 5 + i * 7)
+      a.date_scheduled    = Date.new(anio, mes, 5 + i * 7)
     end
   end
 end
@@ -511,7 +517,7 @@ materia_mat = s[:mat]
 materia_len = s[:len]
 
 lapsos_bol.each_with_index do |lapso, li|
-  actividades = actividades_de(seccion_notas, materia_mat, lapso, 11 + li * 2 - 10)
+  actividades = actividades_de(seccion_notas, materia_mat, lapso, li)
 
   alumnos_notas.each_with_index do |alumno, ai|
     puesto = ai + 1
@@ -546,7 +552,7 @@ end
 #
 # Y como Castellano lo dicta otro profesor (prof.torres), sirve además para ver
 # que cada uno solo alcanza lo suyo: García no ve estas evaluaciones.
-actividades_len = actividades_de(seccion_notas, materia_len, lapsos_bol.first, 1, cuantas: 2)
+actividades_len = actividades_de(seccion_notas, materia_len, lapsos_bol.first, 0, cuantas: 2)
 alumnos_notas.each_with_index do |alumno, ai|
   base = 11 + ((ai * 5) % 8)
   actividades_len.each_with_index do |act, i|

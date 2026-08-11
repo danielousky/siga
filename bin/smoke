@@ -140,7 +140,9 @@ echo "Estudiante"
 JAR="${TMP}/est.jar"
 if login "alvaro.lopez001@bolivar.edu" "123123" "$JAR"; then
   echo "  ✓ login"
-  check "dashboard" "/dashboards/estudiante" 200 "$JAR"
+  check "dashboard"        "/dashboards/estudiante"        200 "$JAR"
+  check "mis notas"        "/dashboards/notas"             200 "$JAR"
+  check "notas · anual"    "/dashboards/notas?lapso=anual" 200 "$JAR"
 fi
 
 echo
