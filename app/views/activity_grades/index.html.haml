@@ -1,0 +1,59 @@
+-# La planilla está pensada MÓVIL PRIMERO: una fila por alumno, en vertical, con
+-# el campo grande y teclado numérico. Una grilla de 30 × N en un teléfono no se
+-# arregla con overflow-x — se arregla no siendo una grilla.
+.card-academic{data: { controller: "carga-notas",
+                       carga_notas_url_base_value: evaluation_activity_nota_path(@evaluation_activity, "STUDENT_ID"),
+                       carga_notas_cargadas_value: @notas_por_alumno.size,
+                       carga_notas_total_value: @inscripciones.size }}
+  .card-academic-header
+    %h1= @evaluation_activity.description
+    = link_to "Volver", @evaluation_activity, class: "btn btn-secondary"
+
+  %p.carga-contexto
+    = "#{@evaluation_activity.section.grade.name} – #{@evaluation_activity.section.name}"
+    = "· #{@evaluation_activity.subject.name}"
+    = "· #{@evaluation_activity.evaluation_moment.name}"
+    - peso = @evaluation_activity.weight_percentage
+    %strong= "· #{number_with_precision(peso, precision: peso.frac.zero? ? 0 : 2)} % del lapso"
+
+  .carga-progreso
+    .carga-progreso-barra
+      .carga-progreso-fill{data: { carga_notas_target: "progresoBarra" },
+                           style: "width: #{@inscripciones.any? ? (@notas_por_alumno.size * 100.0 / @inscripciones.size).round : 0}%"}
+    .carga-progreso-texto{data: { carga_notas_target: "progresoTexto" }}
+      = "#{@notas_por_alumno.size} de #{@inscripciones.size} cargadas"
+
+  .carga-aviso{data: { carga_notas_target: "aviso" }, hidden: true}
+    %span{data: { carga_notas_target: "avisoTexto" }}
+    %button.btn.btn-secondary.btn-sm{type: "button", data: { action: "carga-notas#reintentarTodo" }} Reintentar
+
+  - if @inscripciones.any?
+    %ul.carga-lista
+      - @inscripciones.each do |inscripcion|
+        - alumno = inscripcion.student
+        - nota   = @notas_por_alumno[alumno.user_id]
+        %li.carga-fila{data: { carga_notas_target: "fila", alumno: alumno.user_id }}
+          .carga-alumno
+            .carga-alumno-nombre= "#{alumno.user.last_name}, #{alumno.user.name}"
+            .carga-alumno-carnet= alumno.school_card
+          .carga-campo
+            %input.carga-input{type: "number", inputmode: "numeric", min: 1, max: 20, step: 1,
+                               value: nota&.score&.to_i, placeholder: "—",
+                               aria: { label: "Nota de #{alumno.user.name} #{alumno.user.last_name}" },
+                               data: { carga_notas_target: "input",
+                                       action: "change->carga-notas#guardar keydown->carga-notas#navegar" }}
+            %span.carga-estado{data: { carga_notas_target: "estado" }}
+
+    %p.carga-ayuda
+      Cada nota se guarda al salir del campo. Dejalo
+      %strong vacío
+      para volver a "sin nota" — que no es lo mismo que un 1.
+      %br
+      Con
+      %kbd Enter
+      pasás al alumno siguiente.
+
+  - else
+    .empty-state
+      %h3 Sin alumnos inscritos
+      %p Esta sección no tiene inscripciones todavía.

@@ -124,6 +124,15 @@ if login "prof.garcia@bolivar.edu" "123123" "$JAR"; then
   check "dashboard"           "/dashboards/profesor"        200 "$JAR"
   check "mis evaluaciones"    "/evaluation_activities"      200 "$JAR"
   check "nueva evaluación"    "/evaluation_activities/new"  200 "$JAR"
+
+  # La planilla de carga cuelga de una actividad, así que el id sale del listado.
+  PLANILLA="$(curl -s -b "$JAR" "${BASE}/evaluation_activities" \
+    | grep -o '/evaluation_activities/[0-9]*/notas' | head -1)"
+  if [ -n "$PLANILLA" ]; then
+    check "planilla de notas"  "$PLANILLA"                   200 "$JAR"
+  else
+    echo "  ✗ no se encontró ninguna planilla en el listado"; FAILED=1
+  fi
 fi
 
 echo

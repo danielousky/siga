@@ -1786,3 +1786,158 @@ nav.pagy a.gap {
 .weight-meter-falta {
   color: var(--warning-text);
 }
+
+/* ============================================
+   Planilla de carga de notas
+   --------------------------------------------
+   Móvil primero: una fila por alumno, en vertical. Una grilla de 30 × N en un
+   teléfono no se arregla con overflow-x — se arregla no siendo una grilla.
+   ============================================ */
+
+.carga-contexto {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0 0 var(--space-md);
+}
+
+.carga-progreso {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.carga-progreso-barra {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-input);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.carga-progreso-fill {
+  height: 100%;
+  background: var(--success-text);
+  transition: width 160ms ease-out;
+}
+
+.carga-progreso-texto {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.carga-aviso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  color: var(--warning-text);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-md);
+  font-size: 14px;
+}
+
+.carga-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.carga-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.carga-alumno {
+  min-width: 0;
+}
+
+.carga-alumno-nombre {
+  font-size: 15px;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.carga-alumno-carnet {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.carga-campo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+
+/* 64 px de ancho y 44 de alto: el mínimo cómodo para un pulgar. */
+.carga-input {
+  width: 64px;
+  height: 44px;
+  text-align: center;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+}
+
+.carga-input:focus {
+  outline: none;
+  border-color: var(--control-focus-border);
+  box-shadow: 0 0 0 3px var(--control-focus-ring);
+}
+
+/* Sin nota se ve DISTINTO de una nota baja: el guion está donde iría el número. */
+.carga-input::placeholder {
+  color: var(--text-muted);
+}
+
+.carga-estado {
+  width: 18px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
+.carga-fila[data-estado="guardando"] .carga-estado { color: var(--text-tertiary); }
+.carga-fila[data-estado="guardado"] .carga-estado  { color: var(--success-text); }
+.carga-fila[data-estado="vacio"] .carga-estado     { color: var(--text-muted); }
+.carga-fila[data-estado="sin-red"] .carga-estado   { color: var(--warning-text); }
+.carga-fila[data-estado="rechazado"] .carga-estado { color: var(--danger-text); font-weight: 700; }
+
+.carga-fila[data-estado="sin-red"] .carga-input   { border-color: var(--warning-border); background: var(--warning-bg); }
+.carga-fila[data-estado="rechazado"] .carga-input { border-color: var(--danger-border); background: var(--danger-bg); }
+
+.carga-ayuda {
+  margin-top: var(--space-md);
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.carga-ayuda kbd {
+  background: var(--surface-input);
+  border: 1px solid var(--border-standard);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 12px;
+}
+
+@media (max-width: 480px) {
+  .carga-alumno-nombre { font-size: 16px; }
+  .carga-input { width: 72px; height: 48px; font-size: 20px; }
+}

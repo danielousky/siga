@@ -18,7 +18,12 @@ Rails.application.routes.draw do
   end
 
   resources :evaluation_moments
-  resources :evaluation_activities
+  resources :evaluation_activities do
+    # La planilla de carga. `notas/:student_id` hace upsert y borrado: mandar el
+    # campo vacío devuelve al alumno a "sin nota", que NO es lo mismo que un 1.
+    get   "notas",             to: "activity_grades#index",  as: :notas
+    patch "notas/:student_id", to: "activity_grades#update", as: :nota
+  end
   resources :grades do
     resources :grade_subjects, only: [:create, :destroy]
   end
