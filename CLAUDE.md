@@ -75,7 +75,7 @@ Credenciales de los seeds (contraseña universal `123123`):
 
 ## ⚠️ Estado conocido — leer antes de tocar el modelo
 
-### 1. ~~La app NO es multi-tenant~~ → resuelto. Queda un pendiente: los jobs.
+### 1. ~~La app NO es multi-tenant~~ → resuelto, en las dos capas y también en los jobs.
 
 El diagnóstico original, con lo que quedó de cada punto:
 
@@ -130,9 +130,12 @@ El diagnóstico original, con lo que quedó de cada punto:
 3. **El esquema va en `structure.sql`.** `schema.rb` no sabe representar `CREATE POLICY`: el primer
    `db:prepare` regeneraría el esquema sin RLS, en silencio.
 
-**Lo que queda:** los **background jobs** corren sin request, así que `Current.school` está en `nil`
-y —con el RLS puesto— la consulta devuelve cero filas. El tenant va explícito en el payload
-(`MOR-88`).
+**Los jobs** (`MOR-88`): un worker no tiene petición, así que no hereda nada. El `school_id` se
+serializa en el payload **al encolar**, que es el único momento en que el contexto es un dato
+confiable, y el concern `CarriesSchool` lo restablece antes del `perform`. Por defecto un job
+**exige colegio**; `colegio_opcional` y `de_toda_la_plataforma` son las dos salidas. Ojo con
+`perform_now` dentro de una petición: `SET LOCAL` pertenece a la transacción **más externa** y una
+`transaction` anidada no abre una nueva — el concern guarda y devuelve el valor anterior por eso.
 
 `Current.sin_aislamiento` es la única puerta de salida, explícita y grepeable a propósito: las redes
 de colegios (AVEC, ANDIEP, Fe y Alegría) necesitan **vista consolidada entre colegios**, así que el

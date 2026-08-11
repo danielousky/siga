@@ -59,19 +59,30 @@ enlazado al final.
   usuario de macOS. Un superusuario **se salta el RLS por completo** y `FORCE` no lo alcanza —
   las políticas quedan decorativas. Pasó exactamente eso durante el desarrollo. Ver
   `## Common Commands` para el arranque en una máquina nueva.
+- **`MOR-88` · El colegio viaja con el job.** Commit `8cf9dc9`. Concern `CarriesSchool`: el
+  `school_id` se serializa en el payload al encolar —el único momento en que el contexto es un dato
+  confiable— y se restablece, en la app y en la base, antes del `perform`. Por defecto un job
+  **exige colegio** y levanta `CarriesSchool::SinColegio` si no lo trae; `colegio_opcional` y
+  `de_toda_la_plataforma` son las dos salidas, explícitas y grepeables. `MailerDeliveryJob`
+  reemplaza al de Rails, que no heredaba de `ApplicationJob` y por lo tanto no llevaba colegio.
+
+  Lo encontró un test que parecía trivial: **`SET LOCAL` pertenece a la transacción más externa**,
+  y `ActiveRecord::Base.transaction` anidado no abre una nueva. Un job corrido con `perform_now`
+  dentro de una petición le dejaba su colegio puesto a la petición — capa 1 diciendo A, capa 2
+  diciendo B, cero filas y ninguna explicación. Se guarda el valor anterior y se devuelve a mano.
+
+  **Con esto cierra el milestone `2 · Aislamiento en la app y en la base`** (`MOR-86`, `87`, `88`,
+  `89`). Y quedaron los **primeros 9 tests reales de aislamiento** del repo — la suite pasó de 3 a 13.
 
 **Pendiente inmediato, en orden:**
-1. **`MOR-88` · Tenant en los background jobs.** Es lo único que queda del milestone
-   `2 · Aislamiento`. Un worker corre sin request, así que `Current.school` está en `nil` y —con el
-   RLS puesto— la consulta ahora devuelve **cero filas**, no todas. El tenant va explícito en el
-   payload del job.
-2. **Módulo de evaluación de punta a punta** (`MOR-93` → `94` → `95` → `96` → `97`). Es lo único
+1. **Módulo de evaluación de punta a punta** (`MOR-93` → `94` → `95` → `96` → `97`). Es lo único
    demostrable, y hay un formulario de demo vivo sin nada que mostrarle a quien lo llene.
-3. **`MOR-105` · CI y tests.** `bin/smoke` ya está en el repo (21 checks HTTP por rol) y es el punto
+2. **`MOR-105` · CI y tests.** `bin/smoke` ya está en el repo (21 checks HTTP por rol) y es el punto
    de partida. Rails 8.1 trajo `bin/ci` y `config/ci.rb` — decidir si se adoptan o GitHub Actions.
    Ojo para `MOR-90`: las fixtures se insertan **sin contexto de colegio**, así que el `WITH CHECK`
-   las va a rechazar en cuanto haya fixtures de tablas con RLS.
-4. **Push de las tres ramas y PR.** `feat/encuesta-demo-y-backlog` → `chore/upgrade-ruby-rails` →
+   las va a rechazar en cuanto haya fixtures de tablas con RLS. `test/jobs/carries_school_test.rb`
+   ya tiene el patrón: sembrar en el `setup` dentro de `Current.sin_aislamiento`.
+3. **Push de las tres ramas y PR.** `feat/encuesta-demo-y-backlog` → `chore/upgrade-ruby-rails` →
    `feat/mor-82-school-id-en-grades`, encadenadas. `main` sigue intacto.
 
 **Cómo se entrega, desde ahora** (convención escrita en el documento *Cómo trabajamos* de Linear):
