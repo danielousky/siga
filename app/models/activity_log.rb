@@ -2,6 +2,14 @@ class ActivityLog < ApplicationRecord
   belongs_to :user
   belongs_to :subject, polymorphic: true, optional: true
 
+  # El colegio se deduce del rol del usuario. No usa `derives_school_from` porque
+  # el origen no es una asociación directa: hay que recorrer los tres roles.
+  #
+  # Queda OPCIONAL a propósito: un usuario sin rol no tiene colegio, y perder el
+  # registro de auditoría sería peor que registrarlo sin escuela. Ver MOR-85.
+  belongs_to :school, optional: true
+  before_validation :derive_school_from_user_role
+
   ACTIONS = %w[
     login logout
     enrollment_created enrollment_destroyed
@@ -48,5 +56,15 @@ class ActivityLog < ApplicationRecord
 
   def label
     LABELS[action] || action.humanize
+  end
+
+  private
+
+  def derive_school_from_user_role
+    return if school_id.present? || user.blank?
+
+    self.school_id = user.student&.school_id ||
+                     user.teacher&.school_id ||
+                     user.admin&.school_id
   end
 end
