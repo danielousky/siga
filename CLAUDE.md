@@ -43,20 +43,40 @@ enlazado al final.
   `school_id` materializado, los índices únicos que debían ser por colegio lo son, y **ya no se
   puede escribir una fila que cruce dos colegios**. Ver `## ⚠️ Estado conocido` para el detalle
   de qué quedó global a propósito.
-- **Dos concerns nuevos**, que es donde vive la mecánica del aislamiento:
-  `DerivesSchoolFrom` (declara de qué padre sale `school_id` y lo mantiene al día) y
-  `ValidatesSameSchool` (impide vincular entidades de colegios distintos). `MOR-86` va a agregar
-  `SchoolScoped` al lado.
+- **Tres concerns**, que es donde vive la mecánica del aislamiento:
+  `DerivesSchoolFrom` (declara de qué padre sale `school_id` y lo mantiene al día),
+  `ValidatesSameSchool` (impide vincular entidades de colegios distintos) y
+  `SchoolScoped` (el `default_scope` por colegio).
+- **`MOR-86` + `MOR-87` · La app es multi-tenant. Las dos capas están puestas y medidas.**
+  Commits `cddab27` y `82a3259`, misma rama. `Current.school` sale **solo del rol del usuario
+  autenticado**; el selector de colegio salió del formulario de grados y `school_id` dejó de estar
+  en los parámetros permitidos. Debajo, RLS con `FORCE` en las 17 tablas del dominio.
+  **El IDOR documentado (`GET /students/:id` de otro colegio) pasó de 200 a 404.**
+
+  | | Solo capa 1 | Con RLS |
+  |---|---|---|
+  | `Student.count` con contexto Bolívar | 200 ✅ | 200 ✅ |
+  | `Student.unscoped.count` | 290 ❌ | 200 ✅ |
+  | `SELECT * FROM students` crudo | 290 ❌ | 200 ✅ |
+  | **Sin contexto de colegio** | 290 ❌ | **0** ✅ |
+  | `INSERT` cruzado | pasa ❌ | rechazado ✅ |
+
+  ⚠️ **Requisito de setup que NO es opcional:** la app se conecta como `siga_app`, no como el
+  usuario de macOS. Un superusuario **se salta el RLS por completo** y `FORCE` no lo alcanza —
+  las políticas quedan decorativas. Pasó exactamente eso durante el desarrollo. Ver
+  `## Common Commands` para el arranque en una máquina nueva.
 
 **Pendiente inmediato, en orden:**
-1. **`MOR-86` · `SchoolScoped` y `Current.school`.** Ya no está bloqueado: las cuatro migraciones
-   están hechas. **Ojo:** resolver el punto de enganche del contexto **junto con `MOR-87`** — el RLS
-   necesita `around_action` porque la variable de sesión de Postgres es por transacción, y elegir
-   un `before_action` acá obliga a rehacerlo.
+1. **`MOR-88` · Tenant en los background jobs.** Es lo único que queda del milestone
+   `2 · Aislamiento`. Un worker corre sin request, así que `Current.school` está en `nil` y —con el
+   RLS puesto— la consulta ahora devuelve **cero filas**, no todas. El tenant va explícito en el
+   payload del job.
 2. **Módulo de evaluación de punta a punta** (`MOR-93` → `94` → `95` → `96` → `97`). Es lo único
    demostrable, y hay un formulario de demo vivo sin nada que mostrarle a quien lo llene.
 3. **`MOR-105` · CI y tests.** `bin/smoke` ya está en el repo (21 checks HTTP por rol) y es el punto
    de partida. Rails 8.1 trajo `bin/ci` y `config/ci.rb` — decidir si se adoptan o GitHub Actions.
+   Ojo para `MOR-90`: las fixtures se insertan **sin contexto de colegio**, así que el `WITH CHECK`
+   las va a rechazar en cuanto haya fixtures de tablas con RLS.
 4. **Push de las tres ramas y PR.** `feat/encuesta-demo-y-backlog` → `chore/upgrade-ruby-rails` →
    `feat/mor-82-school-id-en-grades`, encadenadas. `main` sigue intacto.
 
@@ -87,7 +107,9 @@ Documentación de referencia (PDF/PNG del proyecto, contrato y diagramas ER) en 
 ## Common Commands
 
 ```bash
-# Setup
+# Setup en una máquina nueva — el primer paso NO es opcional
+SIGA_DB_USER=$(whoami) bin/rails rls:crear_rol   # crea siga_app y le traspasa las tablas
+bin/rails rls:verificar                          # debe decir SUPERUSER: false / BYPASSRLS: false
 bin/setup                          # Initial project setup
 bin/rails db:create db:migrate     # Create and migrate database
 bin/rails db:seed                  # Datos de prueba: 2 colegios, 290 alumnos, 15 profesores
@@ -120,6 +142,10 @@ Credenciales de los seeds (contraseña universal `123123`):
   `Admin#role` es un enum: desarrollador, director, finanzas, coordinador, secretaria.
   Los helpers de autorización viven en `ApplicationController` (`can_manage_students?`, etc.).
 - **Paginación**: Pagy. **Auditoría**: concern `Auditable` + modelo `ActivityLog`.
+- **Multi-tenancy**: `Current.school` + concern `SchoolScoped` (app) + RLS con `FORCE` (base).
+  La app se conecta como **`siga_app`**, un rol sin `SUPERUSER` ni `BYPASSRLS` — con cualquiera de
+  los dos el RLS deja de evaluarse. Ver `## ⚠️ Estado conocido § 1`.
+- **Esquema**: `db/structure.sql`, no `schema.rb` — las políticas de RLS no caben en el DSL de Ruby.
 - **Módulo**: `Siga` (ver `config/application.rb`)
 
 ## Conventions
@@ -131,13 +157,15 @@ Credenciales de los seeds (contraseña universal `123123`):
 
 ## ⚠️ Estado conocido — leer antes de tocar el modelo
 
-### 1. La app NO es multi-tenant. Los datos se cruzan entre colegios.
+### 1. ~~La app NO es multi-tenant~~ → resuelto. Queda un pendiente: los jobs.
 
-Verificado en la app corriendo con dos colegios en la base:
+El diagnóstico original, con lo que quedó de cada punto:
 
-- No existe **ninguna** consulta filtrada por escuela en toda la app.
-- El panel de admin muestra los totales de **toda la plataforma**, no los del colegio.
-- `GET /students/:id` de otro colegio devuelve **200** y permite editar (IDOR).
+- ~~No existe **ninguna** consulta filtrada por escuela en toda la app~~ → **resuelto** (`MOR-86`).
+  Sigue sin haber filtros escritos a mano, y esa es la gracia: los pone `SchoolScoped`.
+- ~~El panel de admin muestra los totales de **toda la plataforma**~~ → **resuelto**: 200/8/10 para
+  Bolívar, 90/7/6 para Bello, sin tocar el controller.
+- ~~`GET /students/:id` de otro colegio devuelve **200** y permite editar (IDOR)~~ → **404**.
 - ~~`grades` y `evaluation_moments` no tienen `school_id`~~ → **resuelto** (`MOR-82`, `MOR-83`).
   Los momentos cuelgan del **período académico**, no de la escuela: así la estructura de
   evaluación de cada año queda congelada junto con sus notas. La validación de pesos suma
@@ -155,15 +183,43 @@ Verificado en la app corriendo con dos colegios en la base:
   `TeacherSection` y `Grade#leader_teacher`, pero cualquier modelo con dos FK a entidades con
   colegio era candidato. Vive en el concern `ValidatesSameSchool`.
 
-**Decisión tomada (pendiente de implementar): dos capas.**
-`default_scope` vía concern `SchoolScoped` + **PostgreSQL RLS con `FORCE ROW LEVEL SECURITY`**.
-La razón del RLS es que un filtro olvidado deje de ser una fuga silenciosa y pase a devolver
-cero filas. Dos puntos donde Rails rompe y hay que atacar explícitamente:
-la variable de sesión de Postgres se setea **por transacción** (`around_action`, no initializer),
-y los **background jobs** corren sin request, así que el tenant va explícito en el payload.
+**Las dos capas, implementadas** (`MOR-86` + `MOR-87`):
 
-Requisito que condiciona el diseño: las redes de colegios (AVEC, ANDIEP, Fe y Alegría)
-necesitan **vista consolidada entre colegios**, así que el aislamiento no puede ser un silo puro.
+```
+  Petición ──► around_action ──► Current.school = colegio del ROL del usuario
+                    │             (nunca de un parámetro, URL, header ni campo oculto)
+                    │
+                    ├─ CAPA 1 · SchoolScoped
+                    │    default_scope { where(school_id: Current.school_id) }
+                    │    17 modelos. Evita el error humano.
+                    │    Se la saltan: unscoped, find_by_sql, SQL crudo.
+                    │
+                    └─ CAPA 2 · PostgreSQL RLS con FORCE
+                         SET LOCAL siga.school_id, dentro de la transacción
+                         17 tablas. Hace que el error no tenga consecuencias.
+                         Sin contexto → CERO filas, no todas.
+```
+
+**Tres cosas que no son negociables y son fáciles de romper:**
+
+1. **El rol de la base no puede ser superusuario ni tener `BYPASSRLS`.** Un superusuario se salta
+   las políticas antes de mirarlas, y `FORCE` no lo alcanza — `FORCE` solo somete al *dueño* de la
+   tabla. En macOS con Homebrew el usuario por defecto **es** superusuario: sin `rls:crear_rol` el
+   aislamiento parece configurado y no se evalúa ni una vez. `bin/rails rls:verificar` lo detecta.
+2. **La variable de sesión va por transacción** (`set_config(..., true)`, o sea `SET LOCAL`).
+   Con `SET` a secas sobrevive a la petición y la siguiente hereda el colegio de la anterior — la
+   misma fuga, con más pasos. Por eso `around_action`, no `before_action` ni initializer.
+3. **El esquema va en `structure.sql`.** `schema.rb` no sabe representar `CREATE POLICY`: el primer
+   `db:prepare` regeneraría el esquema sin RLS, en silencio.
+
+**Lo que queda:** los **background jobs** corren sin request, así que `Current.school` está en `nil`
+y —con el RLS puesto— la consulta devuelve cero filas. El tenant va explícito en el payload
+(`MOR-88`).
+
+`Current.sin_aislamiento` es la única puerta de salida, explícita y grepeable a propósito: las redes
+de colegios (AVEC, ANDIEP, Fe y Alegría) necesitan **vista consolidada entre colegios**, así que el
+aislamiento no puede ser un silo puro. Para ese caso está `de_los_colegios(*ids)`, que cruza colegios
+sin apagar el resto de los scopes.
 
 ### 2. El módulo de evaluación existe en la base y no tiene interfaz.
 
