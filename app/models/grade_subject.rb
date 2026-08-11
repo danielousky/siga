@@ -1,4 +1,6 @@
 class GradeSubject < ApplicationRecord
+  include SchoolScoped
+
   belongs_to :grade
   belongs_to :subject
 

@@ -1,4 +1,6 @@
 class EvaluationActivity < ApplicationRecord
+  include SchoolScoped
+
   belongs_to :subject
   belongs_to :section
   belongs_to :evaluation_moment

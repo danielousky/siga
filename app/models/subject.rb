@@ -1,4 +1,6 @@
 class Subject < ApplicationRecord
+  include SchoolScoped
+
   belongs_to :department
 
   derives_school_from :department

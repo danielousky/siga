@@ -1,4 +1,6 @@
 class ActivityLog < ApplicationRecord
+  include SchoolScoped
+
   belongs_to :user
   belongs_to :subject, polymorphic: true, optional: true
 

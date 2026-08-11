@@ -1,4 +1,6 @@
 class Grade < ApplicationRecord
+  include SchoolScoped
+
   enum :level, { primaria: 0, secundaria: 1 }
 
   belongs_to :school

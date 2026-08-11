@@ -1,4 +1,6 @@
 class FinalGradeBook < ApplicationRecord
+  include SchoolScoped
+
   belongs_to :enrollment
   belongs_to :subject
 

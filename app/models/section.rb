@@ -1,4 +1,6 @@
 class Section < ApplicationRecord
+  include SchoolScoped
+
   belongs_to :grade
   belongs_to :academic_period
 

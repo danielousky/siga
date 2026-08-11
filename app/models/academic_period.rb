@@ -1,4 +1,6 @@
 class AcademicPeriod < ApplicationRecord
+  include SchoolScoped
+
   belongs_to :school
 
   has_many :sections, dependent: :restrict_with_error

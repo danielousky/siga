@@ -1,5 +1,9 @@
 class EvaluationMoment < ApplicationRecord
+  include SchoolScoped
+
   belongs_to :academic_period
+
+  derives_school_from :academic_period
 
   has_many :evaluation_activities, dependent: :restrict_with_error
   has_many :moment_grades, dependent: :restrict_with_error

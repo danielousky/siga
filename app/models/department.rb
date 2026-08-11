@@ -1,4 +1,6 @@
 class Department < ApplicationRecord
+  include SchoolScoped
+
   belongs_to :school
 
   has_many :subjects, dependent: :restrict_with_error

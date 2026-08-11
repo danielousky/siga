@@ -1,4 +1,6 @@
 class Enrollment < ApplicationRecord
+  include SchoolScoped
+
   enum :status, { regular: 0, retirado: 1 }
 
   belongs_to :section

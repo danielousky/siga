@@ -1,9 +1,9 @@
 = form_with(model: evaluation_moment, class: "mb-3") do |f|
   = render "shared/errors", object: evaluation_moment
 
-  -# Provisional: hoy el período se elige a mano porque no existe contexto de
-  -# inquilino. Cuando MOR-86 traiga Current.school, esta lista se filtra sola
-  -# a los períodos del colegio de la sesión.
+  -# La lista de períodos ya viene filtrada al colegio de la sesión: AcademicPeriod
+  -# es SchoolScoped, así que `AcademicPeriod.includes(:school)` no puede traer los
+  -# de otro colegio aunque alguien lo intente.
   .mb-3
     = f.label :academic_period_id, "Período académico", class: "form-label"
     = f.select :academic_period_id, AcademicPeriod.includes(:school).order(:school_id, :name).map { |p| ["#{p.school.name} — #{p.name}", p.id] }, { include_blank: "Seleccione..." }, class: "form-select"

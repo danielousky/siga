@@ -1,4 +1,6 @@
 class ActivityGrade < ApplicationRecord
+  include SchoolScoped
+
   belongs_to :evaluation_activity
   belongs_to :student, foreign_key: :student_id, primary_key: :user_id
 

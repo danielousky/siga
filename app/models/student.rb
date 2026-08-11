@@ -1,4 +1,6 @@
 class Student < ApplicationRecord
+  include SchoolScoped
+
   self.primary_key = :user_id
 
   belongs_to :user
