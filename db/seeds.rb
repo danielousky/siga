@@ -456,6 +456,134 @@ end
 puts "   ✓ #{Enrollment.count} inscripciones creadas"
 
 # =============================================================================
+# NOTAS — 1er Año A de Bolívar, para poder VER el cálculo (MOR-93)
+# =============================================================================
+#
+# Cada alumno de esta lista existe para hacer visible una regla del Reglamento
+# General de la LOE. No son notas de relleno: son los casos que el cálculo tiene
+# que resolver bien, y que hay que poder mirar en pantalla.
+#
+#   #1  buen alumno            → aprueba cómodo
+#   #2  9,50 exacto            → Art. 108: sube a 10 y APRUEBA. Un décimo abajo repite.
+#   #3  aplazado con reparación → Art. 112: la nota de la segunda oportunidad manda
+#   #4  sin ninguna nota        → sale SIN nota, nunca con cero
+#   #5  una actividad sin corregir → esa evaluación sale del promedio con su peso
+#
+# Castellano va solo en el primer lapso a propósito: sirve para ver que un año a
+# medio andar no promedia como si estuviera completo.
+puts ""
+puts "📝 Cargando notas de Matemática y Castellano (1er Año A, Bolívar)..."
+
+seccion_notas = sec_bol["g1_A"]
+alumnos_notas = students_per_section_bol["g1_A"]
+lapsos_bol    = EvaluationMoment.where(academic_period: periodo_bolivar).order(:id).to_a
+
+# Examen 40 % · Taller 30 % · Participación 30 % — suman el 100 % del lapso.
+PONDERACION = [["Examen", 40.0], ["Taller", 30.0], ["Participación", 30.0]].freeze
+
+def actividades_de(seccion, materia, lapso, mes)
+  PONDERACION.map.with_index do |(nombre, peso), i|
+    EvaluationActivity.find_or_create_by!(
+      section: seccion, subject: materia, evaluation_moment: lapso,
+      description: "#{nombre} — #{lapso.name}"
+    ) do |a|
+      a.weight_percentage = peso
+      a.date_scheduled    = Date.new(2025, mes, 5 + i * 7)
+    end
+  end
+end
+
+# [examen, taller, participación] por lapso. `nil` = sin cargar.
+NOTAS_MATEMATICA = {
+  1 => [[18, 19, 17], [17, 18, 16], [19, 20, 18]],   # buen alumno
+  2 => [[11,  9,  8], [11,  9,  8], [11,  9,  8]],   # 9,50 exacto en los tres → 10
+  3 => [[ 7,  9,  8], [ 8,  8,  8], [ 9,  9,  9]],   # aplazado → reparación
+  4 => [nil, nil, nil],                              # sin una sola nota cargada
+  5 => [[16, nil, nil], nil, nil]                    # solo el examen corregido
+}.freeze
+
+materia_mat = s[:mat]
+materia_len = s[:len]
+
+lapsos_bol.each_with_index do |lapso, li|
+  actividades = actividades_de(seccion_notas, materia_mat, lapso, 11 + li * 2 - 10)
+
+  alumnos_notas.each_with_index do |alumno, ai|
+    puesto = ai + 1
+    fila   = NOTAS_MATEMATICA[puesto]
+
+    puntajes =
+      if fila
+        fila[li]
+      else
+        # El resto de la sección: notas verosímiles y estables entre corridas.
+        base = 10 + ((puesto * 7 + li * 3) % 9)
+        [base, base + 1, base - 1].map { |n| n.clamp(1, 20) }
+      end
+
+    next if puntajes.nil?
+
+    actividades.each_with_index do |act, i|
+      next if puntajes[i].nil?
+
+      ActivityGrade.find_or_create_by!(evaluation_activity: act, student: alumno) do |g|
+        g.score = puntajes[i]
+      end
+    end
+  end
+end
+
+# Castellano: SOLO el primer lapso. Un año a medio andar.
+actividades_len = actividades_de(seccion_notas, materia_len, lapsos_bol.first, 1)
+alumnos_notas.each_with_index do |alumno, ai|
+  base = 11 + ((ai * 5) % 8)
+  actividades_len.each_with_index do |act, i|
+    ActivityGrade.find_or_create_by!(evaluation_activity: act, student: alumno) do |g|
+      g.score = (base + i - 1).clamp(1, 20)
+    end
+  end
+end
+
+puts "   ✓ #{EvaluationActivity.count} actividades · #{ActivityGrade.count} notas cargadas"
+
+# Y ahora el cálculo, que es lo que este issue verifica.
+GradeCalculator.calculate_all_for_section(seccion_notas)
+
+# La reparación del alumno #3, después de calcular el anual (Art. 112).
+inscripcion_3 = Enrollment.find_by(student: alumnos_notas[2], section: seccion_notas)
+FinalGradeBook.find_by(enrollment: inscripcion_3, subject: materia_mat)&.tap do |fgb|
+  fgb.update!(remedial_exam_score: 12)
+end
+GradeCalculator.calculate_final_grade(enrollment: inscripcion_3, subject: materia_mat)
+
+puts "   ✓ #{MomentGrade.count} notas de lapso · #{FinalGradeBook.count} notas definitivas calculadas"
+puts ""
+PISTA_DEL_CASO = {
+  2 => "← Art. 108: crudo daba 9,50 y sube a 10. APRUEBA",
+  5 => "← solo el examen (40 %): promedia sobre 40, no sobre 100"
+}.freeze
+
+puts "   Los cinco casos que hay que poder ver (Matemática, 1er Año A):"
+[1, 2, 3, 4, 5].each do |puesto|
+  alumno = alumnos_notas[puesto - 1]
+  insc   = Enrollment.find_by(student: alumno, section: seccion_notas)
+  fgb    = FinalGradeBook.find_by(enrollment: insc, subject: materia_mat)
+  lapsos = MomentGrade.where(enrollment: insc, subject: materia_mat).order(:evaluation_moment_id)
+                      .pluck(:final_moment_score).map(&:to_i)
+
+  detalle = if fgb.nil?
+              "SIN NOTA".ljust(22) + "← no es cero: no hay nada cargado"
+            elsif fgb.remedial_exam_score.present?
+              "anual #{fgb.annual_average.to_i} + rep. #{fgb.remedial_exam_score.to_i} → #{fgb.final_score.to_i}".ljust(23) +
+                "← Art. 112, la segunda oportunidad manda"
+            else
+              "lapsos #{lapsos.join('·')} → #{fgb.final_score.to_i}".ljust(22) + PISTA_DEL_CASO.fetch(puesto, "")
+            end
+
+  puts "   ##{puesto} #{alumno.user.name} #{alumno.user.last_name}".ljust(30) + detalle
+end
+
+# =============================================================================
 # RESUMEN FINAL
 # =============================================================================
 puts ""
