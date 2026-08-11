@@ -15,5 +15,9 @@
   .mb-3
     = f.label :weight, "Peso (%)", class: "form-label"
     = f.number_field :weight, class: "form-control", step: 0.01, min: 0, max: 100
+    %small.form-text.text-muted
+      Describe qué parte del año representa el lapso. La nota anual es el
+      %strong promedio
+      de los lapsos, sin ponderar (Art. 111 del Reglamento General de la LOE).
 
   = f.submit class: "btn btn-primary"

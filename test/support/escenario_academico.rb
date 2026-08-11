@@ -99,5 +99,10 @@ module EscenarioAcademico
     ActiveRecord::Base.connection.execute(
       ActiveRecord::Base.sanitize_sql_array(["SELECT set_config('siga.school_id', ?, true)", id.to_s])
     )
+  rescue ActiveRecord::StatementInvalid
+    # Si el test dejó la transacción abortada —un CHECK violado a propósito, por
+    # ejemplo— no hay contexto que restaurar: se va a deshacer todo igual.
+    # Reventar acá taparía el error que el test estaba probando.
+    nil
   end
 end

@@ -88,7 +88,9 @@ class GradeCalculatorTest < ActiveSupport::TestCase
   # Artículo 111 · la calificación definitiva del año
   # ══════════════════════════════════════════════════════════════════════════
 
-  test "el anual promedia las calificaciones de los lapsos con su ponderación" do
+  test "Art. 111: el anual es el PROMEDIO de los lapsos, sin ponderar" do
+    # Los pesos están puestos a propósito bien desparejos: si el cálculo los
+    # mirara, el resultado sería otro.
     esc = escenario_academico(pesos: [30, 30, 40])
 
     con_el_colegio(esc.colegio) do
@@ -96,9 +98,25 @@ class GradeCalculatorTest < ActiveSupport::TestCase
 
       fgb = GradeCalculator.calculate_final_grade(enrollment: esc.inscripcion, subject: esc.materia)
 
-      # 12×30 + 15×30 + 18×40 = 360 + 450 + 720 = 1530 ; /100 = 15,3 → 15
+      # (12 + 15 + 18) / 3 = 15
+      # Ponderando 30/30/40 daría (360 + 450 + 720)/100 = 15,3 → 15 también acá,
+      # pero el test de abajo separa los dos caminos.
       assert_equal 15, fgb.annual_average
       assert_equal 15, fgb.final_score
+    end
+  end
+
+  test "el peso del lapso NO entra en el anual: 8·8·20 da 12, no 14" do
+    esc = escenario_academico(pesos: [20, 20, 60])
+
+    con_el_colegio(esc.colegio) do
+      calificar_lapsos(esc, [8, 8, 20])
+
+      fgb = GradeCalculator.calculate_final_grade(enrollment: esc.inscripcion, subject: esc.materia)
+
+      # Promedio simple: (8 + 8 + 20)/3 = 12
+      # Ponderado 20/20/60:  (160 + 160 + 1200)/100 = 15,2 → 15
+      assert_equal 12, fgb.annual_average, "el anual no puede depender de evaluation_moments.weight"
     end
   end
 
@@ -248,14 +266,42 @@ class GradeCalculatorTest < ActiveSupport::TestCase
     end
   end
 
-  test "borde · el modelo no acepta una nota fuera de 0 a 20" do
+  test "Art. 108 · la escala arranca en 1: el modelo rechaza el 0 y el 21" do
     esc = escenario_academico
 
     con_el_colegio(esc.colegio) do
       act = actividad(esc, lapso: esc.lapso(1), peso: 100)
 
       assert_raises(ActiveRecord::RecordInvalid) { nota(act, esc.alumno, 21) }
+      assert_raises(ActiveRecord::RecordInvalid) { nota(act, esc.alumno, 0) }
       assert_raises(ActiveRecord::RecordInvalid) { nota(act, esc.alumno, -1) }
+
+      assert nota(act, esc.alumno, 1).persisted?, "01 sí es una calificación válida"
+    end
+  end
+
+  test "Art. 108 · la base rechaza el 0 aunque se salten las validaciones" do
+    esc = escenario_academico
+
+    con_el_colegio(esc.colegio) do
+      act = actividad(esc, lapso: esc.lapso(1), peso: 100)
+      registro = nota(act, esc.alumno, 15)
+
+      # `update_column` no pasa por ActiveRecord. Es el camino por el que va a
+      # entrar el importador de matrícula de MOR-126.
+      #
+      # Cada intento va en su propio savepoint: un CHECK violado aborta la
+      # transacción entera, y sin aislarlo se lleva puesto todo lo que venga
+      # después — incluido el `ensure` que devuelve el contexto de colegio.
+      [0, 25].each do |fuera_de_escala|
+        assert_raises(ActiveRecord::StatementInvalid, "la base tiene que rechazar #{fuera_de_escala}") do
+          ActiveRecord::Base.transaction(requires_new: true) do
+            registro.update_column(:score, fuera_de_escala)
+          end
+        end
+      end
+
+      assert_equal 15, registro.reload.score
     end
   end
 
@@ -295,14 +341,21 @@ class GradeCalculatorTest < ActiveSupport::TestCase
       otro = AcademicPeriod.create!(
         school: esc.colegio, name: "2026-2027", start_date: Date.new(2026, 9, 1), end_date: Date.new(2027, 7, 31)
       )
-      EvaluationMoment.create!(academic_period: otro, name: "Semestre 1", weight: 100)
+      semestre_ajeno = EvaluationMoment.create!(academic_period: otro, name: "Semestre 1", weight: 100)
 
       calificar_lapsos(esc, [10, 20])
 
+      # Una calificación colgada del lapso del OTRO año. Sin el filtro por
+      # período entraría al promedio: es la fila que hace que el test muerda.
+      MomentGrade.create!(
+        enrollment: esc.inscripcion, subject: esc.materia,
+        evaluation_moment: semestre_ajeno, final_moment_score: 3
+      )
+
       fgb = GradeCalculator.calculate_final_grade(enrollment: esc.inscripcion, subject: esc.materia)
 
-      # 15 con los dos lapsos de SU período. Si contara el semestre del otro año
-      # el denominador sería 200 y daría 7,5 → 8.
+      # (10 + 20)/2 = 15 con los dos lapsos de SU período.
+      # Contando el ajeno: (10 + 20 + 3)/3 = 11.
       assert_equal 15, fgb.annual_average
     end
   end

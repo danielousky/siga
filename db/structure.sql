@@ -160,7 +160,8 @@ CREATE TABLE public.activity_grades (
     score numeric(4,2) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    school_id bigint NOT NULL
+    school_id bigint NOT NULL,
+    CONSTRAINT activity_grades_score_escala_1_20 CHECK (((score IS NULL) OR ((score >= (1)::numeric) AND (score <= (20)::numeric))))
 );
 
 ALTER TABLE ONLY public.activity_grades FORCE ROW LEVEL SECURITY;
@@ -505,7 +506,10 @@ CREATE TABLE public.final_grade_books (
     comments text,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    school_id bigint NOT NULL
+    school_id bigint NOT NULL,
+    CONSTRAINT final_grade_books_annual_average_escala_1_20 CHECK (((annual_average IS NULL) OR ((annual_average >= (1)::numeric) AND (annual_average <= (20)::numeric)))),
+    CONSTRAINT final_grade_books_final_score_escala_1_20 CHECK (((final_score IS NULL) OR ((final_score >= (1)::numeric) AND (final_score <= (20)::numeric)))),
+    CONSTRAINT final_grade_books_remedial_exam_score_escala_1_20 CHECK (((remedial_exam_score IS NULL) OR ((remedial_exam_score >= (1)::numeric) AND (remedial_exam_score <= (20)::numeric))))
 );
 
 ALTER TABLE ONLY public.final_grade_books FORCE ROW LEVEL SECURITY;
@@ -613,7 +617,8 @@ CREATE TABLE public.moment_grades (
     final_moment_score numeric(4,2) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    school_id bigint NOT NULL
+    school_id bigint NOT NULL,
+    CONSTRAINT moment_grades_final_moment_score_escala_1_20 CHECK (((final_moment_score IS NULL) OR ((final_moment_score >= (1)::numeric) AND (final_moment_score <= (20)::numeric))))
 );
 
 ALTER TABLE ONLY public.moment_grades FORCE ROW LEVEL SECURITY;
@@ -2330,6 +2335,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260811220000'),
 ('20260811163539'),
 ('20260811162243'),
 ('20260811143914'),

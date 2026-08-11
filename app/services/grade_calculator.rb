@@ -15,9 +15,10 @@
 # > **cincuenta centésimas (0,50) o más se adoptará el número inmediato superior**.
 #
 # Y **Artículo 111**: "La calificación definitiva para el área, asignatura o
-# similar, se obtendrá del promedio de las calificaciones alcanzadas en los tres
-# lapsos." Las calificaciones de los lapsos ya son enteras por el 108, así que el
-# promedio anual se calcula sobre los ENTEROS, no sobre los decimales crudos.
+# similar, se obtendrá del **promedio** de las calificaciones alcanzadas en los
+# tres lapsos." Promedio, sin ponderar. Y las calificaciones de los lapsos ya son
+# enteras por el 108, así que el anual se calcula sobre los ENTEROS, no sobre los
+# decimales crudos.
 #
 # El orden importa y no es un detalle contable:
 #
@@ -25,13 +26,12 @@
 #     promediando los decimales   → 9,47 → 9   ✗ el alumno repite
 #     promediando los enteros     → 10 · 10 · 9 = 9,67 → 10   ✓ el alumno aprueba
 #
-# ## Lo que este servicio NO decide
+# ## `evaluation_moments.weight` NO entra en el anual
 #
-# La ponderación entre lapsos sale de `evaluation_moments.weight`, no de acá. El
-# 111 describe un promedio simple de tres lapsos; el sistema permite pesos porque
-# muchos colegios usan 30/30/40 y algunos años se dividen en dos semestres
-# (MOR-83). Con pesos iguales el resultado es exactamente el del Reglamento: el
-# promedio ponderado lo generaliza, no lo contradice.
+# El sistema llegó a ponderar los lapsos con esa columna (30/30/40 es lo que hacen
+# muchos colegios en la práctica), pero el 111 dice promedio a secas y la decisión
+# fue apegarse a la norma. Hoy la columna describe la estructura del año —cuántos
+# lapsos tiene y qué parte representa cada uno— y no interviene en ningún cálculo.
 class GradeCalculator
   # Artículo 108: media hacia arriba, que no es lo que hace el redondeo bancario.
   # 9,50 → 10. Esa décima es la diferencia entre repetir y aprobar el año.
@@ -90,8 +90,9 @@ class GradeCalculator
     end
   end
 
-  # La calificación definitiva del año: promedio ponderado de las calificaciones
-  # de los lapsos (que ya son enteras, Art. 108 + 111).
+  # La calificación definitiva del año: el promedio de las calificaciones de los
+  # lapsos, que ya son enteras (Art. 108 + 111). Promedio simple: el peso del
+  # lapso no interviene.
   def self.calculate_final_grade(enrollment:, subject:)
     # Solo los momentos del período de ESTA inscripción. Antes decía
     # `EvaluationMoment.all`, que con los momentos compartidos daba lo mismo —
@@ -101,26 +102,21 @@ class GradeCalculator
     moments = moments_for(enrollment)
     return nil if moments.empty?
 
-    total_weight = 0
-    weighted_sum = 0
-
-    moments.each do |moment|
+    calificaciones = moments.filter_map do |moment|
       mg = MomentGrade.find_by(
         enrollment_id: enrollment.id,
         subject_id: subject.id,
         evaluation_moment_id: moment.id
       )
-      # Un lapso sin calificar tampoco cuenta como cero. En noviembre, con un
-      # solo lapso cerrado, el "anual" es el de ese lapso — no un tercio de él.
-      next unless mg
-
-      weighted_sum += mg.final_moment_score * moment.weight
-      total_weight += moment.weight
+      # Un lapso sin calificar no cuenta como cero: sale del promedio. En
+      # noviembre, con un solo lapso cerrado, el "anual" es el de ese lapso — no
+      # un tercio de él.
+      mg&.final_moment_score
     end
 
-    return nil if total_weight.zero?
+    return nil if calificaciones.empty?
 
-    annual_average = redondear(weighted_sum / total_weight)
+    annual_average = redondear(calificaciones.sum / calificaciones.size)
 
     FinalGradeBook.find_or_initialize_by(
       enrollment_id: enrollment.id,

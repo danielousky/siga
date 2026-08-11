@@ -9,6 +9,11 @@ class EvaluationMoment < ApplicationRecord
   has_many :moment_grades, dependent: :restrict_with_error
 
   validates :name, presence: true, uniqueness: { scope: :academic_period_id }
+
+  # `weight` describe la ESTRUCTURA del año —cuántos lapsos tiene y qué parte
+  # representa cada uno—, pero NO entra en el cálculo de la nota anual: el
+  # Artículo 111 del Reglamento manda promedio simple de los lapsos, y esa fue la
+  # decisión (MOR-93). Sigue validado para que la estructura declarada cierre.
   validates :weight, presence: true, numericality: { greater_than: 0, less_than_or_equal_to: 100 }
   validate :total_weight_must_not_exceed_100
 

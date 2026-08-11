@@ -65,6 +65,11 @@ puts "📊 Creando momentos de evaluación..."
 # Los dos colegios usan tres lapsos en 2025-2026, y cada uno ocupa el 100 % SIN
 # estorbarle al otro — eso era imposible antes, cuando los pesos sumaban sobre
 # toda la tabla y el primer colegio en llegar dejaba a los demás sin espacio.
+#
+# El `weight` describe qué parte del año representa cada lapso. NO entra en el
+# cálculo de la nota anual: el Artículo 111 del Reglamento manda promedio simple
+# de los lapsos (MOR-93). Se deja el 30/30/40 porque es lo que un colegio
+# venezolano espera ver escrito.
 LAPSOS_TRES = [
   { name: "Primer Lapso",  weight: 30.0 },
   { name: "Segundo Lapso", weight: 30.0 },
@@ -559,6 +564,7 @@ GradeCalculator.calculate_final_grade(enrollment: inscripcion_3, subject: materi
 puts "   ✓ #{MomentGrade.count} notas de lapso · #{FinalGradeBook.count} notas definitivas calculadas"
 puts ""
 PISTA_DEL_CASO = {
+  1 => "← anual = promedio simple de los lapsos (Art. 111)",
   2 => "← Art. 108: crudo daba 9,50 y sube a 10. APRUEBA",
   5 => "← solo el examen (40 %): promedia sobre 40, no sobre 100"
 }.freeze
