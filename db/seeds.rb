@@ -120,18 +120,18 @@ puts "📚 Creando grados con pensum venezolano..."
 # Ciclo diversificado: 4to, 5to (Física + Química, sin Biología separada)
 gbol = {}
 [
-  { key: :g1, name: "1er Año - Bolívar", level: :secundaria,
+  { key: :g1, name: "1er Año", level: :secundaria,
     subjects: [s[:mat], s[:len], s[:his], s[:geo], s[:bio], s[:ing], s[:art], s[:edf]] },
-  { key: :g2, name: "2do Año - Bolívar", level: :secundaria,
+  { key: :g2, name: "2do Año", level: :secundaria,
     subjects: [s[:mat], s[:len], s[:his], s[:geo], s[:bio], s[:ing], s[:art], s[:edf]] },
-  { key: :g3, name: "3er Año - Bolívar", level: :secundaria,
+  { key: :g3, name: "3er Año", level: :secundaria,
     subjects: [s[:mat], s[:len], s[:his], s[:geo], s[:bio], s[:fis], s[:ing], s[:art], s[:edf]] },
-  { key: :g4, name: "4to Año - Bolívar", level: :secundaria,
+  { key: :g4, name: "4to Año", level: :secundaria,
     subjects: [s[:mat], s[:len], s[:his], s[:fis], s[:qui], s[:ing], s[:fil], s[:edf]] },
-  { key: :g5, name: "5to Año - Bolívar", level: :secundaria,
+  { key: :g5, name: "5to Año", level: :secundaria,
     subjects: [s[:mat], s[:len], s[:his], s[:fis], s[:qui], s[:ing], s[:fil], s[:edf]] },
 ].each do |g|
-  grade = Grade.find_or_create_by!(name: g[:name]) { |gr| gr.level = g[:level] }
+  grade = Grade.find_or_create_by!(name: g[:name], school: school_bolivar) { |gr| gr.level = g[:level] }
   g[:subjects].each { |subj| GradeSubject.find_or_create_by!(grade: grade, subject: subj) }
   gbol[g[:key]] = grade
 end
@@ -140,14 +140,14 @@ puts "   ✓ 5 grados Bolívar (#{gbol[:g1].grade_subjects.count} materias en 1r
 # --- ANDRÉS BELLO ---
 gbel = {}
 [
-  { key: :g1, name: "1er Año - Bello", level: :secundaria,
+  { key: :g1, name: "1er Año", level: :secundaria,
     subjects: [b[:mat], b[:len], b[:sos], b[:bio], b[:ing], b[:art], b[:edf]] },
-  { key: :g2, name: "2do Año - Bello", level: :secundaria,
+  { key: :g2, name: "2do Año", level: :secundaria,
     subjects: [b[:mat], b[:len], b[:sos], b[:bio], b[:ing], b[:art], b[:edf]] },
-  { key: :g3, name: "3er Año - Bello", level: :secundaria,
+  { key: :g3, name: "3er Año", level: :secundaria,
     subjects: [b[:mat], b[:len], b[:sos], b[:fis], b[:ing], b[:art], b[:edf]] },
 ].each do |g|
-  grade = Grade.find_or_create_by!(name: g[:name]) { |gr| gr.level = g[:level] }
+  grade = Grade.find_or_create_by!(name: g[:name], school: school_bello) { |gr| gr.level = g[:level] }
   g[:subjects].each { |subj| GradeSubject.find_or_create_by!(grade: grade, subject: subj) }
   gbel[g[:key]] = grade
 end

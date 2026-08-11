@@ -49,7 +49,7 @@ class GradesController < ApplicationController
   end
 
   def grade_params
-    params.require(:grade).permit(:name, :level, :leader_teacher_id)
+    params.require(:grade).permit(:school_id, :name, :level, :leader_teacher_id)
   end
 
   def require_admin_access!

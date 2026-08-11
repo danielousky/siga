@@ -1,0 +1,155 @@
+#!/usr/bin/env bash
+#
+# Verificación de humo: levanta el server contra la base de desarrollo y recorre
+# por HTTP real los flujos críticos — público, admin, profesor y estudiante.
+#
+#   bin/smoke ["etiqueta"]
+#
+# Sale 0 si todo pasa, 1 si algo falla.
+#
+# ⚠️  Esto NO es una suite de tests. Es un arnés de verificación que nació para
+#     el upgrade de Ruby/Rails (MOR-100) y sirve mientras no exista la suite de
+#     verdad. Corre contra la base de DESARROLLO, con sus seeds, no contra la de
+#     test. Lo que tiene que reemplazarlo es MOR-105.
+#
+# Requiere: la base de desarrollo migrada y con seeds (bin/rails db:seed:replant).
+
+set -uo pipefail
+
+APP_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PORT="${PORT:-3009}"
+BASE="http://127.0.0.1:${PORT}"
+LABEL="${1:-smoke}"
+TMP="$(mktemp -d)"
+LOG="${TMP}/server.log"
+FAILED=0
+
+cd "$APP_ROOT" || exit 1
+
+cleanup() {
+  [ -n "${SERVER_PID:-}" ] && kill "$SERVER_PID" 2>/dev/null
+  wait "$SERVER_PID" 2>/dev/null
+  rm -rf "$TMP"
+}
+trap cleanup EXIT
+
+echo "── ${LABEL} ──"
+echo "ruby  $(ruby -v | cut -d' ' -f2)"
+echo "rails $(bin/rails -v 2>/dev/null | cut -d' ' -f2)"
+echo
+
+bin/rails server -p "$PORT" -b 127.0.0.1 -e development > "$LOG" 2>&1 &
+SERVER_PID=$!
+
+for _ in $(seq 1 60); do
+  curl -sf -o /dev/null "${BASE}/" 2>/dev/null && break
+  if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+    echo "✗ el server murió al arrancar:"; tail -30 "$LOG"; exit 1
+  fi
+  sleep 1
+done
+
+if ! curl -sf -o /dev/null "${BASE}/" 2>/dev/null; then
+  echo "✗ el server no respondió en 60s:"; tail -30 "$LOG"; exit 1
+fi
+
+check() { # check <descripción> <path> <código esperado> [cookiejar]
+  local desc="$1" path="$2" want="$3" jar="${4:-}"
+  local args=(-s -o "${TMP}/body" -w '%{http_code}' -L)
+  [ -n "$jar" ] && args+=(-b "$jar" -c "$jar")
+  local got
+  got="$(curl "${args[@]}" "${BASE}${path}")"
+  if [ "$got" = "$want" ]; then
+    printf '  ✓ %-42s %s\n' "$desc" "$got"
+  else
+    printf '  ✗ %-42s %s (esperaba %s)\n' "$desc" "$got" "$want"
+    FAILED=1
+  fi
+}
+
+login() { # login <email> <password> <cookiejar>
+  local email="$1" pass="$2" jar="$3" token
+  token="$(curl -s -c "$jar" "${BASE}/users/sign_in" \
+    | grep -o 'name="authenticity_token" value="[^"]*"' \
+    | head -1 | sed 's/.*value="//; s/"$//')"
+  if [ -z "$token" ]; then
+    echo "  ✗ no se pudo extraer el authenticity_token"; FAILED=1; return 1
+  fi
+  curl -s -b "$jar" -c "$jar" -L -o "${TMP}/login_body" \
+    --data-urlencode "authenticity_token=${token}" \
+    --data-urlencode "user[email]=${email}" \
+    --data-urlencode "user[password]=${pass}" \
+    "${BASE}/users/sign_in" > /dev/null
+  if grep -q 'name="user\[password\]"' "${TMP}/login_body"; then
+    echo "  ✗ login fallido para ${email}"; FAILED=1; return 1
+  fi
+  return 0
+}
+
+echo "Público"
+check "landing /"                "/"                   200
+check "login"                    "/users/sign_in"      200
+check "solicitud de demo"        "/demo_requests/new"  200
+check "recuperar contraseña"     "/users/password/new" 200
+
+echo
+echo "Administrador"
+JAR="${TMP}/admin.jar"
+if login "director.bolivar@siga.edu" "123123" "$JAR"; then
+  echo "  ✓ login"
+  check "dashboard"        "/dashboards/administrador"  200 "$JAR"
+  check "estudiantes"      "/students"                  200 "$JAR"
+  check "profesores"       "/teachers"                  200 "$JAR"
+  check "secciones"        "/sections"                  200 "$JAR"
+  check "grados"           "/grades"                    200 "$JAR"
+  check "alta de grado"    "/grades/new"                200 "$JAR"
+  check "materias"         "/subjects"                  200 "$JAR"
+  check "inscripciones"    "/enrollments"               200 "$JAR"
+  check "períodos"         "/academic_periods"          200 "$JAR"
+  check "momentos eval."   "/evaluation_moments"        200 "$JAR"
+  check "solicitudes demo" "/demo_requests"             200 "$JAR"
+  check "auditoría"        "/dashboards/activity_logs"  200 "$JAR"
+  check "alta de alumno"   "/students/new"              200 "$JAR"
+fi
+
+echo
+echo "Profesor"
+JAR="${TMP}/prof.jar"
+if login "prof.garcia@bolivar.edu" "123123" "$JAR"; then
+  echo "  ✓ login"
+  check "dashboard" "/dashboards/profesor" 200 "$JAR"
+fi
+
+echo
+echo "Estudiante"
+JAR="${TMP}/est.jar"
+if login "alvaro.lopez001@bolivar.edu" "123123" "$JAR"; then
+  echo "  ✓ login"
+  check "dashboard" "/dashboards/estudiante" 200 "$JAR"
+fi
+
+echo
+if grep -qE 'FATAL|Error during|NoMethodError|NameError|ArgumentError|LoadError' "$LOG"; then
+  echo "⚠ excepciones en el log del server:"
+  grep -E 'FATAL|Error during|NoMethodError|NameError|ArgumentError|LoadError' "$LOG" | head -10
+  FAILED=1
+fi
+
+if grep -qi 'DEPRECATION WARNING' "$LOG"; then
+  echo "ℹ deprecaciones:"
+  grep -i 'DEPRECATION WARNING' "$LOG" | sed 's/^/    /' | sort -u | head -15
+fi
+
+if grep -q 'Translation missing' "$LOG"; then
+  echo "⚠ traducciones faltantes:"
+  grep -o 'Translation missing[^"]*' "$LOG" | sort -u | head -10
+  FAILED=1
+fi
+
+echo
+if [ "$FAILED" -eq 0 ]; then
+  echo "✅ ${LABEL}: todo en verde"
+else
+  echo "❌ ${LABEL}: hay fallas"
+fi
+exit "$FAILED"

@@ -1,0 +1,29 @@
+# Nombres de modelo y atributo en español.
+#
+# Los mensajes de error genéricos ("ya está en uso", "debe existir") los aporta
+# la gema rails-i18n. Lo que va acá es cómo se llama cada cosa en el dominio,
+# para que un error diga "Colegio debe existir" y no "School debe existir".
+#
+# Cubre por ahora los modelos que toca MOR-82. El resto sigue mostrando el
+# nombre de atributo en inglés: completarlos a medida que se toquen.
+es:
+  activerecord:
+    models:
+      school:
+        one: Colegio
+        other: Colegios
+      grade:
+        one: Grado
+        other: Grados
+    attributes:
+      school:
+        dea_code: Código DEA
+        name: Nombre
+        location: Ubicación
+        school_type: Tipo de institución
+        logo: Logotipo
+      grade:
+        school: Colegio
+        name: Nombre
+        level: Nivel
+        leader_teacher: Profesor guía

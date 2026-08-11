@@ -1,6 +1,13 @@
 = form_with(model: grade, class: "mb-3") do |f|
   = render "shared/errors", object: grade
 
+  -# Provisional: hoy el colegio se elige a mano porque no existe contexto de
+  -# inquilino. Cuando MOR-86 traiga Current.school, este selector desaparece y
+  -# el colegio sale de la sesión — nunca de un parámetro del formulario.
+  .mb-3
+    = f.label :school_id, "Colegio", class: "form-label"
+    = f.select :school_id, School.order(:name).map { |sc| [sc.name, sc.id] }, { include_blank: "Seleccione..." }, class: "form-select"
+
   .mb-3
     = f.label :name, "Nombre", class: "form-label"
     = f.text_field :name, class: "form-control"

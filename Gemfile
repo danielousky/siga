@@ -36,6 +36,10 @@ gem "haml-rails"
 # Pagination [https://github.com/ddnexus/pagy]
 gem "pagy"
 
+# Traducciones de Rails y Active Record al español. Sin esto, cualquier error de
+# validación se muestra como "Translation missing" — la app no traía es.yml.
+gem "rails-i18n"
+
 # Use Redis adapter to run Action Cable in production
 # gem "redis", "~> 4.0"
 
