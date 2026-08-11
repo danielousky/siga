@@ -142,12 +142,39 @@ de colegios (AVEC, ANDIEP, Fe y Alegría) necesitan **vista consolidada entre co
 aislamiento no puede ser un silo puro. Para ese caso está `de_los_colegios(*ids)`, que cruza colegios
 sin apagar el resto de los scopes.
 
-### 2. El módulo de evaluación existe en la base y no tiene interfaz.
+### 2. ~~El módulo de evaluación no tiene interfaz~~ → conectado de punta a punta.
 
-`evaluation_activities`, `activity_grades`, `moment_grades` y `final_grade_books` tienen
-modelos, validaciones y el servicio `GradeCalculator` (promedio ponderado de lapso y anual),
-pero **cero controllers, rutas y vistas**. Un profesor no puede cargar una nota y nadie puede
-ver una. Es el núcleo del producto y está desconectado.
+El profesor define sus evaluaciones y su ponderación, carga las notas desde el teléfono con
+guardado incremental, los promedios se recalculan solos y el alumno los ve el mismo día
+(`MOR-93` → `97`).
+
+**El cálculo se rige por el Reglamento General de la LOE, no por lo que haga Ruby:**
+
+| Artículo | Regla | Dónde vive |
+|---|---|---|
+| **108** | La calificación es un **número entero del 1 al 20**; ≥ 0,50 sube | `GradeCalculator.redondear` + un `CHECK` por columna |
+| **111** | El anual es el **promedio** de los lapsos, **sin ponderar** | `calculate_final_grade` |
+| **112** | La nota de la segunda oportunidad es la definitiva | `final_score = max(anual, reparación)` |
+
+`evaluation_moments.weight` describe la estructura del año y **no entra en ningún cálculo**:
+la decisión fue apegarse a la norma en vez de generalizarla.
+
+**"Sin nota" no es cero, y hay que sostenerlo en las tres capas.** El cálculo devuelve `nil` y
+borra la calificación que quedó sin respaldo; la planilla borra la fila al vaciar el campo; la
+vista del alumno escribe "Pendiente" en letras, nunca un número. Confundirlos reprueba a una
+sección entera a mitad de lapso, y le hace perder la confianza a la familia.
+
+**Qué recalcula qué:**
+
+```
+  guardar/borrar una nota  ──► EN LÍNEA  (~10 ms)   ActivityGrade#after_save
+                                                     el promedio nunca queda viejo
+
+  cambiar una ponderación  ──► POR JOB   (~1 s)     RecalcularSeccionJob
+                                                     afecta a los 30 alumnos
+
+  reparar inconsistencias  ──► bin/rails notas:recalcular   (idempotente)
+```
 
 ### 3. Otros pendientes
 
@@ -157,7 +184,11 @@ ver una. Es el núcleo del producto y está desconectado.
 - `action_mailer` sin configurar en producción → "olvidé mi contraseña" no envía nada.
 - `User` tiene `:registerable`: cualquiera puede crear cuenta en `/users/sign_up`.
 - `db/seeds.rb` crea usuarios con contraseña `123123` sin guard de entorno.
-- Sin CI, sin Dockerfile, sin monitoreo. Tests prácticamente vacíos.
+- Sin CI, sin Dockerfile, sin monitoreo. La suite pasó de 3 a **73 tests** con el módulo de
+  evaluación, pero sigue sin correr sola en ningún lado (`MOR-105`).
+- `config.active_job.queue_adapter` sin configurar → el adaptador es `:async`, que **pierde lo
+  encolado al reiniciar el proceso**. Hoy el único job encolado es `RecalcularSeccionJob`, y
+  `bin/rails notas:recalcular` repara lo que se pierda. En producción hace falta una cola de verdad.
 - Colisión de nombres: `Grade` es "grado escolar", pero `ActivityLog::LABELS` traduce
   `grade_created` como "Calificación registrada". Dos conceptos, un nombre.
 

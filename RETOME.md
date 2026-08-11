@@ -74,16 +74,48 @@ enlazado al final.
   **Con esto cierra el milestone `2 · Aislamiento en la app y en la base`** (`MOR-86`, `87`, `88`,
   `89`). Y quedaron los **primeros 9 tests reales de aislamiento** del repo — la suite pasó de 3 a 13.
 
+- **El módulo de evaluación está conectado de punta a punta** (`MOR-93` → `97`). Era "el núcleo del
+  producto y está desconectado"; ahora el profesor define cómo evalúa, carga las notas desde el
+  teléfono, los promedios se mantienen solos y el alumno los ve el mismo día.
+
+  | | |
+  |---|---|
+  | `MOR-93` | El cálculo, verificado contra el Reglamento. **Guardaba 14,67 donde la norma dice 15** |
+  | `MOR-94` | El profesor define sus evaluaciones y su ponderación |
+  | `MOR-95` | La planilla de carga: guardado nota por nota, móvil primero |
+  | `MOR-96` | Cargar una nota mueve el promedio, sin que nadie se acuerde |
+  | `MOR-97` | El alumno ve sus notas — y lo que falta corregir |
+
+  **La norma manda.** Reglamento General de la LOE: **Art. 108** (entero del 1 al 20; ≥ 0,50 sube),
+  **Art. 111** (el anual es el *promedio* de los lapsos, sin ponderar) y **Art. 112** (la nota de la
+  segunda oportunidad es la definitiva). Decisión explícita de Daniel: apegarse a la norma en vez de
+  generalizarla. `evaluation_moments.weight` se queda pero **ya no entra en ningún cálculo**.
+
+  **Tres trampas que costaron encontrar y valen para lo que viene:**
+  1. **ActiveJob deserializa los argumentos ANTES de los `around_perform`.** Un job con contexto de
+     colegio que recibe un `Section` resolvía su GlobalID sin colegio → cero filas. `CarriesSchool`
+     engancha `perform_now`, que envuelve también la deserialización.
+  2. **`unscoped` no se salta el RLS.** Quita el `default_scope` de la app y nada más. Contar sin
+     contexto da cero, no todo.
+  3. **Sin nota no es cero**, y hay que sostenerlo en las tres capas: el cálculo devuelve `nil`, la
+     planilla borra la fila al vaciar el campo, y la vista del alumno escribe "Pendiente" en letras.
+
 **Pendiente inmediato, en orden:**
-1. **Módulo de evaluación de punta a punta** (`MOR-93` → `94` → `95` → `96` → `97`). Es lo único
-   demostrable, y hay un formulario de demo vivo sin nada que mostrarle a quien lo llene.
-2. **`MOR-105` · CI y tests.** `bin/smoke` ya está en el repo (21 checks HTTP por rol) y es el punto
-   de partida. Rails 8.1 trajo `bin/ci` y `config/ci.rb` — decidir si se adoptan o GitHub Actions.
-   Ojo para `MOR-90`: las fixtures se insertan **sin contexto de colegio**, así que el `WITH CHECK`
-   las va a rechazar en cuanto haya fixtures de tablas con RLS. `test/jobs/carries_school_test.rb`
-   ya tiene el patrón: sembrar en el `setup` dentro de `Current.sin_aislamiento`.
+1. **`MOR-98` · Boletín en PDF** y **`MOR-99` · formatos oficiales del MPPE**. Es lo que queda del
+   milestone `3 · Las notas salen del sistema`, y lo que un colegio necesita para dejar la máquina de
+   escribir.
+2. **`MOR-105` · CI y tests.** `bin/smoke` ya está en el repo (26 checks HTTP por rol) y la suite
+   pasó de 3 a **73 tests**. Rails 8.1 trajo `bin/ci` y `config/ci.rb` — decidir si se adoptan o
+   GitHub Actions. Ojo para `MOR-90`: las fixtures se insertan **sin contexto de colegio**, así que
+   el `WITH CHECK` las va a rechazar. El patrón a seguir es
+   `test/support/escenario_academico.rb`, que arma un colegio entero y pone el contexto en las dos
+   capas.
 3. **Push de las tres ramas y PR.** `feat/encuesta-demo-y-backlog` → `chore/upgrade-ruby-rails` →
    `feat/mor-82-school-id-en-grades`, encadenadas. `main` sigue intacto.
+
+**Lo único que no pude verificar yo:** las dos pantallas nuevas están pensadas **móvil primero** y
+verificadas por CSS, pero **no las probé en un teléfono real**. Es un criterio de aceptación explícito
+de `MOR-95` y `MOR-97` y necesita el ojo de Daniel.
 
 **Cómo se entrega, desde ahora** (convención escrita en el documento *Cómo trabajamos* de Linear):
 cada issue cerrado deja **transferencia de aprendizaje** (qué salió distinto, qué falló y cómo se
