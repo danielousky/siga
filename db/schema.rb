@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_11_141846) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_11_143045) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -236,7 +236,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_11_141846) do
     t.string "school_card", null: false
     t.bigint "school_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["school_card"], name: "index_students_on_school_card", unique: true
+    t.index ["school_id", "school_card"], name: "index_students_on_school_id_and_school_card", unique: true
     t.index ["school_id"], name: "index_students_on_school_id"
   end
 
@@ -245,9 +245,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_11_141846) do
     t.datetime "created_at", null: false
     t.bigint "department_id", null: false
     t.string "name", null: false
+    t.bigint "school_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["code"], name: "index_subjects_on_code", unique: true
     t.index ["department_id"], name: "index_subjects_on_department_id"
+    t.index ["school_id", "code"], name: "index_subjects_on_school_id_and_code", unique: true
+    t.index ["school_id"], name: "index_subjects_on_school_id"
   end
 
   create_table "teacher_sections", force: :cascade do |t|
@@ -315,6 +317,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_11_141846) do
   add_foreign_key "students", "schools"
   add_foreign_key "students", "users"
   add_foreign_key "subjects", "departments"
+  add_foreign_key "subjects", "schools"
   add_foreign_key "teacher_sections", "sections"
   add_foreign_key "teacher_sections", "subjects"
   add_foreign_key "teacher_sections", "teachers", primary_key: "user_id"

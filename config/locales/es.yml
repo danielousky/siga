@@ -21,6 +21,15 @@ es:
       evaluation_moment:
         one: Momento de evaluación
         other: Momentos de evaluación
+      subject:
+        one: Materia
+        other: Materias
+      student:
+        one: Estudiante
+        other: Estudiantes
+      department:
+        one: Departamento
+        other: Departamentos
     attributes:
       school:
         dea_code: Código DEA
@@ -42,3 +51,15 @@ es:
         academic_period: Período académico
         name: Nombre
         weight: Peso
+      subject:
+        school: Colegio
+        department: Departamento
+        code: Código
+        name: Nombre
+      student:
+        school: Colegio
+        school_card: Carnet
+        user: Usuario
+      department:
+        school: Colegio
+        name: Nombre

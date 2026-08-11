@@ -9,6 +9,7 @@ class School < ApplicationRecord
   has_many :admins, dependent: :restrict_with_error
   has_many :academic_periods, dependent: :restrict_with_error
   has_many :grades, dependent: :restrict_with_error
+  has_many :subjects, dependent: :restrict_with_error
 
   validates :dea_code, presence: true, uniqueness: true
   validates :name, :location, :school_type, presence: true

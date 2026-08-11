@@ -9,5 +9,6 @@ class Student < ApplicationRecord
   has_many :sections, through: :enrollments
   has_many :activity_grades, foreign_key: :student_id, primary_key: :user_id, dependent: :restrict_with_error
 
-  validates :school_card, presence: true, uniqueness: true
+  # El carnet lo emite el colegio: dos colegios pueden numerar igual sin saberlo.
+  validates :school_card, presence: true, uniqueness: { scope: :school_id }
 end

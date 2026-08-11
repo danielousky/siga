@@ -123,27 +123,27 @@ puts ""
 puts "📖 Creando materias (pensum venezolano)..."
 
 s = {} # subjects bolivar
-s[:mat]  = Subject.find_or_create_by!(code: "BOL-MAT")  { |x| x.name = "Matemática";                x.department = dept[:bolivar][:matematica] }
-s[:bio]  = Subject.find_or_create_by!(code: "BOL-BIO")  { |x| x.name = "Biología";                  x.department = dept[:bolivar][:ciencias] }
-s[:fis]  = Subject.find_or_create_by!(code: "BOL-FIS")  { |x| x.name = "Física";                    x.department = dept[:bolivar][:ciencias] }
-s[:qui]  = Subject.find_or_create_by!(code: "BOL-QUI")  { |x| x.name = "Química";                   x.department = dept[:bolivar][:ciencias] }
-s[:his]  = Subject.find_or_create_by!(code: "BOL-HIS")  { |x| x.name = "Historia de Venezuela";     x.department = dept[:bolivar][:sociales] }
-s[:geo]  = Subject.find_or_create_by!(code: "BOL-GEO")  { |x| x.name = "Geografía de Venezuela";    x.department = dept[:bolivar][:sociales] }
-s[:len]  = Subject.find_or_create_by!(code: "BOL-LEN")  { |x| x.name = "Castellano y Literatura";   x.department = dept[:bolivar][:lengua] }
-s[:ing]  = Subject.find_or_create_by!(code: "BOL-ING")  { |x| x.name = "Inglés";                    x.department = dept[:bolivar][:idiomas] }
-s[:art]  = Subject.find_or_create_by!(code: "BOL-ART")  { |x| x.name = "Arte y Patrimonio";          x.department = dept[:bolivar][:arte] }
-s[:edf]  = Subject.find_or_create_by!(code: "BOL-EDF")  { |x| x.name = "Educación Física";           x.department = dept[:bolivar][:edufisica] }
-s[:fil]  = Subject.find_or_create_by!(code: "BOL-FIL")  { |x| x.name = "Filosofía";                 x.department = dept[:bolivar][:sociales] }
+s[:mat]  = Subject.find_or_create_by!(code: "MAT", school: school_bolivar)  { |x| x.name = "Matemática";                x.department = dept[:bolivar][:matematica] }
+s[:bio]  = Subject.find_or_create_by!(code: "BIO", school: school_bolivar)  { |x| x.name = "Biología";                  x.department = dept[:bolivar][:ciencias] }
+s[:fis]  = Subject.find_or_create_by!(code: "FIS", school: school_bolivar)  { |x| x.name = "Física";                    x.department = dept[:bolivar][:ciencias] }
+s[:qui]  = Subject.find_or_create_by!(code: "QUI", school: school_bolivar)  { |x| x.name = "Química";                   x.department = dept[:bolivar][:ciencias] }
+s[:his]  = Subject.find_or_create_by!(code: "HIS", school: school_bolivar)  { |x| x.name = "Historia de Venezuela";     x.department = dept[:bolivar][:sociales] }
+s[:geo]  = Subject.find_or_create_by!(code: "GEO", school: school_bolivar)  { |x| x.name = "Geografía de Venezuela";    x.department = dept[:bolivar][:sociales] }
+s[:len]  = Subject.find_or_create_by!(code: "LEN", school: school_bolivar)  { |x| x.name = "Castellano y Literatura";   x.department = dept[:bolivar][:lengua] }
+s[:ing]  = Subject.find_or_create_by!(code: "ING", school: school_bolivar)  { |x| x.name = "Inglés";                    x.department = dept[:bolivar][:idiomas] }
+s[:art]  = Subject.find_or_create_by!(code: "ART", school: school_bolivar)  { |x| x.name = "Arte y Patrimonio";          x.department = dept[:bolivar][:arte] }
+s[:edf]  = Subject.find_or_create_by!(code: "EDF", school: school_bolivar)  { |x| x.name = "Educación Física";           x.department = dept[:bolivar][:edufisica] }
+s[:fil]  = Subject.find_or_create_by!(code: "FIL", school: school_bolivar)  { |x| x.name = "Filosofía";                 x.department = dept[:bolivar][:sociales] }
 
 b = {} # subjects bello
-b[:mat]  = Subject.find_or_create_by!(code: "BEL-MAT")  { |x| x.name = "Matemática";                x.department = dept[:bello][:matematica] }
-b[:bio]  = Subject.find_or_create_by!(code: "BEL-BIO")  { |x| x.name = "Biología";                  x.department = dept[:bello][:ciencias] }
-b[:fis]  = Subject.find_or_create_by!(code: "BEL-FIS")  { |x| x.name = "Física";                    x.department = dept[:bello][:ciencias] }
-b[:sos]  = Subject.find_or_create_by!(code: "BEL-SOS")  { |x| x.name = "Ciencias Sociales";         x.department = dept[:bello][:sociales] }
-b[:len]  = Subject.find_or_create_by!(code: "BEL-LEN")  { |x| x.name = "Castellano y Literatura";   x.department = dept[:bello][:lengua] }
-b[:ing]  = Subject.find_or_create_by!(code: "BEL-ING")  { |x| x.name = "Inglés";                    x.department = dept[:bello][:idiomas] }
-b[:art]  = Subject.find_or_create_by!(code: "BEL-ART")  { |x| x.name = "Arte y Patrimonio";          x.department = dept[:bello][:arte] }
-b[:edf]  = Subject.find_or_create_by!(code: "BEL-EDF")  { |x| x.name = "Educación Física";           x.department = dept[:bello][:edufisica] }
+b[:mat]  = Subject.find_or_create_by!(code: "MAT", school: school_bello)  { |x| x.name = "Matemática";                x.department = dept[:bello][:matematica] }
+b[:bio]  = Subject.find_or_create_by!(code: "BIO", school: school_bello)  { |x| x.name = "Biología";                  x.department = dept[:bello][:ciencias] }
+b[:fis]  = Subject.find_or_create_by!(code: "FIS", school: school_bello)  { |x| x.name = "Física";                    x.department = dept[:bello][:ciencias] }
+b[:sos]  = Subject.find_or_create_by!(code: "SOS", school: school_bello)  { |x| x.name = "Ciencias Sociales";         x.department = dept[:bello][:sociales] }
+b[:len]  = Subject.find_or_create_by!(code: "LEN", school: school_bello)  { |x| x.name = "Castellano y Literatura";   x.department = dept[:bello][:lengua] }
+b[:ing]  = Subject.find_or_create_by!(code: "ING", school: school_bello)  { |x| x.name = "Inglés";                    x.department = dept[:bello][:idiomas] }
+b[:art]  = Subject.find_or_create_by!(code: "ART", school: school_bello)  { |x| x.name = "Arte y Patrimonio";          x.department = dept[:bello][:arte] }
+b[:edf]  = Subject.find_or_create_by!(code: "EDF", school: school_bello)  { |x| x.name = "Educación Física";           x.department = dept[:bello][:edufisica] }
 
 puts "   ✓ #{Subject.count} materias creadas"
 
@@ -388,7 +388,7 @@ sec_bol.each_with_index do |(sec_key, section), sec_idx|
     nombre   = NOMBRES[(sec_idx * 20 + i) % NOMBRES.size]
     apellido = APELLIDOS[(sec_idx * 20 + i) % APELLIDOS.size]
     num      = (sec_idx * 20 + i + 1).to_s.rjust(3, "0")
-    card     = "BOL-25-#{num}"
+    card     = "25-#{num}"
     email    = "#{normalize(nombre)}.#{normalize(apellido)}#{num}@bolivar.edu"
 
     student = make_student(email, nombre, apellido, card, school_bolivar)
@@ -405,7 +405,7 @@ sec_bel.each_with_index do |(sec_key, section), sec_idx|
     nombre   = NOMBRES[(sec_idx * 15 + i + 5) % NOMBRES.size]
     apellido = APELLIDOS[(sec_idx * 15 + i + 5) % APELLIDOS.size]
     num      = (sec_idx * 15 + i + 1).to_s.rjust(3, "0")
-    card     = "BEL-25-#{num}"
+    card     = "25-#{num}"
     email    = "#{normalize(nombre)}.#{normalize(apellido)}#{num}@bello.edu"
 
     student = make_student(email, nombre, apellido, card, school_bello)
