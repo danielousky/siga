@@ -54,7 +54,7 @@ class GradeCalculator
       evaluation_moment_id: evaluation_moment.id
     )
 
-    return nil if activities.empty?
+    return borrar_nota_de_lapso(enrollment, subject, evaluation_moment) if activities.empty?
 
     total_weight = 0
     weighted_sum = 0
@@ -73,7 +73,10 @@ class GradeCalculator
       total_weight += activity.weight_percentage
     end
 
-    return nil if total_weight.zero?
+    # Si al alumno le borraron la última nota del lapso, la calificación que
+    # había deja de tener respaldo: hay que BORRARLA, no dejarla ahí. Una nota de
+    # lapso huérfana seguiría contando en el promedio anual para siempre.
+    return borrar_nota_de_lapso(enrollment, subject, evaluation_moment) if total_weight.zero?
 
     # Se divide por el peso REALMENTE cargado, no por 100. Si el profesor definió
     # actividades por el 80 %, el promedio es sobre ese 80 % y no castiga al
@@ -100,7 +103,7 @@ class GradeCalculator
     # colegios y otros años, y el promedio anual se calcularía sobre una base
     # que no es la del alumno.
     moments = moments_for(enrollment)
-    return nil if moments.empty?
+    return vaciar_libro(enrollment, subject) if moments.empty?
 
     calificaciones = moments.filter_map do |moment|
       mg = MomentGrade.find_by(
@@ -114,7 +117,7 @@ class GradeCalculator
       mg&.final_moment_score
     end
 
-    return nil if calificaciones.empty?
+    return vaciar_libro(enrollment, subject) if calificaciones.empty?
 
     annual_average = redondear(calificaciones.sum / calificaciones.size)
 
@@ -151,6 +154,33 @@ class GradeCalculator
       calculate_final_grade(enrollment: enrollment, subject: subject)
     end.compact
   end
+
+  # Una calificación de lapso sin notas que la respalden no se deja: se borra.
+  # Devuelve nil, que es lo que el llamador entiende como "este alumno no tiene
+  # nota de este lapso".
+  def self.borrar_nota_de_lapso(enrollment, subject, evaluation_moment)
+    MomentGrade.find_by(
+      enrollment_id: enrollment.id, subject_id: subject.id, evaluation_moment_id: evaluation_moment.id
+    )&.destroy
+    nil
+  end
+  private_class_method :borrar_nota_de_lapso
+
+  # Idem con el libro anual, pero con un cuidado: `remedial_exam_score` y los
+  # comentarios los escribe una persona, no el cálculo. Si hay algo de eso, la
+  # fila se queda y solo se vacían los números derivados; si no, se borra entera.
+  def self.vaciar_libro(enrollment, subject)
+    libro = FinalGradeBook.find_by(enrollment_id: enrollment.id, subject_id: subject.id)
+    return nil if libro.nil?
+
+    if libro.remedial_exam_score.present? || libro.comments.present?
+      libro.update!(annual_average: nil, final_score: redondear(libro.remedial_exam_score))
+    else
+      libro.destroy
+    end
+    nil
+  end
+  private_class_method :vaciar_libro
 
   # Los momentos de evaluación del período en el que está inscrito el alumno.
   # Es el único conjunto sobre el que tiene sentido promediarle el año.

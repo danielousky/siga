@@ -122,6 +122,26 @@ class CarriesSchoolTest < ActiveJob::TestCase
     JobDeColegio.class_eval { def perform = self.class.vistos << [Current.school&.name, Grade.count] }
   end
 
+  # ActiveJob deserializa los argumentos ANTES de correr los `around_perform`.
+  # Si el contexto se pusiera ahí, un job que recibe un objeto de ActiveRecord
+  # resolvería su GlobalID sin colegio — cero filas y DeserializationError. Por
+  # eso `CarriesSchool` engancha `perform_now`, que envuelve también eso.
+  class JobConObjeto < ApplicationJob
+    cattr_accessor :vistos, default: []
+    def perform(grado) = self.class.vistos << grado.name
+  end
+
+  test "un job puede recibir objetos de ActiveRecord: el contexto llega antes de deserializar" do
+    JobConObjeto.vistos = []
+    grado = Current.sin_aislamiento { Grade.find_by(school_id: @bolivar.id, name: "1er Año") }
+
+    encolar_desde(@bolivar) { JobConObjeto.perform_later(grado) }
+    Current.reset
+    perform_enqueued_jobs
+
+    assert_equal ["1er Año"], JobConObjeto.vistos
+  end
+
   test "el correo se entrega por un job que lleva colegio" do
     assert_equal MailerDeliveryJob, ApplicationMailer.delivery_job,
                  "el default de Rails (ActionMailer::MailDeliveryJob) no lleva colegio"

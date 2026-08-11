@@ -558,8 +558,9 @@ end
 
 puts "   ✓ #{EvaluationActivity.count} actividades · #{ActivityGrade.count} notas cargadas"
 
-# Y ahora el cálculo, que es lo que este issue verifica.
-GradeCalculator.calculate_all_for_section(seccion_notas)
+# No hace falta llamar a GradeCalculator: desde MOR-96 cada nota recalcula sola
+# su lapso y su anual al guardarse. Que los contadores de abajo den distinto de
+# cero es la prueba de que el cable está puesto.
 
 # La reparación del alumno #3, después de calcular el anual (Art. 112).
 inscripcion_3 = Enrollment.find_by(student: alumnos_notas[2], section: seccion_notas)

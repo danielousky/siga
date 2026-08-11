@@ -36,8 +36,6 @@ module CarriesSchool
     #                sale sin sesión: en ese momento no hay inquilino que poner).
     # :plataforma  → cruza colegios a propósito, dentro de `sin_aislamiento`.
     class_attribute :modo_de_colegio, default: :obligatorio, instance_writer: false
-
-    around_perform :con_el_colegio_del_payload
   end
 
   class_methods do
@@ -69,6 +67,23 @@ module CarriesSchool
   # petición ES el del job.
   def school_id
     @school_id || Current.school_id
+  end
+
+  # Envuelve TODA la ejecución, no solo `perform`, y ahí está la gracia.
+  #
+  # ActiveJob **deserializa los argumentos antes de correr los callbacks**
+  # `around_perform` — en `activejob/lib/active_job/execution.rb`, la línea de
+  # `deserialize_arguments_if_needed` está arriba de `run_callbacks :perform`.
+  # Un job que recibe un `Section` resuelve su GlobalID en ese momento, y con el
+  # RLS encendido y sin colegio puesto eso son cero filas:
+  #
+  #   ActiveJob::DeserializationError: Couldn't find Section with 'id'=137
+  #
+  # Con un `around_perform` el contexto llegaba tarde. Enganchando `perform_now`
+  # llega antes de la deserialización, y cualquier job puede recibir objetos de
+  # ActiveRecord como en cualquier app de Rails.
+  def perform_now
+    con_el_colegio_del_payload { super }
   end
 
   private

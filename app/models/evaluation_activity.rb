@@ -18,6 +18,11 @@ class EvaluationActivity < ApplicationRecord
   validate :total_weight_must_not_exceed_100
   validate :el_lapso_pertenece_al_periodo_de_la_seccion
 
+  # Cambiar la ponderación no afecta a un alumno: afecta a los treinta. Si el
+  # examen pasa de 40 % a 50 %, el promedio del lapso cambia para toda la sección.
+  # Va por job porque es ~1 s — ver `RecalcularSeccionJob` y MOR-96.
+  after_update_commit :recalcular_la_seccion, if: :saved_change_to_weight_percentage?
+
   # Lo que un profesor puede tocar: las materias que dicta, en las secciones que
   # tiene asignadas. No es "las actividades de su colegio" — dos profesores del
   # mismo colegio no se ven las evaluaciones.
@@ -59,6 +64,10 @@ class EvaluationActivity < ApplicationRecord
   end
 
   private
+
+  def recalcular_la_seccion
+    RecalcularSeccionJob.perform_later(section, subject)
+  end
 
   def total_weight_must_not_exceed_100
     return if weight_percentage.blank? || section_id.blank? || subject_id.blank? || evaluation_moment_id.blank?
