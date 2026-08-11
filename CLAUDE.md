@@ -4,14 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## 🔖 Punto de retome — actualizado 10 de agosto de 2026
+## 🔖 Punto de retome — actualizado 11 de agosto de 2026
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 
 **Contexto de las sesiones previas.** Se hizo un análisis completo del proyecto (propuesta comercial,
 modelo ER, código) corriendo la app con datos de dos colegios. Los hallazgos y decisiones están en
-`## ⚠️ Estado conocido` más abajo, el detalle ejecutable en `BACKLOG.md`, y el diagrama del modelo
-actual vs. objetivo en el artifact enlazado al final.
+`## ⚠️ Estado conocido` más abajo, y el diagrama del modelo actual vs. objetivo en el artifact
+enlazado al final.
+
+> **El backlog vive en Linear**, en la initiative **SIGA**. `BACKLOG.md` quedó como puntero y tabla
+> de equivalencias `E1-01 → MOR-82`, nada más — mantener dos copias a mano no era sostenible.
 
 **Hecho:**
 - Campo "¿qué usan hoy?" en el formulario de demo (`current_system` + `current_system_detail`).
@@ -21,32 +24,35 @@ actual vs. objetivo en el artifact enlazado al final.
 - `CLAUDE.md` y `BACKLOG.md` escritos.
 - **Commiteado** en la rama `feat/encuesta-demo-y-backlog` (4 commits, `main` intacto, sin push).
   `.claude/settings.local.json` y `.DS_Store` quedaron ignorados; `.mcp.json` sí se versiona.
-- **Linear autorizado y cargado.** Proyecto **SIGA · Plataforma de gestión académica**
-  (`MOR-82` a `MOR-119`) con las convenciones de COES-FAU: 5 milestones = las 5 épicas,
-  los 38 issues del backlog, y las dependencias `blockedBy` encadenadas.
-  → https://linear.app/morosdevelopment/project/siga-plataforma-de-gestion-academica-df900bfa9693
-  La **ficha general** del proyecto (visión, negocio, mercado, rentabilidad, etapas) vive en la
-  descripción del proyecto; el detalle técnico, en el documento *Estado técnico del código*.
-  Todos los issues llevan la etiqueta `SIGA` para filtrarlos en Views.
 - **`MOR-100` · Upgrade de Ruby y Rails — hecho.** Ruby 3.1.2 → **3.4.9**, Rails 7.0.10 → **8.1.3.1**,
   en la rama `chore/upgrade-ruby-rails` (7 commits, sin push). Se subió versión por versión
   (7.1 → 7.2 → 8.0 → 8.1), y valió la pena: **7.2 avisó que los enums con keyword arguments quedaban
   deprecados y 8.0 los elimina**. Saltando directo, la app se rompía sin aviso.
+- **Linear reestructurado en initiatives.** Un ecosistema = una **initiative**; un cuerpo de trabajo
+  con "terminado" propio = un **proyecto**; una fase adentro = un **milestone**. La ficha de negocio
+  vive como **documento de la initiative**, no en un proyecto — sobrevive a cualquier proyecto que
+  cierre. SIGA quedó en 5 proyectos y 41 issues.
+- **Revisión de producto (10 ago).** Un agente PM revisó la estructura. Lo aplicado:
+  importador de matrícula (`MOR-126`), conversaciones con directores (`MOR-127`), cobro de la
+  suscripción (`MOR-128`); `MOR-91` fuera de Cimientos (silo puro primero); y la plantilla de issue
+  cambió **"Especificación para el agente" por "Rabbit holes" y "No-gos"** — la spec numerada
+  precomprometía decisiones y en `MOR-86` mandaba a un `before_action` que `MOR-87` obliga a rehacer.
 
 **Pendiente inmediato, en orden:**
-1. **E1 · Migraciones de tenancy** — el trabajo que bloquea todo lo demás. Empezar por `MOR-82`
-   (`school_id` en `grades`), que no está bloqueado por nada. Después `MOR-83`, `MOR-84`, `MOR-85`,
-   que son las tres migraciones restantes y juntas desbloquean `MOR-86` (`SchoolScoped`).
-2. **`MOR-105` · CI y tests.** El upgrade se verificó con un script de humo (20 checks HTTP por
-   rol) que vive en el scratchpad de la sesión, **no en el repo**. Vale rescatarlo como punto de
-   partida de la suite. Rails 8.1 además trajo `bin/ci` y `config/ci.rb`, que ya encadenan
-   `bin/rails test` y el replant de seeds — decidir si se adoptan o se va a GitHub Actions.
-3. **Push de las dos ramas y PR.** `feat/encuesta-demo-y-backlog` y `chore/upgrade-ruby-rails`
+1. **`MOR-82` a `MOR-85` · Esquema por colegio.** Las cuatro migraciones. `MOR-82` no está bloqueado
+   por nada. **Ojo con el orden nuevo:** ya no se hace todo Cimientos de corrido — después del
+   esquema va el módulo de evaluación completo, y recién ahí el resto del aislamiento.
+2. **Módulo de evaluación de punta a punta** (`MOR-93` → `94` → `95` → `96` → `97`). Es lo único
+   demostrable, y hay un formulario de demo vivo sin nada que mostrarle a quien lo llene.
+3. **`MOR-105` · CI y tests.** El script de humo del upgrade (20 checks HTTP por rol) vive en el
+   scratchpad de la sesión, **no en el repo**. Rescatarlo como punto de partida. Rails 8.1 trajo
+   `bin/ci` y `config/ci.rb` — decidir si se adoptan o se va a GitHub Actions.
+4. **Push de las dos ramas y PR.** `feat/encuesta-demo-y-backlog` y `chore/upgrade-ruby-rails`
    (esta última construida sobre la primera). `main` sigue intacto.
 
-**Trazabilidad:** cada issue de Linear cierra con `Referencia: BACKLOG.md § E1-01`, así que
-`BACKLOG.md` sigue siendo la fuente legible desde el repo y Linear el tablero de ejecución.
-Si se agrega un issue en Linear, agregar la entrada correspondiente en `BACKLOG.md`.
+**Riesgo abierto que no está en ningún issue:** no hay estimaciones, ni fechas, ni cycles, ni
+horas/semana asignadas a SIGA. Con alcance fijo y tiempo indefinido, "Cimientos primero" no es una
+decisión evaluable. Pendiente de resolver más adelante, por decisión explícita.
 
 **Datos de trabajo:** base `siga_development` creada y con seeds cargados. Server: `bin/rails server`.
 
