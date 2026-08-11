@@ -38,10 +38,15 @@ enlazado al final.
   cambió **"Especificación para el agente" por "Rabbit holes" y "No-gos"** — la spec numerada
   precomprometía decisiones y en `MOR-86` mandaba a un `before_action` que `MOR-87` obliga a rehacer.
 
-- **Milestone `1 · Esquema por colegio` completo.** `MOR-82` a `MOR-85`, en la rama
-  `feat/mor-82-school-id-en-grades` (5 commits, sin push). Todas las tablas del dominio tienen
-  ahora `school_id` materializado, y los índices únicos que debían ser por colegio lo son.
-  Ver `## ⚠️ Estado conocido` para el detalle de qué quedó global a propósito.
+- **Milestone `1 · Esquema por colegio` completo, más `MOR-89`.** En la rama
+  `feat/mor-82-school-id-en-grades` (7 commits, sin push). Todas las tablas del dominio tienen
+  `school_id` materializado, los índices únicos que debían ser por colegio lo son, y **ya no se
+  puede escribir una fila que cruce dos colegios**. Ver `## ⚠️ Estado conocido` para el detalle
+  de qué quedó global a propósito.
+- **Dos concerns nuevos**, que es donde vive la mecánica del aislamiento:
+  `DerivesSchoolFrom` (declara de qué padre sale `school_id` y lo mantiene al día) y
+  `ValidatesSameSchool` (impide vincular entidades de colegios distintos). `MOR-86` va a agregar
+  `SchoolScoped` al lado.
 
 **Pendiente inmediato, en orden:**
 1. **`MOR-86` · `SchoolScoped` y `Current.school`.** Ya no está bloqueado: las cuatro migraciones
@@ -145,7 +150,10 @@ Verificado en la app corriendo con dos colegios en la base:
 - ~~Nueve tablas deducen su colegio por cadena~~ → **resuelto** (`MOR-85`). `school_id`
   materializado y mantenido al día por el concern `DerivesSchoolFrom`. Es el prerrequisito
   del RLS: una política de PostgreSQL evalúa columnas de la fila, no asociaciones.
-- `Enrollment` no valida que el colegio del alumno coincida con el de la sección → `MOR-89`.
+- ~~`Enrollment` no valida que el colegio del alumno coincida con el de la sección~~ →
+  **resuelto** (`MOR-89`), y en nueve modelos, no en tres: el issue listaba `Enrollment`,
+  `TeacherSection` y `Grade#leader_teacher`, pero cualquier modelo con dos FK a entidades con
+  colegio era candidato. Vive en el concern `ValidatesSameSchool`.
 
 **Decisión tomada (pendiente de implementar): dos capas.**
 `default_scope` vía concern `SchoolScoped` + **PostgreSQL RLS con `FORCE ROW LEVEL SECURITY`**.
