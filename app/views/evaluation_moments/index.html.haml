@@ -6,12 +6,14 @@
   %table.table-academic
     %thead
       %tr
+        %th Período
         %th Nombre
         %th Peso (%)
         %th Acciones
     %tbody
       - @evaluation_moments.each do |moment|
         %tr
+          %td= "#{moment.academic_period.school.name} — #{moment.academic_period.name}"
           %td= moment.name
           %td= number_with_precision(moment.weight, precision: 0)
           %td

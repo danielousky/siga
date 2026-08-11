@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_11_134521) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_11_141846) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -151,10 +151,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_11_134521) do
   end
 
   create_table "evaluation_moments", force: :cascade do |t|
+    t.bigint "academic_period_id", null: false
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.datetime "updated_at", null: false
     t.decimal "weight", precision: 5, scale: 2, null: false
+    t.index ["academic_period_id", "name"], name: "index_evaluation_moments_on_academic_period_id_and_name", unique: true
+    t.index ["academic_period_id"], name: "index_evaluation_moments_on_academic_period_id"
   end
 
   create_table "final_grade_books", force: :cascade do |t|
@@ -297,6 +300,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_11_134521) do
   add_foreign_key "evaluation_activities", "evaluation_moments"
   add_foreign_key "evaluation_activities", "sections"
   add_foreign_key "evaluation_activities", "subjects"
+  add_foreign_key "evaluation_moments", "academic_periods"
   add_foreign_key "final_grade_books", "enrollments"
   add_foreign_key "final_grade_books", "subjects"
   add_foreign_key "grade_subjects", "grades"

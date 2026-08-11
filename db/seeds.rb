@@ -30,17 +30,55 @@ end
 periodo_bello = AcademicPeriod.find_or_create_by!(name: "2025-2026", school: school_bello) do |p|
   p.start_date = Date.new(2025, 9, 15); p.end_date = Date.new(2026, 7, 15)
 end
-puts "   ✓ Períodos 2025-2026 creados"
+
+# Un segundo período en Bolívar, sin secciones todavía: es el año que viene.
+# Existe para que se pueda VER que cada año escolar tiene su propia estructura de
+# evaluación — con lapsos distintos a los del año en curso. Eso es justamente lo
+# que se gana colgando los momentos del período y no de la escuela: cambiar los
+# lapsos de 2026-2027 no toca ni una nota de 2025-2026.
+periodo_bolivar_siguiente = AcademicPeriod.find_or_create_by!(name: "2026-2027", school: school_bolivar) do |p|
+  p.start_date = Date.new(2026, 9, 15); p.end_date = Date.new(2027, 7, 15)
+end
+puts "   ✓ 2025-2026 en ambos colegios + 2026-2027 en Bolívar (para QA de estructura por año)"
 
 # =============================================================================
 # MOMENTOS DE EVALUACIÓN
 # =============================================================================
 puts "📊 Creando momentos de evaluación..."
 
-momento1 = EvaluationMoment.find_or_create_by!(name: "Primer Lapso")  { |m| m.weight = 30.0 }
-momento2 = EvaluationMoment.find_or_create_by!(name: "Segundo Lapso") { |m| m.weight = 30.0 }
-momento3 = EvaluationMoment.find_or_create_by!(name: "Tercer Lapso")  { |m| m.weight = 40.0 }
-puts "   ✓ Tres lapsos (30% / 30% / 40%)"
+# Cada período tiene su propio juego de lapsos: colgarlos del período congela la
+# estructura de evaluación de cada año escolar junto con sus notas.
+#
+# Los dos colegios usan tres lapsos en 2025-2026, y cada uno ocupa el 100 % SIN
+# estorbarle al otro — eso era imposible antes, cuando los pesos sumaban sobre
+# toda la tabla y el primer colegio en llegar dejaba a los demás sin espacio.
+LAPSOS_TRES = [
+  { name: "Primer Lapso",  weight: 30.0 },
+  { name: "Segundo Lapso", weight: 30.0 },
+  { name: "Tercer Lapso",  weight: 40.0 }
+].freeze
+
+# 2026-2027 estrena una estructura DISTINTA a propósito: dos lapsos al 50 %.
+# Sirve para ver que reorganizar la evaluación de un año nuevo no toca en nada
+# la del año anterior ni las notas ya calculadas.
+LAPSOS_DOS = [
+  { name: "Primer Semestre", weight: 50.0 },
+  { name: "Segundo Semestre", weight: 50.0 }
+].freeze
+
+{
+  periodo_bolivar           => LAPSOS_TRES,
+  periodo_bello             => LAPSOS_TRES,
+  periodo_bolivar_siguiente => LAPSOS_DOS
+}.each do |periodo, lapsos|
+  lapsos.each do |lapso|
+    EvaluationMoment.find_or_create_by!(name: lapso[:name], academic_period: periodo) do |m|
+      m.weight = lapso[:weight]
+    end
+  end
+end
+puts "   ✓ 2025-2026: 3 lapsos (30/30/40) en ambos colegios"
+puts "   ✓ 2026-2027 Bolívar: 2 semestres (50/50) — estructura distinta, mismo colegio"
 
 # =============================================================================
 # DEPARTAMENTOS - SIMÓN BOLÍVAR

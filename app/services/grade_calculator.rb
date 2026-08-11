@@ -43,7 +43,12 @@ class GradeCalculator
   # Calcula la nota final anual para un estudiante en una materia.
   # Promedio ponderado de moment_grades según weight de cada evaluation_moment.
   def self.calculate_final_grade(enrollment:, subject:)
-    moments = EvaluationMoment.all
+    # Solo los momentos del período de ESTA inscripción. Antes decía
+    # `EvaluationMoment.all`, que con los momentos compartidos daba lo mismo —
+    # pero desde que cuelgan del período eso traería también los lapsos de otros
+    # colegios y otros años, y el promedio anual se calcularía sobre una base
+    # que no es la del alumno.
+    moments = moments_for(enrollment)
     return nil if moments.empty?
 
     total_weight = 0
@@ -83,14 +88,23 @@ class GradeCalculator
   def self.calculate_all_for_enrollment(enrollment)
     subjects = enrollment.section.grade.subjects
 
+    moments = moments_for(enrollment)
+
     subjects.map do |subject|
-      EvaluationMoment.all.each do |moment|
+      moments.each do |moment|
         calculate_moment_grade(enrollment: enrollment, subject: subject, evaluation_moment: moment)
       end
 
       calculate_final_grade(enrollment: enrollment, subject: subject)
     end.compact
   end
+
+  # Los momentos de evaluación del período en el que está inscrito el alumno.
+  # Es el único conjunto sobre el que tiene sentido promediarle el año.
+  def self.moments_for(enrollment)
+    EvaluationMoment.where(academic_period_id: enrollment.section.academic_period_id)
+  end
+  private_class_method :moments_for
 
   # Calcula todas las notas de una sección completa.
   def self.calculate_all_for_section(section)

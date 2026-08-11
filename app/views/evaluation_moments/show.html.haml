@@ -3,6 +3,8 @@
 .card
   .card-body
     %dl.row
+      %dt.col-sm-3 Período académico
+      %dd.col-sm-9= "#{@evaluation_moment.academic_period.school.name} — #{@evaluation_moment.academic_period.name}"
       %dt.col-sm-3 Nombre
       %dd.col-sm-9= @evaluation_moment.name
       %dt.col-sm-3 Peso (%)

@@ -15,6 +15,12 @@ es:
       grade:
         one: Grado
         other: Grados
+      academic_period:
+        one: Período académico
+        other: Períodos académicos
+      evaluation_moment:
+        one: Momento de evaluación
+        other: Momentos de evaluación
     attributes:
       school:
         dea_code: Código DEA
@@ -27,3 +33,12 @@ es:
         name: Nombre
         level: Nivel
         leader_teacher: Profesor guía
+      academic_period:
+        school: Colegio
+        name: Nombre
+        start_date: Fecha de inicio
+        end_date: Fecha de cierre
+      evaluation_moment:
+        academic_period: Período académico
+        name: Nombre
+        weight: Peso

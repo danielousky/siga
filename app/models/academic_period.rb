@@ -2,6 +2,7 @@ class AcademicPeriod < ApplicationRecord
   belongs_to :school
 
   has_many :sections, dependent: :restrict_with_error
+  has_many :evaluation_moments, dependent: :restrict_with_error
 
   validates :name, :start_date, :end_date, presence: true
   validate :end_date_after_start_date

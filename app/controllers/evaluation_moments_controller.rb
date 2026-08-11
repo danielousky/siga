@@ -3,7 +3,9 @@ class EvaluationMomentsController < ApplicationController
   before_action :set_evaluation_moment, only: [:show, :edit, :update, :destroy]
 
   def index
-    @pagy, @evaluation_moments = pagy(EvaluationMoment.all)
+    @pagy, @evaluation_moments = pagy(
+      EvaluationMoment.includes(academic_period: :school).order(:academic_period_id, :id)
+    )
   end
 
   def show; end
@@ -46,7 +48,7 @@ class EvaluationMomentsController < ApplicationController
   end
 
   def evaluation_moment_params
-    params.require(:evaluation_moment).permit(:name, :weight)
+    params.require(:evaluation_moment).permit(:academic_period_id, :name, :weight)
   end
 
   def require_admin_access!
