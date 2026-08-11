@@ -2,5 +2,7 @@ class GradeSubject < ApplicationRecord
   belongs_to :grade
   belongs_to :subject
 
+  derives_school_from :grade
+
   validates :subject_id, uniqueness: { scope: :grade_id }
 end

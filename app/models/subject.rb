@@ -1,6 +1,7 @@
 class Subject < ApplicationRecord
-  belongs_to :school
   belongs_to :department
+
+  derives_school_from :department
 
   has_many :grade_subjects, dependent: :destroy
   has_many :grades, through: :grade_subjects
@@ -14,15 +15,4 @@ class Subject < ApplicationRecord
   # impresos en carnets y planillas.
   validates :code, presence: true, uniqueness: { scope: :school_id }
   validates :name, presence: true
-
-  # El colegio se deriva del departamento en vez de pedirse aparte. Un selector
-  # propio podría contradecir al departamento y dejar una materia cuyo colegio no
-  # es el de su departamento — una inconsistencia que después nadie encuentra.
-  before_validation :derive_school_from_department
-
-  private
-
-  def derive_school_from_department
-    self.school_id = department.school_id if department
-  end
 end

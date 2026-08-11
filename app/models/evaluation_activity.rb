@@ -3,6 +3,8 @@ class EvaluationActivity < ApplicationRecord
   belongs_to :section
   belongs_to :evaluation_moment
 
+  derives_school_from :section
+
   has_many :activity_grades, dependent: :restrict_with_error
 
   validates :description, presence: true

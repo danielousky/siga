@@ -2,6 +2,8 @@ class Section < ApplicationRecord
   belongs_to :grade
   belongs_to :academic_period
 
+  derives_school_from :grade
+
   has_many :enrollments, dependent: :restrict_with_error
   has_many :students, through: :enrollments
   has_many :evaluation_activities, dependent: :restrict_with_error
