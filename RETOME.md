@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 12 de agosto de 2026
+# 🔖 Punto de retome — actualizado 12 de agosto de 2026 (tarde)
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 
@@ -120,26 +120,65 @@ enlazado al final.
   un rol que todavía no existía), y quien lo arreglaba a mano terminaba con un superusuario y el
   RLS decorativo. Ahora hace lo que `CLAUDE.md` decía que había que hacer.
 
+- **El repositorio ya está enlazado y el CI corre en GitHub.** Esta copia local no
+  tenía el remoto configurado —`.git/config` solo tenía `[core]` y `[lfs]`— por eso
+  parecía que no había repo. Es `danielousky/siga`, privado. Las tres ramas
+  encadenadas están subidas y **`main` sigue intacto**, para revisar por PR.
+
+- **`MOR-105` cerrado · CI en verde en GitHub.** El workflow falló tres veces antes
+  de andar, y ninguno de los tres errores se puede encontrar en la máquina de uno:
+  el `Gemfile.lock` solo tenía plataformas de macOS; el paso de seeds dejaba la base
+  de test sembrada y **el que reventaba era el `bin/rails test` de después**; y las
+  tablas de `siga_test` no eran del rol de la app — bug que también estaba en
+  `bin/setup` y que una máquina nueva se habría comido entero.
+
+- **`MOR-101` + `MOR-104` cerrados · los dos agujeros de una URL pública.**
+  No hay registro público (`/users/sign_up` da 404) y las cuentas nacen del panel
+  del colegio. Los seeds no corren fuera de desarrollo salvo declarando
+  `SIGA_ENTORNO_DEMO=1` **y** una contraseña propia, que fuera de desarrollo no
+  tiene default. El correo personal salió del repositorio.
+
+  El guard vive en `lib/seed_guard.rb` y no dentro de `db/seeds.rb` por algo que
+  descubrí probándolo: **contra producción Rails aborta ANTES de llegar al guard**,
+  por la conexión. Uno lo escribe, ve que falla, y cree que funcionó — cuando ni se
+  ejecutó. Como clase se prueba de verdad.
+
+- **La app se puede desplegar** (`DESPLIEGUE.md`). Dockerfile para Dokku, TLS por
+  variables de entorno con HSTS de una hora, correo por SMTP, `GET /up`, y
+  `bin/docker-entrypoint` que corre `rls:verificar` **antes** de levantar Puma.
+
+  El hallazgo que habría roto el deploy: `database.yml` tenía `username: siga`
+  escrito, y **las claves del archivo ganan sobre las de `DATABASE_URL`** —al revés
+  de lo que dice el comentario que trae Rails—. Dokku inyecta la URL correcta y la
+  app se habría conectado igual como `siga`. Se vio corriendo producción a mano:
+  `/up` en 200 y toda vista con base en 500.
+
 **Pendiente inmediato, en orden:**
 
-1. **Crear el repositorio remoto y empujar.** Es el riesgo abierto más grande: **19 commits viven en
-   una rama local**, y las tres ramas están encadenadas —`feat/encuesta-demo-y-backlog` →
-   `chore/upgrade-ruby-rails` → `feat/mor-82-school-id-en-grades`—, con `main` intacto. Además
-   `.github/workflows/ci.yml` está escrito y **no puede correr sin remoto**: es lo único que le
-   falta a `MOR-105` para cerrar.
-2. **`MOR-90` · Suite de aislamiento recurso por recurso.** Ya no está bloqueado: `escenario_academico`
-   resuelve el prerrequisito de "fixtures para dos colegios", y pone el contexto en las **dos** capas
-   (sin lo segundo, el `WITH CHECK` del RLS rechaza cualquier inserción).
-3. **`MOR-99` · Formatos del MPPE.** **Bloqueado y a propósito**: el issue prohíbe modelar sobre una
-   reconstrucción, y las dos fuentes públicas están caídas o son de 2017. Necesita que un colegio
-   pase el formato en blanco. Faltan además cinco campos de identidad en el modelo —fecha y lugar de
-   nacimiento, nacionalidad, zona educativa— que conviene que entren por `MOR-126` (el importador).
-4. **`MOR-101` · `/users/sign_up` abierto** y **`MOR-104` · seeds con `123123` sin guard de entorno.**
-   Son los dos agujeros de exposición que quedan en Cimientos, y los dos son chicos.
+1. **La demo pública.** Ya se puede hoy, sin servidor:
 
-**Lo único que no pude verificar yo:** las dos pantallas nuevas están pensadas **móvil primero** y
-verificadas por CSS, pero **no las probé en un teléfono real**. Es un criterio de aceptación explícito
-de `MOR-95` y `MOR-97` y necesita el ojo de Daniel.
+       SIGA_HOSTS=".trycloudflare.com" bin/rails server
+       cloudflared tunnel --url http://localhost:3000
+
+   Está en `DESPLIEGUE.md` con qué mostrar y en qué orden.
+
+2. **`MOR-102` y `MOR-103` esperan infraestructura.** El correo está configurado y
+   falta un proveedor SMTP; el TLS está activo y falta el certificado. Los dos
+   cierran sin tocar código cuando estén Contabo y el dominio.
+
+3. **`MOR-129` · primaria califica con LITERALES A–E**, y el sistema solo sabe de 1
+   a 20 — en cinco validaciones y cinco CHECK. **Un colegio de primaria hoy no
+   puede cargar una nota**, y primaria es la mayoría de los ~3.900 colegios. Salió
+   de analizar los formatos oficiales. Antes de construir conviene preguntarle a
+   Cyndi cómo se obtiene el literal de un grado.
+
+4. **`MOR-99` · formatos del MPPE.** Los formatos ya están (gracias a Cyndi), pero
+   ahora bloquea `MOR-129`: faltan quince campos de identidad y la escala por
+   literal. Falta pedirle a Cyndi la constancia de **inicial** y la plantilla en
+   blanco de la EMG.
+
+5. **`MOR-90` · suite de aislamiento recurso por recurso.** Desbloqueado:
+   `escenario_academico` resuelve las fixtures para dos colegios.
 
 **Cómo se entrega, desde ahora** (convención escrita en el documento *Cómo trabajamos* de Linear):
 cada issue cerrado deja **transferencia de aprendizaje** (qué salió distinto, qué falló y cómo se
