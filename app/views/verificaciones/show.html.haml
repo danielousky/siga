@@ -1,0 +1,82 @@
+- datos = @boletin.snapshot
+
+.card-academic
+  .card-academic-header
+    %h1 Boletín verificado
+    %span.verificacion-sello ✓ Auténtico
+
+  %p.nota-ayuda
+    Este boletín fue emitido por el sistema el
+    = succeed "." do
+      %strong= l(@boletin.created_at.to_date, format: :long)
+    Lo que sigue es exactamente lo que dice el documento impreso. Si el papel que
+    tenés en la mano no coincide, no salió de acá.
+
+  .detail-row
+    .detail-item
+      .detail-label Colegio
+      .detail-value= datos.dig("colegio", "nombre")
+    .detail-item
+      .detail-label Código DEA
+      .detail-value= datos.dig("colegio", "dea")
+
+  .detail-row
+    .detail-item
+      .detail-label Alumno
+      .detail-value= datos.dig("alumno", "nombre")
+    .detail-item
+      .detail-label Carnet
+      .detail-value= datos.dig("alumno", "carnet")
+
+  .detail-row
+    .detail-item
+      .detail-label Grado y sección
+      .detail-value= "#{datos.dig('seccion', 'grado')} – #{datos.dig('seccion', 'seccion')}"
+    .detail-item
+      .detail-label Boletín
+      .detail-value= "#{@boletin.titulo} · #{datos.dig('seccion', 'periodo')}"
+
+.card-academic
+  .card-academic-header
+    %h2 Calificaciones
+
+  %table.table-academic
+    %thead
+      %tr
+        %th Materia
+        - if datos["tipo"] == "anual"
+          - datos["lapsos"].each do |nombre|
+            %th= nombre
+          %th Anual
+          %th Reparación
+          %th Definitiva
+        - else
+          %th Calificación
+    %tbody
+      - datos["materias"].each do |materia|
+        %tr
+          %td= materia["materia"]
+          - if datos["tipo"] == "anual"
+            - materia["lapsos"].each do |nota|
+              %td= nota || "Sin nota"
+            %td= materia["anual"] || "Sin nota"
+            %td= materia["reparacion"] || "—"
+            %td= materia["definitiva"] || "Sin nota"
+          - else
+            %td= materia["nota"] || "Sin nota"
+      %tr
+        %td
+          %strong= datos["tipo"] == "anual" ? "PROMEDIO GENERAL" : "PROMEDIO DEL LAPSO"
+        - if datos["tipo"] == "anual"
+          - (datos["lapsos"].size + 2).times do
+            %td
+        %td
+          %strong= datos["promedio"] || "Sin nota"
+
+  %p.nota-ayuda
+    Escala del 1 al 20. Calificación mínima aprobatoria: 10 (Art. 108 del
+    Reglamento General de la Ley Orgánica de Educación).
+
+  %p.nota-ayuda
+    Código de verificación:
+    %strong= @boletin.code

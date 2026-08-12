@@ -1,0 +1,19 @@
+.card-academic
+  .card-academic-header
+    %h1 Verificar un boletín
+
+  %p.nota-ayuda
+    Todo boletín emitido por SIGA lleva impreso un código de verificación.
+    Escribilo acá para ver exactamente lo que el sistema emitió, y compararlo con
+    el papel que tenés en la mano.
+
+  = form_with url: verificar_path, method: :get, data: { turbo: false } do
+    .form-group
+      = label_tag :code, "Código de verificación", class: "form-label"
+      = text_field_tag :code, nil, class: "form-control", placeholder: "BOL-XXXX-XXXX",
+        autocomplete: "off", autocapitalize: "characters", spellcheck: false
+      %small.form-text.text-muted
+        Está al pie del boletín. No lleva ceros ni la letra O: si te parece ver un
+        cero, es la letra O… y al revés.
+
+    = submit_tag "Verificar", class: "btn btn-primary"

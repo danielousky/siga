@@ -94,6 +94,8 @@ check "landing /"                "/"                   200
 check "login"                    "/users/sign_in"      200
 check "solicitud de demo"        "/demo_requests/new"  200
 check "recuperar contraseña"     "/users/password/new" 200
+check "verificar boletín"        "/verificar"          200
+check "código inexistente"       "/verificar/BOL-XXXX-YYYY" 404
 
 echo
 echo "Administrador"
@@ -111,6 +113,7 @@ if login "director.bolivar@siga.edu" "123123" "$JAR"; then
   check "períodos"         "/academic_periods"          200 "$JAR"
   check "momentos eval."   "/evaluation_moments"        200 "$JAR"
   check "evaluaciones"     "/evaluation_activities"     200 "$JAR"
+  check "emitir boletines" "/boletines"                 200 "$JAR"
   check "solicitudes demo" "/demo_requests"             200 "$JAR"
   check "auditoría"        "/dashboards/activity_logs"  200 "$JAR"
   check "alta de alumno"   "/students/new"              200 "$JAR"

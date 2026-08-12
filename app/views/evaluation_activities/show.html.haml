@@ -37,7 +37,7 @@
 - if @notas_cargadas.positive?
   .card-academic
     .alert.alert-warning
-      %strong Esta evaluación ya tiene #{@notas_cargadas} #{'nota'.pluralize(@notas_cargadas)} cargada#{'s' if @notas_cargadas != 1}.
+      %strong= "Esta evaluación ya tiene #{contar(@notas_cargadas, 'nota cargada', 'notas cargadas')}."
       %br
       No se puede eliminar sin borrar antes esas notas. Cambiarle el peso sí es
       posible, y recalcula los promedios del lapso.

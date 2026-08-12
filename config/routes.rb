@@ -18,6 +18,12 @@ Rails.application.routes.draw do
     resources :activity_logs, only: [:index]
   end
 
+  # Emisión de boletines (dirección y secretaría) y su verificación PÚBLICA.
+  # La segunda va sin sesión a propósito: quien verifica normalmente no tiene
+  # cuenta en el sistema. Ver MOR-98.
+  resources :report_cards, only: [:index, :create], path: "boletines"
+  get "verificar(/:code)", to: "verificaciones#show", as: :verificar
+
   resources :evaluation_moments
   resources :evaluation_activities do
     # La planilla de carga. `notas/:student_id` hace upsert y borrado: mandar el

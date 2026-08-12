@@ -2038,3 +2038,27 @@ nav.pagy a.gap {
     display: none;
   }
 }
+
+/* ============================================
+   Boletines y su verificación pública
+   ============================================ */
+
+.verificacion-sello {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid var(--success-border);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.codigo-verificacion {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--brand-primary);
+}

@@ -61,6 +61,17 @@ gem "bootsnap", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
 
+# Boletines en PDF (MOR-98). Prawn genera el PDF en Ruby puro: no necesita ningún
+# binario del sistema.
+#
+# Es la razón por la que se eligió sobre las alternativas. `wicked_pdf` y
+# `pdfkit` dependen de `wkhtmltopdf`, que sus propios autores archivaron; `grover`
+# necesita Node y Chromium, y esta app usa importmap justamente para no tener
+# Node. Y sobre todo: **el entorno de despliegue todavía no está decidido**, así
+# que atarlo a un binario del sistema sería tomar esa decisión de costado.
+gem "prawn", "~> 2.5"
+gem "prawn-table", "~> 0.2"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri mingw x64_mingw ]

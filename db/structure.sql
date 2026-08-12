@@ -644,6 +644,44 @@ ALTER SEQUENCE public.moment_grades_id_seq OWNED BY public.moment_grades.id;
 
 
 --
+-- Name: report_cards; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.report_cards (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    evaluation_moment_id bigint,
+    code character varying NOT NULL,
+    snapshot jsonb DEFAULT '{}'::jsonb NOT NULL,
+    issued_by_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.report_cards FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: report_cards_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.report_cards_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: report_cards_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.report_cards_id_seq OWNED BY public.report_cards.id;
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1021,6 +1059,13 @@ ALTER TABLE ONLY public.moment_grades ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: report_cards id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_cards ALTER COLUMN id SET DEFAULT nextval('public.report_cards_id_seq'::regclass);
+
+
+--
 -- Name: schools id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1211,6 +1256,14 @@ ALTER TABLE ONLY public.grades
 
 ALTER TABLE ONLY public.moment_grades
     ADD CONSTRAINT moment_grades_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: report_cards report_cards_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_cards
+    ADD CONSTRAINT report_cards_pkey PRIMARY KEY (id);
 
 
 --
@@ -1607,6 +1660,41 @@ CREATE INDEX index_moment_grades_on_subject_id ON public.moment_grades USING btr
 
 
 --
+-- Name: index_report_cards_on_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_report_cards_on_code ON public.report_cards USING btree (code);
+
+
+--
+-- Name: index_report_cards_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_report_cards_on_enrollment_id ON public.report_cards USING btree (enrollment_id);
+
+
+--
+-- Name: index_report_cards_on_evaluation_moment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_report_cards_on_evaluation_moment_id ON public.report_cards USING btree (evaluation_moment_id);
+
+
+--
+-- Name: index_report_cards_on_issued_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_report_cards_on_issued_by_id ON public.report_cards USING btree (issued_by_id);
+
+
+--
+-- Name: index_report_cards_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_report_cards_on_school_id ON public.report_cards USING btree (school_id);
+
+
+--
 -- Name: index_schools_on_dea_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1764,6 +1852,14 @@ ALTER TABLE ONLY public.students
 
 
 --
+-- Name: report_cards fk_rails_2c9a394005; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_cards
+    ADD CONSTRAINT fk_rails_2c9a394005 FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
 -- Name: moment_grades fk_rails_2d57e5a5e4; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1892,6 +1988,14 @@ ALTER TABLE ONLY public.activity_logs
 
 
 --
+-- Name: report_cards fk_rails_6c37a9cb2c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_cards
+    ADD CONSTRAINT fk_rails_6c37a9cb2c FOREIGN KEY (issued_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: enrollments fk_rails_6e4789b133; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2012,6 +2116,14 @@ ALTER TABLE ONLY public.moment_grades
 
 
 --
+-- Name: report_cards fk_rails_c161237368; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_cards
+    ADD CONSTRAINT fk_rails_c161237368 FOREIGN KEY (evaluation_moment_id) REFERENCES public.evaluation_moments(id);
+
+
+--
 -- Name: active_storage_attachments fk_rails_c3b3935057; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2033,6 +2145,14 @@ ALTER TABLE ONLY public.teacher_sections
 
 ALTER TABLE ONLY public.activity_logs
     ADD CONSTRAINT fk_rails_c9badf82db FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: report_cards fk_rails_ce32782863; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_cards
+    ADD CONSTRAINT fk_rails_ce32782863 FOREIGN KEY (enrollment_id) REFERENCES public.enrollments(id);
 
 
 --
@@ -2216,6 +2336,13 @@ CREATE POLICY aislamiento_por_colegio ON public.moment_grades USING (((current_s
 
 
 --
+-- Name: report_cards aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.report_cards USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
 -- Name: sections aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -2299,6 +2426,12 @@ ALTER TABLE public.grades ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.moment_grades ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: report_cards; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.report_cards ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: sections; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -2335,6 +2468,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260812040000'),
 ('20260811220000'),
 ('20260811163539'),
 ('20260811162243'),

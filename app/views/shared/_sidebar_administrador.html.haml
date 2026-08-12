@@ -19,6 +19,9 @@
     - if can_manage_sections?
       %li.sidebar-nav-item
         = link_to "Evaluaciones del Colegio", evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}"
+    - if can_manage_students?
+      %li.sidebar-nav-item
+        = link_to "Emitir Boletines", report_cards_path, class: "sidebar-nav-link #{'active' if controller_name == 'report_cards'}"
 
 .sidebar-section
   .sidebar-section-title Períodos

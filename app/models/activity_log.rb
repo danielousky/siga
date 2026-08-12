@@ -22,6 +22,7 @@ class ActivityLog < ApplicationRecord
     admin_created admin_updated admin_destroyed
     grade_created grade_updated grade_destroyed
     period_created period_updated period_destroyed
+    report_cards_issued
   ].freeze
 
   LABELS = {
@@ -48,7 +49,9 @@ class ActivityLog < ApplicationRecord
     "grade_destroyed"      => "Calificación eliminada",
     "period_created"       => "Período académico creado",
     "period_updated"       => "Período académico actualizado",
-    "period_destroyed"     => "Período académico eliminado"
+    "period_destroyed"     => "Período académico eliminado",
+    # Un boletín es un documento oficial: queda registrado quién lo emitió.
+    "report_cards_issued"  => "Boletines emitidos"
   }.freeze
 
   scope :recent,    -> { order(created_at: :desc) }

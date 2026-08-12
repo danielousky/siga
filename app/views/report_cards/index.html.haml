@@ -1,0 +1,68 @@
+- opciones_de_seccion = @secciones.map { |s| ["#{s.grade.name} – #{s.name} · #{s.academic_period.name}", s.id] }
+- opciones_de_lapso   = @lapsos.map { |l| [l.name, l.id] } + [["Boletín anual (todo el año)", "anual"]]
+- opciones_de_alumno  = [["Toda la sección (#{contar(@alumnos.size, 'alumno', 'alumnos')})", ""]] + @alumnos.map { |i| ["#{i.student.user.last_name}, #{i.student.user.name}", i.id] }
+
+.card-academic
+  .card-academic-header
+    %h1 Emitir Boletines
+
+  - if @secciones.empty?
+    .empty-state
+      %h3 Sin secciones
+      %p No hay secciones cargadas todavía.
+
+  - else
+    -# La sección va en su propio formulario GET: cambiarla recarga la pantalla
+    -# con sus alumnos y sus lapsos, que son los del año escolar de ESA sección.
+    = form_with url: report_cards_path, method: :get, data: { controller: "auto-envio", turbo: false } do
+      .form-group
+        = label_tag :section_id, "Sección", class: "form-label"
+        = select_tag :section_id, options_for_select(opciones_de_seccion, @seccion&.id), class: "form-select", data: { action: "change->auto-envio#enviar" }
+
+    = form_with url: report_cards_path, method: :post, data: { turbo: false } do |f|
+      = hidden_field_tag :section_id, @seccion&.id
+
+      .form-row
+        .form-group
+          = label_tag :evaluation_moment_id, "Qué se emite", class: "form-label"
+          = select_tag :evaluation_moment_id, options_for_select(opciones_de_lapso), class: "form-select"
+
+        .form-group
+          = label_tag :enrollment_id, "Alumno", class: "form-label"
+          = select_tag :enrollment_id, options_for_select(opciones_de_alumno), class: "form-select"
+
+      %p.nota-ayuda
+        Sale un solo PDF con una página por alumno, listo para mandar a imprimir.
+
+      = f.submit "Emitir y descargar", class: "btn btn-primary"
+
+.card-academic
+  .card-academic-header
+    %h2 Últimos boletines emitidos
+
+  %p.nota-ayuda
+    Cada emisión guarda las notas
+    %strong tal como se imprimieron.
+    Reemitir en marzo no cambia lo que decía el papel de diciembre — por eso cada
+    una tiene su propio código.
+
+  - if @recientes.any?
+    %table.table-academic
+      %thead
+        %tr
+          %th Alumno
+          %th Boletín
+          %th Código
+          %th Emitido
+      %tbody
+        - @recientes.each do |boletin|
+          %tr
+            %td= "#{boletin.enrollment.student.user.last_name}, #{boletin.enrollment.student.user.name}"
+            %td= boletin.titulo
+            %td= link_to boletin.code, verificar_path(code: boletin.code), class: "codigo-verificacion"
+            %td= l(boletin.created_at, format: :long)
+
+  - else
+    .empty-state
+      %h3 Todavía no se emitió ninguno
+      %p Los boletines emitidos quedan registrados acá, con quién los emitió y cuándo.
