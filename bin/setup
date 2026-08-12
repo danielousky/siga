@@ -33,8 +33,16 @@ FileUtils.chdir APP_ROOT do
   puts "\n== Preparing database =="
   system! con_usuario_privilegiado("bin/rails db:prepare")
 
+  # ⚠️ DOS VECES, una por base, y no es redundante.
+  #
+  # `db:prepare` en desarrollo crea TAMBIÉN `siga_test`, y las dos quedan con sus
+  # tablas del usuario privilegiado. `rls:crear_rol` traspasa las tablas de la
+  # base a la que está conectado — así que corriéndolo solo en desarrollo, las
+  # tablas de `siga_test` se quedan ajenas y `bin/rails test` muere con
+  # `permission denied for table ar_internal_metadata`.
   puts "\n== Creating the unprivileged role the app connects as =="
   system! con_usuario_privilegiado("bin/rails rls:crear_rol")
+  system! con_usuario_privilegiado("env RAILS_ENV=test bin/rails rls:crear_rol")
 
   puts "\n== Verifying that role cannot bypass RLS =="
   system! "bin/rails rls:verificar"

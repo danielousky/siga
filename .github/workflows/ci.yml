@@ -67,11 +67,17 @@ jobs:
           SIGA_DB_PASSWORD: postgres
         run: bin/rails db:prepare
 
+      # Dos veces, una por base. `db:prepare` en desarrollo crea también
+      # `siga_test`, y `rls:crear_rol` solo traspasa las tablas de la base a la
+      # que está conectado. Sin la segunda corrida, `bin/rails test` muere con
+      # `permission denied for table ar_internal_metadata`.
       - name: Crear el rol sin privilegios y traspasarle todo
         env:
           SIGA_DB_USER: postgres
           SIGA_DB_PASSWORD: postgres
-        run: bin/rails rls:crear_rol
+        run: |
+          bin/rails rls:crear_rol
+          RAILS_ENV=test bin/rails rls:crear_rol
 
       # `bin/smoke` recorre la app por HTTP contra la base de DESARROLLO, así que
       # necesita sus datos. Los seeds además son los casos de QA de MOR-93.
