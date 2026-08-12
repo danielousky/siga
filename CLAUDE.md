@@ -43,7 +43,16 @@ bin/rails db:rollback              # Rollback last migration
 # Tests
 bin/rails test                     # Run all tests
 bin/rails test test/models/user_test.rb:10     # Run single test by line
+
+# Verificación completa — lo mismo que corre el CI (MOR-105)
+bin/ci                             # RLS + estilo + tests + seeds + humo, ~10 s
+bin/smoke                          # solo el recorrido HTTP por los cuatro roles
 ```
+
+`bin/ci` arranca comprobando que el rol de la base **no** pueda saltarse el RLS, y no
+es ceremonia: si ese rol fuera superusuario, el aislamiento entre colegios dejaría de
+existir y **ningún otro paso del pipeline se daría cuenta** — los tests seguirían en
+verde porque el `default_scope` de la app filtra igual.
 
 Credenciales de los seeds (contraseña universal `123123`):
 `director.bolivar@siga.edu` (admin) · `prof.garcia@bolivar.edu` (profesor) ·

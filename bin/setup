@@ -7,21 +7,38 @@ def system!(*args)
   system(*args, exception: true)
 end
 
-FileUtils.chdir APP_ROOT do
-  # This script is a way to set up or update your development environment automatically.
-  # This script is idempotent, so that you can run it at any time and get an expectable outcome.
-  # Add necessary setup steps to this file.
+# El rol de la app no puede crearse a sí mismo, ni crear la base en la que va a
+# vivir. Ese primer paso lo hace el usuario de Postgres de la máquina — en macOS
+# con Homebrew, el usuario del sistema.
+def con_usuario_privilegiado(comando)
+  "SIGA_DB_USER=#{ENV.fetch('SIGA_SETUP_USER', ENV.fetch('USER', 'postgres'))} #{comando}"
+end
 
+FileUtils.chdir APP_ROOT do
   puts "== Installing dependencies =="
   system("bundle check") || system!("bundle install")
 
-  # puts "\n== Copying sample files =="
-  # unless File.exist?("config/database.yml")
-  #   FileUtils.cp "config/database.yml.sample", "config/database.yml"
-  # end
-
+  # ⚠️ El orden de acá abajo NO es arbitrario, y saltárselo deja el aislamiento
+  # apagado sin que nada avise.
+  #
+  # La app se conecta como `siga_app`, un rol sin SUPERUSER ni BYPASSRLS: con
+  # cualquiera de los dos, PostgreSQL se salta las políticas de RLS antes de
+  # mirarlas y el aislamiento entre colegios deja de existir (MOR-87). Pero ese
+  # rol todavía no existe en una máquina nueva, así que la base y el esquema los
+  # crea el usuario privilegiado, y recién después se traspasa todo.
+  #
+  # Antes este script hacía `db:prepare` a secas. En una máquina nueva eso fallaba
+  # —el rol no existe— y quien lo arreglaba a mano apuntando la app a su propio
+  # usuario terminaba con un superusuario conectado y el RLS decorativo.
   puts "\n== Preparing database =="
-  system! "bin/rails db:prepare"
+  system! con_usuario_privilegiado("bin/rails db:prepare")
+
+  puts "\n== Creating the unprivileged role the app connects as =="
+  system! con_usuario_privilegiado("bin/rails rls:crear_rol")
+
+  puts "\n== Verifying that role cannot bypass RLS =="
+  system! "bin/rails rls:verificar"
+
   system! "bin/rails db:reset" if ARGV.include?("--reset")
 
   puts "\n== Removing old logs and tempfiles =="

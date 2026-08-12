@@ -1,0 +1,96 @@
+# Integración continua.
+#
+# No define QUÉ se verifica: eso vive en `config/ci.rb` y se corre igual con
+# `bin/ci` en cualquier máquina. Acá solo se arma el entorno para que ese mismo
+# pipeline pueda correr.
+#
+# Un CI que verifica cosas distintas de las que uno puede correr en su máquina se
+# convierte en un oráculo: falla y hay que adivinar por qué.
+#
+# Ver MOR-105.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  verificar:
+    name: Suite, seeds y humo
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      # Postgres corre en otro contenedor: la conexión va por TCP y con clave, no
+      # por socket local como en una máquina de desarrollo.
+      SIGA_DB_HOST: localhost
+      SIGA_DB_PASSWORD: postgres
+      SIGA_APP_PASSWORD: siga_app_ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Dependencias del sistema
+        run: sudo apt-get update && sudo apt-get install --yes libpq-dev
+
+      # ⚠️ Este paso y el siguiente son el motivo por el que el CI de este
+      # proyecto no es el genérico de Rails.
+      #
+      # La app se conecta como `siga_app`, un rol SIN superusuario ni BYPASSRLS,
+      # porque con cualquiera de los dos PostgreSQL se salta las políticas de RLS
+      # antes de mirarlas (MOR-87). Pero ese rol no puede crear la base en la que
+      # va a vivir: eso lo hace `postgres`, y después se le traspasa todo.
+      #
+      # Correr el CI como `postgres` sería más simple y dejaría el aislamiento sin
+      # verificar en el único lugar donde se verifica automáticamente.
+      - name: Crear la base con el usuario privilegiado
+        env:
+          SIGA_DB_USER: postgres
+          SIGA_DB_PASSWORD: postgres
+        run: bin/rails db:prepare
+
+      - name: Crear el rol sin privilegios y traspasarle todo
+        env:
+          SIGA_DB_USER: postgres
+          SIGA_DB_PASSWORD: postgres
+        run: bin/rails rls:crear_rol
+
+      # `bin/smoke` recorre la app por HTTP contra la base de DESARROLLO, así que
+      # necesita sus datos. Los seeds además son los casos de QA de MOR-93.
+      - name: Sembrar los datos de desarrollo
+        env:
+          SIGA_DB_PASSWORD: siga_app_ci
+        run: bin/rails db:seed:replant
+
+      - name: bin/ci
+        env:
+          SIGA_DB_PASSWORD: siga_app_ci
+        run: bin/ci
+
+      # El log del server del smoke es lo que explica un fallo de vista: sin esto
+      # hay que adivinar qué pasó dentro de una petición que devolvió 500.
+      - name: Guardar los logs si algo falló
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs
+          path: log/
+          retention-days: 7

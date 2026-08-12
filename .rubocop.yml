@@ -1,0 +1,51 @@
+# Estilo Omakase de Rails, con una sola excepción.
+#
+# Ver MOR-105.
+inherit_gem:
+  rubocop-rails-omakase: rubocop.yml
+
+AllCops:
+  NewCops: enable
+  Exclude:
+    - "bin/**/*"
+    - "db/schema.rb"
+    - "vendor/**/*"
+    - "node_modules/**/*"
+
+# Omakase quiere `[ 1, 2 ]`, con espacios pegados a los corchetes. El repo entero
+# —y prácticamente todo el Ruby que uno lee— se escribe `[1, 2]`.
+#
+# No es una opinión de peso: es que este cop solo aportaba 367 de las 398
+# infracciones que había al adoptar el linter. Un linter que arranca gritando 400
+# veces por una preferencia cosmética no se lee, se apaga. Apagando este quedan
+# 31, todas corregibles, y el linter empieza a servir para algo.
+Layout/SpaceInsideArrayLiteralBrackets:
+  Enabled: false
+
+# Omakase alinea el `end` de un condicional de asignación con la VARIABLE:
+#
+#     notas = if @vista_anual
+#               @materias.filter_map { ... }
+#     else                                    ← acá
+#               @materias.filter_map(...)
+#     end                                     ← y acá
+#
+# Corriendo el autocorrect eso fue lo que quedó, y es objetivamente menos legible
+# que lo que había: el `else` se despega del `if` al que pertenece y queda a la
+# altura del cuerpo del método.
+#
+# Alineado con la palabra clave, que es como está escrito el repo:
+#
+#     notas = if @vista_anual
+#               @materias.filter_map { ... }
+#             else
+#               @materias.filter_map(...)
+#             end
+#
+# Un linter está para que el código se lea mejor. Cuando una regla lo empeora, la
+# regla se cambia — no el código.
+Layout/EndAlignment:
+  EnforcedStyleAlignWith: keyword
+
+Layout/ElseAlignment:
+  Enabled: true

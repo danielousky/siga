@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   devise_for :users
-  get 'inicio/index'
+  get "inicio/index"
 
   # Solicitudes de demo (público)
   resources :demo_requests, only: [:new, :create, :index, :show, :update] do
@@ -11,10 +11,10 @@ Rails.application.routes.draw do
 
   # Dashboards específicos por rol
   namespace :dashboards do
-    get 'administrador', to: 'administrador#index'
-    get 'profesor',      to: 'profesor#index'
-    get 'estudiante',    to: 'estudiante#index'
-    get 'notas',         to: 'notas#index'
+    get "administrador", to: "administrador#index"
+    get "profesor",      to: "profesor#index"
+    get "estudiante",    to: "estudiante#index"
+    get "notas",         to: "notas#index"
     resources :activity_logs, only: [:index]
   end
 

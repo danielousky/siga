@@ -27,11 +27,16 @@ namespace :rls do
     # NOSUPERUSER + NOBYPASSRLS, y crear bases no confiere ninguno de los dos.
     # En producción la app entra con otro rol (ver config/database.yml), que no
     # necesita crear nada.
+    # En el CI, Postgres corre en otro contenedor y exige contraseña por TCP. En
+    # una máquina de desarrollo la conexión va por socket local y no hace falta.
+    clave = ENV["SIGA_APP_PASSWORD"]
+    con_clave = clave.present? ? "PASSWORD #{conn.quote(clave)}" : ""
+
     if existe
-      conn.execute("ALTER ROLE #{ROL_APP} CREATEDB")
+      conn.execute("ALTER ROLE #{ROL_APP} CREATEDB #{con_clave}")
       puts "· El rol #{ROL_APP} ya existe."
     else
-      conn.execute("CREATE ROLE #{ROL_APP} LOGIN NOSUPERUSER NOBYPASSRLS CREATEDB NOCREATEROLE")
+      conn.execute("CREATE ROLE #{ROL_APP} LOGIN NOSUPERUSER NOBYPASSRLS CREATEDB NOCREATEROLE #{con_clave}")
       puts "✓ Rol #{ROL_APP} creado (NOSUPERUSER, NOBYPASSRLS)."
     end
 

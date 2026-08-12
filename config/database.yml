@@ -41,10 +41,16 @@ default: &default
 #     SIGA_DB_USER=$(whoami) bin/rails rls:crear_rol
 #
 # El día a día —servidor, consola, migraciones— va siempre como `siga_app`.
+#
+# `SIGA_DB_HOST` y `SIGA_DB_PASSWORD` existen para el CI, donde Postgres corre en
+# un contenedor aparte y exige contraseña por TCP. En una máquina de desarrollo
+# quedan vacías y la conexión va por socket local, como siempre.
 development:
   <<: *default
   database: siga_development
   username: <%= ENV.fetch("SIGA_DB_USER", "siga_app") %>
+  host: <%= ENV["SIGA_DB_HOST"] %>
+  password: <%= ENV["SIGA_DB_PASSWORD"] %>
 
   # Connect on a TCP socket. Omitted by default since the client uses a
   # domain socket that doesn't need configuration. Windows does not have
@@ -71,6 +77,8 @@ test:
   <<: *default
   database: siga_test
   username: <%= ENV.fetch("SIGA_DB_USER", "siga_app") %>
+  host: <%= ENV["SIGA_DB_HOST"] %>
+  password: <%= ENV["SIGA_DB_PASSWORD"] %>
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is

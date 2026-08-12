@@ -113,7 +113,7 @@ dept = {}
     lengua:      { school: school_bolivar, name: "Lengua y Literatura" },
     idiomas:     { school: school_bolivar, name: "Idiomas Modernos" },
     arte:        { school: school_bolivar, name: "Arte y Cultura" },
-    edufisica:   { school: school_bolivar, name: "Educación Física" },
+    edufisica:   { school: school_bolivar, name: "Educación Física" }
   },
   bello: {
     matematica:  { school: school_bello, name: "Matemática" },
@@ -122,7 +122,7 @@ dept = {}
     lengua:      { school: school_bello, name: "Lengua y Literatura" },
     idiomas:     { school: school_bello, name: "Idiomas Modernos" },
     arte:        { school: school_bello, name: "Arte y Cultura" },
-    edufisica:   { school: school_bello, name: "Educación Física" },
+    edufisica:   { school: school_bello, name: "Educación Física" }
   }
 }.each do |escuela, departamentos|
   dept[escuela] = {}
@@ -185,7 +185,7 @@ gbol = {}
   { key: :g4, name: "4to Año", level: :secundaria,
     subjects: [s[:mat], s[:len], s[:his], s[:fis], s[:qui], s[:ing], s[:fil], s[:edf]] },
   { key: :g5, name: "5to Año", level: :secundaria,
-    subjects: [s[:mat], s[:len], s[:his], s[:fis], s[:qui], s[:ing], s[:fil], s[:edf]] },
+    subjects: [s[:mat], s[:len], s[:his], s[:fis], s[:qui], s[:ing], s[:fil], s[:edf]] }
 ].each do |g|
   grade = Grade.find_or_create_by!(name: g[:name], school: school_bolivar) { |gr| gr.level = g[:level] }
   g[:subjects].each { |subj| GradeSubject.find_or_create_by!(grade: grade, subject: subj) }
@@ -201,7 +201,7 @@ gbel = {}
   { key: :g2, name: "2do Año", level: :secundaria,
     subjects: [b[:mat], b[:len], b[:sos], b[:bio], b[:ing], b[:art], b[:edf]] },
   { key: :g3, name: "3er Año", level: :secundaria,
-    subjects: [b[:mat], b[:len], b[:sos], b[:fis], b[:ing], b[:art], b[:edf]] },
+    subjects: [b[:mat], b[:len], b[:sos], b[:fis], b[:ing], b[:art], b[:edf]] }
 ].each do |g|
   grade = Grade.find_or_create_by!(name: g[:name], school: school_bello) { |gr| gr.level = g[:level] }
   g[:subjects].each { |subj| GradeSubject.find_or_create_by!(grade: grade, subject: subj) }
@@ -224,7 +224,7 @@ Admin.find_or_create_by!(user: admin_user) { |a| a.school = school_bolivar; a.ro
 [
   { email: "director.bolivar@siga.edu",  name: "Ramón",  last_name: "Díaz",      school: school_bolivar, role: :director },
   { email: "coord.bolivar@siga.edu",     name: "Carmen", last_name: "Rodríguez", school: school_bolivar, role: :coordinador },
-  { email: "director.bello@siga.edu",    name: "Luisa",  last_name: "Martínez",  school: school_bello,   role: :director },
+  { email: "director.bello@siga.edu",    name: "Luisa",  last_name: "Martínez",  school: school_bello,   role: :director }
 ].each do |d|
   u = User.find_or_create_by!(email: d[:email]) do |uu|
     uu.password = uu.password_confirmation = "123123"
@@ -257,7 +257,7 @@ tbol = {
   fis:  make_teacher("prof.rivas@bolivar.edu",     "Luís",      "Rivas",     "V-56789012", school_bolivar),
   ing:  make_teacher("prof.castillo@bolivar.edu",  "Patricia",  "Castillo",  "V-67890123", school_bolivar),
   arte: make_teacher("prof.moreno@bolivar.edu",    "Sofía",     "Moreno",    "V-78901234", school_bolivar),
-  edf:  make_teacher("prof.rojas@bolivar.edu",     "Andrés",    "Rojas",     "V-89012345", school_bolivar),
+  edf:  make_teacher("prof.rojas@bolivar.edu",     "Andrés",    "Rojas",     "V-89012345", school_bolivar)
 }
 puts "   ✓ 8 profesores (U.E. Simón Bolívar)"
 
@@ -269,7 +269,7 @@ tbel = {
   cien: make_teacher("prof.leon@bello.edu",    "Elena",     "León",    "V-22334455", school_bello),
   ing:  make_teacher("prof.blanco@bello.edu",  "Antonio",   "Blanco",  "V-33445566", school_bello),
   arte: make_teacher("prof.gil@bello.edu",     "Carmen",    "Gil",     "V-44556677", school_bello),
-  edf:  make_teacher("prof.reyes@bello.edu",   "Omar",      "Reyes",   "V-55667788", school_bello),
+  edf:  make_teacher("prof.reyes@bello.edu",   "Omar",      "Reyes",   "V-55667788", school_bello)
 }
 puts "   ✓ 7 profesores (U.E. Andrés Bello)"
 
@@ -340,7 +340,7 @@ asignacion_bol = {
   s[:ing] => tbol[:ing],
   s[:art] => tbol[:arte],
   s[:edf] => tbol[:edf],
-  s[:fil] => tbol[:len], # Filosofía la imparte el de Lengua (común en liceos)
+  s[:fil] => tbol[:len] # Filosofía la imparte el de Lengua (común en liceos)
 }
 
 # Asignar a cada sección de Bolívar según las materias de su grado
@@ -360,7 +360,7 @@ asignacion_bel = {
   b[:fis] => tbel[:cien],
   b[:ing] => tbel[:ing],
   b[:art] => tbel[:arte],
-  b[:edf] => tbel[:edf],
+  b[:edf] => tbel[:edf]
 }
 
 sec_bel.each do |key, section|
