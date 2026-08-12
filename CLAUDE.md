@@ -25,11 +25,9 @@ Documentación de referencia (PDF/PNG del proyecto, contrato y diagramas ER) en 
 ## Common Commands
 
 ```bash
-# Setup en una máquina nueva — el primer paso NO es opcional
-SIGA_DB_USER=$(whoami) bin/rails rls:crear_rol   # crea siga_app y le traspasa las tablas
-bin/rails rls:verificar                          # debe decir SUPERUSER: false / BYPASSRLS: false
-bin/setup                          # Initial project setup
-bin/rails db:create db:migrate     # Create and migrate database
+# Setup en una máquina nueva — `bin/setup` ya crea el rol `siga_app` y verifica
+# que NO pueda saltarse el RLS. Sin ese rol, el aislamiento no se evalúa (MOR-87).
+bin/setup                          # base + rol sin privilegios + verificación
 bin/rails db:seed                  # Datos de prueba: 2 colegios, 290 alumnos, 15 profesores
 
 # Development
@@ -193,8 +191,9 @@ sección entera a mitad de lapso, y le hace perder la confianza a la familia.
 - `action_mailer` sin configurar en producción → "olvidé mi contraseña" no envía nada.
 - `User` tiene `:registerable`: cualquiera puede crear cuenta en `/users/sign_up`.
 - `db/seeds.rb` crea usuarios con contraseña `123123` sin guard de entorno.
-- Sin CI, sin Dockerfile, sin monitoreo. La suite pasó de 3 a **73 tests** con el módulo de
-  evaluación, pero sigue sin correr sola en ningún lado (`MOR-105`).
+- ~~Sin CI~~ → `bin/ci` corre el pipeline completo en ~10 s (`MOR-105`). El workflow de GitHub
+  Actions está escrito y **no puede correr todavía: este repo no tiene remoto.**
+- Sin Dockerfile, sin monitoreo.
 - `config.active_job.queue_adapter` sin configurar → el adaptador es `:async`, que **pierde lo
   encolado al reiniciar el proceso**. Hoy el único job encolado es `RecalcularSeccionJob`, y
   `bin/rails notas:recalcular` repara lo que se pierda. En producción hace falta una cola de verdad.
