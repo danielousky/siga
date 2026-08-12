@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 11 de agosto de 2026
+# 🔖 Punto de retome — actualizado 12 de agosto de 2026
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 
@@ -100,18 +100,42 @@ enlazado al final.
   3. **Sin nota no es cero**, y hay que sostenerlo en las tres capas: el cálculo devuelve `nil`, la
      planilla borra la fila al vaciar el campo, y la vista del alumno escribe "Pendiente" en letras.
 
+- **`MOR-98` · Boletines en PDF con verificación pública.** Commit `76d8bf3`. **Prawn**, elegido
+  porque no necesita ningún binario del sistema: `wkhtmltopdf` está archivado por sus autores y
+  Grover pide Node, y **el entorno de despliegue todavía no está decidido**.
+
+  Una sola tabla —`report_cards`— resuelve tres cosas: el `snapshot` es el **archivo** (un boletín
+  de diciembre sigue diciendo lo de diciembre aunque corrijan una nota en marzo), `issued_by` es la
+  **auditoría**, y `code` es la **verificación** en `/verificar/:code`, pública y sin sesión.
+  Verificado de punta a punta: PDF de 20 páginas por HTTP, código leído del papel, verificación
+  devolviendo lo mismo.
+
+- **`MOR-105` · Un solo pipeline, `bin/ci`, en 10 s.** Commits `0bc4451` y `7eba062`. `config/ci.rb`
+  define qué se verifica y corre igual en la máquina y en GitHub. **El primer paso comprueba que el
+  rol de la base no pueda saltarse el RLS** — si fuera superusuario, ningún otro paso se daría
+  cuenta, porque los tests seguirían en verde. Verificado apuntando la app a un superusuario: falla
+  en medio segundo.
+
+  De paso: **`bin/setup` estaba roto en una máquina nueva** (hacía `db:prepare` conectándose como
+  un rol que todavía no existía), y quien lo arreglaba a mano terminaba con un superusuario y el
+  RLS decorativo. Ahora hace lo que `CLAUDE.md` decía que había que hacer.
+
 **Pendiente inmediato, en orden:**
-1. **`MOR-98` · Boletín en PDF** y **`MOR-99` · formatos oficiales del MPPE**. Es lo que queda del
-   milestone `3 · Las notas salen del sistema`, y lo que un colegio necesita para dejar la máquina de
-   escribir.
-2. **`MOR-105` · CI y tests.** `bin/smoke` ya está en el repo (26 checks HTTP por rol) y la suite
-   pasó de 3 a **73 tests**. Rails 8.1 trajo `bin/ci` y `config/ci.rb` — decidir si se adoptan o
-   GitHub Actions. Ojo para `MOR-90`: las fixtures se insertan **sin contexto de colegio**, así que
-   el `WITH CHECK` las va a rechazar. El patrón a seguir es
-   `test/support/escenario_academico.rb`, que arma un colegio entero y pone el contexto en las dos
-   capas.
-3. **Push de las tres ramas y PR.** `feat/encuesta-demo-y-backlog` → `chore/upgrade-ruby-rails` →
-   `feat/mor-82-school-id-en-grades`, encadenadas. `main` sigue intacto.
+
+1. **Crear el repositorio remoto y empujar.** Es el riesgo abierto más grande: **19 commits viven en
+   una rama local**, y las tres ramas están encadenadas —`feat/encuesta-demo-y-backlog` →
+   `chore/upgrade-ruby-rails` → `feat/mor-82-school-id-en-grades`—, con `main` intacto. Además
+   `.github/workflows/ci.yml` está escrito y **no puede correr sin remoto**: es lo único que le
+   falta a `MOR-105` para cerrar.
+2. **`MOR-90` · Suite de aislamiento recurso por recurso.** Ya no está bloqueado: `escenario_academico`
+   resuelve el prerrequisito de "fixtures para dos colegios", y pone el contexto en las **dos** capas
+   (sin lo segundo, el `WITH CHECK` del RLS rechaza cualquier inserción).
+3. **`MOR-99` · Formatos del MPPE.** **Bloqueado y a propósito**: el issue prohíbe modelar sobre una
+   reconstrucción, y las dos fuentes públicas están caídas o son de 2017. Necesita que un colegio
+   pase el formato en blanco. Faltan además cinco campos de identidad en el modelo —fecha y lugar de
+   nacimiento, nacionalidad, zona educativa— que conviene que entren por `MOR-126` (el importador).
+4. **`MOR-101` · `/users/sign_up` abierto** y **`MOR-104` · seeds con `123123` sin guard de entorno.**
+   Son los dos agujeros de exposición que quedan en Cimientos, y los dos son chicos.
 
 **Lo único que no pude verificar yo:** las dos pantallas nuevas están pensadas **móvil primero** y
 verificadas por CSS, pero **no las probé en un teléfono real**. Es un criterio de aceptación explícito
