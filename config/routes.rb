@@ -1,4 +1,11 @@
 Rails.application.routes.draw do
+  # Dokku consulta esto antes de mandarle tráfico a un contenedor nuevo. Sin él,
+  # un despliegue roto recibe usuarios igual.
+  #
+  # Va fuera de `authenticate_user!` y fuera de la protección de host: un health
+  # check que necesita sesión o un `Host` correcto no sirve para nada.
+  get "up", to: "rails/health#show", as: :rails_health_check
+
   # ⚠️ NO hay registro público. Ver MOR-101.
   #
   # `:registerable` viene puesto por `rails generate devise User` y no es una

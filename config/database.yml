@@ -100,8 +100,31 @@ test:
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
+# ⚠️ El bloque va condicionado, y NO es un capricho.
+#
+# El comentario de arriba dice que Rails "mergea los valores de DATABASE_URL
+# sobre los de este archivo". Es al revés: **las claves escritas acá GANAN sobre
+# las de la URL.** Con un `username: siga` escrito, Dokku puede inyectar el
+# `DATABASE_URL` correcto y la app se va a conectar igual como `siga` — que en el
+# servidor no existe.
+#
+# Se descubrió corriendo el entorno de producción a mano con `DATABASE_URL`
+# puesto: el health check respondía 200 y toda vista que tocara la base daba 500
+# con `FATAL: role "siga" does not exist`.
+#
+# Así que cuando hay `DATABASE_URL` —el caso de Dokku— este archivo no dice nada
+# más. Y cuando no la hay, se arma la conexión a mano.
+#
+# El rol se llama `siga_app` también en producción: un solo nombre en los tres
+# entornos, y `bin/rails rls:verificar` comprueba en el arranque del contenedor
+# que ese rol no pueda saltarse el RLS.
 production:
   <<: *default
-  database: siga_production
-  username: siga
+<% if ENV["DATABASE_URL"].present? %>
+  url: <%= ENV["DATABASE_URL"] %>
+<% else %>
+  database: <%= ENV.fetch("SIGA_DB_NAME", "siga_production") %>
+  username: <%= ENV.fetch("SIGA_DB_USER", "siga_app") %>
   password: <%= ENV["SIGA_DATABASE_PASSWORD"] %>
+  host: <%= ENV["SIGA_DB_HOST"] %>
+<% end %>

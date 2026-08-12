@@ -110,8 +110,10 @@ GEM
     drb (2.2.3)
     erb (6.0.7)
     erubi (1.13.1)
+    ffi (1.17.3-aarch64-linux-gnu)
     ffi (1.17.3-arm64-darwin)
     ffi (1.17.3-x86_64-darwin)
+    ffi (1.17.3-x86_64-linux-gnu)
     globalid (1.4.0)
       activesupport (>= 6.1)
     haml (6.4.0)
@@ -173,9 +175,13 @@ GEM
     net-smtp (0.5.1)
       net-protocol
     nio4r (2.7.5)
+    nokogiri (1.19.4-aarch64-linux-gnu)
+      racc (~> 1.4)
     nokogiri (1.19.4-arm64-darwin)
       racc (~> 1.4)
     nokogiri (1.19.4-x86_64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.19.4-x86_64-linux-gnu)
       racc (~> 1.4)
     orm_adapter (0.5.0)
     pagy (9.4.0)
@@ -184,8 +190,10 @@ GEM
       ast (~> 2.4.1)
       racc
     pdf-core (0.10.0)
+    pg (1.6.3-aarch64-linux)
     pg (1.6.3-arm64-darwin)
     pg (1.6.3-x86_64-darwin)
+    pg (1.6.3-x86_64-linux)
     pp (0.6.4)
       prettyprint
     prawn (2.5.0)
@@ -343,8 +351,10 @@ GEM
     zeitwerk (2.8.3)
 
 PLATFORMS
+  aarch64-linux
   arm64-darwin-25
   x86_64-darwin-21
+  x86_64-linux
 
 DEPENDENCIES
   bootsnap

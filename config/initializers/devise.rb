@@ -24,7 +24,9 @@ Devise.setup do |config|
   # Configure the e-mail address which will be shown in Devise::Mailer,
   # note that it will be overwritten if you use your own mailer class
   # with default "from" parameter.
-  config.mailer_sender = "please-change-me-at-config-initializers-devise@example.com"
+  # El remitente sale del entorno: el dominio cambia entre la demo y el definitivo,
+  # y un "from" que no coincide con el dominio que envía va derecho a spam.
+  config.mailer_sender = ENV.fetch("SIGA_MAIL_FROM", "no-responder@siga.edu")
 
   # Configure the class responsible to send e-mails.
   # config.mailer = 'Devise::Mailer'

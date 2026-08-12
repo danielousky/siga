@@ -1,0 +1,28 @@
+#!/bin/bash -e
+
+# Punto de entrada del contenedor de producción.
+#
+# Hace dos cosas antes de arrancar el server, y la segunda es la que importa.
+
+if [ "${@: -1}" == "./bin/rails" ] || [ "${1}" == "./bin/rails" ]; then
+  # 1 · Migraciones. `db:prepare` crea la base si no existe y migra si existe.
+  ./bin/rails db:prepare
+
+  # 2 · ⚠️ Verificar que el rol de la base NO pueda saltarse el RLS.
+  #
+  # Si el rol con el que la app se conecta es superusuario o tiene BYPASSRLS,
+  # PostgreSQL se salta las políticas de aislamiento ANTES de mirarlas, y los
+  # datos de todos los colegios quedan visibles entre sí. Nada más en el sistema
+  # lo notaría: la capa de la aplicación filtra igual (MOR-87).
+  #
+  # En Dokku el `DATABASE_URL` lo inyecta el plugin de Postgres, y el rol que
+  # crea es dueño de la base pero NO superusuario — que es justamente el caso
+  # que `FORCE ROW LEVEL SECURITY` cubre. Igual se verifica: es medio segundo, y
+  # es la diferencia entre saberlo y suponerlo.
+  #
+  # Un contenedor que no arranca es infinitamente preferible a uno que arranca
+  # con el aislamiento apagado.
+  ./bin/rails rls:verificar
+fi
+
+exec "${@}"

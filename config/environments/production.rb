@@ -24,16 +24,30 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
-  # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  # config.assume_ssl = true
+  # ── TLS ───────────────────────────────────────────────────────────────────
+  #
+  # El TLS lo termina el proxy de adelante —nginx en Dokku, o el túnel de
+  # Cloudflare— y a la app le llega HTTP plano con `X-Forwarded-Proto: https`.
+  # Sin `assume_ssl`, Rails ve HTTP, redirige a HTTPS, el proxy vuelve a entrar
+  # por HTTP… y el navegador corta por bucle de redirecciones.
+  config.assume_ssl = ENV.fetch("SIGA_ASSUME_SSL", "true") == "true"
 
-  # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  # Las activa MOR-103, junto con la terminación TLS del proxy y el max_age de HSTS.
-  # Activar HSTS sin el certificado en orden deja el sitio inaccesible hasta que expire.
-  # config.force_ssl = true
+  # ⚠️ `force_ssl` activa HSTS, y **HSTS es difícil de deshacer**: el navegador
+  # recuerda "esta gente solo habla HTTPS" durante `max_age` y no acepta que le
+  # digan lo contrario. Si el certificado no está en orden, el sitio queda
+  # inaccesible hasta que ese plazo expire — en nadie más que en el visitante.
+  #
+  # Por eso hay dos perillas: se puede apagar entero para el primer arranque, y
+  # el `max_age` arranca en una hora en vez de en un año. Se sube cuando el
+  # dominio y el certificado están asentados.
+  config.force_ssl = ENV.fetch("SIGA_FORCE_SSL", "true") == "true"
 
-  # Skip http-to-https redirect for the default health check endpoint.
-  # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+  config.ssl_options = {
+    hsts: { expires: ENV.fetch("SIGA_HSTS_SEGUNDOS", 1.hour.to_i).to_i, subdomains: false },
+    # El health check tiene que responder por HTTP: Dokku lo consulta desde
+    # adentro de la red del servidor, sin pasar por el proxy.
+    redirect: { exclude: ->(request) { request.path == "/up" } }
+  }
 
   # Log to STDOUT with the current request id as a default log tag.
   config.log_tags = [ :request_id ]
@@ -54,24 +68,37 @@ Rails.application.configure do
   # Replace the default in-process and non-durable queuing backend for Active Job.
   # config.active_job.queue_adapter = :resque
 
-  # Ignore bad email addresses and do not raise email delivery errors.
-  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
-  # config.action_mailer.raise_delivery_errors = false
+  # ── Correo ────────────────────────────────────────────────────────────────
+  #
+  # Hoy el único correo que la app manda es el de "olvidé mi contraseña", y es el
+  # único camino de un profesor que se quedó afuera un domingo a la noche. Sin
+  # esto configurado, ese formulario dice "le enviamos un enlace" y no envía
+  # nada — que es peor que no tener el formulario.
+  #
+  # Todo sale de variables de entorno para no atar el sistema a un proveedor:
+  # sirve igual Resend, Brevo, Mailgun o el SMTP del propio colegio.
+  config.action_mailer.default_url_options = {
+    host: ENV.fetch("SIGA_HOST", "localhost:3000"),
+    protocol: ENV.fetch("SIGA_FORCE_SSL", "true") == "true" ? "https" : "http"
+  }
 
-  # Set host to be used by links generated in mailer templates.
-  # OJO: "example.com" es el marcador de posición que trae Rails, no un valor real.
-  # Con esto, el link de "olvidé mi contraseña" apunta a ninguna parte. Lo resuelve
-  # MOR-102, junto con el proveedor de envío y las credenciales.
-  config.action_mailer.default_url_options = { host: "example.com" }
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.perform_deliveries = ENV["SMTP_ADDRESS"].present?
 
-  # Specify outgoing SMTP server. Remember to add smtp/* credentials via bin/rails credentials:edit.
-  # config.action_mailer.smtp_settings = {
-  #   user_name: Rails.application.credentials.dig(:smtp, :user_name),
-  #   password: Rails.application.credentials.dig(:smtp, :password),
-  #   address: "smtp.example.com",
-  #   port: 587,
-  #   authentication: :plain
-  # }
+  # `raise_delivery_errors` en true a propósito: un correo que no sale tiene que
+  # aparecer en el log de errores, no desaparecer. Un fallo silencioso acá se
+  # descubre cuando un profesor llama al colegio porque no puede entrar.
+  config.action_mailer.raise_delivery_errors = true
+
+  config.action_mailer.smtp_settings = {
+    address:              ENV["SMTP_ADDRESS"],
+    port:                 ENV.fetch("SMTP_PORT", 587).to_i,
+    user_name:            ENV["SMTP_USERNAME"],
+    password:             ENV["SMTP_PASSWORD"],
+    domain:               ENV.fetch("SMTP_DOMAIN", ENV.fetch("SIGA_HOST", "localhost")),
+    authentication:       ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
+    enable_starttls_auto: true
+  }.compact
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
@@ -83,12 +110,21 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
 
-  # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
+  # ── Qué dominios acepta ───────────────────────────────────────────────────
   #
-  # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  # Protege contra DNS rebinding y contra que alguien sirva la app desde un
+  # dominio ajeno. Se declara por variable de entorno porque el dominio cambia
+  # entre la demo (un túnel de Cloudflare, `algo.trycloudflare.com`) y el
+  # definitivo.
+  #
+  #   SIGA_HOSTS="siga.midominio.com,.midominio.com"
+  #
+  # Un valor que arranca con punto vale para el dominio y sus subdominios.
+  # Sin la variable no se filtra nada — que es el default de Rails, y lo correcto
+  # mientras no se sepa el dominio: filtrar mal deja la app inaccesible.
+  hosts_permitidos = ENV.fetch("SIGA_HOSTS", "").split(",").map(&:strip).reject(&:empty?)
+  config.hosts += hosts_permitidos if hosts_permitidos.any?
+
+  # El health check queda afuera: Dokku lo consulta por IP, sin `Host` válido.
+  config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 end

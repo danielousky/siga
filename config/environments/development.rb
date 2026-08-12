@@ -69,4 +69,19 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # ── Exponer el server de desarrollo por un túnel ──────────────────────────
+  #
+  # Rails bloquea cualquier petición cuyo `Host` no reconozca — es protección
+  # contra DNS rebinding, y en desarrollo solo acepta localhost. Un túnel de
+  # Cloudflare entra como `algo.trycloudflare.com` y la app responde
+  # "Blocked hosts", que parece un problema del túnel y no lo es.
+  #
+  #   cloudflared tunnel --url http://localhost:3000
+  #   SIGA_HOSTS=".trycloudflare.com" bin/rails server
+  #
+  # El punto inicial hace que valga para cualquier subdominio.
+  ENV.fetch("SIGA_HOSTS", "").split(",").map(&:strip).reject(&:empty?).each do |dominio|
+    config.hosts << dominio
+  end
 end

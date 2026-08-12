@@ -1,0 +1,33 @@
+# Lo que NO va a la imagen de producción.
+
+.git
+.github
+.gitignore
+
+# El log y el tmp del desarrollo, y la base de sqlite si alguna vez apareciera.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+/storage/*
+!/storage/.keep
+
+# Adjuntos y volcados locales.
+/public/assets
+/public/packs
+/node_modules
+
+# ⚠️ La master key NUNCA entra en la imagen: va como variable de entorno en el
+# runtime (RAILS_MASTER_KEY). Una clave dentro de una imagen viaja con ella.
+/config/master.key
+/config/credentials/*.key
+
+# Documentación y material de trabajo.
+/references
+/docs
+*.md
+!README.md
+
+.DS_Store
+.rubocop.yml
+/test
