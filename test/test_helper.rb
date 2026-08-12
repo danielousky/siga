@@ -11,8 +11,9 @@ class ActiveSupport::TestCase
   # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
   fixtures :all
 
-  # Constructor de escenarios académicos completos — ver test/support/.
+  # Constructores de escenarios — ver test/support/.
   include EscenarioAcademico
+  include DosColegios
 
   teardown { Current.reset }
 end
