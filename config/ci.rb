@@ -34,7 +34,22 @@ CI.run do
   # Los seeds no son datos de adorno: son los casos de QA que hacen visible cada
   # regla del Reglamento (MOR-93). Si dejan de correr, se pierde la única forma
   # de VER lo que se construyó.
-  step "Seeds: siguen cargando de punta a punta", "env RAILS_ENV=test bin/rails db:seed:replant"
+  #
+  # ⚠️ El `db:test:prepare` del final NO es decorativo. Sin él, este paso deja la
+  # base de test con 290 alumnos y 4 admins COMMITEADOS, y el siguiente
+  # `bin/rails test` explota al cargar las fixtures:
+  #
+  #   PG::ForeignKeyViolation: update or delete on table "users" violates
+  #   foreign key constraint on table "admins"
+  #
+  # Rails borra y reinserta las fixtures al arrancar, y para eso desactiva la
+  # integridad referencial… lo cual **exige SUPERUSER**, que el rol de la app
+  # deliberadamente no tiene (MOR-87). Así que el borrado respeta las FK y falla.
+  #
+  # Lo peor era el síntoma: `bin/ci` quedaba en verde y el que reventaba era el
+  # `bin/rails test` de después. Purgando acá, el orden deja de importar.
+  step "Seeds: siguen cargando de punta a punta",
+       "env RAILS_ENV=test bin/rails db:seed:replant db:test:prepare"
 
   # La suite no toca HTTP real: no atrapa una vista con un error de Haml, un
   # `pagy_nav` sin `@pagy`, ni una traducción faltante. `bin/smoke` recorre la app

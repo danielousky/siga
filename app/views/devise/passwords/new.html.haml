@@ -1,13 +1,17 @@
-%h2 Forgot your password?
+.card-academic{style: "max-width: 480px; margin: var(--space-2xl) auto;"}
+  %h1{style: "text-align: center; margin-bottom: var(--space-md);"} Recuperar Contraseña
+  %p{style: "text-align: center; color: var(--text-secondary); margin-bottom: var(--space-xl);"}
+    Escriba el correo con el que entra al sistema y le enviamos un enlace para
+    crear una contraseña nueva.
 
-= form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f|
-  = render "devise/shared/error_messages", resource: resource
+  = form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :post }) do |f|
+    = render "devise/shared/error_messages", resource: resource
 
-  .field
-    %p= f.label :email
-    %p= f.email_field :email, autofocus: true, autocomplete: "email"
+    .form-group
+      = f.label :email, "Correo Electrónico", class: "form-label"
+      = f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control", placeholder: "usuario@ejemplo.com"
 
-  .actions
-    = f.submit "Send me password reset instructions"
+    = f.submit "Enviarme el enlace", class: "btn btn-primary", style: "width: 100%;"
 
-= render "devise/shared/links"
+  %div{style: "margin-top: var(--space-lg);"}
+    = render "devise/shared/links"

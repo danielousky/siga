@@ -3,6 +3,46 @@
 # Pensum venezolano completo con cobertura total de secciones
 # =============================================================================
 
+# =============================================================================
+# GUARD DE ENTORNO — leer antes de tocar nada de acá abajo
+# =============================================================================
+#
+# Este archivo crea cuentas con una contraseña conocida, y una de ellas tiene el
+# rol `desarrollador`: máximo privilegio. Un `db:seed` contra la base de un
+# colegio real —un deploy mal configurado, un comando en la terminal equivocada—
+# no necesita ningún ataque para hacer daño. Y como los seeds son idempotentes,
+# ni siquiera fallaría: sembraría en silencio.
+#
+# El guard es por LISTA BLANCA y no por lista negra. Un `staging` con datos
+# reales tiene el mismo problema y no es `production`.
+#
+# ## La puerta para la demo pública
+#
+# Una demo SÍ necesita estos datos, así que hay una salida — pero cuesta escribirla
+# y no tiene default:
+#
+#     SIGA_ENTORNO_DEMO=1 SIGA_SEED_PASSWORD=<algo-que-no-sea-123123> bin/rails db:seed
+#
+# En cualquier entorno que no sea desarrollo o test, la contraseña es OBLIGATORIA.
+# Que la demo esté en internet con `123123` es exactamente lo que este guard
+# existe para impedir.
+#
+# Ver MOR-104.
+# La lógica vive en `lib/seed_guard.rb` para poder TESTEARLA. Un guard sin test
+# es una intención, no un control: metido acá adentro no se puede probar sin
+# sembrar la base, y probarlo a mano contra producción falla antes de llegar al
+# guard —Rails aborta primero por la conexión— así que uno cree que funciona sin
+# haberlo visto funcionar nunca.
+guard = SeedGuard.new
+
+begin
+  CLAVE_DE_PRUEBA = guard.clave
+rescue SeedGuard::EntornoNoPermitido, SeedGuard::FaltaLaClave => e
+  abort "\n#{e.message}"
+end
+
+CORREO_DESARROLLADOR = guard.correo_desarrollador
+
 # Los seeds cargan DOS colegios, así que necesitan ver la plataforma entera.
 # Sin esto el RLS los dejaría en cero filas y el segundo colegio no se crearía.
 #
@@ -215,9 +255,9 @@ puts "   ✓ 3 grados Bello (#{gbel[:g1].grade_subjects.count} materias por grad
 puts ""
 puts "👤 Configurando administradores..."
 
-admin_user = User.find_or_create_by!(email: "moros.daniel@gmail.com") do |u|
-  u.password = u.password_confirmation = "123123"
-  u.name = "Daniel"; u.last_name = "Moros"
+admin_user = User.find_or_create_by!(email: CORREO_DESARROLLADOR) do |u|
+  u.password = u.password_confirmation = CLAVE_DE_PRUEBA
+  u.name = "Soporte"; u.last_name = "SIGA"
 end
 Admin.find_or_create_by!(user: admin_user) { |a| a.school = school_bolivar; a.role = :desarrollador }
 
@@ -227,7 +267,7 @@ Admin.find_or_create_by!(user: admin_user) { |a| a.school = school_bolivar; a.ro
   { email: "director.bello@siga.edu",    name: "Luisa",  last_name: "Martínez",  school: school_bello,   role: :director }
 ].each do |d|
   u = User.find_or_create_by!(email: d[:email]) do |uu|
-    uu.password = uu.password_confirmation = "123123"
+    uu.password = uu.password_confirmation = CLAVE_DE_PRUEBA
     uu.name = d[:name]; uu.last_name = d[:last_name]
   end
   Admin.find_or_create_by!(user: u) { |a| a.school = d[:school]; a.role = d[:role] }
@@ -242,7 +282,7 @@ puts "👨‍🏫 Creando profesores..."
 
 def make_teacher(email, name, last_name, id_card, school)
   u = User.find_or_create_by!(email: email) do |uu|
-    uu.password = uu.password_confirmation = "123123"
+    uu.password = uu.password_confirmation = CLAVE_DE_PRUEBA
     uu.name = name; uu.last_name = last_name; uu.id_card = id_card
   end
   Teacher.find_or_create_by!(user: u) { |t| t.school = school }
@@ -392,7 +432,7 @@ end
 
 def make_student(email, name, last_name, card, school)
   u = User.find_or_create_by!(email: email) do |uu|
-    uu.password = uu.password_confirmation = "123123"
+    uu.password = uu.password_confirmation = CLAVE_DE_PRUEBA
     uu.name = name; uu.last_name = last_name
   end
   Student.find_or_create_by!(user: u) { |st| st.school_card = card; st.school = school }
@@ -624,10 +664,10 @@ puts "   Profesores:        #{Teacher.count}"
 puts "   Estudiantes:       #{Student.count}"
 puts "   Inscripciones:     #{Enrollment.count}"
 puts ""
-puts "🔑 Credenciales (contraseña universal: 123123)"
+puts "🔑 Credenciales (contraseña universal: #{CLAVE_DE_PRUEBA})"
 puts ""
 puts "   ADMINISTRADORES:"
-puts "   moros.daniel@gmail.com       → desarrollador (Bolívar)"
+puts "   #{CORREO_DESARROLLADOR.ljust(28)} → desarrollador (Bolívar)"
 puts "   director.bolivar@siga.edu    → director (Bolívar)"
 puts "   coord.bolivar@siga.edu       → coordinador (Bolívar)"
 puts "   director.bello@siga.edu      → director (Bello)"

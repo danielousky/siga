@@ -1,5 +1,27 @@
 Rails.application.routes.draw do
-  devise_for :users
+  # ⚠️ NO hay registro público. Ver MOR-101.
+  #
+  # `:registerable` viene puesto por `rails generate devise User` y no es una
+  # decisión: es el default. Pero en un SaaS vendido POR COLEGIO las cuentas
+  # nacen de la matrícula o de la nómina, nunca de un formulario abierto en
+  # internet. El colegio da de alta a su gente desde el panel — `/students/new`,
+  # `/teachers/new`, `/admins/new`, que ya existen.
+  #
+  # El daño concreto no necesitaba ninguna sofisticación: `users.email` es único
+  # en toda la plataforma, así que cualquiera podía **quemar** la dirección de un
+  # profesor real registrándola antes que el colegio.
+  #
+  # Se salta `:registrations` entero y se devuelven a mano SOLO editar y
+  # actualizar: un usuario tiene que poder cambiarse la contraseña estando
+  # adentro. Lo que NO vuelve es `destroy` — que un alumno se borre a sí mismo de
+  # un sistema académico no es una función, es una pérdida de datos.
+  devise_for :users, skip: [:registrations]
+
+  devise_scope :user do
+    get   "cuenta",        to: "devise/registrations#edit",   as: :edit_user_registration
+    patch "cuenta",        to: "devise/registrations#update", as: :user_registration
+    put   "cuenta",        to: "devise/registrations#update"
+  end
   get "inicio/index"
 
   # Solicitudes de demo (público)

@@ -1,41 +1,38 @@
-%h2= "Edit #{resource_name.to_s.humanize}"
+-# Esta pantalla es lo ÚNICO que queda de `:registrations`. Sirve para que un
+-# usuario se cambie la contraseña estando adentro; el alta la hace el colegio
+-# desde su panel y no hay forma de darse de baja solo. Ver MOR-101.
+.card-academic
+  .card-academic-header
+    %h1 Mi Cuenta
+    = link_to "Volver", dashboard_path_for_user, class: "btn btn-secondary"
 
-= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f|
-  = render "devise/shared/error_messages", resource: resource
+  = form_for(resource, as: resource_name, url: user_registration_path, html: { method: :put }) do |f|
+    = render "devise/shared/error_messages", resource: resource
 
-  .field
-    %p= f.label :email
-    %p= f.email_field :email, autofocus: true, autocomplete: "email"
+    .form-group
+      = f.label :email, "Correo electrónico", class: "form-label"
+      = f.email_field :email, autocomplete: "email", class: "form-control"
 
-  - if devise_mapping.confirmable? && resource.pending_reconfirmation?
-    %div Currently waiting confirmation for: #{resource.unconfirmed_email}
+    - if devise_mapping.confirmable? && resource.pending_reconfirmation?
+      .alert.alert-warning
+        = "Esperando confirmación de #{resource.unconfirmed_email}"
 
-  .field
-    %p
-      = f.label :password
-      %i (leave blank if you do not want to change it)
-    %p= f.password_field :password, autocomplete: "new-password"
-    - if @minimum_password_length
-      %p
-        %em #{@minimum_password_length} characters minimum
+    .form-group
+      = f.label :password, "Contraseña nueva", class: "form-label"
+      = f.password_field :password, autocomplete: "new-password", class: "form-control"
+      %small.form-text.text-muted
+        Dejala vacía si no querés cambiarla.
+        - if @minimum_password_length
+          = "Mínimo #{@minimum_password_length} caracteres."
 
-  .field
-    %p= f.label :password_confirmation
-    %p= f.password_field :password_confirmation, autocomplete: "new-password"
+    .form-group
+      = f.label :password_confirmation, "Repetí la contraseña nueva", class: "form-label"
+      = f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control"
 
-  .field
-    %p
-      = f.label :current_password
-      %i (we need your current password to confirm your changes)
-    %p= f.password_field :current_password, autocomplete: "current-password"
+    .form-group
+      = f.label :current_password, "Contraseña actual", class: "form-label"
+      = f.password_field :current_password, autocomplete: "current-password", class: "form-control"
+      %small.form-text.text-muted
+        Hace falta para confirmar que sos vos quien está haciendo el cambio.
 
-  .actions
-    = f.submit "Update"
-
-%h3 Cancel my account
-
-%div
-  Unhappy?
-  = button_to "Cancel my account", registration_path(resource_name), data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?" }, method: :delete
-
-= link_to "Back", :back
+    = f.submit "Guardar", class: "btn btn-primary"
