@@ -211,6 +211,24 @@ sección entera a mitad de lapso, y le hace perder la confianza a la familia.
 - Educasis declara "2+ instituciones"; SGE Pro no tiene subdominios verificables.
 - SAE está concentrado en centro-occidente (Guanare, Bolívar, Carora, Lara).
   Caracas y Maracaibo aparecen ausentes de su listado.
+- **Edudatos / EduRed** (Caracas, desde **1987**): ASP clásico, escritorio *Visual Gema* + web
+  *EduRed*. Declara **195 centros y 104.000 usuarios**; el censo CT da **90 subdominios de colegio,
+  90/90 vivos** (verificado 12 ago 2026). Mismo patrón que SAE: menos de la mitad de la cartera
+  declarada tiene portal web. Vende que **los datos se quedan en el colegio** ("Ud. es dueño de sus
+  datos") y tiene cobranza **multimoneda**.
+- **Akdemia** (~2011, Wayra/Telefónica/Techstars): corre sobre **Rails**, y con **un solo host**
+  (`edge.akdemia.com`) para todos los colegios — la misma arquitectura de inquilinos que SIGA, que
+  por eso **no se puede censar**. Su pie declara `Académico v2.50.189 | Facturación y Pagos v1.0.0`:
+  a los quince años acaban de rehacer la cobranza desde cero. Su sitio de marketing sigue diciendo
+  "closed beta" (texto de ~2013) mientras el producto real lleva quince años de builds.
+- **~91 % de los colegios privados no tiene ningún portal web** (~334 con portal, de ~3.900).
+  Lo confirma, independientemente, una maestra con 19 años de aula: la mayoría usa Word y nóminas
+  a mano, de preescolar a bachillerato, porque **los sistemas son caros para el colegio pequeño**.
+  El precio es la barrera, no la funcionalidad — y ninguno de los tres apunta a ese colegio.
+- **Cobranza, asistencia y portal de representantes son tabla de entrada**: los tres competidores
+  los tienen y SIGA no tiene ninguno. El único hueco que nadie llenó es **persistir competencias e
+  indicadores** entre lapsos y años (`MOR-136`) — un problema del docente, no del director, y por
+  eso invisible para quien vende.
 - Venezuela **no tiene ley de protección de datos** ni autoridad de control. El riesgo de un
   cruce de datos es reputacional y de churn en red, no regulatorio.
 

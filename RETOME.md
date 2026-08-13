@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 12 de agosto de 2026 (tarde)
+# 🔖 Punto de retome — actualizado 13 de agosto de 2026 (madrugada)
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 
@@ -153,6 +153,46 @@ enlazado al final.
   app se habría conectado igual como `siga`. Se vio corriendo producción a mano:
   `/up` en 200 y toda vista con base en 500.
 
+- **`MOR-90` cerrado · 173 tests, y la lección de por qué una suite puede no morder.**
+  La primera versión medía las dos capas juntas: rompí el `default_scope` **entero** a
+  propósito y **los 54 tests siguieron en verde**, porque el RLS filtraba igual. Que cada
+  capa alcance sola es exactamente lo que se quería del diseño — y significa que un test
+  que las mide juntas **no puede detectar la pérdida de una**. Ahora cada capa se mide con
+  la otra apagada (`test/models/aislamiento_estructural_test.rb`).
+
+  Y tres agujeros que **ninguna de las dos capas podía tapar**, los tres del mismo tipo:
+
+  | Encontrado por | Qué era |
+  |---|---|
+  | QA de Daniel | `/departments/new` ofrecía un `<select>` con **los dos colegios** — y 5 formularios más |
+  | QA de Daniel | La columna "Escuela" repetida en cada fila de los listados |
+  | Milestone "División de Admins" | **Cualquier `director` veía el pipeline comercial completo** en `/demo_requests` |
+
+  > La defensa en profundidad protege **los datos del inquilino**. No protege el **catálogo
+  > de inquilinos** (`School`) ni los **datos de la plataforma** (`demo_requests`, que no
+  > tiene `school_id`). Son dos problemas distintos y el segundo depende de acordarse en
+  > cada pantalla nueva. De ahí salió `MOR-133`.
+
+- **`MOR-99` · analizados Akdemia y Edudatos, y la segunda conversación de Cyndi.**
+  Lo verificable está en `CLAUDE.md § Contexto de mercado`. Lo que cambió el plan:
+
+  1. **`MOR-129` se derrumbó de alcance.** El sistema anterior de Cyndi (Arcada) ya hacía
+     lo que hace falta: el docente carga **el número**, al representante se le muestra **el
+     literal**. Deja de ser un cambio de esquema en dos capas y pasa a ser un **mapeo de
+     presentación** — no se toca ningún `CHECK` ni ninguna validación `1..20`.
+  2. **`MOR-136`, nuevo y es el único diferenciador que apareció**: persistir competencias
+     e indicadores entre lapsos y años. Cyndi dice que **ningún sistema lo resuelve**, y es
+     lo único que nombró como "lo principal".
+  3. **Cobranza y representantes suben de prioridad**: los tres competidores los tienen.
+
+  ⚠️ **`crt.sh` estaba caído (502)**: el censo de SAE no se pudo rehacer y **el cruce para
+  ver si algún colegio está en dos sistemas a la vez quedó pendiente** — no dio negativo.
+
+- **Proyecto "Apreciaciones Iniciales" tenía dos milestones y cero issues.** Ahora tiene tres:
+  `MOR-133` (la administración de SIGA vive dentro del panel de los colegios · P1),
+  `MOR-134` (arreglos de primera impresión antes de la demo · P2) y
+  `MOR-135` (moldear el rediseño — **bloqueado a propósito** hasta que haya más estructura).
+
 **Pendiente inmediato, en orden:**
 
 1. **La demo pública.** Ya se puede hoy, sin servidor:
@@ -166,19 +206,26 @@ enlazado al final.
    falta un proveedor SMTP; el TLS está activo y falta el certificado. Los dos
    cierran sin tocar código cuando estén Contabo y el dominio.
 
-3. **`MOR-129` · primaria califica con LITERALES A–E**, y el sistema solo sabe de 1
-   a 20 — en cinco validaciones y cinco CHECK. **Un colegio de primaria hoy no
-   puede cargar una nota**, y primaria es la mayoría de los ~3.900 colegios. Salió
-   de analizar los formatos oficiales. Antes de construir conviene preguntarle a
-   Cyndi cómo se obtiene el literal de un grado.
+3. **`MOR-129` · el literal A–E, ahora barato.** Cyndi contestó las cuatro preguntas
+   que el issue tenía abiertas: A = 20–19, B = 18–17, C = 16–14, D = 13–10,
+   **E = por debajo de 10** (el mismo corte de aprobación que el Art. 108). Sale de
+   un **promedio numérico**, así que no hay aritmética sobre literales. Queda una
+   tabla de rangos **colgada del grado, no del colegio** —un mismo colegio tiene
+   primaria por literal y bachillerato por número— y mostrar **las dos cosas** en el
+   boletín, porque el representante igual pregunta *"¿y cuánto, profe?"*.
 
-4. **`MOR-99` · formatos del MPPE.** Los formatos ya están (gracias a Cyndi), pero
-   ahora bloquea `MOR-129`: faltan quince campos de identidad y la escala por
-   literal. Falta pedirle a Cyndi la constancia de **inicial** y la plantilla en
-   blanco de la EMG.
+4. **`MOR-133` · la administración de SIGA vive dentro del panel de los colegios.**
+   P1 y ya costó un agujero real. `desarrollador` es el parche de hoy y está escrito
+   como tal en `demo_requests_controller.rb`.
 
-5. **`MOR-90` · suite de aislamiento recurso por recurso.** Desbloqueado:
-   `escenario_academico` resuelve las fixtures para dos colegios.
+5. **`MOR-134` · la interfaz antes de la demo.** Cuatro arreglos de horas. El más
+   raro: después de dos días construyendo aislamiento, **el sistema nunca dice en qué
+   colegio estás** — `grep Current.school app/views/` solo devuelve comentarios.
+
+6. **Lo que hay que pedirle a Cyndi**, en un solo mensaje: la constancia de
+   **inicial**, la plantilla **en blanco** de la EMG 31059, si preescolar usa los
+   mismos literales (mandó dos capturas sin mirar), y las cinco preguntas de
+   `MOR-136` sobre las competencias.
 
 **Cómo se entrega, desde ahora** (convención escrita en el documento *Cómo trabajamos* de Linear):
 cada issue cerrado deja **transferencia de aprendizaje** (qué salió distinto, qué falló y cómo se
