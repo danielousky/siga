@@ -134,6 +134,34 @@ class AislamientoEntreColegiosTest < ActionDispatch::IntegrationTest
   end
 
   # ══════════════════════════════════════════════════════════════════════════
+  # Los datos de SIGA no son de ningún colegio
+  # ══════════════════════════════════════════════════════════════════════════
+  #
+  # Tercer caso del mismo hueco: `demo_requests` **no tiene `school_id`**. Es dato
+  # de la plataforma, así que ni `SchoolScoped` ni el RLS lo alcanzan — y hasta
+  # este commit cualquier `director` veía el pipeline comercial completo, con
+  # colegios que compiten entre sí adentro.
+
+  test "un director de colegio no ve las solicitudes de demo de SIGA" do
+    sign_in @a.director
+
+    get demo_requests_url
+
+    assert_redirected_to dashboards_administrador_path
+    assert_match(/administración de SIGA/, flash[:alert])
+  end
+
+  test "un director tampoco alcanza una solicitud suelta por su id" do
+    solicitud = DemoRequest.create!(name: "Colegio Interesado", email: "info@otro.edu",
+                                    institution: "U.E. Otro", current_system: :escritorio)
+    sign_in @a.director
+
+    get demo_request_url(solicitud)
+
+    assert_redirected_to dashboards_administrador_path
+  end
+
+  # ══════════════════════════════════════════════════════════════════════════
   # El IDOR que abrió la épica, con su test propio
   # ══════════════════════════════════════════════════════════════════════════
 

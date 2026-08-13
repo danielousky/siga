@@ -114,9 +114,18 @@ if login "director.bolivar@siga.edu" "123123" "$JAR"; then
   check "momentos eval."   "/evaluation_moments"        200 "$JAR"
   check "evaluaciones"     "/evaluation_activities"     200 "$JAR"
   check "emitir boletines" "/boletines"                 200 "$JAR"
-  check "solicitudes demo" "/demo_requests"             200 "$JAR"
   check "auditoría"        "/dashboards/activity_logs"  200 "$JAR"
   check "alta de alumno"   "/students/new"              200 "$JAR"
+fi
+
+echo
+echo "SIGA (desarrollador)"
+JAR="${TMP}/siga.jar"
+if login "desarrollador@siga.edu" "123123" "$JAR"; then
+  echo "  ✓ login"
+  # El pipeline comercial es de SIGA, no de los colegios: solo este rol lo ve.
+  # Que un director NO lo vea lo cubre la suite (aislamiento_entre_colegios_test).
+  check "solicitudes demo"  "/demo_requests"            200 "$JAR"
 fi
 
 echo

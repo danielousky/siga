@@ -56,9 +56,28 @@ class DemoRequestsController < ApplicationController
     params.require(:demo_request).permit(:status)
   end
 
+  # ⚠️ Las solicitudes de demo son de SIGA, no de ningún colegio.
+  #
+  # Hasta acá esto dejaba pasar a cualquier `director`, o sea que **el director de
+  # un colegio cliente veía el pipeline comercial completo**: el nombre, el correo,
+  # el teléfono y el sistema que usa hoy cada colegio que pidió una demo. Entre
+  # esos colegios hay competidores entre sí, y varios podrían ser clientes futuros
+  # que todavía no firmaron.
+  #
+  # Ninguna de las dos capas de aislamiento lo tapaba, y no podían: `demo_requests`
+  # **no tiene `school_id`**. Es dato de la plataforma, no de un inquilino — así
+  # que `SchoolScoped` no aplica y el RLS tampoco. Es el mismo hueco que el
+  # `School.all` de los formularios: la defensa en profundidad protege los datos
+  # DEL inquilino, no el catálogo DE inquilinos.
+  #
+  # `desarrollador` es un parche, no la solución: hoy ese rol cuelga de un colegio
+  # como cualquier otro admin. Lo que corresponde es un panel de SIGA separado del
+  # de los colegios — ver el proyecto "Apreciaciones Iniciales de la
+  # Implementación", milestone "División de Admins".
   def require_admin_access!
-    unless administrador? && (current_user.admin.desarrollador? || current_user.admin.director?)
-      redirect_to root_path, alert: "Acceso no autorizado. Esta función es solo para administradores."
-    end
+    return if administrador? && current_user.admin.desarrollador?
+
+    redirect_to dashboard_path_for_user,
+                alert: "Esta sección es de la administración de SIGA."
   end
 end
