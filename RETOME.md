@@ -193,6 +193,38 @@ enlazado al final.
   `MOR-134` (arreglos de primera impresión antes de la demo · P2) y
   `MOR-135` (moldear el rediseño — **bloqueado a propósito** hasta que haya más estructura).
 
+- **`MOR-134` + `MOR-137` cerrados · la app ya se puede mostrar.** Commits `482df7c`
+  y `01497ea`, 201 tests.
+
+  La barra de contexto trae el colegio y el año escolar de verdad —Bolívar dice
+  `2026-2027 · comienza el 15 de septiembre`, Bello `2025-2026 · finalizado`—, los
+  listados dicen cuántos son (**200** vs **90**, el remate de la demo, ya legible),
+  el menú en el teléfono es una tira que se desliza en vez de trece enlaces
+  apilados, y **Font Awesome salió**: se traía de un CDN en cada página para el
+  ojito del login.
+
+  **Dos cosas que valen más que el código:**
+
+  1. **La búsqueda estaba rota a medias y por eso nadie la vio.** `ILIKE` ignora
+     mayúsculas pero **no acentos**: `lopez` daba 0 y `ramos` daba 7. Se prueba con
+     el primero de la lista, anda, y se cierra. En Venezuela eso es López, Pérez,
+     Guzmán, Rodríguez, Martínez — la mayoría del país.
+
+     Se arregló con `translate()` y **no** con `unaccent`, que desde PostgreSQL 13
+     no es *trusted* y exige superusuario — o sea que chocaba de frente con
+     `MOR-87`. Costo medido: **+0,026 ms**, porque el `school_id` acota a los 200
+     alumnos del colegio antes de que la expresión corra. *El aislamiento paga la
+     búsqueda.*
+
+  2. **Lo destapó un cambio que no lo buscaba.** El indicador de escala convirtió
+     una tabla vacía —que se lee como "no hay resultados"— en un `0 estudiantes`
+     en números grandes. Mostrar la cantidad no era cosmético.
+
+  Y apareció el **cuarto caso** del hueco de `MOR-133`: la corrección de
+  `/demo_requests` tapó el controller y no llegó a la vista, así que el panel
+  seguía diciéndole al director cuántas solicitudes de demo hay pendientes.
+  **Tapar la puerta no alcanza si la pared tiene ventana.**
+
 **Pendiente inmediato, en orden:**
 
 1. **La demo pública.** Ya se puede hoy, sin servidor:
@@ -215,14 +247,12 @@ enlazado al final.
    boletín, porque el representante igual pregunta *"¿y cuánto, profe?"*.
 
 4. **`MOR-133` · la administración de SIGA vive dentro del panel de los colegios.**
-   P1 y ya costó un agujero real. `desarrollador` es el parche de hoy y está escrito
-   como tal en `demo_requests_controller.rb`.
+   P1, y ya costó **cuatro** agujeros: el controller de `/demo_requests`, la vista
+   del panel, el `School.all` de los formularios y la columna "Escuela" de los
+   listados. `desarrollador` es el parche de hoy y está escrito como tal en el
+   código. Van a seguir apareciendo mientras compartan superficie.
 
-5. **`MOR-134` · la interfaz antes de la demo.** Cuatro arreglos de horas. El más
-   raro: después de dos días construyendo aislamiento, **el sistema nunca dice en qué
-   colegio estás** — `grep Current.school app/views/` solo devuelve comentarios.
-
-6. **Lo que hay que pedirle a Cyndi**, en un solo mensaje: la constancia de
+5. **Lo que hay que pedirle a Cyndi**, en un solo mensaje: la constancia de
    **inicial**, la plantilla **en blanco** de la EMG 31059, si preescolar usa los
    mismos literales (mandó dos capturas sin mirar), y las cinco preguntas de
    `MOR-136` sobre las competencias.
