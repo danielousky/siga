@@ -18,7 +18,14 @@
         %h3= @total_admins
         %p Administradores
 
-  - if current_user.admin.desarrollador? || current_user.admin.director?
+  -# Solo la administración de SIGA. Esto decía `desarrollador? || director?` y
+  -# quedó fuera de la corrección de /demo_requests: el director de un colegio
+  -# cliente seguía viendo **cuántas** solicitudes de demo hay pendientes —el
+  -# tamaño del pipeline comercial— y un botón que ahora lo rebota con un alert.
+  -#
+  -# Cuarto caso del mismo hueco: `demo_requests` no tiene `school_id`, así que
+  -# ni SchoolScoped ni el RLS lo alcanzan. Ver MOR-133.
+  - if current_user.admin.desarrollador?
     - pending_demos = DemoRequest.pending.count
     - if pending_demos > 0
       .card-academic{style: "background: var(--warning-bg); border-color: var(--warning-border);"}

@@ -33,6 +33,9 @@ class ReportCardsController < ApplicationController
     @lapsos    = @seccion ? EvaluationMoment.where(academic_period_id: @seccion.academic_period_id).order(:id) : []
     @alumnos   = @seccion ? inscripciones_de(@seccion) : []
     @recientes = ReportCard.includes(:evaluation_moment, enrollment: { student: :user }).recientes.limit(15)
+    # La tabla muestra 15. El total va aparte para poder DECIR que está topada:
+    # un listado recortado en silencio se lee como "esto es todo lo que hay".
+    @total_emitidos = ReportCard.count
   end
 
   def create

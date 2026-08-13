@@ -1,0 +1,18 @@
+-# Cuántos son. Suena obvio y es lo que le faltaba a las dieciséis pantallas.
+-#
+-# El problema que MOR-134 llama "parece tarea de estudiantes" no es que estén
+-# feas: es que **nada pesa más que nada**. Un listado de 200 alumnos y uno de 3
+-# departamentos tienen exactamente la misma presencia visual, así que el ojo no
+-# encuentra dónde mirar.
+-#
+-# El número da esa jerarquía gratis: se lee antes que la tabla y dice de qué
+-# tamaño es lo que sigue. Y es justo el remate de la demo —200 alumnos en un
+-# colegio, 90 en el otro— que hasta ahora había que contar a mano.
+-#
+-# `detalle` es para cuando el número no se explica solo (una búsqueda filtrando,
+-# un tope de filas).
+.listado-escala
+  %span.listado-escala-numero= number_with_delimiter(total)
+  %span.listado-escala-sustantivo= pluralizar(total, singular, plural)
+  - if local_assigns[:detalle].present?
+    %span.listado-escala-detalle= detalle

@@ -1,0 +1,33 @@
+-# La franja más visible de la app, que hasta MOR-134 no traía ni un dato.
+-#
+-# Decía "Período Académico Activo" —una etiqueta anunciando un dato que nunca
+-# llegaba— y debajo "Sistema Integrado de Gestión Académica", que es lo mismo
+-# que ya dice el logo dos centímetros más arriba.
+-#
+-# Ahora dice en qué colegio estás parado. Después de dos días construyendo el
+-# aislamiento, el sistema sabía perfectamente cuál era y no lo decía en ninguna
+-# pantalla: `grep Current.school app/views/` solo devolvía comentarios.
+-#
+-# Y cierra lo de MOR-90: quitar la columna "Escuela" de los listados estuvo
+-# bien —era la misma palabra repetida en cada fila— pero dejó el dato sin lugar.
+-# El lugar es este: una vez, arriba, en toda pantalla.
+.academic-context
+  .academic-context-inner
+    .contexto-colegio
+      %span.contexto-colegio-nombre= Current.school.name
+      - if Current.school.location.present?
+        %span.contexto-colegio-lugar= Current.school.location
+
+    - if periodo_vigente
+      .contexto-periodo
+        %span.contexto-periodo-nombre= periodo_vigente.name
+        %span.contexto-periodo-situacion= situacion_del_periodo(periodo_vigente)
+    - else
+      -# Un colegio recién dado de alta todavía no tiene año escolar. Decirlo es
+      -# más útil que dejar el espacio en blanco: es una tarea pendiente, no un
+      -# error, y desde acá se sabe adónde ir.
+      .contexto-periodo
+        - if can_manage_academic_config?
+          = link_to "Sin año escolar cargado", academic_periods_path, class: "contexto-periodo-vacio"
+        - else
+          %span.contexto-periodo-vacio Sin año escolar cargado

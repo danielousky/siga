@@ -6,8 +6,13 @@
     = csrf_meta_tags
     = csp_meta_tag
     = favicon_link_tag 'logo.png'
-    %link{rel: "stylesheet", href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css", crossorigin: "anonymous", referrerpolicy: "no-referrer"}
 
+    -# Acá vivía Font Awesome, traído de un CDN en CADA carga de CADA página.
+    -# Se usaba para UN ícono: el ojito del formulario de login. Ahora ese ojo es
+    -# un SVG en línea y no queda ninguna petición a un tercero (MOR-134).
+    -#
+    -# No es purismo: en un colegio con conexión mala, un CDN lento es la página
+    -# entera esperando, y un CDN caído son los íconos que no aparecen.
     = stylesheet_link_tag "application", "data-turbo-track": "reload"
     = javascript_importmap_tags
 
@@ -33,10 +38,7 @@
             = link_to "Cerrar Sesión", destroy_user_session_path, data: { turbo_method: :delete }, class: "btn btn-secondary"
 
     - elsif user_signed_in?
-      .academic-context
-        .academic-context-inner
-          .period-indicator Período Académico Activo
-          %span Sistema Integrado de Gestión Académica
+      = render 'shared/barra_de_contexto'
 
       .app-layout
         %aside.sidebar-index

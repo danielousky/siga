@@ -9,6 +9,12 @@
 
 = turbo_frame_tag "students-results" do
   .card-academic
+    -# La escala va DENTRO del frame a propósito: así el número lo actualiza el
+    -# buscador. En el encabezado, de afuera, se quedaría diciendo 200 mientras
+    -# la tabla muestra 3 resultados — peor que no ponerlo.
+    = render "shared/escala", total: @pagy.count, singular: "estudiante", plural: "estudiantes",
+             detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
+
     %table.table-academic
       %thead
         %tr

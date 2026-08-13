@@ -419,6 +419,13 @@ textarea.form-control {
   padding-right: 52px;
 }
 
+/* Los dos SVG del ojo, que reemplazaron a Font Awesome entero (MOR-134). */
+.password-toggle-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
 .password-toggle-btn {
   position: absolute;
   right: var(--space-xs);
@@ -545,6 +552,21 @@ textarea.form-control {
   padding: 0 var(--space-2xl) var(--space-xl);
 }
 
+/*
+   El menú en un teléfono (MOR-134).
+
+   Antes esto era una sola regla —`flex-direction: column`— y bastaba para que
+   el sidebar ENTERO, con sus cinco secciones y hasta trece enlaces, se apilara
+   encima del contenido. En un teléfono eso significa deslizar el menú completo
+   antes de ver la primera fila de datos.
+
+   Importa más de lo que parece: según la conversación de MOR-99, el profesor
+   carga notas DESDE EL TELÉFONO. La pantalla de carga ya estaba resuelta
+   (MOR-96); llegar a ella no.
+
+   Ahora el menú es una tira horizontal que se desliza y queda pegada arriba.
+   Dos líneas de alto en vez de cuarenta, y siempre a mano.
+*/
 @media (max-width: 768px) {
   .app-layout {
     flex-direction: column;
@@ -553,10 +575,110 @@ textarea.form-control {
   .sidebar-index {
     width: 100%;
     height: auto;
-    position: static;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-xs) 0;
     border-right: none;
     border-bottom: 1px solid var(--border-standard);
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
+
+  /* La barra de scroll horizontal se oculta: ocupa alto en una tira que ya es
+     angosta, y el desplazamiento con el dedo no la necesita. */
+  .sidebar-index::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sidebar-section {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-bottom: 0;
+    flex: 0 0 auto;
+  }
+
+  /* El rótulo de sección se queda —sin él, trece enlaces en fila no se
+     entienden— pero pasa a ser una marca al costado, no un encabezado. */
+  .sidebar-section-title {
+    padding: 0 0 0 var(--space-md);
+    margin-bottom: 0;
+    font-size: 10px;
+    flex: 0 0 auto;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    gap: var(--space-micro);
+  }
+
+  .sidebar-nav-item {
+    flex: 0 0 auto;
+  }
+
+  /* La marca de "estás acá" pasa del borde izquierdo al de abajo: en una tira
+     horizontal, un borde a la izquierda de cada enlace parece un separador. */
+  .sidebar-nav-link {
+    padding: var(--space-xs) var(--space-sm);
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+    border-radius: var(--radius-sm);
+  }
+
+  .sidebar-nav-link:hover {
+    border-left-color: transparent;
+  }
+
+  .sidebar-nav-link.active {
+    border-left-color: transparent;
+    border-bottom-color: var(--brand-primary);
+  }
+}
+
+/* ---- Escala de un listado: cuántos son ---- */
+/*
+   El número que le faltaba a las dieciséis pantallas iguales (MOR-134).
+
+   Va grande a propósito: es lo único de la pantalla que dice de qué tamaño es
+   lo que sigue, y es lo que hace que un listado de 200 alumnos NO se vea igual
+   que uno de 3 departamentos. Sin esto, ninguna tabla pesa más que otra y el
+   ojo no encuentra dónde mirar.
+*/
+
+.listado-escala {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.listado-escala-numero {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.listado-escala-sustantivo {
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+/* Lo que explica el número cuando no se explica solo: una búsqueda filtrando,
+   una tabla topada. Va apagado — es la nota al pie del número, no el número. */
+.listado-escala-detalle {
+  color: var(--text-tertiary);
+  font-size: 13px;
 }
 
 /* ---- Action Buttons Group ---- */
@@ -580,8 +702,16 @@ textarea.form-control {
   font-size: 16px;
 }
 
-/* ---- Academic Period Context Bar ---- */
-/* Signature element - shows temporal institutional context */
+/* ---- Barra de contexto: en qué colegio y en qué año escolar estás ---- */
+/*
+   Antes esta franja decía "Período Académico Activo" —una etiqueta anunciando
+   un dato que nunca traía— y repetía el nombre del producto debajo del logo.
+   Cero información en el lugar más visible de la app.
+
+   Ahora carga la identidad del inquilino: el colegio manda visualmente, el año
+   escolar acompaña. Es lo que reemplaza a la columna "Escuela" que se quitó de
+   los listados en MOR-90 — el dato iba una vez arriba, no en cada fila.
+*/
 
 .academic-context {
   background: var(--brand-subtle);
@@ -594,15 +724,72 @@ textarea.form-control {
   margin: 0 auto;
   padding: 0 var(--space-lg);
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
+  gap: var(--space-md);
   font-size: 13px;
   color: var(--text-secondary);
 }
 
-.period-indicator {
-  font-weight: 500;
+.contexto-colegio {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+/* El nombre del colegio es la identidad de la pantalla: va en la serif del
+   sistema y con más peso que todo lo demás de la franja. */
+.contexto-colegio-nombre {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contexto-colegio-lugar {
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+.contexto-periodo {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  white-space: nowrap;
+}
+
+.contexto-periodo-nombre {
+  font-weight: 600;
   color: var(--brand-primary);
+}
+
+.contexto-periodo-situacion {
+  color: var(--text-tertiary);
+}
+
+.contexto-periodo-vacio {
+  color: var(--warning-text);
+  text-decoration: none;
+  border-bottom: 1px dotted currentColor;
+}
+
+/* En un teléfono la franja se apila: el colegio arriba, el año debajo. Nunca
+   se corta el nombre del colegio para que quepa el año en la misma línea. */
+@media (max-width: 640px) {
+  .academic-context-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 0 var(--space-md);
+  }
+
+  .contexto-colegio-lugar {
+    display: none;
+  }
 }
 
 /* ---- Pagination ---- */

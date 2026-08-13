@@ -47,6 +47,9 @@
     una tiene su propio código.
 
   - if @recientes.any?
+    = render "shared/escala", total: @total_emitidos, singular: "boletín", plural: "boletines",
+             detalle: ("se ven los #{@recientes.size} más recientes" if @total_emitidos > @recientes.size)
+
     %table.table-academic
       %thead
         %tr

@@ -27,4 +27,34 @@ module ApplicationHelper
   def contar(cantidad, singular, plural)
     "#{cantidad} #{pluralizar(cantidad, singular, plural)}"
   end
+
+  # "15 de septiembre" — día y mes, sin el año.
+  #
+  # `l(fecha, format: :long)` agrega el año y `:short` abrevia el mes ("15 de
+  # sep"). En la barra de contexto el año ya lo dice el nombre del período, así
+  # que repetirlo es ruido.
+  def dia_y_mes(fecha)
+    "#{fecha.day} de #{I18n.t('date.month_names')[fecha.month]}"
+  end
+
+  # El año escolar que la barra de contexto muestra. Se memoiza porque la barra
+  # se pinta en cada petición y no vale una consulta por cada vista que lo pida.
+  def periodo_vigente
+    return @periodo_vigente if defined?(@periodo_vigente)
+
+    @periodo_vigente = AcademicPeriod.vigente
+  end
+
+  # Cómo se escribe la relación del período con el día de hoy.
+  #
+  # Importa no mentir acá: en agosto no hay año escolar corriendo, y una barra
+  # que dijera "activo" estaría afirmando algo falso sobre el colegio. Es el
+  # mismo error que tenía el rótulo anterior, que anunciaba un dato y no lo traía.
+  def situacion_del_periodo(periodo)
+    case periodo.situacion
+    when :en_curso     then "en curso"
+    when :por_comenzar then "comienza el #{dia_y_mes(periodo.start_date)}"
+    when :finalizado   then "finalizado el #{dia_y_mes(periodo.end_date)}"
+    end
+  end
 end
