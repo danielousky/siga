@@ -47,8 +47,10 @@ class AdminsController < ApplicationController
   end
 
   def admin_params
-    params.require(:admin).permit(:school_id, :role,
+    # `school_id` NO se permite: el colegio sale de la sesión, nunca del request (MOR-86).
+    params.require(:admin).permit(:role,
       user_attributes: [:id, :name, :last_name, :id_card, :email, :password, :password_confirmation])
+          .merge(school_id: Current.school_id)
   end
 
   def require_admin_access!

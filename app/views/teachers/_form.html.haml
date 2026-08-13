@@ -26,8 +26,5 @@
 
   %fieldset.mb-4
     %legend Datos del Profesor
-    .mb-3
-      = f.label :school_id, "Escuela", class: "form-label"
-      = f.select :school_id, School.all.map { |s| [s.name, s.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
   = f.submit class: "btn btn-primary"

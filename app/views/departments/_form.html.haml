@@ -5,8 +5,8 @@
     = f.label :name, "Nombre", class: "form-label"
     = f.text_field :name, class: "form-control"
 
-  .mb-3
-    = f.label :school_id, "Escuela", class: "form-label"
-    = f.select :school_id, School.all.map { |s| [s.name, s.id] }, { include_blank: "Seleccione..." }, class: "form-select"
+  -# El colegio NO se elige: sale de la sesión (Current.school). Un selector acá
+  -# lista los colegios de toda la plataforma y deja que el id venga del request,
+  -# que es justo de donde el inquilino nunca puede venir (MOR-86).
 
   = f.submit class: "btn btn-primary"

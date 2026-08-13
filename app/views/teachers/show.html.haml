@@ -11,8 +11,6 @@
       %dd.col-sm-9= @teacher.user.id_card || "—"
       %dt.col-sm-3 Email
       %dd.col-sm-9= @teacher.user.email
-      %dt.col-sm-3 Escuela
-      %dd.col-sm-9= @teacher.school.name
 
 .mt-3
   = link_to "Editar", edit_teacher_path(@teacher), class: "btn btn-outline-secondary"

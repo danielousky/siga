@@ -90,6 +90,50 @@ class AislamientoEntreColegiosTest < ActionDispatch::IntegrationTest
   end
 
   # ══════════════════════════════════════════════════════════════════════════
+  # Los FORMULARIOS: ninguna opción del otro colegio
+  # ══════════════════════════════════════════════════════════════════════════
+  #
+  # ⚠️ Este bloque faltaba, y es el que más caro salió de olvidar.
+  #
+  # El criterio del issue lo pedía —"selectores de formulario: ninguna opción de
+  # B"— y la primera versión de esta suite no lo cubrió. Lo encontró Daniel
+  # haciendo QA a mano: `/departments/new` mostraba un `<select>` con **los dos
+  # colegios de la plataforma**, y cinco formularios más hacían lo mismo.
+  #
+  # Los tests de recursos no lo agarraban porque miran los LISTADOS y el `show`.
+  # Un `School.all` en un formulario no pasa por ningún scope de inquilino:
+  # `School` es la tabla de colegios, no un dato DE un colegio, así que
+  # `SchoolScoped` no aplica y el RLS tampoco. Las dos capas estaban bien y el
+  # formulario filtraba igual — un agujero que ninguna de las dos podía tapar.
+  FORMULARIOS = %w[
+    /departments/new /academic_periods/new /students/new /teachers/new /admins/new
+    /grades/new /subjects/new /evaluation_moments/new
+  ].freeze
+
+  FORMULARIOS.each do |ruta|
+    test "#{ruta} no ofrece ninguna opción del otro colegio" do
+      sign_in @a.director
+
+      get ruta
+
+      assert_response :success
+      assert_no_match(/Colegio B/, response.body,
+                      "#{ruta}: el formulario nombra al otro colegio")
+    end
+  end
+
+  # Y la raíz del problema: que el colegio no pueda venir del formulario.
+  test "mandar el school_id de otro colegio en el formulario no sirve de nada" do
+    sign_in @a.director
+
+    post departments_url, params: { department: { name: "Colado", school_id: @b.colegio.id } }
+
+    creado = Current.sin_aislamiento { Department.unscoped.find_by(name: "Colado") }
+    assert_equal @a.colegio.id, creado.school_id,
+                 "el school_id del request se ignoró y se usó el de la sesión"
+  end
+
+  # ══════════════════════════════════════════════════════════════════════════
   # El IDOR que abrió la épica, con su test propio
   # ══════════════════════════════════════════════════════════════════════════
 

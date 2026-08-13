@@ -29,8 +29,5 @@
     .mb-3
       = f.label :role, "Rol", class: "form-label"
       = f.select :role, Admin.roles.keys.map { |r| [r.humanize, r] }, { include_blank: "Seleccione..." }, class: "form-select"
-    .mb-3
-      = f.label :school_id, "Escuela", class: "form-label"
-      = f.select :school_id, School.all.map { |s| [s.name, s.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
   = f.submit class: "btn btn-primary"

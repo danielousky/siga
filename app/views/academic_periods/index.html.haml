@@ -7,7 +7,6 @@
     %thead
       %tr
         %th Nombre
-        %th Escuela
         %th Fecha Inicio
         %th Fecha Fin
         %th Acciones
@@ -15,7 +14,6 @@
       - @academic_periods.each do |period|
         %tr
           %td= period.name
-          %td= period.school.name
           %td= period.start_date.strftime("%d/%m/%Y")
           %td= period.end_date.strftime("%d/%m/%Y")
           %td

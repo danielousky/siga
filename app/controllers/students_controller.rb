@@ -72,8 +72,10 @@ class StudentsController < ApplicationController
   end
 
   def student_params
-    params.require(:student).permit(:school_card, :school_id,
+    # `school_id` NO se permite: el colegio sale de la sesión, nunca del request (MOR-86).
+    params.require(:student).permit(:school_card,
       user_attributes: [:id, :name, :last_name, :id_card, :email, :password, :password_confirmation])
+          .merge(school_id: Current.school_id)
   end
 
   def require_admin_access!

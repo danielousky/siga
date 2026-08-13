@@ -29,9 +29,6 @@
     .form-group
       = f.label :school_card, "Carnet Escolar", class: "form-label"
       = f.text_field :school_card, class: "form-control", placeholder: "Número de carnet"
-    .form-group
-      = f.label :school_id, "Escuela", class: "form-label"
-      = f.select :school_id, School.all.map { |s| [s.name, s.id] }, { include_blank: "Seleccione una escuela..." }, class: "form-control"
 
   .actions-group
     = f.submit "Guardar Registro", class: "btn btn-primary"

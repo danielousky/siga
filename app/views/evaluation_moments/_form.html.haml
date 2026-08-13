@@ -6,7 +6,7 @@
   -# de otro colegio aunque alguien lo intente.
   .mb-3
     = f.label :academic_period_id, "Período académico", class: "form-label"
-    = f.select :academic_period_id, AcademicPeriod.includes(:school).order(:school_id, :name).map { |p| ["#{p.school.name} — #{p.name}", p.id] }, { include_blank: "Seleccione..." }, class: "form-select"
+    = f.select :academic_period_id, AcademicPeriod.order(:name).map { |p| [p.name, p.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
   .mb-3
     = f.label :name, "Nombre", class: "form-label"

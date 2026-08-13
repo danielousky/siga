@@ -45,6 +45,7 @@ class DepartmentsController < ApplicationController
   end
 
   def department_params
-    params.require(:department).permit(:name, :school_id)
+    # `school_id` NO se permite: el colegio sale de la sesión, nunca del request (MOR-86).
+    params.require(:department).permit(:name).merge(school_id: Current.school_id)
   end
 end

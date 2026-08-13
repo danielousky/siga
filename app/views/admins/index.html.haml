@@ -10,7 +10,6 @@
         %th Apellido
         %th Correo
         %th Rol
-        %th Escuela
         %th Acciones
     %tbody
       - @admins.each do |admin|
@@ -20,7 +19,6 @@
           %td= admin.user.email
           %td
             %span.role-badge= admin.role.humanize
-          %td= admin.school.name
           %td
             .actions-group
               = link_to "Ver", admin, class: "btn btn-secondary btn-sm"

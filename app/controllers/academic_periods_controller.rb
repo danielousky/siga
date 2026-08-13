@@ -46,7 +46,9 @@ class AcademicPeriodsController < ApplicationController
   end
 
   def academic_period_params
-    params.require(:academic_period).permit(:name, :school_id, :start_date, :end_date)
+    # `school_id` NO se permite: el colegio sale de la sesión, nunca del request (MOR-86).
+    params.require(:academic_period).permit(:name, :start_date, :end_date)
+          .merge(school_id: Current.school_id)
   end
 
   def require_admin_access!

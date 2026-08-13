@@ -16,7 +16,6 @@
           %th Apellido
           %th Cédula
           %th Carnet Escolar
-          %th Escuela
           %th Acciones
       %tbody
         - @students.each do |student|
@@ -25,7 +24,6 @@
             %td= student.user.last_name
             %td= student.user.id_card || "—"
             %td= student.school_card
-            %td= student.school.name
             %td
               .actions-group
                 = link_to "Ver", student, class: "btn btn-secondary btn-sm"

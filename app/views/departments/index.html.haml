@@ -7,13 +7,11 @@
     %thead
       %tr
         %th Nombre del Departamento
-        %th Escuela
         %th Acciones
     %tbody
       - @departments.each do |department|
         %tr
           %td= department.name
-          %td= department.school.name
           %td
             .actions-group
               = link_to "Ver", department, class: "btn btn-secondary btn-sm"

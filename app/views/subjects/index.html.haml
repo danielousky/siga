@@ -9,7 +9,6 @@
         %th Código
         %th Nombre
         %th Departamento
-        %th Escuela
         %th Acciones
     %tbody
       - @subjects.each do |subject|
@@ -18,7 +17,6 @@
             %code{style: "font-family: var(--font-sans); color: var(--text-primary); background: var(--surface-canvas); padding: 2px 6px; border-radius: 3px; font-size: 13px;"}= subject.code
           %td= subject.name
           %td= subject.department.name
-          %td= subject.department.school.name
           %td
             .actions-group
               = link_to "Ver", subject, class: "btn btn-secondary btn-sm"

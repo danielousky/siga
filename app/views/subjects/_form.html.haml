@@ -11,6 +11,6 @@
 
   .mb-3
     = f.label :department_id, "Departamento", class: "form-label"
-    = f.select :department_id, Department.includes(:school).order(:name).map { |d| ["#{d.name} (#{d.school.name})", d.id] }, { include_blank: "Seleccione..." }, class: "form-select"
+    = f.select :department_id, Department.order(:name).map { |d| [d.name, d.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
   = f.submit class: "btn btn-primary"

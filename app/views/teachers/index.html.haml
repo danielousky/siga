@@ -10,7 +10,6 @@
         %th Apellido
         %th Cédula
         %th Email
-        %th Escuela
         %th Acciones
     %tbody
       - @teachers.each do |teacher|
@@ -19,7 +18,6 @@
           %td= teacher.user.last_name
           %td= teacher.user.id_card || "—"
           %td= teacher.user.email
-          %td= teacher.school.name
           %td
             .actions-group
               = link_to "Ver", teacher, class: "btn btn-secondary btn-sm"
