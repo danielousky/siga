@@ -2,14 +2,17 @@ class StudentsController < ApplicationController
   before_action :require_admin_access!
   before_action :set_student, only: [:show, :edit, :update, :destroy]
 
+  # Dónde busca el buscador. La cédula y el carnet no llevan acentos, pero pasan
+  # por la misma expresión igual: un solo camino es más fácil de sostener que dos,
+  # y `translate()` sobre un texto sin acentos no le cambia nada.
+  CAMPOS_DE_BUSQUEDA = %w[
+    users.name users.last_name users.id_card students.school_card
+  ].freeze
+
   def index
     scope = Student.includes(:user, :school)
     if params[:q].present?
-      q = "%#{params[:q].strip}%"
-      scope = scope.joins(:user).where(
-        "users.name ILIKE :q OR users.last_name ILIKE :q OR users.id_card ILIKE :q OR students.school_card ILIKE :q",
-        q: q
-      )
+      scope = scope.joins(:user).where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:q]))
     end
     @pagy, @students = pagy(scope.order("users.last_name, users.name"))
   end

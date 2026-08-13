@@ -1,15 +1,14 @@
 class Dashboards::ActivityLogsController < ApplicationController
   before_action :require_admin!
 
+  # Sin prefijo de tabla: la consulta sale de `User`, sin joins.
+  CAMPOS_DE_BUSQUEDA = %w[name last_name email id_card].freeze
+
   def index
     @logs = ActivityLog.includes(:user).recent
 
     if params[:usuario_q].present?
-      q = "%#{params[:usuario_q].strip}%"
-      user_ids = User.where(
-        "name ILIKE :q OR last_name ILIKE :q OR email ILIKE :q OR id_card ILIKE :q",
-        q: q
-      ).pluck(:id)
+      user_ids = User.where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:usuario_q])).pluck(:id)
       @logs = @logs.where(user_id: user_ids)
       @usuario_match = User.where(id: user_ids).order(:last_name, :name).limit(5)
     end

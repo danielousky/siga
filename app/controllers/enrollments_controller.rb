@@ -2,15 +2,14 @@ class EnrollmentsController < ApplicationController
   before_action :require_admin_access!
   before_action :set_enrollment, only: [:show, :edit, :update, :destroy]
 
+  # Acá se busca al alumno, no a la inscripción: por eso son campos de `users`.
+  CAMPOS_DE_BUSQUEDA = %w[users.name users.last_name users.id_card].freeze
+
   def index
     scope = Enrollment.includes(student: :user, section: [:grade, :academic_period])
                       .joins(student: :user, section: :grade)
     if params[:q].present?
-      q = "%#{params[:q].strip}%"
-      scope = scope.where(
-        "users.name ILIKE :q OR users.last_name ILIKE :q OR users.id_card ILIKE :q",
-        q: q
-      )
+      scope = scope.where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:q]))
     end
     scope = scope.where(sections: { grade_id: params[:grade_id] }) if params[:grade_id].present?
     @pagy, @enrollments = pagy(scope.order("users.last_name, users.name"))
