@@ -67,8 +67,14 @@ puts "📚 Creando escuelas..."
 school_bolivar = School.find_or_create_by!(dea_code: "BOL-001") do |s|
   s.name = "U.E. Simón Bolívar"; s.location = "Caracas, Distrito Capital"; s.school_type = :secondary
 end
+# Bello es de PRIMARIA a propósito (MOR-129): sin un colegio de primaria
+# sembrado, la escala literal A–E no se puede ver funcionando en ninguna
+# pantalla — y primaria es la mayoría de los ~3.900 colegios privados del país.
+#
+# El contraste entre los dos colegios es además el mejor material de la demo:
+# mismo sistema, mismas pantallas, y cada uno calificando como le corresponde.
 school_bello = School.find_or_create_by!(dea_code: "AND-002") do |s|
-  s.name = "U.E. Andrés Bello"; s.location = "Valencia, Carabobo"; s.school_type = :secondary
+  s.name = "U.E. Andrés Bello"; s.location = "Valencia, Carabobo"; s.school_type = :primary
 end
 puts "   ✓ #{school_bolivar.name} | ✓ #{school_bello.name}"
 
@@ -195,8 +201,8 @@ s[:fil]  = Subject.find_or_create_by!(code: "FIL", school: school_bolivar)  { |x
 
 b = {} # subjects bello
 b[:mat]  = Subject.find_or_create_by!(code: "MAT", school: school_bello)  { |x| x.name = "Matemática";                x.department = dept[:bello][:matematica] }
-b[:bio]  = Subject.find_or_create_by!(code: "BIO", school: school_bello)  { |x| x.name = "Biología";                  x.department = dept[:bello][:ciencias] }
-b[:fis]  = Subject.find_or_create_by!(code: "FIS", school: school_bello)  { |x| x.name = "Física";                    x.department = dept[:bello][:ciencias] }
+b[:bio]  = Subject.find_or_create_by!(code: "BIO", school: school_bello)  { |x| x.name = "Ciencias Naturales";        x.department = dept[:bello][:ciencias] }
+b[:fis]  = Subject.find_or_create_by!(code: "FIS", school: school_bello)  { |x| x.name = "Educación para la Salud";   x.department = dept[:bello][:ciencias] }
 b[:sos]  = Subject.find_or_create_by!(code: "SOS", school: school_bello)  { |x| x.name = "Ciencias Sociales";         x.department = dept[:bello][:sociales] }
 b[:len]  = Subject.find_or_create_by!(code: "LEN", school: school_bello)  { |x| x.name = "Castellano y Literatura";   x.department = dept[:bello][:lengua] }
 b[:ing]  = Subject.find_or_create_by!(code: "ING", school: school_bello)  { |x| x.name = "Inglés";                    x.department = dept[:bello][:idiomas] }
@@ -233,21 +239,29 @@ gbol = {}
 end
 puts "   ✓ 5 grados Bolívar (#{gbol[:g1].grade_subjects.count} materias en 1ro; #{gbol[:g4].grade_subjects.count} en 4to)"
 
-# --- ANDRÉS BELLO ---
+# --- ANDRÉS BELLO — PRIMARIA ---
+# Grados, no años: en Venezuela primaria va de 1er a 6to GRADO, y media general
+# de 1er a 5to AÑO. La palabra distingue el nivel y un director lo nota.
+#
+# Al ser `level: :primaria`, cada grado nace con `escala: :literal` (MOR-129):
+# sus boletines dicen "A (19)" donde los de Bolívar dicen "19".
 gbel = {}
 [
-  { key: :g1, name: "1er Año", level: :secundaria,
+  { key: :g1, name: "4to Grado", level: :primaria,
     subjects: [b[:mat], b[:len], b[:sos], b[:bio], b[:ing], b[:art], b[:edf]] },
-  { key: :g2, name: "2do Año", level: :secundaria,
+  { key: :g2, name: "5to Grado", level: :primaria,
     subjects: [b[:mat], b[:len], b[:sos], b[:bio], b[:ing], b[:art], b[:edf]] },
-  { key: :g3, name: "3er Año", level: :secundaria,
+  { key: :g3, name: "6to Grado", level: :primaria,
     subjects: [b[:mat], b[:len], b[:sos], b[:fis], b[:ing], b[:art], b[:edf]] }
 ].each do |g|
-  grade = Grade.find_or_create_by!(name: g[:name], school: school_bello) { |gr| gr.level = g[:level] }
+  grade = Grade.find_or_create_by!(name: g[:name], school: school_bello) do |gr|
+    gr.level  = g[:level]
+    gr.escala = :literal
+  end
   g[:subjects].each { |subj| GradeSubject.find_or_create_by!(grade: grade, subject: subj) }
   gbel[g[:key]] = grade
 end
-puts "   ✓ 3 grados Bello (#{gbel[:g1].grade_subjects.count} materias por grado)"
+puts "   ✓ 3 grados Bello · PRIMARIA, escala literal A–E (#{gbel[:g1].grade_subjects.count} materias por grado)"
 
 # =============================================================================
 # ADMIN - Mi usuario
@@ -602,7 +616,47 @@ alumnos_notas.each_with_index do |alumno, ai|
   end
 end
 
+# =============================================================================
+# BELLO · PRIMARIA — notas para que la escala literal se pueda VER (MOR-129)
+# =============================================================================
+#
+# Bolívar demuestra el régimen numérico. Sin esto, el literal A–E no aparecía en
+# ninguna pantalla: los seeds solo alimentaban a Bolívar, así que primaria —que
+# es la mayoría del mercado— quedaba sin una sola nota que mostrar.
+#
+# Las notas están elegidas para que la sección recorra **las cinco letras**. Un
+# solo alumno con 19 demuestra que el mapa existe; cinco alumnos repartidos
+# demuestran que los cortes están donde Cyndi dijo, y de paso dejan a la vista
+# el que más importa: la E, que es reprobado.
+#
+#     20 → A       17 → B       15 → C       11 → D       8 → E
+#
+# Se carga la MISMA nota en las tres evaluaciones de los tres lapsos, así el
+# anual da exactamente ese número (Art. 111: promedio simple de los lapsos) y el
+# literal se lee sin tener que hacer cuentas para verificarlo.
+seccion_bel   = sec_bel["g1_A"]                                    # 4to Grado A
+alumnos_bel   = students_per_section_bel["g1_A"] || []
+lapsos_bel    = EvaluationMoment.where(academic_period: periodo_bello).order(:id).to_a
+materia_bel   = b[:mat]
+
+LITERALES_DEMO = [20, 17, 15, 11, 8].freeze                        # A · B · C · D · E
+
+lapsos_bel.each_with_index do |lapso, li|
+  actividades = actividades_de(seccion_bel, materia_bel, lapso, li)
+
+  alumnos_bel.each_with_index do |alumno, ai|
+    objetivo = LITERALES_DEMO[ai] || (10 + ((ai * 3) % 11)).clamp(1, 20)
+
+    actividades.each do |act|
+      ActivityGrade.find_or_create_by!(evaluation_activity: act, student: alumno) do |g|
+        g.score = objetivo
+      end
+    end
+  end
+end
+
 puts "   ✓ #{EvaluationActivity.count} actividades · #{ActivityGrade.count} notas cargadas"
+puts "     Bello · 4to Grado A: #{alumnos_bel.size} alumnos con nota anual, recorriendo A–E"
 
 # No hace falta llamar a GradeCalculator: desde MOR-96 cada nota recalcula sola
 # su lapso y su anual al guardarse. Que los contadores de abajo den distinto de
@@ -685,4 +739,4 @@ puts ""
 puts "   ESTUDIANTES (ejemplo):"
 puts "   alvaro.lopez001@bolivar.edu  → 1er Año A"
 puts "   sofia.ramos002@bolivar.edu   → 1er Año A"
-puts "   paula.medina001@bello.edu    → 1er Año A (Bello)"
+puts "   paula.medina001@bello.edu    → 4to Grado A (Bello · PRIMARIA, notas por literal A–E)"
