@@ -1,0 +1,50 @@
+.card-academic
+  .card-academic-header
+    %h1 Identidad del colegio
+
+  %p.nota-ayuda
+    Esto es lo que ve una familia. El escudo aparece en el sistema y, sobre todo,
+    en los
+    %strong documentos que se llevan en la mano
+    — boletines y constancias. Un boletín con el escudo del colegio es el
+    boletín del colegio.
+
+  = form_with model: @colegio, url: colegio_path, method: :patch, class: "mb-3" do |f|
+    = render "shared/errors", object: @colegio
+
+    .identidad
+      .identidad-escudo
+        - if @colegio.logo.attached?
+          = image_tag @colegio.logo, alt: "Escudo de #{@colegio.name}", class: "identidad-escudo-imagen"
+          = link_to "Quitar escudo", quitar_logo_colegio_path, data: { turbo_method: :delete, turbo_confirm: "¿Quitar el escudo? Va a desaparecer de los documentos nuevos." }, class: "identidad-quitar"
+        - else
+          .identidad-escudo-vacio
+            %span Sin escudo
+          %p.nota-ayuda.identidad-vacio-nota
+            Los documentos salen sin él. Sirven igual, pero no se ven del colegio.
+
+      .identidad-campos
+        .mb-3
+          = f.label :logo, "Escudo del colegio", class: "form-label"
+          = f.file_field :logo, accept: "image/png,image/jpeg", class: "form-control"
+          %small.form-text.text-muted
+            PNG o JPG, hasta 2 MB. Conviene fondo transparente o blanco: se
+            imprime sobre papel.
+
+        .mb-3
+          = f.label :name, "Nombre", class: "form-label"
+          = f.text_field :name, class: "form-control"
+          %small.form-text.text-muted
+            Como tiene que aparecer en los documentos oficiales.
+
+        .mb-3
+          = f.label :location, "Ubicación", class: "form-label"
+          = f.text_field :location, class: "form-control", placeholder: "Caracas, Distrito Capital"
+
+        .mb-3
+          = f.label :dea_code, "Código DEA", class: "form-label"
+          = f.text_field :dea_code, class: "form-control", disabled: true
+          %small.form-text.text-muted
+            Lo asigna el MPPE y no se edita desde acá. Si está mal, escribinos.
+
+        = f.submit "Guardar", class: "btn btn-primary"

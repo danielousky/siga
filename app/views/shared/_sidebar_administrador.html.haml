@@ -60,6 +60,9 @@
 .sidebar-section
   .sidebar-section-title Sistema
   %ul.sidebar-nav
+    - if can_manage_academic_config?
+      %li.sidebar-nav-item
+        = link_to "Identidad del colegio", colegio_path, class: "sidebar-nav-link #{'active' if controller_name == 'colegio'}"
     %li.sidebar-nav-item
       = link_to dashboards_activity_logs_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/activity_logs'}" do
         Registro de Actividad

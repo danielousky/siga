@@ -14,6 +14,10 @@
 .academic-context
   .academic-context-inner
     .contexto-colegio
+      -# El escudo, si el colegio lo cargó. Es lo primero que se ve y lo que
+         hace que la pantalla se sienta del colegio y no del proveedor.
+      - if Current.school.logo.attached?
+        = image_tag Current.school.logo, alt: "", class: "contexto-escudo"
       %span.contexto-colegio-nombre= Current.school.name
       - if Current.school.location.present?
         %span.contexto-colegio-lugar= Current.school.location

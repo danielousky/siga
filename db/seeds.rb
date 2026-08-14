@@ -76,7 +76,22 @@ end
 school_bello = School.find_or_create_by!(dea_code: "AND-002") do |s|
   s.name = "U.E. Andrés Bello"; s.location = "Valencia, Carabobo"; s.school_type = :primary
 end
+# El escudo del colegio: su identidad, y aparece en los documentos que la
+# familia se lleva en la mano. Sin él, el boletín parece de la empresa de
+# software y no del colegio.
+{
+  school_bolivar => "escudo_bolivar.png",
+  school_bello   => "escudo_bello.png"
+}.each do |colegio, archivo|
+  ruta = Rails.root.join("db/seeds_assets", archivo)
+  next unless ruta.exist?
+  next if colegio.logo.attached?
+
+  colegio.logo.attach(io: File.open(ruta), filename: archivo, content_type: "image/png")
+end
+
 puts "   ✓ #{school_bolivar.name} | ✓ #{school_bello.name}"
+puts "     con escudo: #{School.all.count(&:logo_attached?) rescue School.all.count { |c| c.logo.attached? }}/2"
 
 # =============================================================================
 # PERÍODOS ACADÉMICOS

@@ -107,6 +107,12 @@ Rails.application.routes.draw do
   resources :grades do
     resources :grade_subjects, only: [:create, :destroy]
   end
+  # La identidad del colegio: nombre, ubicación y escudo. Singular porque un
+  # colegio solo se administra a sí mismo — el suyo sale de la sesión.
+  resource :colegio, only: [:show, :update], controller: "colegio" do
+    delete :logo, action: :quitar_logo, as: :quitar_logo
+  end
+
   resources :representatives, path: "representantes"
   resources :departments
   resources :subjects

@@ -55,6 +55,15 @@ class ConstanciaDeEstudiosPdf
   end
 
   def membrete(pdf, colegio)
+    escudo = colegio.logo_para_pdf
+    if escudo
+      pdf.bounding_box([0, pdf.cursor + 4], width: 64, height: 50) do
+        pdf.image escudo, fit: [60, 48], position: :left, vposition: :top
+      rescue StandardError
+        nil
+      end
+    end
+
     pdf.text texto(colegio.name).upcase, size: 15, style: :bold, align: :center
     pdf.text texto(colegio.location.to_s), size: 9, align: :center, color: "666666"
     pdf.text "Código DEA #{texto(colegio.dea_code)}", size: 9, align: :center, color: "666666"

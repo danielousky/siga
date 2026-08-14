@@ -112,17 +112,47 @@ class ReportCardPdf
 
   private
 
+  # El escudo del colegio, cacheado por colegio.
+  #
+  # Emitir la sección entera son treinta páginas del MISMO colegio: sin el caché
+  # serían treinta descargas del mismo archivo desde Active Storage.
+  def logo_del_colegio(boletin)
+    @logos ||= {}
+    escuela = boletin.enrollment.section.grade.school
+
+    @logos.fetch(escuela.id) { @logos[escuela.id] = escuela.logo_para_pdf }
+  end
+
   def pagina(pdf, boletin)
     datos = boletin.snapshot
 
-    encabezado(pdf, datos)
+    encabezado(pdf, datos, boletin)
     identificacion(pdf, datos)
     datos["tipo"] == "anual" ? tabla_anual(pdf, datos) : tabla_de_lapso(pdf, datos)
     pie(pdf, datos, boletin)
   end
 
-  def encabezado(pdf, datos)
+  # El escudo del colegio, a la izquierda, con el membrete centrado.
+  #
+  # ⚠️ El logo se lee de la BASE, no del snapshot, y es la única cosa del boletín
+  # que no se congela. Todo lo demás —las notas, el grado, la escala— es lo que
+  # el papel dijo el día que se emitió, y no puede cambiar. El escudo es
+  # IDENTIDAD: si el colegio lo rediseña, un boletín reemitido lleva el nuevo, y
+  # eso es lo correcto. Congelarlo dejaría el escudo viejo en un documento que el
+  # colegio está entregando hoy.
+  def encabezado(pdf, datos, boletin = nil)
     colegio = datos["colegio"]
+    escudo  = boletin && logo_del_colegio(boletin)
+
+    if escudo
+      # Se dibuja en su propia caja, así que el membrete sigue centrado en la
+      # página y no "al lado del logo" — que es como se ve un membrete torcido.
+      pdf.bounding_box([0, pdf.cursor + 4], width: 60, height: 46) do
+        pdf.image escudo, fit: [56, 44], position: :left, vposition: :top
+      rescue StandardError
+        nil   # Un escudo que no se puede dibujar no puede tirar abajo el boletín.
+      end
+    end
 
     pdf.text texto(colegio["nombre"]).upcase, size: 15, style: :bold, align: :center
     pdf.text "#{texto(colegio['ubicacion'])}  ·  Código DEA #{texto(colegio['dea'])}",
