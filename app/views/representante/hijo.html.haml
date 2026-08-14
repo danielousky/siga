@@ -1,0 +1,110 @@
+-# Cómo va mi hijo. Una pregunta, una pantalla (MOR-110).
+-#
+-# El representante entra tres veces al año, desde el teléfono, a saber una sola
+-# cosa. No es un tablero: es una respuesta. Por eso la nota está arriba de todo
+-# y todo lo demás viene después.
+.portal-hijo
+  .portal-cabecera
+    %h1= "#{@hijo[:student].user.name} #{@hijo[:student].user.last_name}"
+    - if @inscripcion
+      %p.portal-seccion
+        = "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
+        %span.portal-punto ·
+        = @inscripcion.section.academic_period.name
+
+- if @inscripcion.nil?
+  .card-academic
+    .empty-state
+      %h3 Sin inscripción activa
+      %p
+        = "#{@hijo[:student].user.name} no tiene una inscripción vigente."
+        Consultá con la secretaría del colegio.
+
+- else
+  -# Elegir lapso. Píldoras grandes: en un teléfono un select es dos toques y
+     una espera; esto es uno.
+  .filter-pills.portal-lapsos
+    - @lapsos.each do |lapso|
+      = link_to hijo_representante_path(@hijo[:student], lapso: lapso.id), class: "filter-pill #{'active' if !@anual && @lapso == lapso}" do
+        = lapso.name
+    = link_to "Año completo", hijo_representante_path(@hijo[:student], lapso: "anual"), class: "filter-pill #{'active' if @anual}"
+
+  .card-academic
+    .card-academic-header
+      %h2= @anual ? "Calificaciones del año" : "Calificaciones de #{@lapso&.name&.downcase}"
+
+    %ul.portal-materias
+      - @materias.each do |fila|
+        - valor = @anual ? fila[:definitiva] : fila[:lapso]
+        %li.portal-materia
+          %span.portal-materia-nombre= fila[:materia].name
+          - if valor
+            -# En el año se muestra el literal si el grado califica así
+              (MOR-129). En el lapso va el número: primaria no evalúa el lapso
+              con letras, eso es la rúbrica de MOR-136.
+            %span.portal-nota{class: valor >= 10 ? "portal-nota--aprobada" : "portal-nota--aplazada"}
+              = @anual ? EscalaLiteral.mostrar(valor, escala: fila[:escala]) : valor
+          - else
+            -# NUNCA un cero: el profesor todavía no corrigió. Confundirlos hace
+              que una familia crea que su hijo está reprobando.
+            %span.portal-pendiente Pendiente
+
+    - if @anual && @materias.any? { |f| f[:escala].to_s == "literal" }
+      %p.nota-ayuda
+        En primaria la calificación del año se expresa en literal:
+        %strong A
+        (20–19) ·
+        %strong B
+        (18–17) ·
+        %strong C
+        (16–14) ·
+        %strong D
+        (13–10) ·
+        %strong E
+        (por debajo de 10). El número va al lado para que se lea igual.
+
+  .card-academic
+    .card-academic-header
+      %h2 Asistencia
+
+    .stats-grid
+      .stat-card
+        %h3= @asistencia[:presente]
+        %p Días presente
+      .stat-card
+        %h3= @asistencia[:ausente]
+        %p Ausencias
+      .stat-card
+        %h3= @asistencia[:tarde]
+        %p Tardanzas
+
+    - if @asistencia[:sin_justificar].positive?
+      .alert.alert-warning
+        = contar(@asistencia[:sin_justificar], "falta", "faltas")
+        sin justificar. Si ya entregaste el justificativo, avisale a la
+        secretaría del colegio.
+
+    - if @asistencia[:ultimas].any?
+      %table.table-academic
+        %thead
+          %tr
+            %th Fecha
+            %th Estado
+        %tbody
+          - @asistencia[:ultimas].each do |registro|
+            %tr
+              %td= l(registro.date, format: :long)
+              %td
+                %span.asistencia-marca{class: "asistencia-marca--#{registro.status}"}= registro.etiqueta
+                - if registro.justificada?
+                  %span.portal-justificada justificada
+
+  - if @boletines.any?
+    .card-academic
+      .card-academic-header
+        %h2 Boletines
+      %ul.portal-boletines
+        - @boletines.each do |boletin|
+          %li
+            %span= boletin.titulo
+            %span.portal-boletin-codigo= boletin.code

@@ -16,7 +16,8 @@ class ApplicationController < ActionController::Base
   around_action :con_el_colegio_de_la_sesion
 
   # Hacer disponibles los helpers de rol en los controladores
-  helper_method :current_user_type, :estudiante?, :profesor?, :administrador?
+  helper_method :current_user_type, :estudiante?, :profesor?, :administrador?, :representante?
+  helper_method :colegios_del_representante
   helper_method :can_manage_students?, :can_manage_teachers?, :can_manage_sections?
   helper_method :can_manage_academic_config?, :show_recent_activity?
 
@@ -30,12 +31,7 @@ class ApplicationController < ActionController::Base
       action:  "login",
       message: "#{resource.name} #{resource.last_name} inició sesión"
     )
-    case current_user_type
-    when :administrador then dashboards_administrador_path
-    when :profesor      then dashboards_profesor_path
-    when :estudiante    then dashboards_estudiante_path
-    else root_path
-    end
+    dashboard_path_for_user
   end
 
   def after_sign_out_path_for(resource_or_scope)
@@ -94,16 +90,69 @@ class ApplicationController < ActionController::Base
     Current.sin_aislamiento do
       Student.find_by(user_id: usuario.id)&.school ||
         Teacher.find_by(user_id: usuario.id)&.school ||
-        Admin.find_by(user_id: usuario.id)&.school
+        Admin.find_by(user_id: usuario.id)&.school ||
+        colegio_del_representante(usuario)
     end
   end
 
-  # Identificación de tipo de usuario
+  # El único caso donde la sesión participa de elegir el colegio, y conviene
+  # entender exactamente por qué NO es una excepción a la regla de arriba.
+  #
+  # Un representante puede tener hijos en dos colegios: su usuario es uno, sus
+  # inquilinos son dos, y `Current.school` es uno por petición. Alguien tiene que
+  # elegir, y esa elección es del representante.
+  #
+  # ⚠️ **La sesión SELECCIONA entre colegios ya verificados; no concede acceso a
+  # ninguno.** El conjunto sale de sus filas de `Representative` —vínculos que
+  # cargó el colegio, no él— y un id que no esté en ese conjunto se descarta sin
+  # más. Mandar el id de un colegio ajeno no cambia nada: cae en el `||`.
+  #
+  # Esa distinción es toda la seguridad de este camino. La regla nunca fue "el
+  # colegio no puede venir de la sesión": es **"el colegio no puede venir de algo
+  # que el usuario controla sin que el sistema lo haya verificado"**. Acá lo
+  # verificado es el vínculo; la sesión solo desempata.
+  def colegio_del_representante(usuario)
+    colegios = Representative.where(user_id: usuario.id).includes(:school).map(&:school)
+
+    return colegios.first if colegios.size <= 1
+
+    colegios.find { |c| c.id == session[:colegio_elegido_id] } || colegios.first
+  end
+
+  # Identificación de tipo de usuario.
+  #
+  # `representante` va ÚLTIMO a propósito: una maestra puede ser además madre de
+  # un alumno del colegio, y en ese caso lo que necesita al entrar es su
+  # planilla de notas, no el boletín de su hijo. Ese lo alcanza igual desde el
+  # menú; al revés, tendría que salir y volver a entrar para dar clase.
   def current_user_type
     return :estudiante if current_user.student.present?
     return :profesor if current_user.teacher.present?
     return :administrador if current_user.admin.present?
+    return :representante if representante?
+
     nil
+  end
+
+  # Sin aislamiento por la misma razón que `colegio_de`: averiguar quién es
+  # alguien es anterior a poder filtrar por colegio. Solo mira las filas de ESTE
+  # usuario, por su id.
+  def representante?
+    return @es_representante if defined?(@es_representante)
+
+    @es_representante = current_user.present? &&
+                        Current.sin_aislamiento { Representative.exists?(user_id: current_user.id) }
+  end
+
+  # Los colegios donde esta persona representa a alguien. Vacío para todos los
+  # demás roles.
+  def colegios_del_representante
+    return [] unless representante?
+
+    @colegios_del_representante ||=
+      Current.sin_aislamiento do
+        Representative.where(user_id: current_user.id).includes(:school).map(&:school)
+      end
   end
 
   def estudiante?
@@ -144,6 +193,7 @@ class ApplicationController < ActionController::Base
     when :administrador then dashboards_administrador_path
     when :profesor      then dashboards_profesor_path
     when :estudiante    then dashboards_estudiante_path
+    when :representante then representante_path
     else root_path
     end
   end

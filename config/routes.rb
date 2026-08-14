@@ -53,6 +53,15 @@ Rails.application.routes.draw do
   resources :report_cards, only: [:index, :create], path: "boletines"
   get "verificar(/:code)", to: "verificaciones#show", as: :verificar
 
+  # El portal del representante (MOR-110). Todo GET: es estrictamente de
+  # lectura, y no alcanza con no poner botones — acá no hay ningún verbo que
+  # escriba, así que construir la petición a mano tampoco sirve de nada.
+  #
+  # La excepción es el cambio de colegio, que solo toca la sesión.
+  get  "representante",             to: "representante#index",  as: :representante
+  get  "representante/hijo/:id",    to: "representante#hijo",   as: :hijo_representante
+  post "representante/colegio",     to: "representante#cambiar_colegio", as: :cambiar_colegio_representante
+
   # Asistencia (MOR-111). La toma es de una SECCIÓN y un DÍA, y por eso el día
   # va como parámetro y no en la ruta: el caso normal es hoy, y escribir la
   # fecha en la URL sería pedirle al profesor que la piense.
@@ -72,6 +81,7 @@ Rails.application.routes.draw do
   resources :grades do
     resources :grade_subjects, only: [:create, :destroy]
   end
+  resources :representatives, path: "representantes"
   resources :departments
   resources :subjects
   resources :academic_periods

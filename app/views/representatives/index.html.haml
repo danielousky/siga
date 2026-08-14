@@ -1,0 +1,36 @@
+.card-academic
+  .card-academic-header
+    %h1 Representantes
+    = link_to "Registrar Representante", new_representative_path, class: "btn btn-primary"
+
+  = render "shared/escala", total: @pagy.count, singular: "representante", plural: "representantes",
+           detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
+
+  %table.table-academic
+    %thead
+      %tr
+        %th Nombre
+        %th Contacto
+        %th Representados
+        %th Acciones
+    %tbody
+      - @representatives.each do |representante|
+        %tr
+          %td= "#{representante.user.last_name}, #{representante.user.name}"
+          %td
+            = representante.user.email
+            - if representante.phone.present?
+              %br
+              %span.text-muted= representante.phone
+          %td
+            - if representante.students.any?
+              = representante.students.map { |a| "#{a.user.name} #{a.user.last_name}" }.join(" · ")
+            - else
+              %span.nota-pendiente Sin alumnos vinculados
+          %td
+            .actions-group
+              = link_to "Ver", representante, class: "btn btn-secondary btn-sm"
+              = link_to "Editar", edit_representative_path(representante), class: "btn btn-secondary btn-sm"
+
+  .pagy-nav
+    != pagy_nav(@pagy)

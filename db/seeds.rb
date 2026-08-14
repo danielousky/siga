@@ -714,6 +714,61 @@ dias_habiles.each_with_index do |dia, di|
   end
 end
 
+# =============================================================================
+# REPRESENTANTES (MOR-110)
+# =============================================================================
+#
+# Tres casos, y el tercero es el que decide la arquitectura:
+#
+#   1. Una madre con UN hijo — el caso común, y el que entra directo al detalle.
+#   2. Un padre con DOS hijos en el mismo colegio, en grados distintos.
+#   3. Una madre con hijos en LOS DOS COLEGIOS. Su usuario es uno, sus
+#      inquilinos son dos: es lo que obliga al selector de colegio, y sin
+#      sembrarlo no hay forma de ver si funciona.
+puts ""
+puts "👨‍👩‍👧 Registrando representantes..."
+
+def representante!(email:, nombre:, apellido:, telefono:, colegio:, alumnos:, parentesco: :madre)
+  usuario = User.find_or_create_by!(email: email) do |u|
+    u.name = nombre; u.last_name = apellido; u.password = u.password_confirmation = CLAVE_DE_PRUEBA
+  end
+  rep = Representative.find_or_create_by!(user: usuario, school: colegio) { |r| r.phone = telefono }
+  Array(alumnos).each do |alumno|
+    StudentRepresentative.find_or_create_by!(representative: rep, student: alumno) do |v|
+      v.parentesco = parentesco
+      v.principal  = true
+    end
+  end
+  rep
+end
+
+alumnos_bol_1a = students_per_section_bol["g1_A"]
+alumnos_bol_2a = students_per_section_bol["g2_A"]
+alumnos_bel_1a = students_per_section_bel["g1_A"]
+
+# 1 · Un hijo. Entra y ve directamente su boletín.
+representante!(email: "carmen.lopez@familia.test", nombre: "Carmen", apellido: "López",
+               telefono: "0414-1112233", colegio: school_bolivar,
+               alumnos: alumnos_bol_1a[0], parentesco: :madre)
+
+# 2 · Dos hijos en el mismo colegio, grados distintos.
+representante!(email: "jose.ramos@familia.test", nombre: "José", apellido: "Ramos",
+               telefono: "0424-4445566", colegio: school_bolivar,
+               alumnos: [alumnos_bol_1a[1], alumnos_bol_2a[0]], parentesco: :padre)
+
+# 3 · EL CASO DIFÍCIL: hijos en los dos colegios. Dos filas de Representative,
+#     una por colegio — igual que un profesor que trabaja en dos. El selector de
+#     la pantalla desempata, y solo entre estos dos.
+representante!(email: "maria.perez@familia.test", nombre: "María", apellido: "Pérez",
+               telefono: "0412-7778899", colegio: school_bolivar,
+               alumnos: alumnos_bol_1a[2], parentesco: :madre)
+representante!(email: "maria.perez@familia.test", nombre: "María", apellido: "Pérez",
+               telefono: "0412-7778899", colegio: school_bello,
+               alumnos: alumnos_bel_1a[0], parentesco: :madre)
+
+puts "   ✓ #{Representative.count} vínculos de representación · #{StudentRepresentative.count} alumnos representados"
+puts "     maría.pérez tiene hijos en LOS DOS colegios: #{Representative.where(user: User.find_by(email: 'maria.perez@familia.test')).count} filas"
+
 sin_justificar = Attendance.sin_justificar.count
 puts "   ✓ #{Attendance.count} registros en #{dias_habiles.size} días hábiles"
 puts "     #{sin_justificar} faltas sin justificar · #{Attendance.where(status: :tarde).count} tardanzas · #{Attendance.where.not(justificada_en: nil).count} justificadas"

@@ -725,6 +725,41 @@ ALTER SEQUENCE public.report_cards_id_seq OWNED BY public.report_cards.id;
 
 
 --
+-- Name: representatives; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.representatives (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    phone character varying,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.representatives FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: representatives_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.representatives_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: representatives_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.representatives_id_seq OWNED BY public.representatives.id;
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -803,6 +838,44 @@ CREATE SEQUENCE public.sections_id_seq
 --
 
 ALTER SEQUENCE public.sections_id_seq OWNED BY public.sections.id;
+
+
+--
+-- Name: student_representatives; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.student_representatives (
+    id bigint NOT NULL,
+    representative_id bigint NOT NULL,
+    student_id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    parentesco integer DEFAULT 0 NOT NULL,
+    principal boolean DEFAULT false NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    CONSTRAINT student_representatives_parentesco_valido CHECK ((parentesco = ANY (ARRAY[0, 1, 2, 3])))
+);
+
+ALTER TABLE ONLY public.student_representatives FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: student_representatives_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.student_representatives_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: student_representatives_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.student_representatives_id_seq OWNED BY public.student_representatives.id;
 
 
 --
@@ -1116,6 +1189,13 @@ ALTER TABLE ONLY public.report_cards ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: representatives id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.representatives ALTER COLUMN id SET DEFAULT nextval('public.representatives_id_seq'::regclass);
+
+
+--
 -- Name: schools id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1127,6 +1207,13 @@ ALTER TABLE ONLY public.schools ALTER COLUMN id SET DEFAULT nextval('public.scho
 --
 
 ALTER TABLE ONLY public.sections ALTER COLUMN id SET DEFAULT nextval('public.sections_id_seq'::regclass);
+
+
+--
+-- Name: student_representatives id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.student_representatives ALTER COLUMN id SET DEFAULT nextval('public.student_representatives_id_seq'::regclass);
 
 
 --
@@ -1325,6 +1412,14 @@ ALTER TABLE ONLY public.report_cards
 
 
 --
+-- Name: representatives representatives_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.representatives
+    ADD CONSTRAINT representatives_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1346,6 +1441,14 @@ ALTER TABLE ONLY public.schools
 
 ALTER TABLE ONLY public.sections
     ADD CONSTRAINT sections_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: student_representatives student_representatives_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.student_representatives
+    ADD CONSTRAINT student_representatives_pkey PRIMARY KEY (id);
 
 
 --
@@ -1795,6 +1898,27 @@ CREATE INDEX index_report_cards_on_school_id ON public.report_cards USING btree 
 
 
 --
+-- Name: index_representatives_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_representatives_on_school_id ON public.representatives USING btree (school_id);
+
+
+--
+-- Name: index_representatives_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_representatives_on_user_id ON public.representatives USING btree (user_id);
+
+
+--
+-- Name: index_representatives_on_user_id_and_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_representatives_on_user_id_and_school_id ON public.representatives USING btree (user_id, school_id);
+
+
+--
 -- Name: index_schools_on_dea_code; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1827,6 +1951,34 @@ CREATE UNIQUE INDEX index_sections_on_grade_period_name ON public.sections USING
 --
 
 CREATE INDEX index_sections_on_school_id ON public.sections USING btree (school_id);
+
+
+--
+-- Name: index_student_representatives_on_representative_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_student_representatives_on_representative_id ON public.student_representatives USING btree (representative_id);
+
+
+--
+-- Name: index_student_representatives_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_student_representatives_on_school_id ON public.student_representatives USING btree (school_id);
+
+
+--
+-- Name: index_student_representatives_on_student_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_student_representatives_on_student_id ON public.student_representatives USING btree (student_id);
+
+
+--
+-- Name: index_student_representatives_unicos; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_student_representatives_unicos ON public.student_representatives USING btree (representative_id, student_id);
 
 
 --
@@ -1928,6 +2080,14 @@ CREATE UNIQUE INDEX index_users_on_reset_password_token ON public.users USING bt
 
 
 --
+-- Name: student_representatives fk_rails_08e2b9969f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.student_representatives
+    ADD CONSTRAINT fk_rails_08e2b9969f FOREIGN KEY (student_id) REFERENCES public.students(user_id);
+
+
+--
 -- Name: students fk_rails_0adebddbd5; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -1949,6 +2109,22 @@ ALTER TABLE ONLY public.final_grade_books
 
 ALTER TABLE ONLY public.students
     ADD CONSTRAINT fk_rails_148c9e88f4 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: representatives fk_rails_14baa23d4e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.representatives
+    ADD CONSTRAINT fk_rails_14baa23d4e FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: student_representatives fk_rails_244edf660a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.student_representatives
+    ADD CONSTRAINT fk_rails_244edf660a FOREIGN KEY (representative_id) REFERENCES public.representatives(id);
 
 
 --
@@ -2176,6 +2352,14 @@ ALTER TABLE ONLY public.grades
 
 
 --
+-- Name: representatives fk_rails_98bb8d7e02; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.representatives
+    ADD CONSTRAINT fk_rails_98bb8d7e02 FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
 -- Name: active_storage_variant_records fk_rails_993965df05; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2352,6 +2536,14 @@ ALTER TABLE ONLY public.teacher_sections
 
 
 --
+-- Name: student_representatives fk_rails_f78ed5cecb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.student_representatives
+    ADD CONSTRAINT fk_rails_f78ed5cecb FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
 -- Name: evaluation_activities fk_rails_f8b76eb396; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2482,10 +2674,24 @@ CREATE POLICY aislamiento_por_colegio ON public.report_cards USING (((current_se
 
 
 --
+-- Name: representatives aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.representatives USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
 -- Name: sections aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY aislamiento_por_colegio ON public.sections USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
+-- Name: student_representatives aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.student_representatives USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
 
 
 --
@@ -2577,10 +2783,22 @@ ALTER TABLE public.moment_grades ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.report_cards ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: representatives; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.representatives ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: sections; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.sections ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: student_representatives; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.student_representatives ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: students; Type: ROW SECURITY; Schema: public; Owner: -
@@ -2613,6 +2831,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260814070000'),
 ('20260814050000'),
 ('20260814031041'),
 ('20260812040000'),

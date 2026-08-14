@@ -1,0 +1,36 @@
+-# Elegir hijo. Solo aparece cuando hay más de uno: con uno solo se entra
+-# directo a su pantalla, que es un paso menos para el caso más común.
+.portal-hijo
+  .portal-cabecera
+    %h1 Mis representados
+
+- if colegios_del_representante.many?
+  -# Hijos en colegios distintos: su usuario es uno, sus inquilinos son dos.
+    El selector NO concede acceso — solo desempata entre colegios donde el
+    sistema ya verificó el vínculo. Ver `colegio_del_representante`.
+  .card-academic
+    %p.nota-ayuda Tenés representados en más de un colegio.
+    .portal-colegios
+      - colegios_del_representante.each do |colegio|
+        = button_to cambiar_colegio_representante_path, params: { colegio_id: colegio.id }, class: "portal-colegio #{'portal-colegio--activo' if colegio.id == Current.school_id}" do
+          = colegio.name
+
+- if @hijos.empty?
+  .card-academic
+    .empty-state
+      %h3 Sin representados en este colegio
+      %p
+        Tu cuenta no tiene alumnos vinculados acá. Si creés que es un error,
+        pedile a la secretaría del colegio que revise el vínculo.
+
+- else
+  %ul.portal-lista-hijos
+    - @hijos.each do |fila|
+      %li
+        = link_to hijo_representante_path(fila[:student]), class: "portal-tarjeta-hijo" do
+          %span.portal-tarjeta-nombre= "#{fila[:student].user.name} #{fila[:student].user.last_name}"
+          %span.portal-tarjeta-seccion
+            - if fila[:inscripcion]
+              = "#{fila[:inscripcion].section.grade.name} – #{fila[:inscripcion].section.name}"
+            - else
+              Sin inscripción activa

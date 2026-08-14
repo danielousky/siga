@@ -1,0 +1,43 @@
+-# El alta crea la persona Y su rol en un solo paso. Separarlo —"primero cree el
+-# usuario, después asígnele el rol"— es pedirle a la secretaría que entienda el
+-# modelo de datos para hacer su trabajo, y eso termina en una llamada por
+-# teléfono.
+= form_with url: (representative.persisted? ? representative_path(representative) : representatives_path), method: (representative.persisted? ? :patch : :post), class: "mb-3" do
+  = render "shared/errors", object: usuario
+  = render "shared/errors", object: representative
+
+  .form-row
+    .form-group
+      = label_tag "user[name]", "Nombre", class: "form-label"
+      = text_field_tag "user[name]", usuario.name, class: "form-control"
+    .form-group
+      = label_tag "user[last_name]", "Apellido", class: "form-label"
+      = text_field_tag "user[last_name]", usuario.last_name, class: "form-control"
+
+  .form-row
+    .form-group
+      = label_tag "user[email]", "Correo electrónico", class: "form-label"
+      = email_field_tag "user[email]", usuario.email, class: "form-control"
+      %small.form-text.text-muted
+        Si esta persona ya tiene cuenta en el sistema —porque trabaja acá o ya
+        representa a otro alumno— se reutiliza la misma.
+    .form-group
+      = label_tag "user[id_card]", "Cédula", class: "form-label"
+      = text_field_tag "user[id_card]", usuario.id_card, class: "form-control"
+
+  .form-group
+    = label_tag "representative[phone]", "Teléfono", class: "form-label"
+    = telephone_field_tag "representative[phone]", representative.phone, class: "form-control", placeholder: "0414-1234567"
+
+  .form-group
+    = label_tag :student_ids, "Alumnos que representa", class: "form-label"
+    %small.form-text.text-muted
+      El listado solo trae alumnos de este colegio: Student es SchoolScoped.
+    .representante-alumnos
+      - vinculados = representative.persisted? ? representative.student_ids : []
+      - Student.includes(:user).order("users.last_name").each do |alumno|
+        %label.representante-alumno
+          = check_box_tag "student_ids[]", alumno.user_id, vinculados.include?(alumno.user_id)
+          %span= "#{alumno.user.last_name}, #{alumno.user.name}"
+
+  = submit_tag(representative.persisted? ? "Guardar" : "Registrar", class: "btn btn-primary")

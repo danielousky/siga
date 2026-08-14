@@ -48,6 +48,8 @@
             = render 'shared/sidebar_profesor'
           - elsif estudiante?
             = render 'shared/sidebar_estudiante'
+          - elsif representante?
+            = render 'shared/sidebar_representante'
 
         %main.container-academic
           - if notice.present?
