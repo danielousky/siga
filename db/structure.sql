@@ -356,7 +356,7 @@ ALTER SEQUENCE public.attendances_id_seq OWNED BY public.attendances.id;
 CREATE TABLE public.demo_requests (
     id bigint NOT NULL,
     name character varying NOT NULL,
-    email character varying NOT NULL,
+    email character varying,
     institution character varying NOT NULL,
     phone character varying,
     message text,
@@ -364,7 +364,9 @@ CREATE TABLE public.demo_requests (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     current_system integer,
-    current_system_detail character varying
+    current_system_detail character varying,
+    veces integer DEFAULT 1 NOT NULL,
+    telefono_normalizado character varying(10)
 );
 
 
@@ -1773,6 +1775,13 @@ CREATE INDEX index_demo_requests_on_status ON public.demo_requests USING btree (
 
 
 --
+-- Name: index_demo_requests_on_telefono_normalizado; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_demo_requests_on_telefono_normalizado ON public.demo_requests USING btree (telefono_normalizado);
+
+
+--
 -- Name: index_departments_on_school_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2987,6 +2996,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260814150000'),
 ('20260814140000'),
 ('20260814120000'),
 ('20260814070000'),

@@ -229,6 +229,12 @@ a:hover {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  /* Sin esto, un `.btn` al que se le da ancho —los de ancho completo en el
+     teléfono— deja su etiqueta pegada al borde izquierdo: `inline-flex` alinea
+     a `flex-start` por defecto. No se notaba porque casi todos los botones se
+     miden por su contenido. Un `input[type=submit]` centra solo; un `<a class="btn">`
+     no, y por eso convivían dos botones distintos en la misma columna. */
+  justify-content: center;
   gap: var(--space-xs);
 }
 
@@ -550,6 +556,17 @@ textarea.form-control {
   flex: 1;
   max-width: 100%;
   padding: 0 var(--space-2xl) var(--space-xl);
+}
+
+/* En un teléfono de 390 px, 48 px de relleno a cada lado son 96 px —casi un
+   TERCIO de la pantalla— gastados en aire antes de la primera letra. Y no es
+   un problema de estética: la tabla de notas que el profesor abre desde el
+   teléfono (MOR-96) pierde una columna entera por esto.
+
+       390 px    │◄─48─►│ contenido 294 px │◄─48─►│     antes
+       390 px  │◄16►│  contenido 358 px  │◄16►│       ahora   (+64 px, +22 %)  */
+@media (max-width: 640px) {
+  .container-academic { padding: 0 var(--space-md) var(--space-lg); }
 }
 
 /*
@@ -2923,3 +2940,219 @@ nav.pagy a.gap {
   .identidad { grid-template-columns: 1fr; }
   .identidad-escudo { align-items: flex-start; }
 }
+
+/* ==========================================================================
+   SOLICITUD DE DEMOSTRACIÓN — la página que llega por WhatsApp (MOR-135)
+   ==========================================================================
+   Se diseña para UN caso: una directora, de pie, en un teléfono, con datos
+   móviles. De ahí sale todo lo de acá abajo.
+
+     · Una sola columna hasta 900 px. El formulario primero, SIEMPRE: lo que
+       está arriba del pliegue es el primer campo, no un titular decorativo.
+     · Campos de 52 px de alto. El dedo no es un puntero de ratón.
+     · 16 px de tipografía en los inputs, ni uno menos: por debajo de eso
+       Safari de iOS hace zoom solo al enfocar, la página salta y la persona
+       pierde de vista dónde estaba escribiendo.
+     · Nada de `autofocus` — abre el teclado al cargar y tapa la pantalla.
+   ========================================================================== */
+
+.solicitud {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-lg) var(--space-2xl);
+}
+
+.solicitud-cabecera {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+
+.solicitud-marca { width: 76px; height: 76px; margin-bottom: var(--space-md); }
+
+.solicitud-titulo {
+  font-family: var(--font-serif);
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 1.15;
+  text-wrap: balance;
+  margin: 0 0 var(--space-sm);
+  color: var(--text-primary);
+}
+
+.solicitud-entrada {
+  max-width: 46ch;
+  margin: 0 auto;
+  color: var(--text-secondary);
+  font-size: 17px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* El formulario primero en el DOM y en la pantalla. En escritorio se pone al
+   lado el "qué pasa después"; en teléfono queda debajo, que es donde se lee
+   DESPUÉS de haber decidido escribir. */
+.solicitud-cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+.solicitud-formulario {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  box-shadow: 0 1px 2px rgba(44, 44, 44, 0.04);
+}
+
+.solicitud-form { display: flex; flex-direction: column; gap: var(--space-lg); }
+.solicitud-form .form-group { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+
+.solicitud-form .form-control,
+.solicitud-form .form-select {
+  min-height: 52px;
+  font-size: 16px;
+}
+
+/* "opcional" en la etiqueta, no en el placeholder: el placeholder desaparece
+   al escribir, justo cuando la persona duda de si ese campo hacía falta. */
+.solicitud-opcional {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-top: -4px;
+}
+
+.solicitud-form .form-label { margin-bottom: 0; }
+.solicitud-form .nota-ayuda { margin: 0; font-size: 13px; color: var(--text-tertiary); }
+
+.solicitud-enviar {
+  min-height: 54px;
+  font-size: 17px;
+  width: 100%;
+  margin-top: var(--space-xs);
+}
+
+.solicitud-letra-chica {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.solicitud-error-titulo { margin: 0 0 var(--space-xs); font-weight: 600; }
+.solicitud-errores { margin: 0; padding-left: 1.2em; }
+
+.solicitud-aparte { display: flex; flex-direction: column; gap: var(--space-lg); }
+
+.solicitud-aparte-titulo {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  margin: 0 0 var(--space-md);
+  color: var(--text-primary);
+}
+
+.solicitud-pasos {
+  background: var(--brand-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+/* Numerados porque SON una secuencia en el tiempo: primero le escriben, luego
+   la llamada, luego decide. El número lleva información, no es adorno. */
+.solicitud-lista-pasos {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: paso;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.solicitud-lista-pasos li {
+  counter-increment: paso;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: var(--space-sm);
+  align-items: start;
+  line-height: 1.5;
+}
+
+.solicitud-lista-pasos li::before {
+  content: counter(paso);
+  grid-row: span 2;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.solicitud-lista-pasos strong { display: block; color: var(--text-primary); }
+.solicitud-lista-pasos span { color: var(--text-secondary); font-size: 15px; }
+
+.solicitud-directo { text-align: center; }
+.solicitud-directo-texto { margin: 0 0 var(--space-sm); color: var(--text-secondary); font-size: 15px; }
+.solicitud-whatsapp { width: 100%; min-height: 48px; }
+
+.solicitud-confianza {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-lg);
+  color: var(--text-tertiary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.solicitud-confianza p { margin: 0; }
+
+.solicitud-volver { text-align: center; margin: var(--space-xl) 0 0; }
+
+@media (max-width: 900px) {
+  .solicitud { padding: var(--space-lg) var(--space-md) var(--space-xl); }
+
+  /* `minmax(0, 1fr)` y no `1fr`. Son distintos: `1fr` es `minmax(auto, 1fr)`,
+     y ese `auto` NO baja del ancho intrínseco del contenido — un `<input>`
+     trae un `size` implícito de 20 caracteres. La columna se niega a encogerse,
+     la tarjeta se sale por la derecha y el teléfono queda con scroll
+     horizontal. El `0` es lo único que le da permiso de achicarse. */
+  .solicitud-cuerpo { grid-template-columns: minmax(0, 1fr); }
+  .solicitud-formulario { padding: var(--space-lg); }
+}
+
+/* Los inputs no deben imponer su ancho intrínseco a ninguna grilla. */
+.solicitud-form .form-control,
+.solicitud-form .form-select { width: 100%; min-width: 0; }
+
+.solicitud-recibida {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto var(--space-md);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--success-bg);
+  border: 2px solid var(--success-border);
+  color: var(--success-text);
+  font-size: 34px;
+  line-height: 1;
+}
+
+.solicitud-gracias {
+  max-width: 52ch;
+  margin: 0 auto;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  text-align: center;
+  color: var(--text-secondary);
+  line-height: 1.65;
+}
+.solicitud-gracias p { margin: 0 0 var(--space-md); }
+.solicitud-gracias p:last-of-type { margin-bottom: var(--space-sm); }

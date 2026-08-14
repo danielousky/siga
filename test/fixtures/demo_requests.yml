@@ -1,17 +1,22 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+# Dos solicitudes con forma de solicitud real. Antes decían `MyString` en cada
+# campo, herencia del generador: un fixture así no falla, pero tampoco prueba
+# nada — y el día que alguien lo lee para entender el modelo, aprende `MyString`.
+una:
+  name: María González
+  email: direccion@sanjose.edu.ve
+  institution: U.E. Colegio San José
+  phone: "0424-1234567"
+  telefono_normalizado: "4241234567"
+  current_system: 2      # escritorio: ya paga software, no tiene portal web
+  veces: 1
+  status: 0              # pendiente
 
-one:
-  name: MyString
-  email: MyString
-  institution: MyString
-  phone: MyString
-  message: MyText
-  status: 1
-
-two:
-  name: MyString
-  email: MyString
-  institution: MyString
-  phone: MyString
-  message: MyText
-  status: 1
+otra:
+  name: Pedro Ramírez
+  institution: U.E.N. Simón Rodríguez
+  phone: "0412-9876543"
+  telefono_normalizado: "4129876543"
+  current_system: 1      # cuadernos y hojas de cálculo
+  message: Somos 180 alumnos y llevamos todo en Excel.
+  veces: 2               # insistió: el prospecto más caliente
+  status: 1              # contactado

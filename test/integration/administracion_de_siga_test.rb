@@ -48,7 +48,7 @@ class AdministracionDeSigaTest < ActionDispatch::IntegrationTest
   end
 
   test "un director tampoco alcanza una solicitud suelta por su id" do
-    solicitud = DemoRequest.create!(name: "Colegio Interesado", email: "info@otro.edu",
+    solicitud = DemoRequest.create!(name: "Colegio Interesado", email: "info@otro.edu", phone: "0424-1112233",
                                     institution: "U.E. Otro", current_system: :escritorio)
     sign_in @a.director
 
@@ -71,7 +71,7 @@ class AdministracionDeSigaTest < ActionDispatch::IntegrationTest
   end
 
   test "el panel del colegio no menciona las solicitudes de demo" do
-    3.times { |i| DemoRequest.create!(name: "P#{i}", email: "p#{i}@x.edu", institution: "U.E. #{i}") }
+    3.times { |i| DemoRequest.create!(name: "P#{i}", email: "p#{i}@x.edu", institution: "U.E. #{i}", phone: "042400000#{i}") }
     sign_in @a.director
 
     get dashboards_administrador_url
@@ -189,7 +189,7 @@ class AdministracionDeSigaTest < ActionDispatch::IntegrationTest
   end
 
   test "operaciones sí ve el pipeline comercial" do
-    DemoRequest.create!(name: "Interesado", email: "info@interesado.edu", institution: "U.E. Interesado")
+    DemoRequest.create!(name: "Interesado", email: "info@interesado.edu", institution: "U.E. Interesado", phone: "0424-7778899")
     sign_in @operaciones
 
     get "/siga/solicitudes"

@@ -1,10 +1,28 @@
 !!!
 %html
   %head
-    %title SIGA - Sistema Integrado de Gestión Académica
+    %title= titulo_de_pagina
     %meta{name: "viewport", content: "width=device-width,initial-scale=1"}
+    %meta{name: "description", content: descripcion_de_pagina}
     = csrf_meta_tags
     = csp_meta_tag
+
+    -# La tarjeta que ve quien recibe el enlace por WhatsApp — que es el canal de
+    -# venta real. Ver `MetadatosHelper`: las URL van absolutas a propósito,
+    -# porque quien pide la imagen es el servidor de WhatsApp, no el navegador.
+    - if pagina_publica?
+      %meta{property: "og:type", content: "website"}
+      %meta{property: "og:site_name", content: "SIGA"}
+      %meta{property: "og:locale", content: "es_VE"}
+      %meta{property: "og:title", content: titulo_de_pagina}
+      %meta{property: "og:description", content: descripcion_de_pagina}
+      %meta{property: "og:url", content: request.original_url}
+      %meta{property: "og:image", content: asset_url("siga-og.jpg")}
+      %meta{property: "og:image:width", content: "1200"}
+      %meta{property: "og:image:height", content: "630"}
+      %meta{property: "og:image:alt", content: "SIGA · Notas, boletines y constancias desde el teléfono"}
+      %meta{name: "twitter:card", content: "summary_large_image"}
+      %meta{name: "theme-color", content: "#1a1f26"}
     -# El favicon en SVG: 1,5 KB contra los 43 KB del PNG, que era el activo más
     -# pesado de toda la app y se bajaba en CADA pantalla. Los navegadores que no
     -# lo soportan simplemente no muestran ícono, que es un precio ínfimo.

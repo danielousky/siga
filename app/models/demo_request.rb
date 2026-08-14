@@ -42,18 +42,82 @@ class DemoRequest < ApplicationRecord
   scope :sin_acceso_web, -> { where(current_system: [:escritorio, :planillas]) }
 
   # Validaciones
+  #
+  # El obligatorio es el TELÉFONO, no el correo (MOR-135). En un colegio
+  # venezolano la conversación ocurre por WhatsApp; el correo institucional, si
+  # existe, lo abre la secretaria cuando puede. Pedir como requisito el canal
+  # muerto y como opcional el vivo es perder al prospecto en el formulario.
   validates :name, presence: true, length: { minimum: 2, maximum: 100 }
-  validates :email, presence: true,
-                    format: { with: URI::MailTo::EMAIL_REGEXP },
-                    uniqueness: { case_sensitive: false }
   validates :institution, presence: true, length: { minimum: 2, maximum: 200 }
-  validates :phone, format: { with: /\A[0-9\-\+\(\)\s]+\z/, allow_blank: true }
+  validates :phone, presence: true, format: {
+    with: /\A[0-9\-\+\(\)\s]{7,}\z/,
+    message: "debe tener al menos 7 dígitos"
+  }
+  validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
   validates :message, length: { maximum: 1000 }
   validates :current_system_detail, length: { maximum: 120 }
 
   # Normalizar email a minúsculas
   before_validation :normalize_email
   before_validation :normalize_current_system_detail
+  before_validation :fijar_telefono_normalizado
+
+  # Registrar una solicitud que llega del formulario público.
+  #
+  # ## Insistir no es un error
+  #
+  # Antes esto era `DemoRequest.create`, con `validates :email, uniqueness`
+  # detrás. Una directora que escribía en marzo y volvía a escribir en junio
+  # recibía **"Email ya está en uso"** — el sistema contestándole que se
+  # callara, justo al prospecto más caliente que hay.
+  #
+  #     ANTES                              AHORA
+  #     ─────                              ─────
+  #     1.ª vez  → gracias                 1.ª vez  → gracias · veces = 1
+  #     2.ª vez  → ✗ "ya está en uso"      2.ª vez  → gracias · veces = 2 ↑
+  #
+  # La identidad del prospecto es el TELÉFONO, no el correo: el correo puede
+  # faltar, y dos personas del mismo colegio son dos prospectos distintos con
+  # dos números. Se comparan los últimos 10 dígitos, así `0424-1234567`,
+  # `+58 424 1234567` y `(0424) 123 45 67` son la misma persona.
+  #
+  # Una solicitud ya cerrada (`completado` / `rechazado`) NO se reabre: quien
+  # ya tuvo su demo y vuelve a escribir un año después está pidiendo otra cosa,
+  # y pisar el historial de la primera borraría lo que pasó.
+  def self.registrar(atributos)
+    solicitud = nueva_o_insistencia(atributos)
+    solicitud.save
+    solicitud
+  end
+
+  # Los últimos 10 dígitos, y nada más. Un número venezolano se escribe de media
+  # docena de formas —`0424-1234567`, `+58 424 1234567`, `0424 123 45 67`— y las
+  # tres terminan en `4241234567`. Comparar por ahí es lo que hace que la segunda
+  # solicitud de la misma directora se reconozca como insistencia.
+  def self.normalizar_telefono(phone)
+    digitos = phone.to_s.gsub(/\D/, "")
+    digitos.length >= 7 ? digitos.last(10) : nil
+  end
+
+  def self.nueva_o_insistencia(atributos)
+    numero   = normalizar_telefono(atributos[:phone])
+    anterior = numero && where(telefono_normalizado: numero)
+                           .where(status: [ :pendiente, :contactado ])
+                           .order(created_at: :desc).first
+
+    return new(atributos) unless anterior
+
+    # Lo que trae de nuevo pisa lo viejo; lo que viene en blanco no borra lo que
+    # ya se sabía. Alguien que la segunda vez no puso el correo no debería
+    # perder el que dio la primera.
+    anterior.assign_attributes(atributos.compact_blank)
+    anterior.veces += 1
+    anterior
+  end
+  private_class_method :nueva_o_insistencia
+
+  # Insistió: el prospecto más caliente del panel.
+  def insistente? = veces > 1
 
   # Scopes
   scope :recent, -> { order(created_at: :desc) }
@@ -94,5 +158,9 @@ class DemoRequest < ApplicationRecord
 
   def normalize_current_system_detail
     self.current_system_detail = current_system_detail.strip.presence if current_system_detail.present?
+  end
+
+  def fijar_telefono_normalizado
+    self.telefono_normalizado = self.class.normalizar_telefono(phone)
   end
 end

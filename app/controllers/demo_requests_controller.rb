@@ -23,24 +23,35 @@ class DemoRequestsController < ApplicationController
     @demo_request = DemoRequest.new
   end
 
+  # `registrar` y no `create`: quien pide la demo por segunda vez no recibe un
+  # error de validación, recibe las gracias otra vez y sube su contador. Ver
+  # `DemoRequest.registrar`.
   def create
-    @demo_request = DemoRequest.new(demo_request_params)
+    @demo_request = DemoRequest.registrar(demo_request_params)
 
-    if @demo_request.save
-      redirect_to success_demo_requests_path,
-                  notice: "¡Solicitud enviada exitosamente! Nos pondremos en contacto pronto."
+    if @demo_request.persisted?
+      # El número viaja a la página de gracias para mostrárselo de vuelta. Un
+      # dígito mal tipeado en el WhatsApp pierde al prospecto para siempre, y
+      # este es el último instante en que se puede notar.
+      flash[:telefono] = @demo_request.phone
+      redirect_to success_demo_requests_path
     else
       render :new, status: :unprocessable_entity
     end
   end
 
   def success
+    @telefono = flash[:telefono]
   end
 
   private
 
+  # `message` y `current_system_detail` siguen permitidos aunque el formulario
+  # público ya no los pida (MOR-135): los llena el equipo de SIGA desde el panel
+  # durante la llamada, que es cuando esa información realmente se consigue.
   def demo_request_params
     params.require(:demo_request).permit(:name, :email, :institution, :phone, :message,
                                          :current_system, :current_system_detail)
+          .to_h.symbolize_keys
   end
 end
