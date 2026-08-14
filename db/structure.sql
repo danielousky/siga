@@ -982,6 +982,49 @@ ALTER SEQUENCE public.subjects_id_seq OWNED BY public.subjects.id;
 
 
 --
+-- Name: subscriptions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.subscriptions (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    plan integer DEFAULT 0 NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    matricula_facturada integer,
+    precio_mensual integer,
+    vigente_desde date,
+    vigente_hasta date,
+    dias_de_gracia integer DEFAULT 15 NOT NULL,
+    notas text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    CONSTRAINT subscriptions_plan_valido CHECK ((plan = ANY (ARRAY[0, 1, 2, 3]))),
+    CONSTRAINT subscriptions_status_valido CHECK ((status = ANY (ARRAY[0, 1, 2, 3])))
+);
+
+ALTER TABLE ONLY public.subscriptions FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: subscriptions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.subscriptions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: subscriptions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.subscriptions_id_seq OWNED BY public.subscriptions.id;
+
+
+--
 -- Name: teacher_sections; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1271,6 +1314,13 @@ ALTER TABLE ONLY public.subjects ALTER COLUMN id SET DEFAULT nextval('public.sub
 
 
 --
+-- Name: subscriptions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.subscriptions ALTER COLUMN id SET DEFAULT nextval('public.subscriptions_id_seq'::regclass);
+
+
+--
 -- Name: teacher_sections id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1513,6 +1563,14 @@ ALTER TABLE ONLY public.students
 
 ALTER TABLE ONLY public.subjects
     ADD CONSTRAINT subjects_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: subscriptions subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.subscriptions
+    ADD CONSTRAINT subscriptions_pkey PRIMARY KEY (id);
 
 
 --
@@ -2072,6 +2130,20 @@ CREATE UNIQUE INDEX index_subjects_on_school_id_and_code ON public.subjects USIN
 
 
 --
+-- Name: index_subscriptions_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_subscriptions_on_school_id ON public.subscriptions USING btree (school_id);
+
+
+--
+-- Name: index_subscriptions_on_status_and_vigente_hasta; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_subscriptions_on_status_and_vigente_hasta ON public.subscriptions USING btree (status, vigente_hasta);
+
+
+--
 -- Name: index_teacher_sections_on_school_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2372,6 +2444,14 @@ ALTER TABLE ONLY public.evaluation_activities
 
 ALTER TABLE ONLY public.subjects
     ADD CONSTRAINT fk_rails_8103a56a88 FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
+-- Name: subscriptions fk_rails_81a71a1b70; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.subscriptions
+    ADD CONSTRAINT fk_rails_81a71a1b70 FOREIGN KEY (school_id) REFERENCES public.schools(id);
 
 
 --
@@ -2772,6 +2852,13 @@ CREATE POLICY aislamiento_por_colegio ON public.subjects USING (((current_settin
 
 
 --
+-- Name: subscriptions aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.subscriptions USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
 -- Name: teacher_sections aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -2876,6 +2963,12 @@ ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: subscriptions; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: teacher_sections; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -2894,6 +2987,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260814140000'),
 ('20260814120000'),
 ('20260814070000'),
 ('20260814050000'),

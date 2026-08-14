@@ -15,6 +15,23 @@ class ApplicationController < ActionController::Base
   # uno filtra y el otro no.
   around_action :con_el_colegio_de_la_sesion
 
+  # ⚠️ Va DESPUÉS del `around_action`, y el orden no es estético: es lo único que
+  # hace que este control funcione.
+  #
+  # Rails ordena `before_action` y `around_action` en una sola cadena, por orden
+  # de declaración. Con el `include` arriba de todo, la comprobación corría ANTES
+  # de que `con_el_colegio_de_la_sesion` fijara `Current.school` — así que no
+  # encontraba suscripción y **dejaba pasar todo, en silencio**.
+  #
+  # Es la peor forma de fallar que puede tener un control de acceso: no explota,
+  # no avisa, y parece que funciona. Lo encontró un test que esperaba un 402 y
+  # recibió un 200; sin ese test habría quedado puesto y sin efecto.
+  #
+  # Un colegio con la suscripción vencida pasa a solo lectura (MOR-108). Se
+  # bloquea por VERBO y no por pantalla: esconder los botones de guardar no es
+  # solo lectura, es una sugerencia.
+  include RespetaLaSuscripcion
+
   # Hacer disponibles los helpers de rol en los controladores
   helper_method :current_user_type, :estudiante?, :profesor?, :administrador?, :representante?
   helper_method :colegios_del_representante

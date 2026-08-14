@@ -2809,3 +2809,33 @@ nav.pagy a.gap {
   .siga-nav-inner { gap: var(--space-sm); }
   .siga-sesion { margin-left: 0; width: 100%; justify-content: space-between; }
 }
+
+/* Cuando la matrícula se pasó del plan facturado (MOR-108). No es un error: el
+   plan se observa siempre y se cobra al renovar. */
+.siga-desfase { font-size: 11px; color: var(--siga-alerta); }
+.siga-estado--activa    { border-color: #34d399; color: #34d399; }
+.siga-estado--en_gracia { border-color: var(--siga-alerta); color: var(--siga-alerta); }
+.siga-estado--vencida   { border-color: #f87171; color: #f87171; }
+.siga-estado--cancelada { border-color: #6b7280; color: #9ca3af; }
+
+/* Aviso de suscripción (MOR-108). Solo aparece cuando hay algo que decir: un
+   cartel permanente de "estás al día" se deja de ver, y el día que dice otra
+   cosa tampoco se ve. */
+.aviso-suscripcion {
+  background: var(--warning-bg);
+  border-bottom: 1px solid var(--warning-border);
+  color: var(--warning-text);
+}
+
+.aviso-suscripcion--vencida {
+  background: var(--danger-bg);
+  border-bottom-color: var(--danger-border);
+  color: var(--danger-text);
+}
+
+.aviso-suscripcion-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-xs) var(--space-lg);
+  font-size: 13px;
+}

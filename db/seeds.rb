@@ -716,6 +716,43 @@ dias_habiles.each_with_index do |dia, di|
 end
 
 # =============================================================================
+# SUSCRIPCIONES (MOR-108)
+# =============================================================================
+#
+# Los dos colegios con estados distintos, para poder VER la degradación a solo
+# lectura sin tener que fabricarla a mano:
+#
+#   · Bolívar (200 alumnos) → plan Estándar, al día
+#   · Bello   (90 alumnos)  → plan Básico, VENCIDO hace 30 días
+#
+# Bello vencido es el caso que hay que poder mirar: entra, ve todo, descarga
+# boletines y constancias, y no puede cargar una nota. Cortarle el acceso a
+# mitad de año escolar sería quitarle las notas a sus alumnos.
+puts ""
+puts "💳 Registrando suscripciones..."
+
+[
+  { colegio: school_bolivar, vence_en: 20,  estado: :activa },
+  { colegio: school_bello,   vence_en: -30, estado: :vencida }
+].each do |datos|
+  alumnos = Subscription.matricula_de(datos[:colegio].id)
+  Subscription.find_or_create_by!(school: datos[:colegio]) do |s|
+    s.plan = Subscription.plan_para(alumnos)
+    s.matricula_facturada = alumnos
+    s.precio_mensual = Subscription.precio_para(alumnos)
+    s.vigente_desde = Date.current - 1.month
+    s.vigente_hasta = Date.current + datos[:vence_en].days
+    s.status = datos[:estado]
+    s.dias_de_gracia = 15
+  end
+end
+
+Subscription.all.each do |s|
+  puts "   ✓ #{s.school.name.ljust(22)} #{s.etiqueta_de_plan.ljust(10)} $#{s.precio_mensual.to_s.ljust(4)} #{s.etiqueta_de_estado}"
+end
+puts "     Bello está VENCIDO a propósito: entra y ve todo, pero no puede cargar nada nuevo"
+
+# =============================================================================
 # EL EQUIPO DE SIGA (MOR-133)
 # =============================================================================
 #

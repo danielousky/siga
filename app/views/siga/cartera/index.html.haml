@@ -1,0 +1,83 @@
+%h1 Cartera
+
+.siga-cifras
+  .siga-cifra
+    %span.siga-cifra-numero= "$#{number_with_delimiter(@facturacion)}"
+    %span.siga-cifra-que facturación mensual
+  .siga-cifra{class: ("siga-cifra--atencion" if @con_problema.positive?)}
+    %span.siga-cifra-numero= @con_problema
+    %span.siga-cifra-que= "#{pluralizar(@con_problema, 'colegio', 'colegios')} en solo lectura"
+  .siga-cifra
+    %span.siga-cifra-numero= @sin_suscripcion
+    %span.siga-cifra-que sin suscripción
+
+%p.siga-nota
+  Al vencer, un colegio pasa a
+  %strong solo lectura
+  — nunca se le corta el acceso. Cortárselo a mitad de año escolar es quitarle
+  las notas de sus alumnos: se gana la disputa de cobranza y se pierde el
+  cliente, más su reputación en una red de 3.900 colegios que se conocen entre
+  sí. Sigue viendo y descargando todo; lo que no puede es cargar nada nuevo.
+
+%section.siga-bloque
+  .siga-bloque-cab
+    %h2 Colegio por colegio
+  .siga-tabla-envoltura
+    %table.siga-tabla
+      %thead
+        %tr
+          %th Colegio
+          %th.num Matrícula
+          %th Plan facturado
+          %th.num Precio
+          %th Estado
+          %th Vence
+          %th
+      %tbody
+        - @colegios.each do |colegio|
+          - s = @suscripciones[colegio.id]
+          - alumnos = @matriculas[colegio.id] || 0
+          %tr
+            %td= link_to colegio.name, siga_colegio_path(colegio)
+            %td.num= alumnos
+            %td
+              - if s
+                = s.etiqueta_de_plan
+                - le_toca = Subscription.plan_para(alumnos)
+                - if le_toca != s.plan.to_sym
+                  %br
+                  %span.siga-desfase
+                    = "hoy le tocaría #{Subscription::PLANES.dig(le_toca, :etiqueta) || 'A convenir'}"
+              - else
+                %span.apagado —
+            %td.num
+              - if s&.precio_mensual
+                = "$#{s.precio_mensual}"
+              - else
+                %span.apagado —
+            %td
+              - if s
+                %span.siga-estado{class: "siga-estado--#{s.status}"}= s.etiqueta_de_estado
+              - else
+                %span.apagado Sin facturar
+            %td.apagado
+              - if s&.vigente_hasta
+                = l(s.vigente_hasta, format: :short)
+                - dias = s.dias_para_vencer
+                - if dias && dias.negative?
+                  %br
+                  %span.siga-desfase= "hace #{-dias} días"
+              - else
+                —
+            %td
+              - if s.nil?
+                = button_to "Dar de alta", siga_cartera_index_path, params: { school_id: colegio.id }, class: "btn btn-secondary btn-sm"
+
+%p.siga-nota
+  El plan se
+  %strong observa
+  siempre y se
+  %strong cobra
+  al renovar: que un colegio crezca en marzo no puede cambiarle la factura de
+  marzo. Cuando la matrícula se pasa del plan facturado, la columna lo dice —
+  no lo corrige sola.

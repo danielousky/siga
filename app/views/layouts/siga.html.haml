@@ -24,6 +24,7 @@
         %ul.siga-menu
           %li= link_to "Panel", siga_root_path, class: "siga-menu-link #{'active' if siga_seccion_activa == 'panel'}"
           %li= link_to "Colegios", siga_colegios_path, class: "siga-menu-link #{'active' if siga_seccion_activa == 'colegios'}"
+          %li= link_to "Cartera", siga_cartera_index_path, class: "siga-menu-link #{'active' if siga_seccion_activa == 'cartera'}"
           %li= link_to "Solicitudes", siga_solicitudes_path, class: "siga-menu-link #{'active' if siga_seccion_activa == 'solicitudes'}"
         .siga-sesion
           %span.siga-quien

@@ -31,3 +31,22 @@
           = link_to "Sin año escolar cargado", academic_periods_path, class: "contexto-periodo-vacio"
         - else
           %span.contexto-periodo-vacio Sin año escolar cargado
+
+-# La suscripción, cuando hay algo que decir (MOR-108).
+-#
+-# Solo aparece si el colegio está en gracia o vencido. Un cartel permanente de
+-# "estás al día" es ruido que se deja de ver, y el día que dice otra cosa
+-# tampoco se ve.
+- if colegio_en_solo_lectura?
+  .aviso-suscripcion.aviso-suscripcion--vencida
+    .aviso-suscripcion-inner
+      %strong Suscripción vencida.
+      Podés seguir consultando y descargando todo — boletines, constancias,
+      notas— pero no cargar información nueva hasta regularizar el pago.
+- elsif suscripcion_del_colegio&.en_gracia?
+  .aviso-suscripcion
+    .aviso-suscripcion-inner
+      %strong La suscripción venció.
+      Quedan
+      = pluralize(suscripcion_del_colegio.dias_de_gracia + (suscripcion_del_colegio.dias_para_vencer || 0), "día")
+      de gracia antes de pasar a solo lectura.
