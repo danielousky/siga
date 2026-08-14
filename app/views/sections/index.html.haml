@@ -8,7 +8,15 @@
 - section_fields << { type: :select, name: :academic_period_id, label: "Período académico", options: @periods_options }
 = render "shared/search_filter", url: sections_path, frame_id: "sections-results", clear_url: sections_path, fields: section_fields
 
-= turbo_frame_tag "sections-results" do
+-# `target: "_top"` no es un detalle: sin él, TODO enlace de adentro del frame
+-# —Ver, Editar, Eliminar— navega DENTRO del frame. Y como ninguna de esas
+-# páginas contiene un frame con este id, Turbo pinta «Content missing» en vez
+-# del detalle del alumno. Un botón que no lleva a ningún lado.
+-#
+-# El buscador sigue actualizando el frame porque declara su destino explícito
+-# (`data: { turbo_frame: … }` en shared/_search_filter), y eso le gana al
+-# `target` del frame.
+= turbo_frame_tag "sections-results", target: "_top" do
   .card-academic
     %table.table-academic
       %thead

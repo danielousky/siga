@@ -17,7 +17,15 @@
       %span.filter-pill
         = "#{u.last_name}, #{u.name}"
 
-= turbo_frame_tag "activity-results" do
+-# `target: "_top"` no es un detalle: sin él, TODO enlace de adentro del frame
+-# —Ver, Editar, Eliminar— navega DENTRO del frame. Y como ninguna de esas
+-# páginas contiene un frame con este id, Turbo pinta «Content missing» en vez
+-# del detalle del alumno. Un botón que no lleva a ningún lado.
+-#
+-# El buscador sigue actualizando el frame porque declara su destino explícito
+-# (`data: { turbo_frame: … }` en shared/_search_filter), y eso le gana al
+-# `target` del frame.
+= turbo_frame_tag "activity-results", target: "_top" do
   .card-academic
     .card-academic-header
       %h2 Actividad Registrada

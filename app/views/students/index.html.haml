@@ -7,7 +7,15 @@
 - student_fields << { type: :text, name: :q, label: "Buscar", placeholder: "Nombre, apellido, cédula o carnet...", flex: 2 }
 = render "shared/search_filter", url: students_path, frame_id: "students-results", clear_url: students_path, fields: student_fields
 
-= turbo_frame_tag "students-results" do
+-# `target: "_top"` no es un detalle: sin él, TODO enlace de adentro del frame
+-# —Ver, Editar, Eliminar— navega DENTRO del frame. Y como ninguna de esas
+-# páginas contiene un frame con este id, Turbo pinta «Content missing» en vez
+-# del detalle del alumno. Un botón que no lleva a ningún lado.
+-#
+-# El buscador sigue actualizando el frame porque declara su destino explícito
+-# (`data: { turbo_frame: … }` en shared/_search_filter), y eso le gana al
+-# `target` del frame.
+= turbo_frame_tag "students-results", target: "_top" do
   .card-academic
     -# La escala va DENTRO del frame a propósito: así el número lo actualiza el
     -# buscador. En el encabezado, de afuera, se quedaría diciendo 200 mientras
