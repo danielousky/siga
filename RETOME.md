@@ -225,6 +225,53 @@ enlazado al final.
   seguía diciéndole al director cuántas solicitudes de demo hay pendientes.
   **Tapar la puerta no alcanza si la pared tiene ventana.**
 
+- **Noche del 13 al 14 de agosto · cuatro issues de la ruta crítica + constancias.**
+  De `a500c6d` a `7dc4ab7`, 47 archivos, ~3.850 líneas. **283 tests.**
+
+  | | Qué cambió de verdad |
+  |---|---|
+  | `MOR-129` | **Un colegio de primaria ya puede usar SIGA.** Y no costó lo que decía el issue: la respuesta de Cyndi lo convirtió de cambio de esquema en dos capas a un **mapa de presentación**. Cero `CHECK` aflojados. |
+  | `MOR-111` | **Asistencia**, con la pantalla que entra en un minuto: todos presentes por defecto, se tocan las excepciones. |
+  | `MOR-110` | **Portal de representantes** — el rol más numeroso del sistema, que no tenía ni una pantalla. |
+  | — | **Constancias de estudio.** El documento que la secretaría escribe en Word, uno por uno. |
+
+  **Las tres decisiones de diseño que valen para lo que viene:**
+
+  1. **La escala cuelga del GRADO, no del colegio.** Un mismo colegio tiene primaria
+     por literal y bachillerato por número. `grades.level` ya existía pero contesta
+     otra pregunta —a qué nivel pertenece— y la certificación EMG tiene dos áreas
+     por literal *dentro* de media general: ni dentro de un nivel la respuesta es
+     única.
+
+  2. **El colegio del representante sale de la sesión, y no es una excepción a la
+     regla.** El conjunto viene de sus filas de `Representative` —vínculos que
+     cargó el colegio, no él— y un id fuera de ese conjunto se descarta. La regla
+     nunca fue *"el colegio no puede venir de la sesión"*: es **"no puede venir de
+     algo que el usuario controla sin que el sistema lo haya verificado"**. Hay un
+     test que manda un id ajeno y verifica que no pasa nada.
+
+  3. **Asistencia tiene botón "Guardar" y la planilla de notas no.** Parece
+     inconsistente y es deliberado: las notas son 30 valores tipeados y media hora
+     de trabajo, así que cada una viaja sola. La asistencia son 3 toques, y con una
+     conexión mala **una petición chica llega mucho más seguido que treinta**. La
+     regla es "que el profesor no pierda su trabajo", y acá se cumple al revés.
+
+  **Dos bugs que solo aparecieron al MIRAR, no al testear:**
+
+  - La constancia salía con las etiquetas `<b>` impresas literalmente. Los tests
+    pasaban: verificaban que el PDF existiera, no lo que decía. Se vio convirtiendo
+    el PDF a imagen. Y arreglarlo destapó otro: con `inline_format`, un colegio
+    llamado *"Bolívar & Asociados"* rompía el parser de Prawn.
+  - El portal dejaba **encerrada** a una madre con un hijo en cada colegio: con un
+    solo hijo saltaba directo al detalle, y el selector de colegio vive en la vista
+    que se estaba salteando.
+
+- **`MOR-133` decidido por Daniel: app aparte, mismo host de Dokku.** Comparte
+  PostgreSQL, y eso sigue siendo seguro porque el aislamiento vive **en la base**:
+  un segundo proceso con el rol `siga_app` está sujeto a las mismas políticas. De
+  paso resuelve el rabbit hole 2 — en una app que por naturaleza ve todos los
+  colegios, el bypass es la norma y no se confunde con un descuido.
+
 **Pendiente inmediato, en orden:**
 
 1. **La demo pública.** Ya se puede hoy, sin servidor:
