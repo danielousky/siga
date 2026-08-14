@@ -51,6 +51,10 @@ Rails.application.routes.draw do
   # La segunda va sin sesión a propósito: quien verifica normalmente no tiene
   # cuenta en el sistema. Ver MOR-98.
   resources :report_cards, only: [:index, :create], path: "boletines"
+
+  # Constancias de estudio. NO se congelan como el boletín: certifican la
+  # situación de hoy, no las calificaciones de un lapso. Ver el controller.
+  resources :constancias, only: [:index, :create]
   get "verificar(/:code)", to: "verificaciones#show", as: :verificar
 
   # El portal del representante (MOR-110). Todo GET: es estrictamente de

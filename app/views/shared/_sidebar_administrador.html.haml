@@ -22,6 +22,8 @@
     - if can_manage_students?
       %li.sidebar-nav-item
         = link_to "Emitir Boletines", report_cards_path, class: "sidebar-nav-link #{'active' if controller_name == 'report_cards'}"
+      %li.sidebar-nav-item
+        = link_to "Constancias", constancias_path, class: "sidebar-nav-link #{'active' if controller_name == 'constancias'}"
 
 .sidebar-section
   .sidebar-section-title Períodos

@@ -1,0 +1,52 @@
+- opciones_de_seccion = @secciones.map { |s| ["#{s.grade.name} – #{s.name} · #{s.academic_period.name}", s.id] }
+- opciones_de_alumno  = [["Toda la sección (#{contar(@alumnos.size, 'alumno', 'alumnos')})", ""]] + @alumnos.map { |i| ["#{i.student.user.last_name}, #{i.student.user.name}", i.id] }
+
+.card-academic
+  .card-academic-header
+    %h1 Constancias de Estudio
+
+  - if @secciones.empty?
+    .empty-state
+      %h3 Sin secciones
+      %p No hay secciones cargadas todavía.
+
+  - else
+    %p.nota-ayuda
+      El documento que más pide una familia: para el pasaporte, una beca, el
+      seguro o una embajada. Sale con la
+      %strong situación de hoy
+      —grado, sección y año escolar— y con el espacio para la firma y el sello
+      del director.
+
+    = form_with url: constancias_path, method: :get, data: { controller: "auto-envio", turbo: false } do
+      .form-group
+        = label_tag :section_id, "Sección", class: "form-label"
+        = select_tag :section_id, options_for_select(opciones_de_seccion, @seccion&.id), class: "form-select", data: { action: "change->auto-envio#enviar" }
+
+    = form_with url: constancias_path, method: :post, data: { turbo: false } do |f|
+      = hidden_field_tag :section_id, @seccion&.id
+
+      .form-group
+        = label_tag :enrollment_id, "Alumno", class: "form-label"
+        = select_tag :enrollment_id, options_for_select(opciones_de_alumno), class: "form-select"
+
+      %p.nota-ayuda
+        Elegí un alumno para una constancia, o dejá "toda la sección" para que
+        salga un PDF con una página por alumno.
+
+      = f.submit "Emitir y descargar", class: "btn btn-primary"
+
+.card-academic
+  .card-academic-header
+    %h2 Por qué esta no se guarda como el boletín
+
+  %p.nota-ayuda
+    El boletín certifica
+    %strong calificaciones
+    y por eso queda archivado: lo que decía en diciembre tiene que seguir
+    diciéndolo en marzo. La constancia certifica una
+    %strong situación de hoy.
+    Si el alumno cambia de sección, la constancia de mañana dice lo nuevo — y
+    eso es lo correcto. Lo que sí queda registrado es
+    %strong quién la emitió y cuándo,
+    en el Registro de Actividad.

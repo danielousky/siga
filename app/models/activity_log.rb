@@ -51,7 +51,12 @@ class ActivityLog < ApplicationRecord
     "period_updated"       => "Período académico actualizado",
     "period_destroyed"     => "Período académico eliminado",
     # Un boletín es un documento oficial: queda registrado quién lo emitió.
-    "report_cards_issued"  => "Boletines emitidos"
+    "report_cards_issued"  => "Boletines emitidos",
+    # La constancia NO se archiva —certifica la situación de hoy, no las
+    # calificaciones de un lapso— pero sí queda quién la firmó. Un papel con
+    # firma del director del que después nadie sepa quién lo sacó es justo lo
+    # que no puede pasar.
+    "constancia_emitida"   => "Constancia de estudios emitida"
   }.freeze
 
   scope :recent,    -> { order(created_at: :desc) }
