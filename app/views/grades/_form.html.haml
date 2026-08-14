@@ -15,6 +15,20 @@
     = f.label :level, "Nivel", class: "form-label"
     = f.select :level, Grade.levels.keys.map { |l| [l.humanize, l] }, { include_blank: "Seleccione..." }, class: "form-select"
 
+  -# Cómo se escribe la calificación del año en este grado (MOR-129).
+  -#
+  -# Va acá y no en la ficha del colegio porque un mismo colegio tiene primaria
+  -# por literal y bachillerato por número. Al elegir el nivel, el grado nuevo ya
+  -# viene con la escala que le toca; esto es para cambiarla.
+  .mb-3
+    = f.label :escala, "Escala de calificación", class: "form-label"
+    = f.select :escala, [["Numérica — del 1 al 20 (media general)", "numerica"], ["Literal — A, B, C, D, E (primaria)", "literal"]], {}, class: "form-select"
+    %small.form-text.text-muted
+      La nota siempre se carga del 1 al 20. La escala solo cambia cómo se
+      %strong muestra
+      la calificación del año: con literal se lee "A (19)". Las notas de lapso
+      van en número en los dos casos.
+
   .mb-3
     = f.label :leader_teacher_id, "Profesor Guía", class: "form-label"
     = f.select :leader_teacher_id, Teacher.includes(:user).map { |t| [t.user.name + " " + t.user.last_name, t.user_id] }, { include_blank: "Ninguno" }, class: "form-select"

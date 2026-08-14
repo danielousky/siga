@@ -49,11 +49,17 @@ class ReportCardData
     }
   end
 
+  # `escala` va en el snapshot y no se lee de la base al imprimir, por la misma
+  # razón que todo lo demás de acá: el boletín es el ARCHIVO. Si mañana el
+  # colegio cambia la escala del grado, un boletín emitido en diciembre tiene que
+  # seguir diciendo lo que decía en diciembre — si no, la verificación pública
+  # dejaría de coincidir con el papel que la familia tiene en la mano (MOR-129).
   def seccion
     {
       "grado"   => @seccion.grade.name,
       "seccion" => @seccion.name,
-      "periodo" => @seccion.academic_period.name
+      "periodo" => @seccion.academic_period.name,
+      "escala"  => @seccion.grade.escala
     }
   end
 

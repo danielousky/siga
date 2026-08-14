@@ -53,6 +53,63 @@ class ReportCardPdf
     documento.render
   end
 
+  # QUÉ va en la tabla del boletín anual, separado de CÓMO se dibuja.
+  #
+  # Es público para poder probarlo: **el texto de un PDF de Prawn no se puede
+  # leer desde afuera** —la fuente va embebida como subconjunto y los caracteres
+  # quedan mapeados a glifos, así que buscar "A (19)" en los bytes no encuentra
+  # nada—. Sin esta costura, la única forma de verificar lo que sale impreso
+  # sería sumar una gema solo para leer PDFs.
+  #
+  # Y la separación se sostiene sola: qué dice cada celda es una regla del
+  # dominio; dónde se dibuja es tipografía.
+  def self.filas_anuales(datos)
+    escala = datos.dig("seccion", "escala")
+
+    filas = [["MATERIA"] + datos["lapsos"].map { |l| abreviar(l) } + %w[ANUAL REPAR. DEFINIT.]]
+
+    datos["materias"].each do |m|
+      filas << [texto(m["materia"])] + m["lapsos"].map { |n| celda(n) } +
+               [celda_del_ano(m["anual"], escala), celda(m["reparacion"]),
+                celda_del_ano(m["definitiva"], escala)]
+    end
+
+    filas << ["PROMEDIO GENERAL"] + Array.new(datos["lapsos"].size + 2, "") +
+             [celda_del_ano(datos["promedio"], escala)]
+  end
+
+  # ── Qué dice cada celda ──────────────────────────────────────────────────
+  # Funciones puras: no dependen del estado de la instancia. Viven en la clase
+  # para que `filas_anuales` se pueda probar sin construir un PDF.
+
+  def self.celda(valor)
+    valor.presence&.to_s || "Sin nota"
+  end
+
+  # La calificación del año, escrita como corresponda a la escala del grado:
+  # "19" en media general, "A (19)" en primaria.
+  #
+  # La escala sale del SNAPSHOT, nunca de la base. Un boletín de diciembre sigue
+  # diciendo lo de diciembre aunque el colegio cambie la escala en marzo.
+  def self.celda_del_ano(valor, escala)
+    return "Sin nota" if valor.blank?
+
+    EscalaLiteral.mostrar(valor, escala: escala)
+  end
+
+  # Deja pasar tal cual lo que la fuente puede dibujar, y translitera solo lo que
+  # no. Un "José" se imprime "José"; un "Ștefan" se imprime "Stefan" en vez de
+  # tirar abajo el boletín. Ver el comentario de `representable?`.
+  def self.texto(valor)
+    cadena = valor.to_s
+    representable?(cadena) ? cadena : ActiveSupport::Inflector.transliterate(cadena)
+  end
+
+  def self.abreviar(nombre)
+    texto(nombre).sub(/^Primer/, "1er").sub(/^Segundo/, "2do").sub(/^Tercer/, "3er")
+                 .sub(/ Lapso$/, " Lapso").sub(/ Semestre$/, " Sem.")
+  end
+
   private
 
   def pagina(pdf, boletin)
@@ -107,19 +164,25 @@ class ReportCardPdf
     dibujar_tabla(pdf, filas, [nil, 110], ultima_en_negrita: true)
   end
 
+  # Las notas de LAPSO van en número; las del AÑO llevan el literal cuando el
+  # grado se califica así (MOR-129).
+  #
+  # No es una inconsistencia: *"los literales son la nota final del año escolar"*
+  # —Cyndi—. Durante los lapsos primaria evalúa con competencias e indicadores y
+  # una rúbrica de cinco niveles, que es `MOR-136` y todavía no existe. Hasta
+  # entonces el lapso se muestra como lo que se cargó: un número.
+  #
+  # La reparación también queda en número: es el resultado de UN examen, no la
+  # calificación del año. La definitiva —que es `max(anual, reparación)`— sí.
   def tabla_anual(pdf, datos)
-    encabezados = ["MATERIA"] + datos["lapsos"].map { |l| abreviar(l) } + %w[ANUAL REPAR. DEFINIT.]
-    filas = [encabezados]
+    escala = datos.dig("seccion", "escala")
 
-    datos["materias"].each do |m|
-      filas << [texto(m["materia"])] + m["lapsos"].map { |n| celda(n) } +
-               [celda(m["anual"]), celda(m["reparacion"]), celda(m["definitiva"])]
-    end
+    # Las columnas del año necesitan más aire: "A (19)" no entra donde entraba
+    # "19". Las de lapso siguen igual.
+    ancho_del_ano = escala.to_s == "literal" ? 60 : 52
+    anchos = [nil] + Array.new(datos["lapsos"].size, 44) + [ancho_del_ano, 44, ancho_del_ano]
 
-    filas << ["PROMEDIO GENERAL"] + Array.new(datos["lapsos"].size + 2, "") + [celda(datos["promedio"])]
-
-    anchos = [nil] + Array.new(datos["lapsos"].size + 3, 52)
-    dibujar_tabla(pdf, filas, anchos, ultima_en_negrita: true)
+    dibujar_tabla(pdf, self.class.filas_anuales(datos), anchos, ultima_en_negrita: true)
   end
 
   def dibujar_tabla(pdf, filas, anchos, ultima_en_negrita: false)
@@ -143,22 +206,13 @@ class ReportCardPdf
   # "Sin nota" en letras, nunca un cero. Es la misma regla del cálculo y de la
   # pantalla del alumno, y en un papel oficial importa todavía más: un cero
   # impreso donde el profesor no corrigió es una reclamación en la dirección.
-  def celda(valor)
-    valor.presence&.to_s || "Sin nota"
-  end
-
-  # Deja pasar tal cual lo que la fuente puede dibujar, y translitera solo lo que
-  # no. Un "José" se imprime "José"; un "Ștefan" se imprime "Stefan" en vez de
-  # tirar abajo el boletín. Ver el comentario de `representable?`.
-  def texto(valor)
-    cadena = valor.to_s
-    self.class.representable?(cadena) ? cadena : ActiveSupport::Inflector.transliterate(cadena)
-  end
-
-  def abreviar(nombre)
-    texto(nombre).sub(/^Primer/, "1er").sub(/^Segundo/, "2do").sub(/^Tercer/, "3er")
-          .sub(/ Lapso$/, " Lapso").sub(/ Semestre$/, " Sem.")
-  end
+  # Delegan a las versiones de clase. Ver el comentario de `filas_anuales`:
+  # decidir qué dice una celda no necesita una instancia, y separarlo es lo que
+  # permite probarlo sin generar un PDF.
+  def celda(valor) = self.class.celda(valor)
+  def celda_del_ano(valor, escala) = self.class.celda_del_ano(valor, escala)
+  def texto(valor) = self.class.texto(valor)
+  def abreviar(nombre) = self.class.abreviar(nombre)
 
   def pie(pdf, datos, boletin)
     pdf.move_down 6

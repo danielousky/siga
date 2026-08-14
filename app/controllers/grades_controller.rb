@@ -50,7 +50,7 @@ class GradesController < ApplicationController
 
   def grade_params
     # `school_id` NO se permite: el colegio sale de la sesión, nunca del request.
-    params.require(:grade).permit(:name, :level, :leader_teacher_id)
+    params.require(:grade).permit(:name, :level, :escala, :leader_teacher_id)
           .merge(school_id: Current.school_id)
   end
 

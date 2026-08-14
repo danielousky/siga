@@ -580,7 +580,9 @@ CREATE TABLE public.grades (
     leader_teacher_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    school_id bigint NOT NULL
+    school_id bigint NOT NULL,
+    escala integer DEFAULT 0 NOT NULL,
+    CONSTRAINT grades_escala_valida CHECK ((escala = ANY (ARRAY[0, 1])))
 );
 
 ALTER TABLE ONLY public.grades FORCE ROW LEVEL SECURITY;
@@ -2468,6 +2470,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260814031041'),
 ('20260812040000'),
 ('20260811220000'),
 ('20260811163539'),

@@ -37,6 +37,18 @@ module ApplicationHelper
     "#{fecha.day} de #{I18n.t('date.month_names')[fecha.month]}"
   end
 
+  # La calificación del AÑO, escrita según la escala del grado (MOR-129).
+  #
+  #     nota_del_ano(19, grado)   # media general → "19"
+  #     nota_del_ano(19, grado)   # primaria      → "A (19)"
+  #
+  # Solo para las notas del año. Las de lapso van en número hasta que exista la
+  # rúbrica de competencias (`MOR-136`): en primaria el lapso no se evalúa con
+  # letras, y ponerle una sería inventarla.
+  def nota_del_ano(nota, grado)
+    EscalaLiteral.mostrar(nota, escala: grado&.escala) || "—"
+  end
+
   # El año escolar que la barra de contexto muestra. Se memoiza porque la barra
   # se pinta en cada petición y no vale una consulta por cada vista que lo pida.
   def periodo_vigente

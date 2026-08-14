@@ -47,17 +47,34 @@
           - @materias.each do |materia|
             %tr
               %td= materia.subject.name
-              %td= materia.libro&.annual_average&.to_i || "—"
+              -# Las notas del AÑO llevan el literal cuando el grado se califica
+                 así (MOR-129). La reparación no: es el resultado de un examen,
+                 no la calificación del año.
+              %td= nota_del_ano(materia.libro&.annual_average, @seccion.grade)
               %td= materia.libro&.remedial_exam_score&.to_i || "—"
               %td
                 - definitiva = materia.libro&.final_score&.to_i
                 - if definitiva
-                  %span.nota-valor{class: definitiva >= 10 ? "nota-valor--aprobada" : "nota-valor--aplazada"}= definitiva
+                  %span.nota-valor{class: definitiva >= 10 ? "nota-valor--aprobada" : "nota-valor--aplazada"}= nota_del_ano(definitiva, @seccion.grade)
                 - else
                   %span.nota-pendiente Sin nota
       %p.nota-ayuda
         La calificación definitiva es el promedio de los lapsos (Art. 111 del
         Reglamento General de la LOE). Aprueba con 10.
+        - if @seccion.grade.escala_literal?
+          %br
+          En primaria la calificación del año se expresa en literal:
+          %strong A
+          (20–19) ·
+          %strong B
+          (18–17) ·
+          %strong C
+          (16–14) ·
+          %strong D
+          (13–10) ·
+          %strong E
+          (por debajo de 10, reprobado). El número va al lado porque es lo que
+          la mayoría de las familias reconoce.
 
   - else
     - @materias.each do |materia|
