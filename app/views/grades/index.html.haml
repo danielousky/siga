@@ -20,7 +20,3 @@
             .actions-group
               = link_to "Ver", grade, class: "btn btn-secondary btn-sm"
               = link_to "Editar", edit_grade_path(grade), class: "btn btn-secondary btn-sm"
-              = link_to "Eliminar", grade, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar este grado?" }, class: "btn btn-danger btn-sm"
-
-  .pagy-nav
-    != pagy_nav(@pagy)

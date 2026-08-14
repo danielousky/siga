@@ -3,3 +3,5 @@
     %h1 Editar inscripción
 
   = render "form", enrollment: @enrollment, volver: enrollments_path
+
+  = render "shared/borrar", registro: @enrollment, aviso: "La inscripción desaparece.", alternativa: "Para un alumno que se va, márquela como retirada en vez de borrarla."

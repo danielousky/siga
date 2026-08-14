@@ -3,3 +3,5 @@
     %h1 Editar momento de evaluación
 
   = render "form", evaluation_moment: @evaluation_moment, volver: evaluation_moments_path
+
+  = render "shared/borrar", registro: @evaluation_moment, aviso: "El lapso desaparece, con su ponderación."

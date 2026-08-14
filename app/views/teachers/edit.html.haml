@@ -3,3 +3,5 @@
     %h1 Editar profesor
 
   = render "form", teacher: @teacher, volver: teachers_path
+
+  = render "shared/borrar", registro: @teacher, aviso: "El profesor deja de existir en el sistema.", alternativa: "Si solo dejó de dictar, quítelo de sus secciones y su ficha se conserva."

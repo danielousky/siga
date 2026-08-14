@@ -38,7 +38,3 @@
             %td
               = link_to "Ver", section, class: "btn btn-secondary btn-sm"
               = link_to "Editar", edit_section_path(section), class: "btn btn-secondary btn-sm"
-              = link_to "Eliminar", section, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar esta sección?" }, class: "btn btn-danger btn-sm"
-
-    .pagy-nav
-      != pagy_nav(@pagy)

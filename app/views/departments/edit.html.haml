@@ -3,3 +3,5 @@
     %h1 Editar departamento
 
   = render "form", department: @department, volver: departments_path
+
+  = render "shared/borrar", registro: @department, aviso: "El departamento desaparece del catálogo."

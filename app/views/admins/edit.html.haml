@@ -3,3 +3,5 @@
     %h1 Editar administrador
 
   = render "form", admin: @admin, volver: admins_path
+
+  = render "shared/borrar", registro: @admin, aviso: "El administrador pierde su acceso al sistema."

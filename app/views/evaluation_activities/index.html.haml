@@ -61,16 +61,3 @@
                 = link_to "Ver", actividad, class: "btn btn-secondary btn-sm"
                 - if profesor?
                   = link_to "Editar", edit_evaluation_activity_path(actividad), class: "btn btn-secondary btn-sm"
-                  = link_to "Eliminar", actividad, data: { turbo_method: :delete, turbo_confirm: "¿Eliminar «#{actividad.description}»? Si ya tiene notas cargadas, el sistema lo va a impedir." }, class: "btn btn-danger btn-sm"
-
-    .pagy-nav
-      != pagy_nav(@pagy)
-
-  - else
-    .empty-state
-      %h3 Sin evaluaciones cargadas
-      - if profesor?
-        %p Definí cómo evaluás cada lapso: un examen, un taller, participación — cada uno con su peso.
-        = link_to "Crear la primera", new_evaluation_activity_path, class: "btn btn-primary"
-      - else
-        %p Todavía ningún profesor definió evaluaciones para este colegio.

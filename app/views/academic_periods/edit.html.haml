@@ -3,3 +3,5 @@
     %h1 Editar período académico
 
   = render "form", academic_period: @academic_period, volver: academic_periods_path
+
+  = render "shared/borrar", registro: @academic_period, aviso: "El año escolar desaparece del sistema."

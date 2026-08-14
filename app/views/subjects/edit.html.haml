@@ -3,3 +3,5 @@
     %h1 Editar materia
 
   = render "form", subject: @subject, volver: subjects_path
+
+  = render "shared/borrar", registro: @subject, aviso: "La materia desaparece del catálogo."

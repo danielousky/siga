@@ -5,3 +5,5 @@
   %strong= "#{@student.user.name} #{@student.user.last_name}"
 
 = render "form", student: @student
+
+= render "shared/borrar", registro: @student, aviso: "Se borran también sus calificaciones y su historia académica.", alternativa: "Para un alumno que se va del colegio, lo correcto es retirar su inscripción: la historia se queda."

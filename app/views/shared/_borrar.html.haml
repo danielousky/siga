@@ -1,0 +1,21 @@
+-# El bloque de borrado (MOR-135).
+-#
+-# Se ofrece SOLO si va a funcionar. Antes vivía en cada fila de cada listado y,
+-# en el de alumnos, fallaba 200 de 200 veces: un alumno con inscripciones no se
+-# puede borrar, y un alumno sin inscripciones no existe en un colegio real.
+-#
+-# Cuando no se puede, no se esconde en silencio: se explica por qué, que es lo
+-# que la persona necesita para hacer lo correcto en su lugar.
+- if borrable?(registro)
+  .borrar
+    %h3.borrar-titulo Eliminar
+    %p.borrar-aviso= aviso
+    = link_to "Eliminar", registro,
+              data: { turbo_method: :delete, turbo_confirm: aviso },
+              class: "btn btn-danger"
+- else
+  .borrar.borrar--imposible
+    %h3.borrar-titulo No se puede eliminar
+    %p.borrar-aviso= motivo_para_no_borrar(registro)
+    - if defined?(alternativa) && alternativa.present?
+      %p.borrar-aviso= alternativa

@@ -40,7 +40,3 @@
             %td
               .actions-group
                 = link_to "Editar", edit_enrollment_path(enrollment), class: "btn btn-secondary btn-sm"
-                = link_to "Eliminar", enrollment, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar esta inscripción?" }, class: "btn btn-danger btn-sm"
-
-    .pagy-nav
-      != pagy_nav(@pagy)

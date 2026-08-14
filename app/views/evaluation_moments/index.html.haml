@@ -19,7 +19,3 @@
           %td
             .actions-group
               = link_to "Editar", edit_evaluation_moment_path(moment), class: "btn btn-secondary btn-sm"
-              = link_to "Eliminar", moment, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar este momento de evaluación?" }, class: "btn btn-danger btn-sm"
-
-  .pagy-nav
-    != pagy_nav(@pagy)

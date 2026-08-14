@@ -19,7 +19,3 @@
           %td
             .actions-group
               = link_to "Editar", edit_academic_period_path(period), class: "btn btn-secondary btn-sm"
-              = link_to "Eliminar", period, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar este período?" }, class: "btn btn-danger btn-sm"
-
-  .pagy-nav
-    != pagy_nav(@pagy)

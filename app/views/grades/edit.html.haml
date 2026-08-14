@@ -3,3 +3,5 @@
     %h1 Editar grado
 
   = render "form", grade: @grade, volver: grades_path
+
+  = render "shared/borrar", registro: @grade, aviso: "El grado desaparece, con su configuración de escala."
