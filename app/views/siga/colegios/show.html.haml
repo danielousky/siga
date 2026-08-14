@@ -1,0 +1,56 @@
+%h1= @colegio.name
+%p.siga-subtitulo
+  = @colegio.location
+  %span.apagado= "· Código DEA #{@colegio.dea_code}"
+
+.siga-cifras
+  .siga-cifra
+    %span.siga-cifra-numero= @alumnos
+    %span.siga-cifra-que alumnos
+  .siga-cifra
+    %span.siga-cifra-numero= @profesores
+    %span.siga-cifra-que profesores
+  .siga-cifra
+    %span.siga-cifra-numero= @secciones
+    %span.siga-cifra-que secciones
+
+%section.siga-bloque
+  .siga-bloque-cab
+    %h2 Quién administra
+  - if @admins.empty?
+    %p.siga-vacio
+      Este colegio no tiene ningún administrador. Nadie puede entrar.
+  - else
+    .siga-tabla-envoltura
+      %table.siga-tabla
+        %thead
+          %tr
+            %th Persona
+            %th Correo
+            %th Rol
+        %tbody
+          - @admins.each do |admin|
+            %tr
+              %td= "#{admin.user.last_name}, #{admin.user.name}"
+              %td.mono= admin.user.email
+              %td.apagado= admin.role.humanize
+
+%section.siga-bloque
+  .siga-bloque-cab
+    %h2 Años escolares
+  - if @periodos.empty?
+    %p.siga-vacio Sin años escolares cargados.
+  - else
+    .siga-tabla-envoltura
+      %table.siga-tabla
+        %thead
+          %tr
+            %th Año
+            %th Desde
+            %th Hasta
+        %tbody
+          - @periodos.each do |periodo|
+            %tr
+              %td= periodo.name
+              %td.apagado= l(periodo.start_date, format: :long)
+              %td.apagado= l(periodo.end_date, format: :long)

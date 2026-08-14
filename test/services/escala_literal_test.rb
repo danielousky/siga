@@ -68,14 +68,14 @@ class EscalaLiteralTest < ActiveSupport::TestCase
 
   # Las dos cosas juntas, y no es redundancia: el literal porque es lo que exige
   # el papel oficial, el número porque es lo que la familia entiende.
-  test "en escala literal se muestran la letra y el número" do
-    assert_equal "A (19)", EscalaLiteral.mostrar(19, escala: :literal)
-    assert_equal "E (9)",  EscalaLiteral.mostrar(9,  escala: :literal)
+  test "en escala literal manda el número y la letra acompaña" do
+    assert_equal "19 (A)", EscalaLiteral.mostrar(19, escala: :literal)
+    assert_equal "9 (E)",  EscalaLiteral.mostrar(9,  escala: :literal)
   end
 
   test "la escala llega igual como símbolo o como texto" do
-    assert_equal "A (19)", EscalaLiteral.mostrar(19, escala: :literal)
-    assert_equal "A (19)", EscalaLiteral.mostrar(19, escala: "literal")
+    assert_equal "19 (A)", EscalaLiteral.mostrar(19, escala: :literal)
+    assert_equal "19 (A)", EscalaLiteral.mostrar(19, escala: "literal")
   end
 
   # ══════════════════════════════════════════════════════════════════════════

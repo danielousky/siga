@@ -269,11 +269,12 @@ puts "   ✓ 3 grados Bello · PRIMARIA, escala literal A–E (#{gbel[:g1].grade
 puts ""
 puts "👤 Configurando administradores..."
 
-admin_user = User.find_or_create_by!(email: CORREO_DESARROLLADOR) do |u|
-  u.password = u.password_confirmation = CLAVE_DE_PRUEBA
-  u.name = "Soporte"; u.last_name = "SIGA"
-end
-Admin.find_or_create_by!(user: admin_user) { |a| a.school = school_bolivar; a.role = :desarrollador }
+# ⚠️ Acá vivía un `Admin` con rol `desarrollador` colgado de Bolívar: la forma
+# vieja de decir "esta persona es de SIGA". Ya no existe.
+#
+# El equipo de SIGA no pertenece a ningún colegio (MOR-133): se siembra más
+# abajo como `SigaStaff`, sin `school_id`. Dejarlo como Admin de un colegio fue
+# exactamente lo que produjo cuatro fugas en dos días.
 
 [
   { email: "director.bolivar@siga.edu",  name: "Ramón",  last_name: "Díaz",      school: school_bolivar, role: :director },
@@ -715,6 +716,31 @@ dias_habiles.each_with_index do |dia, di|
 end
 
 # =============================================================================
+# EL EQUIPO DE SIGA (MOR-133)
+# =============================================================================
+#
+# No pertenece a ningún colegio, y esa es toda la corrección: hasta ahora "la
+# gente de SIGA" era un `Admin` con rol `desarrollador`, y un `Admin` cuelga de
+# un colegio. Esa confusión produjo cuatro fugas en dos días.
+puts ""
+puts "🛠️  Registrando al equipo de SIGA..."
+
+usuario_siga = User.find_or_create_by!(email: CORREO_DESARROLLADOR) do |u|
+  u.name = "Equipo"; u.last_name = "SIGA"
+  u.password = u.password_confirmation = CLAVE_DE_PRUEBA
+end
+SigaStaff.find_or_create_by!(user: usuario_siga) { |s| s.role = :fundador }
+
+operaciones = User.find_or_create_by!(email: "operaciones@siga.app") do |u|
+  u.name = "Ana"; u.last_name = "Operaciones"
+  u.password = u.password_confirmation = CLAVE_DE_PRUEBA
+end
+SigaStaff.find_or_create_by!(user: operaciones) { |s| s.role = :operaciones }
+
+puts "   ✓ #{SigaStaff.count} personas en el equipo, NINGUNA con colegio"
+puts "     #{usuario_siga.email} (fundador) · operaciones@siga.app (operaciones)"
+
+# =============================================================================
 # REPRESENTANTES (MOR-110)
 # =============================================================================
 #
@@ -836,7 +862,7 @@ puts ""
 puts "🔑 Credenciales (contraseña universal: #{CLAVE_DE_PRUEBA})"
 puts ""
 puts "   ADMINISTRADORES:"
-puts "   #{CORREO_DESARROLLADOR.ljust(28)} → desarrollador (Bolívar)"
+puts "   #{CORREO_DESARROLLADOR.ljust(28)} → equipo de SIGA · /siga (NO pertenece a ningún colegio)"
 puts "   director.bolivar@siga.edu    → director (Bolívar)"
 puts "   coord.bolivar@siga.edu       → coordinador (Bolívar)"
 puts "   director.bello@siga.edu      → director (Bello)"

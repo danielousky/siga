@@ -137,50 +137,18 @@ class AislamientoEntreColegiosTest < ActionDispatch::IntegrationTest
   # Los datos de SIGA no son de ningún colegio
   # ══════════════════════════════════════════════════════════════════════════
   #
-  # Tercer caso del mismo hueco: `demo_requests` **no tiene `school_id`**. Es dato
-  # de la plataforma, así que ni `SchoolScoped` ni el RLS lo alcanzan — y hasta
-  # este commit cualquier `director` veía el pipeline comercial completo, con
-  # colegios que compiten entre sí adentro.
-
-  test "un director de colegio no ve las solicitudes de demo de SIGA" do
-    sign_in @a.director
-
-    get demo_requests_url
-
-    assert_redirected_to dashboards_administrador_path
-    assert_match(/administración de SIGA/, flash[:alert])
-  end
-
-  test "un director tampoco alcanza una solicitud suelta por su id" do
-    solicitud = DemoRequest.create!(name: "Colegio Interesado", email: "info@otro.edu",
-                                    institution: "U.E. Otro", current_system: :escritorio)
-    sign_in @a.director
-
-    get demo_request_url(solicitud)
-
-    assert_redirected_to dashboards_administrador_path
-  end
-
-  # Tapar el controller no alcanzó: el PANEL seguía diciendo cuántas solicitudes
-  # hay pendientes. El nombre y el correo no se veían, pero el tamaño del
-  # pipeline comercial de SIGA sí — y con un botón que rebota, que además delata
-  # que existe una sección a la que no se llega.
+  # Acá vivían tres tests que verificaban que un director NO alcanzara
+  # `/demo_requests`. Ya no verifican nada, porque **esa ruta dejó de existir**:
+  # ver, listar y responder solicitudes se mudó a `/siga` (MOR-133).
   #
-  # Cuarto caso del mismo hueco, encontrado haciendo MOR-134. Ver MOR-133.
-  test "el panel del director no delata cuántas solicitudes de demo hay" do
-    3.times do |i|
-      DemoRequest.create!(name: "Prospecto #{i}", email: "p#{i}@otro.edu",
-                          institution: "U.E. Prospecto #{i}", current_system: :ninguno)
-    end
-    sign_in @a.director
-
-    get dashboards_administrador_url
-
-    assert_response :success
-    assert_no_match(/Solicitudes de Demo/i, response.body)
-    assert_select "a[href=?]", demo_requests_path, count: 0,
-                  message: "el panel ofrece un enlace a una sección que le va a rebotar"
-  end
+  # Es la diferencia entre tapar y resolver. `demo_requests` no tiene
+  # `school_id`, así que ni `SchoolScoped` ni el RLS lo alcanzaban; se tapó tres
+  # veces —el controller, el contador del panel, el enlace del menú— y volvió a
+  # filtrarse las tres. **Tapar la puerta no alcanza si la pared tiene ventana.**
+  #
+  # Lo que ahora sostiene esa frontera está en
+  # `test/integration/administracion_de_siga_test.rb`, y prueba algo más fuerte:
+  # que el panel del colegio ya no TIENE esas pantallas.
 
   # ══════════════════════════════════════════════════════════════════════════
   # El IDOR que abrió la épica, con su test propio

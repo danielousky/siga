@@ -119,13 +119,17 @@ if login "director.bolivar@siga.edu" "123123" "$JAR"; then
 fi
 
 echo
-echo "SIGA (desarrollador)"
+echo "Administración de SIGA (otra app, /siga)"
 JAR="${TMP}/siga.jar"
 if login "desarrollador@siga.edu" "123123" "$JAR"; then
   echo "  ✓ login"
-  # El pipeline comercial es de SIGA, no de los colegios: solo este rol lo ve.
-  # Que un director NO lo vea lo cubre la suite (aislamiento_entre_colegios_test).
-  check "solicitudes demo"  "/demo_requests"            200 "$JAR"
+  # Esta gente NO pertenece a ningún colegio (MOR-133): entra a su propia
+  # administración, que ve la plataforma entera. Que un usuario de colegio NO
+  # llegue acá lo cubre la suite (administracion_de_siga_test).
+  check "panel de plataforma" "/siga"                   200 "$JAR"
+  check "colegios"            "/siga/colegios"          200 "$JAR"
+  check "alta de colegio"     "/siga/colegios/new"      200 "$JAR"
+  check "pipeline comercial"  "/siga/solicitudes"       200 "$JAR"
 fi
 
 echo

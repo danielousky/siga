@@ -51,7 +51,7 @@ class BoletinConLiteralTest < ActiveSupport::TestCase
 
       assert_equal "literal", datos.dig("seccion", "escala"),
                    "el snapshot dejó de ser un archivo: siguió a la base"
-      assert_includes filas_planas(datos), "A (19)",
+      assert_includes filas_planas(datos), "19 (A)",
                       "el boletín emitido tiene que seguir imprimiéndose como se emitió"
     end
   end
@@ -76,11 +76,11 @@ class BoletinConLiteralTest < ActiveSupport::TestCase
       filas = ReportCardPdf.filas_anuales(ReportCardData.para(enrollment: @escenario.inscripcion))
 
       materia = filas.find { |f| f.first == @escenario.materia.name }
-      assert_equal "A (19)", materia[-3], "la columna ANUAL"
-      assert_equal "A (19)", materia[-1], "la columna DEFINITIVA"
+      assert_equal "19 (A)", materia[-3], "la columna ANUAL"
+      assert_equal "19 (A)", materia[-1], "la columna DEFINITIVA"
 
       promedio = filas.find { |f| f.first == "PROMEDIO GENERAL" }
-      assert_equal "A (19)", promedio[-1], "el literal del grado, que es lo que pide el certificado"
+      assert_equal "19 (A)", promedio[-1], "el literal del grado, que es lo que pide el certificado"
     end
   end
 
@@ -90,7 +90,7 @@ class BoletinConLiteralTest < ActiveSupport::TestCase
       datos = ReportCardData.para(enrollment: @escenario.inscripcion)
 
       # La fila de la materia con nota: MATERIA | L1 | L2 | L3 | ANUAL | REPAR | DEFINIT
-      fila = ReportCardPdf.filas_anuales(datos).find { |f| f.include?("A (19)") }
+      fila = ReportCardPdf.filas_anuales(datos).find { |f| f.include?("19 (A)") }
 
       assert_equal "19", fila[1], "la nota del primer lapso tiene que ir en número pelado"
       assert_not_includes fila[1], "A", "el lapso no se califica con letras: eso es MOR-136"
@@ -119,7 +119,7 @@ class BoletinConLiteralTest < ActiveSupport::TestCase
       celdas = filas_planas(ReportCardData.para(enrollment: @escenario.inscripcion))
 
       assert_includes celdas, "19"
-      assert_empty celdas.grep(/\A[A-E] \(\d+\)\z/), "media general no lleva literal"
+      assert_empty celdas.grep(/\A\d+ \([A-E]\)\z/), "media general no lleva literal"
     end
   end
 
@@ -132,7 +132,7 @@ class BoletinConLiteralTest < ActiveSupport::TestCase
       celdas = filas_planas(ReportCardData.para(enrollment: @escenario.inscripcion))
 
       assert_includes celdas, "Sin nota"
-      assert_empty celdas.grep(/\AE \(0\)\z/), "una materia sin corregir no está reprobada"
+      assert_empty celdas.grep(/\A0 \(E\)\z/), "una materia sin corregir no está reprobada"
     end
   end
 

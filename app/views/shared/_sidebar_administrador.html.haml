@@ -63,13 +63,3 @@
     %li.sidebar-nav-item
       = link_to dashboards_activity_logs_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/activity_logs'}" do
         Registro de Actividad
-    -# Solo la administración de SIGA. Un director de colegio no tiene por qué ver
-    -# el pipeline comercial, donde además hay colegios que compiten entre sí.
-    - if current_user.admin.desarrollador?
-      %li.sidebar-nav-item
-        = link_to demo_requests_path, class: "sidebar-nav-link #{'active' if controller_name == 'demo_requests'}" do
-          Solicitudes Demo
-          - pending_count = DemoRequest.pending.count
-          - if pending_count > 0
-            %span{style: "margin-left: auto; background: var(--brand-primary); color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;"}
-              = pending_count

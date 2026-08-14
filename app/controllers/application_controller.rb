@@ -189,6 +189,11 @@ class ApplicationController < ActionController::Base
   end
 
   def dashboard_path_for_user
+    # El equipo de SIGA no tiene rol de colegio, así que va a su propia
+    # administración. Va PRIMERO porque `current_user_type` sería nil para
+    # ellos y caerían en la pantalla de "sin rol asignado" (MOR-133).
+    return siga_root_path if SigaStaff.para(current_user).present?
+
     case current_user_type
     when :administrador then dashboards_administrador_path
     when :profesor      then dashboards_profesor_path

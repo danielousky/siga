@@ -59,11 +59,17 @@ class EscalaLiteral
   # Cómo se escribe una calificación según la escala de su grado.
   #
   #     mostrar(19, escala: :numerica)  # => "19"
-  #     mostrar(19, escala: :literal)   # => "A (19)"
+  #     mostrar(19, escala: :literal)   # => "19 (A)"
   #
-  # Las dos cosas juntas, y no es redundancia: el literal porque es lo que exige
-  # el papel oficial —*"correspondiéndole el literal: ___"*—, y el número porque
-  # es lo que la familia entiende. Cyndi, después de 19 años evaluando de forma
+  # **El número manda y la letra acompaña**, en ese orden. Decisión de Daniel, y
+  # es la correcta: el número es el dato que existe —lo que el docente cargó y lo
+  # que la base guarda—, y el literal es una lectura de ese dato. Ponerlo al
+  # revés sugería que la letra era la calificación y el número una aclaración,
+  # que es justo lo contrario de cómo funciona el sistema por dentro.
+  #
+  # Las dos cosas juntas no son redundancia: el literal porque es lo que exige el
+  # papel oficial —*"correspondiéndole el literal: ___"*—, y el número porque es
+  # lo que la familia entiende. Cyndi, después de 19 años evaluando de forma
   # cualitativa: *"los papás cuando van a retirar una boleta preguntan '¿y
   # cuánto, profe?'"*. La norma y la gente no coinciden hace dos décadas.
   def self.mostrar(nota, escala:)
@@ -73,7 +79,7 @@ class EscalaLiteral
     return entero.to_s unless escala.to_s == "literal"
 
     letra = para(entero)
-    letra ? "#{letra} (#{entero})" : entero.to_s
+    letra ? "#{entero} (#{letra})" : entero.to_s
   end
 
   def self.aprobado?(nota)

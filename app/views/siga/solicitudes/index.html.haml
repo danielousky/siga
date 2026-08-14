@@ -1,0 +1,61 @@
+%h1 Solicitudes de demostración
+
+%p.siga-nota
+  Este es el pipeline comercial de SIGA. Vivía en el panel de los colegios, con
+  competidores entre sí en la misma lista — se tapó tres veces y volvió a
+  filtrarse tres veces. Acá ningún usuario de colegio llega, porque
+  %strong el panel del colegio ya no tiene estas pantallas.
+
+.siga-cifras
+  .siga-cifra{class: ("siga-cifra--atencion" if @pendientes.positive?)}
+    %span.siga-cifra-numero= @pendientes
+    %span.siga-cifra-que sin responder
+  - @por_sistema.first(3).each do |sistema, cuantos|
+    .siga-cifra
+      %span.siga-cifra-numero= cuantos
+      %span.siga-cifra-que= DemoRequest::CURRENT_SYSTEM_LABELS[sistema] || sistema
+
+- if @nombrados.any?
+  %section.siga-bloque
+    .siga-bloque-cab
+      %h2 Qué sistema dijeron que usan
+    %p.siga-nota
+      El formulario no nombra competidores a propósito —no se les hace
+      publicidad en el momento de máxima intención de compra—, así que esto es
+      lo que escribieron ellos.
+    %ul.siga-lista-sistemas
+      - @nombrados.first(10).each do |nombre, cuantos|
+        %li
+          %span= nombre
+          %span.apagado= contar(cuantos, "colegio", "colegios")
+
+%section.siga-bloque
+  .siga-bloque-cab
+    %h2 Todas las solicitudes
+  - if @solicitudes.empty?
+    %p.siga-vacio Sin solicitudes todavía.
+  - else
+    .siga-tabla-envoltura
+      %table.siga-tabla
+        %thead
+          %tr
+            %th Institución
+            %th Contacto
+            %th Usa hoy
+            %th Estado
+            %th Cuándo
+        %tbody
+          - @solicitudes.each do |solicitud|
+            %tr
+              %td= link_to solicitud.institution, siga_solicitud_path(solicitud)
+              %td
+                = solicitud.name
+                %br
+                %span.mono.apagado= solicitud.email
+              %td.apagado= DemoRequest::CURRENT_SYSTEM_LABELS[solicitud.current_system] || "—"
+              %td
+                %span.siga-estado{class: "siga-estado--#{solicitud.status}"}= solicitud.status.humanize
+              %td.apagado= l(solicitud.created_at, format: :short)
+
+    .pagy-nav
+      != pagy_nav(@pagy)

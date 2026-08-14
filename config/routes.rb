@@ -31,11 +31,31 @@ Rails.application.routes.draw do
   end
   get "inicio/index"
 
-  # Solicitudes de demo (público)
-  resources :demo_requests, only: [:new, :create, :index, :show, :update] do
+  # Solicitudes de demo — SOLO lo público. Ver, listar y responder se mudó a
+  # /siga (MOR-133): ese dato es de SIGA, no de ningún colegio, y vivir en el
+  # panel del colegio lo dejó filtrándose tres veces.
+  resources :demo_requests, only: [:new, :create] do
     collection do
       get :success
     end
+  end
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # La administración de SIGA (MOR-133)
+  # ═══════════════════════════════════════════════════════════════════════
+  #
+  # Otra app, adentro de esta por ahora. La decisión de Daniel fue "app aparte
+  # en el mismo host de Dokku, si es posible; sino, inicialmente junto con la
+  # principal" — y todavía no hay ningún despliegue funcionando (MOR-106), así
+  # que duplicarlo antes de tener el primero sería pagar dos veces por nada.
+  #
+  # La frontera está puesta como si ya estuviera afuera: Siga::BaseController no
+  # hereda de ApplicationController, tiene su propio layout, y adentro NO hay
+  # colegio. Extraerlo el día que haya un Dokku andando es mover este bloque.
+  namespace :siga do
+    root "panel#index"
+    resources :colegios, only: [:index, :show, :new, :create]
+    resources :solicitudes, only: [:index, :show, :update]
   end
 
   # Dashboards específicos por rol

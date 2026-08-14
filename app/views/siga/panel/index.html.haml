@@ -1,0 +1,71 @@
+%h1 Panel de la plataforma
+
+.siga-cifras
+  .siga-cifra
+    %span.siga-cifra-numero= @colegios.size
+    %span.siga-cifra-que= pluralizar(@colegios.size, "colegio", "colegios")
+  .siga-cifra
+    %span.siga-cifra-numero= number_with_delimiter(@total_alumnos)
+    %span.siga-cifra-que alumnos en total
+  .siga-cifra{class: ("siga-cifra--atencion" if @solicitudes_pendientes.positive?)}
+    %span.siga-cifra-numero= @solicitudes_pendientes
+    %span.siga-cifra-que= "#{pluralizar(@solicitudes_pendientes, 'solicitud', 'solicitudes')} sin responder"
+
+%section.siga-bloque
+  .siga-bloque-cab
+    %h2 Colegios
+    = link_to "Dar de alta", new_siga_colegio_path, class: "btn btn-primary" if siga_staff.puede_dar_de_alta_colegios?
+
+  - if @colegios.empty?
+    %p.siga-vacio Todavía no hay ningún colegio en la plataforma.
+  - else
+    .siga-tabla-envoltura
+      %table.siga-tabla
+        %thead
+          %tr
+            %th Colegio
+            %th Ubicación
+            %th.num Alumnos
+            %th.num Profesores
+            %th.num Secciones
+            %th Plan
+        %tbody
+          - @colegios.each do |colegio|
+            - alumnos = @alumnos_por_colegio[colegio.id] || 0
+            - plan = plan_por_matricula(alumnos)
+            %tr
+              %td= link_to colegio.name, siga_colegio_path(colegio)
+              %td.apagado= colegio.location
+              %td.num= alumnos
+              %td.num= @profesores_por_colegio[colegio.id] || 0
+              %td.num= @secciones_por_colegio[colegio.id] || 0
+              %td
+                = plan[:nombre]
+                - if plan[:precio]
+                  %span.apagado= "· $#{plan[:precio]}/mes"
+
+    %p.siga-nota
+      El plan sale de la matrícula, que es como está escrito el contrato:
+      hasta 150 alumnos $25 · hasta 400 $50 · hasta 800 $90. Es una lectura,
+      no una suscripción — eso llega con
+      %code MOR-108.
+
+%section.siga-bloque
+  .siga-bloque-cab
+    %h2 Lo último que pasó
+  - if @actividad.empty?
+    %p.siga-vacio Sin actividad registrada.
+  - else
+    .siga-tabla-envoltura
+      %table.siga-tabla
+        %thead
+          %tr
+            %th Cuándo
+            %th Colegio
+            %th Qué
+        %tbody
+          - @actividad.each do |registro|
+            %tr
+              %td.apagado= l(registro.created_at, format: :short)
+              %td.apagado= registro.school&.name || "—"
+              %td= registro.message

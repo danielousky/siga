@@ -841,6 +841,39 @@ ALTER SEQUENCE public.sections_id_seq OWNED BY public.sections.id;
 
 
 --
+-- Name: siga_staffs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.siga_staffs (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    role integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    CONSTRAINT siga_staffs_role_valido CHECK ((role = ANY (ARRAY[0, 1])))
+);
+
+
+--
+-- Name: siga_staffs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.siga_staffs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: siga_staffs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.siga_staffs_id_seq OWNED BY public.siga_staffs.id;
+
+
+--
 -- Name: student_representatives; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1210,6 +1243,13 @@ ALTER TABLE ONLY public.sections ALTER COLUMN id SET DEFAULT nextval('public.sec
 
 
 --
+-- Name: siga_staffs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.siga_staffs ALTER COLUMN id SET DEFAULT nextval('public.siga_staffs_id_seq'::regclass);
+
+
+--
 -- Name: student_representatives id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1441,6 +1481,14 @@ ALTER TABLE ONLY public.schools
 
 ALTER TABLE ONLY public.sections
     ADD CONSTRAINT sections_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: siga_staffs siga_staffs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.siga_staffs
+    ADD CONSTRAINT siga_staffs_pkey PRIMARY KEY (id);
 
 
 --
@@ -1954,6 +2002,13 @@ CREATE INDEX index_sections_on_school_id ON public.sections USING btree (school_
 
 
 --
+-- Name: index_siga_staffs_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_siga_staffs_on_user_id ON public.siga_staffs USING btree (user_id);
+
+
+--
 -- Name: index_student_representatives_on_representative_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2333,6 +2388,14 @@ ALTER TABLE ONLY public.sections
 
 ALTER TABLE ONLY public.grade_subjects
     ADD CONSTRAINT fk_rails_863de54b91 FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
+-- Name: siga_staffs fk_rails_9179172cf3; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.siga_staffs
+    ADD CONSTRAINT fk_rails_9179172cf3 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -2831,6 +2894,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260814120000'),
 ('20260814070000'),
 ('20260814050000'),
 ('20260814031041'),

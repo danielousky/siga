@@ -1,0 +1,26 @@
+.siga-bloque-cab
+  %h1 Colegios
+  = link_to "Dar de alta", new_siga_colegio_path, class: "btn btn-primary" if siga_staff.puede_dar_de_alta_colegios?
+
+- if @colegios.empty?
+  %p.siga-vacio
+    Todavía no hay ningún colegio. El primero se da de alta desde acá — ya no
+    hace falta abrir una consola contra la base de producción.
+- else
+  .siga-tabla-envoltura
+    %table.siga-tabla
+      %thead
+        %tr
+          %th Colegio
+          %th Código DEA
+          %th Ubicación
+          %th Tipo
+          %th.num Alumnos
+      %tbody
+        - @colegios.each do |colegio|
+          %tr
+            %td= link_to colegio.name, siga_colegio_path(colegio)
+            %td.mono= colegio.dea_code
+            %td.apagado= colegio.location
+            %td.apagado= colegio.school_type == "primary" ? "Primaria" : "Media general"
+            %td.num= @alumnos[colegio.id] || 0

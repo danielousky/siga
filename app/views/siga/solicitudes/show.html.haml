@@ -1,0 +1,30 @@
+%h1= @solicitud.institution
+%p.siga-subtitulo
+  Solicitó una demostración el
+  = l(@solicitud.created_at, format: :long)
+
+%section.siga-bloque
+  .siga-bloque-cab
+    %h2 Contacto
+  %dl.siga-detalle
+    %dt Persona
+    %dd= @solicitud.name
+    %dt Correo
+    %dd.mono= @solicitud.email
+    %dt Teléfono
+    %dd.mono= @solicitud.phone.presence || "—"
+    %dt Qué usa hoy
+    %dd
+      = DemoRequest::CURRENT_SYSTEM_LABELS[@solicitud.current_system] || "—"
+      - if @solicitud.current_system_detail.present?
+        %span.apagado= "· #{@solicitud.current_system_detail}"
+  - if @solicitud.message.present?
+    %h3 Lo que escribió
+    %blockquote.siga-cita= @solicitud.message
+
+%section.siga-bloque
+  .siga-bloque-cab
+    %h2 Estado
+  = form_with url: siga_solicitud_path(@solicitud), method: :patch, class: "siga-form-inline" do
+    = select_tag "demo_request[status]", options_for_select(DemoRequest.statuses.keys.map { |s| [s.humanize, s] }, @solicitud.status), class: "form-select"
+    = submit_tag "Guardar", class: "btn btn-primary"

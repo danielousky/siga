@@ -2650,3 +2650,162 @@ nav.pagy a.gap {
 .detalle { display: grid; grid-template-columns: auto 1fr; gap: var(--space-xs) var(--space-lg); margin: 0; }
 .detalle dt { font-weight: 600; color: var(--text-secondary); }
 .detalle dd { margin: 0; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADMINISTRACIÓN DE LA PLATAFORMA (MOR-133)
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Deliberadamente distinta al panel de un colegio, y no por gusto: quien entra
+   acá tiene que saber en tres segundos que NO está mirando el panel de un
+   colegio. Cuando las dos se veían iguales, confundirlas era cuestión de tiempo
+   — y confundirlas fue exactamente lo que produjo cuatro fugas.
+
+   El panel del colegio es papel crema y azul institucional. Este es oscuro,
+   denso, y con la tipografía de datos por delante: es una consola de operación,
+   no un documento académico.
+*/
+
+.siga-admin {
+  --siga-fondo:  #10151c;
+  --siga-panel:  #171e27;
+  --siga-borde:  #26303c;
+  --siga-texto:  #e6ecf3;
+  --siga-tenue:  #8fa0b3;
+  --siga-acento: #5eead4;
+  --siga-alerta: #fbbf24;
+
+  background: var(--siga-fondo);
+  color: var(--siga-texto);
+  min-height: 100vh;
+  font-family: var(--font-sans);
+}
+
+.siga-admin h1 { font-size: 26px; color: var(--siga-texto); margin-bottom: var(--space-xs); }
+.siga-admin h2 { font-size: 18px; color: var(--siga-texto); margin: 0; }
+.siga-admin h3 { font-size: 15px; color: var(--siga-tenue); margin: var(--space-lg) 0 var(--space-xs); }
+.siga-admin a { color: var(--siga-acento); }
+
+.siga-nav { background: var(--siga-panel); border-bottom: 1px solid var(--siga-borde); }
+
+.siga-nav-inner {
+  max-width: 1180px; margin: 0 auto; padding: var(--space-sm) var(--space-lg);
+  display: flex; align-items: center; gap: var(--space-lg); flex-wrap: wrap;
+}
+
+.siga-marca { display: flex; align-items: baseline; gap: 8px; text-decoration: none; }
+.siga-marca-nombre { font-weight: 800; font-size: 19px; color: var(--siga-texto); letter-spacing: .02em; }
+.siga-marca-etiqueta {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px; text-transform: uppercase; letter-spacing: .12em;
+  color: var(--siga-acento); border: 1px solid var(--siga-acento);
+  padding: 1px 6px; border-radius: 2px;
+}
+
+.siga-menu { display: flex; gap: var(--space-xs); list-style: none; margin: 0; padding: 0; }
+.siga-menu-link {
+  display: block; padding: 6px 12px; border-radius: var(--radius-sm);
+  color: var(--siga-tenue); text-decoration: none; font-size: 14px;
+}
+.siga-menu-link:hover { background: var(--siga-borde); color: var(--siga-texto); }
+.siga-menu-link.active { background: var(--siga-borde); color: var(--siga-acento); font-weight: 600; }
+
+.siga-sesion { margin-left: auto; display: flex; align-items: center; gap: var(--space-sm); }
+.siga-quien { font-size: 13px; color: var(--siga-tenue); }
+.siga-rol {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px; text-transform: uppercase; letter-spacing: .08em;
+  margin-left: 6px; color: var(--siga-acento);
+}
+
+/* La franja es el reverso exacto de la barra de contexto del colegio: allá dice
+   EN QUÉ colegio estás, acá dice que estás fuera de todos ellos. */
+.siga-aviso { background: var(--siga-borde); border-bottom: 1px solid var(--siga-borde); }
+.siga-aviso-inner {
+  max-width: 1180px; margin: 0 auto; padding: 8px var(--space-lg);
+  font-size: 12.5px; color: var(--siga-tenue);
+}
+.siga-aviso strong { color: var(--siga-acento); }
+
+.siga-contenido { max-width: 1180px; margin: 0 auto; padding: var(--space-xl) var(--space-lg) 80px; }
+.siga-subtitulo { color: var(--siga-tenue); margin-bottom: var(--space-lg); }
+
+.siga-cifras {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-sm); margin: var(--space-lg) 0 var(--space-xl);
+}
+.siga-cifra {
+  background: var(--siga-panel); border: 1px solid var(--siga-borde);
+  border-radius: var(--radius-md); padding: var(--space-md);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.siga-cifra--atencion { border-color: var(--siga-alerta); }
+.siga-cifra--atencion .siga-cifra-numero { color: var(--siga-alerta); }
+.siga-cifra-numero {
+  font-size: 30px; font-weight: 700; line-height: 1;
+  font-variant-numeric: tabular-nums; color: var(--siga-acento);
+}
+.siga-cifra-que { font-size: 13px; color: var(--siga-tenue); }
+
+.siga-bloque {
+  background: var(--siga-panel); border: 1px solid var(--siga-borde);
+  border-radius: var(--radius-md); padding: var(--space-lg); margin-bottom: var(--space-lg);
+}
+.siga-bloque-cab {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-md); flex-wrap: wrap; margin-bottom: var(--space-md);
+}
+.siga-vacio { color: var(--siga-tenue); margin: 0; }
+.siga-nota { color: var(--siga-tenue); font-size: 13.5px; max-width: 74ch; }
+.siga-nota code { background: var(--siga-borde); color: var(--siga-acento); }
+
+.siga-tabla-envoltura { overflow-x: auto; }
+.siga-tabla { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 520px; }
+.siga-tabla th {
+  text-align: left; padding: 8px 12px 8px 0; font-size: 10.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .08em; color: var(--siga-tenue);
+  border-bottom: 1px solid var(--siga-borde);
+}
+.siga-tabla td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--siga-borde); }
+.siga-tabla tr:last-child td { border-bottom: none; }
+.siga-tabla .num { text-align: right; font-variant-numeric: tabular-nums; }
+.siga-tabla .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+.siga-tabla .apagado { color: var(--siga-tenue); }
+
+.siga-estado {
+  font-size: 11px; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid var(--siga-borde); color: var(--siga-tenue);
+}
+.siga-estado--pending { border-color: var(--siga-alerta); color: var(--siga-alerta); }
+
+.siga-lista-sistemas { list-style: none; margin: 0; padding: 0; }
+.siga-lista-sistemas li {
+  display: flex; justify-content: space-between; gap: var(--space-md);
+  padding: 6px 0; border-bottom: 1px solid var(--siga-borde); font-size: 14px;
+}
+
+.siga-detalle { display: grid; grid-template-columns: auto 1fr; gap: 6px var(--space-lg); margin: 0; }
+.siga-detalle dt { color: var(--siga-tenue); font-size: 13px; }
+.siga-detalle dd { margin: 0; }
+
+.siga-cita {
+  margin: 0; padding: var(--space-md); background: var(--siga-fondo);
+  border-left: 3px solid var(--siga-acento); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--siga-texto); font-size: 14px;
+}
+
+.siga-fieldset {
+  border: 1px solid var(--siga-borde); border-radius: var(--radius-md);
+  padding: var(--space-lg); margin: 0 0 var(--space-lg);
+}
+.siga-fieldset legend { padding: 0 var(--space-xs); color: var(--siga-acento); font-size: 13px; font-weight: 600; }
+.siga-admin .form-label { color: var(--siga-tenue); }
+.siga-admin .form-control, .siga-admin .form-select {
+  background: var(--siga-fondo); border-color: var(--siga-borde); color: var(--siga-texto);
+}
+.siga-admin .form-text { color: var(--siga-tenue); }
+.siga-form-inline { display: flex; gap: var(--space-sm); align-items: center; flex-wrap: wrap; }
+
+@media (max-width: 640px) {
+  .siga-nav-inner { gap: var(--space-sm); }
+  .siga-sesion { margin-left: 0; width: 100%; justify-content: space-between; }
+}
