@@ -1,12 +1,11 @@
 class AdminsController < ApplicationController
   before_action :require_admin_access!
-  before_action :set_admin, only: [:show, :edit, :update, :destroy]
+  before_action :set_admin, only: [:edit, :update, :destroy]
 
   def index
     @pagy, @admins = pagy(Admin.includes(:user, :school))
   end
 
-  def show; end
 
   def new
     @admin = Admin.new

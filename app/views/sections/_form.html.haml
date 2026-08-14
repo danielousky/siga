@@ -1,24 +1,30 @@
-= form_with(model: section, class: "mb-3") do |f|
+= form_with(model: section) do |f|
   = render "shared/errors", object: section
 
-  .mb-3
+  .form-group
     = f.label :name, "Nombre", class: "form-label"
     = f.text_field :name, class: "form-control"
 
-  .mb-3
+  .form-group
     = f.label :grade_id, "Grado", class: "form-label"
     = f.select :grade_id, Grade.all.map { |g| [g.name, g.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
-  .mb-3
+  .form-group
     = f.label :academic_period_id, "Período Académico", class: "form-label"
     = f.select :academic_period_id, AcademicPeriod.all.map { |p| [p.name, p.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
-  .mb-3
+  .form-group
     = f.label :capacity, "Capacidad", class: "form-label"
     = f.number_field :capacity, class: "form-control", min: 1
 
-  .mb-3
+  .form-group
     = f.label :classroom, "Aula", class: "form-label"
     = f.text_field :classroom, class: "form-control"
 
-  = f.submit class: "btn btn-primary"
+  .form-acciones
+
+    = f.submit class: "btn btn-primary"
+
+    - if local_assigns[:volver]
+
+      = link_to "Volver", volver, class: "btn btn-secondary"

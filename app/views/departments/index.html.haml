@@ -14,7 +14,6 @@
           %td= department.name
           %td
             .actions-group
-              = link_to "Ver", department, class: "btn btn-secondary btn-sm"
               = link_to "Editar", edit_department_path(department), class: "btn btn-secondary btn-sm"
               = link_to "Eliminar", department, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar este registro?" }, class: "btn btn-danger btn-sm"
 

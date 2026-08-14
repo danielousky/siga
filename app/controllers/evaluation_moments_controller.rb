@@ -1,6 +1,6 @@
 class EvaluationMomentsController < ApplicationController
   before_action :require_admin_access!
-  before_action :set_evaluation_moment, only: [:show, :edit, :update, :destroy]
+  before_action :set_evaluation_moment, only: [:edit, :update, :destroy]
 
   def index
     @pagy, @evaluation_moments = pagy(
@@ -8,7 +8,6 @@ class EvaluationMomentsController < ApplicationController
     )
   end
 
-  def show; end
 
   def new
     @evaluation_moment = EvaluationMoment.new

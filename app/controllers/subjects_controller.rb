@@ -5,7 +5,19 @@ class SubjectsController < ApplicationController
     @pagy, @subjects = pagy(Subject.includes(department: :school))
   end
 
-  def show; end
+  # La materia.
+  #
+  # Lo único que agrega esta pantalla sobre la fila de la lista es la RED: en
+  # qué grados se cursa y quién la dicta. Sin eso no vale la pena abrirla — y
+  # así era antes, un `dl` con el código, el nombre y el departamento, que son
+  # exactamente las tres columnas del listado.
+  def show
+    @grados = @subject.grades.order(:name)
+    @quienes = TeacherSection.where(subject_id: @subject.id)
+                             .includes(:subject, teacher: :user, section: [ :grade, :academic_period ])
+                             .to_a
+                             .sort_by { |a| [ a.section.grade.name, a.section.name ] }
+  end
 
   def new
     @subject = Subject.new

@@ -2,7 +2,7 @@
 -# usuario, después asígnele el rol"— es pedirle a la secretaría que entienda el
 -# modelo de datos para hacer su trabajo, y eso termina en una llamada por
 -# teléfono.
-= form_with url: (representative.persisted? ? representative_path(representative) : representatives_path), method: (representative.persisted? ? :patch : :post), class: "mb-3" do
+= form_with url: (representative.persisted? ? representative_path(representative) : representatives_path), method: (representative.persisted? ? :patch : :post), class: "" do
   = render "shared/errors", object: usuario
   = render "shared/errors", object: representative
 
@@ -18,7 +18,7 @@
     .form-group
       = label_tag "user[email]", "Correo electrónico", class: "form-label"
       = email_field_tag "user[email]", usuario.email, class: "form-control"
-      %small.form-text.text-muted
+      %small.nota-ayuda
         Si esta persona ya tiene cuenta en el sistema —porque trabaja aquí o ya
         representa a otro alumno— se reutiliza la misma.
     .form-group
@@ -31,7 +31,7 @@
 
   .form-group
     = label_tag :student_ids, "Alumnos que representa", class: "form-label"
-    %small.form-text.text-muted
+    %small.nota-ayuda
       El listado solo trae alumnos de este colegio: Student es SchoolScoped.
     .representante-alumnos
       - vinculados = representative.persisted? ? representative.student_ids : []

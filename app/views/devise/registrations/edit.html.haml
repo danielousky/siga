@@ -20,7 +20,7 @@
     .form-group
       = f.label :password, "Contraseña nueva", class: "form-label"
       = f.password_field :password, autocomplete: "new-password", class: "form-control"
-      %small.form-text.text-muted
+      %small.nota-ayuda
         Déjala vacía si no quieres cambiarla.
         - if @minimum_password_length
           = "Mínimo #{@minimum_password_length} caracteres."
@@ -32,7 +32,7 @@
     .form-group
       = f.label :current_password, "Contraseña actual", class: "form-label"
       = f.password_field :current_password, autocomplete: "current-password", class: "form-control"
-      %small.form-text.text-muted
+      %small.nota-ayuda
         Hace falta para confirmar que eres tú quien está haciendo el cambio.
 
     = f.submit "Guardar", class: "btn btn-primary"

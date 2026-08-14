@@ -9,7 +9,7 @@
       = f.label :password, "Contraseña nueva", class: "form-label"
       = f.password_field :password, autofocus: true, autocomplete: "new-password", class: "form-control"
       - if @minimum_password_length
-        %small.form-text.text-muted= "Mínimo #{@minimum_password_length} caracteres."
+        %small.nota-ayuda= "Mínimo #{@minimum_password_length} caracteres."
 
     .form-group
       = f.label :password_confirmation, "Repita la contraseña nueva", class: "form-label"

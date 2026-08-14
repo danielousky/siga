@@ -1,7 +1,7 @@
-= form_with(model: department, class: "mb-3") do |f|
+= form_with(model: department) do |f|
   = render "shared/errors", object: department
 
-  .mb-3
+  .form-group
     = f.label :name, "Nombre", class: "form-label"
     = f.text_field :name, class: "form-control"
 
@@ -9,4 +9,10 @@
   -# lista los colegios de toda la plataforma y deja que el id venga del request,
   -# que es justo de donde el inquilino nunca puede venir (MOR-86).
 
-  = f.submit class: "btn btn-primary"
+  .form-acciones
+
+    = f.submit class: "btn btn-primary"
+
+    - if local_assigns[:volver]
+
+      = link_to "Volver", volver, class: "btn btn-secondary"

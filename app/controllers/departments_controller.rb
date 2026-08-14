@@ -1,11 +1,10 @@
 class DepartmentsController < ApplicationController
-  before_action :set_department, only: [:show, :edit, :update, :destroy]
+  before_action :set_department, only: [:edit, :update, :destroy]
 
   def index
     @pagy, @departments = pagy(Department.includes(:school))
   end
 
-  def show; end
 
   def new
     @department = Department.new

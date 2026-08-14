@@ -1,5 +1,5 @@
-%h1 Nueva Inscripción
+.card-academic
+  .card-academic-header
+    %h1 Nueva inscripción
 
-= render "form", enrollment: @enrollment
-
-= link_to "Volver", enrollments_path, class: "btn btn-outline-primary mt-3"
+  = render "form", enrollment: @enrollment, volver: enrollments_path

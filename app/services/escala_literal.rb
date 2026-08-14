@@ -16,7 +16,7 @@
 #
 # ## Los cortes
 #
-# Los dio Cyndi, con 19 años de aula. Fijate que **el corte de aprobación cae en
+# Los dio Cyndi, con 19 años de aula. Fíjate que **el corte de aprobación cae en
 # 10**, igual que en media general: no son dos sistemas distintos, es el mismo
 # umbral con otra etiqueta.
 #

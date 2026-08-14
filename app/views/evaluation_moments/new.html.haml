@@ -1,5 +1,5 @@
-%h1 Nuevo Momento de Evaluación
+.card-academic
+  .card-academic-header
+    %h1 Nuevo momento de evaluación
 
-= render "form", evaluation_moment: @evaluation_moment
-
-= link_to "Volver", evaluation_moments_path, class: "btn btn-outline-primary mt-3"
+  = render "form", evaluation_moment: @evaluation_moment, volver: evaluation_moments_path

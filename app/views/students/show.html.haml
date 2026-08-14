@@ -1,20 +1,108 @@
-%h1= "#{@student.user.name} #{@student.user.last_name}"
+-# La ficha del alumno (MOR-135).
+-#
+-# Antes: un `dl` del generador con cinco campos que ya estaban en la fila de la
+-# lista, maquetado con clases de Bootstrap —`.card`, `.col-sm-3`,
+-# `.btn-outline-secondary`— que esta app **no carga**. Salía sin una sola regla
+-# de estilo aplicada. Ver `StudentsController#show` para el orden de la
+-# pantalla, que es el de la secretaría, no el del esquema.
+- alumno = @student.user
 
-.card
-  .card-body
-    %dl.row
-      %dt.col-sm-3 Nombre
-      %dd.col-sm-9= @student.user.name
-      %dt.col-sm-3 Apellido
-      %dd.col-sm-9= @student.user.last_name
-      %dt.col-sm-3 Cédula
-      %dd.col-sm-9= @student.user.id_card || "—"
-      %dt.col-sm-3 Email
-      %dd.col-sm-9= @student.user.email
-      %dt.col-sm-3 Carnet Escolar
-      %dd.col-sm-9= @student.school_card
+.ficha
+  .ficha-cabecera
+    %div
+      %h1.ficha-nombre= "#{alumno.last_name}, #{alumno.name}"
+      %p.ficha-situacion
+        - if @inscripcion
+          = "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
+          %span.ficha-punto ·
+          = @inscripcion.section.academic_period.name
+        - else
+          %span.ficha-sin-cupo Sin inscripción activa
 
-.mt-3
-  = link_to "Editar", edit_student_path(@student), class: "btn btn-outline-secondary"
-  = link_to "Volver", students_path, class: "btn btn-outline-primary"
-  = link_to "Eliminar", @student, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro?" }, class: "btn btn-outline-danger"
+    .ficha-acciones
+      = link_to "Editar", edit_student_path(@student), class: "btn btn-secondary"
+      - if @inscripcion && can_manage_students?
+        = link_to "Constancia", constancias_path(section_id: @inscripcion.section_id), class: "btn btn-secondary"
+
+  -# ── 1. A quién llamar ────────────────────────────────────────────────────
+  -# Va primero porque es el motivo número uno por el que se abre esta pantalla,
+  -# y hasta hoy el dato no estaba acá: había que ir a Representantes y buscar
+  -# al revés, alumno por alumno.
+  .card-academic
+    .card-academic-header
+      %h2 A quién llamar
+
+    - if @responsables.any?
+      %ul.ficha-responsables
+        - @responsables.each do |vinculo|
+          - persona = vinculo.representative.user
+          %li.ficha-responsable
+            %div
+              %span.ficha-responsable-nombre= "#{persona.name} #{persona.last_name}"
+              %span.ficha-responsable-vinculo= vinculo.etiqueta
+              - if vinculo.principal?
+                %span.ficha-principal Principal
+            .ficha-responsable-contacto
+              - if vinculo.representative.phone.present?
+                -# `tel:` y no texto plano: desde el teléfono de la secretaría es
+                -# un toque, y es desde donde se llama.
+                = link_to vinculo.representative.phone, "tel:#{vinculo.representative.phone.gsub(/\s/, '')}", class: "ficha-telefono"
+              - else
+                %span.ficha-falta Sin teléfono
+              %span.ficha-correo= persona.email
+    - else
+      .empty-state
+        %h3 Sin representante registrado
+        %p
+          Nadie figura como responsable de #{alumno.name}. Si el colegio llama a
+          la familia, hoy tiene que buscar el número por fuera del sistema.
+
+  -# ── 2. Cómo va ───────────────────────────────────────────────────────────
+  - if @inscripcion && @boletin
+    .card-academic
+      .card-academic-header
+        %h2 Cómo va
+
+      - if @lapsos.many?
+        .filter-pills
+          - @lapsos.each do |lapso|
+            = link_to lapso.name, student_path(@student, lapso: lapso.id),
+                      class: "filter-pill #{'active' if @lapso == lapso}"
+
+      %ul.ficha-materias
+        - @boletin["materias"].each do |fila|
+          %li.ficha-materia
+            %span.ficha-materia-nombre= fila["materia"]
+            - if fila["nota"]
+              %span.ficha-nota{class: fila["nota"] >= 10 ? "ficha-nota--aprobada" : "ficha-nota--aplazada"}
+                = EscalaLiteral.mostrar(fila["nota"], escala: @inscripcion.section.grade.escala)
+            - else
+              -# Nunca un cero. Sin nota quiere decir que el profesor no ha
+              -# corregido, y confundirlos reprueba a un alumno en el teléfono.
+              %span.ficha-pendiente Pendiente
+
+      - if @boletin["promedio"]
+        %p.ficha-promedio
+          Promedio de #{@lapso.name.downcase}:
+          %strong= EscalaLiteral.mostrar(@boletin["promedio"], escala: @inscripcion.section.grade.escala)
+      - else
+        %p.nota-ayuda Todavía no hay notas cargadas en este lapso.
+
+  -# ── 3. Los datos ─────────────────────────────────────────────────────────
+  .card-academic
+    .card-academic-header
+      %h2 Datos
+
+    .detail-row
+      .detail-item
+        %span.detail-label Cédula
+        %p.detail-value= alumno.id_card.presence || "—"
+      .detail-item
+        %span.detail-label Carnet escolar
+        %p.detail-value= @student.school_card.presence || "—"
+      .detail-item
+        %span.detail-label Correo
+        %p.detail-value= alumno.email
+
+  %p.ficha-volver
+    = link_to "← Volver a la lista", students_path

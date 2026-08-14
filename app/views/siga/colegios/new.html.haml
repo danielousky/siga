@@ -20,7 +20,7 @@
       .form-group
         = label_tag "school[dea_code]", "Código DEA", class: "form-label"
         = text_field_tag "school[dea_code]", @colegio.dea_code, class: "form-control", placeholder: "PD01234567"
-        %small.form-text.text-muted Lo asigna el MPPE. Es único en toda la plataforma.
+        %small.nota-ayuda Lo asigna el MPPE. Es único en toda la plataforma.
     .form-row
       .form-group
         = label_tag "school[location]", "Ubicación", class: "form-label"
@@ -28,7 +28,7 @@
       .form-group
         = label_tag "school[school_type]", "Tipo", class: "form-label"
         = select_tag "school[school_type]", options_for_select([["Primaria", "primary"], ["Media general", "secondary"]], @colegio.school_type), class: "form-select"
-        %small.form-text.text-muted
+        %small.nota-ayuda
           Da el valor por defecto de la escala de sus grados: primaria por
           literal, media por número. Cada grado lo puede cambiar.
 
@@ -48,7 +48,7 @@
       .form-group
         = label_tag "director[id_card]", "Cédula", class: "form-label"
         = text_field_tag "director[id_card]", @usuario&.id_card, class: "form-control", placeholder: "V-12345678"
-    %small.form-text.text-muted
+    %small.nota-ayuda
       La contraseña se genera sola y no se muestra: hay que mandarle un enlace
       para que la defina. Eso llega cuando haya correo configurado
       (%code MOR-102).

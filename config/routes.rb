@@ -97,7 +97,7 @@ Rails.application.routes.draw do
   get  "asistencia/:seccion_id",        to: "asistencias#show",      as: :seccion_asistencia
   post "asistencia/:seccion_id",        to: "asistencias#create"
 
-  resources :evaluation_moments
+  resources :evaluation_moments, except: [ :show ]
   resources :evaluation_activities do
     # La planilla de carga. `notas/:student_id` hace upsert y borrado: mandar el
     # campo vacío devuelve al alumno a "sin nota", que NO es lo mismo que un 1.
@@ -114,16 +114,15 @@ Rails.application.routes.draw do
   end
 
   resources :representatives, path: "representantes"
-  resources :departments
+  resources :departments, except: [ :show ]
   resources :subjects
-  resources :academic_periods
+  resources :academic_periods, except: [ :show ]
   resources :sections do
     resources :teacher_sections, only: [:create, :destroy]
   end
-  resources :enrollments
+  resources :enrollments, except: [ :show ]
   resources :students
   resources :teachers
-  resources :admins
-
+  resources :admins, except: [ :show ]
   root "inicio#index"
 end

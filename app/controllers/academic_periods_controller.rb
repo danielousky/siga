@@ -1,12 +1,11 @@
 class AcademicPeriodsController < ApplicationController
   before_action :require_admin_access!
-  before_action :set_academic_period, only: [:show, :edit, :update, :destroy]
+  before_action :set_academic_period, only: [:edit, :update, :destroy]
 
   def index
     @pagy, @academic_periods = pagy(AcademicPeriod.includes(:school))
   end
 
-  def show; end
 
   def new
     @academic_period = AcademicPeriod.new

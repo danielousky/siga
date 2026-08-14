@@ -1,16 +1,54 @@
-%h1= @subject.name
+-# La materia (MOR-135). Ver `SubjectsController#show`.
+.ficha
+  .ficha-cabecera
+    %div
+      %h1.ficha-nombre= @subject.name
+      %p.ficha-situacion
+        = @subject.code
+        %span.ficha-punto ·
+        = @subject.department.name
 
-.card
-  .card-body
-    %dl.row
-      %dt.col-sm-3 Código
-      %dd.col-sm-9= @subject.code
-      %dt.col-sm-3 Nombre
-      %dd.col-sm-9= @subject.name
-      %dt.col-sm-3 Departamento
-      %dd.col-sm-9= @subject.department.name
+    .ficha-acciones
+      = link_to "Editar", edit_subject_path(@subject), class: "btn btn-secondary"
 
-.mt-3
-  = link_to "Editar", edit_subject_path(@subject), class: "btn btn-outline-secondary"
-  = link_to "Volver", subjects_path, class: "btn btn-outline-primary"
-  = link_to "Eliminar", @subject, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro?" }, class: "btn btn-outline-danger"
+  .card-academic
+    .card-academic-header
+      %h2 En qué grados se cursa
+
+    - if @grados.any?
+      %ul.ficha-secciones
+        - @grados.each do |grado|
+          %li.ficha-seccion
+            = link_to grado.name, grade_path(grado), class: "ficha-seccion-nombre"
+            %span.ficha-seccion-periodo= grado.level.humanize
+    - else
+      .empty-state
+        %h3 En ningún grado
+        %p
+          Esta materia existe en el catálogo pero no está asignada a ningún
+          grado, así que nadie puede cargarle notas. Se asigna desde el grado.
+
+  .card-academic
+    .card-academic-header
+      %h2 Quién la dicta
+
+    - if @quienes.any?
+      %table.table-academic
+        %thead
+          %tr
+            %th Profesor
+            %th Sección
+            %th Año escolar
+        %tbody
+          - @quienes.each do |asignacion|
+            %tr
+              %td= link_to "#{asignacion.teacher.user.last_name}, #{asignacion.teacher.user.name}", teacher_path(asignacion.teacher)
+              %td= link_to "#{asignacion.section.grade.name} – #{asignacion.section.name}", section_path(asignacion.section)
+              %td= asignacion.section.academic_period.name
+    - else
+      .empty-state
+        %h3 Sin profesor asignado
+        %p Ninguna sección tiene un profesor asignado para esta materia.
+
+  %p.ficha-volver
+    = link_to "← Volver a las materias", subjects_path

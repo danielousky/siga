@@ -1,5 +1,5 @@
-%h1 Nuevo Administrador
+.card-academic
+  .card-academic-header
+    %h1 Nuevo administrador
 
-= render "form", admin: @admin
-
-= link_to "Volver", admins_path, class: "btn btn-outline-primary mt-3"
+  = render "form", admin: @admin, volver: admins_path

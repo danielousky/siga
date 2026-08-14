@@ -21,7 +21,6 @@
             %span.role-badge= admin.role.humanize
           %td
             .actions-group
-              = link_to "Ver", admin, class: "btn btn-secondary btn-sm"
               = link_to "Editar", edit_admin_path(admin), class: "btn btn-secondary btn-sm"
               = link_to "Eliminar", admin, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar este administrador?" }, class: "btn btn-danger btn-sm"
 

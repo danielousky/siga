@@ -1,6 +1,13 @@
 !!!
 %html
   %head
+    -# Primero de todo, y no por gusto: el estándar solo garantiza que se lea si
+    -# aparece en los primeros 1024 bytes. Rails ya manda `charset=utf-8` en la
+    -# cabecera HTTP y con eso alcanza en condiciones normales; esto cubre las
+    -# que no lo son —una exportación estática, una página guardada, un proxy
+    -# que reescribe cabeceras—, donde el español se rompe entero: "Gestión"
+    -# pasa a "GestiÃ³n" en cada acento de cada pantalla.
+    %meta{charset: "utf-8"}
     %title= titulo_de_pagina
     %meta{name: "viewport", content: "width=device-width,initial-scale=1"}
     %meta{name: "description", content: descripcion_de_pagina}

@@ -1,6 +1,6 @@
 class EnrollmentsController < ApplicationController
   before_action :require_admin_access!
-  before_action :set_enrollment, only: [:show, :edit, :update, :destroy]
+  before_action :set_enrollment, only: [:edit, :update, :destroy]
 
   # Acá se busca al alumno, no a la inscripción: por eso son campos de `users`.
   CAMPOS_DE_BUSQUEDA = %w[users.name users.last_name users.id_card].freeze
@@ -16,7 +16,6 @@ class EnrollmentsController < ApplicationController
     @grades_options = [["Todos los grados", ""]] + Grade.order(:name).pluck(:name, :id)
   end
 
-  def show; end
 
   def new
     @enrollment = Enrollment.new(enrollment_date: Date.today)

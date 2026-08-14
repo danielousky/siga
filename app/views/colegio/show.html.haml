@@ -9,7 +9,7 @@
     — boletines y constancias. Un boletín con el escudo del colegio es el
     boletín del colegio.
 
-  = form_with model: @colegio, url: colegio_path, method: :patch, class: "mb-3" do |f|
+  = form_with model: @colegio, url: colegio_path, method: :patch, class: "" do |f|
     = render "shared/errors", object: @colegio
 
     .identidad
@@ -24,27 +24,27 @@
             Los documentos salen sin él. Sirven igual, pero no se ven del colegio.
 
       .identidad-campos
-        .mb-3
+        .form-group
           = f.label :logo, "Escudo del colegio", class: "form-label"
           = f.file_field :logo, accept: "image/png,image/jpeg", class: "form-control"
-          %small.form-text.text-muted
+          %small.nota-ayuda
             PNG o JPG, hasta 2 MB. Conviene fondo transparente o blanco: se
             imprime sobre papel.
 
-        .mb-3
+        .form-group
           = f.label :name, "Nombre", class: "form-label"
           = f.text_field :name, class: "form-control"
-          %small.form-text.text-muted
+          %small.nota-ayuda
             Como tiene que aparecer en los documentos oficiales.
 
-        .mb-3
+        .form-group
           = f.label :location, "Ubicación", class: "form-label"
           = f.text_field :location, class: "form-control", placeholder: "Caracas, Distrito Capital"
 
-        .mb-3
+        .form-group
           = f.label :dea_code, "Código DEA", class: "form-label"
           = f.text_field :dea_code, class: "form-control", disabled: true
-          %small.form-text.text-muted
+          %small.nota-ayuda
             Lo asigna el MPPE y no se edita desde aquí. Si está mal, escríbenos.
 
         = f.submit "Guardar", class: "btn btn-primary"

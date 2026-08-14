@@ -1,23 +1,29 @@
-= form_with(model: evaluation_moment, class: "mb-3") do |f|
+= form_with(model: evaluation_moment) do |f|
   = render "shared/errors", object: evaluation_moment
 
   -# La lista de períodos ya viene filtrada al colegio de la sesión: AcademicPeriod
   -# es SchoolScoped, así que `AcademicPeriod.includes(:school)` no puede traer los
   -# de otro colegio aunque alguien lo intente.
-  .mb-3
+  .form-group
     = f.label :academic_period_id, "Período académico", class: "form-label"
     = f.select :academic_period_id, AcademicPeriod.order(:name).map { |p| [p.name, p.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
-  .mb-3
+  .form-group
     = f.label :name, "Nombre", class: "form-label"
     = f.text_field :name, class: "form-control"
 
-  .mb-3
+  .form-group
     = f.label :weight, "Peso (%)", class: "form-label"
     = f.number_field :weight, class: "form-control", step: 0.01, min: 0, max: 100
-    %small.form-text.text-muted
+    %small.nota-ayuda
       Describe qué parte del año representa el lapso. La nota anual es el
       %strong promedio
       de los lapsos, sin ponderar (Art. 111 del Reglamento General de la LOE).
 
-  = f.submit class: "btn btn-primary"
+  .form-acciones
+
+    = f.submit class: "btn btn-primary"
+
+    - if local_assigns[:volver]
+
+      = link_to "Volver", volver, class: "btn btn-secondary"

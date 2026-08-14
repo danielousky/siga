@@ -1,5 +1,5 @@
-%h1 Editar Grado
+.card-academic
+  .card-academic-header
+    %h1 Editar grado
 
-= render "form", grade: @grade
-
-= link_to "Volver", grades_path, class: "btn btn-outline-primary mt-3"
+  = render "form", grade: @grade, volver: grades_path

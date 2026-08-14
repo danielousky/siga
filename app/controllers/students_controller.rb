@@ -17,7 +17,41 @@ class StudentsController < ApplicationController
     @pagy, @students = pagy(scope.order("users.last_name, users.name"))
   end
 
-  def show; end
+  # La ficha del alumno.
+  #
+  # ## Para qué se abre esta pantalla, de verdad
+  #
+  # Antes era un `dl` del generador con cinco campos —nombre, apellido, cédula,
+  # correo, carnet— que ya estaban todos en la fila de la lista. O sea: abrirla
+  # no agregaba nada, y encima venía con clases de Bootstrap que esta app no
+  # carga, así que salía sin estilo. Daniel la vio y dijo "eso está crudo".
+  #
+  # La secretaría la abre por tres motivos, en este orden:
+  #
+  #   1. **Llamar a la familia.** Es el motivo número uno y el dato no estaba
+  #      por ningún lado: había que ir a Representantes y buscar al revés.
+  #   2. Confirmar en qué sección está inscrito, para una constancia o un cupo.
+  #   3. Ver cómo va, cuando el representante pregunta por teléfono.
+  #
+  # Por eso el orden de la pantalla es ese y no el del `schema.rb`.
+  def show
+    @inscripcion = @student.enrollments
+                           .includes(section: [ :grade, :academic_period ])
+                           .order(created_at: :desc)
+                           .find(&:regular?)
+
+    @responsables = StudentRepresentative
+                      .where(student_id: @student.user_id)
+                      .includes(representative: :user)
+                      .order(principal: :desc)
+
+    return if @inscripcion.nil?
+
+    @lapsos = EvaluationMoment.where(academic_period_id: @inscripcion.section.academic_period_id)
+                              .order(:id).to_a
+    @lapso  = @lapsos.find { |l| l.id == params[:lapso].to_i } || @lapsos.first
+    @boletin = ReportCardData.para(enrollment: @inscripcion, evaluation_moment: @lapso).to_h if @lapso
+  end
 
   def new
     @student = Student.new

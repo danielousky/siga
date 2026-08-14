@@ -267,6 +267,18 @@ a:hover {
   color: var(--text-primary);
 }
 
+.btn-danger {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border-color: var(--danger-border);
+}
+
+.btn-danger:hover {
+  background: var(--danger-text);
+  border-color: var(--danger-text);
+  color: #fff;
+}
+
 .btn-outline-danger {
   background: transparent;
   color: var(--danger-text);
@@ -3021,4 +3033,178 @@ nav.pagy a.gap {
   .portada-inner { padding: 0 var(--space-md); }
   .portada-acciones { flex-direction: column; }
   .portada-cta { width: 100%; }
+}
+
+/* ==========================================================================
+   FICHA DEL ALUMNO (MOR-135)
+   ==========================================================================
+   Reemplaza un `dl` del generador maquetado con clases de Bootstrap que esta
+   app no carga — salía literalmente sin estilo. El orden de la pantalla es el
+   de la secretaría: a quién llamar, cómo va, y recién después los datos.
+   ========================================================================== */
+
+.ficha { display: flex; flex-direction: column; gap: var(--space-lg); }
+
+.ficha-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  align-items: flex-start;
+  justify-content: space-between;
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border-standard);
+}
+
+.ficha-nombre {
+  font-family: var(--font-serif);
+  font-size: clamp(24px, 3vw, 32px);
+  margin: 0 0 4px;
+  color: var(--text-primary);
+}
+
+.ficha-situacion { margin: 0; color: var(--text-secondary); font-size: 15px; }
+.ficha-punto { margin: 0 6px; color: var(--text-muted); }
+.ficha-sin-cupo { color: var(--warning-text); }
+
+.ficha-acciones { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
+
+/* ---- A quién llamar ---- */
+
+.ficha-responsables { list-style: none; margin: 0; padding: 0; }
+
+.ficha-responsable {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-lg);
+  justify-content: space-between;
+  align-items: baseline;
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ficha-responsable:last-child { border-bottom: none; }
+
+.ficha-responsable-nombre { font-weight: 600; color: var(--text-primary); }
+
+.ficha-responsable-vinculo {
+  margin-left: var(--space-sm);
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.ficha-principal {
+  margin-left: var(--space-sm);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--brand-subtle);
+  color: var(--brand-primary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ficha-responsable-contacto { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+
+/* El teléfono es el dato operativo de esta pantalla: se destaca y es
+   pulsable. Desde el teléfono de la secretaría, `tel:` es un toque. */
+.ficha-telefono {
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand-primary);
+}
+
+.ficha-falta { color: var(--warning-text); font-size: 14px; }
+.ficha-correo { font-size: 13px; color: var(--text-tertiary); }
+
+/* ---- Cómo va ---- */
+
+.ficha-materias { list-style: none; margin: var(--space-md) 0 0; padding: 0; }
+
+.ficha-materia {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-md);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ficha-materia:last-child { border-bottom: none; }
+
+.ficha-materia-nombre { color: var(--text-primary); }
+
+.ficha-nota {
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.ficha-nota--aprobada { color: var(--success-text); }
+.ficha-nota--aplazada { color: var(--danger-text); }
+
+/* "Pendiente" en letras y en gris. Nunca un cero: sin nota quiere decir que el
+   profesor no ha corregido, y confundirlos reprueba a un alumno por teléfono. */
+.ficha-pendiente { font-size: 14px; color: var(--text-muted); font-style: italic; }
+
+.ficha-promedio {
+  margin: var(--space-lg) 0 0;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-standard);
+  color: var(--text-secondary);
+}
+.ficha-promedio strong { font-size: 19px; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+
+.ficha-volver { margin: var(--space-md) 0 0; }
+
+@media (max-width: 640px) {
+  .ficha-responsable-contacto { align-items: flex-start; }
+  .ficha-acciones .btn { flex: 1; }
+}
+
+/* Bloques compartidos por las fichas de grado, materia y profesor. */
+
+.ficha-agregar { margin-top: var(--space-lg); }
+.ficha-agregar-fila { display: flex; gap: var(--space-sm); align-items: stretch; margin-top: 6px; }
+.ficha-agregar-fila .form-select { flex: 1; min-width: 0; }
+
+.ficha-secciones {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.ficha-seccion {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-input);
+  border-radius: var(--radius-sm);
+}
+
+.ficha-seccion-nombre { font-weight: 600; }
+.ficha-seccion-periodo { font-size: 13px; color: var(--text-tertiary); }
+
+@media (max-width: 640px) {
+  .ficha-agregar-fila { flex-direction: column; }
+}
+
+/* La fila de acciones de un formulario: guardar y volver, juntos y al mismo
+   nivel. Antes el "Volver" vivía FUERA del formulario, en un `div.mt-3` —clase
+   de Bootstrap que esta app no carga—, así que caía debajo y sin separación,
+   como si fuera otra cosa. */
+.form-acciones {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-subtle);
+}
+
+@media (max-width: 640px) {
+  .form-acciones { flex-direction: column-reverse; align-items: stretch; }
 }

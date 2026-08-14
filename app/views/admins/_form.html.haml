@@ -1,33 +1,39 @@
-= form_with(model: admin, class: "mb-3") do |f|
+= form_with(model: admin) do |f|
   = render "shared/errors", object: admin
 
-  %fieldset.mb-4
+  %fieldset
     %legend Datos del Usuario
     = f.fields_for :user do |u|
-      .mb-3
+      .form-group
         = u.label :name, "Nombre", class: "form-label"
         = u.text_field :name, class: "form-control"
-      .mb-3
+      .form-group
         = u.label :last_name, "Apellido", class: "form-label"
         = u.text_field :last_name, class: "form-control"
-      .mb-3
+      .form-group
         = u.label :id_card, "Cédula", class: "form-label"
         = u.text_field :id_card, class: "form-control"
-      .mb-3
+      .form-group
         = u.label :email, "Email", class: "form-label"
         = u.email_field :email, class: "form-control"
       - if admin.new_record?
-        .mb-3
+        .form-group
           = u.label :password, "Contraseña", class: "form-label"
           = u.password_field :password, class: "form-control"
-        .mb-3
+        .form-group
           = u.label :password_confirmation, "Confirmar Contraseña", class: "form-label"
           = u.password_field :password_confirmation, class: "form-control"
 
-  %fieldset.mb-4
+  %fieldset
     %legend Datos del Administrador
-    .mb-3
+    .form-group
       = f.label :role, "Rol", class: "form-label"
       = f.select :role, Admin.roles.keys.map { |r| [r.humanize, r] }, { include_blank: "Seleccione..." }, class: "form-select"
 
-  = f.submit class: "btn btn-primary"
+  .form-acciones
+
+    = f.submit class: "btn btn-primary"
+
+    - if local_assigns[:volver]
+
+      = link_to "Volver", volver, class: "btn btn-secondary"

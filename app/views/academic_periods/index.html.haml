@@ -18,7 +18,6 @@
           %td= period.end_date.strftime("%d/%m/%Y")
           %td
             .actions-group
-              = link_to "Ver", period, class: "btn btn-secondary btn-sm"
               = link_to "Editar", edit_academic_period_path(period), class: "btn btn-secondary btn-sm"
               = link_to "Eliminar", period, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar este período?" }, class: "btn btn-danger btn-sm"
 

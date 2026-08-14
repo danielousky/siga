@@ -2,7 +2,7 @@
 -# ver cuánto le queda MIENTRAS elige, no después de que el formulario lo rechace.
 -# Los pesos ya comprometidos de todas sus asignaciones caben en un atributo de
 -# datos — un profesor tiene pocas secciones.
-= form_with(model: evaluation_activity, class: "mb-3",
+= form_with(model: evaluation_activity,
             data: { controller: "ponderacion",
                     ponderacion_asignaciones_value: ponderacion_de_mis_asignaciones.to_json }) do |f|
   = render "shared/errors", object: evaluation_activity
@@ -18,7 +18,7 @@
     = f.label :evaluation_moment_id, "Lapso", class: "form-label"
     = f.select :evaluation_moment_id, [], { include_blank: "Elige el lapso..." },
       class: "form-select", data: { ponderacion_target: "lapso", action: "change->ponderacion#recalcular" }
-    %small.form-text.text-muted Solo aparecen los lapsos del año escolar de la sección elegida.
+    %small.nota-ayuda Solo aparecen los lapsos del año escolar de la sección elegida.
 
   .form-group
     = f.label :description, "Qué se evalúa", class: "form-label"
@@ -39,5 +39,11 @@
     = f.label :date_scheduled, "Fecha", class: "form-label"
     = f.date_field :date_scheduled, class: "form-control"
 
-  = f.submit class: "btn btn-primary"
+  .form-acciones
+
+    = f.submit class: "btn btn-primary"
+
+    - if local_assigns[:volver]
+
+      = link_to "Volver", volver, class: "btn btn-secondary"
   = link_to "Cancelar", evaluation_activities_path, class: "btn btn-secondary"

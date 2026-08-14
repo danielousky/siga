@@ -1,42 +1,106 @@
-%h1= @grade.name
+-# El grado escolar (MOR-135).
+-#
+-# Antes era un `dl` de tres filas más una tabla `.table-striped` —clase de
+-# Bootstrap, que esta app no carga— y tres botones `btn-outline-*` que tampoco
+-# pintan. Salía crudo, literalmente sin estilo aplicado.
+-#
+-# Un grado no es una fila de catálogo: es lo que decide **con qué materias se
+-# cursa** y **con qué escala se califica** (MOR-129). Las dos cosas se deciden
+-# acá, así que las dos tienen que verse acá.
 
-.card.mb-4
-  .card-body
-    %dl.row
-      %dt.col-sm-3 Nombre
-      %dd.col-sm-9= @grade.name
-      %dt.col-sm-3 Nivel
-      %dd.col-sm-9= @grade.level.humanize
-      %dt.col-sm-3 Profesor Guía
-      %dd.col-sm-9= @grade.leader_teacher&.user&.name || "—"
+.ficha
+  .ficha-cabecera
+    %div
+      %h1.ficha-nombre= @grade.name
+      %p.ficha-situacion
+        = @grade.level.humanize
+        %span.ficha-punto ·
+        = contar(@grade.sections.size, "sección", "secciones")
 
-%h3 Materias Asignadas
-- if @grade_subjects.any?
-  %table.table.table-striped
-    %thead
-      %tr
-        %th Código
-        %th Materia
-        %th Acciones
-    %tbody
-      - @grade_subjects.each do |gs|
-        %tr
-          %td= gs.subject.code
-          %td= gs.subject.name
-          %td
-            = link_to "Quitar", grade_grade_subject_path(@grade, gs), data: { turbo_method: :delete, turbo_confirm: "¿Quitar esta materia?" }, class: "btn btn-sm btn-outline-danger"
-- else
-  %p.text-muted No hay materias asignadas.
+    .ficha-acciones
+      = link_to "Editar", edit_grade_path(@grade), class: "btn btn-secondary"
 
-- if @available_subjects.any?
-  .card.mt-3
-    .card-body
-      %h5 Agregar Materia
-      = form_with(url: grade_grade_subjects_path(@grade), method: :post, class: "d-flex gap-2") do |f|
-        = f.select :subject_id, options_for_select(@available_subjects.map { |s| ["#{s.code} - #{s.name}", s.id] }), {}, class: "form-select"
-        = f.submit "Agregar", class: "btn btn-primary"
+  .card-academic
+    .card-academic-header
+      %h2 Cómo se califica
 
-.mt-3
-  = link_to "Editar", edit_grade_path(@grade), class: "btn btn-outline-secondary"
-  = link_to "Volver", grades_path, class: "btn btn-outline-primary"
-  = link_to "Eliminar", @grade, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro?" }, class: "btn btn-outline-danger"
+    .detail-row
+      .detail-item
+        %span.detail-label Escala
+        %p.detail-value
+          - if @grade.escala_literal?
+            Literal
+          - else
+            Numérica
+      .detail-item
+        %span.detail-label Cómo se ve una nota
+        %p.detail-value
+          -# Un ejemplo concreto vale más que el nombre del enum: la directora
+          -# ve exactamente lo que va a salir impreso en el boletín.
+          = EscalaLiteral.mostrar(18, escala: @grade.escala)
+          %span.ficha-punto ·
+          = EscalaLiteral.mostrar(11, escala: @grade.escala)
+      .detail-item
+        %span.detail-label Profesor guía
+        %p.detail-value
+          - if @grade.leader_teacher
+            = "#{@grade.leader_teacher.user.name} #{@grade.leader_teacher.user.last_name}"
+          - else
+            Sin asignar
+
+    %p.nota-ayuda
+      La nota siempre se guarda como número entero del 1 al 20, como manda el
+      artículo 108 del Reglamento de la LOE. La escala solo cambia cómo se
+      muestra.
+
+  .card-academic
+    .card-academic-header
+      %h2 Materias del grado
+
+    - if @grade_subjects.any?
+      %table.table-academic
+        %thead
+          %tr
+            %th Código
+            %th Materia
+            %th
+        %tbody
+          - @grade_subjects.each do |gs|
+            %tr
+              %td= gs.subject.code
+              %td= gs.subject.name
+              %td
+                .actions-group
+                  = link_to "Quitar", grade_grade_subject_path(@grade, gs),
+                            data: { turbo_method: :delete,
+                                    turbo_confirm: "¿Quitar #{gs.subject.name} de #{@grade.name}? Las notas ya cargadas no se borran." },
+                            class: "btn btn-danger btn-sm"
+    - else
+      .empty-state
+        %h3 Sin materias
+        %p
+          Este grado no tiene materias asignadas todavía, así que sus secciones
+          no pueden cargar notas.
+
+    - if @available_subjects.any?
+      = form_with url: grade_grade_subjects_path(@grade), method: :post, class: "ficha-agregar" do |f|
+        = f.label :subject_id, "Agregar una materia", class: "form-label"
+        .ficha-agregar-fila
+          = f.select :subject_id,
+            options_for_select(@available_subjects.map { |s| [ "#{s.code} · #{s.name}", s.id ] }),
+            {}, class: "form-select"
+          = f.submit "Agregar", class: "btn btn-primary"
+
+  - if @grade.sections.any?
+    .card-academic
+      .card-academic-header
+        %h2 Secciones
+
+      %ul.ficha-secciones
+        - @grade.sections.includes(:academic_period).each do |seccion|
+          %li.ficha-seccion
+            = link_to seccion.name, section_path(seccion), class: "ficha-seccion-nombre"
+            %span.ficha-seccion-periodo= seccion.academic_period.name
+
+  %p.ficha-volver
+    = link_to "← Volver a los grados", grades_path

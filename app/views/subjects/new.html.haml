@@ -1,5 +1,5 @@
-%h1 Nueva Materia
+.card-academic
+  .card-academic-header
+    %h1 Nueva materia
 
-= render "form", subject: @subject
-
-= link_to "Volver", subjects_path, class: "btn btn-outline-primary mt-3"
+  = render "form", subject: @subject, volver: subjects_path

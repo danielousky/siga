@@ -21,10 +21,10 @@
             = representante.user.email
             - if representante.phone.present?
               %br
-              %span.text-muted= representante.phone
+              %span.nota-ayuda= representante.phone
           %td
             - if representante.students.any?
-              = representante.students.map { |a| "#{a.user.name} #{a.user.last_name}" }.join(" · ")
+              = representante.students.map { |a| "#{a.user.name} #{a.user.last_name}" }.join(" ·")
             - else
               %span.nota-pendiente Sin alumnos vinculados
           %td

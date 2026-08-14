@@ -1,20 +1,26 @@
-= form_with(model: enrollment, class: "mb-3") do |f|
+= form_with(model: enrollment) do |f|
   = render "shared/errors", object: enrollment
 
-  .mb-3
+  .form-group
     = f.label :student_id, "Estudiante", class: "form-label"
     = f.select :student_id, Student.includes(:user).map { |s| ["#{s.user.name} #{s.user.last_name} (#{s.user.id_card})", s.user_id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
-  .mb-3
+  .form-group
     = f.label :section_id, "Sección", class: "form-label"
     = f.select :section_id, Section.includes(:grade, :academic_period).map { |s| ["#{s.grade.name} - #{s.name} (#{s.academic_period.name})", s.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
-  .mb-3
+  .form-group
     = f.label :enrollment_date, "Fecha de Inscripción", class: "form-label"
     = f.date_field :enrollment_date, class: "form-control"
 
-  .mb-3
+  .form-group
     = f.label :status, "Estado", class: "form-label"
     = f.select :status, Enrollment.statuses.keys.map { |s| [s.humanize, s] }, {}, class: "form-select"
 
-  = f.submit class: "btn btn-primary"
+  .form-acciones
+
+    = f.submit class: "btn btn-primary"
+
+    - if local_assigns[:volver]
+
+      = link_to "Volver", volver, class: "btn btn-secondary"

@@ -6,7 +6,18 @@ class TeachersController < ApplicationController
     @pagy, @teachers = pagy(Teacher.includes(:user, :school))
   end
 
-  def show; end
+  # La ficha del profesor.
+  #
+  # La pregunta que se hace quien la abre es "¿qué dicta y dónde?" — para
+  # repartir carga, cubrir una ausencia o saber a quién llamar por una sección.
+  # El `dl` anterior contestaba nombre, apellido, cédula y correo: las cuatro
+  # cosas que ya estaban en la fila de la lista.
+  def show
+    @asignaciones = TeacherSection.where(teacher_id: @teacher.user_id)
+                                  .includes(:subject, section: [ :grade, :academic_period ])
+                                  .to_a
+                                  .sort_by { |a| [ a.section.grade.name, a.section.name, a.subject.name ] }
+  end
 
   def new
     @teacher = Teacher.new
