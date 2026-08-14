@@ -1,0 +1,24 @@
+.card-academic
+  .card-academic-header
+    %h1 Asistencia
+    .admin-info-badge= l(Date.current, format: :long)
+
+  - if @secciones.empty?
+    .empty-state
+      %h3 Sin secciones a cargo
+      %p
+        La asistencia la toma el profesor guía del grado. Si te corresponde y no
+        aparece acá, pedile a la dirección que te asigne como guía.
+
+  - else
+    %p.nota-ayuda Elegí la sección para tomar la asistencia de hoy.
+
+    .asistencia-secciones
+      - @secciones.each do |seccion|
+        = link_to seccion_asistencia_path(seccion, dia: Date.current), class: "asistencia-seccion" do
+          %span.asistencia-seccion-nombre= "#{seccion.grade.name} – #{seccion.name}"
+          %span.asistencia-seccion-dato
+            - if @tomadas_hoy&.any? { |id| seccion.enrollment_ids.include?(id) }
+              %span.asistencia-marca-tomada Tomada hoy
+            - else
+              = contar(seccion.enrollments.size, "alumno", "alumnos")

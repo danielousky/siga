@@ -34,6 +34,10 @@
         = link_to "Secciones", sections_path, class: "sidebar-nav-link #{'active' if controller_name == 'sections'}"
       %li.sidebar-nav-item
         = link_to "Inscripciones", enrollments_path, class: "sidebar-nav-link #{'active' if controller_name == 'enrollments'}"
+      %li.sidebar-nav-item
+        = link_to "Asistencia", asistencias_path, class: "sidebar-nav-link #{'active' if controller_name == 'asistencias' && action_name != 'reporte'}"
+      %li.sidebar-nav-item
+        = link_to "Inasistencias", reporte_asistencia_path, class: "sidebar-nav-link #{'active' if action_name == 'reporte'}"
 
 .sidebar-section
   .sidebar-section-title Personas

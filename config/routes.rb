@@ -53,6 +53,15 @@ Rails.application.routes.draw do
   resources :report_cards, only: [:index, :create], path: "boletines"
   get "verificar(/:code)", to: "verificaciones#show", as: :verificar
 
+  # Asistencia (MOR-111). La toma es de una SECCIÓN y un DÍA, y por eso el día
+  # va como parámetro y no en la ruta: el caso normal es hoy, y escribir la
+  # fecha en la URL sería pedirle al profesor que la piense.
+  get  "asistencia",                    to: "asistencias#index",     as: :asistencias
+  get  "asistencia/reporte",            to: "asistencias#reporte",   as: :reporte_asistencia
+  get  "asistencia/alumno/:enrollment_id", to: "asistencias#historial", as: :historial_asistencia
+  get  "asistencia/:seccion_id",        to: "asistencias#show",      as: :seccion_asistencia
+  post "asistencia/:seccion_id",        to: "asistencias#create"
+
   resources :evaluation_moments
   resources :evaluation_activities do
     # La planilla de carga. `notas/:student_id` hace upsert y borrado: mandar el

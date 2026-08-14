@@ -1,0 +1,59 @@
+-# Quiénes acumulan faltas — lo que el colegio necesita para ACTUAR.
+-#
+-# Cuenta solo las ausencias SIN JUSTIFICAR: un alumno con seis faltas
+-# justificadas por una internación no es el mismo caso que uno con seis sin
+-# aviso, y mezclarlos hace que el reporte no sirva para decidir nada.
+.card-academic
+  .card-academic-header
+    %h1 Inasistencias
+
+  = form_with url: reporte_asistencia_path, method: :get, class: "mb-3" do
+    .form-row
+      .form-group
+        = label_tag :desde, "Desde", class: "form-label"
+        = date_field_tag :desde, @desde, class: "form-control"
+      .form-group
+        = label_tag :hasta, "Hasta", class: "form-label"
+        = date_field_tag :hasta, @hasta, class: "form-control"
+      .form-group{style: "display: flex; align-items: flex-end;"}
+        = submit_tag "Ver", class: "btn btn-primary", data: { turbo: false }
+
+  - if @filas.empty?
+    .empty-state
+      %h3 Sin inasistencias en el período
+      %p
+        Nadie acumuló faltas sin justificar entre el
+        = "#{l(@desde, format: :long)} y el #{l(@hasta, format: :long)}."
+
+  - else
+    = render "shared/escala", total: @filas.size, singular: "alumno para revisar", plural: "alumnos para revisar",
+             detalle: "entre el #{l(@desde, format: :short)} y el #{l(@hasta, format: :short)}"
+
+    %p.nota-ayuda
+      Las faltas
+      %strong ya justificadas no se cuentan:
+      un alumno con reposo médico presentado no es el mismo caso que uno que
+      faltó sin aviso, y mezclarlos haría que este reporte no sirva para decidir
+      nada. Aparece también quien
+      %strong llega tarde seguido
+      aunque no falte.
+
+    %table.table-academic
+      %thead
+        %tr
+          %th Alumno
+          %th Sección
+          %th Faltas sin justificar
+          %th Tardanzas
+          %th
+      %tbody
+        - @filas.each do |fila|
+          - inscripcion = fila[:inscripcion]
+          %tr
+            %td= "#{inscripcion.student.user.last_name}, #{inscripcion.student.user.name}"
+            %td= "#{inscripcion.section.grade.name} – #{inscripcion.section.name}"
+            %td
+              -# El número manda: es el que decide si hay que llamar a la casa.
+              %span.falta-conteo{class: ("falta-conteo--alta" if fila[:faltas] >= 5)}= fila[:faltas]
+            %td= @tardanzas[inscripcion.id] || 0
+            %td= link_to "Ver historial", historial_asistencia_path(inscripcion), class: "btn btn-secondary btn-sm"

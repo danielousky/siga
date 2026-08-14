@@ -658,6 +658,66 @@ end
 puts "   ✓ #{EvaluationActivity.count} actividades · #{ActivityGrade.count} notas cargadas"
 puts "     Bello · 4to Grado A: #{alumnos_bel.size} alumnos con nota anual, recorriendo A–E"
 
+# =============================================================================
+# ASISTENCIA — dos semanas de historia, para que el reporte tenga qué mostrar
+# =============================================================================
+#
+# Sin datos, la pantalla de inasistencias es una tabla vacía y no se puede
+# evaluar si sirve. Con dos semanas se ve lo que el colegio necesita ver: quién
+# acumula faltas, quién llega tarde seguido, y quién ya trajo el justificativo.
+#
+# El profesor guía es quien la toma (MOR-111), así que primero hay que asignarlo:
+# sin `leader_teacher`, la pantalla de asistencia no le aparece a nadie.
+puts ""
+puts "🗓️  Registrando asistencia de las últimas dos semanas..."
+
+gbol[:g1].update!(leader_teacher: Teacher.find_by(user: User.find_by(email: "prof.garcia@bolivar.edu")))
+
+seccion_asis = sec_bol["g1_A"]
+alumnos_asis = students_per_section_bol["g1_A"]
+inscripciones_asis = Enrollment.where(section: seccion_asis, student: alumnos_asis).order(:id).to_a
+
+# Diez días hábiles hacia atrás. Los patrones están elegidos para que el reporte
+# muestre casos distintos y no una lista plana:
+#
+#   · el alumno 1 no falta nunca
+#   · el 2 acumula 4 faltas SIN justificar   → el caso que dispara una llamada
+#   · el 3 falta 2 veces y las dos JUSTIFICADAS → no debe aparecer en el reporte
+#   · el 4 llega tarde seguido, que no es lo mismo que faltar
+FALTAS = { 2 => [1, 3, 5, 8], 3 => [2, 6] }.freeze
+TARDES = { 4 => [1, 2, 4, 7, 9] }.freeze
+
+dias_habiles = (0..13).map { |d| Date.current - d }.reject { |f| f.saturday? || f.sunday? }.first(10)
+
+dias_habiles.each_with_index do |dia, di|
+  inscripciones_asis.each_with_index do |inscripcion, ai|
+    puesto = ai + 1
+    estado =
+      if FALTAS[puesto]&.include?(di) then :ausente
+      elsif TARDES[puesto]&.include?(di) then :tarde
+      else :presente
+      end
+
+    registro = Attendance.find_or_initialize_by(enrollment: inscripcion, date: dia)
+    registro.status = estado
+    registro.recorded_by = User.find_by(email: "prof.garcia@bolivar.edu")
+
+    # El alumno 3 sí trajo el justificativo: la secretaría lo cargó al día
+    # siguiente. Sirve para ver que el reporte NO lo cuenta.
+    if puesto == 3 && estado == :ausente
+      registro.justificacion   = "Reposo médico presentado por el representante"
+      registro.justificada_en  = dia + 1
+      registro.justificada_por = User.find_by(email: "director.bolivar@siga.edu")
+    end
+
+    registro.save!
+  end
+end
+
+sin_justificar = Attendance.sin_justificar.count
+puts "   ✓ #{Attendance.count} registros en #{dias_habiles.size} días hábiles"
+puts "     #{sin_justificar} faltas sin justificar · #{Attendance.where(status: :tarde).count} tardanzas · #{Attendance.where.not(justificada_en: nil).count} justificadas"
+
 # No hace falta llamar a GradeCalculator: desde MOR-96 cada nota recalcula sola
 # su lapso y su anual al guardarse. Que los contadores de abajo den distinto de
 # cero es la prueba de que el cable está puesto.

@@ -2249,3 +2249,199 @@ nav.pagy a.gap {
   letter-spacing: 0.04em;
   color: var(--brand-primary);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ASISTENCIA — la pantalla que tiene un minuto (MOR-111)
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Un profesor la usa de pie, con treinta alumnos entrando y el teléfono en una
+   mano. Todo lo de acá sale de esa restricción:
+
+     · La fila ENTERA es el objetivo del toque, no una casilla de 20 px.
+     · 52 px de alto: por encima del mínimo de 44 px que se puede tocar con el
+       pulgar sin mirar, que es como se toca de verdad.
+     · El estado se lee por color Y por palabra. Solo color deja afuera a quien
+       no distingue rojo de verde, y en una lista de treinta nombres eso es no
+       poder usar la pantalla.
+*/
+
+.asistencia-dias {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-md);
+}
+
+.asistencia-lista {
+  list-style: none;
+  margin: 0 0 var(--space-lg);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.asistencia-alumno { margin: 0; }
+
+.asistencia-boton {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-standard);
+  border-left: 4px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.asistencia-boton:hover { background: var(--surface-hover); }
+
+.asistencia-boton:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.asistencia-nombre { font-weight: 500; }
+
+.asistencia-estado {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+/* Presente es el estado por defecto y va callado: si los treinta gritaran, las
+   dos ausencias no se verían. */
+.asistencia-alumno[data-estado="presente"] .asistencia-estado {
+  background: var(--surface-hover);
+  color: var(--text-tertiary);
+}
+
+.asistencia-alumno[data-estado="ausente"] .asistencia-boton {
+  border-left-color: var(--danger-text);
+  background: var(--danger-bg);
+}
+
+.asistencia-alumno[data-estado="ausente"] .asistencia-estado {
+  background: var(--danger-text);
+  color: #fff;
+}
+
+.asistencia-alumno[data-estado="tarde"] .asistencia-boton {
+  border-left-color: var(--warning-text);
+  background: var(--warning-bg);
+}
+
+.asistencia-alumno[data-estado="tarde"] .asistencia-estado {
+  background: var(--warning-text);
+  color: #fff;
+}
+
+/* El pie queda pegado abajo: con treinta alumnos el botón de guardar cae fuera
+   de la pantalla, y un botón que hay que buscar es un día sin registrar. */
+.asistencia-pie {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  padding: var(--space-md) 0;
+  background: var(--surface-elevated);
+  border-top: 1px solid var(--border-standard);
+}
+
+.asistencia-resumen {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.asistencia-guardar { min-height: 48px; padding-inline: var(--space-xl); }
+
+/* ── Elegir sección ──────────────────────────────────────────────────────── */
+
+.asistencia-secciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-sm);
+}
+
+.asistencia-seccion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-height: 60px;
+  padding: var(--space-md);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.asistencia-seccion:hover {
+  border-color: var(--brand-primary);
+  background: var(--surface-hover);
+}
+
+.asistencia-seccion-nombre { font-weight: 600; }
+.asistencia-seccion-dato { font-size: 13px; color: var(--text-tertiary); }
+
+.asistencia-marca-tomada {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--success-text);
+  background: var(--success-bg);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+@media (max-width: 600px) {
+  .asistencia-boton { min-height: 56px; font-size: 16px; }
+  .asistencia-pie { padding-bottom: var(--space-lg); }
+  .asistencia-guardar { flex: 1; }
+}
+
+/* Marcas de estado en el historial y el reporte de inasistencias (MOR-111). */
+
+.asistencia-marca {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.asistencia-marca--presente { background: var(--success-bg); color: var(--success-text); }
+.asistencia-marca--ausente  { background: var(--danger-bg);  color: var(--danger-text); }
+.asistencia-marca--tarde    { background: var(--warning-bg); color: var(--warning-text); }
+
+/* El conteo de faltas es el dato que decide si hay que llamar a la casa, así que
+   pesa más que el resto de la fila. */
+.falta-conteo {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.falta-conteo--alta { color: var(--danger-text); }

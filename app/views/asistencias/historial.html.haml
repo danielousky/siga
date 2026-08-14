@@ -1,0 +1,46 @@
+.card-academic
+  .card-academic-header
+    %h1= "#{@inscripcion.student.user.last_name}, #{@inscripcion.student.user.name}"
+    .admin-info-badge
+      = "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
+
+  .stats-grid
+    .stat-card
+      %h3= @resumen["presente"] || 0
+      %p Días presente
+    .stat-card
+      %h3= @resumen["ausente"] || 0
+      %p Ausencias
+    .stat-card
+      %h3= @resumen["tarde"] || 0
+      %p Tardanzas
+
+  - if @asistencias.empty?
+    .empty-state
+      %h3 Sin registros
+      %p Todavía no se tomó asistencia para este alumno.
+
+  - else
+    %p.nota-ayuda Los últimos 90 días registrados, del más reciente al más viejo.
+
+    %table.table-academic
+      %thead
+        %tr
+          %th Fecha
+          %th Estado
+          %th Justificación
+      %tbody
+        - @asistencias.each do |registro|
+          %tr
+            %td= l(registro.date, format: :long)
+            %td
+              %span.asistencia-marca{class: "asistencia-marca--#{registro.status}"}= registro.etiqueta
+            %td
+              - if registro.justificada?
+                = registro.justificacion.presence || "Justificada"
+              - elsif registro.ausente?
+                -# Decirlo en letras y no dejar la celda vacía: una celda vacía se
+                   lee como "todavía no lo cargaron", y esto es una afirmación.
+                %span.nota-pendiente Sin justificar
+              - else
+                = "—"

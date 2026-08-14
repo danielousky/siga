@@ -1,0 +1,61 @@
+-# La toma de asistencia (MOR-111).
+-#
+-# Un minuto para treinta alumnos. Todos presentes por defecto; se tocan las
+-# excepciones, que la mayoría de los días son dos o tres.
+.card-academic{data: {controller: "asistencia",
+                      asistencia_url_value: seccion_asistencia_path(@seccion),
+                      asistencia_dia_value: @dia.to_s,
+                      asistencia_total_value: @inscripciones.size}}
+  .card-academic-header
+    %h1 Asistencia
+    .admin-info-badge
+      = "#{@seccion.grade.name} – #{@seccion.name}"
+      %span.role-badge= l(@dia, format: :long)
+
+  - if @ya_tomada
+    .alert.alert-success{style: "margin-bottom: var(--space-md);"}
+      Ya se tomó la asistencia de este día. Podés corregirla y volver a guardar.
+
+  -# El día se elige acá y no en la URL: el caso normal es hoy, y hacer que el
+     profesor escriba una fecha para lo que hace todos los días es fricción pura.
+  .asistencia-dias
+    - (0..4).each do |atras|
+      - dia = Date.current - atras
+      = link_to seccion_asistencia_path(@seccion, dia: dia), class: "filter-pill #{'active' if dia == @dia}" do
+        - if atras.zero?
+          Hoy
+        - elsif atras == 1
+          Ayer
+        - else
+          = l(dia, format: :short)
+
+  - if @inscripciones.empty?
+    .empty-state
+      %h3 Sección sin alumnos
+      %p No hay inscripciones en esta sección todavía.
+
+  - else
+    %p.nota-ayuda
+      Todos empiezan
+      %strong presentes.
+      Tocá solamente a quien faltó o llegó tarde, y guardá.
+
+    %ul.asistencia-lista
+      - @inscripciones.each do |inscripcion|
+        - registro = @asistencias[inscripcion.id]
+        - estado = registro&.status || "presente"
+        %li.asistencia-alumno{data: {asistencia_target: "alumno", inscripcion: inscripcion.id, estado: estado}}
+          %button.asistencia-boton{type: "button", data: {action: "click->asistencia#alternar"}}
+            %span.asistencia-nombre
+              = "#{inscripcion.student.user.last_name}, #{inscripcion.student.user.name}"
+            %span.asistencia-estado{data: {asistencia_target: "etiqueta"}}
+              = Attendance::ETIQUETAS[estado]
+
+    .asistencia-pie
+      .asistencia-resumen{data: {asistencia_target: "resumen"}}
+        = "#{@inscripciones.size} presentes"
+      %button.btn.btn-primary.asistencia-guardar{type: "button", data: {action: "click->asistencia#guardar", asistencia_target: "guardar"}}
+        Guardar asistencia
+
+    .alert.alert-danger{hidden: true, data: {asistencia_target: "aviso"}}
+      %span{data: {asistencia_target: "avisoTexto"}}

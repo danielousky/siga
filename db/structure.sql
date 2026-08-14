@@ -309,6 +309,47 @@ CREATE TABLE public.ar_internal_metadata (
 
 
 --
+-- Name: attendances; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.attendances (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    recorded_by_id bigint,
+    date date NOT NULL,
+    status integer DEFAULT 0 NOT NULL,
+    justificacion text,
+    justificada_en timestamp(6) without time zone,
+    justificada_por_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    CONSTRAINT attendances_status_valido CHECK ((status = ANY (ARRAY[0, 1, 2])))
+);
+
+ALTER TABLE ONLY public.attendances FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: attendances_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.attendances_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: attendances_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.attendances_id_seq OWNED BY public.attendances.id;
+
+
+--
 -- Name: demo_requests; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -998,6 +1039,13 @@ ALTER TABLE ONLY public.admins ALTER COLUMN user_id SET DEFAULT nextval('public.
 
 
 --
+-- Name: attendances id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attendances ALTER COLUMN id SET DEFAULT nextval('public.attendances_id_seq'::regclass);
+
+
+--
 -- Name: demo_requests id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1186,6 +1234,14 @@ ALTER TABLE ONLY public.admins
 
 ALTER TABLE ONLY public.ar_internal_metadata
     ADD CONSTRAINT ar_internal_metadata_pkey PRIMARY KEY (key);
+
+
+--
+-- Name: attendances attendances_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attendances
+    ADD CONSTRAINT attendances_pkey PRIMARY KEY (id);
 
 
 --
@@ -1442,6 +1498,48 @@ CREATE UNIQUE INDEX index_addresses_on_user_id ON public.addresses USING btree (
 --
 
 CREATE INDEX index_admins_on_school_id ON public.admins USING btree (school_id);
+
+
+--
+-- Name: index_attendances_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_attendances_on_enrollment_id ON public.attendances USING btree (enrollment_id);
+
+
+--
+-- Name: index_attendances_on_enrollment_id_and_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_attendances_on_enrollment_id_and_date ON public.attendances USING btree (enrollment_id, date);
+
+
+--
+-- Name: index_attendances_on_justificada_por_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_attendances_on_justificada_por_id ON public.attendances USING btree (justificada_por_id);
+
+
+--
+-- Name: index_attendances_on_recorded_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_attendances_on_recorded_by_id ON public.attendances USING btree (recorded_by_id);
+
+
+--
+-- Name: index_attendances_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_attendances_on_school_id ON public.attendances USING btree (school_id);
+
+
+--
+-- Name: index_attendances_on_school_id_and_date; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_attendances_on_school_id_and_date ON public.attendances USING btree (school_id, date);
 
 
 --
@@ -1918,6 +2016,14 @@ ALTER TABLE ONLY public.grade_subjects
 
 
 --
+-- Name: attendances fk_rails_4877a7c143; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attendances
+    ADD CONSTRAINT fk_rails_4877a7c143 FOREIGN KEY (enrollment_id) REFERENCES public.enrollments(id);
+
+
+--
 -- Name: addresses fk_rails_48c9e0c5a2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2003,6 +2109,14 @@ ALTER TABLE ONLY public.report_cards
 
 ALTER TABLE ONLY public.enrollments
     ADD CONSTRAINT fk_rails_6e4789b133 FOREIGN KEY (section_id) REFERENCES public.sections(id);
+
+
+--
+-- Name: attendances fk_rails_728acf438a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attendances
+    ADD CONSTRAINT fk_rails_728acf438a FOREIGN KEY (recorded_by_id) REFERENCES public.users(id);
 
 
 --
@@ -2094,6 +2208,14 @@ ALTER TABLE ONLY public.teachers
 
 
 --
+-- Name: attendances fk_rails_b1bda8f4f7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attendances
+    ADD CONSTRAINT fk_rails_b1bda8f4f7 FOREIGN KEY (justificada_por_id) REFERENCES public.users(id);
+
+
+--
 -- Name: teacher_sections fk_rails_b2b858bbcc; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2155,6 +2277,14 @@ ALTER TABLE ONLY public.activity_logs
 
 ALTER TABLE ONLY public.report_cards
     ADD CONSTRAINT fk_rails_ce32782863 FOREIGN KEY (enrollment_id) REFERENCES public.enrollments(id);
+
+
+--
+-- Name: attendances fk_rails_d1a9c7df43; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.attendances
+    ADD CONSTRAINT fk_rails_d1a9c7df43 FOREIGN KEY (school_id) REFERENCES public.schools(id);
 
 
 --
@@ -2282,6 +2412,13 @@ CREATE POLICY aislamiento_por_colegio ON public.admins USING (((current_setting(
 
 
 --
+-- Name: attendances aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.attendances USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
 -- Name: departments aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -2380,6 +2517,12 @@ CREATE POLICY aislamiento_por_colegio ON public.teachers USING (((current_settin
 
 
 --
+-- Name: attendances; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.attendances ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: departments; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -2470,6 +2613,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260814050000'),
 ('20260814031041'),
 ('20260812040000'),
 ('20260811220000'),
