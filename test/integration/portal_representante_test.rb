@@ -24,6 +24,20 @@ class PortalRepresentanteTest < ActionDispatch::IntegrationTest
   # Ve a sus hijos y a nadie más
   # ══════════════════════════════════════════════════════════════════════════
 
+  # `InicioController` tenía su propia lista de roles y `dashboard_path_for_user`
+  # tenía otra, más completa. El representante estaba solo en la segunda: entrar
+  # por la raíz le decía "Tu cuenta no tiene un rol asignado" teniendo un hijo
+  # inscrito. Ahora hay una sola lista.
+  test "desde la raíz llega a su portal y no a la pantalla de sin rol" do
+    sign_in @madre
+
+    get root_path
+
+    assert_redirected_to representante_path
+    follow_redirect!
+    assert_no_match(/no tiene un rol asignado/i, response.body)
+  end
+
   test "con un solo hijo entra directo a su detalle" do
     sign_in @madre
 

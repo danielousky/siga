@@ -3156,3 +3156,314 @@ nav.pagy a.gap {
 }
 .solicitud-gracias p { margin: 0 0 var(--space-md); }
 .solicitud-gracias p:last-of-type { margin-bottom: var(--space-sm); }
+
+/* ==========================================================================
+   PORTADA PÚBLICA (MOR-135)
+   ==========================================================================
+   El mundo visual es el del documento escolar —el acta, el boletín, la
+   constancia—, no el de la landing de SaaS. De ahí las decisiones:
+
+     · Serif para los titulares. Un boletín venezolano se imprime en serif;
+       una directora reconoce ese registro antes de leer la primera palabra.
+     · El fondo es el papel crema del sistema (`--surface-canvas`), no blanco
+       ni un degradado. La app y la portada son el mismo objeto.
+     · El oro del escudo (#D4AF37) aparece UNA vez, en el filete del hero.
+       Si se repite deja de significar.
+     · Nada de emoji como marcador de sección: el anterior tenía siete.
+   ========================================================================== */
+
+.portada { background: var(--surface-canvas); }
+
+.portada-inner { max-width: 1000px; margin: 0 auto; padding: 0 var(--space-lg); }
+
+/* ---- Hero: la tesis ---- */
+
+.portada-hero {
+  border-bottom: 1px solid var(--border-subtle);
+  padding: clamp(48px, 9vw, 104px) var(--space-lg) clamp(40px, 7vw, 80px);
+  position: relative;
+}
+
+.portada-hero::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -1px;
+  width: 84px;
+  height: 3px;
+  background: #d4af37;
+}
+
+.portada-hero-inner { max-width: 780px; margin: 0 auto; text-align: center; }
+
+.portada-antetitulo {
+  margin: 0 0 var(--space-md);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.portada-tesis {
+  font-family: var(--font-serif);
+  font-size: clamp(30px, 5.4vw, 54px);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  margin: 0 0 var(--space-lg);
+  color: var(--text-primary);
+}
+
+/* La segunda frase es el giro del argumento, así que se separa y se inclina.
+   Es la única cursiva de la página. */
+.portada-tesis em {
+  display: block;
+  margin-top: var(--space-sm);
+  font-style: italic;
+  color: var(--brand-primary);
+}
+
+.portada-bajada {
+  max-width: 52ch;
+  margin: 0 auto var(--space-xl);
+  font-size: clamp(16px, 2vw, 19px);
+  line-height: 1.6;
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+.portada-acciones {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.portada-cta { min-height: 50px; font-size: 16px; padding: 0 var(--space-xl); }
+
+/* ---- Secciones ---- */
+
+.portada-hallazgo,
+.portada-que-hace,
+.portada-planes,
+.portada-quienes { padding: clamp(48px, 7vw, 80px) 0; }
+
+.portada-que-hace, .portada-quienes { background: var(--surface-elevated); }
+
+.portada-titulo {
+  font-family: var(--font-serif);
+  font-size: clamp(24px, 3.4vw, 34px);
+  line-height: 1.2;
+  text-wrap: balance;
+  margin: 0 0 var(--space-lg);
+  color: var(--text-primary);
+}
+
+.portada-subtitulo {
+  max-width: 58ch;
+  margin: -8px 0 var(--space-xl);
+  color: var(--text-secondary);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.portada-parrafo {
+  max-width: 66ch;
+  margin: 0 0 var(--space-md);
+  color: var(--text-secondary);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.portada-nota {
+  max-width: 66ch;
+  margin: var(--space-xl) 0 0;
+  color: var(--text-tertiary);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+/* ---- Las cifras del hallazgo ---- */
+
+.portada-cifras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: var(--space-lg);
+}
+
+.portada-cifra {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-lg);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  /* El filete a la izquierda, no arriba: alinea con el borde del texto y no
+     compite con el número. */
+  border-left: 3px solid var(--brand-primary);
+}
+
+.portada-cifra-numero {
+  font-family: var(--font-serif);
+  font-size: 38px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand-primary);
+}
+
+.portada-cifra-que { color: var(--text-secondary); font-size: 15px; line-height: 1.45; }
+
+/* La fuente al lado del dato. Una cifra sin procedencia en una página de venta
+   se lee como inventada — y las cuatro que había antes lo eran. */
+.portada-cifra-fuente {
+  margin-top: 4px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+/* ---- Qué hace ---- */
+
+.portada-piezas {
+  display: grid;
+  /* 340 px y no 280: con 280 entran TRES columnas en los 1000 px del contenedor
+     y las cuatro piezas quedan 3 + 1, con la última sola en una fila vacía.
+     Con 340 entran dos, y son 2×2. */
+  grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+  gap: var(--space-xl) var(--space-2xl);
+}
+
+.portada-pieza h3 {
+  font-family: var(--font-serif);
+  font-size: 21px;
+  margin: 0 0 var(--space-sm);
+  color: var(--text-primary);
+}
+
+.portada-pieza p { margin: 0 0 var(--space-sm); color: var(--text-secondary); line-height: 1.65; }
+
+/* El renglón que separa a SIGA de un folleto: el detalle que solo sabe quien
+   hizo boletines de verdad. Va más chico porque es para quien ya se interesó. */
+.portada-pieza-detalle {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  padding-left: var(--space-md);
+  border-left: 2px solid var(--border-standard);
+}
+
+/* ---- Planes ---- */
+
+.portada-lista-planes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: var(--space-md);
+}
+
+.portada-plan {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  text-align: center;
+}
+
+.portada-plan--convenir { background: var(--brand-subtle); border-color: transparent; }
+
+/* "+800" no puede ser el número más grande de la página: es la opción para la
+   MINORÍA de los colegios, y el ojo va al número mayor. Se achica para que los
+   tres precios manden. */
+.portada-plan--convenir .portada-plan-monto { font-size: 30px; }
+
+.portada-plan-nombre {
+  margin: 0 0 var(--space-sm);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  font-weight: 600;
+}
+
+.portada-plan-precio { margin: 0 0 var(--space-xs); display: flex; align-items: baseline; justify-content: center; gap: 6px; }
+
+.portada-plan-monto {
+  font-family: var(--font-serif);
+  font-size: 44px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand-primary);
+}
+
+.portada-plan-moneda { font-size: 14px; color: var(--text-secondary); }
+.portada-plan-cupo { margin: 0; font-size: 14px; color: var(--text-secondary); }
+
+/* ---- Cierre ---- */
+
+.portada-cierre {
+  padding: clamp(48px, 7vw, 80px) 0;
+  text-align: center;
+  background: var(--brand-primary);
+  color: #fff;
+}
+
+.portada-cierre-titulo {
+  font-family: var(--font-serif);
+  font-size: clamp(24px, 3.6vw, 36px);
+  line-height: 1.2;
+  text-wrap: balance;
+  margin: 0 0 var(--space-sm);
+  color: #fff;
+}
+
+.portada-cierre-texto {
+  max-width: 46ch;
+  margin: 0 auto var(--space-xl);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.portada-cierre .btn-primary {
+  background: #fff;
+  color: var(--brand-primary);
+  border-color: #fff;
+}
+.portada-cierre .btn-primary:hover { background: var(--brand-subtle); color: var(--brand-active); }
+
+/* ---- Pie ---- */
+
+.portada-pie {
+  padding: var(--space-2xl) 0 var(--space-xl);
+  background: var(--surface-elevated);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.portada-pie-columnas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xl);
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.portada-pie-logo { width: 44px; height: 44px; margin-bottom: var(--space-xs); }
+.portada-pie-nombre { margin: 0; font-family: var(--font-serif); font-size: 19px; color: var(--text-primary); }
+.portada-pie-que { margin: 0; font-size: 14px; color: var(--text-tertiary); }
+
+.portada-pie-enlaces ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--space-sm); }
+.portada-pie-enlaces a { color: var(--text-secondary); }
+
+.portada-pie-legal {
+  margin: var(--space-xl) 0 0;
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .portada-inner { padding: 0 var(--space-md); }
+  .portada-acciones { flex-direction: column; }
+  .portada-cta { width: 100%; }
+}
