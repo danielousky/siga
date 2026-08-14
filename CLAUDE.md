@@ -232,5 +232,46 @@ sección entera a mitad de lapso, y le hace perder la confianza a la familia.
 - Venezuela **no tiene ley de protección de datos** ni autoridad de control. El riesgo de un
   cruce de datos es reputacional y de churn en red, no regulatorio.
 
+## Modelo de negocio: por qué los planes baratos son baratos
+
+Decisión de Daniel, 14 de agosto de 2026. Es la lógica que ordena la arquitectura
+de despliegue, así que conviene tenerla acá y no en un issue.
+
+**La analogía es el hosting compartido.** Los planes económicos lo son porque
+todos los colegios viven en la misma máquina, la misma base, la misma aplicación
+y el mismo dominio. Eso es lo que le permite a un colegio chico tener acceso a
+SIGA — y por eso el aislamiento por RLS no es una comodidad técnica: **es lo que
+hace vendible el producto barato.**
+
+```
+   PLANES COMPARTIDOS               PLAN DEDICADO (el más caro)
+   ──────────────────               ───────────────────────────
+   misma base de datos              base propia
+   mismo host                       host propio
+   misma app                        subdominio propio dentro de SIGA
+   mismo dominio                    —o incluso su propio dominio.com—
+   $25 · $50 · $90                  precio a convenir
+```
+
+**Quien decide el paso al plan dedicado es el cliente, no nosotros.** Un colegio
+que quiere su propia máquina y su propio dominio la paga; el resto convive, y
+esa convivencia es exactamente lo que abarata al resto.
+
+### Y de ahí sale el orden del trabajo
+
+Para el lanzamiento **conviven todos**: colegios y equipo de SIGA, misma base,
+misma tabla `users`, roles distintos. El equipo de SIGA tiene acceso amplio por
+ahora, a propósito — la demanda todavía no justifica lo contrario y hace falta
+poder responderle a un colegio en el momento, con las mismas vistas que él ve.
+
+Cuando la demanda crezca se planifica la separación: la administración de SIGA
+sale a su propia plataforma y las dos se hablan por API. `MOR-133` ya dejó la
+frontera puesta para que ese día sea mover un namespace, no desenredar una app.
+
+> ⚠️ El acceso amplio del equipo de SIGA es una **decisión con fecha de
+> vencimiento**, no un estado deseable. `MOR-92` explica por qué —es la forma
+> exacta del incidente de Canvas— y es el issue que hay que retomar cuando haya
+> colegios pagando.
+
 Backlog completo en `BACKLOG.md`. Diagrama del modelo actual y objetivo:
 https://claude.ai/code/artifact/0e167ba9-8e21-4264-ac29-f7a2d9fe5523

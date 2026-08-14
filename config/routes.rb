@@ -57,6 +57,7 @@ Rails.application.routes.draw do
     resources :colegios, only: [:index, :show, :new, :create]
     resources :solicitudes, only: [:index, :show, :update]
     resources :cartera, only: [:index, :create, :update]
+    resources :visitas, only: [:create, :destroy]
   end
 
   # Dashboards específicos por rol

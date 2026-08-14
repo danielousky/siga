@@ -53,7 +53,7 @@
     - if can_manage_teachers?
       %li.sidebar-nav-item
         = link_to "Profesores", teachers_path, class: "sidebar-nav-link #{'active' if controller_name == 'teachers'}"
-    - if current_user.admin.desarrollador? || current_user.admin.director?
+    - if %w[desarrollador director].include?(rol_de_admin)
       %li.sidebar-nav-item
         = link_to "Administradores", admins_path, class: "sidebar-nav-link #{'active' if controller_name == 'admins'}"
 

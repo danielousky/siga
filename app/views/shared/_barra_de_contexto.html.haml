@@ -50,3 +50,18 @@
       Quedan
       = pluralize(suscripcion_del_colegio.dias_de_gracia + (suscripcion_del_colegio.dias_para_vencer || 0), "día")
       de gracia antes de pasar a solo lectura.
+
+-# El colegio VE que hay alguien de SIGA adentro.
+-#
+-# Es lo que convierte un acceso amplio en algo defendible frente al cliente: no
+-# es que SIGA mire cuando quiera sin que nadie se entere — entró, el colegio lo
+-# ve en el momento, y queda en su historial.
+-#
+-# ⚠️ Es un paliativo, no la solución. La solución es MOR-92 (acceso con motivo
+-# declarado y vencimiento), que sigue abierto a propósito.
+- if visitando_un_colegio?
+  .aviso-visita
+    .aviso-visita-inner
+      %strong Soporte de SIGA adentro.
+      = "#{current_user.name} #{current_user.last_name} está viendo el sistema de #{colegio_visitado.name}."
+      = button_to "Salir del colegio", siga_visita_path(colegio_visitado), method: :delete, class: "aviso-visita-salir"

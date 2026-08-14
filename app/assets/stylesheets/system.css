@@ -2839,3 +2839,37 @@ nav.pagy a.gap {
   padding: var(--space-xs) var(--space-lg);
   font-size: 13px;
 }
+
+/* Alguien de SIGA adentro de un colegio. Imposible de no ver: si quien da
+   soporte olvida que está en un sistema ajeno, el aviso no sirve — y el colegio
+   lo ve igual, que es lo que lo hace defendible frente al cliente. */
+.aviso-visita {
+  background: #4c1d95;
+  color: #ede9fe;
+  border-bottom: 2px solid #7c3aed;
+}
+
+.aviso-visita-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-xs) var(--space-lg);
+  font-size: 13px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.aviso-visita-salir {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid #a78bfa;
+  color: #ede9fe;
+  border-radius: var(--radius-sm);
+  padding: 2px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.aviso-visita-salir:hover { background: #6d28d9; }

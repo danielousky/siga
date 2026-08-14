@@ -31,12 +31,15 @@ class ApplicationController < ActionController::Base
   # bloquea por VERBO y no por pantalla: esconder los botones de guardar no es
   # solo lectura, es una sugerencia.
   include RespetaLaSuscripcion
+  # El equipo de SIGA puede entrar a un colegio a dar soporte. Decisión con
+  # fecha de vencimiento: ver el comentario del concern y MOR-92.
+  include AccesoDelEquipoDeSiga
 
   # Hacer disponibles los helpers de rol en los controladores
   helper_method :current_user_type, :estudiante?, :profesor?, :administrador?, :representante?
   helper_method :colegios_del_representante
   helper_method :can_manage_students?, :can_manage_teachers?, :can_manage_sections?
-  helper_method :can_manage_academic_config?, :show_recent_activity?
+  helper_method :can_manage_academic_config?, :show_recent_activity?, :rol_de_admin
 
   # Redirección post-login personalizada por tipo de usuario
   def after_sign_in_path_for(resource)
@@ -104,6 +107,10 @@ class ApplicationController < ActionController::Base
   def colegio_de(usuario)
     return nil if usuario.blank?
 
+    # El equipo de SIGA visitando un colegio. Va primero porque no tienen rol de
+    # colegio: sin esto, entrar no les mostraría nada (MOR-133).
+    return colegio_visitado if visitando_un_colegio?
+
     Current.sin_aislamiento do
       Student.find_by(user_id: usuario.id)&.school ||
         Teacher.find_by(user_id: usuario.id)&.school ||
@@ -146,6 +153,7 @@ class ApplicationController < ActionController::Base
     return :estudiante if current_user.student.present?
     return :profesor if current_user.teacher.present?
     return :administrador if current_user.admin.present?
+    return :administrador if visitando_un_colegio?
     return :representante if representante?
 
     nil
@@ -180,36 +188,50 @@ class ApplicationController < ActionController::Base
     current_user_type == :profesor
   end
 
+  # Mientras visita un colegio, el equipo de SIGA lo ve como lo vería su
+  # dirección. Sin esto la visita daría contexto de colegio y ningún rol, así
+  # que cada pantalla rebotaría — la visita no serviría de nada.
   def administrador?
-    current_user_type == :administrador
+    current_user_type == :administrador || visitando_un_colegio?
   end
 
-  # Helpers de autorización para admins
+  # Helpers de autorización para admins.
+  #
+  # `rol_de_admin` en vez de `current_user.admin.role` porque el equipo de SIGA
+  # visitando un colegio no tiene registro de `Admin`: ve como dirección sin
+  # pertenecer al colegio.
+  def rol_de_admin
+    return "director" if visitando_un_colegio? && current_user.admin.nil?
+
+    current_user.admin&.role
+  end
+
   def can_manage_students?
-    administrador? && %w[desarrollador director secretaria coordinador].include?(current_user.admin.role)
+    administrador? && %w[desarrollador director secretaria coordinador].include?(rol_de_admin)
   end
 
   def can_manage_teachers?
-    administrador? && %w[desarrollador director].include?(current_user.admin.role)
+    administrador? && %w[desarrollador director].include?(rol_de_admin)
   end
 
   def can_manage_sections?
-    administrador? && %w[desarrollador director coordinador].include?(current_user.admin.role)
+    administrador? && %w[desarrollador director coordinador].include?(rol_de_admin)
   end
 
   def can_manage_academic_config?
-    administrador? && %w[desarrollador director].include?(current_user.admin.role)
+    administrador? && %w[desarrollador director].include?(rol_de_admin)
   end
 
   def show_recent_activity?
-    administrador? && %w[desarrollador director].include?(current_user.admin.role)
+    administrador? && %w[desarrollador director].include?(rol_de_admin)
   end
 
   def dashboard_path_for_user
     # El equipo de SIGA no tiene rol de colegio, así que va a su propia
     # administración. Va PRIMERO porque `current_user_type` sería nil para
     # ellos y caerían en la pantalla de "sin rol asignado" (MOR-133).
-    return siga_root_path if SigaStaff.para(current_user).present?
+    return dashboards_administrador_path if visitando_un_colegio?
+    return siga_root_path if equipo_de_siga?
 
     case current_user_type
     when :administrador then dashboards_administrador_path
