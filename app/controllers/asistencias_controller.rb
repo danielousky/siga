@@ -177,6 +177,6 @@ class AsistenciasController < ApplicationController
   def require_puede_tomar_asistencia!
     return if profesor? || can_manage_sections?
 
-    redirect_to dashboard_path_for_user, alert: "No tenés secciones a cargo."
+    redirect_to dashboard_path_for_user, alert: "No tienes secciones a cargo."
   end
 end

@@ -5,7 +5,10 @@
     %meta{name: "viewport", content: "width=device-width,initial-scale=1"}
     = csrf_meta_tags
     = csp_meta_tag
-    = favicon_link_tag 'logo.png'
+    -# El favicon en SVG: 1,5 KB contra los 43 KB del PNG, que era el activo más
+    -# pesado de toda la app y se bajaba en CADA pantalla. Los navegadores que no
+    -# lo soportan simplemente no muestran ícono, que es un precio ínfimo.
+    = favicon_link_tag "siga-logo.svg", type: "image/svg+xml"
 
     -# Acá vivía Font Awesome, traído de un CDN en CADA carga de CADA página.
     -# Se usaba para UN ícono: el ojito del formulario de login. Ahora ese ojo es
@@ -20,7 +23,7 @@
     %nav.nav-institutional
       .container-fluid
         = link_to root_path, class: 'navbar-brand' do
-          = image_tag 'logo.png', alt: 'SIGA', class: 'navbar-brand-logo'
+          = image_tag 'siga-logo.svg', alt: '', class: 'navbar-brand-logo'
           %span.navbar-brand-text SIGA
         - if user_signed_in?
           .session-menu.d-flex.align-items-center

@@ -72,6 +72,6 @@ class ConstanciasController < ApplicationController
   def require_emisor!
     return if can_manage_students?
 
-    redirect_to dashboard_path_for_user, alert: "No tenés permiso para emitir constancias."
+    redirect_to dashboard_path_for_user, alert: "No tienes permiso para emitir constancias."
   end
 end

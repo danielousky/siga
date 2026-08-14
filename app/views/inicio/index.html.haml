@@ -2,7 +2,7 @@
   / Vista temporal para usuarios autenticados sin dashboard
   .container-academic
     .card-academic{style: "max-width: 700px; margin: var(--space-2xl) auto; text-align: center;"}
-      = image_tag 'siga-logo.png', alt: 'SIGA Logo', style: 'width: 150px; margin: 0 auto var(--space-lg);'
+      = image_tag 'siga-logo.svg', alt: 'SIGA Logo', style: 'width: 150px; margin: 0 auto var(--space-lg);'
       %h1{style: "margin-bottom: var(--space-md);"} Bienvenido a SIGA
       - if profesor?
         %p{style: "color: var(--text-secondary); font-size: 16px; margin-bottom: var(--space-xl);"}
@@ -24,7 +24,7 @@
   / Landing page para usuarios NO autenticados
   .landing-page
   / Hero Section - Sección principal con logo
-  .hero-section.hero-section-fullwidth.hero-section-bg-logo{style: "background-image: url('#{asset_path('siga_hero.png')}');"}
+  .hero-section.hero-section-fullwidth.hero-section-bg-logo{style: "background-image: url('#{asset_path('siga_hero.jpg')}');"}
     .hero-content
       %h1.hero-title
         %span.hero-title-accent SIGA:

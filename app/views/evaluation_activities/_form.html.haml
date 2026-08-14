@@ -11,12 +11,12 @@
     = f.label :asignacion, "Sección y materia", class: "form-label"
     = f.select :asignacion,
       mis_asignaciones.map { |ts| ["#{ts.section.grade.name} – #{ts.section.name} · #{ts.subject.name}", "#{ts.section_id}:#{ts.subject_id}"] },
-      { include_blank: "Elegí una de tus secciones...", selected: ("#{evaluation_activity.section_id}:#{evaluation_activity.subject_id}" if evaluation_activity.section_id) },
+      { include_blank: "Elige una de tus secciones...", selected: ("#{evaluation_activity.section_id}:#{evaluation_activity.subject_id}" if evaluation_activity.section_id) },
       class: "form-select", data: { ponderacion_target: "asignacion", action: "change->ponderacion#asignacionCambio" }
 
   .form-group
     = f.label :evaluation_moment_id, "Lapso", class: "form-label"
-    = f.select :evaluation_moment_id, [], { include_blank: "Elegí el lapso..." },
+    = f.select :evaluation_moment_id, [], { include_blank: "Elige el lapso..." },
       class: "form-select", data: { ponderacion_target: "lapso", action: "change->ponderacion#recalcular" }
     %small.form-text.text-muted Solo aparecen los lapsos del año escolar de la sección elegida.
 

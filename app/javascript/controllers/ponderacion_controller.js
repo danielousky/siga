@@ -24,7 +24,7 @@ export default class extends Controller {
     const elegido = conservarLapso ? this.lapsoTarget.value : ""
 
     this.lapsoTarget.innerHTML = ""
-    this.lapsoTarget.appendChild(new Option("Elegí el lapso...", ""))
+    this.lapsoTarget.appendChild(new Option("Elige el lapso...", ""))
 
     if (datos) {
       datos.lapsos.forEach(({ id, nombre }) => {

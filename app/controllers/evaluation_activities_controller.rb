@@ -46,7 +46,7 @@ class EvaluationActivitiesController < ApplicationController
     @evaluation_activity = EvaluationActivity.new(evaluation_activity_params)
 
     if asignacion_elegida.nil?
-      @evaluation_activity.errors.add(:base, "Elegí una de tus secciones.")
+      @evaluation_activity.errors.add(:base, "Elige una de tus secciones.")
       return render :new, status: :unprocessable_entity
     end
 

@@ -78,7 +78,7 @@ module RespetaLaSuscripcion
     return if SIEMPRE_PERMITIDO.include?([controller_path, action_name])
     return unless colegio_en_solo_lectura?
 
-    mensaje = "La suscripción del colegio está vencida. Podés seguir consultando " \
+    mensaje = "La suscripción del colegio está vencida. Puedes seguir consultando " \
               "y descargando todo, pero no cargar información nueva hasta regularizar el pago."
 
     respond_to do |formato|

@@ -72,7 +72,7 @@ class EvaluationActivitiesControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :unprocessable_entity
-    assert_match "Elegí una de tus secciones", response.body
+    assert_match "Elige una de tus secciones", response.body
   end
 
   # ════════════════════════════════════════════════════════════════════════

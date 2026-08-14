@@ -11,7 +11,7 @@
     %meta{name: "viewport", content: "width=device-width,initial-scale=1"}
     = csrf_meta_tags
     = csp_meta_tag
-    = favicon_link_tag 'logo.png'
+    = favicon_link_tag "siga-logo.svg", type: "image/svg+xml"
     = stylesheet_link_tag "application", "data-turbo-track": "reload"
     = javascript_importmap_tags
 
@@ -37,7 +37,7 @@
        que estás fuera de todos ellos.
     .siga-aviso
       .siga-aviso-inner
-        Estás en la administración de la plataforma. Lo que ves acá
+        Estás en la administración de la plataforma. Lo que ves aquí
         %strong abarca todos los colegios.
 
     %main.siga-contenido

@@ -9,7 +9,7 @@
     El selector NO concede acceso — solo desempata entre colegios donde el
     sistema ya verificó el vínculo. Ver `colegio_del_representante`.
   .card-academic
-    %p.nota-ayuda Tenés representados en más de un colegio.
+    %p.nota-ayuda Tienes representados en más de un colegio.
     .portal-colegios
       - colegios_del_representante.each do |colegio|
         = button_to cambiar_colegio_representante_path, params: { colegio_id: colegio.id }, class: "portal-colegio #{'portal-colegio--activo' if colegio.id == Current.school_id}" do
@@ -20,8 +20,8 @@
     .empty-state
       %h3 Sin representados en este colegio
       %p
-        Tu cuenta no tiene alumnos vinculados acá. Si creés que es un error,
-        pedile a la secretaría del colegio que revise el vínculo.
+        Tu cuenta no tiene alumnos vinculados aquí. Si crees que es un error,
+        pídele a la secretaría del colegio que revise el vínculo.
 
 - else
   %ul.portal-lista-hijos
