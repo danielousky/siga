@@ -3295,3 +3295,30 @@ nav.pagy a.gap {
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
+
+/* La fila del listado es el enlace (MOR-135).
+   Antes cada fila terminaba en una columna "Acciones" con botones de 40 px.
+   Ahora el destino es el NOMBRE, que es un objetivo mucho más grande y el
+   lugar donde el ojo ya estaba. */
+.table-academic tbody td:first-child a {
+  font-weight: 500;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.table-academic tbody td:first-child a:hover {
+  color: var(--brand-primary);
+  text-decoration: underline;
+}
+
+/* La fila entera reacciona, para que se note que es tocable antes de tocarla. */
+.table-academic tbody tr:hover { background: var(--surface-hover); }
+
+/* Un encabezado que es lo ÚNICO de su tarjeta no necesita separarse de nada:
+   su margen y su filete dibujaban un hueco vacío debajo del título, en toda
+   pantalla que arranca con "título + botón" y nada más. */
+.card-academic-header:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}

@@ -26,19 +26,12 @@
     %table.table-academic
       %thead
         %tr
-          %th Nombre
-          %th Apellido
+          %th Alumno
           %th Cédula
           %th Carnet escolar
-          %th Acciones
       %tbody
         - @students.each do |student|
           %tr
-            %td= student.user.name
-            %td= student.user.last_name
+            %td= link_to "#{student.user.last_name}, #{student.user.name}", student
             %td= student.user.id_card || "—"
             %td= student.school_card
-            %td
-              .actions-group
-                = link_to "Ver", student, class: "btn btn-secondary btn-sm"
-                = link_to "Editar", edit_student_path(student), class: "btn btn-secondary btn-sm"

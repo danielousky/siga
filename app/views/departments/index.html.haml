@@ -7,11 +7,7 @@
     %thead
       %tr
         %th Nombre del departamento
-        %th Acciones
     %tbody
       - @departments.each do |department|
         %tr
-          %td= department.name
-          %td
-            .actions-group
-              = link_to "Editar", edit_department_path(department), class: "btn btn-secondary btn-sm"
+          %td= link_to department.name, edit_department_path(department)

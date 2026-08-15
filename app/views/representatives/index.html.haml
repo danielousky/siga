@@ -12,11 +12,10 @@
         %th Nombre
         %th Contacto
         %th Representados
-        %th Acciones
     %tbody
       - @representatives.each do |representante|
         %tr
-          %td= "#{representante.user.last_name}, #{representante.user.name}"
+          %td= link_to "#{representante.user.last_name}, #{representante.user.name}", representante
           %td
             = representante.user.email
             - if representante.phone.present?
@@ -27,10 +26,5 @@
               = representante.students.map { |a| "#{a.user.name} #{a.user.last_name}" }.join(" ·")
             - else
               %span.nota-pendiente Sin alumnos vinculados
-          %td
-            .actions-group
-              = link_to "Ver", representante, class: "btn btn-secondary btn-sm"
-              = link_to "Editar", edit_representative_path(representante), class: "btn btn-secondary btn-sm"
-
   .pagy-nav
     != pagy_nav(@pagy)

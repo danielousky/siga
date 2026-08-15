@@ -9,14 +9,9 @@
         %th Nombre
         %th Nivel
         %th Profesor guía
-        %th Acciones
     %tbody
       - @grades.each do |grade|
         %tr
-          %td= grade.name
+          %td= link_to grade.name, grade
           %td= grade.level.humanize
           %td= grade.leader_teacher&.user&.then { |u| "#{u.name} #{u.last_name}" } || "—"
-          %td
-            .actions-group
-              = link_to "Ver", grade, class: "btn btn-secondary btn-sm"
-              = link_to "Editar", edit_grade_path(grade), class: "btn btn-secondary btn-sm"

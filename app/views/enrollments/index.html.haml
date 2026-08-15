@@ -26,17 +26,13 @@
           %th Grado
           %th Fecha de inscripción
           %th Estado
-          %th Acciones
       %tbody
         - @enrollments.each do |enrollment|
           %tr
-            %td= "#{enrollment.student.user.last_name}, #{enrollment.student.user.name}"
+            %td= link_to "#{enrollment.student.user.last_name}, #{enrollment.student.user.name}", edit_enrollment_path(enrollment)
             %td= enrollment.section.name
             %td= enrollment.section.grade.name
             %td= enrollment.enrollment_date.strftime("%d/%m/%Y")
             %td
               %span.role-badge{style: enrollment.regular? ? "" : "background: #f57f17; border-color: #f57f17;"}
                 = enrollment.regular? ? "Regular" : enrollment.status.humanize
-            %td
-              .actions-group
-                = link_to "Editar", edit_enrollment_path(enrollment), class: "btn btn-secondary btn-sm"

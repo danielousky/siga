@@ -456,16 +456,50 @@ APELLIDOS = %w[López Ramos Pérez Guzmán Mora Reyes Salinas Vargas Blanco Cruz
                Fuentes Jiménez Herrera Suárez Castillo Mendoza Rojas Torres García Silva
                Díaz Romero Fernández Ortega Soto Cabrera Medina Ríos Vega Parra].freeze
 
+# El apellido NO puede salir del mismo índice que el nombre.
+#
+# Así estaba, y el resultado era que de las 900 combinaciones posibles
+# (30 × 30) solo aparecían las 30 de la diagonal: en 200 alumnos, cada nombre
+# repetido siete veces. La lista de estudiantes mostraba "Blanco, José" tres
+# veces seguidas y parecía un error del sistema en plena demostración.
+#
+#     mismo índice   → 30 pares distintos, el más repetido 7 veces
+#     k*7 + k/30     → 200 pares distintos, ninguno repetido
+#
+# El `k*7` mezcla (7 es coprimo con 30, así que recorre los 30 apellidos) y el
+# `k/30` desplaza el arranque en cada vuelta. Sigue siendo determinista: los
+# seeds tienen que dar lo mismo en cada corrida.
+def apellido_para(k)
+  (k * 7 + k / APELLIDOS.size) % APELLIDOS.size
+end
+
+
 def normalize(str)
   str.downcase.tr('áéíóúüñÁÉÍÓÚÜÑ', 'aeiouunAEIOUUN').downcase
 end
 
+# La identidad estable de un alumno es su CARNET, no su correo.
+#
+# Estaba buscado por correo, y el correo se deriva del nombre. En cuanto se
+# cambió la lista de apellidos, cada alumno pasó a tener un correo distinto:
+# `find_or_create_by!(email:)` creaba un usuario NUEVO y su alta chocaba contra
+# el carnet del viejo —"Carnet ya está en uso"— dejando el seed a medio correr.
+#
+# Los seeds tienen que ser idempotentes ante cambios de CONTENIDO, no solo ante
+# volver a correrlos con los mismos datos. Buscando por carnet, cambiar un
+# nombre renombra al alumno que ya existe en vez de intentar duplicarlo.
 def make_student(email, name, last_name, card, school)
+  existente = Student.find_by(school_card: card, school: school)
+  if existente
+    existente.user.update!(name: name, last_name: last_name, email: email)
+    return existente
+  end
+
   u = User.find_or_create_by!(email: email) do |uu|
     uu.password = uu.password_confirmation = CLAVE_DE_PRUEBA
     uu.name = name; uu.last_name = last_name
   end
-  Student.find_or_create_by!(user: u) { |st| st.school_card = card; st.school = school }
+  Student.create!(user: u, school_card: card, school: school)
 end
 
 # Generar estudiantes para Bolívar: 5 secciones x 20 = 100 estudiantes
@@ -474,7 +508,7 @@ sec_bol.each_with_index do |(sec_key, section), sec_idx|
   students_per_section_bol[sec_key] = []
   20.times do |i|
     nombre   = NOMBRES[(sec_idx * 20 + i) % NOMBRES.size]
-    apellido = APELLIDOS[(sec_idx * 20 + i) % APELLIDOS.size]
+    apellido = APELLIDOS[apellido_para(sec_idx * 20 + i)]
     num      = (sec_idx * 20 + i + 1).to_s.rjust(3, "0")
     card     = "25-#{num}"
     email    = "#{normalize(nombre)}.#{normalize(apellido)}#{num}@bolivar.edu"
@@ -491,7 +525,7 @@ sec_bel.each_with_index do |(sec_key, section), sec_idx|
   students_per_section_bel[sec_key] = []
   15.times do |i|
     nombre   = NOMBRES[(sec_idx * 15 + i + 5) % NOMBRES.size]
-    apellido = APELLIDOS[(sec_idx * 15 + i + 5) % APELLIDOS.size]
+    apellido = APELLIDOS[apellido_para(sec_idx * 15 + i + 5)]
     num      = (sec_idx * 15 + i + 1).to_s.rjust(3, "0")
     card     = "25-#{num}"
     email    = "#{normalize(nombre)}.#{normalize(apellido)}#{num}@bello.edu"

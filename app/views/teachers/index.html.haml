@@ -12,15 +12,10 @@
         %th Apellido
         %th Cédula
         %th Email
-        %th Acciones
     %tbody
       - @teachers.each do |teacher|
         %tr
-          %td= teacher.user.name
+          %td= link_to teacher.user.name, teacher
           %td= teacher.user.last_name
           %td= teacher.user.id_card || "—"
           %td= teacher.user.email
-          %td
-            .actions-group
-              = link_to "Ver", teacher, class: "btn btn-secondary btn-sm"
-              = link_to "Editar", edit_teacher_path(teacher), class: "btn btn-secondary btn-sm"

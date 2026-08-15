@@ -44,20 +44,20 @@
           %th Evaluación
           %th Peso
           %th Fecha
-          %th Acciones
+          %th
       %tbody
         - @evaluation_activities.each do |actividad|
           %tr
             %td= "#{actividad.section.grade.name} – #{actividad.section.name}"
             %td= actividad.subject.name
             %td= actividad.evaluation_moment.name
-            %td= actividad.description
+            %td= link_to actividad.description, actividad
             %td= "#{number_with_precision(actividad.weight_percentage, precision: actividad.weight_percentage.frac.zero? ? 0 : 2)} %"
             %td= l(actividad.date_scheduled, format: :long)
+            -# Se queda SOLO la acción principal del profesor. "Ver" y "Editar"
+              se fueron a la ficha, adonde ahora lleva el nombre de la
+              evaluación: cargar notas es lo que se hace todas las semanas, y
+              no se llega a ella desde ningún otro lado en un paso.
             %td
-              .actions-group
-                - if profesor?
-                  = link_to "Cargar notas", evaluation_activity_notas_path(actividad), class: "btn btn-primary btn-sm"
-                = link_to "Ver", actividad, class: "btn btn-secondary btn-sm"
-                - if profesor?
-                  = link_to "Editar", edit_evaluation_activity_path(actividad), class: "btn btn-secondary btn-sm"
+              - if profesor?
+                = link_to "Cargar notas", evaluation_activity_notas_path(actividad), class: "btn btn-primary btn-sm"

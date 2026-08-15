@@ -26,15 +26,11 @@
           %th Período
           %th Capacidad
           %th Aula
-          %th Acciones
       %tbody
         - @sections.each do |section|
           %tr
-            %td= section.grade.name
+            %td= link_to section.grade.name, section
             %td= section.name
             %td= section.academic_period.name
             %td= "#{section.enrollments.size} / #{section.capacity}"
             %td= section.classroom || "—"
-            %td
-              = link_to "Ver", section, class: "btn btn-secondary btn-sm"
-              = link_to "Editar", edit_section_path(section), class: "btn btn-secondary btn-sm"
