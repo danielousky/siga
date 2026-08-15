@@ -327,6 +327,12 @@ a:hover {
 
 .card-academic-header {
   display: flex;
+  /* `flex-wrap` y `gap`, no decorativos: sin ellos, en un teléfono el título y
+     el botón de la derecha se aprietan hasta encimarse. Se veía en la toma de
+     asistencia —"Asistencia" quedaba debajo del chip de la fecha— y es la misma
+     cabecera de TODAS las pantallas. */
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--space-lg);
