@@ -1066,7 +1066,11 @@ nav.pagy a.gap {
   border-radius: var(--radius-sm);
   font-size: 12px;
   font-weight: 500;
-  text-transform: capitalize;
+  /* Sin `text-transform: capitalize`: capitaliza CADA palabra, y en español eso
+     produce Title Case inglés. Acá lo hacía sobre una fecha —"15 De Agosto De
+     2026", en la pantalla de asistencia— y sobre "3 Registros". El único caso
+     que quería arreglar era `admin.role.humanize`, y `humanize` ya pone la
+     mayúscula inicial él solo. */
 }
 
 
@@ -3526,3 +3530,37 @@ nav.pagy a.gap {
 }
 
 .pendiente-que { color: var(--text-secondary); }
+
+/* Lo que al profesor le falta corregir (MOR-135). Es lo primero de su panel
+   porque es a lo que entra: semanal, con apuro, desde el teléfono. */
+.por-corregir { list-style: none; margin: 0; padding: 0; }
+
+.por-corregir-fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-lg);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.por-corregir-fila:last-child { border-bottom: none; }
+
+.por-corregir-que { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.por-corregir-nombre { font-weight: 600; color: var(--text-primary); }
+.por-corregir-donde { font-size: 13px; color: var(--text-tertiary); }
+
+.por-corregir-avance { display: flex; align-items: center; gap: var(--space-md); }
+
+/* En letras y no una barra: "12 de 20" contesta cuántas faltan, que es la
+   pregunta. Una barra contesta "60 %", que no lo es. */
+.por-corregir-cuenta {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .por-corregir-avance { width: 100%; justify-content: space-between; }
+}

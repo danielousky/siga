@@ -1,3 +1,4 @@
+-# El panel del profesor (MOR-135). Ver el controller para el porqué del orden.
 .dashboard-profesor
   .card-academic
     .card-academic-header
@@ -5,59 +6,81 @@
       .admin-info-badge
         = current_user.name
         - if @led_grades.any?
-          %span.role-badge Director de Grado
+          %span.role-badge Director de grado
 
-  .stats-grid
-    .stat-card
-      %h3= @total_sections
-      %p Secciones Asignadas
-
-    .stat-card
-      %h3= @total_students
-      %p Estudiantes en Total
-
-    .stat-card
-      %h3= @total_subjects
-      %p #{@total_subjects == 1 ? 'Materia' : 'Materias'} Distintas
-
-    - if @led_grades.any?
-      .stat-card
-        %h3= @led_grades.size
-        %p #{@led_grades.size == 1 ? 'Grado Liderado' : 'Grados Liderados'}
-
-  - if @led_grades.any?
+  -# Lo primero: lo que le falta corregir, con el enlace a la planilla. El
+  -# profesor entra a esto, no a mirar cuántas secciones tiene.
+  - if @sin_corregir.any?
     .card-academic
-      %h2 Grados que lideras
-      .features-grid{style: "margin-top: var(--space-lg);"}
-        - @led_grades.each do |grade|
-          .feature-card{style: "padding: var(--space-md) var(--space-lg);"}
-            .feature-icon{style: "font-size: 32px; margin-bottom: var(--space-sm);"} 🏫
-            %h3{style: "font-size: 17px;"}= grade.name
-            %p= "#{grade.sections.count} sección#{grade.sections.count != 1 ? 'es' : ''} · #{grade.level.capitalize}"
+      .card-academic-header
+        %h2 Te falta cargar notas
+
+      %ul.por-corregir
+        - @sin_corregir.each do |fila|
+          - e = fila[:evaluacion]
+          %li.por-corregir-fila
+            .por-corregir-que
+              %span.por-corregir-nombre= e.description
+              %span.por-corregir-donde
+                = "#{e.section.grade.name} – #{e.section.name}"
+                %span.ficha-punto ·
+                = e.subject.name
+            .por-corregir-avance
+              -# El avance en letras y no una barra: "12 de 20" dice cuántas
+              -# faltan, que es la pregunta. Una barra dice "60 %", que no.
+              %span.por-corregir-cuenta= "#{fila[:puestas]} de #{fila[:total]}"
+              = link_to "Cargar notas", evaluation_activity_notas_path(e), class: "btn btn-primary btn-sm"
+
+      %p.nota-ayuda
+        Se listan las evaluaciones cuya fecha ya pasó y a las que les falta
+        alguna nota.
 
   .card-academic
-    %h2 Mis secciones
+    .card-academic-header
+      %h2 Mis secciones
+
     - if @teacher_sections.any?
-      - @teacher_sections.group_by { |ts| ts.section }.each do |section, teacher_sections|
+      - @teacher_sections.group_by(&:section).each do |section, asignaciones|
         .section-block
           .section-block-header
             .section-block-title
-              %h3= "#{section.grade.name} – #{section.name}"
+              %h3= link_to "#{section.grade.name} – #{section.name}", section_path(section)
               %span.section-period= section.academic_period.name
             .section-block-meta
-              %span.section-student-count
-                👥 #{section.enrollments.count} estudiantes
+              %span.section-student-count= contar(section.enrollments.size, "alumno", "alumnos")
 
           .section-subjects
-            - teacher_sections.each do |ts|
+            - asignaciones.each do |ts|
               .subject-tag
                 %span.subject-name= ts.subject.name
-
-          .section-actions
-            = link_to section_path(section), class: "btn btn-secondary btn-sm" do
-              Ver Sección
 
     - else
       .empty-state
         %h3 Sin secciones asignadas
-        %p Aún no tienes secciones asignadas. Contacta al coordinador.
+        %p Todavía no tienes secciones asignadas. Habla con el coordinador.
+
+  - if @led_grades.any?
+    .card-academic
+      .card-academic-header
+        %h2= pluralizar(@led_grades.size, "Grado que lideras", "Grados que lideras")
+
+      %ul.ficha-secciones
+        - @led_grades.each do |grade|
+          %li.ficha-seccion
+            = link_to grade.name, grade_path(grade), class: "ficha-seccion-nombre"
+            -# `contar` y no interpolación a mano: `"sección" + "es"` da
+            -# "secciónes", con la tilde. Es lo que decía esta misma pantalla.
+            %span.ficha-seccion-periodo= contar(grade.sections.size, "sección", "secciones")
+
+  .stats-grid
+    .stat-card
+      %h3= @total_sections
+      %p= pluralizar(@total_sections, "sección asignada", "secciones asignadas")
+
+    .stat-card
+      %h3= @total_students
+      %p= pluralizar(@total_students, "alumno", "alumnos")
+
+    .stat-card
+      %h3= @total_subjects
+      %p= pluralizar(@total_subjects, "materia distinta", "materias distintas")

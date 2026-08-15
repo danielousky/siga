@@ -70,6 +70,21 @@ class SistemaDeDisenoTest < ActiveSupport::TestCase
     justify-content-end
   ].to_set.freeze
 
+  # `text-transform: capitalize` capitaliza CADA palabra. En inglés produce el
+  # Title Case que se espera de un título; en español produce "15 De Agosto De
+  # 2026", que es lo que decía la pantalla de asistencia. `uppercase` sí se
+  # usa a propósito, en etiquetas cortas.
+  test "ninguna regla capitaliza palabra por palabra" do
+    # Sin los comentarios: si no, el propio comentario que EXPLICA por qué se
+    # quitó la declaración hace fallar el test que lo comprueba.
+    css = HOJA.read.gsub(%r{/\*.*?\*/}m, "")
+    culpables = css.scan(/^(\.[^{\n]+)\{[^}]*text-transform:\s*capitalize/m).flatten
+
+    assert_empty culpables.map(&:strip),
+      "`text-transform: capitalize` produce Title Case inglés sobre texto en " \
+      "español —fechas, plurales, frases—. Reglas que lo usan: #{culpables.join(', ')}"
+  end
+
   test "no quedan restos de Bootstrap en las vistas" do
     encontrados = VISTAS.filter_map do |ruta|
       sucias = self.class.clases_de(ruta.read) & BOOTSTRAP
