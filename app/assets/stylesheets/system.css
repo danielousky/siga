@@ -964,9 +964,15 @@ nav.pagy a.gap {
 }
 
 /* Stats Grid */
+/* `auto-fit` con 200 px deja tres columnas en un contenedor de ~900 px, y con
+   cuatro tarjetas eso da 3 + 1, con la última sola en una fila vacía. Con
+   `min(160px, 100%)` entran las cuatro en una línea en escritorio y caen a dos
+   en el teléfono — nunca una huérfana.
+   El `min(…, 100%)` es lo que impide que la tarjeta imponga 160 px en una
+   pantalla más angosta que eso. */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
   gap: var(--space-md);
   margin-top: var(--space-lg);
 }
@@ -3485,3 +3491,38 @@ nav.pagy a.gap {
   display: flex;
   align-items: flex-end;
 }
+
+/* Lo que hay que atender, en el panel del director (MOR-135).
+   ─────────────────────────────────────────────────────────
+   Cada renglón enlaza a donde se resuelve: un número sin destino es una
+   preocupación, no una tarea. El número va grande porque es lo que se escanea;
+   la frase, al lado, porque es lo que se lee al detenerse. */
+.pendientes { list-style: none; margin: 0; padding: 0; }
+
+.pendiente { border-bottom: 1px solid var(--border-subtle); }
+.pendiente:last-child { border-bottom: none; }
+
+.pendiente-enlace {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.pendiente-enlace:hover { color: var(--brand-primary); }
+.pendiente-enlace:hover .pendiente-que { text-decoration: underline; }
+
+/* Ámbar, no rojo: son cosas por hacer, no un colegio en llamas. El rojo de
+   este sistema significa "un niño aplazado" — ver la regla de color. */
+.pendiente-numero {
+  font-family: var(--font-serif);
+  font-size: 30px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--warning-text);
+  min-width: 2.5ch;
+  text-align: right;
+}
+
+.pendiente-que { color: var(--text-secondary); }

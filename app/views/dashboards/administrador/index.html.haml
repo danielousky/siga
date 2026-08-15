@@ -1,89 +1,73 @@
+-# El panel del director (MOR-135). Ver el controller para el porqué del orden.
+-#
+-# Acá vivía el aviso de solicitudes de demo pendientes, y ya no vive en ningún
+-# lado de esta app (MOR-133). Se tapó tres veces y volvió a filtrarse tres
+-# veces: primero el controller dejaba pasar a cualquier `director`; tapado eso,
+-# esta vista seguía diciendo CUÁNTAS había pendientes —el tamaño del pipeline
+-# comercial de SIGA—; y el enlace del menú delataba que la sección existía.
+-# **Tapar la puerta no alcanza si la pared tiene ventana.**
 .dashboard-administrador
+  -# Primero lo accionable, y solo si existe. Un panel que siempre dice lo mismo
+  -# se deja de leer, y el día que dice otra cosa tampoco se lee.
+  - if @pendientes.any?
+    .card-academic
+      .card-academic-header
+        %h2 Para atender
+
+      %ul.pendientes
+        - @pendientes.each do |p|
+          %li.pendiente
+            = link_to p[:ruta], class: "pendiente-enlace" do
+              %span.pendiente-numero= p[:cuantas]
+              %span.pendiente-que= p[:cuantas] == 1 ? p[:singular] : p[:plural]
+
+  - else
+    .card-academic
+      .card-academic-header
+        %h2 Todo al día
+      %p.nota-ayuda
+        No hay secciones sin profesor ni alumnos sin representante registrado.
+
   .card-academic
-    %h2 Estadísticas institucionales
+    .card-academic-header
+      %h2 El colegio
+
     .stats-grid
       .stat-card
         %h3= @total_students
-        %p Estudiantes Registrados
+        %p= pluralizar(@total_students, "alumno", "alumnos")
 
       .stat-card
         %h3= @total_teachers
-        %p Profesores Activos
+        %p= pluralizar(@total_teachers, "profesor", "profesores")
 
       .stat-card
         %h3= @total_sections
-        %p Secciones Activas
+        %p= pluralizar(@total_sections, "sección", "secciones")
 
       .stat-card
         %h3= @total_admins
-        %p Administradores
-
-  -# Acá vivía el aviso de solicitudes de demo pendientes, y ya no vive en
-  -# ningún lado de esta app (MOR-133).
-  -#
-  -# Se tapó tres veces y volvió a filtrarse tres veces: primero el controller
-  -# dejaba pasar a cualquier `director`; tapado eso, esta vista seguía diciendo
-  -# CUÁNTAS había pendientes —el tamaño del pipeline comercial de SIGA—; y el
-  -# enlace del menú delataba que la sección existía.
-  -#
-  -# **Tapar la puerta no alcanza si la pared tiene ventana.** El panel del
-  -# colegio ya no conoce `DemoRequest`: no hay nada que tapar. Vive en /siga.
-
-  .card-academic
-    %h2 Acceso rápido a módulos
-    .quick-access-grid
-      - if can_manage_students?
-        = link_to students_path, class: "quick-access-card" do
-          .quick-access-icon
-            %span 👨‍🎓
-          %h3 Estudiantes
-          %p Gestionar registro de estudiantes
-
-      - if can_manage_teachers?
-        = link_to teachers_path, class: "quick-access-card" do
-          .quick-access-icon
-            %span 👨‍🏫
-          %h3 Profesores
-          %p Gestionar registro de profesores
-
-      - if can_manage_sections?
-        = link_to sections_path, class: "quick-access-card" do
-          .quick-access-icon
-            %span 📚
-          %h3 Secciones
-          %p Gestionar secciones académicas
-
-      - if can_manage_academic_config?
-        = link_to academic_periods_path, class: "quick-access-card" do
-          .quick-access-icon
-            %span 📅
-          %h3 Períodos académicos
-          %p Configurar períodos lectivos
-
-      = link_to subjects_path, class: "quick-access-card" do
-        .quick-access-icon
-          %span 📖
-        %h3 Materias
-        %p Catálogo de materias
-
-      = link_to departments_path, class: "quick-access-card" do
-        .quick-access-icon
-          %span 🏛️
-        %h3 Departamentos
-        %p Gestionar departamentos académicos
+        %p= pluralizar(@total_admins, "administrador", "administradores")
 
   - if show_recent_activity?
     .card-academic
-      %h2 Actividad reciente
-      %table.table-academic
-        %thead
-          %tr
-            %th Estudiante
-            %th Sección
-            %th Fecha
-        %tbody
-          - @recent_enrollments.each do |enrollment|
+      .card-academic-header
+        %h2 Últimas inscripciones
+
+      - if @recent_enrollments.any?
+        %table.table-academic
+          %thead
             %tr
-              %td= enrollment.student.user.name
-              %td= "#{enrollment.section.grade.name} - #{enrollment.section.name}"
-              %td= enrollment.created_at.strftime("%d/%m/%Y")
+              %th Alumno
+              %th Sección
+              %th Fecha
+          %tbody
+            - @recent_enrollments.each do |enrollment|
+              %tr
+                %td= link_to "#{enrollment.student.user.last_name}, #{enrollment.student.user.name}", enrollment.student
+                %td= "#{enrollment.section.grade.name} – #{enrollment.section.name}"
+                %td= l(enrollment.created_at.to_date, format: :long)
+      - else
+        .empty-state
+          %h3 Todavía no hay inscripciones
+          %p Cuando se inscriba el primer alumno, aparece acá.
