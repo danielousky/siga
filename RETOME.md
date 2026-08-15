@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 13 de agosto de 2026 (madrugada)
+# 🔖 Punto de retome — actualizado 15 de agosto de 2026 (madrugada)
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 
@@ -303,6 +303,59 @@ enlazado al final.
    **inicial**, la plantilla **en blanco** de la EMG 31059, si preescolar usa los
    mismos literales (mandó dos capturas sin mirar), y las cinco preguntas de
    `MOR-136` sobre las competencias.
+
+- **`MOR-135` cerrado · el rediseño, decidido y ejecutado.** De `1859940` a `dc027c5`,
+  **354 tests**, `bin/ci` en verde.
+
+  El issue pedía **decidir**, no dibujar. Las cuatro decisiones quedaron escritas —y como
+  los bloqueantes (`MOR-110`, `MOR-129`, `MOR-111`, `MOR-108`, `MOR-133`) se habían cerrado
+  en el camino, se aplicaron en la misma tanda.
+
+  **Tres hallazgos que valen más que las pantallas:**
+
+  1. **La página que llega por WhatsApp pesaba 1,45 MB**, de los cuales **1,19 MB era el
+     logo**: un PNG de 1024 px puesto donde se dibuja a 140. A 400 kbps —el piso realista
+     en Venezuela— son 29 segundos de pantalla en blanco antes de ver un formulario de
+     cuatro campos. Quedó en **260 KB**. Techo declarado: **≤ 300 KB por página pública**.
+
+  2. **44 botones apuntaban a clases de Bootstrap que esta app no carga** — `btn-danger`
+     (los 15 de borrar), `btn-outline-primary` (23), `btn-outline-secondary` (6) — más
+     **80 clases de espaciado** en 39 vistas, o sea cero separación entre los campos de
+     TODOS los formularios. Un botón así no explota: hereda `.btn` y se dibuja como texto
+     suelto. *Esa era la causa real de "parece de otro sistema".* Nada en el pipeline lo
+     veía: el HTML es válido y el humo devuelve 200. Ahora hay un test que lo fija
+     (`test/integration/sistema_de_diseno_test.rb`).
+
+  3. **El botón "Eliminar" fallaba 200 de 200 veces** en alumnos: cualquier alumno con
+     inscripciones está protegido por `restrict_with_error`, y un alumno sin inscripciones
+     no existe en un colegio real. Ahora aparece **solo donde va a funcionar** —dos de
+     nueve recursos— y donde no, explica qué se perdería (`BorradoHelper`).
+
+  **Lo demás:** portada reescrita (una tesis, cifras con fuente, precios leídos de
+  `Subscription::PLANES`, ningún enlace muerto); página de demo con 4 campos y WhatsApp
+  obligatorio, donde **pedirla dos veces ya no devuelve un error de validación** sino que
+  suma en `veces`; fichas de alumno, grado, materia y profesor reescritas; cinco `show` que
+  solo repetían la fila del listado, borradas; el menú del administrador reordenado **por
+  frecuencia** (19 enlaces → 10 a la vista, resto en un `<details>`); 75 rótulos de Title
+  Case a minúscula de frase.
+
+  **Dos correcciones de rumbo, del propio Claude:**
+
+  - El logo que usé no era el de SIGA: reconstruí con cuidado la sintaxis de un SVG roto
+    (`siga-logo.svg`) sin preguntarme si ese archivo era siquiera el logo. El de verdad es
+    `logo.svg`. Daniel lo corrigió y pidió que volviera el hero, que yo había sacado.
+  - Los seeds daban **30 nombres distintos para 200 alumnos** —el mismo índice para nombre
+    y apellido, así que solo salía la diagonal— y la lista mostraba "Blanco, José" tres
+    veces seguidas. Mi primer arreglo (`k*7 + 3`) **no arregló nada** y lo di por bueno; lo
+    vi porque conté los pares distintos en vez de mirar la fórmula. Arreglarlo destapó
+    además que **`db:seed` no era idempotente ante cambios de contenido**: buscaba al alumno
+    por correo, y el correo se deriva del nombre.
+
+  ⚠️ **Trampa de medición, anotada para el próximo:** Chrome en macOS no abre ventanas de
+  menos de 500 px, así que `--window-size=430` renderiza a 500 y *recorta* la captura —todo
+  parece desbordado y no lo está. Para un ancho de teléfono real hay que meter la página en
+  un `<iframe>` de 390 px **servido desde el mismo origen**: `X-Frame-Options: SAMEORIGIN`
+  bloquea hacerlo desde `file://`.
 
 **Cómo se entrega, desde ahora** (convención escrita en el documento *Cómo trabajamos* de Linear):
 cada issue cerrado deja **transferencia de aprendizaje** (qué salió distinto, qué falló y cómo se
