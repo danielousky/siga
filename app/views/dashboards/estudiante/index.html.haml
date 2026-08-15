@@ -40,8 +40,9 @@
               %h3= "#{section.grade.name} – #{section.name}"
               %span.section-period= section.academic_period.name
             .section-block-meta
-              %span.status-badge.status-pendiente{style: "background: var(--success-bg); color: var(--success-text); border-color: var(--success-border);"}
-                Regular
+              -# Decía `.status-pendiente` y se pintaba de verde con un `style`
+                inline. Ninguna de las dos clases existe en ninguna hoja.
+              %span.estado.estado--al-dia Regular
 
           - if section.teacher_sections.any?
             .section-subjects

@@ -267,28 +267,35 @@ a:hover {
   color: var(--text-primary);
 }
 
+/* El botón destructivo NO lleva rojo (MOR-135 · la regla de color).
+   ────────────────────────────────────────────────────────────────
+   En un sistema escolar el rojo tiene un significado que no se puede gastar:
+   **un número en rojo es un niño aplazado**. Es la señal de más carga
+   emocional del producto y aparece en la libreta que mira una madre, en las
+   notas del alumno y en el conteo de inasistencias. Si el rojo también quiere
+   decir "este botón borra cosas", deja de decir lo primero.
+
+   Lo destructivo se señala igual, pero por PESO y POSICIÓN:
+
+       btn-primary     azul sólido      la acción a la que vino
+       btn-secondary   borde suave      todo lo demás
+       btn-danger      borde fuerte     destructivo — y en hover se vuelve
+                                        tinta sólida, que se lee como "en serio"
+
+   Además ya no aparece en ninguna fila de listado: vive en la pantalla de
+   edición, dentro de un bloque rotulado, con su confirmación y su explicación
+   de qué se pierde. El contexto carga el peso que antes cargaba el color. */
 .btn-danger {
-  background: var(--danger-bg);
-  color: var(--danger-text);
-  border-color: var(--danger-border);
+  background: transparent;
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  font-weight: 600;
 }
 
 .btn-danger:hover {
-  background: var(--danger-text);
-  border-color: var(--danger-text);
-  color: #fff;
-}
-
-.btn-outline-danger {
-  background: transparent;
-  color: var(--danger-text);
-  border-color: var(--danger-border);
-}
-
-.btn-outline-danger:hover {
-  background: var(--danger-bg);
-  border-color: var(--danger-text);
-  color: var(--danger-text);
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--surface-elevated);
 }
 
 .btn-sm {
@@ -2258,6 +2265,17 @@ nav.pagy a.gap {
   --siga-acento: #5eead4;
   --siga-alerta: #fbbf24;
 
+  /* Los tres estados que faltaban por nombrar. Estaban escritos como hex crudo
+     en `.siga-estado--*`, que es la forma de que dentro de seis meses nadie
+     sepa si ese `#f87171` es "vencida" o simplemente un rojo que quedó ahí.
+     El panel de SIGA no comparte la paleta del colegio a propósito —tiene que
+     verse distinto en tres segundos, ver `MOR-133`— pero sus tokens se nombran
+     igual: por lo que significan. */
+  --siga-ok:       #34d399;   /* suscripción activa */
+  --siga-mal:      #f87171;   /* vencida */
+  --siga-apagado:  #6b7280;   /* cancelada — un hecho, no una alarma */
+  --siga-apagado-texto: #9ca3af;
+
   background: var(--siga-fondo);
   color: var(--siga-texto);
   min-height: 100vh;
@@ -2397,10 +2415,10 @@ nav.pagy a.gap {
 /* Cuando la matrícula se pasó del plan facturado (MOR-108). No es un error: el
    plan se observa siempre y se cobra al renovar. */
 .siga-desfase { font-size: 11px; color: var(--siga-alerta); }
-.siga-estado--activa    { border-color: #34d399; color: #34d399; }
+.siga-estado--activa    { border-color: var(--siga-ok); color: var(--siga-ok); }
 .siga-estado--en_gracia { border-color: var(--siga-alerta); color: var(--siga-alerta); }
-.siga-estado--vencida   { border-color: #f87171; color: #f87171; }
-.siga-estado--cancelada { border-color: #6b7280; color: #9ca3af; }
+.siga-estado--vencida   { border-color: var(--siga-mal); color: var(--siga-mal); }
+.siga-estado--cancelada { border-color: var(--siga-apagado); color: var(--siga-apagado-texto); }
 
 /* Aviso de suscripción (MOR-108). Solo aparece cuando hay algo que decir: un
    cartel permanente de "estás al día" se deja de ver, y el día que dice otra
@@ -2500,7 +2518,9 @@ nav.pagy a.gap {
   font-size: 14px;
 }
 
-.identidad-quitar { font-size: 13px; color: var(--danger-text); }
+/* Neutro: quitar el escudo es reversible —se vuelve a subir— y no destruye
+   ningún dato académico. El rojo acá era puro énfasis sobre un control. */
+.identidad-quitar { font-size: 13px; color: var(--text-secondary); text-decoration: underline; }
 .identidad-vacio-nota { font-size: 12px; text-align: center; max-width: 160px; margin: 0; }
 
 @media (max-width: 640px) {
@@ -3241,26 +3261,35 @@ nav.pagy a.gap {
 }
 
 /* El bloque de borrado: separado del formulario y con su propio encabezado,
-   porque no es "un botón más" de la pantalla de edición. */
+   porque no es "un botón más" de la pantalla de edición.
+   Neutro, como el botón — ver la nota en `.btn-danger`. */
 .borrar {
   margin-top: var(--space-xl);
   padding: var(--space-lg);
-  border: 1px solid var(--danger-border);
+  border: 1px solid var(--border-emphasis);
   border-radius: var(--radius-md);
-  background: var(--danger-bg);
+  background: var(--surface-input);
 }
 
-.borrar--imposible { border-color: var(--border-standard); background: var(--surface-input); }
+.borrar--imposible { border-color: var(--border-standard); }
 
 .borrar-titulo {
   margin: 0 0 var(--space-xs);
   font-size: 16px;
-  color: var(--danger-text);
+  color: var(--text-primary);
 }
 .borrar--imposible .borrar-titulo { color: var(--text-secondary); }
 
 .borrar-aviso { margin: 0 0 var(--space-md); font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
 .borrar-aviso:last-child { margin-bottom: 0; }
+
+/* La ÚNICA parte roja del bloque, y la que la regla sí permite: la frase que
+   nombra lo que se perdería. Ahí el rojo no adorna un control — describe un
+   dato que va a dejar de existir. */
+.borrar-consecuencia {
+  color: var(--danger-text);
+  font-weight: 500;
+}
 
 /* El grupo plegable del menú (MOR-135). `<details>` nativo: sin JavaScript,
    con teclado, y sin estado que se pueda desincronizar. */
@@ -3322,3 +3351,59 @@ nav.pagy a.gap {
   padding-bottom: 0;
   border-bottom: none;
 }
+
+/* ==========================================================================
+   CHIP DE ESTADO (MOR-135 · la regla de color)
+   ==========================================================================
+   El único lugar del panel del colegio donde un color semántico envuelve algo
+   que no es un número. Existe porque había dos parches sueltos:
+
+     · `enrollments/index` pintaba el ámbar **a mano** (`#f57f17`), fuera del
+       sistema de tokens.
+     · `dashboards/estudiante` usaba `.status-badge.status-pendiente`, dos
+       clases que **no existen en ninguna hoja**, con un `style` inline que
+       las pintaba de VERDE. El nombre decía "pendiente" y el color decía
+       "aprobado".
+
+   Los modificadores se llaman por lo que SIGNIFICAN, no por su color: el día
+   que el verde cambie de tono, `--al-dia` sigue queriendo decir lo mismo.
+
+   Y "retirado" es `--inactivo`, gris, no ámbar: un alumno que se fue del
+   colegio es un HECHO, no una alerta. El ámbar dice "haz algo con esto".
+   ========================================================================== */
+
+.estado {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.estado--al-dia   { background: var(--success-bg); color: var(--success-text); border-color: var(--success-border); }
+.estado--atencion { background: var(--warning-bg); color: var(--warning-text); border-color: var(--warning-border); }
+.estado--grave    { background: var(--danger-bg);  color: var(--danger-text);  border-color: var(--danger-border); }
+.estado--inactivo { background: var(--surface-input); color: var(--text-tertiary); border-color: var(--border-standard); }
+
+/* Los avisos, en el tema oscuro del panel de SIGA (MOR-135).
+   ─────────────────────────────────────────────────────────
+   `.alert-success` y `.alert-danger` están escritas para el papel crema del
+   colegio: fondo verde claro, texto verde oscuro. Sobre el panel oscuro
+   aparecían como un rectángulo blanco pegado encima — la única parte clara de
+   la pantalla, y encima la más grande.
+
+   La regla de color se sostiene igual: el aviso sigue diciendo qué pasó con un
+   color semántico. Lo que cambia es el sustrato, no el significado. */
+.siga-admin .alert {
+  background: var(--siga-panel);
+  border: 1px solid var(--siga-borde);
+  color: var(--siga-texto);
+  border-left-width: 3px;
+}
+
+.siga-admin .alert-success { border-left-color: var(--siga-ok); }
+.siga-admin .alert-danger  { border-left-color: var(--siga-mal); }
+.siga-admin .alert-warning { border-left-color: var(--siga-alerta); }

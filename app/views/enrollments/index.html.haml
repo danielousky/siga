@@ -34,5 +34,7 @@
             %td= enrollment.section.grade.name
             %td= enrollment.enrollment_date.strftime("%d/%m/%Y")
             %td
-              %span.role-badge{style: enrollment.regular? ? "" : "background: #f57f17; border-color: #f57f17;"}
+              -# `retirado` va en gris, no en ámbar: un alumno que se fue del
+                colegio es un hecho, no una alerta pendiente de atender.
+              %span{class: "estado #{enrollment.regular? ? 'estado--al-dia' : 'estado--inactivo'}"}
                 = enrollment.regular? ? "Regular" : enrollment.status.humanize

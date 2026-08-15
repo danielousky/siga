@@ -6,10 +6,18 @@
 -#
 -# Cuando no se puede, no se esconde en silencio: se explica por qué, que es lo
 -# que la persona necesita para hacer lo correcto en su lugar.
+-#
+-# ## Dónde está el rojo, y por qué
+-#
+-# Ni en el botón ni en el marco: en **la frase que nombra lo que se perdería**.
+-# El rojo de este sistema significa "un niño aplazado" —aparece en la libreta
+-# que mira una madre— y gastarlo en un control lo desafina. Acá describe un
+-# dato que va a dejar de existir, que es exactamente su trabajo.
 - if borrable?(registro)
   .borrar
     %h3.borrar-titulo Eliminar
-    %p.borrar-aviso= aviso
+    %p.borrar-aviso
+      %span.borrar-consecuencia= aviso
     = link_to "Eliminar", registro,
               data: { turbo_method: :delete, turbo_confirm: aviso },
               class: "btn btn-danger"
