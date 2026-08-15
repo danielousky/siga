@@ -100,7 +100,7 @@
 
     - if @available_subjects&.any? && @available_teachers&.any?
       %hr{style: "margin: var(--space-xl) 0; border-color: var(--border-standard);"}
-      %h3{style: "font-size: 16px; margin-bottom: var(--space-lg);"} Asignar Profesor a Materia
+      %h3{style: "font-size: 16px; margin-bottom: var(--space-lg);"} Asignar profesor a materia
       = form_with url: section_teacher_sections_path(@section), method: :post do |f|
         .form-row
           .form-group
@@ -109,7 +109,7 @@
           .form-group
             = f.label :teacher_id, "Profesor", class: "form-label"
             = f.select :teacher_id, options_for_select(@available_teachers.map { |t| ["#{t.user.last_name}, #{t.user.name} (#{t.user.id_card})", t.user_id] }), {}, class: "form-select"
-          .form-group{style: "display: flex; align-items: flex-end;"}
+          .form-group.form-group--boton
             = f.submit "Asignar", class: "btn btn-primary"
 
   .card-academic

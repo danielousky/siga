@@ -1,6 +1,6 @@
-.card-academic{style: "max-width: 480px; margin: var(--space-2xl) auto;"}
-  %h1{style: "text-align: center; margin-bottom: var(--space-md);"} Recuperar Contraseña
-  %p{style: "text-align: center; color: var(--text-secondary); margin-bottom: var(--space-xl);"}
+.card-academic.acceso
+  %h1.acceso-titulo Recuperar contraseña
+  %p.acceso-entrada
     Escriba el correo con el que entra al sistema y le enviamos un enlace para
     crear una contraseña nueva.
 
@@ -11,7 +11,7 @@
       = f.label :email, "Correo electrónico", class: "form-label"
       = f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control", placeholder: "usuario@ejemplo.com"
 
-    = f.submit "Enviarme el enlace", class: "btn btn-primary", style: "width: 100%;"
+    = f.submit "Enviarme el enlace", class: "btn btn-primary acceso-enviar"
 
-  %div{style: "margin-top: var(--space-lg);"}
+  .acceso-pie
     = render "devise/shared/links"

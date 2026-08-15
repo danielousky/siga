@@ -1,5 +1,5 @@
-.card-academic{style: "max-width: 480px; margin: var(--space-2xl) auto;"}
-  %h1{style: "text-align: center; margin-bottom: var(--space-xl);"} Nueva Contraseña
+.card-academic.acceso
+  %h1.acceso-titulo Nueva contraseña
 
   = form_for(resource, as: resource_name, url: password_path(resource_name), html: { method: :put }) do |f|
     = render "devise/shared/error_messages", resource: resource
@@ -15,7 +15,7 @@
       = f.label :password_confirmation, "Repita la contraseña nueva", class: "form-label"
       = f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control"
 
-    = f.submit "Guardar la contraseña", class: "btn btn-primary", style: "width: 100%;"
+    = f.submit "Guardar la contraseña", class: "btn btn-primary acceso-enviar"
 
-  %div{style: "margin-top: var(--space-lg);"}
+  .acceso-pie
     = render "devise/shared/links"

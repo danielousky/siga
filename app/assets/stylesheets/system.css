@@ -451,6 +451,13 @@ textarea.form-control {
   display: block;
 }
 
+/* Sin esta línea los DOS ojos se dibujan superpuestos.
+   El atributo `hidden` esconde un elemento con `display: none` desde la hoja
+   del NAVEGADOR, y cualquier `display` que escriba el autor le gana — sin
+   importar la especificidad, porque una hoja de autor siempre pisa a la del
+   navegador. El `display: block` de arriba lo estaba anulando en silencio. */
+.password-toggle-icon[hidden] { display: none; }
+
 .password-toggle-btn {
   position: absolute;
   right: var(--space-xs);
@@ -3407,3 +3414,74 @@ nav.pagy a.gap {
 .siga-admin .alert-success { border-left-color: var(--siga-ok); }
 .siga-admin .alert-danger  { border-left-color: var(--siga-mal); }
 .siga-admin .alert-warning { border-left-color: var(--siga-alerta); }
+
+/* ==========================================================================
+   PANTALLAS DE ACCESO (MOR-135)
+   ==========================================================================
+   Login, "olvidé mi contraseña" y "elegir contraseña nueva" compartían seis
+   estilos IDÉNTICOS escritos en línea, uno por vista. Tres copias de lo mismo
+   es el momento exacto en que se vuelven tres cosas distintas: alguien toca
+   una y las otras dos quedan atrás sin que nadie lo note.
+
+   Es la segunda superficie más vista del sistema después de la portada, y la
+   primera que ve un profesor cada mañana.
+   ========================================================================== */
+
+.acceso {
+  max-width: 480px;
+  margin: var(--space-2xl) auto;
+}
+
+.acceso-titulo {
+  text-align: center;
+  margin: 0 0 var(--space-md);
+}
+
+.acceso-entrada {
+  text-align: center;
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-xl);
+}
+
+/* Botón a lo ancho: en el teléfono es el objetivo más grande de la pantalla, y
+   acá no compite con nada. */
+.acceso-enviar { width: 100%; }
+
+.acceso-pie {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-subtle);
+  text-align: center;
+  font-size: 14px;
+}
+
+.acceso-enlaces {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+/* "Recordarme": la etiqueta ENTERA es el objetivo, no la casilla de 16 px. */
+.acceso-recordarme {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 14px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.acceso-recordarme input { margin: 0; }
+
+/* La entradilla bajo el título de una pantalla: dice para qué sirve, en el
+   único renglón donde alguien la va a leer. */
+.entrada-pagina {
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-xl);
+}
+
+/* Un `.form-group` cuyo contenido es un botón que debe alinearse con los
+   campos de al lado, no con sus etiquetas. */
+.form-group--boton {
+  display: flex;
+  align-items: flex-end;
+}

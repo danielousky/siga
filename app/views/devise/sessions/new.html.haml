@@ -1,6 +1,6 @@
-.card-academic{style: "max-width: 480px; margin: var(--space-2xl) auto;"}
-  %h1{style: "text-align: center; margin-bottom: var(--space-md);"} Iniciar Sesión
-  %p{style: "text-align: center; color: var(--text-secondary); margin-bottom: var(--space-xl);"} Acceda al Sistema Integrado de Gestión Académica
+.card-academic.acceso
+  %h1.acceso-titulo Iniciar sesión
+  %p.acceso-entrada Acceda al Sistema Integrado de Gestión Académica
 
   = form_for(resource, as: resource_name, url: session_path(resource_name)) do |f|
     .form-group
@@ -28,12 +28,12 @@
 
     - if devise_mapping.rememberable?
       .form-group
-        %label{style: "display: flex; align-items: center; gap: var(--space-xs); font-size: 14px; color: var(--text-secondary); cursor: pointer;"}
-          = f.check_box :remember_me, style: "margin: 0;"
+        %label.acceso-recordarme
+          = f.check_box :remember_me
           %span Recordarme
 
     .form-group
-      = f.submit "Iniciar sesión", class: "btn btn-primary", style: "width: 100%; justify-content: center;"
+      = f.submit "Iniciar sesión", class: "btn btn-primary acceso-enviar"
 
-  %div{style: "margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: 1px solid var(--border-subtle); text-align: center; font-size: 14px;"}
+  .acceso-pie
     = render "devise/shared/links"

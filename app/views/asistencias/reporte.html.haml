@@ -15,7 +15,7 @@
       .form-group
         = label_tag :hasta, "Hasta", class: "form-label"
         = date_field_tag :hasta, @hasta, class: "form-control"
-      .form-group{style: "display: flex; align-items: flex-end;"}
+      .form-group.form-group--boton
         = submit_tag "Ver", class: "btn btn-primary", data: { turbo: false }
 
   - if @filas.empty?
