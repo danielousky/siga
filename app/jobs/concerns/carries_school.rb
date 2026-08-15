@@ -158,7 +158,7 @@ module CarriesSchool
 
   def mensaje_sin_colegio
     "#{self.class.name} se encoló sin colegio. Un job trabaja para UN colegio: " \
-    "asegurate de que `Current.school` esté puesto al encolarlo, o declará " \
+    "asegúrate de que `Current.school` esté puesto al encolarlo, o declara " \
     "`colegio_opcional` / `de_toda_la_plataforma` en la clase del job."
   end
 end

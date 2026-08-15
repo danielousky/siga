@@ -59,4 +59,10 @@ Rails.application.configure do
   # inexistente falla en el test en vez de al cargar—, no una garantía: las FK
   # siguen existiendo y la base sigue rechazando la fila.
   config.active_record.verify_foreign_keys_for_fixtures = false
+
+  # En tests, el adaptador de prueba y no Solid Queue: `perform_enqueued_jobs`
+  # y `assert_enqueued_with` necesitan que los trabajos queden en memoria y no
+  # se ejecuten solos. Escribirlos en la base los volvería asíncronos de verdad
+  # y los tests de `CarriesSchool` (MOR-88) dejarían de poder observarlos.
+  config.active_job.queue_adapter = :test
 end

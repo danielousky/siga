@@ -84,4 +84,14 @@ Rails.application.configure do
   ENV.fetch("SIGA_HOSTS", "").split(",").map(&:strip).reject(&:empty?).each do |dominio|
     config.hosts << dominio
   end
+
+  # La misma cola que producción, a propósito.
+  #
+  # Con `:async` en desarrollo y Solid Queue en producción, el problema que
+  # Solid Queue viene a resolver —perder lo encolado al reiniciar— **solo
+  # aparecería en producción**, que es el peor lugar para descubrirlo.
+  #
+  # El worker se levanta con `bin/jobs`. Sin él, los trabajos se acumulan en la
+  # tabla y esperan: que es exactamente lo que se quería.
+  config.active_job.queue_adapter = :solid_queue
 end

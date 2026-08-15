@@ -36,6 +36,25 @@ gem "haml-rails"
 # Pagination [https://github.com/ddnexus/pagy]
 gem "pagy"
 
+# La cola de trabajos, respaldada por la MISMA base de PostgreSQL.
+#
+# Hasta acá el adaptador era `:async`, que guarda la cola **en memoria del
+# proceso web**: un reinicio —un deploy, un `systemctl restart`, un OOM— se
+# lleva lo encolado sin dejar rastro. El único job que hay hoy recalcula los
+# promedios de una sección entera cuando cambia una ponderación, así que
+#
+#     profesor cambia un peso  →  job encolado  →  deploy  →  job perdido
+#                              →  los 30 alumnos quedan con el promedio viejo
+#
+# y nadie se entera hasta que alguien mira. `bin/rails notas:recalcular` repara,
+# pero hay que acordarse de correrlo.
+#
+# Solid Queue es el adaptador por defecto de Rails 8 y **no agrega
+# infraestructura**: sus tablas viven en el mismo PostgreSQL que ya existe. No
+# hay Redis que instalar, monitorear ni pagar — que en un producto de 25 $ al
+# mes no es un detalle.
+gem "solid_queue", "~> 1.6"
+
 # Traducciones de Rails y Active Record al español. Sin esto, cualquier error de
 # validación se muestra como "Translation missing" — la app no traía es.yml.
 gem "rails-i18n"

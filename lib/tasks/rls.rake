@@ -106,8 +106,8 @@ namespace :rls do
       abort <<~MSG
         ✗ Este rol SE SALTA el RLS. El aislamiento de la base no está protegiendo nada.
 
-          Corré:  bin/rails rls:crear_rol
-          Y apuntá config/database.yml al rol #{ROL_APP}.
+          Corre:  bin/rails rls:crear_rol
+          Y apunta config/database.yml al rol #{ROL_APP}.
       MSG
     end
 

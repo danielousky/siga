@@ -32,6 +32,7 @@ bin/rails db:seed                  # Datos de prueba: 2 colegios, 290 alumnos, 1
 
 # Development
 bin/rails server                   # Start dev server (localhost:3000)
+bin/jobs                           # Worker de la cola — sin él, los jobs esperan
 bin/rails console                  # Rails console
 
 # Database
@@ -185,20 +186,56 @@ sección entera a mitad de lapso, y le hace perder la confianza a la familia.
 
 ### 3. Otros pendientes
 
-- ~~Ruby 3.1 y Rails 7.0 fuera de soporte de seguridad~~ → **resuelto**: Ruby 3.4.9 / Rails 8.1.3.1.
-  Los enums migraron a la sintaxis posicional (`enum :status, {...}`), obligatoria desde Rails 8.
-- `config.force_ssl` comentado en `config/environments/production.rb`.
-- `action_mailer` sin configurar en producción → "olvidé mi contraseña" no envía nada.
-- `User` tiene `:registerable`: cualquiera puede crear cuenta en `/users/sign_up`.
-- `db/seeds.rb` crea usuarios con contraseña `123123` sin guard de entorno.
-- ~~Sin CI~~ → `bin/ci` corre el pipeline completo en ~10 s (`MOR-105`). El workflow de GitHub
-  Actions está escrito y **no puede correr todavía: este repo no tiene remoto.**
-- Sin Dockerfile, sin monitoreo.
-- `config.active_job.queue_adapter` sin configurar → el adaptador es `:async`, que **pierde lo
-  encolado al reiniciar el proceso**. Hoy el único job encolado es `RecalcularSeccionJob`, y
-  `bin/rails notas:recalcular` repara lo que se pierda. En producción hace falta una cola de verdad.
-- Colisión de nombres: `Grade` es "grado escolar", pero `ActivityLog::LABELS` traduce
+**Resueltos** (esta lista estuvo desactualizada un tiempo; se verificó uno por uno el 15 de agosto):
+
+- ~~Ruby 3.1 y Rails 7.0 fuera de soporte~~ → Ruby 3.4.9 / Rails 8.1.3.1. Los enums migraron a
+  la sintaxis posicional (`enum :status, {...}`), obligatoria desde Rails 8.
+- ~~`config.force_ssl` comentado~~ → `ENV.fetch("SIGA_FORCE_SSL", "true")`. Va por variable
+  porque **HSTS es difícil de deshacer**: el navegador recuerda la orden meses.
+- ~~`action_mailer` sin configurar~~ → SMTP completo por variables de entorno, sin atarse a un
+  proveedor. `perform_deliveries` solo si hay `SMTP_ADDRESS`, y `raise_delivery_errors` en true:
+  un correo que no sale tiene que aparecer en el log, no desaparecer.
+- ~~Registro público abierto~~ → `devise_for :users, skip: [:registrations]`, y `/cuenta` se
+  devuelve a mano para editar el perfil. `/users/sign_up` da **404** (`MOR-101`).
+- ~~Seeds sin guard de entorno~~ → abortan fuera de desarrollo.
+- ~~Sin CI~~ → `bin/ci` en ~15 s (`MOR-105`), y el workflow de GitHub Actions **ya puede correr**:
+  el repo tiene remoto (`danielousky/siga`, privado).
+- ~~Sin Dockerfile~~ → existe, con su `.dockerignore`.
+- ~~El adaptador de jobs pierde lo encolado al reiniciar~~ → **Solid Queue**, sobre la misma base
+  de PostgreSQL. Ver abajo.
+
+**Abiertos de verdad:**
+
+- **Sin monitoreo.** Nada avisa si el worker se cae o si la cola crece.
+- **Colisión de nombres:** `Grade` es "grado escolar", pero `ActivityLog::LABELS` traduce
   `grade_created` como "Calificación registrada". Dos conceptos, un nombre.
+- **El worker hay que levantarlo.** El `Procfile` declara `web` y `worker`; si el segundo no
+  corre, la cola se llena y los promedios de una sección quedan viejos para siempre. Sobrevive
+  al reinicio, pero nadie la vacía. `bin/rails notas:recalcular` sigue siendo la reparación.
+
+### 4. La cola de trabajos
+
+`config.active_job.queue_adapter = :solid_queue` en **producción y desarrollo**, y `:test` en
+tests. Que los dos primeros coincidan no es simetría por gusto: con `:async` en desarrollo, el
+problema que Solid Queue resuelve solo aparecería en producción.
+
+Vive en la **misma base**, sin `connects_to`. El generador asume una base aparte porque está
+pensado para volumen; SIGA tiene *un* job que corre ~1 segundo cuando un profesor cambia una
+ponderación. Una segunda base sería otra cadena de conexión que configurar, respaldar y
+monitorear — y en el plan de 25 $ al mes, cada pieza que no hace falta es una que puede fallar.
+
+Sus once tablas **no llevan RLS, a propósito**: no son datos de ningún colegio, son la maquinaria
+de la plataforma, igual que `SigaStaff`. El colegio de un job viaja en su payload y lo restablece
+`CarriesSchool` antes del `perform` (`MOR-88`). Con RLS puesto, un worker sin contexto no vería
+ni sus propios trabajos.
+
+```
+    profesor cambia un peso  →  job en la TABLA  →  deploy  →  el worker lo toma
+    (antes: job en memoria del proceso web  →  deploy  →  se perdió, sin error)
+```
+
+Verificado a mano: encolar, matar el proceso que encoló, levantar `bin/jobs`, y el trabajo se
+ejecuta. Sin worker, se acumula y espera — que es exactamente lo que se quería.
 
 ## Contexto de mercado (investigado, agosto 2026)
 
