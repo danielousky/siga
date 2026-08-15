@@ -13,6 +13,22 @@
 # subject, school…) van una sola vez en el fallback global, y arriba solo queda
 # lo que es específico de un modelo.
 es:
+
+  # Los rótulos de los botones de formulario.
+  #
+  # Sin esto, Rails compone "Crear %{model}" / "Actualizar %{model}" con el
+  # nombre del modelo, que va con mayúscula porque es un sustantivo suelto
+  # ("Materia", "Período académico"). El resultado eran botones en Title Case
+  # —"Actualizar Materia"— justo después de haber barrido el Title Case de
+  # todas las vistas.
+  #
+  # "Guardar cambios" además dice mejor lo que hace: la pantalla ya se titula
+  # "Editar materia", así que repetir el sustantivo en el botón es ruido.
+  helpers:
+    submit:
+      create: "Crear"
+      update: "Guardar cambios"
+      submit: "Guardar"
   activerecord:
     errors:
       messages:
