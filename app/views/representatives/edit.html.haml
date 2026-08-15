@@ -3,3 +3,5 @@
     %h1 Editar representante
 
   = render "form", representative: @representative, usuario: @usuario
+
+  = render "shared/borrar", registro: @representative, aviso: "El representante pierde su acceso al portal y sus vínculos con los alumnos.", alternativa: "Si solo dejó de representar a un alumno, quite ese vínculo y su ficha se conserva."

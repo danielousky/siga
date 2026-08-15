@@ -4,3 +4,5 @@
     = link_to "Volver", @evaluation_activity, class: "btn btn-secondary"
 
   = render "form", evaluation_activity: @evaluation_activity
+
+  = render "shared/borrar", registro: @evaluation_activity, aviso: "Se borra la evaluación y deja de contar en el promedio del lapso.", alternativa: "Cambiarle el peso sí es posible, y recalcula los promedios sin perder nada."

@@ -2,22 +2,24 @@
   .card-academic-header
     %h1= "#{@section.grade.name} – Sección #{@section.name}"
     - if administrador?
-      .actions-group
-        = link_to "Editar", edit_section_path(@section), class: "btn btn-secondary"
-        = link_to "Eliminar", @section, data: { turbo_method: :delete, turbo_confirm: "¿Está seguro de eliminar esta sección?" }, class: "btn btn-danger"
+      -# "Eliminar" vive en la pantalla de edición, en el bloque que explica
+        qué se pierde y solo aparece si va a funcionar (`shared/_borrar`). Una
+        sección con alumnos inscritos no se puede borrar, y ofrecerlo acá era
+        un botón que confirmaba y después fallaba.
+      = link_to "Editar", edit_section_path(@section), class: "btn btn-secondary"
     - else
       = link_to "← Volver", dashboards_profesor_path, class: "btn btn-secondary"
 
   .detail-row
     .detail-item
-      %label.detail-label Período Académico
+      %span.detail-label Período Académico
       %p.detail-value= @section.academic_period.name
     .detail-item
-      %label.detail-label Capacidad
+      %span.detail-label Capacidad
       %p.detail-value= "#{@enrollments.size} / #{@section.capacity} estudiantes"
     - if @section.classroom.present?
       .detail-item
-        %label.detail-label Aula
+        %span.detail-label Aula
         %p.detail-value= @section.classroom
 
 / =============================================

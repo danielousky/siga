@@ -3,3 +3,5 @@
     %h1 Editar sección
 
   = render "form", section: @section, volver: sections_path
+
+  = render "shared/borrar", registro: @section, aviso: "La sección desaparece, con sus asignaciones de profesor.", alternativa: "Si el año escolar terminó, la sección se conserva: es parte del historial."
