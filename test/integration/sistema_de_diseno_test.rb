@@ -85,6 +85,21 @@ class SistemaDeDisenoTest < ActiveSupport::TestCase
       "español —fechas, plurales, frases—. Reglas que lo usan: #{culpables.join(', ')}"
   end
 
+  # `[hidden] { display: none }` vive en la hoja del NAVEGADOR, y cualquier
+  # `display` de autor le gana. Sin la regla global, un elemento marcado como
+  # oculto se dibuja igual y sin error de ningún tipo:
+  #
+  #   · los DOS ojos del campo de contraseña, superpuestos;
+  #   · una caja de aviso VACÍA con un botón "Reintentar", permanente, en la
+  #     planilla de notas.
+  test "el atributo hidden gana sobre cualquier display de autor" do
+    css = HOJA.read.gsub(%r{/\*.*?\*/}m, "")
+
+    assert_match(/\[hidden\]\s*\{[^}]*display:\s*none\s*!important/, css,
+      "falta `[hidden] { display: none !important }`. Sin esa regla, cualquier " \
+      "clase con `display` propio anula el atributo `hidden` en silencio.")
+  end
+
   test "no quedan restos de Bootstrap en las vistas" do
     encontrados = VISTAS.filter_map do |ruta|
       sucias = self.class.clases_de(ruta.read) & BOOTSTRAP

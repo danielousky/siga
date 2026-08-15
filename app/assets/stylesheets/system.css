@@ -76,6 +76,25 @@
   box-sizing: border-box;
 }
 
+/* El atributo `hidden` gana siempre.
+   ─────────────────────────────────
+   `[hidden] { display: none }` vive en la hoja del NAVEGADOR, y cualquier
+   `display` que escriba el autor le gana — sin importar la especificidad,
+   porque una hoja de autor siempre pisa a la del navegador. El resultado es un
+   elemento marcado como oculto que se dibuja igual, sin error de ningún tipo.
+
+   Pasaba en dos lugares y ninguno era menor:
+
+     · los DOS ojos del campo de contraseña, superpuestos, en la pantalla que
+       un profesor abre cada mañana;
+     · una caja de aviso VACÍA con un botón "Reintentar", permanente, en la
+       planilla de notas — la pantalla más importante del profesor.
+
+   El `!important` es correcto acá y no es pereza: `hidden` es una afirmación
+   sobre el DOM ("esto no es relevante ahora"), no una sugerencia de estilo.
+   Ninguna regla de presentación debería poder contradecirla. */
+[hidden] { display: none !important; }
+
 body {
   margin: 0;
   padding: 0;
@@ -457,12 +476,7 @@ textarea.form-control {
   display: block;
 }
 
-/* Sin esta línea los DOS ojos se dibujan superpuestos.
-   El atributo `hidden` esconde un elemento con `display: none` desde la hoja
-   del NAVEGADOR, y cualquier `display` que escriba el autor le gana — sin
-   importar la especificidad, porque una hoja de autor siempre pisa a la del
-   navegador. El `display: block` de arriba lo estaba anulando en silencio. */
-.password-toggle-icon[hidden] { display: none; }
+/* El caso puntual se fue: lo cubre la regla global `[hidden]` de arriba. */
 
 .password-toggle-btn {
   position: absolute;
