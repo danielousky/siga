@@ -413,6 +413,45 @@ enlazado al final.
   recortada a 900 px de alto. Para ver el final de la tira del menú hay que
   ponerle `scrollLeft = 99999` antes de capturar.
 
+- **Cierre de pendientes técnicos.** De `59ef5ef` a `d0731c1`, **382 tests**.
+
+  **La cola de trabajos deja de perderse.** Era `:async`, que guarda la cola en
+  memoria del proceso web: un deploy se llevaba lo encolado sin dejar rastro, y
+  el único job que hay recalcula los promedios de una sección entera. Ahora
+  **Solid Queue sobre la misma base** —sin base aparte: para un job de un
+  segundo, una segunda cadena de conexión que configurar, respaldar y
+  monitorear no se paga—. Sus once tablas no llevan RLS a propósito: son
+  maquinaria de plataforma, y el colegio viaja en el payload (`MOR-88`).
+  Verificado a mano: encolar → matar el proceso → `bin/jobs` lo toma.
+
+  **Auditar quién cambia una calificación.** *"¿Quién le cambió la nota a mi
+  hijo?"* es la pregunta que un colegio necesita responder, y el sistema no la
+  contestaba: había etiquetas para "Calificación registrada/modificada/
+  eliminada" y **nadie las emitía**. Ahora queda quién, a quién, en qué
+  evaluación y **de qué valor a cuál**. Guardar el mismo valor no cuenta: la
+  planilla reenvía al salir del campo, y un historial lleno de cambios que no
+  ocurrieron esconde los que sí.
+
+  **Y una regresión mía, encontrada en el camino:** al borrar los cinco `show`
+  que solo repetían la fila del listado, quince redirecciones quedaron
+  apuntando a rutas que ya no existen. **No explotaban** —el helper
+  `department_path` sobrevive porque `PATCH` y `DELETE` comparten esa ruta— así
+  que creaban bien y dejaban al usuario en un 404. Ningún test lo veía porque
+  ninguno ejercía alta ni edición de esos recursos; ahora hay uno que falla
+  4 de 4 sin el arreglo.
+
+  El registro de actividad pasó de cubrir 10 acciones a cubrir 25, con **los dos
+  lados fijados por tests**: ninguna etiqueta sin emisor (prometía una auditoría
+  inexistente) y ningún emisor sin etiqueta (la mostraba en inglés — incluida
+  la visita de soporte de SIGA, que es la que hace defendible el acceso amplio).
+
+  ⚠️ **`CLAUDE.md` estaba desactualizado en cinco puntos** y se verificó uno por
+  uno: `force_ssl`, `action_mailer`, el registro público cerrado, el guard de
+  los seeds y el Dockerfile ya estaban resueltos. Y **el repo ya tiene remoto**
+  (`danielousky/siga`), así que el workflow de GitHub Actions puede correr —
+  decía lo contrario. La rama actual está **21 commits adelante de su remoto**;
+  subir es decisión de Daniel.
+
 **Cómo se entrega, desde ahora** (convención escrita en el documento *Cómo trabajamos* de Linear):
 cada issue cerrado deja **transferencia de aprendizaje** (qué salió distinto, qué falló y cómo se
 descubrió, qué no hacer la próxima vez), **material visual** siempre que se pueda —diagramas ASCII,
