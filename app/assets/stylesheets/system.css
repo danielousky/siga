@@ -638,6 +638,7 @@ textarea.form-control {
     scrollbar-width: none;
   }
 
+
   /* La barra de scroll horizontal se oculta: ocupa alto en una tira que ya es
      angosta, y el desplazamiento con el dedo no la necesita. */
   .sidebar-index::-webkit-scrollbar {
@@ -3569,4 +3570,20 @@ nav.pagy a.gap {
 
 @media (max-width: 640px) {
   .por-corregir-avance { width: 100%; justify-content: space-between; }
+}
+
+/* Las dos formas del grupo de configuración (MOR-135).
+   ───────────────────────────────────────────────────
+   En escritorio va plegado en un `<details>`; en la tira del teléfono va
+   plano, porque un `<details>` que crece hacia abajo dentro de un deslizador
+   horizontal con `overflow-y: hidden` deja sus enlaces recortados e
+   inalcanzables. Ver la nota del sidebar.
+
+   Se apagan con `display: none` y no con `hidden`/`visibility`, para que el
+   apagado no ocupe lugar en la maqueta. */
+.solo-telefono { display: none; }
+
+@media (max-width: 768px) {
+  .solo-escritorio { display: none; }
+  .solo-telefono { display: block; }
 }

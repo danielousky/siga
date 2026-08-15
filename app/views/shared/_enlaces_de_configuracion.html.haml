@@ -1,0 +1,28 @@
+-# Los enlaces de configuración, en un solo lugar (MOR-135).
+-#
+-# El sidebar los muestra de dos maneras según el ancho —plegados en escritorio,
+-# planos en la tira del teléfono— y esto es lo que impide que sean dos listas
+-# que se van separando.
+%ul.sidebar-nav
+  - if can_manage_academic_config?
+    %li.sidebar-nav-item
+      = link_to "Años escolares", academic_periods_path, class: "sidebar-nav-link #{'active' if controller_name == 'academic_periods'}"
+    %li.sidebar-nav-item
+      = link_to "Momentos de evaluación", evaluation_moments_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_moments'}"
+    %li.sidebar-nav-item
+      = link_to "Grados", grades_path, class: "sidebar-nav-link #{'active' if controller_name == 'grades'}"
+  %li.sidebar-nav-item
+    = link_to "Materias", subjects_path, class: "sidebar-nav-link #{'active' if controller_name == 'subjects'}"
+  %li.sidebar-nav-item
+    = link_to "Departamentos", departments_path, class: "sidebar-nav-link #{'active' if controller_name == 'departments'}"
+  - if can_manage_sections?
+    %li.sidebar-nav-item
+      = link_to "Evaluaciones del colegio", evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}"
+  - if %w[desarrollador director].include?(rol_de_admin)
+    %li.sidebar-nav-item
+      = link_to "Administradores", admins_path, class: "sidebar-nav-link #{'active' if controller_name == 'admins'}"
+  - if can_manage_academic_config?
+    %li.sidebar-nav-item
+      = link_to "Identidad del colegio", colegio_path, class: "sidebar-nav-link #{'active' if controller_name == 'colegio'}"
+  %li.sidebar-nav-item
+    = link_to "Registro de actividad", dashboards_activity_logs_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/activity_logs'}"

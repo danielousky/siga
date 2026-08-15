@@ -56,28 +56,27 @@
 
 -# `<details>` del navegador y no un controlador de Stimulus: funciona sin
 -# JavaScript, responde al teclado solo y no hay estado que se pueda desincronizar.
-%details.sidebar-plegable{open: en_configuracion}
+-# ## Por qué esto se renderiza DOS veces
+-#
+-# En escritorio el grupo va plegado: 10 enlaces a la vista en vez de 19.
+-#
+-# En el teléfono el menú es una tira que se desliza en horizontal y tiene
+-# `overflow-y: hidden` — un `<details>` ahí crece hacia ABAJO al abrirse, y lo
+-# que crece queda recortado. O sea: los nueve enlaces serían INALCANZABLES
+-# desde un teléfono.
+-#
+-# Y el CSS no puede arreglarlo: Chrome esconde el contenido de un `<details>`
+-# cerrado por el slot de su shadow DOM, no con un `display` que una hoja de
+-# autor pueda pisar. (Sí se puede con `[hidden]`, que es otra cosa — ver la
+-# nota de `.password-toggle-icon`.)
+-#
+-# Así que van los dos, y cada uno se apaga en el ancho del otro. El costo es
+-# ~700 bytes de HTML; los enlaces salen del mismo parcial, así que no pueden
+-# separarse.
+%details.sidebar-plegable.solo-escritorio{open: en_configuracion}
   %summary.sidebar-section-title Configuración
-  %ul.sidebar-nav
-    - if can_manage_academic_config?
-      %li.sidebar-nav-item
-        = link_to "Años escolares", academic_periods_path, class: "sidebar-nav-link #{'active' if controller_name == 'academic_periods'}"
-      %li.sidebar-nav-item
-        = link_to "Momentos de evaluación", evaluation_moments_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_moments'}"
-      %li.sidebar-nav-item
-        = link_to "Grados", grades_path, class: "sidebar-nav-link #{'active' if controller_name == 'grades'}"
-    %li.sidebar-nav-item
-      = link_to "Materias", subjects_path, class: "sidebar-nav-link #{'active' if controller_name == 'subjects'}"
-    %li.sidebar-nav-item
-      = link_to "Departamentos", departments_path, class: "sidebar-nav-link #{'active' if controller_name == 'departments'}"
-    - if can_manage_sections?
-      %li.sidebar-nav-item
-        = link_to "Evaluaciones del colegio", evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}"
-    - if %w[desarrollador director].include?(rol_de_admin)
-      %li.sidebar-nav-item
-        = link_to "Administradores", admins_path, class: "sidebar-nav-link #{'active' if controller_name == 'admins'}"
-    - if can_manage_academic_config?
-      %li.sidebar-nav-item
-        = link_to "Identidad del colegio", colegio_path, class: "sidebar-nav-link #{'active' if controller_name == 'colegio'}"
-    %li.sidebar-nav-item
-      = link_to "Registro de actividad", dashboards_activity_logs_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/activity_logs'}"
+  = render "shared/enlaces_de_configuracion"
+
+.sidebar-section.solo-telefono
+  .sidebar-section-title Configuración
+  = render "shared/enlaces_de_configuracion"
