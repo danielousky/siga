@@ -6,31 +6,39 @@
         = current_user.name
         %span.role-badge= @student.school_card
 
-  .stats-grid
-    .stat-card
-      %h3= @total_sections
-      %p Secciones Inscritas
+  -# Lo primero: la nota. Es a lo que entra.
+  - if @boletin
+    .card-academic
+      .card-academic-header
+        %h2= "Mis notas de #{@lapso.name.downcase}"
+        = link_to "Ver el detalle", dashboards_notas_path, class: "btn btn-secondary"
 
-    .stat-card
-      %h3= @enrollments.map { |e| e.section.teacher_sections.size }.sum
-      %p Materias en Cursando
+      - if @lapsos.many?
+        .filter-pills
+          - @lapsos.each do |lapso|
+            = link_to lapso.name, dashboards_estudiante_path(lapso: lapso.id),
+                      class: "filter-pill #{'active' if @lapso == lapso}"
 
-    - if @current_period
-      .stat-card{style: "grid-column: span 2;"}
-        %h3{style: "font-size: 18px; margin-bottom: var(--space-xs);"}= @current_period.name
-        %p Período Académico Activo
+      %ul.ficha-materias
+        - @boletin["materias"].each do |fila|
+          %li.ficha-materia
+            %span.ficha-materia-nombre= fila["materia"]
+            - if fila["nota"]
+              %span.ficha-nota{class: fila["nota"] >= 10 ? "ficha-nota--aprobada" : "ficha-nota--aplazada"}
+                = EscalaLiteral.mostrar(fila["nota"], escala: @inscripcion.section.grade.escala)
+            - else
+              -# Nunca un cero: quiere decir que el profesor no ha corregido.
+              %span.ficha-pendiente Pendiente
+
+      - if @boletin["promedio"]
+        %p.ficha-promedio
+          Promedio del lapso:
+          %strong= EscalaLiteral.mostrar(@boletin["promedio"], escala: @inscripcion.section.grade.escala)
 
   - if @enrollments.any?
     .card-academic
       .card-academic-header
-        %h1 Mis notas
-        = link_to "Ver todas", dashboards_notas_path, class: "btn btn-primary"
-      %p.nota-ayuda
-        El promedio de cada materia, las evaluaciones corregidas y las que todavía
-        están pendientes.
-
-    .card-academic
-      %h2 Mis secciones inscritas
+        %h2= pluralizar(@enrollments.size, "Mi sección", "Mis secciones")
 
       - @enrollments.each do |enrollment|
         - section = enrollment.section
