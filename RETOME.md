@@ -357,6 +357,62 @@ enlazado al final.
   un `<iframe>` de 390 px **servido desde el mismo origen**: `X-Frame-Options: SAMEORIGIN`
   bloquea hacerlo desde `file://`.
 
+- **La regla de color, auditada pantalla por pantalla + barrido visual.** De
+  `d3fb5e2` a `0f80ab6`, **364 tests**.
+
+  La regla es *el color lo usa el DATO, nunca el CONTROL*, y en un sistema
+  escolar no es negociable: **un número en rojo es un niño aplazado**. Está en
+  la libreta que mira una madre desde el teléfono. Si el rojo también quiere
+  decir "este botón borra cosas", deja de decir lo primero.
+
+  No se auditó pantalla por pantalla a ojo, sino cruzando **qué clases con
+  color conviven en cada vista**: un rojo de control solo compite cuando está en
+  la misma pantalla que un rojo de dato. 46 reglas usan color semántico; seis
+  eran violaciones, una parecía violación y no lo era (`.asistencia-boton`: ahí
+  el botón ES el estado, tocarlo cicla presente→ausente→tarde) y aparecieron dos
+  que no buscaba —un ámbar escrito a mano y un `.status-pendiente` **pintado de
+  verde** por un `style` inline, con las dos clases inexistentes—.
+
+  Lo destructivo pasó a señalarse por **peso y posición**: borde fuerte, tinta
+  sólida en hover, dentro de un bloque rotulado de la pantalla de edición. Y el
+  rojo se quedó en la frase que nombra lo que se perdería, que es su trabajo.
+
+  **Y después, mirar pantalla por pantalla encontró lo que ningún test veía:**
+
+  1. **Los dos ojos del campo de contraseña se dibujaban superpuestos**, desde
+     `MOR-134`, en la pantalla que un profesor abre cada mañana. Y **una caja de
+     aviso vacía con un botón "Reintentar"**, permanente, en la planilla de
+     notas. La misma causa: `[hidden] { display: none }` es del NAVEGADOR y
+     cualquier `display` de autor le gana. Resuelto de raíz con
+     `[hidden] { display: none !important }` — `hidden` es una afirmación sobre
+     el DOM, no una sugerencia de estilo.
+  2. **`.role-badge` traía `text-transform: capitalize`**, que capitaliza cada
+     palabra: la pantalla de asistencia decía **"15 De Agosto De 2026"**. El
+     HTML estaba bien; lo rompía la hoja de estilo, y por eso el barrido de
+     Title Case de las vistas no lo había tocado.
+  3. **La cabecera de TODAS las pantallas se encimaba en el teléfono**: flex sin
+     `flex-wrap`.
+  4. **Regresión mía:** el `<details>` del menú dejaba **nueve pantallas
+     inalcanzables desde un teléfono** —la tira se desliza en horizontal y tiene
+     `overflow-y: hidden`, así que lo que el `<details>` despliega hacia abajo
+     queda recortado—. Y el CSS **no** puede forzarlo abierto: Chrome lo esconde
+     por el slot de su shadow DOM, que es justo lo contrario del caso de
+     `[hidden]`. Se resolvió renderizando el grupo de dos formas, apagando cada
+     una en el ancho de la otra.
+
+  **Los tres paneles pasaron a contestar la pregunta con la que se entra:** el
+  del director muestra qué atender (con enlace a donde se resuelve) en vez de
+  repetir el menú con emoji; el del profesor abre en lo que le falta corregir,
+  con "Cargar notas" al lado; el del alumno muestra la nota, que antes estaba
+  detrás de un botón.
+
+  ⚠️ **Tres mediciones mintieron en esta tanda**, y las tres se zanjaron igual:
+  renderizando completo y mirando. `getClientRects()` y `getComputedStyle()` en
+  Chrome headless reportan cajas y `display` para el contenido de un `<details>`
+  **cerrado**; y antes de eso di por bueno un colapso mirando una captura
+  recortada a 900 px de alto. Para ver el final de la tira del menú hay que
+  ponerle `scrollLeft = 99999` antes de capturar.
+
 **Cómo se entrega, desde ahora** (convención escrita en el documento *Cómo trabajamos* de Linear):
 cada issue cerrado deja **transferencia de aprendizaje** (qué salió distinto, qué falló y cómo se
 descubrió, qué no hacer la próxima vez), **material visual** siempre que se pueda —diagramas ASCII,
