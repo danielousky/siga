@@ -4,7 +4,7 @@
 
   = form_for(resource, as: resource_name, url: session_path(resource_name)) do |f|
     .form-group
-      = f.label :email, "Correo Electrónico", class: "form-label"
+      = f.label :email, "Correo electrónico", class: "form-label"
       = f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control", placeholder: "usuario@ejemplo.com"
 
     .form-group
@@ -33,7 +33,7 @@
           %span Recordarme
 
     .form-group
-      = f.submit "Iniciar Sesión", class: "btn btn-primary", style: "width: 100%; justify-content: center;"
+      = f.submit "Iniciar sesión", class: "btn btn-primary", style: "width: 100%; justify-content: center;"
 
   %div{style: "margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: 1px solid var(--border-subtle); text-align: center; font-size: 14px;"}
     = render "devise/shared/links"

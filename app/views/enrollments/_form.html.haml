@@ -10,7 +10,7 @@
     = f.select :section_id, Section.includes(:grade, :academic_period).map { |s| ["#{s.grade.name} - #{s.name} (#{s.academic_period.name})", s.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
   .form-group
-    = f.label :enrollment_date, "Fecha de Inscripción", class: "form-label"
+    = f.label :enrollment_date, "Fecha de inscripción", class: "form-label"
     = f.date_field :enrollment_date, class: "form-control"
 
   .form-group

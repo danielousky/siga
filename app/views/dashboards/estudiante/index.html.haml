@@ -1,7 +1,7 @@
 .dashboard-estudiante
   .card-academic
     .card-academic-header
-      %h1 Mi Panel Estudiantil
+      %h1 Mi panel estudiantil
       .admin-info-badge
         = current_user.name
         %span.role-badge= @student.school_card
@@ -23,14 +23,14 @@
   - if @enrollments.any?
     .card-academic
       .card-academic-header
-        %h1 Mis Notas
+        %h1 Mis notas
         = link_to "Ver todas", dashboards_notas_path, class: "btn btn-primary"
       %p.nota-ayuda
         El promedio de cada materia, las evaluaciones corregidas y las que todavía
         están pendientes.
 
     .card-academic
-      %h2 Mis Secciones Inscritas
+      %h2 Mis secciones inscritas
 
       - @enrollments.each do |enrollment|
         - section = enrollment.section

@@ -1,6 +1,6 @@
 %div{style: "display: flex; flex-direction: column; gap: var(--space-sm);"}
   - if controller_name != "sessions"
-    = link_to "Iniciar Sesión", new_session_path(resource_name), style: "color: var(--brand-primary);"
+    = link_to "Iniciar sesión", new_session_path(resource_name), style: "color: var(--brand-primary);"
 
   -# Sin enlace a "Crear Cuenta": el registro público no existe (MOR-101). Las
   -# cuentas las da de alta el colegio desde su panel.

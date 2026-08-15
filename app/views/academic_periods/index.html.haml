@@ -1,14 +1,14 @@
 .card-academic
   .card-academic-header
-    %h1 Períodos Académicos
-    = link_to "Nuevo Período", new_academic_period_path, class: "btn btn-primary"
+    %h1 Períodos académicos
+    = link_to "Nuevo período", new_academic_period_path, class: "btn btn-primary"
 
   %table.table-academic
     %thead
       %tr
         %th Nombre
-        %th Fecha Inicio
-        %th Fecha Fin
+        %th Fecha inicio
+        %th Fecha fin
         %th Acciones
     %tbody
       - @academic_periods.each do |period|

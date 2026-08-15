@@ -1,12 +1,12 @@
 .card-academic
   .card-academic-header
-    %h1 Departamentos Académicos
-    = link_to "Crear Nuevo Departamento", new_department_path, class: "btn btn-primary"
+    %h1 Departamentos académicos
+    = link_to "Crear nuevo departamento", new_department_path, class: "btn btn-primary"
 
   %table.table-academic
     %thead
       %tr
-        %th Nombre del Departamento
+        %th Nombre del departamento
         %th Acciones
     %tbody
       - @departments.each do |department|

@@ -1,7 +1,7 @@
 - if @grupos.any?
   .card-academic
     .card-academic-header
-      %h1 Ponderación por Lapso
+      %h1 Ponderación por lapso
 
     %p.weight-meter-intro
       Cada lapso de una materia tiene que cerrar en 100 %. Lo que falta todavía no
@@ -18,13 +18,13 @@
         .weight-meter-value
           = "#{number_with_precision(usado, precision: usado.to_d.frac.zero? ? 0 : 2)} %"
           - if usado < 100
-            %span.weight-meter-falta= "· faltan #{number_with_precision(100 - usado, precision: (100 - usado).to_d.frac.zero? ? 0 : 2)} %"
+            %span.weight-meter-falta= "· Faltan #{number_with_precision(100 - usado, precision: (100 - usado).to_d.frac.zero? ? 0 : 2)} %"
 
 .card-academic
   .card-academic-header
     %h1= profesor? ? "Mis Evaluaciones" : "Evaluaciones del Colegio"
     - if profesor?
-      = link_to "Nueva Evaluación", new_evaluation_activity_path, class: "btn btn-primary"
+      = link_to "Nueva evaluación", new_evaluation_activity_path, class: "btn btn-primary"
 
   - if @lapsos_disponibles.many?
     .filter-pills
@@ -57,7 +57,7 @@
             %td
               .actions-group
                 - if profesor?
-                  = link_to "Cargar Notas", evaluation_activity_notas_path(actividad), class: "btn btn-primary btn-sm"
+                  = link_to "Cargar notas", evaluation_activity_notas_path(actividad), class: "btn btn-primary btn-sm"
                 = link_to "Ver", actividad, class: "btn btn-secondary btn-sm"
                 - if profesor?
                   = link_to "Editar", edit_evaluation_activity_path(actividad), class: "btn btn-secondary btn-sm"

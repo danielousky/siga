@@ -30,7 +30,7 @@
 
   - if profesor?
     .section-actions
-      = link_to "Cargar Notas", evaluation_activity_notas_path(@evaluation_activity), class: "btn btn-primary"
+      = link_to "Cargar notas", evaluation_activity_notas_path(@evaluation_activity), class: "btn btn-primary"
       = link_to "Editar", edit_evaluation_activity_path(@evaluation_activity), class: "btn btn-secondary"
       = link_to "Eliminar", @evaluation_activity, data: { turbo_method: :delete, turbo_confirm: "¿Eliminar «#{@evaluation_activity.description}»?" }, class: "btn btn-danger"
 

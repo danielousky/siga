@@ -1,7 +1,7 @@
 .card-academic
   .card-academic-header
     %h1 Representantes
-    = link_to "Registrar Representante", new_representative_path, class: "btn btn-primary"
+    = link_to "Registrar representante", new_representative_path, class: "btn btn-primary"
 
   = render "shared/escala", total: @pagy.count, singular: "representante", plural: "representantes",
            detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)

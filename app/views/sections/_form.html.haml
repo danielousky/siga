@@ -10,7 +10,7 @@
     = f.select :grade_id, Grade.all.map { |g| [g.name, g.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
   .form-group
-    = f.label :academic_period_id, "Período Académico", class: "form-label"
+    = f.label :academic_period_id, "Período académico", class: "form-label"
     = f.select :academic_period_id, AcademicPeriod.all.map { |p| [p.name, p.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
   .form-group

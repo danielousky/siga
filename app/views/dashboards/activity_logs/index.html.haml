@@ -1,6 +1,6 @@
 .card-academic
   .card-academic-header
-    %h1 Registro de Actividad
+    %h1 Registro de actividad
     %p{style: "color: var(--text-secondary); font-size: 14px; margin: 0;"} Auditoría completa de acciones del sistema
 
 - activity_fields = []
@@ -28,7 +28,7 @@
 = turbo_frame_tag "activity-results", target: "_top" do
   .card-academic
     .card-academic-header
-      %h2 Actividad Registrada
+      %h2 Actividad registrada
       %span.role-badge= "#{@pagy.count} #{'registro'.then { |w| @pagy.count == 1 ? w : w + 's' }}"
 
     - if @logs.any?

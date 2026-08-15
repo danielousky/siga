@@ -1,6 +1,6 @@
 .dashboard-administrador
   .card-academic
-    %h2 Estadísticas Institucionales
+    %h2 Estadísticas institucionales
     .stats-grid
       .stat-card
         %h3= @total_students
@@ -30,7 +30,7 @@
   -# colegio ya no conoce `DemoRequest`: no hay nada que tapar. Vive en /siga.
 
   .card-academic
-    %h2 Acceso Rápido a Módulos
+    %h2 Acceso rápido a módulos
     .quick-access-grid
       - if can_manage_students?
         = link_to students_path, class: "quick-access-card" do
@@ -57,7 +57,7 @@
         = link_to academic_periods_path, class: "quick-access-card" do
           .quick-access-icon
             %span 📅
-          %h3 Períodos Académicos
+          %h3 Períodos académicos
           %p Configurar períodos lectivos
 
       = link_to subjects_path, class: "quick-access-card" do
@@ -74,7 +74,7 @@
 
   - if show_recent_activity?
     .card-academic
-      %h2 Actividad Reciente
+      %h2 Actividad reciente
       %table.table-academic
         %thead
           %tr

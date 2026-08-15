@@ -1,68 +1,83 @@
-.sidebar-section
-  .sidebar-section-title Dashboard
-  %ul.sidebar-nav
-    %li.sidebar-nav-item
-      = link_to "Panel Administrativo", dashboards_administrador_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/administrador'}"
+-# El menú del administrador (MOR-135).
+-#
+-# Tenía 19 enlaces en cinco secciones —Dashboard, Académico, Períodos,
+-# Personas, Sistema— y ese agrupamiento es el del MODELO DE DATOS, no el del
+-# trabajo. "Grados" y "Constancias" vivían a dos renglones de distancia: una se
+-# toca una vez al año, la otra tres veces por semana.
+-#
+-# Ahora el corte es por FRECUENCIA, que es como se busca de verdad:
+-#
+-#     día a día      lo que la secretaría hace toda la semana
+-#     el colegio     lo que se arma al empezar el año y se retoca
+-#     configuración  una vez al año o menos → plegado
+-#
+-# Quedan 10 enlaces a la vista en vez de 19, y **no se perdió ninguno**: los
+-# otros nueve están a un clic. El `<details>` se abre solo cuando la pantalla
+-# actual está adentro, porque un menú que esconde dónde estás parado es peor
+-# que uno largo.
+-# Minúscula y variable local: una plantilla compila a un método, y adentro de un
+-# método asignar una CONSTANTE es error de sintaxis de Ruby.
+- pantallas_de_configuracion = %w[grades subjects departments evaluation_moments academic_periods evaluation_activities admins colegio]
+- en_configuracion = pantallas_de_configuracion.include?(controller_name) || controller_path == "dashboards/activity_logs"
 
 .sidebar-section
-  .sidebar-section-title Académico
+  .sidebar-section-title Día a día
+  %ul.sidebar-nav
+    %li.sidebar-nav-item
+      = link_to "Panel", dashboards_administrador_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/administrador'}"
+    - if can_manage_students?
+      %li.sidebar-nav-item
+        = link_to "Estudiantes", students_path, class: "sidebar-nav-link #{'active' if controller_name == 'students'}"
+    - if can_manage_sections?
+      %li.sidebar-nav-item
+        = link_to "Asistencia", asistencias_path, class: "sidebar-nav-link #{'active' if controller_name == 'asistencias' && action_name != 'reporte'}"
+      %li.sidebar-nav-item
+        = link_to "Inasistencias", reporte_asistencia_path, class: "sidebar-nav-link #{'active' if action_name == 'reporte'}"
+    - if can_manage_students?
+      %li.sidebar-nav-item
+        = link_to "Boletines", report_cards_path, class: "sidebar-nav-link #{'active' if controller_name == 'report_cards'}"
+      %li.sidebar-nav-item
+        = link_to "Constancias", constancias_path, class: "sidebar-nav-link #{'active' if controller_name == 'constancias'}"
+
+.sidebar-section
+  .sidebar-section-title El colegio
+  %ul.sidebar-nav
+    - if can_manage_sections?
+      %li.sidebar-nav-item
+        = link_to "Secciones", sections_path, class: "sidebar-nav-link #{'active' if controller_name == 'sections'}"
+      %li.sidebar-nav-item
+        = link_to "Inscripciones", enrollments_path, class: "sidebar-nav-link #{'active' if controller_name == 'enrollments'}"
+    - if can_manage_teachers?
+      %li.sidebar-nav-item
+        = link_to "Profesores", teachers_path, class: "sidebar-nav-link #{'active' if controller_name == 'teachers'}"
+    - if can_manage_students?
+      %li.sidebar-nav-item
+        = link_to "Representantes", representatives_path, class: "sidebar-nav-link #{'active' if controller_name == 'representatives'}"
+
+-# `<details>` del navegador y no un controlador de Stimulus: funciona sin
+-# JavaScript, responde al teclado solo y no hay estado que se pueda desincronizar.
+%details.sidebar-plegable{open: en_configuracion}
+  %summary.sidebar-section-title Configuración
   %ul.sidebar-nav
     - if can_manage_academic_config?
+      %li.sidebar-nav-item
+        = link_to "Años escolares", academic_periods_path, class: "sidebar-nav-link #{'active' if controller_name == 'academic_periods'}"
+      %li.sidebar-nav-item
+        = link_to "Momentos de evaluación", evaluation_moments_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_moments'}"
       %li.sidebar-nav-item
         = link_to "Grados", grades_path, class: "sidebar-nav-link #{'active' if controller_name == 'grades'}"
     %li.sidebar-nav-item
       = link_to "Materias", subjects_path, class: "sidebar-nav-link #{'active' if controller_name == 'subjects'}"
     %li.sidebar-nav-item
       = link_to "Departamentos", departments_path, class: "sidebar-nav-link #{'active' if controller_name == 'departments'}"
-    %li.sidebar-nav-item
-      = link_to "Momentos de Evaluación", evaluation_moments_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_moments'}"
     - if can_manage_sections?
       %li.sidebar-nav-item
-        = link_to "Evaluaciones del Colegio", evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}"
-    - if can_manage_students?
-      %li.sidebar-nav-item
-        = link_to "Emitir Boletines", report_cards_path, class: "sidebar-nav-link #{'active' if controller_name == 'report_cards'}"
-      %li.sidebar-nav-item
-        = link_to "Constancias", constancias_path, class: "sidebar-nav-link #{'active' if controller_name == 'constancias'}"
-
-.sidebar-section
-  .sidebar-section-title Períodos
-  %ul.sidebar-nav
-    - if can_manage_academic_config?
-      %li.sidebar-nav-item
-        = link_to "Períodos Académicos", academic_periods_path, class: "sidebar-nav-link #{'active' if controller_name == 'academic_periods'}"
-    - if can_manage_sections?
-      %li.sidebar-nav-item
-        = link_to "Secciones", sections_path, class: "sidebar-nav-link #{'active' if controller_name == 'sections'}"
-      %li.sidebar-nav-item
-        = link_to "Inscripciones", enrollments_path, class: "sidebar-nav-link #{'active' if controller_name == 'enrollments'}"
-      %li.sidebar-nav-item
-        = link_to "Asistencia", asistencias_path, class: "sidebar-nav-link #{'active' if controller_name == 'asistencias' && action_name != 'reporte'}"
-      %li.sidebar-nav-item
-        = link_to "Inasistencias", reporte_asistencia_path, class: "sidebar-nav-link #{'active' if action_name == 'reporte'}"
-
-.sidebar-section
-  .sidebar-section-title Personas
-  %ul.sidebar-nav
-    - if can_manage_students?
-      %li.sidebar-nav-item
-        = link_to "Estudiantes", students_path, class: "sidebar-nav-link #{'active' if controller_name == 'students'}"
-    - if can_manage_students?
-      %li.sidebar-nav-item
-        = link_to "Representantes", representatives_path, class: "sidebar-nav-link #{'active' if controller_name == 'representatives'}"
-    - if can_manage_teachers?
-      %li.sidebar-nav-item
-        = link_to "Profesores", teachers_path, class: "sidebar-nav-link #{'active' if controller_name == 'teachers'}"
+        = link_to "Evaluaciones del colegio", evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}"
     - if %w[desarrollador director].include?(rol_de_admin)
       %li.sidebar-nav-item
         = link_to "Administradores", admins_path, class: "sidebar-nav-link #{'active' if controller_name == 'admins'}"
-
-.sidebar-section
-  .sidebar-section-title Sistema
-  %ul.sidebar-nav
     - if can_manage_academic_config?
       %li.sidebar-nav-item
         = link_to "Identidad del colegio", colegio_path, class: "sidebar-nav-link #{'active' if controller_name == 'colegio'}"
     %li.sidebar-nav-item
-      = link_to dashboards_activity_logs_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/activity_logs'}" do
-        Registro de Actividad
+      = link_to "Registro de actividad", dashboards_activity_logs_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/activity_logs'}"

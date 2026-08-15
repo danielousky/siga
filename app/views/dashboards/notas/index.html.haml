@@ -1,7 +1,7 @@
 - if @enrollment.nil?
   .card-academic
     .card-academic-header
-      %h1 Mis Notas
+      %h1 Mis notas
     .empty-state
       %h3 Sin inscripción activa
       %p No tienes una inscripción vigente. Comunícate con la secretaría del colegio.
@@ -9,7 +9,7 @@
 - else
   .card-academic
     .card-academic-header
-      %h1 Mis Notas
+      %h1 Mis notas
       .admin-info-badge
         = "#{@seccion.grade.name} – #{@seccion.name}"
         %span.role-badge= @seccion.academic_period.name
@@ -35,7 +35,7 @@
   - if @vista_anual
     .card-academic
       .card-academic-header
-        %h1 Calificaciones Definitivas
+        %h1 Calificaciones definitivas
       %table.table-academic.table-academic--tarjetas
         %thead
           %tr

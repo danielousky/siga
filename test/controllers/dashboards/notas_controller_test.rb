@@ -118,7 +118,7 @@ class Dashboards::NotasControllerTest < ActionDispatch::IntegrationTest
     get dashboards_notas_url(lapso: "anual")
 
     assert_response :success
-    assert_match "Calificaciones Definitivas", response.body
+    assert_match "Calificaciones definitivas", response.body
     # 12×60 + 8×40 = 1040/100 = 10,4 → 10. Aprobada por un punto.
     assert_match "nota-valor--aprobada", response.body
   end

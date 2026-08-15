@@ -25,7 +25,7 @@
 / =============================================
 - if profesor?
   .card-academic
-    %h2 Materias y Profesores
+    %h2 Materias y profesores
     - if @teacher_sections.any?
       %table.table-academic
         %thead
@@ -47,7 +47,7 @@
         %p No hay materias asignadas aún.
 
   .card-academic
-    %h2 Estudiantes Inscritos
+    %h2 Estudiantes inscritos
     %p{style: "color: var(--text-secondary); font-size: 14px; margin-bottom: var(--space-lg);"} #{@enrollments.size} estudiante#{@enrollments.size != 1 ? 's' : ''} en esta sección
 
     - if @enrollments.any?
@@ -57,7 +57,7 @@
             %th #
             %th Nombre
             %th Apellido
-            %th Nro. Expediente
+            %th Nro. expediente
         %tbody
           - @enrollments.each_with_index do |enrollment, i|
             %tr
@@ -75,7 +75,7 @@
 / =============================================
 - if administrador?
   .card-academic
-    %h2 Profesores Asignados
+    %h2 Profesores asignados
     - if @teacher_sections.any?
       %table.table-academic
         %thead
@@ -111,7 +111,7 @@
             = f.submit "Asignar", class: "btn btn-primary"
 
   .card-academic
-    %h2 Estudiantes Inscritos
+    %h2 Estudiantes inscritos
     %p{style: "color: var(--text-secondary); font-size: 14px; margin-bottom: var(--space-lg);"} #{@enrollments.size} de #{@section.capacity} lugares ocupados
 
     - if @enrollments.any?
@@ -121,7 +121,7 @@
             %th #
             %th Nombre
             %th Apellido
-            %th Nro. Expediente
+            %th Nro. expediente
             %th Inscrito el
         %tbody
           - @enrollments.each_with_index do |enrollment, i|

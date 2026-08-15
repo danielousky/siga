@@ -1,7 +1,7 @@
 .card-academic
   .card-academic-header
-    %h1 Registro de Estudiantes
-    = link_to "Registrar Nuevo Estudiante", new_student_path, class: "btn btn-primary"
+    %h1 Registro de estudiantes
+    = link_to "Registrar nuevo estudiante", new_student_path, class: "btn btn-primary"
 
 - student_fields = []
 - student_fields << { type: :text, name: :q, label: "Buscar", placeholder: "Nombre, apellido, cédula o carnet...", flex: 2 }
@@ -29,7 +29,7 @@
           %th Nombre
           %th Apellido
           %th Cédula
-          %th Carnet Escolar
+          %th Carnet escolar
           %th Acciones
       %tbody
         - @students.each do |student|

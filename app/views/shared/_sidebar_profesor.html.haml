@@ -1,15 +1,15 @@
 .sidebar-section
-  .sidebar-section-title Mi Panel
+  .sidebar-section-title Mi panel
   %ul.sidebar-nav
     %li.sidebar-nav-item
-      = link_to "Mi Dashboard", dashboards_profesor_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/profesor'}"
+      = link_to "Inicio", dashboards_profesor_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/profesor'}"
     %li.sidebar-nav-item
-      = link_to "Mis Evaluaciones", evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}"
+      = link_to "Mis evaluaciones", evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}"
     %li.sidebar-nav-item
       = link_to "Asistencia", asistencias_path, class: "sidebar-nav-link #{'active' if controller_name == 'asistencias'}"
 
 .sidebar-section
-  .sidebar-section-title Mis Secciones
+  .sidebar-section-title Mis secciones
   %ul.sidebar-nav
     - current_user.teacher.teacher_sections.includes(section: :grade).each do |ts|
       %li.sidebar-nav-item

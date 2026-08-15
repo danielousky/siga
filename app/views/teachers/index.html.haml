@@ -1,7 +1,7 @@
 .card-academic
   .card-academic-header
-    %h1 Registro de Profesores
-    = link_to "Registrar Nuevo Profesor", new_teacher_path, class: "btn btn-primary"
+    %h1 Registro de profesores
+    = link_to "Registrar nuevo profesor", new_teacher_path, class: "btn btn-primary"
 
   = render "shared/escala", total: @pagy.count, singular: "profesor", plural: "profesores"
 

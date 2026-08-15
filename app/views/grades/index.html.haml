@@ -1,14 +1,14 @@
 .card-academic
   .card-academic-header
     %h1 Grados
-    = link_to "Nuevo Grado", new_grade_path, class: "btn btn-primary"
+    = link_to "Nuevo grado", new_grade_path, class: "btn btn-primary"
 
   %table.table-academic
     %thead
       %tr
         %th Nombre
         %th Nivel
-        %th Profesor Guía
+        %th Profesor guía
         %th Acciones
     %tbody
       - @grades.each do |grade|

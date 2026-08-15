@@ -27,12 +27,12 @@
   .card-academic{style: "margin-bottom: var(--space-lg);"}
     %h3{style: "margin-bottom: var(--space-lg);"} Datos del Estudiante
     .form-group
-      = f.label :school_card, "Carnet Escolar", class: "form-label"
+      = f.label :school_card, "Carnet escolar", class: "form-label"
       = f.text_field :school_card, class: "form-control", placeholder: "Número de carnet"
 
   .actions-group
     .form-acciones
-      = f.submit "Guardar Registro", class: "btn btn-primary"
+      = f.submit "Guardar registro", class: "btn btn-primary"
       - if local_assigns[:volver]
         = link_to "Volver", volver, class: "btn btn-secondary"
     = link_to "Cancelar", students_path, class: "btn btn-secondary"

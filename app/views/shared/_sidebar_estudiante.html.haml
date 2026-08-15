@@ -1,14 +1,16 @@
+-# El menú del alumno (MOR-135).
+-#
+-# Tenía un bloque "Mis Secciones" que listaba las inscripciones del alumno con
+-# `href="#"`: enlaces que no llevaban a ninguna parte, más una consulta a la
+-# base en CADA pantalla para dibujarlos. Y el dato ya estaba en su panel, con
+-# grado y año escolar.
+-#
+-# Un enlace que no lleva a ninguna parte no es neutro: le enseña a la persona
+-# que los enlaces de este sistema a veces no funcionan.
 .sidebar-section
-  .sidebar-section-title Mi Panel
+  .sidebar-section-title Mi panel
   %ul.sidebar-nav
     %li.sidebar-nav-item
-      = link_to "Mi Dashboard", dashboards_estudiante_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/estudiante'}"
+      = link_to "Inicio", dashboards_estudiante_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/estudiante'}"
     %li.sidebar-nav-item
-      = link_to "Mis Notas", dashboards_notas_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/notas'}"
-
-.sidebar-section
-  .sidebar-section-title Mis Secciones
-  %ul.sidebar-nav
-    - current_user.student.enrollments.where(status: :regular).includes(section: :grade).each do |enrollment|
-      %li.sidebar-nav-item
-        = link_to "#{enrollment.section.grade.name} – #{enrollment.section.name}", "#", class: "sidebar-nav-link"
+      = link_to "Mis notas", dashboards_notas_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/notas'}"
