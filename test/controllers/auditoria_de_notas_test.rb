@@ -103,4 +103,41 @@ class AuditoriaDeNotasTest < ActionDispatch::IntegrationTest
     assert_equal ActivityLog::LABELS.keys.sort, ActivityLog::ACTIONS.sort
     assert_includes ActivityLog::ACTIONS, "constancia_emitida"
   end
+
+  # Una etiqueta sin emisor promete una auditoría que no existe: se consulta el
+  # registro para responder "¿quién hizo esto?" y el silencio se confunde con
+  # "no pasó". Si esta lista vuelve a tener contenido, alguien agregó la
+  # etiqueta antes que el registro.
+  test "no hay acciones etiquetadas que nadie emita" do
+    assert_empty ActivityLog::ACCIONES_SIN_EMISOR
+  end
+
+  # El problema espejo, y el que de verdad se ve: un token que se emite sin
+  # etiqueta cae en el `humanize` de respaldo y sale **en inglés** en la pantalla
+  # de auditoría — "Department created", "Soporte siga entro".
+  #
+  # Se leen los controllers en vez de mantener otra lista a mano, que es
+  # exactamente cómo se separaron `ACTIONS` y `LABELS`.
+  test "todo token que un controller emite tiene su etiqueta en español" do
+    # `ActivityGradesController` pasa la acción en una variable; van explícitos.
+    emitidos = %w[calificacion_registrada calificacion_modificada calificacion_eliminada].to_set
+
+    Rails.root.glob("app/controllers/**/*.rb").each do |ruta|
+      texto = ruta.read
+      emitidos.merge(texto.scan(/action:\s*"([a-z_]+)"/).flatten)
+
+      { "creado" => "created", "actualizado" => "updated", "eliminado" => "destroyed" }.each do |es, en|
+        texto.scan(/registrar_cambio\(:#{es},\s*@([a-z_]+)/).flatten.each do |modelo|
+          # `academic_period` audita como `period_*`: el token viene de antes.
+          emitidos << "#{modelo == 'academic_period' ? 'period' : modelo}_#{en}"
+        end
+      end
+    end
+
+    sin_etiqueta = emitidos - ActivityLog::LABELS.keys.to_set
+
+    assert_empty sin_etiqueta,
+      "Estos tokens se emiten y no tienen etiqueta, así que la pantalla de " \
+      "auditoría los muestra en inglés: #{sin_etiqueta.to_a.sort.join(', ')}"
+  end
 end

@@ -27,17 +27,20 @@ class ActivityLog < ApplicationRecord
   # Un registro de actividad que promete más de lo que cubre es peor que uno
   # chico y honesto: se lo consulta para responder "¿quién hizo esto?" y la
   # respuesta silenciosa es "nadie", que se confunde con "no pasó".
-  ACCIONES_SIN_EMISOR = %w[
-    logout
-    section_created section_updated section_destroyed
-    teacher_created teacher_updated teacher_destroyed
-    admin_created admin_updated admin_destroyed
-    period_created period_updated period_destroyed
-  ].freeze
+  # Quedó vacía, y esa es la idea: cuando se escribió tenía trece entradas
+  # —secciones, profesores, administradores y períodos, todas con etiqueta y sin
+  # emisor—. Si vuelve a tener contenido, es que alguien agregó una etiqueta
+  # antes que su registro.
+  #
+  # `logout` no está y es a propósito: para la pregunta "¿quién estuvo adentro
+  # y cuándo?" sirve el `login`. Registrar además la salida duplicaría el
+  # volumen del log para responder lo mismo, y la mayoría de las sesiones no
+  # terminan en un "cerrar sesión" sino en cerrar la pestaña — o sea que la
+  # mitad de las filas faltaría igual. Por eso tampoco tiene etiqueta.
+  ACCIONES_SIN_EMISOR = [].freeze
 
   LABELS = {
     "login"                => "Inicio de sesión",
-    "logout"               => "Cierre de sesión",
     "enrollment_created"   => "Inscripción creada",
     "enrollment_destroyed" => "Inscripción anulada",
     "teacher_assigned"     => "Profesor asignado",
@@ -60,6 +63,17 @@ class ActivityLog < ApplicationRecord
     "calificacion_registrada" => "Calificación registrada",
     "calificacion_modificada" => "Calificación modificada",
     "calificacion_eliminada"  => "Calificación eliminada",
+    "department_created"   => "Departamento creado",
+    "department_updated"   => "Departamento actualizado",
+    "department_destroyed" => "Departamento eliminado",
+    "evaluation_moment_created"   => "Lapso creado",
+    "evaluation_moment_updated"   => "Lapso actualizado",
+    "evaluation_moment_destroyed" => "Lapso eliminado",
+    "enrollment_updated"   => "Inscripción modificada",
+    # La visita de soporte de SIGA a un colegio (MOR-133). Es el registro que
+    # convierte un acceso amplio en algo defendible frente al cliente: entró,
+    # el colegio lo vio en el momento, y queda en su historial.
+    "soporte_siga_entro"   => "Soporte de SIGA entró al colegio",
     "period_created"       => "Período académico creado",
     "period_updated"       => "Período académico actualizado",
     "period_destroyed"     => "Período académico eliminado",
