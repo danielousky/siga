@@ -12,17 +12,27 @@ class ActivityLog < ApplicationRecord
   belongs_to :school, optional: true
   before_validation :derive_school_from_user_role
 
-  ACTIONS = %w[
-    login logout
-    enrollment_created enrollment_destroyed
-    teacher_assigned teacher_removed
+  # `ACTIONS` sale de `LABELS`, no se escribe aparte.
+  #
+  # Cuando eran dos listas a mano se separaron: `constancia_emitida` tenía
+  # etiqueta y **no estaba en ACTIONS**. No rompía nada —la constante no se
+  # valida— pero una lista que dice ser "todas las acciones" y no las tiene es
+  # peor que no tenerla: se la consulta creyendo que es cierta.
+  #
+  # ⚠️ Y por eso conviene saber lo otro: de las acciones que hay etiquetadas,
+  # **el sistema todavía no emite todas**. Ver `ACCIONES_SIN_EMISOR`.
+
+  # Lo que el sistema TODAVÍA no registra, escrito para no olvidarlo.
+  #
+  # Un registro de actividad que promete más de lo que cubre es peor que uno
+  # chico y honesto: se lo consulta para responder "¿quién hizo esto?" y la
+  # respuesta silenciosa es "nadie", que se confunde con "no pasó".
+  ACCIONES_SIN_EMISOR = %w[
+    logout
     section_created section_updated section_destroyed
-    student_created student_updated student_destroyed
     teacher_created teacher_updated teacher_destroyed
     admin_created admin_updated admin_destroyed
-    grade_created grade_updated grade_destroyed
     period_created period_updated period_destroyed
-    report_cards_issued
   ].freeze
 
   LABELS = {
@@ -44,9 +54,12 @@ class ActivityLog < ApplicationRecord
     "admin_created"        => "Administrador creado",
     "admin_updated"        => "Administrador actualizado",
     "admin_destroyed"      => "Administrador eliminado",
-    "grade_created"        => "Calificación registrada",
-    "grade_updated"        => "Calificación modificada",
-    "grade_destroyed"      => "Calificación eliminada",
+    # `calificacion_*` y no `grade_*`: en este sistema `Grade` es el GRADO
+    # ESCOLAR —1er Año, 2do Año— y una calificación es otra cosa. Con los
+    # nombres viejos, "grade_destroyed" se leía como "se borró un grado".
+    "calificacion_registrada" => "Calificación registrada",
+    "calificacion_modificada" => "Calificación modificada",
+    "calificacion_eliminada"  => "Calificación eliminada",
     "period_created"       => "Período académico creado",
     "period_updated"       => "Período académico actualizado",
     "period_destroyed"     => "Período académico eliminado",
@@ -58,6 +71,8 @@ class ActivityLog < ApplicationRecord
     # que no puede pasar.
     "constancia_emitida"   => "Constancia de estudios emitida"
   }.freeze
+
+  ACTIONS = LABELS.keys.freeze
 
   scope :recent,    -> { order(created_at: :desc) }
   scope :by_action, ->(action) { where(action: action) }

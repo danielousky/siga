@@ -42,14 +42,20 @@ class ActivityGradesController < ApplicationController
 
     # Vacío = borrar. El alumno vuelve a "sin nota", que no es una nota baja.
     if puntaje.blank?
+      anterior = nota&.score
       nota&.destroy
+      auditar(inscripcion, "calificacion_eliminada", anterior, nil) if anterior
       return render json: respuesta(nil)
     end
 
     nota ||= @evaluation_activity.activity_grades.new(student_id: inscripcion.student_id)
+    anterior = nota.score
     nota.score = puntaje
 
     if nota.save
+      auditar(inscripcion,
+              anterior.nil? ? "calificacion_registrada" : "calificacion_modificada",
+              anterior, nota.score)
       render json: respuesta(nota)
     else
       render json: { estado: "error", mensaje: nota.errors.full_messages.to_sentence }, status: :unprocessable_entity
@@ -57,6 +63,43 @@ class ActivityGradesController < ApplicationController
   end
 
   private
+
+  # Quién le puso qué nota a quién, y qué decía antes.
+  #
+  # ## Por qué una fila por nota, y no un resumen por planilla
+  #
+  # La pregunta que un colegio necesita responder es *"¿quién le cambió la nota
+  # a mi hijo?"* — y la hace una madre, por una nota, meses después. Un resumen
+  # tipo "el profesor García cargó 30 notas" no la contesta.
+  #
+  # Sí: cargar una sección son 30 filas, y corregir un tipeo agrega una más.
+  # Esa fila de más **es la historia**, no ruido: dice que la nota fue 12 antes
+  # de ser 15, y quién lo hizo.
+  #
+  # `log_activity` traga sus propios errores (ver `Auditable`), así que una
+  # falla auditando nunca impide guardar la nota. El orden importa: primero se
+  # guarda, después se audita.
+  def auditar(inscripcion, accion, anterior, actual)
+    # Guardar el mismo valor no es un cambio. La planilla reenvía al salir del
+    # campo, así que sin esto un profesor que revisa sus notas sin tocar nada
+    # generaría treinta "Calificación modificada" — y un historial lleno de
+    # cambios que no ocurrieron **esconde los que sí**.
+    return if anterior.to_i == actual.to_i && !anterior.nil? && !actual.nil?
+
+    alumno = inscripcion.student.user
+    cambio = if actual.nil?      then "le borró la nota (era #{anterior.to_i})"
+             elsif anterior.nil? then "le puso #{actual.to_i}"
+             else                     "le cambió el #{anterior.to_i} por #{actual.to_i}"
+             end
+
+    log_activity(
+      action:  accion,
+      subject: @evaluation_activity,
+      message: "#{current_user.name} #{current_user.last_name} #{cambio} a " \
+               "#{alumno.last_name}, #{alumno.name} en «#{@evaluation_activity.description}»",
+      metadata: { alumno_id: alumno.id, anterior: anterior&.to_i, actual: actual&.to_i }
+    )
+  end
 
   # El alcance del profesor decide qué planillas existen para él. `find` sale de
   # ahí, así que la actividad de otro profesor da 404 y no 403.
