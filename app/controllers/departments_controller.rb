@@ -15,7 +15,8 @@ class DepartmentsController < ApplicationController
   def create
     @department = Department.new(department_params)
     if @department.save
-      redirect_to @department, notice: "Departamento creado exitosamente."
+      registrar_cambio(:creado, @department, @department.name)
+      redirect_to departments_path, notice: "Departamento creado exitosamente."
     else
       render :new, status: :unprocessable_entity
     end
@@ -23,17 +24,23 @@ class DepartmentsController < ApplicationController
 
   def update
     if @department.update(department_params)
-      redirect_to @department, notice: "Departamento actualizado exitosamente."
+      registrar_cambio(:actualizado, @department, @department.name)
+      redirect_to departments_path, notice: "Departamento actualizado exitosamente."
     else
       render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
+    # El nombre, antes de borrar: después el objeto ya no puede
+    # resolver sus asociaciones para armar el mensaje.
+    nombre = @department.name
+
     if @department.destroy
+      registrar_cambio(:eliminado, @department, nombre)
       redirect_to departments_url, notice: "Departamento eliminado exitosamente."
     else
-      redirect_to @department, alert: @department.errors.full_messages.join(", ")
+      redirect_to departments_path, alert: @department.errors.full_messages.join(", ")
     end
   end
 

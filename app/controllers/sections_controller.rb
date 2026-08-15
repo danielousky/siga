@@ -33,6 +33,7 @@ class SectionsController < ApplicationController
   def create
     @section = Section.new(section_params)
     if @section.save
+      registrar_cambio(:creado, @section, "#{@section.grade.name} – #{@section.name}")
       redirect_to @section, notice: "Sección creada exitosamente."
     else
       render :new, status: :unprocessable_entity
@@ -41,6 +42,7 @@ class SectionsController < ApplicationController
 
   def update
     if @section.update(section_params)
+      registrar_cambio(:actualizado, @section, "#{@section.grade.name} – #{@section.name}")
       redirect_to @section, notice: "Sección actualizada exitosamente."
     else
       render :edit, status: :unprocessable_entity
@@ -48,7 +50,12 @@ class SectionsController < ApplicationController
   end
 
   def destroy
+    # El nombre, antes de borrar: después el objeto ya no puede
+    # resolver sus asociaciones para armar el mensaje.
+    nombre = "#{@section.grade.name} – #{@section.name}"
+
     if @section.destroy
+      registrar_cambio(:eliminado, @section, nombre)
       redirect_to sections_url, notice: "Sección eliminada exitosamente."
     else
       redirect_to @section, alert: @section.errors.full_messages.join(", ")

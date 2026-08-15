@@ -29,6 +29,7 @@ class TeachersController < ApplicationController
   def create
     @teacher = Teacher.new(teacher_params)
     if @teacher.save
+      registrar_cambio(:creado, @teacher, "#{@teacher.user.name} #{@teacher.user.last_name}")
       redirect_to @teacher, notice: "Profesor creado exitosamente."
     else
       render :new, status: :unprocessable_entity
@@ -37,6 +38,7 @@ class TeachersController < ApplicationController
 
   def update
     if @teacher.update(teacher_params)
+      registrar_cambio(:actualizado, @teacher, "#{@teacher.user.name} #{@teacher.user.last_name}")
       redirect_to @teacher, notice: "Profesor actualizado exitosamente."
     else
       render :edit, status: :unprocessable_entity
@@ -44,7 +46,12 @@ class TeachersController < ApplicationController
   end
 
   def destroy
+    # El nombre, antes de borrar: después el objeto ya no puede
+    # resolver sus asociaciones para armar el mensaje.
+    nombre = "#{@teacher.user.name} #{@teacher.user.last_name}"
+
     if @teacher.destroy
+      registrar_cambio(:eliminado, @teacher, nombre)
       redirect_to teachers_url, notice: "Profesor eliminado exitosamente."
     else
       redirect_to @teacher, alert: @teacher.errors.full_messages.join(", ")

@@ -18,7 +18,8 @@ class EvaluationMomentsController < ApplicationController
   def create
     @evaluation_moment = EvaluationMoment.new(evaluation_moment_params)
     if @evaluation_moment.save
-      redirect_to @evaluation_moment, notice: "Momento de evaluación creado exitosamente."
+      registrar_cambio(:creado, @evaluation_moment, @evaluation_moment.name)
+      redirect_to evaluation_moments_path, notice: "Momento de evaluación creado exitosamente."
     else
       render :new, status: :unprocessable_entity
     end
@@ -26,17 +27,23 @@ class EvaluationMomentsController < ApplicationController
 
   def update
     if @evaluation_moment.update(evaluation_moment_params)
-      redirect_to @evaluation_moment, notice: "Momento de evaluación actualizado exitosamente."
+      registrar_cambio(:actualizado, @evaluation_moment, @evaluation_moment.name)
+      redirect_to evaluation_moments_path, notice: "Momento de evaluación actualizado exitosamente."
     else
       render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
+    # El nombre, antes de borrar: después el objeto ya no puede
+    # resolver sus asociaciones para armar el mensaje.
+    nombre = @evaluation_moment.name
+
     if @evaluation_moment.destroy
+      registrar_cambio(:eliminado, @evaluation_moment, nombre)
       redirect_to evaluation_moments_url, notice: "Momento de evaluación eliminado exitosamente."
     else
-      redirect_to @evaluation_moment, alert: @evaluation_moment.errors.full_messages.join(", ")
+      redirect_to evaluation_moments_path, alert: @evaluation_moment.errors.full_messages.join(", ")
     end
   end
 

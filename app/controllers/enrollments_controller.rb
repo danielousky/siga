@@ -33,7 +33,8 @@ class EnrollmentsController < ApplicationController
                  "#{@enrollment.section.grade.name} – Sección #{@enrollment.section.name}",
         subject: @enrollment
       )
-      redirect_to @enrollment, notice: "Inscripción creada exitosamente."
+      registrar_cambio(:creado, @enrollment, "#{@enrollment.student.user.last_name}, #{@enrollment.student.user.name}")
+      redirect_to enrollments_path, notice: "Inscripción creada exitosamente."
     else
       render :new, status: :unprocessable_entity
     end
@@ -41,7 +42,8 @@ class EnrollmentsController < ApplicationController
 
   def update
     if @enrollment.update(enrollment_params)
-      redirect_to @enrollment, notice: "Inscripción actualizada exitosamente."
+      registrar_cambio(:actualizado, @enrollment, "#{@enrollment.student.user.last_name}, #{@enrollment.student.user.name}")
+      redirect_to enrollments_path, notice: "Inscripción actualizada exitosamente."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -58,7 +60,7 @@ class EnrollmentsController < ApplicationController
       )
       redirect_to enrollments_url, notice: "Inscripción eliminada exitosamente."
     else
-      redirect_to @enrollment, alert: @enrollment.errors.full_messages.join(", ")
+      redirect_to enrollments_path, alert: @enrollment.errors.full_messages.join(", ")
     end
   end
 

@@ -17,7 +17,8 @@ class AdminsController < ApplicationController
   def create
     @admin = Admin.new(admin_params)
     if @admin.save
-      redirect_to @admin, notice: "Administrador creado exitosamente."
+      registrar_cambio(:creado, @admin, "#{@admin.user.name} #{@admin.user.last_name}")
+      redirect_to admins_path, notice: "Administrador creado exitosamente."
     else
       render :new, status: :unprocessable_entity
     end
@@ -25,17 +26,23 @@ class AdminsController < ApplicationController
 
   def update
     if @admin.update(admin_params)
-      redirect_to @admin, notice: "Administrador actualizado exitosamente."
+      registrar_cambio(:actualizado, @admin, "#{@admin.user.name} #{@admin.user.last_name}")
+      redirect_to admins_path, notice: "Administrador actualizado exitosamente."
     else
       render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
+    # El nombre, antes de borrar: después el objeto ya no puede
+    # resolver sus asociaciones para armar el mensaje.
+    nombre = "#{@admin.user.name} #{@admin.user.last_name}"
+
     if @admin.destroy
+      registrar_cambio(:eliminado, @admin, nombre)
       redirect_to admins_url, notice: "Administrador eliminado exitosamente."
     else
-      redirect_to @admin, alert: @admin.errors.full_messages.join(", ")
+      redirect_to admins_path, alert: @admin.errors.full_messages.join(", ")
     end
   end
 

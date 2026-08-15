@@ -16,7 +16,8 @@ class AcademicPeriodsController < ApplicationController
   def create
     @academic_period = AcademicPeriod.new(academic_period_params)
     if @academic_period.save
-      redirect_to @academic_period, notice: "Período académico creado exitosamente."
+      registrar_cambio(:creado, @academic_period, @academic_period.name)
+      redirect_to academic_periods_path, notice: "Período académico creado exitosamente."
     else
       render :new, status: :unprocessable_entity
     end
@@ -24,17 +25,23 @@ class AcademicPeriodsController < ApplicationController
 
   def update
     if @academic_period.update(academic_period_params)
-      redirect_to @academic_period, notice: "Período académico actualizado exitosamente."
+      registrar_cambio(:actualizado, @academic_period, @academic_period.name)
+      redirect_to academic_periods_path, notice: "Período académico actualizado exitosamente."
     else
       render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
+    # El nombre, antes de borrar: después el objeto ya no puede
+    # resolver sus asociaciones para armar el mensaje.
+    nombre = @academic_period.name
+
     if @academic_period.destroy
+      registrar_cambio(:eliminado, @academic_period, nombre)
       redirect_to academic_periods_url, notice: "Período académico eliminado exitosamente."
     else
-      redirect_to @academic_period, alert: @academic_period.errors.full_messages.join(", ")
+      redirect_to academic_periods_path, alert: @academic_period.errors.full_messages.join(", ")
     end
   end
 
