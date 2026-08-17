@@ -95,4 +95,76 @@ class SituacionEnLaSeccionTest < ActiveSupport::TestCase
         "el boletín tiene que seguir diciendo lo que decía el día que se emitió"
     end
   end
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Inasistencias del lapso, y puesto en la sección
+  # ══════════════════════════════════════════════════════════════════════════
+
+  # Un lapso ES un rango de fechas. Sin ellas, el boletín del segundo lapso
+  # arrastraría las faltas del primero sin que nada avise.
+  test "las inasistencias se cuentan dentro del lapso, no del año" do
+    con_el_colegio(@esc.colegio) do
+      primero = @esc.lapso(1)
+      primero.update!(starts_on: Date.new(2025, 9, 15), ends_on: Date.new(2025, 12, 20))
+
+      Attendance.create!(enrollment: @esc.inscripcion(1), date: Date.new(2025, 10, 1), status: :ausente)
+      Attendance.create!(enrollment: @esc.inscripcion(1), date: Date.new(2025, 11, 5), status: :tarde)
+      # Fuera del lapso: no debe contarse.
+      Attendance.create!(enrollment: @esc.inscripcion(1), date: Date.new(2026, 2, 3), status: :ausente)
+
+      a = ReportCardData.para(enrollment: @esc.inscripcion(1), evaluation_moment: primero).to_h["asistencia"]
+
+      assert_equal 2, a["dias"]
+      assert_equal 1, a["ausentes"]
+      assert_equal 1, a["tardes"]
+      assert a["del_lapso"], "con fechas propias, el boletín tiene que decir que contó el lapso"
+    end
+  end
+
+  # Los lapsos ya sembrados no tienen fechas, y obligarlas rompería el alta.
+  # Donde falten se cuenta el año escolar — y el papel lo dice, porque un número
+  # de inasistencias sin su período no se puede interpretar.
+  test "sin fechas de lapso cuenta el año escolar y lo declara" do
+    con_el_colegio(@esc.colegio) do
+      primero = @esc.lapso(1)
+      assert_not primero.fechas_propias?
+
+      Attendance.create!(enrollment: @esc.inscripcion(1), date: @esc.periodo.start_date + 30, status: :ausente)
+
+      a = ReportCardData.para(enrollment: @esc.inscripcion(1), evaluation_moment: primero).to_h["asistencia"]
+
+      assert_equal 1, a["ausentes"]
+      assert_not a["del_lapso"]
+    end
+  end
+
+  # Dos alumnos con el mismo promedio están LOS DOS en el mismo puesto: darle
+  # el 3 a uno y el 4 al otro por el orden alfabético inventa una diferencia
+  # que no existe, y se imprime en un papel que la familia guarda.
+  test "el empate comparte puesto y queda declarado" do
+    c = nil
+    con_el_colegio(@esc.colegio) do
+      actividad = actividad(@esc, lapso: @esc.lapso(1), peso: 100)
+      [ 15, 15, 10, 10 ].each_with_index { |p, i| nota(actividad, @esc.alumno(i + 1), p) }
+      c = ReportCardData.para(enrollment: @esc.inscripcion(1), evaluation_moment: @esc.lapso(1)).to_h["puesto"]
+    end
+
+    assert_equal 1, c["puesto"], "dos con 15 están los dos primeros"
+    assert_equal 4, c["de"]
+    assert c["empatado"]
+  end
+
+  test "quien no tiene nota no cuenta para el puesto" do
+    c = nil
+    con_el_colegio(@esc.colegio) do
+      actividad = actividad(@esc, lapso: @esc.lapso(1), peso: 100)
+      # Solo dos alumnos con nota: el resto está sin evaluar, no último.
+      nota(actividad, @esc.alumno(1), 12)
+      nota(actividad, @esc.alumno(2), 18)
+      c = ReportCardData.para(enrollment: @esc.inscripcion(1), evaluation_moment: @esc.lapso(1)).to_h["puesto"]
+    end
+
+    assert_equal 2, c["puesto"]
+    assert_equal 2, c["de"]
+  end
 end

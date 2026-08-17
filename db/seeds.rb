@@ -131,18 +131,21 @@ puts "📊 Creando momentos de evaluación..."
 # cálculo de la nota anual: el Artículo 111 del Reglamento manda promedio simple
 # de los lapsos (MOR-93). Se deja el 30/30/40 porque es lo que un colegio
 # venezolano espera ver escrito.
+# Las fechas son las de un año escolar venezolano real: arranca a mediados de
+# septiembre y cierra a mediados de julio. Sin ellas el boletín cuenta las
+# inasistencias del AÑO entero en vez de las del lapso, y lo aclara en el papel.
 LAPSOS_TRES = [
-  { name: "Primer Lapso",  weight: 30.0 },
-  { name: "Segundo Lapso", weight: 30.0 },
-  { name: "Tercer Lapso",  weight: 40.0 }
+  { name: "Primer Lapso",  weight: 30.0, desde: [ 9, 15 ], hasta: [ 12, 20 ] },
+  { name: "Segundo Lapso", weight: 30.0, desde: [ 1,  8 ], hasta: [  3, 31 ] },
+  { name: "Tercer Lapso",  weight: 40.0, desde: [ 4,  6 ], hasta: [  7, 15 ] }
 ].freeze
 
 # 2026-2027 estrena una estructura DISTINTA a propósito: dos lapsos al 50 %.
 # Sirve para ver que reorganizar la evaluación de un año nuevo no toca en nada
 # la del año anterior ni las notas ya calculadas.
 LAPSOS_DOS = [
-  { name: "Primer Semestre", weight: 50.0 },
-  { name: "Segundo Semestre", weight: 50.0 }
+  { name: "Primer Semestre",  weight: 50.0, desde: [ 9, 15 ], hasta: [ 1, 31 ] },
+  { name: "Segundo Semestre", weight: 50.0, desde: [ 2,  2 ], hasta: [ 7, 15 ] }
 ].freeze
 
 {
@@ -153,6 +156,17 @@ LAPSOS_DOS = [
   lapsos.each do |lapso|
     EvaluationMoment.find_or_create_by!(name: lapso[:name], academic_period: periodo) do |m|
       m.weight = lapso[:weight]
+    end.tap do |m|
+      # `find_or_create_by!` no toca los que ya existen, y estas fechas son
+      # nuevas: se asignan aparte para que un seed sobre una base ya sembrada
+      # las complete en vez de dejarlas vacías.
+      next if lapso[:desde].nil? || m.fechas_propias?
+
+      # Un lapso que arranca en enero pertenece al SEGUNDO año del período:
+      # "2025-2026" va de septiembre de 2025 a julio de 2026.
+      ano = ->(mes) { mes >= 8 ? periodo.start_date.year : periodo.end_date.year }
+      m.update!(starts_on: Date.new(ano.(lapso[:desde][0]), *lapso[:desde]),
+                ends_on:   Date.new(ano.(lapso[:hasta][0]), *lapso[:hasta]))
     end
   end
 end
@@ -737,7 +751,19 @@ inscripciones_asis = Enrollment.where(section: seccion_asis, student: alumnos_as
 FALTAS = { 2 => [1, 3, 5, 8], 3 => [2, 6] }.freeze
 TARDES = { 4 => [1, 2, 4, 7, 9] }.freeze
 
-dias_habiles = (0..13).map { |d| Date.current - d }.reject { |f| f.saturday? || f.sunday? }.first(10)
+# Los diez días se cuentan hacia atrás desde el FINAL del lapso que se está
+# evaluando, no desde hoy.
+#
+# Contándolos desde hoy caían fuera del año escolar —en agosto, entre un año y
+# el siguiente— y el boletín del primer lapso mostraba cero inasistencias con
+# once registros cargados. El dato existía y no se veía, que es la peor de las
+# dos maneras de que algo esté mal.
+lapso_asis = EvaluationMoment.where(academic_period: periodo_bolivar).order(:id).first
+ultimo_dia = [ lapso_asis&.ends_on || Date.current, Date.current ].min
+
+dias_habiles = (0..19).map { |d| ultimo_dia - d }
+                      .reject { |f| f.saturday? || f.sunday? }
+                      .first(10).reverse
 
 dias_habiles.each_with_index do |dia, di|
   inscripciones_asis.each_with_index do |inscripcion, ai|

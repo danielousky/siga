@@ -129,6 +129,7 @@ class ReportCardPdf
     encabezado(pdf, datos, boletin)
     identificacion(pdf, datos)
     datos["tipo"] == "anual" ? tabla_anual(pdf, datos) : tabla_de_lapso(pdf, datos)
+    asistencia_y_puesto(pdf, datos)
     situacion_en_la_seccion(pdf, datos)
     pie(pdf, datos, boletin)
   end
@@ -230,6 +231,71 @@ class ReportCardPdf
   # Con `column_widths:` en el constructor, los anchos entran en el mismo cálculo
   # que todo lo demás. `repartir_sobrante` reparte lo que queda entre las columnas
   # sin ancho fijo, así que la suma da exactamente el bloque útil.
+  # Inasistencias del lapso y puesto en la sección (MOR-135).
+  #
+  # Van en una franja de tres datos y no en tablas separadas: son tres números
+  # y darles una tabla a cada uno haría un boletín de dos páginas para decir lo
+  # mismo.
+  #
+  # El empate comparte puesto y **se dice**: "10º de 20 (empatado)". Dos alumnos
+  # con el mismo promedio están los dos décimos; darle el 10 a uno y el 11 al
+  # otro por el orden alfabético inventa una diferencia que no existe — y se
+  # imprime en un papel que la familia guarda.
+  def asistencia_y_puesto(pdf, datos)
+    asistencia = datos["asistencia"]
+    puesto     = datos["puesto"]
+    return if asistencia.nil? && puesto.nil?
+
+    celdas = []
+
+    if asistencia
+      faltas = asistencia["ausentes"]
+      celdas << [ "INASISTENCIAS",
+                  "#{faltas} de #{asistencia['dias']} #{pluralizar(asistencia['dias'], 'día', 'días')} de clase" ]
+      celdas << [ "LLEGADAS TARDE", asistencia["tardes"].to_s ] if asistencia["tardes"].to_i.positive?
+    end
+
+    if puesto
+      celdas << [ "PUESTO EN LA SECCIÓN",
+                  "#{puesto['puesto']}º de #{puesto['de']}#{' (empatado)' if puesto['empatado']}" ]
+    end
+
+    tabla = pdf.make_table([ celdas.map(&:first), celdas.map(&:last) ],
+                           width: pdf.bounds.width,
+                           cell_style: { size: 8, padding: [ 3, 6 ], borders: [], align: :center }) do
+      row(0).size = 6
+      row(0).font_style = :bold
+      row(0).text_color = "878787"
+      row(1).size = 11
+    end
+    tabla.draw
+    pdf.move_down 4
+
+    # De qué período habla ese número. Sin esto, "3 inasistencias" en el boletín
+    # del segundo lapso podría querer decir tres en el lapso o tres en el año.
+    if asistencia
+      pdf.font_size(6.5) do
+        pdf.fill_color "878787"
+        pdf.text(if asistencia["del_lapso"]
+                   "Contadas entre el #{fecha(asistencia['desde'])} y el #{fecha(asistencia['hasta'])}, " \
+                   "que es el período de este lapso."
+                 else
+                   "Contadas en el año escolar completo: este lapso todavía no tiene sus fechas cargadas."
+                 end, align: :center)
+        pdf.fill_color "000000"
+      end
+    end
+    pdf.move_down 12
+  end
+
+  def fecha(iso)
+    I18n.l(Date.parse(iso), format: :long)
+  rescue StandardError
+    iso
+  end
+
+  def pluralizar(cantidad, singular, plural) = cantidad == 1 ? singular : plural
+
   # Dónde queda el alumno respecto de su sección (MOR-135).
   #
   # Es la pieza que Daniel señaló del boletín de la U.E. Centro Educativo APUCV,

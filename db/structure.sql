@@ -510,7 +510,9 @@ CREATE TABLE public.evaluation_moments (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     academic_period_id bigint NOT NULL,
-    school_id bigint NOT NULL
+    school_id bigint NOT NULL,
+    starts_on date,
+    ends_on date
 );
 
 ALTER TABLE ONLY public.evaluation_moments FORCE ROW LEVEL SECURITY;
@@ -2400,6 +2402,13 @@ CREATE UNIQUE INDEX index_evaluation_moments_on_academic_period_id_and_name ON p
 
 
 --
+-- Name: index_evaluation_moments_on_academic_period_id_and_starts_on; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_evaluation_moments_on_academic_period_id_and_starts_on ON public.evaluation_moments USING btree (academic_period_id, starts_on);
+
+
+--
 -- Name: index_evaluation_moments_on_school_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3767,6 +3776,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260816120000'),
 ('20260815120000'),
 ('20260814150000'),
 ('20260814140000'),

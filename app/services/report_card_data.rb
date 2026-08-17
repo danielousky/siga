@@ -30,11 +30,72 @@ class ReportCardData
       "materias" => materias,
       "promedio" => promedio,
       "comparacion" => comparacion,
+      "asistencia"  => asistencia,
+      "puesto"      => puesto,
       "emitido"  => Date.current.to_s
     }
   end
 
   private
+
+  # Cuántos días faltó, en el lapso que este boletín certifica.
+  #
+  # Un lapso **es** un rango de fechas —"del 16 de septiembre al 20 de
+  # diciembre"— y hasta `MOR-135` el modelo no las guardaba. Donde el colegio no
+  # las cargó se cuenta el año escolar completo y **el papel lo dice**: un número
+  # de inasistencias sin su período no se puede interpretar, y en el boletín del
+  # segundo lapso arrastraría las faltas del primero sin avisar.
+  def asistencia
+    rango = @lapso ? @lapso.rango : (@seccion.academic_period.start_date..@seccion.academic_period.end_date)
+
+    conteo = Attendance.where(enrollment_id: @enrollment.id, date: rango).group(:status).count
+    dias   = conteo.values.sum
+    return nil if dias.zero?
+
+    {
+      "dias"      => dias,
+      "presentes" => conteo["presente"].to_i,
+      "ausentes"  => conteo["ausente"].to_i,
+      "tardes"    => conteo["tarde"].to_i,
+      "desde"     => rango.first.to_s,
+      "hasta"     => rango.last.to_s,
+      # Para que el boletín pueda aclarar de qué período habla.
+      "del_lapso" => (@lapso&.fechas_propias? || false)
+    }
+  end
+
+  # En qué puesto quedó el alumno dentro de su sección, y cuántos son.
+  #
+  # ## Por qué el empate comparte puesto
+  #
+  # Dos alumnos con 17 están **los dos** en el mismo puesto: darle el 3 a uno y
+  # el 4 al otro por el orden alfabético inventa una diferencia que no existe, y
+  # esa diferencia se imprime en un papel que la familia guarda.
+  #
+  # Solo cuentan los alumnos que TIENEN promedio: quien no tiene ninguna nota
+  # cargada no está último, está sin evaluar.
+  def puesto
+    return nil if @lapso.nil? || promedio.nil?
+
+    # Una consulta, no una por compañero. La versión anterior instanciaba un
+    # `ReportCardData` por inscripción y tardaba 200 ms en una sección de veinte
+    # — y esto corre al emitir los boletines de la sección ENTERA, así que era
+    # 200 ms × 20 en el mismo pedido.
+    promedios = MomentGrade
+                  .where(enrollment_id: @seccion.enrollments.select(:id), evaluation_moment_id: @lapso.id)
+                  .where.not(final_moment_score: nil)
+                  .group(:enrollment_id)
+                  .average(:final_moment_score)
+
+    ajenos = promedios.except(@enrollment.id).values.map { |p| GradeCalculator.redondear(p) }
+    return nil if ajenos.empty?
+
+    promedios = ajenos
+
+    { "puesto"   => promedios.count { |p| p > promedio } + 1,
+      "de"       => promedios.size + 1,
+      "empatado" => promedios.count { |p| p == promedio }.positive? }
+  end
 
   # Dónde queda el alumno respecto de su sección, materia por materia.
   #

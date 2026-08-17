@@ -20,6 +20,24 @@
       %strong promedio
       de los lapsos, sin ponderar (Art. 111 del Reglamento General de la LOE).
 
+  -# Las fechas son opcionales, y por eso van con su nota: sin ellas el boletín
+  -# no puede decir cuántos días faltó el alumno EN ESTE LAPSO —contaría los del
+  -# año entero— así que cargarlas mejora un documento que se entrega a la familia.
+  .form-row
+    .form-group
+      = f.label :starts_on, "Comienza el", class: "form-label"
+      %span.solicitud-opcional opcional
+      = f.date_field :starts_on, class: "form-control"
+
+    .form-group
+      = f.label :ends_on, "Termina el", class: "form-label"
+      %span.solicitud-opcional opcional
+      = f.date_field :ends_on, class: "form-control"
+
+  %p.nota-ayuda
+    Con las fechas cargadas, el boletín cuenta las inasistencias de este lapso.
+    Sin ellas cuenta las del año escolar completo, y lo aclara en el papel.
+
   .form-acciones
 
     = f.submit class: "btn btn-primary"
