@@ -110,7 +110,8 @@ Rails.application.routes.draw do
   # La identidad del colegio: nombre, ubicación y escudo. Singular porque un
   # colegio solo se administra a sí mismo — el suyo sale de la sesión.
   resource :colegio, only: [:show, :update], controller: "colegio" do
-    delete :logo, action: :quitar_logo, as: :quitar_logo
+    delete :logo,  action: :quitar_logo,  as: :quitar_logo
+    delete :firma, action: :quitar_firma, as: :quitar_firma
   end
 
   resources :representatives, path: "representantes"

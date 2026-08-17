@@ -88,6 +88,12 @@ gem "image_processing", "~> 1.2"
 # necesita Node y Chromium, y esta app usa importmap justamente para no tener
 # Node. Y sobre todo: **el entorno de despliegue todavía no está decidido**, así
 # que atarlo a un binario del sistema sería tomar esa decisión de costado.
+# El código QR del boletín: `rqrcode_core` es SOLO el algoritmo —devuelve la
+# matriz de módulos— sin ninguna dependencia de imagen. Los cuadraditos se
+# dibujan como vectores con Prawn, que imprime más nítido que un PNG rasterizado
+# y no arrastra `chunky_png` ni `image_processing` a un PDF.
+gem "rqrcode_core", "~> 2.1"
+
 gem "prawn", "~> 2.5"
 gem "prawn-table", "~> 0.2"
 

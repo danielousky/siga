@@ -32,6 +32,23 @@
             imprime sobre papel.
 
         .form-group
+          = f.label :firma, "Firma del director, escaneada", class: "form-label"
+          %span.solicitud-opcional opcional
+          = f.file_field :firma, accept: "image/png,image/jpeg", class: "form-control"
+          %small.nota-ayuda
+            Se imprime sobre la línea del boletín, como el sello de goma sobre
+            el papel. Conviene fondo transparente y trazo oscuro.
+          - if @colegio.firma.attached?
+            .identidad-firma
+              = image_tag @colegio.firma, alt: "Firma del director", class: "identidad-firma-imagen"
+              = link_to "Quitar firma", quitar_firma_colegio_path, data: { turbo_method: :delete, turbo_confirm: "¿Quitar la firma? Los boletines nuevos salen con la línea en blanco." }, class: "identidad-quitar"
+          %p.nota-ayuda
+            %strong No es una firma digital.
+            Es una imagen, y cualquiera que tenga el PDF puede recortarla. Lo que
+            hace comprobable un boletín es su código de verificación y el QR:
+            quien lo escanee ve lo que el colegio emitió, contra la base.
+
+        .form-group
           = f.label :name, "Nombre", class: "form-label"
           = f.text_field :name, class: "form-control"
           %small.nota-ayuda

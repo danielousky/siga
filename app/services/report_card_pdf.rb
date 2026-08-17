@@ -429,22 +429,122 @@ class ReportCardPdf
              "(Art. 108 del Reglamento General de la Ley Orgánica de Educación).",
              size: 7, color: "666666"
 
-    pdf.move_down 34
-    pdf.table(
-      [["_____________________________", "_____________________________"],
-       ["Director(a)", "Representante"]],
-      width: pdf.bounds.width, cell_style: { size: 8, borders: [], align: :center, padding: [1, 4] }
-    )
+    firma(pdf, boletin)
 
     pdf.move_down 18
     pdf.stroke_color "DDDDDD"
     pdf.stroke_horizontal_rule
-    pdf.move_down 6
+    pdf.move_down 8
 
-    pdf.text "Código de verificación: <b>#{boletin.code}</b>", size: 8, inline_format: true
-    pdf.text "Este boletín se puede verificar en #{ruta_de_verificacion(boletin)} — " \
-             "emitido el #{I18n.l(Date.parse(datos['emitido']), format: :long)}.",
-             size: 7, color: "666666"
+    verificacion(pdf, datos, boletin)
+  end
+
+  # La firma del colegio.
+  #
+  # ## Por qué ya no hay línea para el representante
+  #
+  # Un boletín es un documento que el colegio EMITE. La firma del representante
+  # no certifica nada de lo que dice adentro: lo único que probaría es que lo
+  # recibió, y para eso el original venezolano tiene un **talón desprendible**
+  # aparte, que se devuelve al colegio. Una línea suelta al pie no cumple esa
+  # función y pide una firma que nadie va a recoger.
+  #
+  # ## Y la del director puede ir escaneada
+  #
+  # Si el colegio cargó su firma, se dibuja sobre la línea. **No es una firma
+  # digital** —es un facsímil, como el sello de goma— y no hay que presentarla
+  # como si lo fuera. Lo que hace comprobable este boletín es el código de
+  # verificación y su QR, que van abajo.
+  def firma(pdf, boletin)
+    pdf.move_down 30
+
+    escaneada = boletin.enrollment.section.grade.school.firma_para_pdf rescue nil
+    ancho     = 200
+    izquierda = (pdf.bounds.width - ancho) / 2
+
+    if escaneada
+      # `fit` y no `width`: una firma escaneada viene con la proporción que
+      # tenga, y estirarla la vuelve una caricatura de sí misma.
+      pdf.bounding_box([izquierda, pdf.cursor], width: ancho, height: 40) do
+        pdf.image escaneada, fit: [ancho, 38], position: :center
+      end
+    else
+      pdf.move_down 40
+    end
+
+    pdf.stroke_color "666666"
+    pdf.stroke_line [izquierda + 20, pdf.cursor], [izquierda + ancho - 20, pdf.cursor]
+    pdf.move_down 4
+    pdf.text "Director(a)", size: 8, align: :center
+  end
+
+  # El código de verificación, con su QR al lado.
+  #
+  # El QR lleva la URL COMPLETA: un papel impreso no tiene contexto, y
+  # "/verificar/BOL-822A" no le sirve a nadie que lo escanee. El host sale de
+  # `SIGA_HOST`, la misma variable con la que se arman los enlaces del correo.
+  def verificacion(pdf, datos, boletin)
+    url  = url_de_verificacion(boletin)
+    alto = pdf.cursor
+
+    pdf.bounding_box([0, alto], width: pdf.bounds.width - 70) do
+      pdf.text "Código de verificación: <b>#{boletin.code}</b>", size: 8, inline_format: true
+      pdf.move_down 2
+      pdf.text "Cualquiera puede comprobar este boletín escaneando el código o entrando a " \
+               "#{url} — emitido el #{I18n.l(Date.parse(datos['emitido']), format: :long)}.",
+               size: 7, color: "666666"
+    end
+
+    dibujar_qr(pdf, url, en: [pdf.bounds.width - 58, alto + 4], lado: 54)
+  end
+
+  # El QR, dibujado como VECTORES y no como imagen.
+  #
+  # `rqrcode_core` devuelve la matriz de módulos y acá se pintan cuadrados. Sale
+  # nítido a cualquier tamaño de impresión —un PNG rasterizado se ve dentado en
+  # papel— y evita arrastrar una gema de imágenes al PDF.
+  #
+  # La zona de silencio (el margen blanco) **no es decorativa**: sin ella muchos
+  # lectores no enganchan el código. El estándar pide cuatro módulos.
+  def dibujar_qr(pdf, texto, en:, lado:)
+    qr = RQRCodeCore::QRCode.new(texto, level: :m)
+    modulos = qr.modules
+
+    silencio = 4
+    total    = modulos.size + silencio * 2
+    paso     = lado.to_f / total
+    x0, y0   = en
+
+    pdf.fill_color "FFFFFF"
+    pdf.fill_rectangle [x0, y0], lado, lado
+
+    pdf.fill_color "000000"
+    modulos.each_with_index do |fila, f|
+      fila.each_with_index do |encendido, c|
+        next unless encendido
+
+        pdf.fill_rectangle [x0 + (c + silencio) * paso, y0 - (f + silencio) * paso], paso, paso
+      end
+    end
+    pdf.fill_color "000000"
+  rescue StandardError => e
+    # Un QR que no se puede generar no puede tumbar un boletín. Queda el código
+    # escrito al lado, que es lo que de verdad verifica.
+    Rails.logger.warn("[ReportCardPdf] QR no generado: #{e.message}")
+  end
+
+  # `SIGA_HOST` es la misma variable con la que `production.rb` arma los enlaces
+  # del correo: un solo lugar donde decir cómo se llama este sistema afuera.
+  def url_de_verificacion(boletin)
+    host = ENV.fetch("SIGA_HOST", "localhost:3000")
+
+    # `https` salvo en local. Sin esto, un boletín generado en desarrollo lleva
+    # un QR que apunta a `https://localhost:3000` — o sea, a ninguna parte— y el
+    # error aparece recién cuando alguien lo escanea.
+    local     = host.start_with?("localhost", "127.0.0.1")
+    protocolo = local ? "http" : ENV.fetch("SIGA_PROTOCOLO", "https")
+
+    "#{protocolo}://#{host}#{ruta_de_verificacion(boletin)}"
   end
 
   def ruta_de_verificacion(boletin)

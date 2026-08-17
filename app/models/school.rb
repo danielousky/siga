@@ -13,41 +13,65 @@ class School < ApplicationRecord
   # el archivo, no un enlace — Prawn dibuja bytes.
   has_one_attached :logo
 
-  FORMATOS_DE_LOGO = %w[image/png image/jpeg].freeze
-  PESO_MAXIMO_DEL_LOGO = 2.megabytes
+  # La firma del director, escaneada (MOR-135).
+  #
+  # ⚠️ **Esto NO es una firma digital.** Es un facsímil: una imagen de la firma
+  # manuscrita, igual que el sello que un colegio estampa en el papel. No
+  # certifica nada por sí misma —cualquiera que tenga el PDF puede recortarla— y
+  # no hay que venderla como si lo hiciera.
+  #
+  # Lo que SÍ da autenticidad en este boletín es el **código de verificación**:
+  # un tercero entra a `/verificar/CÓDIGO` —o escanea el QR— y ve lo que el
+  # colegio emitió, contra la base. La firma escaneada es lo que hace que el
+  # papel se vea como el papel que la familia espera; la verificación es lo que
+  # lo hace comprobable.
+  has_one_attached :firma
+
+  FORMATOS_DE_IMAGEN = %w[image/png image/jpeg].freeze
+  PESO_MAXIMO = 2.megabytes
+
+  # Se mantienen los nombres viejos: `MOR-135` los dejó usados en la vista de
+  # identidad del colegio y renombrarlos no agrega nada.
+  FORMATOS_DE_LOGO = FORMATOS_DE_IMAGEN
+  PESO_MAXIMO_DEL_LOGO = PESO_MAXIMO
 
   validate :logo_dibujable
+  validate :firma_dibujable
 
   # Lo que Prawn puede dibujar en un PDF, o `nil`.
   #
   # Devuelve `nil` en vez de explotar a propósito: un documento oficial no se
-  # puede caer porque alguien subió un logo raro. Sale sin escudo, que es feo
+  # puede caer porque alguien subió una imagen rara. Sale sin escudo, que es feo
   # pero sirve; sin boletín, la familia se queda sin nada.
-  def logo_para_pdf
-    return nil unless logo.attached?
-    return nil unless FORMATOS_DE_LOGO.include?(logo.blob.content_type)
+  def logo_para_pdf  = imagen_para_pdf(logo)
+  def firma_para_pdf = imagen_para_pdf(firma)
 
-    StringIO.new(logo.blob.download)
+  private
+
+  def imagen_para_pdf(adjunto)
+    return nil unless adjunto.attached?
+    return nil unless FORMATOS_DE_IMAGEN.include?(adjunto.blob.content_type)
+
+    StringIO.new(adjunto.blob.download)
   rescue StandardError
     nil
   end
 
-  private
+  def logo_dibujable  = validar_imagen(logo, :logo, "Un escudo")
+  def firma_dibujable = validar_imagen(firma, :firma, "Una firma escaneada")
 
-  def logo_dibujable
-    return unless logo.attached?
+  def validar_imagen(adjunto, campo, que)
+    return unless adjunto.attached?
 
-    unless FORMATOS_DE_LOGO.include?(logo.blob.content_type)
-      errors.add(:logo, "tiene que ser PNG o JPG: son los formatos que se pueden imprimir en el boletín")
+    unless FORMATOS_DE_IMAGEN.include?(adjunto.blob.content_type)
+      errors.add(campo, "tiene que ser PNG o JPG: son los formatos que se pueden imprimir en el boletín")
     end
 
-    return unless logo.blob.byte_size > PESO_MAXIMO_DEL_LOGO
+    return unless adjunto.blob.byte_size > PESO_MAXIMO
 
-    errors.add(:logo, "no puede pesar más de 2 MB — un escudo no lo necesita, y la conexión de un colegio sí")
+    errors.add(campo, "no puede pesar más de 2 MB — #{que} no lo necesita, y la conexión de un colegio sí")
   end
   enum :school_type, { primary: 0, secondary: 1 }
-
-  has_one_attached :logo
 
   has_many :departments, dependent: :restrict_with_error
   has_many :students, dependent: :restrict_with_error
