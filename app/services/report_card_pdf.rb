@@ -129,6 +129,7 @@ class ReportCardPdf
     encabezado(pdf, datos, boletin)
     identificacion(pdf, datos)
     datos["tipo"] == "anual" ? tabla_anual(pdf, datos) : tabla_de_lapso(pdf, datos)
+    situacion_en_la_seccion(pdf, datos)
     pie(pdf, datos, boletin)
   end
 
@@ -215,9 +216,109 @@ class ReportCardPdf
     dibujar_tabla(pdf, self.class.filas_anuales(datos), anchos, ultima_en_negrita: true)
   end
 
+  # ## Los anchos van al CONSTRUIR, no después
+  #
+  # Antes se hacía `make_table(width: …)` y luego `tabla.column(i).width = x`.
+  # Prawn acepta las dos cosas y el objeto reporta el ancho correcto —540 pt— pero
+  # **dibuja mal**: los fondos de celda se pintan con los anchos que calculó al
+  # construirse y los bordes con los nuevos. El resultado era una tabla de 428 pt
+  # pegada a la izquierda, con una columna extra fantasma al final.
+  #
+  # Y no fallaba en ninguna parte: `tabla.width` decía 540. Solo se ve mirando el
+  # papel.
+  #
+  # Con `column_widths:` en el constructor, los anchos entran en el mismo cálculo
+  # que todo lo demás. `repartir_sobrante` reparte lo que queda entre las columnas
+  # sin ancho fijo, así que la suma da exactamente el bloque útil.
+  # Dónde queda el alumno respecto de su sección (MOR-135).
+  #
+  # Es la pieza que Daniel señaló del boletín de la U.E. Centro Educativo APUCV,
+  # y contesta la pregunta que una familia hace de verdad: no *"¿cuánto sacó?"*
+  # sino *"¿cómo le fue comparado con sus compañeros?"*.
+  #
+  # ## La barra se dibuja con CELDAS, no con coordenadas
+  #
+  # Una barra "de verdad" —un rectángulo sobre la tabla— obliga a calcular la
+  # posición de cada fila después de dibujarla, y eso se rompe en cuanto una
+  # materia de nombre largo ocupa dos renglones. Seis celdas por fila, pintadas
+  # hasta el nivel que corresponde, dan el mismo resultado y las alinea Prawn.
+  # Además coincide con el original impreso, que lleva las líneas verticales de
+  # las bandas cruzando la barra.
+  #
+  # ## Sin color semántico
+  #
+  # Un solo tono de marca. Estar por debajo del promedio de la clase **no es
+  # reprobar** —se puede estar debajo del promedio con 17— y pintarlo de rojo
+  # sería un juicio que el colegio no emitió. Lo que informa es la POSICIÓN.
+  def situacion_en_la_seccion(pdf, datos)
+    comparacion = datos["comparacion"]
+    return if comparacion.nil?
+
+    niveles = comparacion["niveles"]
+
+    pdf.font_size(9) { pdf.text "<b>SITUACIÓN CON RESPECTO A LA SECCIÓN</b>", inline_format: true }
+    pdf.move_down 6
+
+    encabezado = ["MATERIA", "ALUMNO", "SECCIÓN"] + niveles.map { |n| texto(n).upcase }
+    filas = [encabezado]
+
+    comparacion["materias"].each do |f|
+      filas << [texto(f["materia"]), celda(f["nota"]), coma(f["seccion"])] + Array.new(niveles.size, "")
+    end
+
+    general = comparacion["general"]
+    filas << ["SITUACIÓN GENERAL", celda(general["nota"]), coma(general["seccion"])] +
+             Array.new(niveles.size, "")
+
+    ancho_banda = 46
+    anchos = [nil, 46, 50] + Array.new(niveles.size, ancho_banda)
+
+    tabla = pdf.make_table(filas,
+                           width: pdf.bounds.width,
+                           column_widths: repartir_sobrante(anchos, pdf.bounds.width),
+                           cell_style: { size: 7, padding: [3, 4], border_color: "DDDDDD" }) do
+      row(0).font_style = :bold
+      row(0).background_color = "F0EDE8"
+      row(0).size = 6
+      columns(1..-1).align = :center
+      row(-1).font_style = :bold
+      row(-1).background_color = "F5F3F0"
+    end
+
+    # Pintar la barra: las bandas hasta el nivel del alumno, inclusive.
+    ([ comparacion["materias"], [ general ] ].flatten).each_with_index do |f, i|
+      next if f["nivel"].nil?
+
+      (0..f["nivel"]).each { |b| tabla.row(i + 1).column(3 + b).background_color = "1E4A7A" }
+    end
+
+    tabla.draw
+    pdf.move_down 8
+
+    pdf.font_size(6.5) do
+      pdf.fill_color "666666"
+      pdf.text "SECCIÓN es el promedio de esa materia en la sección, con las notas cargadas al " \
+               "emitir este boletín. La barra indica cuánto se aparta el alumno de ese promedio: " \
+               "cada banda son dos puntos, y el corte entre MEDIO BAJO y MEDIO ALTO es el promedio " \
+               "mismo. Estar por debajo del promedio de la clase no significa aplazar.",
+               align: :justify
+      pdf.fill_color "000000"
+    end
+    pdf.move_down 10
+  end
+
+  # Coma decimal: acá 13.5 se escribe 13,5.
+  def coma(valor)
+    return "—" if valor.nil?
+
+    format("%.1f", valor).tr(".", ",")
+  end
+
   def dibujar_tabla(pdf, filas, anchos, ultima_en_negrita: false)
-    tabla = pdf.make_table(filas, width: pdf.bounds.width,
-                                  cell_style: { size: 9, padding: [4, 6], border_color: "DDDDDD" }) do
+    tabla = pdf.make_table(filas,
+                           width: pdf.bounds.width,
+                           column_widths: repartir_sobrante(anchos, pdf.bounds.width),
+                           cell_style: { size: 9, padding: [4, 6], border_color: "DDDDDD" }) do
       row(0).font_style = :bold
       row(0).background_color = "F0EDE8"
       row(0).size = 8
@@ -228,9 +329,21 @@ class ReportCardPdf
       end
     end
 
-    anchos.each_with_index { |ancho, i| tabla.column(i).width = ancho if ancho }
     tabla.draw
     pdf.move_down 14
+  end
+
+  # Las columnas en `nil` se reparten lo que queda. Si no hay ninguna, se
+  # devuelve la lista tal cual: quien fijó todos los anchos sabe lo que hace.
+  def repartir_sobrante(anchos, total)
+    libres = anchos.count(&:nil?)
+    return anchos if libres.zero?
+
+    sobrante = total - anchos.compact.sum
+    return anchos if sobrante <= 0
+
+    cada = sobrante / libres.to_f
+    anchos.map { |a| a || cada }
   end
 
   # "Sin nota" en letras, nunca un cero. Es la misma regla del cálculo y de la

@@ -29,11 +29,98 @@ class ReportCardData
       "lapsos"   => lapsos.map(&:name),
       "materias" => materias,
       "promedio" => promedio,
+      "comparacion" => comparacion,
       "emitido"  => Date.current.to_s
     }
   end
 
   private
+
+  # Dónde queda el alumno respecto de su sección, materia por materia.
+  #
+  # ## Por qué esto se congela con el resto
+  #
+  # El promedio de una sección **cambia** cada vez que un profesor carga una
+  # nota. Si el boletín lo calculara al imprimirlo, reemitir en marzo el
+  # boletín de diciembre lo compararía contra una clase distinta: el papel que
+  # la familia tiene en la mano diría una cosa y la verificación pública otra.
+  # Es exactamente lo que `MOR-98` vino a evitar, aplicado a un dato nuevo.
+  #
+  # ## Por qué seis niveles y no un porcentaje
+  #
+  # Es la forma del boletín que usan los colegios de aquí —el de la U.E. Centro
+  # Educativo APUCV, entre otros—: seis bandas, con el promedio de la clase en
+  # el medio. Un número tipo "percentil 63" no le dice nada a una familia; "está
+  # por encima del promedio de su sección" sí.
+  #
+  # Los cortes van en PUNTOS de diferencia y no en desviaciones estándar. Con
+  # veinte alumnos y a veces tres notas cargadas, la desviación es ruido: una
+  # sección donde todos sacaron 14 y 15 tendría σ≈0,5 y cualquiera con 16
+  # aparecería como "muy alto", que es falso y además se lo dirías a la familia
+  # por escrito.
+  NIVELES = [
+    [ -Float::INFINITY, -4.0, "Muy bajo" ],
+    [ -4.0,             -2.0, "Bajo" ],
+    [ -2.0,              0.0, "Medio bajo" ],
+    [  0.0,              2.0, "Medio alto" ],
+    [  2.0,              4.0, "Alto" ],
+    [  4.0,  Float::INFINITY, "Muy alto" ]
+  ].freeze
+
+  ETIQUETAS_DE_NIVEL = NIVELES.map(&:last).freeze
+
+  def comparacion
+    return nil if @lapso.nil?   # el anual compara contra tres lapsos, no contra la clase
+
+    promedios = promedios_de_la_seccion
+    return nil if promedios.empty?
+
+    filas = materias.filter_map do |m|
+      media = promedios[m["materia"]]
+      next if m["nota"].nil? || media.nil?
+
+      { "materia" => m["materia"], "nota" => m["nota"], "seccion" => media,
+        "nivel" => nivel_de(m["nota"] - media) }
+    end
+    return nil if filas.empty?
+
+    media_general = promedios.values.sum / promedios.size
+    {
+      "niveles"  => ETIQUETAS_DE_NIVEL,
+      "materias" => filas,
+      "general"  => { "nota" => promedio, "seccion" => media_general.round(2),
+                      "nivel" => (nivel_de(promedio - media_general) if promedio) }
+    }
+  end
+
+  def nivel_de(diferencia)
+    NIVELES.each_with_index do |(desde, hasta, _), i|
+      return i if diferencia >= desde && diferencia < hasta
+    end
+    NIVELES.size - 1
+  end
+
+  # El promedio de CADA materia en la sección, en este lapso.
+  #
+  # Solo cuentan las notas que existen: una materia sin corregir no arrastra a
+  # la clase hacia abajo, por la misma razón que un alumno sin nota no lleva
+  # cero (Art. 108). Y hace falta más de un alumno con nota — si no, el
+  # "promedio de la sección" sería el propio alumno comparándose consigo mismo.
+  def promedios_de_la_seccion
+    filas = MomentGrade
+              .where(enrollment_id: @seccion.enrollments.select(:id), evaluation_moment_id: @lapso.id)
+              .where.not(final_moment_score: nil)
+              .group(:subject_id)
+              .pluck(Arel.sql("subject_id, AVG(final_moment_score), COUNT(*)"))
+
+    nombres = Subject.where(id: filas.map(&:first)).pluck(:id, :name).to_h
+
+    filas.each_with_object({}) do |(subject_id, media, cuantos), acc|
+      next if cuantos < 2
+
+      acc[nombres[subject_id]] = media.to_f.round(2)
+    end
+  end
 
   def colegio
     escuela = @seccion.grade.school
