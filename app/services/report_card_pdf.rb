@@ -455,27 +455,98 @@ class ReportCardPdf
   # digital** —es un facsímil, como el sello de goma— y no hay que presentarla
   # como si lo fuera. Lo que hace comprobable este boletín es el código de
   # verificación y su QR, que van abajo.
+  # Firma y sello del colegio, como quedan en el papel.
+  #
+  # ## El sello va ENCIMA de la firma, no al lado
+  #
+  # Así se estampa en el papel, y no es costumbre: un sello junto a una firma en
+  # blanco se puede recortar y pegar en otro documento. Solapados, cada uno
+  # respalda al otro.
+  #
+  # Se dibuja **después** —en un PDF lo último tapa lo anterior— corrido a la
+  # derecha y hacia arriba, que es como cae la mano de quien sella, y con
+  # transparencia: la tinta del sello deja ver el trazo del bolígrafo debajo. Un
+  # sello opaco encima de la firma la borraría, que es justo lo contrario de lo
+  # que se busca.
+  #
+  # ⚠️ Los dos son **facsímiles**, no firmas digitales. Lo que hace comprobable
+  # este boletín es el código de verificación y su QR.
+  ANCHO_DE_FIRMA = 200
+  ALTO_DE_FIRMA  = 40
+  LADO_DEL_SELLO = 62
+
   def firma(pdf, boletin)
     pdf.move_down 30
 
-    escaneada = boletin.enrollment.section.grade.school.firma_para_pdf rescue nil
-    ancho     = 200
-    izquierda = (pdf.bounds.width - ancho) / 2
+    colegio   = boletin.enrollment.section.grade.school rescue nil
+    escaneada = colegio&.firma_para_pdf
+    estampa   = colegio&.sello_para_pdf
+    izquierda = (pdf.bounds.width - ANCHO_DE_FIRMA) / 2
+    arriba    = pdf.cursor
 
     if escaneada
       # `fit` y no `width`: una firma escaneada viene con la proporción que
       # tenga, y estirarla la vuelve una caricatura de sí misma.
-      pdf.bounding_box([izquierda, pdf.cursor], width: ancho, height: 40) do
-        pdf.image escaneada, fit: [ancho, 38], position: :center
+      pdf.bounding_box([izquierda, arriba], width: ANCHO_DE_FIRMA, height: ALTO_DE_FIRMA) do
+        pdf.image escaneada, fit: [ANCHO_DE_FIRMA, ALTO_DE_FIRMA - 2], position: :center
       end
     else
-      pdf.move_down 40
+      pdf.move_down ALTO_DE_FIRMA
     end
 
+    linea = pdf.cursor
     pdf.stroke_color "666666"
-    pdf.stroke_line [izquierda + 20, pdf.cursor], [izquierda + ancho - 20, pdf.cursor]
+    pdf.stroke_line [izquierda + 20, linea], [izquierda + ANCHO_DE_FIRMA - 20, linea]
     pdf.move_down 4
     pdf.text "Director(a)", size: 8, align: :center
+
+    sello(pdf, estampa, izquierda: izquierda, arriba: arriba, linea: linea) if estampa
+  end
+
+  # El sello, encima de todo lo demás.
+  #
+  # Queda montado sobre el último tercio de la firma y cruzando la línea, que es
+  # donde cae en un papel real: un sello estampado al costado, sobre el aire, es
+  # exactamente el que se puede recortar y pegar en otro documento.
+  #
+  # `float` deja el cursor donde estaba — el sello se dibuja ENCIMA de lo que ya
+  # hay, no debajo. Sin eso el bloque empuja el resto del pie hacia abajo y el
+  # párrafo de verificación se queda sin página; así apareció este bug, como un
+  # `Prawn::Errors::CannotFit` lanzado en OTRO método.
+  #
+  # `transparent` deja ver el trazo del bolígrafo debajo. Un sello opaco encima
+  # de la firma la borraría, que es lo contrario de lo que se busca.
+  def sello(pdf, estampa, izquierda:, arriba:, linea:)
+    x = izquierda + (ANCHO_DE_FIRMA * 0.58)
+    y = ((arriba + linea) / 2.0) + (LADO_DEL_SELLO / 2.0) - 2
+
+    # ⚠️ El `rescue` va DENTRO del `bounding_box`, no a nivel del método.
+    #
+    # Si la excepción escapa del bloque, Prawn nunca restaura los límites de la
+    # página: el resto del documento sigue dibujándose dentro de una caja de
+    # 62 pt de alto, y el párrafo de verificación —que está bien— revienta con
+    # `CannotFit`. El error aparecía en otro método, tres pasos más adelante.
+    #
+    # Pasa con un archivo que DICE ser PNG y no lo es: `content_type` es lo que
+    # declaró quien lo subió, no lo que hay adentro.
+    pdf.float do
+      pdf.transparent(0.62) do
+        pdf.bounding_box([ x, y ], width: LADO_DEL_SELLO, height: LADO_DEL_SELLO) do
+          begin
+            pdf.image estampa, fit: [ LADO_DEL_SELLO, LADO_DEL_SELLO ],
+                               position: :center, vposition: :center
+          rescue StandardError => e
+            Rails.logger.warn("[ReportCardPdf] sello no dibujado: #{e.message}")
+          end
+        end
+      end
+    end
+  rescue StandardError => e
+    # Un sello que no se puede dibujar no puede tumbar un boletín: sale sin él,
+    # como sale sin escudo si el logo está roto. Pasa con un archivo que DICE ser
+    # PNG y no lo es — `content_type` es lo que declaró quien lo subió, no lo que
+    # hay adentro.
+    Rails.logger.warn("[ReportCardPdf] sello no dibujado: #{e.message}")
   end
 
   # El código de verificación, con su QR al lado.
@@ -487,7 +558,10 @@ class ReportCardPdf
     url  = url_de_verificacion(boletin)
     alto = pdf.cursor
 
-    pdf.bounding_box([0, alto], width: pdf.bounds.width - 70) do
+    # `height:` explícito: sin él el bloque hereda "lo que quede de página", y si
+    # algo de arriba se corrió, Prawn levanta `CannotFit` en vez de pasar a la
+    # hoja siguiente. Un boletín no se puede caer por eso.
+    pdf.bounding_box([0, alto], width: pdf.bounds.width - 70, height: 42) do
       pdf.text "Código de verificación: <b>#{boletin.code}</b>", size: 8, inline_format: true
       pdf.move_down 2
       pdf.text "Cualquiera puede comprobar este boletín escaneando el código o entrando a " \

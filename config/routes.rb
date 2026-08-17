@@ -112,6 +112,7 @@ Rails.application.routes.draw do
   resource :colegio, only: [:show, :update], controller: "colegio" do
     delete :logo,  action: :quitar_logo,  as: :quitar_logo
     delete :firma, action: :quitar_firma, as: :quitar_firma
+    delete :sello, action: :quitar_sello, as: :quitar_sello
   end
 
   resources :representatives, path: "representantes"

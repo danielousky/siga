@@ -42,11 +42,26 @@
             .identidad-firma
               = image_tag @colegio.firma, alt: "Firma del director", class: "identidad-firma-imagen"
               = link_to "Quitar firma", quitar_firma_colegio_path, data: { turbo_method: :delete, turbo_confirm: "¿Quitar la firma? Los boletines nuevos salen con la línea en blanco." }, class: "identidad-quitar"
-          %p.nota-ayuda
-            %strong No es una firma digital.
-            Es una imagen, y cualquiera que tenga el PDF puede recortarla. Lo que
-            hace comprobable un boletín es su código de verificación y el QR:
-            quien lo escanee ve lo que el colegio emitió, contra la base.
+        .form-group
+          = f.label :sello, "Sello del colegio, escaneado", class: "form-label"
+          %span.solicitud-opcional opcional
+          = f.file_field :sello, accept: "image/png,image/jpeg", class: "form-control"
+          %small.nota-ayuda
+            Se estampa
+            %strong sobre
+            la firma, como en el papel. Conviene fondo transparente: uno blanco
+            taparía el trazo de abajo.
+          - if @colegio.sello.attached?
+            .identidad-firma
+              = image_tag @colegio.sello, alt: "Sello del colegio", class: "identidad-sello-imagen"
+              = link_to "Quitar sello", quitar_sello_colegio_path, data: { turbo_method: :delete, turbo_confirm: "¿Quitar el sello? Los boletines nuevos salen sin él." }, class: "identidad-quitar"
+
+        %p.nota-ayuda
+          %strong Ni la firma ni el sello son una firma digital.
+          Son imágenes, y cualquiera que tenga el PDF puede recortarlas — por eso
+          el sello va montado sobre la firma y no al lado. Lo que hace comprobable
+          un boletín es su código de verificación y el QR: quien lo escanee ve lo
+          que el colegio emitió, contra la base.
 
         .form-group
           = f.label :name, "Nombre", class: "form-label"

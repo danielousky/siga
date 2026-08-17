@@ -50,4 +50,36 @@ class FirmaDelColegioTest < ActiveSupport::TestCase
     assert_not @colegio.valid?
     assert_match(/PNG o JPG/, @colegio.errors[:logo].first)
   end
+
+  # ── El sello ──────────────────────────────────────────────────────────────
+
+  test "el sello se valida como la firma" do
+    @colegio.sello.attach(io: StringIO.new("x"), filename: "s.gif", content_type: "image/gif")
+
+    assert_not @colegio.valid?
+    assert_match(/PNG o JPG/, @colegio.errors[:sello].first)
+  end
+
+  test "un sello ilegible devuelve nil en vez de explotar" do
+    assert_nil @colegio.sello_para_pdf
+
+    @colegio.sello.attach(io: StringIO.new("x"), filename: "s.svg", content_type: "image/svg+xml")
+    assert_nil @colegio.sello_para_pdf
+  end
+
+  # Los tres adjuntos comparten la misma validación: si una cambia, cambian las
+  # tres. Antes el logo tenía la suya escrita aparte y la firma habría quedado
+  # atrás el día que cambiaran las reglas.
+  test "escudo, firma y sello comparten validación" do
+    %i[logo firma sello].each do |campo|
+      colegio = Current.sin_aislamiento do
+        School.create!(name: "U.E. #{campo}", dea_code: "V-#{campo}", location: "Caracas", school_type: :secondary)
+      end
+      colegio.public_send(campo).attach(io: StringIO.new("x" * (School::PESO_MAXIMO + 1)),
+                                        filename: "x.png", content_type: "image/png")
+
+      assert_not colegio.valid?, "#{campo} debería rechazar un archivo de más de 2 MB"
+      assert_match(/2 MB/, colegio.errors[campo].first)
+    end
+  end
 end

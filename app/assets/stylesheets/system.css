@@ -3616,3 +3616,5 @@ nav.pagy a.gap {
 }
 
 .identidad-firma-imagen { max-width: 220px; max-height: 70px; object-fit: contain; }
+
+.identidad-sello-imagen { max-width: 110px; max-height: 110px; object-fit: contain; }

@@ -27,6 +27,17 @@ class School < ApplicationRecord
   # lo hace comprobable.
   has_one_attached :firma
 
+  # El sello húmedo del colegio, escaneado (MOR-135).
+  #
+  # En el papel el sello se estampa **sobre** la firma, no al lado: se solapan
+  # a propósito, porque un sello junto a una firma en blanco se puede recortar
+  # y pegar en otro documento. Acá se dibuja igual — encima, corrido y con algo
+  # de transparencia, como queda la tinta sobre el bolígrafo.
+  #
+  # Vale la misma advertencia que para la firma: **es un facsímil**. Lo que hace
+  # comprobable el boletín es su código de verificación y el QR.
+  has_one_attached :sello
+
   FORMATOS_DE_IMAGEN = %w[image/png image/jpeg].freeze
   PESO_MAXIMO = 2.megabytes
 
@@ -37,6 +48,7 @@ class School < ApplicationRecord
 
   validate :logo_dibujable
   validate :firma_dibujable
+  validate :sello_dibujable
 
   # Lo que Prawn puede dibujar en un PDF, o `nil`.
   #
@@ -45,6 +57,7 @@ class School < ApplicationRecord
   # pero sirve; sin boletín, la familia se queda sin nada.
   def logo_para_pdf  = imagen_para_pdf(logo)
   def firma_para_pdf = imagen_para_pdf(firma)
+  def sello_para_pdf = imagen_para_pdf(sello)
 
   private
 
@@ -59,6 +72,7 @@ class School < ApplicationRecord
 
   def logo_dibujable  = validar_imagen(logo, :logo, "Un escudo")
   def firma_dibujable = validar_imagen(firma, :firma, "Una firma escaneada")
+  def sello_dibujable = validar_imagen(sello, :sello, "Un sello escaneado")
 
   def validar_imagen(adjunto, campo, que)
     return unless adjunto.attached?

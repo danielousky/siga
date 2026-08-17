@@ -54,4 +54,39 @@ class VerificacionDelBoletinTest < ActiveSupport::TestCase
       end
     end
   end
+
+  # En el papel el sello se estampa SOBRE la firma: uno junto a una firma en
+  # blanco se puede recortar y pegar en otro documento.
+  test "el sello se dibuja después de la firma, para quedar encima" do
+    codigo = Rails.root.join("app/services/report_card_pdf.rb").read
+    cuerpo = codigo[/def firma\(pdf, boletin\).*?\n  end/m]
+
+    assert cuerpo, "no se encontró el método `firma`"
+    assert cuerpo.index("pdf.image escaneada") < cuerpo.index("sello(pdf, estampa"),
+      "el sello tiene que dibujarse DESPUÉS de la firma: en un PDF lo último tapa lo anterior"
+  end
+
+  # Un sello opaco encima de la firma la borraría, que es lo contrario de lo que
+  # se busca: la tinta del sello deja ver el trazo del bolígrafo debajo.
+  test "el sello se dibuja con transparencia" do
+    codigo = Rails.root.join("app/services/report_card_pdf.rb").read
+
+    assert_match(/pdf\.transparent\(0\.\d+\)/, codigo[/def sello\(.*?\n  end/m].to_s,
+      "el sello tiene que ir con transparencia para no tapar la firma")
+  end
+
+  # Un sello que no se puede dibujar no puede tumbar un boletín.
+  test "el boletín se emite aunque el sello falle" do
+    con_el_colegio(@esc.colegio) do
+      @esc.colegio.sello.attach(io: StringIO.new("no soy un png"), filename: "s.png", content_type: "image/png")
+
+      boletin = ReportCard.create!(
+        enrollment: @esc.inscripcion(1), evaluation_moment: @esc.lapso(1),
+        issued_by: User.create!(name: "D", last_name: "S", email: "d@sello.test", password: "123123"),
+        snapshot: ReportCardData.para(enrollment: @esc.inscripcion(1), evaluation_moment: @esc.lapso(1))
+      )
+
+      assert_nothing_raised { ReportCardPdf.new([boletin]).render }
+    end
+  end
 end

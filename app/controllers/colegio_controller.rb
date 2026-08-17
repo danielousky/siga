@@ -38,10 +38,16 @@ class ColegioController < ApplicationController
     redirect_to colegio_path, notice: "Firma eliminada."
   end
 
+  def quitar_sello
+    Current.school.sello.purge
+
+    redirect_to colegio_path, notice: "Sello eliminado."
+  end
+
   private
 
   def colegio_params
-    params.require(:school).permit(:name, :location, :logo, :firma)
+    params.require(:school).permit(:name, :location, :logo, :firma, :sello)
   end
 
   def require_direccion!
