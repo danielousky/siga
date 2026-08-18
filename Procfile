@@ -17,6 +17,9 @@
 # y el guard de `db/seeds.rb` aborta con código 1 en production, lo que haría
 # fallar el primer despliegue de todo entorno nuevo. Una base recién creada se
 # prepara a mano una vez (`db:prepare`); de ahí en adelante, migraciones.
-release: ./bin/rails db:migrate && ./bin/rails rls:verificar
+# Ojo con el `sh -c`: Dokku NO pasa esta línea por un shell, se la entrega
+# directamente al binario. Sin él, `&&` llega como un argumento más y Rails
+# responde `Unrecognized command "&&"`. Comprobado el 18 de agosto de 2026.
+release: sh -c "./bin/rails db:migrate && ./bin/rails rls:verificar"
 web: bundle exec rails server -p $PORT -e $RAILS_ENV
 worker: bundle exec rails solid_queue:start
