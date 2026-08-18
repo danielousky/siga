@@ -15,10 +15,15 @@ if [ "${@: -1}" == "./bin/rails" ] || [ "${1}" == "./bin/rails" ]; then
   # datos de todos los colegios quedan visibles entre sí. Nada más en el sistema
   # lo notaría: la capa de la aplicación filtra igual (MOR-87).
   #
-  # En Dokku el `DATABASE_URL` lo inyecta el plugin de Postgres, y el rol que
-  # crea es dueño de la base pero NO superusuario — que es justamente el caso
-  # que `FORCE ROW LEVEL SECURITY` cubre. Igual se verifica: es medio segundo, y
-  # es la diferencia entre saberlo y suponerlo.
+  # ⚠️ OJO con Dokku: el `DATABASE_URL` que inyecta el plugin de Postgres apunta
+  # al rol `postgres`, que SÍ es superusuario y SÍ tiene BYPASSRLS. Se comprobó
+  # en el servidor el 18 de agosto de 2026. Hay que reescribir `DATABASE_URL`
+  # a mano para que apunte a `siga_app`, y las tablas tienen que ser SUYAS:
+  # `FORCE ROW LEVEL SECURITY` solo somete al dueño de la tabla.
+  #
+  # Este bloque NO se ejecuta bajo Dokku —el `Procfile` arranca con `bundle exec`
+  # y el `if` de arriba no coincide—. El fusible real vive en la línea `release:`
+  # del `Procfile`, que además aborta el despliegue entero si falla.
   #
   # Un contenedor que no arranca es infinitamente preferible a uno que arranca
   # con el aislamiento apagado.
