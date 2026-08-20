@@ -1,5 +1,5 @@
 - opciones_de_seccion = @secciones.map { |s| ["#{s.grade.name} – #{s.name} · #{s.academic_period.name}", s.id] }
-- opciones_de_alumno  = [["Toda la sección (#{contar(@alumnos.size, 'alumno', 'alumnos')})", ""]] + @alumnos.map { |i| ["#{i.student.user.last_name}, #{i.student.user.first_name}", i.id] }
+- opciones_de_alumno  = [["Toda la sección (#{contar(@alumnos.size, 'alumno', 'alumnos')})", ""]] + @alumnos.map { |i| [i.student.user.apellidos_y_nombres, i.id] }
 
 .card-academic
   .card-academic-header

@@ -34,7 +34,7 @@
         - nota   = @notas_por_alumno[alumno.id]
         %li.carga-fila{data: { carga_notas_target: "fila", alumno: alumno.id }}
           .carga-alumno
-            .carga-alumno-nombre= "#{alumno.user.last_name}, #{alumno.user.first_name}"
+            .carga-alumno-nombre= alumno.user.apellidos_y_nombres
             .carga-alumno-carnet= alumno.school_card
           .carga-campo
             %input.carga-input{type: "number", inputmode: "numeric", min: 1, max: 20, step: 1,

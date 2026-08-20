@@ -10,7 +10,7 @@
 .ficha
   .ficha-cabecera
     %div
-      %h1.ficha-nombre= "#{alumno.last_name}, #{alumno.first_name}"
+      %h1.ficha-nombre= alumno.apellidos_y_nombres
       %p.ficha-situacion
         - if @inscripcion
           = "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
@@ -95,11 +95,21 @@
 
     .detail-row
       .detail-item
-        %span.detail-label Cédula
+        %span.detail-label Cédula escolar
+        %p.detail-value= alumno.cedula_escolar.presence || "—"
+      .detail-item
+        %span.detail-label Cédula de identidad
         %p.detail-value= alumno.document.presence || "—"
       .detail-item
-        %span.detail-label Carnet escolar
+        %span.detail-label Carnet del colegio
         %p.detail-value= @student.school_card.presence || "—"
+    .detail-row
+      .detail-item
+        %span.detail-label Fecha de nacimiento
+        %p.detail-value= alumno.birth_date ? l(alumno.birth_date, format: :long) : "—"
+      .detail-item
+        %span.detail-label Sexo
+        %p.detail-value= User::SEX_LABELS[alumno.sex] || "—"
       .detail-item
         %span.detail-label Correo
         %p.detail-value= alumno.email

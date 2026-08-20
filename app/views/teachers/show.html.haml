@@ -4,7 +4,7 @@
 .ficha
   .ficha-cabecera
     %div
-      %h1.ficha-nombre= "#{persona.last_name}, #{persona.first_name}"
+      %h1.ficha-nombre= persona.apellidos_y_nombres
       %p.ficha-situacion
         = contar(@asignaciones.size, "asignación", "asignaciones")
         - if @teacher.led_grades.any?

@@ -28,5 +28,5 @@
       %tbody
         - @vinculos.each do |vinculo|
           %tr
-            %td= "#{vinculo.student.user.last_name}, #{vinculo.student.user.first_name}"
+            %td= vinculo.student.user.apellidos_y_nombres
             %td= vinculo.etiqueta

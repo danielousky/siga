@@ -33,7 +33,7 @@
         %tbody
           - @admins.each do |admin|
             %tr
-              %td= "#{admin.user.last_name}, #{admin.user.first_name}"
+              %td= admin.user.apellidos_y_nombres
               %td.mono= admin.user.email
               %td.apagado= admin.role.humanize
 

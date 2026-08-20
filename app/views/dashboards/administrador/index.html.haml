@@ -64,7 +64,7 @@
           %tbody
             - @recent_enrollments.each do |enrollment|
               %tr
-                %td= link_to "#{enrollment.student.user.last_name}, #{enrollment.student.user.first_name}", enrollment.student
+                %td= link_to enrollment.student.user.apellidos_y_nombres, enrollment.student
                 %td= "#{enrollment.section.grade.name} – #{enrollment.section.name}"
                 %td= l(enrollment.created_at.to_date, format: :long)
       - else

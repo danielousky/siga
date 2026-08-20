@@ -27,11 +27,14 @@
       %thead
         %tr
           %th Alumno
+          %th Cédula escolar
           %th Cédula
-          %th Carnet escolar
+          %th Carnet
       %tbody
         - @students.each do |student|
           %tr
-            %td= link_to "#{student.user.last_name}, #{student.user.first_name}", student
+            %td= link_to student.user.apellidos_y_nombres, student
             %td= student.user.document || "—"
+            %td= student.user.cedula_escolar.presence || "—"
+            %td= student.user.document.presence || "—"
             %td= student.school_card

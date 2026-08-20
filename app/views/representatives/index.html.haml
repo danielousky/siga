@@ -15,7 +15,7 @@
     %tbody
       - @representatives.each do |representante|
         %tr
-          %td= link_to "#{representante.user.last_name}, #{representante.user.first_name}", representante
+          %td= link_to representante.user.apellidos_y_nombres, representante
           %td
             = representante.user.email
             - if representante.phone.present?

@@ -57,6 +57,13 @@ class User < ApplicationRecord
     [ last_name, second_last_name ].compact_blank.join(" ")
   end
 
+  # "López Medina, Álvaro José" — el orden de los listados y las planillas
+  # oficiales. Los DOS apellidos: el primero es el que valida el SAIME, pero el
+  # segundo es parte del nombre de la persona y omitirlo la identifica peor.
+  def apellidos_y_nombres
+    [ apellidos, first_name ].compact_blank.join(", ")
+  end
+
   # Cómo se identifica esta persona, con lo que tenga.
   #
   # El MPPE resuelve esto igual: en sus planillas, "en el espacio correspondiente

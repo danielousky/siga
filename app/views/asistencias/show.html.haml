@@ -47,7 +47,7 @@
         %li.asistencia-alumno{data: {asistencia_target: "alumno", inscripcion: inscripcion.id, estado: estado}}
           %button.asistencia-boton{type: "button", data: {action: "click->asistencia#alternar"}}
             %span.asistencia-nombre
-              = "#{inscripcion.student.user.last_name}, #{inscripcion.student.user.first_name}"
+              = inscripcion.student.user.apellidos_y_nombres
             %span.asistencia-estado{data: {asistencia_target: "etiqueta"}}
               = Attendance::ETIQUETAS[estado]
 
