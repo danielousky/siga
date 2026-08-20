@@ -1479,9 +1479,15 @@ CREATE TABLE public.users (
     remember_created_at timestamp(6) without time zone,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    id_card character varying,
-    name character varying,
-    last_name character varying
+    document character varying,
+    first_name character varying,
+    last_name character varying,
+    document_type integer,
+    cedula_escolar character varying,
+    second_last_name character varying,
+    birth_date date,
+    sex integer,
+    birth_place character varying
 );
 
 
@@ -2927,17 +2933,24 @@ CREATE INDEX index_teachers_on_school_id ON public.teachers USING btree (school_
 
 
 --
+-- Name: index_users_on_cedula_escolar; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_users_on_cedula_escolar ON public.users USING btree (cedula_escolar);
+
+
+--
+-- Name: index_users_on_document; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_users_on_document ON public.users USING btree (document);
+
+
+--
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
-
-
---
--- Name: index_users_on_id_card; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_users_on_id_card ON public.users USING btree (id_card);
 
 
 --
@@ -3776,6 +3789,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260820040000'),
 ('20260816120000'),
 ('20260815120000'),
 ('20260814150000'),
