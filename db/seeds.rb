@@ -1,3 +1,4 @@
+require "digest"
 # =============================================================================
 # SIGA - Seeds de Desarrollo
 # Pensum venezolano completo con cobertura total de secciones
@@ -42,6 +43,20 @@ rescue SeedGuard::EntornoNoPermitido, SeedGuard::FaltaLaClave => e
 end
 
 CORREO_DESARROLLADOR = guard.correo_desarrollador
+
+# Todo adulto tiene cédula de identidad: la escolar existe justamente para quien
+# todavía no la tiene. Determinista a partir del correo, para que los seeds den
+# lo mismo en cada corrida.
+def documento_de_prueba(email)
+  "V-#{(Digest::MD5.hexdigest(email).to_i(16) % 20_000_000 + 5_000_000)}"
+end
+
+def sexo_para(nombre)
+  # Determinista y suficiente para datos de prueba: los nombres de la lista que
+  # terminan en `a` son femeninos, salvo los que no.
+  %w[Andrés Rafael].include?(nombre) ? :male : (nombre.end_with?("a") ? :female : :male)
+end
+
 
 # Los seeds cargan DOS colegios, así que necesitan ver la plataforma entera.
 # Sin esto el RLS los dejaría en cero filas y el segundo colegio no se crearía.
@@ -312,7 +327,9 @@ puts "👤 Configurando administradores..."
 ].each do |d|
   u = User.find_or_create_by!(email: d[:email]) do |uu|
     uu.password = uu.password_confirmation = CLAVE_DE_PRUEBA
-    uu.name = d[:name]; uu.last_name = d[:last_name]
+    uu.first_name = d[:name]; uu.last_name = d[:last_name]
+    uu.document = documento_de_prueba(d[:email]); uu.document_type = :cedula_v
+    uu.sex = sexo_para(d[:name])
   end
   Admin.find_or_create_by!(user: u) { |a| a.school = d[:school]; a.role = d[:role] }
 end
@@ -324,10 +341,17 @@ puts "   ✓ 4 administradores"
 puts ""
 puts "👨‍🏫 Creando profesores..."
 
-def make_teacher(email, name, last_name, id_card, school)
+def make_teacher(email, name, last_name, document, school)
   u = User.find_or_create_by!(email: email) do |uu|
     uu.password = uu.password_confirmation = CLAVE_DE_PRUEBA
-    uu.name = name; uu.last_name = last_name; uu.id_card = id_card
+    uu.first_name = name
+    uu.last_name  = last_name
+    uu.document   = document
+    # Un profesor SIEMPRE tiene cédula de identidad y NUNCA cédula escolar: la
+    # escolar existe para quien todavía no tiene la nacional.
+    uu.document_type = :cedula_v
+    uu.birth_date    = Date.new(1985, (document.to_s.gsub(/\D/, "").to_i % 12) + 1, 15)
+    uu.sex           = sexo_para(name)
   end
   Teacher.find_or_create_by!(user: u) { |t| t.school = school }
 end
@@ -487,6 +511,42 @@ def apellido_para(k)
   (k * 7 + k / APELLIDOS.size) % APELLIDOS.size
 end
 
+# El SEGUNDO apellido, con otro barajado para que no coincida con el primero.
+# 11 también es coprimo con 30, así que recorre la lista entera sin repetir ciclo.
+def segundo_apellido_para(k)
+  (k * 11 + 3) % APELLIDOS.size
+end
+
+# La CÉDULA ESCOLAR que aquí se genera es SINTÉTICA y se nota a propósito.
+#
+# La real la asigna el MPPE y codifica nacionalidad, año de nacimiento y los
+# últimos 8 dígitos de la cédula de la MADRE. No hay algoritmo público, así que
+# inventarlo daría números que parecen válidos y no lo son —peor que uno que se
+# ve claramente de prueba—.
+#
+# Lo que sí respeta es lo estructural, que es lo que el sistema tiene que
+# soportar: 12 caracteres, ÚNICA EN TODO EL PAÍS (no por colegio), y derivada
+# del año de nacimiento. El `k` es un contador global entre colegios: es
+# justamente lo que `students.school_card` NO era, y por eso 90 alumnos
+# compartían carnet entre Bolívar y Bello.
+def cedula_escolar_para(k, anio_nacimiento)
+  "V#{anio_nacimiento}#{(k * 37 + 1_000_000).to_s.rjust(7, '0')[0, 7]}"
+end
+
+# Un alumno de 4to grado tiene ~9 años; uno de 5to año, ~16. La fecha importa
+# porque el MPPE la verifica contra la partida de nacimiento y calcula edad para
+# prosecución — no es decorativa.
+#
+# La edad sale del NOMBRE del grado ("4to Grado" → 4) más la base de su nivel,
+# no de `grades.level`: ese enum solo distingue primaria de secundaria, y dentro
+# de secundaria un 1er año y un 5to año se llevan cuatro años de diferencia.
+def nacimiento_para(grade, k)
+  ordinal = grade.name[/\d+/].to_i
+  base    = grade.primaria? ? 5 : 11      # 1er grado ≈ 6 años · 1er año ≈ 12
+  edad    = base + (ordinal.zero? ? 1 : ordinal)
+  Date.new(Date.current.year - edad, (k % 12) + 1, (k % 28) + 1)
+end
+
 
 def normalize(str)
   str.downcase.tr('áéíóúüñÁÉÍÓÚÜÑ', 'aeiouunAEIOUUN').downcase
@@ -502,32 +562,53 @@ end
 # Los seeds tienen que ser idempotentes ante cambios de CONTENIDO, no solo ante
 # volver a correrlos con los mismos datos. Buscando por carnet, cambiar un
 # nombre renombra al alumno que ya existe en vez de intentar duplicarlo.
-def make_student(email, name, last_name, card, school)
+def make_student(email:, nombre:, apellido:, segundo_apellido:, card:, school:,
+                 cedula_escolar:, nacimiento:, sexo:)
+  atributos = {
+    first_name: nombre, last_name: apellido, second_last_name: segundo_apellido,
+    cedula_escolar: cedula_escolar, birth_date: nacimiento, sex: sexo, email: email
+  }
+
   existente = Student.find_by(school_card: card, school: school)
   if existente
-    existente.user.update!(name: name, last_name: last_name, email: email)
+    existente.user.update!(**atributos)
     return existente
   end
 
   u = User.find_or_create_by!(email: email) do |uu|
     uu.password = uu.password_confirmation = CLAVE_DE_PRUEBA
-    uu.name = name; uu.last_name = last_name
+    atributos.each { |k, v| uu[k] = v }
   end
   Student.create!(user: u, school_card: card, school: school)
 end
+
+# La cédula escolar es única EN TODO EL PAÍS, así que el contador que la
+# alimenta tiene que ser global entre colegios. `school_card` no lo era —cada
+# plantel arrancaba en 25-001— y por eso 90 de 290 alumnos compartían carnet
+# entre Bolívar y Bello. Ese contador local se queda para `school_card`, que sí
+# es interno del colegio; éste es aparte y no se reinicia.
+k_nacional = 0
 
 # Generar estudiantes para Bolívar: 5 secciones x 20 = 100 estudiantes
 students_per_section_bol = {}
 sec_bol.each_with_index do |(sec_key, section), sec_idx|
   students_per_section_bol[sec_key] = []
   20.times do |i|
-    nombre   = NOMBRES[(sec_idx * 20 + i) % NOMBRES.size]
-    apellido = APELLIDOS[apellido_para(sec_idx * 20 + i)]
-    num      = (sec_idx * 20 + i + 1).to_s.rjust(3, "0")
+    j        = sec_idx * 20 + i
+    nombre   = NOMBRES[j % NOMBRES.size]
+    apellido = APELLIDOS[apellido_para(j)]
+    segundo  = APELLIDOS[segundo_apellido_para(j)]
+    num      = (j + 1).to_s.rjust(3, "0")
     card     = "25-#{num}"
     email    = "#{normalize(nombre)}.#{normalize(apellido)}#{num}@bolivar.edu"
+    nace     = nacimiento_para(section.grade, j)
+    k_nacional += 1
 
-    student = make_student(email, nombre, apellido, card, school_bolivar)
+    student = make_student(
+      email: email, nombre: nombre, apellido: apellido, segundo_apellido: segundo,
+      card: card, school: school_bolivar, nacimiento: nace, sexo: sexo_para(nombre),
+      cedula_escolar: cedula_escolar_para(k_nacional, nace.year)
+    )
     students_per_section_bol[sec_key] << student
   end
 end
@@ -538,13 +619,21 @@ students_per_section_bel = {}
 sec_bel.each_with_index do |(sec_key, section), sec_idx|
   students_per_section_bel[sec_key] = []
   15.times do |i|
-    nombre   = NOMBRES[(sec_idx * 15 + i + 5) % NOMBRES.size]
-    apellido = APELLIDOS[apellido_para(sec_idx * 15 + i + 5)]
+    j        = sec_idx * 15 + i + 5
+    nombre   = NOMBRES[j % NOMBRES.size]
+    apellido = APELLIDOS[apellido_para(j)]
+    segundo  = APELLIDOS[segundo_apellido_para(j)]
     num      = (sec_idx * 15 + i + 1).to_s.rjust(3, "0")
     card     = "25-#{num}"
     email    = "#{normalize(nombre)}.#{normalize(apellido)}#{num}@bello.edu"
+    nace     = nacimiento_para(section.grade, j)
+    k_nacional += 1
 
-    student = make_student(email, nombre, apellido, card, school_bello)
+    student = make_student(
+      email: email, nombre: nombre, apellido: apellido, segundo_apellido: segundo,
+      card: card, school: school_bello, nacimiento: nace, sexo: sexo_para(nombre),
+      cedula_escolar: cedula_escolar_para(k_nacional, nace.year)
+    )
     students_per_section_bel[sec_key] << student
   end
 end
@@ -838,13 +927,16 @@ puts ""
 puts "🛠️  Registrando al equipo de SIGA..."
 
 usuario_siga = User.find_or_create_by!(email: CORREO_DESARROLLADOR) do |u|
-  u.name = "Equipo"; u.last_name = "SIGA"
+  u.first_name = "Equipo"; u.last_name = "SIGA"
+  u.document = documento_de_prueba(CORREO_DESARROLLADOR); u.document_type = :cedula_v
   u.password = u.password_confirmation = CLAVE_DE_PRUEBA
 end
 SigaStaff.find_or_create_by!(user: usuario_siga) { |s| s.role = :fundador }
 
 operaciones = User.find_or_create_by!(email: "operaciones@siga.app") do |u|
-  u.name = "Ana"; u.last_name = "Operaciones"
+  u.first_name = "Ana"; u.last_name = "Operaciones"
+  u.document = documento_de_prueba("operaciones@siga.app"); u.document_type = :cedula_v
+  u.sex = :female
   u.password = u.password_confirmation = CLAVE_DE_PRUEBA
 end
 SigaStaff.find_or_create_by!(user: operaciones) { |s| s.role = :operaciones }
@@ -868,7 +960,10 @@ puts "👨‍👩‍👧 Registrando representantes..."
 
 def representante!(email:, nombre:, apellido:, telefono:, colegio:, alumnos:, parentesco: :madre)
   usuario = User.find_or_create_by!(email: email) do |u|
-    u.name = nombre; u.last_name = apellido; u.password = u.password_confirmation = CLAVE_DE_PRUEBA
+    u.first_name = nombre; u.last_name = apellido
+    u.document = documento_de_prueba(email); u.document_type = :cedula_v
+    u.sex = parentesco == :padre ? :male : :female
+    u.password = u.password_confirmation = CLAVE_DE_PRUEBA
   end
   rep = Representative.find_or_create_by!(user: usuario, school: colegio) { |r| r.phone = telefono }
   Array(alumnos).each do |alumno|
@@ -947,7 +1042,7 @@ puts "   Los cinco casos que hay que poder ver (Matemática, 1er Año A):"
               "lapsos #{lapsos.join('·')} → #{fgb.final_score.to_i}".ljust(22) + PISTA_DEL_CASO.fetch(puesto, "")
             end
 
-  puts "   ##{puesto} #{alumno.user.name} #{alumno.user.last_name}".ljust(30) + detalle
+  puts "   ##{puesto} #{alumno.user.nombre_completo}".ljust(30) + detalle
 end
 
 # =============================================================================
