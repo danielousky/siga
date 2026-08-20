@@ -2258,6 +2258,13 @@ CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.ac
 
 
 --
+-- Name: index_activity_grades_on_activity_and_student; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_activity_grades_on_activity_and_student ON public.activity_grades USING btree (evaluation_activity_id, student_id);
+
+
+--
 -- Name: index_activity_grades_on_evaluation_activity_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2423,6 +2430,13 @@ CREATE INDEX index_enrollments_on_school_id ON public.enrollments USING btree (s
 --
 
 CREATE INDEX index_enrollments_on_section_id ON public.enrollments USING btree (section_id);
+
+
+--
+-- Name: index_enrollments_on_section_id_and_student_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_enrollments_on_section_id_and_student_id ON public.enrollments USING btree (section_id, student_id);
 
 
 --
@@ -2885,6 +2899,13 @@ CREATE INDEX index_student_representatives_on_representative_id ON public.studen
 --
 
 CREATE INDEX index_student_representatives_on_school_id ON public.student_representatives USING btree (school_id);
+
+
+--
+-- Name: index_student_representatives_unicos; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_student_representatives_unicos ON public.student_representatives USING btree (representative_id, student_id);
 
 
 --
@@ -3842,6 +3863,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260820210000'),
 ('20260820180000'),
 ('20260820040000'),
 ('20260816120000'),
