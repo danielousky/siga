@@ -10,7 +10,7 @@
 .ficha
   .ficha-cabecera
     %div
-      %h1.ficha-nombre= "#{alumno.last_name}, #{alumno.name}"
+      %h1.ficha-nombre= "#{alumno.last_name}, #{alumno.first_name}"
       %p.ficha-situacion
         - if @inscripcion
           = "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
@@ -38,7 +38,7 @@
           - persona = vinculo.representative.user
           %li.ficha-responsable
             %div
-              %span.ficha-responsable-nombre= "#{persona.name} #{persona.last_name}"
+              %span.ficha-responsable-nombre= "#{persona.first_name} #{persona.last_name}"
               %span.ficha-responsable-vinculo= vinculo.etiqueta
               - if vinculo.principal?
                 %span.ficha-principal Principal
@@ -54,7 +54,7 @@
       .empty-state
         %h3 Sin representante registrado
         %p
-          Nadie figura como responsable de #{alumno.name}. Si el colegio llama a
+          Nadie figura como responsable de #{alumno.first_name}. Si el colegio llama a
           la familia, hoy tiene que buscar el número por fuera del sistema.
 
   -# ── 2. Cómo va ───────────────────────────────────────────────────────────
@@ -96,7 +96,7 @@
     .detail-row
       .detail-item
         %span.detail-label Cédula
-        %p.detail-value= alumno.id_card.presence || "—"
+        %p.detail-value= alumno.document.presence || "—"
       .detail-item
         %span.detail-label Carnet escolar
         %p.detail-value= @student.school_card.presence || "—"

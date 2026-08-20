@@ -40,10 +40,10 @@
               %td= ts.subject.name
               %td
                 - if ts.teacher.user_id == current_user.id
-                  %strong= "#{ts.teacher.user.name} #{ts.teacher.user.last_name}"
+                  %strong= "#{ts.teacher.user.nombre_completo}"
                   %span{style: "margin-left: 6px; font-size: 12px; color: var(--brand-primary);"} (tú)
                 - else
-                  = "#{ts.teacher.user.name} #{ts.teacher.user.last_name}"
+                  = "#{ts.teacher.user.nombre_completo}"
     - else
       .empty-state
         %p No hay materias asignadas aún.
@@ -64,7 +64,7 @@
           - @enrollments.each_with_index do |enrollment, i|
             %tr
               %td= i + 1
-              %td= enrollment.student.user.name
+              %td= enrollment.student.user.first_name
               %td= enrollment.student.user.last_name
               %td= enrollment.student.school_card
     - else
@@ -89,8 +89,8 @@
         %tbody
           - @teacher_sections.each do |ts|
             %tr
-              %td= "#{ts.teacher.user.name} #{ts.teacher.user.last_name}"
-              %td= ts.teacher.user.id_card || "—"
+              %td= "#{ts.teacher.user.nombre_completo}"
+              %td= ts.teacher.user.document || "—"
               %td= "#{ts.subject.code} - #{ts.subject.name}"
               %td
                 = link_to "Quitar", section_teacher_section_path(@section, ts), data: { turbo_method: :delete, turbo_confirm: "¿Quitar este profesor de esta materia?" }, class: "btn btn-danger btn-sm"
@@ -108,7 +108,7 @@
             = f.select :subject_id, options_for_select(@available_subjects.map { |s| ["#{s.code} - #{s.name}", s.id] }), {}, class: "form-select"
           .form-group
             = f.label :teacher_id, "Profesor", class: "form-label"
-            = f.select :teacher_id, options_for_select(@available_teachers.map { |t| ["#{t.user.last_name}, #{t.user.name} (#{t.user.id_card})", t.user_id] }), {}, class: "form-select"
+            = f.select :teacher_id, options_for_select(@available_teachers.map { |t| ["#{t.user.last_name}, #{t.user.first_name} (#{t.user.document})", t.user_id] }), {}, class: "form-select"
           .form-group.form-group--boton
             = f.submit "Asignar", class: "btn btn-primary"
 
@@ -129,7 +129,7 @@
           - @enrollments.each_with_index do |enrollment, i|
             %tr
               %td= i + 1
-              %td= enrollment.student.user.name
+              %td= enrollment.student.user.first_name
               %td= enrollment.student.user.last_name
               %td= enrollment.student.school_card
               %td= enrollment.enrollment_date.strftime("%d/%m/%Y")

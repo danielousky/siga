@@ -71,8 +71,8 @@ class BusquedaSinAcentosTest < ActiveSupport::TestCase
     escenario = escenario_academico
 
     con_el_colegio(escenario.colegio) do
-      alumna = User.create!(name: "Ana", last_name: "López", password: "123123",
-                            email: "ana.lopez@acentos.test", id_card: "V-1")
+      alumna = User.create!(first_name: "Ana", last_name: "López", password: "123123",
+                            email: "ana.lopez@acentos.test", document: "V-1")
       Student.create!(user: alumna, school: escenario.colegio, school_card: "AC-1")
 
       %w[lopez López LOPEZ Lopez lópez].each do |escrito|
@@ -90,8 +90,8 @@ class BusquedaSinAcentosTest < ActiveSupport::TestCase
     escenario = escenario_academico
 
     con_el_colegio(escenario.colegio) do
-      alumno = User.create!(name: "Beto", last_name: "Ramos", password: "123123",
-                            email: "beto.ramos@acentos.test", id_card: "V-2")
+      alumno = User.create!(first_name: "Beto", last_name: "Ramos", password: "123123",
+                            email: "beto.ramos@acentos.test", document: "V-2")
       Student.create!(user: alumno, school: escenario.colegio, school_card: "AC-2")
 
       %w[ramos Ramos RAMOS].each do |escrito|
@@ -109,8 +109,8 @@ class BusquedaSinAcentosTest < ActiveSupport::TestCase
     escenario = escenario_academico
 
     con_el_colegio(escenario.colegio) do
-      alumna = User.create!(name: "Ana", last_name: "Núñez", password: "123123",
-                            email: "ana.nunez@acentos.test", id_card: "V-3")
+      alumna = User.create!(first_name: "Ana", last_name: "Núñez", password: "123123",
+                            email: "ana.nunez@acentos.test", document: "V-3")
       Student.create!(user: alumna, school: escenario.colegio, school_card: "AC-3")
 
       encontrada = Student.joins(:user)

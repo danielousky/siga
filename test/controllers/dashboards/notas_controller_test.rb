@@ -96,8 +96,9 @@ class Dashboards::NotasControllerTest < ActionDispatch::IntegrationTest
 
   test "un profesor no entra a la vista del estudiante" do
     docente = con_el_colegio(@esc.colegio) do
-      usuario = User.create!(name: "Prof", last_name: "Uno",
-                             email: "prof.#{@esc.seccion.id}@test.edu", password: "123123")
+      usuario = User.create!(first_name: "Prof", last_name: "Uno",
+                             email: "prof.#{@esc.seccion.id}@test.edu", password: "123123",
+                        document: "V-#{"prof.#{@esc.seccion.id}@test.edu".bytes.sum}")
       Teacher.create!(user: usuario, school: @esc.colegio)
       usuario
     end

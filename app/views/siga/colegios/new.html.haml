@@ -36,18 +36,25 @@
     %legend Su primer director
     .form-row
       .form-group
-        = label_tag "director[name]", "Nombre", class: "form-label"
-        = text_field_tag "director[name]", @usuario&.name, class: "form-control"
+        = label_tag "director[first_name]", "Nombre", class: "form-label"
+        = text_field_tag "director[first_name]", @usuario&.first_name, class: "form-control"
       .form-group
         = label_tag "director[last_name]", "Apellido", class: "form-label"
         = text_field_tag "director[last_name]", @usuario&.last_name, class: "form-control"
     .form-row
       .form-group
+        = label_tag "director[document]", "Cédula", class: "form-label"
+        = text_field_tag "director[document]", @usuario&.document, class: "form-control", placeholder: "V-12345678"
+      .form-group
+        = label_tag "director[document_type]", "Tipo de documento", class: "form-label"
+        = select_tag "director[document_type]", options_for_select(User::DOCUMENT_TYPE_LABELS.map { |v, t| [t, v] }, @usuario&.document_type), include_blank: "—", class: "form-select"
+    .form-row
+      .form-group
         = label_tag "director[email]", "Correo", class: "form-label"
         = email_field_tag "director[email]", @usuario&.email, class: "form-control"
       .form-group
-        = label_tag "director[id_card]", "Cédula", class: "form-label"
-        = text_field_tag "director[id_card]", @usuario&.id_card, class: "form-control", placeholder: "V-12345678"
+        = label_tag "director[document]", "Cédula", class: "form-label"
+        = text_field_tag "director[document]", @usuario&.document, class: "form-control", placeholder: "V-12345678"
     %small.nota-ayuda
       La contraseña se genera sola y no se muestra: hay que mandarle un enlace
       para que la defina. Eso llega cuando haya correo configurado

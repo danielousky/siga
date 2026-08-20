@@ -6,7 +6,7 @@ class StudentsController < ApplicationController
   # por la misma expresión igual: un solo camino es más fácil de sostener que dos,
   # y `translate()` sobre un texto sin acentos no le cambia nada.
   CAMPOS_DE_BUSQUEDA = %w[
-    users.name users.last_name users.id_card students.school_card
+    users.first_name users.last_name users.document students.school_card
   ].freeze
 
   def index
@@ -14,7 +14,7 @@ class StudentsController < ApplicationController
     if params[:q].present?
       scope = scope.joins(:user).where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:q]))
     end
-    @pagy, @students = pagy(scope.order("users.last_name, users.name"))
+    @pagy, @students = pagy(scope.order("users.last_name, users.first_name"))
   end
 
   # La ficha del alumno.
@@ -65,8 +65,8 @@ class StudentsController < ApplicationController
     if @student.save
       log_activity(
         action:  "student_created",
-        message: "#{current_user.name} #{current_user.last_name} registró al estudiante " \
-                 "#{@student.user.name} #{@student.user.last_name} (Exp: #{@student.school_card})",
+        message: "#{current_user.nombre_completo} registró al estudiante " \
+                 "#{@student.user.nombre_completo} (Exp: #{@student.school_card})",
         subject: @student
       )
       redirect_to @student, notice: "Estudiante creado exitosamente."
@@ -79,8 +79,8 @@ class StudentsController < ApplicationController
     if @student.update(student_params)
       log_activity(
         action:  "student_updated",
-        message: "#{current_user.name} #{current_user.last_name} actualizó los datos del estudiante " \
-                 "#{@student.user.name} #{@student.user.last_name}",
+        message: "#{current_user.nombre_completo} actualizó los datos del estudiante " \
+                 "#{@student.user.nombre_completo}",
         subject: @student
       )
       redirect_to @student, notice: "Estudiante actualizado exitosamente."
@@ -90,11 +90,11 @@ class StudentsController < ApplicationController
   end
 
   def destroy
-    student_name = "#{@student.user.name} #{@student.user.last_name}"
+    student_name = "#{@student.user.nombre_completo}"
     if @student.destroy
       log_activity(
         action:  "student_destroyed",
-        message: "#{current_user.name} #{current_user.last_name} eliminó al estudiante #{student_name}"
+        message: "#{current_user.nombre_completo} eliminó al estudiante #{student_name}"
       )
       redirect_to students_url, notice: "Estudiante eliminado exitosamente."
     else
@@ -111,7 +111,10 @@ class StudentsController < ApplicationController
   def student_params
     # `school_id` NO se permite: el colegio sale de la sesión, nunca del request (MOR-86).
     params.require(:student).permit(:school_card,
-      user_attributes: [:id, :name, :last_name, :id_card, :email, :password, :password_confirmation])
+      user_attributes: [:id, :first_name, :last_name, :second_last_name,
+                        :document, :document_type, :cedula_escolar,
+                        :birth_date, :sex, :birth_place,
+                        :email, :password, :password_confirmation])
           .merge(school_id: Current.school_id)
   end
 

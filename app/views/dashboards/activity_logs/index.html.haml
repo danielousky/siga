@@ -15,7 +15,7 @@
     %span{style: "font-size: 13px; color: var(--text-secondary);"} Filtrando por:
     - @usuario_match.each do |u|
       %span.filter-pill
-        = "#{u.last_name}, #{u.name}"
+        = "#{u.last_name}, #{u.first_name}"
 
 -# `target: "_top"` no es un detalle: sin él, TODO enlace de adentro del frame
 -# —Ver, Editar, Eliminar— navega DENTRO del frame. Y como ninguna de esas
@@ -45,7 +45,7 @@
             %tr
               %td{style: "white-space: nowrap; color: var(--text-secondary); font-size: 13px;"}
                 = log.created_at.strftime("%d/%m/%Y %H:%M")
-              %td= "#{log.user.last_name}, #{log.user.name}"
+              %td= "#{log.user.last_name}, #{log.user.first_name}"
               %td
                 %span.activity-badge{class: "activity-badge--#{log.action.split('_').last}"}
                   = log.label

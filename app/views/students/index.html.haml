@@ -32,6 +32,6 @@
       %tbody
         - @students.each do |student|
           %tr
-            %td= link_to "#{student.user.last_name}, #{student.user.name}", student
-            %td= student.user.id_card || "—"
+            %td= link_to "#{student.user.last_name}, #{student.user.first_name}", student
+            %td= student.user.document || "—"
             %td= student.school_card

@@ -45,7 +45,7 @@ class ConstanciasController < ApplicationController
 
   def inscripciones_de(seccion)
     seccion.enrollments.includes(student: :user, section: [:grade, :academic_period])
-           .to_a.sort_by { |i| [i.student.user.last_name, i.student.user.name] }
+           .to_a.sort_by { |i| [i.student.user.last_name, i.student.user.first_name] }
   end
 
   # No se guarda el documento —no se congela— pero sí QUIÉN lo emitió y para
@@ -54,7 +54,7 @@ class ConstanciasController < ApplicationController
   def registrar(inscripciones, seccion)
     log_activity(
       action: "constancia_emitida",
-      message: "#{current_user.name} #{current_user.last_name} emitió " \
+      message: "#{current_user.nombre_completo} emitió " \
                "#{inscripciones.size == 1 ? 'una constancia' : "#{inscripciones.size} constancias"} " \
                "de #{seccion.grade.name} – #{seccion.name}"
     )
@@ -63,7 +63,7 @@ class ConstanciasController < ApplicationController
   def nombre_del_archivo(seccion, inscripciones)
     if inscripciones.one?
       alumno = inscripciones.first.student.user
-      "constancia-#{alumno.last_name.parameterize}-#{alumno.name.parameterize}.pdf"
+      "constancia-#{alumno.last_name.parameterize}-#{alumno.first_name.parameterize}.pdf"
     else
       "constancias-#{seccion.grade.name.parameterize}-#{seccion.name.parameterize}.pdf"
     end

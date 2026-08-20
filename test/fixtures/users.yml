@@ -1,13 +1,32 @@
 one:
   email: "user_one@example.com"
   encrypted_password: "$2a$12$fakehashforfixtureonly1234567890abcdef"
-  name: "Juan"
+  first_name: "Juan"
   last_name: "Pérez"
-  id_card: "V-11111111"
+  second_last_name: "Alcántara"
+  document: "V-11111111"
+  document_type: 0
+  birth_date: "1985-03-12"
+  sex: 1
 
 two:
   email: "user_two@example.com"
   encrypted_password: "$2a$12$fakehashforfixtureonly0987654321fedcba"
-  name: "María"
+  first_name: "María"
   last_name: "García"
-  id_card: "V-22222222"
+  document: "V-22222222"
+  document_type: 0
+  birth_date: "1990-07-25"
+  sex: 0
+
+# Un alumno de primaria: SIN cédula de identidad, solo cédula escolar.
+# Es el caso que el modelo viejo no podía representar y por el que existe MOR-138.
+tres_sin_cedula:
+  email: "user_three@example.com"
+  encrypted_password: "$2a$12$fakehashforfixtureonly1122334455667788"
+  first_name: "Pedro"
+  last_name: "Blanco"
+  second_last_name: "Nieves"
+  cedula_escolar: "V20150000001"
+  birth_date: "2015-05-08"
+  sex: 1

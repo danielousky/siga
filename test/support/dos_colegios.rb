@@ -61,8 +61,9 @@ module DosColegios
 
   def usuario(prefijo, sufijo)
     User.create!(
-      name: prefijo.capitalize, last_name: "De#{sufijo}",
-      email: "#{prefijo}.#{sufijo}@aislamiento.test", password: "123123"
+      first_name: prefijo.capitalize, last_name: "De#{sufijo}",
+      email: "#{prefijo}.#{sufijo}@aislamiento.test", password: "123123",
+      document: "V-#{prefijo.bytes.sum}#{sufijo}", document_type: :cedula_v
     )
   end
 end

@@ -102,8 +102,9 @@ class BarraDeContextoTest < ActionDispatch::IntegrationTest
       School.create!(name: "Colegio Recién Dado de Alta", dea_code: "TEST-NUEVO",
                      location: "Caracas", school_type: :primary)
     end
-    director = User.create!(name: "Directora", last_name: "Nueva",
-                            email: "dir.nueva@aislamiento.test", password: "123123")
+    director = User.create!(first_name: "Directora", last_name: "Nueva",
+                            email: "dir.nueva@aislamiento.test", password: "123123",
+                        document: "V-#{"dir.nueva@aislamiento.test".bytes.sum}")
     con_el_colegio(recien_creado) do
       Admin.create!(user: director, school: recien_creado, role: :director)
     end

@@ -10,7 +10,7 @@ module Auditable
   # Registra una actividad en el log de auditoría.
   #
   #   log_activity(action: "enrollment_created",
-  #                message: "#{current_user.name} inscribió a ...",
+  #                message: "#{current_user.first_name} inscribió a ...",
   #                subject: @enrollment)
   def log_activity(action:, message:, subject: nil, metadata: {})
     ActivityLog.create!(
@@ -67,7 +67,7 @@ module Auditable
     log_activity(
       action:  "#{token}_#{forma[:sufijo]}",
       subject: (registro if que != :eliminado),
-      message: "#{current_user.name} #{current_user.last_name} #{forma[:verbo]} " \
+      message: "#{current_user.nombre_completo} #{forma[:verbo]} " \
                "#{ARTICULOS.fetch(clave, 'el registro')} #{nombre}"
     )
   end

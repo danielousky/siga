@@ -15,7 +15,7 @@
     %tbody
       - @representatives.each do |representante|
         %tr
-          %td= link_to "#{representante.user.last_name}, #{representante.user.name}", representante
+          %td= link_to "#{representante.user.last_name}, #{representante.user.first_name}", representante
           %td
             = representante.user.email
             - if representante.phone.present?
@@ -23,7 +23,7 @@
               %span.nota-ayuda= representante.phone
           %td
             - if representante.students.any?
-              = representante.students.map { |a| "#{a.user.name} #{a.user.last_name}" }.join(" ·")
+              = representante.students.map { |a| "#{a.user.nombre_completo}" }.join(" ·")
             - else
               %span.nota-pendiente Sin alumnos vinculados
   .pagy-nav

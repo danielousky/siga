@@ -4,7 +4,7 @@
 .ficha
   .ficha-cabecera
     %div
-      %h1.ficha-nombre= "#{persona.last_name}, #{persona.name}"
+      %h1.ficha-nombre= "#{persona.last_name}, #{persona.first_name}"
       %p.ficha-situacion
         = contar(@asignaciones.size, "asignación", "asignaciones")
         - if @teacher.led_grades.any?
@@ -35,7 +35,7 @@
       .empty-state
         %h3 Sin secciones asignadas
         %p
-          #{persona.name} no dicta ninguna materia todavía. Las asignaciones se
+          #{persona.first_name} no dicta ninguna materia todavía. Las asignaciones se
           hacen desde la sección.
 
   .card-academic
@@ -45,7 +45,7 @@
     .detail-row
       .detail-item
         %span.detail-label Cédula
-        %p.detail-value= persona.id_card.presence || "—"
+        %p.detail-value= persona.document.presence || "—"
       .detail-item
         %span.detail-label Correo
         %p.detail-value= persona.email

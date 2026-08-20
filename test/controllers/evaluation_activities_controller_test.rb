@@ -197,8 +197,9 @@ class EvaluationActivitiesControllerTest < ActionDispatch::IntegrationTest
 
   def profesor(apellido, materia, seccion)
     usuario = User.create!(
-      name: "Prof", last_name: apellido.capitalize,
-      email: "#{apellido}.#{seccion.id}@test.edu", password: "123123"
+      first_name: "Prof", last_name: apellido.capitalize,
+      email: "#{apellido}.#{seccion.id}@test.edu", password: "123123",
+      document: "V-#{apellido.bytes.sum}#{seccion.id}", document_type: :cedula_v
     )
     docente = Teacher.create!(user: usuario, school: @esc.colegio)
     TeacherSection.create!(teacher: docente, section: seccion, subject: materia)
@@ -208,7 +209,8 @@ class EvaluationActivitiesControllerTest < ActionDispatch::IntegrationTest
   def director
     @director ||= con_el_colegio(@esc.colegio) do
       usuario = User.create!(
-        name: "Dire", last_name: "Ctor", email: "director.#{@esc.colegio.id}@test.edu", password: "123123"
+        first_name: "Dire", last_name: "Ctor", email: "director.#{@esc.colegio.id}@test.edu",
+        password: "123123", document: "V-9#{@esc.colegio.id}", document_type: :cedula_v
       )
       Admin.create!(user: usuario, school: @esc.colegio, role: :director)
       usuario

@@ -13,8 +13,8 @@ class BuscadoresTest < ActionDispatch::IntegrationTest
     @a = colegio_completo("Colegio A")
 
     con_el_colegio(@a.colegio) do
-      @alumna = User.create!(name: "Ana", last_name: "López", password: "123123",
-                             email: "ana.lopez@buscadores.test", id_card: "V-9001")
+      @alumna = User.create!(first_name: "Ana", last_name: "López", password: "123123",
+                             email: "ana.lopez@buscadores.test", document: "V-9001")
       estudiante = Student.create!(user: @alumna, school: @a.colegio, school_card: "BUS-1")
       Enrollment.create!(student: estudiante, section: @a.seccion,
                          enrollment_date: Date.new(2025, 9, 20))
@@ -68,8 +68,8 @@ class BuscadoresTest < ActionDispatch::IntegrationTest
   test "el buscador no alcanza al alumno del otro colegio" do
     b = colegio_completo("Colegio B")
     con_el_colegio(b.colegio) do
-      ajena = User.create!(name: "Otra", last_name: "López", password: "123123",
-                           email: "otra.lopez@buscadores.test", id_card: "V-9002")
+      ajena = User.create!(first_name: "Otra", last_name: "López", password: "123123",
+                           email: "otra.lopez@buscadores.test", document: "V-9002")
       Student.create!(user: ajena, school: b.colegio, school_card: "BUS-2")
     end
 

@@ -72,7 +72,7 @@ class RepresentanteController < ApplicationController
                               .where(student_id: alumno.user_id)
                               .order(enrollment_date: :desc).first
       { student: alumno, inscripcion: inscripcion }
-    end.sort_by { |h| h[:student].user.name }
+    end.sort_by { |h| h[:student].user.first_name }
   end
 
   # Las notas del lapso, o las definitivas del año. Es la misma pregunta que

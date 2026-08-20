@@ -15,7 +15,7 @@
     %tbody
       - @teachers.each do |teacher|
         %tr
-          %td= link_to teacher.user.name, teacher
+          %td= link_to teacher.user.first_name, teacher
           %td= teacher.user.last_name
-          %td= teacher.user.id_card || "—"
+          %td= teacher.user.document || "—"
           %td= teacher.user.email

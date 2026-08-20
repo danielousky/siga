@@ -15,7 +15,7 @@ module Siga
         ActivityLog.create!(
           user_id: current_user.id, school_id: colegio.id,
           action: "soporte_siga_entro",
-          message: "#{current_user.name} #{current_user.last_name}, del equipo de SIGA, " \
+          message: "#{current_user.nombre_completo}, del equipo de SIGA, " \
                    "entró al sistema del colegio para dar soporte"
         )
       end

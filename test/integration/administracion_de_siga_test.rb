@@ -16,12 +16,14 @@ class AdministracionDeSigaTest < ActionDispatch::IntegrationTest
   setup do
     @a, @b = dos_colegios_completos
 
-    @fundador = User.create!(name: "Equipo", last_name: "SIGA", password: "123123",
-                             email: "fundador@siga.app")
+    @fundador = User.create!(first_name: "Equipo", last_name: "SIGA", password: "123123",
+                             email: "fundador@siga.app",
+                        document: "V-#{"fundador@siga.app".bytes.sum}")
     SigaStaff.create!(user: @fundador, role: :fundador)
 
-    @operaciones = User.create!(name: "Ana", last_name: "Operaciones", password: "123123",
-                                email: "ops@siga.app")
+    @operaciones = User.create!(first_name: "Ana", last_name: "Operaciones", password: "123123",
+                                email: "ops@siga.app",
+                        document: "V-#{"ops@siga.app".bytes.sum}")
     SigaStaff.create!(user: @operaciones, role: :operaciones)
   end
 
@@ -155,7 +157,8 @@ class AdministracionDeSigaTest < ActionDispatch::IntegrationTest
       post "/siga/colegios", params: {
         school: { name: "U.E. Nueva Esperanza", dea_code: "NUE-999",
                   location: "Mérida, Mérida", school_type: "primary" },
-        director: { name: "Rosa", last_name: "Peña", email: "rosa.pena@nueva.edu" }
+        director: { first_name: "Rosa", last_name: "Peña", email: "rosa.pena@nueva.edu",
+                    document: "V-15889001", document_type: "cedula_v" }
       }
     end
 
@@ -175,7 +178,7 @@ class AdministracionDeSigaTest < ActionDispatch::IntegrationTest
     assert_no_difference -> { Current.sin_aislamiento { School.count } } do
       post "/siga/colegios", params: {
         school: { name: "U.E. A Medias", dea_code: "MED-001", location: "Caracas", school_type: "primary" },
-        director: { name: "", last_name: "", email: "no-es-un-correo" }
+        director: { first_name: "", last_name: "", email: "no-es-un-correo" }
       }
     end
   end

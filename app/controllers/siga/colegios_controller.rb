@@ -58,7 +58,9 @@ module Siga
     end
 
     def usuario_params
-      params.require(:director).permit(:name, :last_name, :email, :id_card)
+      params.require(:director).permit(:first_name, :last_name, :second_last_name, :email,
+                                :document, :document_type, :cedula_escolar,
+                                :birth_date, :sex)
     end
 
     def set_colegio

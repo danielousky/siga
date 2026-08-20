@@ -3,7 +3,7 @@
 
   .form-group
     = f.label :student_id, "Estudiante", class: "form-label"
-    = f.select :student_id, Student.includes(:user).map { |s| ["#{s.user.name} #{s.user.last_name} (#{s.user.id_card})", s.user_id] }, { include_blank: "Seleccione..." }, class: "form-select"
+    = f.select :student_id, Student.includes(:user).map { |s| ["#{s.user.nombre_completo} (#{s.user.document})", s.user_id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
   .form-group
     = f.label :section_id, "Sección", class: "form-label"

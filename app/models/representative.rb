@@ -26,5 +26,5 @@ class Representative < ApplicationRecord
     students.includes(user: {}, enrollments: { section: [:grade, :academic_period] })
   end
 
-  def nombre_completo = "#{user.name} #{user.last_name}"
+  def nombre_completo = user.nombre_completo
 end

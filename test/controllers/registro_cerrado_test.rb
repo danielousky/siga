@@ -70,8 +70,9 @@ class RegistroCerradoTest < ActionDispatch::IntegrationTest
     esc = escenario_academico(alumnos: 1)
 
     director = con_el_colegio(esc.colegio) do
-      usuario = User.create!(name: "Dire", last_name: "Ctor",
-                             email: "dir.#{esc.colegio.id}@test.edu", password: "123123")
+      usuario = User.create!(first_name: "Dire", last_name: "Ctor",
+                             email: "dir.#{esc.colegio.id}@test.edu", password: "123123",
+                        document: "V-#{"dir.#{esc.colegio.id}@test.edu".bytes.sum}")
       Admin.create!(user: usuario, school: esc.colegio, role: :director)
       usuario
     end

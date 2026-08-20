@@ -191,9 +191,9 @@ class ReportCardData
   def alumno
     usuario = @alumno.user
     {
-      "nombre" => "#{usuario.last_name}, #{usuario.name}",
+      "nombre" => "#{usuario.last_name}, #{usuario.first_name}",
       "carnet" => @alumno.school_card,
-      "cedula" => usuario.id_card
+      "cedula" => usuario.document
     }
   end
 

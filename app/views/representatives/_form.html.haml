@@ -8,11 +8,22 @@
 
   .form-row
     .form-group
-      = label_tag "user[name]", "Nombre", class: "form-label"
-      = text_field_tag "user[name]", usuario.name, class: "form-control"
+      = label_tag "user[first_name]", "Nombre", class: "form-label"
+      = text_field_tag "user[first_name]", usuario.first_name, class: "form-control"
     .form-group
-      = label_tag "user[last_name]", "Apellido", class: "form-label"
+      = label_tag "user[last_name]", "Primer apellido", class: "form-label"
       = text_field_tag "user[last_name]", usuario.last_name, class: "form-control"
+    .form-group
+      = label_tag "user[second_last_name]", "Segundo apellido", class: "form-label"
+      = text_field_tag "user[second_last_name]", usuario.second_last_name, class: "form-control"
+
+  .form-row
+    .form-group
+      = label_tag "user[document]", "Cédula", class: "form-label"
+      = text_field_tag "user[document]", usuario.document, class: "form-control", placeholder: "V-12345678"
+    .form-group
+      = label_tag "user[document_type]", "Tipo de documento", class: "form-label"
+      = select_tag "user[document_type]", options_for_select(User::DOCUMENT_TYPE_LABELS.map { |v, t| [t, v] }, usuario.document_type), include_blank: "—", class: "form-select"
 
   .form-row
     .form-group
@@ -22,8 +33,8 @@
         Si esta persona ya tiene cuenta en el sistema —porque trabaja aquí o ya
         representa a otro alumno— se reutiliza la misma.
     .form-group
-      = label_tag "user[id_card]", "Cédula", class: "form-label"
-      = text_field_tag "user[id_card]", usuario.id_card, class: "form-control"
+      = label_tag "user[document]", "Cédula", class: "form-label"
+      = text_field_tag "user[document]", usuario.document, class: "form-control"
 
   .form-group
     = label_tag "representative[phone]", "Teléfono", class: "form-label"
@@ -38,6 +49,6 @@
       - Student.includes(:user).order("users.last_name").each do |alumno|
         %label.representante-alumno
           = check_box_tag "student_ids[]", alumno.user_id, vinculados.include?(alumno.user_id)
-          %span= "#{alumno.user.last_name}, #{alumno.user.name}"
+          %span= "#{alumno.user.last_name}, #{alumno.user.first_name}"
 
   = submit_tag(representative.persisted? ? "Guardar" : "Registrar", class: "btn btn-primary")

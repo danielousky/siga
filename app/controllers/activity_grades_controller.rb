@@ -28,7 +28,7 @@ class ActivityGradesController < ApplicationController
     @inscripciones = @evaluation_activity.section.enrollments
                                          .includes(student: :user)
                                          .to_a
-                                         .sort_by { |i| [i.student.user.last_name, i.student.user.name] }
+                                         .sort_by { |i| [i.student.user.last_name, i.student.user.first_name] }
 
     @notas_por_alumno = @evaluation_activity.activity_grades.index_by(&:student_id)
   end
@@ -95,8 +95,8 @@ class ActivityGradesController < ApplicationController
     log_activity(
       action:  accion,
       subject: @evaluation_activity,
-      message: "#{current_user.name} #{current_user.last_name} #{cambio} a " \
-               "#{alumno.last_name}, #{alumno.name} en «#{@evaluation_activity.description}»",
+      message: "#{current_user.nombre_completo} #{cambio} a " \
+               "#{alumno.last_name}, #{alumno.first_name} en «#{@evaluation_activity.description}»",
       metadata: { alumno_id: alumno.id, anterior: anterior&.to_i, actual: actual&.to_i }
     )
   end

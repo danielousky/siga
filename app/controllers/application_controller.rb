@@ -49,7 +49,7 @@ class ApplicationController < ActionController::Base
 
     log_activity(
       action:  "login",
-      message: "#{resource.name} #{resource.last_name} inició sesión"
+      message: "#{resource.nombre_completo} inició sesión"
     )
     dashboard_path_for_user
   end

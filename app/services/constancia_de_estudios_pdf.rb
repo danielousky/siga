@@ -82,8 +82,8 @@ class ConstanciaDeEstudiosPdf
   # esto reemplaza. Una secretaria tiene que poder leerlo y reconocerlo.
   def cuerpo(pdf, colegio, alumno, inscripcion)
     seccion = inscripcion.section
-    quien   = "#{alumno.user.name} #{alumno.user.last_name}"
-    cedula  = alumno.user.id_card.presence
+    quien   = "#{alumno.user.nombre_completo}"
+    cedula  = alumno.user.document.presence
     carnet  = alumno.school_card.presence
 
     identificacion = if cedula

@@ -29,7 +29,7 @@
       %tbody
         - @enrollments.each do |enrollment|
           %tr
-            %td= link_to "#{enrollment.student.user.last_name}, #{enrollment.student.user.name}", edit_enrollment_path(enrollment)
+            %td= link_to "#{enrollment.student.user.last_name}, #{enrollment.student.user.first_name}", edit_enrollment_path(enrollment)
             %td= enrollment.section.name
             %td= enrollment.section.grade.name
             %td= enrollment.enrollment_date.strftime("%d/%m/%Y")

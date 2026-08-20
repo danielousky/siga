@@ -14,12 +14,12 @@ class RepresentativesController < ApplicationController
       ids = User.where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:q])).pluck(:id)
       scope = scope.where(user_id: ids)
     end
-    @pagy, @representatives = pagy(scope.joins(:user).order("users.last_name, users.name"))
+    @pagy, @representatives = pagy(scope.joins(:user).order("users.last_name, users.first_name"))
   end
 
   # Buscar por los datos de la persona, no de la fila: quien busca tiene el
   # nombre o el teléfono, nunca el id.
-  CAMPOS_DE_BUSQUEDA = %w[name last_name email id_card].freeze
+  CAMPOS_DE_BUSQUEDA = %w[first_name last_name email document cedula_escolar].freeze
 
   def show
     @vinculos = @representative.student_representatives.includes(student: :user)
@@ -98,7 +98,9 @@ class RepresentativesController < ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:name, :last_name, :email, :id_card)
+    params.require(:user).permit(:first_name, :last_name, :second_last_name, :email,
+                                :document, :document_type, :cedula_escolar,
+                                :birth_date, :sex)
   end
 
   def set_representative

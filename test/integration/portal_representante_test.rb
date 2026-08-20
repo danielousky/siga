@@ -10,8 +10,9 @@ class PortalRepresentanteTest < ActionDispatch::IntegrationTest
   setup do
     @a, @b = dos_colegios_completos
 
-    @madre = User.create!(name: "Carmen", last_name: "López", password: "123123",
-                          email: "carmen@portal.test")
+    @madre = User.create!(first_name: "Carmen", last_name: "López", password: "123123",
+                          email: "carmen@portal.test",
+                        document: "V-#{"carmen@portal.test".bytes.sum}")
 
     @rep_a = con_el_colegio(@a.colegio) do
       rep = Representative.create!(user: @madre, school: @a.colegio, phone: "0414-1112233")
@@ -184,7 +185,8 @@ class PortalRepresentanteTest < ActionDispatch::IntegrationTest
 
     assert_difference -> { con_el_colegio(@a.colegio) { Representative.count } }, 1 do
       post representatives_path, params: {
-        user: { name: "Nueva", last_name: "Madre", email: "nueva.madre@portal.test" },
+        user: { first_name: "Nueva", last_name: "Madre", email: "nueva.madre@portal.test",
+                document: "V-16223004", document_type: "cedula_v" },
         representative: { phone: "0414-9998877" },
         student_ids: [@a.alumno.user_id]
       }
@@ -203,7 +205,7 @@ class PortalRepresentanteTest < ActionDispatch::IntegrationTest
 
     assert_no_difference -> { Current.sin_aislamiento { User.count } } do
       post representatives_path, params: {
-        user: { name: "Carmen", last_name: "López", email: @madre.email },
+        user: { first_name: "Carmen", last_name: "López", email: @madre.email },
         representative: { phone: "0414-0000000" },
         student_ids: []
       }

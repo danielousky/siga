@@ -55,8 +55,11 @@ module EscenarioAcademico
 
       registros = Array.new(alumnos) do |i|
         usuario = User.create!(
-          name: "Alumno#{i + 1}", last_name: "Prueba", email: "alumno#{i + 1}.t#{n}@test.edu",
-          password: "123123", id_card: "T#{n}-#{i + 1}"
+          first_name: "Alumno#{i + 1}", last_name: "Prueba", email: "alumno#{i + 1}.t#{n}@test.edu",
+          password: "123123",
+          # Un alumno de prueba se identifica con cédula ESCOLAR, no nacional:
+          # es el caso real de primaria y ejercita la validación de MOR-138.
+          cedula_escolar: "T#{n}#{(i + 1).to_s.rjust(9, '0')}"[0, 12]
         )
         estudiante = Student.create!(user: usuario, school: colegio, school_card: "#{n}-#{i + 1}")
         inscripcion = Enrollment.create!(student: estudiante, section: seccion, enrollment_date: Date.new(2025, 9, 20))

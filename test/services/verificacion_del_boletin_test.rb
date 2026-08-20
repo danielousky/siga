@@ -37,7 +37,8 @@ class VerificacionDelBoletinTest < ActiveSupport::TestCase
     con_el_colegio(@esc.colegio) do
       boletin = ReportCard.create!(
         enrollment: @esc.inscripcion(1), evaluation_moment: @esc.lapso(1),
-        issued_by: User.create!(name: "D", last_name: "T", email: "d@qr.test", password: "123123"),
+        issued_by: User.create!(first_name: "D", last_name: "T", email: "d@qr.test", password: "123123",
+                        document: "V-#{"d@qr.test".bytes.sum}"),
         snapshot: ReportCardData.para(enrollment: @esc.inscripcion(1), evaluation_moment: @esc.lapso(1))
       )
 
@@ -82,7 +83,8 @@ class VerificacionDelBoletinTest < ActiveSupport::TestCase
 
       boletin = ReportCard.create!(
         enrollment: @esc.inscripcion(1), evaluation_moment: @esc.lapso(1),
-        issued_by: User.create!(name: "D", last_name: "S", email: "d@sello.test", password: "123123"),
+        issued_by: User.create!(first_name: "D", last_name: "S", email: "d@sello.test", password: "123123",
+                        document: "V-#{"d@sello.test".bytes.sum}"),
         snapshot: ReportCardData.para(enrollment: @esc.inscripcion(1), evaluation_moment: @esc.lapso(1))
       )
 

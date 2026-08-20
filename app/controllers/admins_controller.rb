@@ -17,7 +17,7 @@ class AdminsController < ApplicationController
   def create
     @admin = Admin.new(admin_params)
     if @admin.save
-      registrar_cambio(:creado, @admin, "#{@admin.user.name} #{@admin.user.last_name}")
+      registrar_cambio(:creado, @admin, "#{@admin.user.nombre_completo}")
       redirect_to admins_path, notice: "Administrador creado exitosamente."
     else
       render :new, status: :unprocessable_entity
@@ -26,7 +26,7 @@ class AdminsController < ApplicationController
 
   def update
     if @admin.update(admin_params)
-      registrar_cambio(:actualizado, @admin, "#{@admin.user.name} #{@admin.user.last_name}")
+      registrar_cambio(:actualizado, @admin, "#{@admin.user.nombre_completo}")
       redirect_to admins_path, notice: "Administrador actualizado exitosamente."
     else
       render :edit, status: :unprocessable_entity
@@ -36,7 +36,7 @@ class AdminsController < ApplicationController
   def destroy
     # El nombre, antes de borrar: después el objeto ya no puede
     # resolver sus asociaciones para armar el mensaje.
-    nombre = "#{@admin.user.name} #{@admin.user.last_name}"
+    nombre = "#{@admin.user.nombre_completo}"
 
     if @admin.destroy
       registrar_cambio(:eliminado, @admin, nombre)
@@ -55,7 +55,10 @@ class AdminsController < ApplicationController
   def admin_params
     # `school_id` NO se permite: el colegio sale de la sesión, nunca del request (MOR-86).
     params.require(:admin).permit(:role,
-      user_attributes: [:id, :name, :last_name, :id_card, :email, :password, :password_confirmation])
+      user_attributes: [:id, :first_name, :last_name, :second_last_name,
+                        :document, :document_type, :cedula_escolar,
+                        :birth_date, :sex, :birth_place,
+                        :email, :password, :password_confirmation])
           .merge(school_id: Current.school_id)
   end
 

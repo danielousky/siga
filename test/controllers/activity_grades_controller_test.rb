@@ -133,8 +133,9 @@ class ActivityGradesControllerTest < ActionDispatch::IntegrationTest
 
   test "un director no carga notas: la planilla es del profesor" do
     director = con_el_colegio(@esc.colegio) do
-      usuario = User.create!(name: "Dire", last_name: "Ctor",
-                             email: "dir.#{@esc.colegio.id}@test.edu", password: "123123")
+      usuario = User.create!(first_name: "Dire", last_name: "Ctor",
+                             email: "dir.#{@esc.colegio.id}@test.edu", password: "123123",
+                        document: "V-#{"dir.#{@esc.colegio.id}@test.edu".bytes.sum}")
       Admin.create!(user: usuario, school: @esc.colegio, role: :director)
       usuario
     end
@@ -149,8 +150,9 @@ class ActivityGradesControllerTest < ActionDispatch::IntegrationTest
   private
 
   def profesor_de(materia, seccion, apellido)
-    usuario = User.create!(name: "Prof", last_name: apellido.capitalize,
-                           email: "#{apellido}.#{seccion.id}@test.edu", password: "123123")
+    usuario = User.create!(first_name: "Prof", last_name: apellido.capitalize,
+                           email: "#{apellido}.#{seccion.id}@test.edu", password: "123123",
+                        document: "V-#{"#{apellido}.#{seccion.id}@test.edu".bytes.sum}")
     docente = Teacher.create!(user: usuario, school: @esc.colegio)
     TeacherSection.create!(teacher: docente, section: seccion, subject: materia)
     usuario

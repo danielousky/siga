@@ -3,7 +3,7 @@
     .card-academic-header
       %h1 Mi panel estudiantil
       .admin-info-badge
-        = current_user.name
+        = current_user.first_name
         %span.role-badge= @student.school_card
 
   -# Lo primero: la nota. Es a lo que entra.

@@ -206,7 +206,8 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
   end
 
   test "el equipo de SIGA ve el estado de todos" do
-    staff = User.create!(name: "Equipo", last_name: "SIGA", password: "123123", email: "cartera@siga.app")
+    staff = User.create!(first_name: "Equipo", last_name: "SIGA", password: "123123", email: "cartera@siga.app",
+                        document: "V-#{"cartera@siga.app".bytes.sum}")
     SigaStaff.create!(user: staff, role: :fundador)
     vencer!(@a)
     sign_in staff

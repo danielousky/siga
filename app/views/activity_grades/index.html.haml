@@ -34,12 +34,12 @@
         - nota   = @notas_por_alumno[alumno.user_id]
         %li.carga-fila{data: { carga_notas_target: "fila", alumno: alumno.user_id }}
           .carga-alumno
-            .carga-alumno-nombre= "#{alumno.user.last_name}, #{alumno.user.name}"
+            .carga-alumno-nombre= "#{alumno.user.last_name}, #{alumno.user.first_name}"
             .carga-alumno-carnet= alumno.school_card
           .carga-campo
             %input.carga-input{type: "number", inputmode: "numeric", min: 1, max: 20, step: 1,
                                value: nota&.score&.to_i, placeholder: "—",
-                               aria: { label: "Nota de #{alumno.user.name} #{alumno.user.last_name}" },
+                               aria: { label: "Nota de #{alumno.user.nombre_completo}" },
                                data: { carga_notas_target: "input",
                                        action: "change->carga-notas#guardar keydown->carga-notas#navegar" }}
             %span.carga-estado{data: { carga_notas_target: "estado" }}

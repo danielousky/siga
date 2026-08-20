@@ -1,6 +1,6 @@
 - opciones_de_seccion = @secciones.map { |s| ["#{s.grade.name} – #{s.name} · #{s.academic_period.name}", s.id] }
 - opciones_de_lapso   = @lapsos.map { |l| [l.name, l.id] } + [["Boletín anual (todo el año)", "anual"]]
-- opciones_de_alumno  = [["Toda la sección (#{contar(@alumnos.size, 'alumno', 'alumnos')})", ""]] + @alumnos.map { |i| ["#{i.student.user.last_name}, #{i.student.user.name}", i.id] }
+- opciones_de_alumno  = [["Toda la sección (#{contar(@alumnos.size, 'alumno', 'alumnos')})", ""]] + @alumnos.map { |i| ["#{i.student.user.last_name}, #{i.student.user.first_name}", i.id] }
 
 .card-academic
   .card-academic-header
@@ -60,7 +60,7 @@
       %tbody
         - @recientes.each do |boletin|
           %tr
-            %td= "#{boletin.enrollment.student.user.last_name}, #{boletin.enrollment.student.user.name}"
+            %td= "#{boletin.enrollment.student.user.last_name}, #{boletin.enrollment.student.user.first_name}"
             %td= boletin.titulo
             %td= link_to boletin.code, verificar_path(code: boletin.code), class: "codigo-verificacion"
             %td= l(boletin.created_at, format: :long)

@@ -29,7 +29,7 @@
           %li= link_to "Solicitudes", siga_solicitudes_path, class: "siga-menu-link #{'active' if siga_seccion_activa == 'solicitudes'}"
         .siga-sesion
           %span.siga-quien
-            = current_user.name
+            = current_user.first_name
             %span.siga-rol= siga_staff.etiqueta
           = link_to "Salir", destroy_user_session_path, data: { turbo_method: :delete }, class: "btn btn-secondary btn-sm"
 

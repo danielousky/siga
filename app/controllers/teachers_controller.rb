@@ -29,7 +29,7 @@ class TeachersController < ApplicationController
   def create
     @teacher = Teacher.new(teacher_params)
     if @teacher.save
-      registrar_cambio(:creado, @teacher, "#{@teacher.user.name} #{@teacher.user.last_name}")
+      registrar_cambio(:creado, @teacher, "#{@teacher.user.nombre_completo}")
       redirect_to @teacher, notice: "Profesor creado exitosamente."
     else
       render :new, status: :unprocessable_entity
@@ -38,7 +38,7 @@ class TeachersController < ApplicationController
 
   def update
     if @teacher.update(teacher_params)
-      registrar_cambio(:actualizado, @teacher, "#{@teacher.user.name} #{@teacher.user.last_name}")
+      registrar_cambio(:actualizado, @teacher, "#{@teacher.user.nombre_completo}")
       redirect_to @teacher, notice: "Profesor actualizado exitosamente."
     else
       render :edit, status: :unprocessable_entity
@@ -48,7 +48,7 @@ class TeachersController < ApplicationController
   def destroy
     # El nombre, antes de borrar: después el objeto ya no puede
     # resolver sus asociaciones para armar el mensaje.
-    nombre = "#{@teacher.user.name} #{@teacher.user.last_name}"
+    nombre = "#{@teacher.user.nombre_completo}"
 
     if @teacher.destroy
       registrar_cambio(:eliminado, @teacher, nombre)
@@ -67,7 +67,10 @@ class TeachersController < ApplicationController
   def teacher_params
     # `school_id` NO se permite: el colegio sale de la sesión, nunca del request (MOR-86).
     params.require(:teacher).permit(
-      user_attributes: [:id, :name, :last_name, :id_card, :email, :password, :password_confirmation])
+      user_attributes: [:id, :first_name, :last_name, :second_last_name,
+                        :document, :document_type, :cedula_escolar,
+                        :birth_date, :sex, :birth_place,
+                        :email, :password, :password_confirmation])
           .merge(school_id: Current.school_id)
   end
 

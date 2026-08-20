@@ -5,14 +5,29 @@
     %legend Datos del Usuario
     = f.fields_for :user do |u|
       .form-group
-        = u.label :name, "Nombre", class: "form-label"
-        = u.text_field :name, class: "form-control"
-      .form-group
-        = u.label :last_name, "Apellido", class: "form-label"
-        = u.text_field :last_name, class: "form-control"
-      .form-group
-        = u.label :id_card, "Cédula", class: "form-label"
-        = u.text_field :id_card, class: "form-control"
+        = u.label :first_name, "Nombres", class: "form-label"
+        = u.text_field :first_name, class: "form-control"
+      .form-row
+        .form-group
+          = u.label :last_name, "Primer apellido", class: "form-label"
+          = u.text_field :last_name, class: "form-control"
+        .form-group
+          = u.label :second_last_name, "Segundo apellido", class: "form-label"
+          = u.text_field :second_last_name, class: "form-control"
+      .form-row
+        .form-group
+          = u.label :document, "Cédula", class: "form-label"
+          = u.text_field :document, class: "form-control"
+        .form-group
+          = u.label :document_type, "Tipo de documento", class: "form-label"
+          = u.select :document_type, User::DOCUMENT_TYPE_LABELS.map { |v, t| [t, v] }, { include_blank: "—" }, class: "form-select"
+      .form-row
+        .form-group
+          = u.label :birth_date, "Fecha de nacimiento", class: "form-label"
+          = u.date_field :birth_date, class: "form-control"
+        .form-group
+          = u.label :sex, "Sexo", class: "form-label"
+          = u.select :sex, User::SEX_LABELS.map { |v, t| [t, v] }, { include_blank: "—" }, class: "form-select"
       .form-group
         = u.label :email, "Email", class: "form-label"
         = u.email_field :email, class: "form-control"

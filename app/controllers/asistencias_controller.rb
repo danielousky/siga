@@ -43,7 +43,7 @@ class AsistenciasController < ApplicationController
   def show
     @dia = dia_pedido
     @inscripciones = @seccion.enrollments.includes(student: :user).to_a
-                             .sort_by { |i| [i.student.user.last_name, i.student.user.name] }
+                             .sort_by { |i| [i.student.user.last_name, i.student.user.first_name] }
 
     @asistencias = Attendance.del_dia(@dia)
                              .where(enrollment_id: @inscripciones.map(&:id))

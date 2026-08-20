@@ -44,7 +44,7 @@
         %span.detail-label Profesor guía
         %p.detail-value
           - if @grade.leader_teacher
-            = "#{@grade.leader_teacher.user.name} #{@grade.leader_teacher.user.last_name}"
+            = "#{@grade.leader_teacher.user.nombre_completo}"
           - else
             Sin asignar
 

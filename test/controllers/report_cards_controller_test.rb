@@ -146,8 +146,9 @@ class ReportCardsControllerTest < ActionDispatch::IntegrationTest
 
   test "un profesor no emite boletines" do
     docente = con_el_colegio(@esc.colegio) do
-      usuario = User.create!(name: "Prof", last_name: "Uno",
-                             email: "prof.#{@esc.seccion.id}@test.edu", password: "123123")
+      usuario = User.create!(first_name: "Prof", last_name: "Uno",
+                             email: "prof.#{@esc.seccion.id}@test.edu", password: "123123",
+                        document: "V-#{"prof.#{@esc.seccion.id}@test.edu".bytes.sum}")
       Teacher.create!(user: usuario, school: @esc.colegio)
       usuario
     end
@@ -169,8 +170,9 @@ class ReportCardsControllerTest < ActionDispatch::IntegrationTest
   private
 
   def usuario_admin(rol)
-    usuario = User.create!(name: "Secre", last_name: "Taria",
-                           email: "secre.#{@esc.colegio.id}@test.edu", password: "123123")
+    usuario = User.create!(first_name: "Secre", last_name: "Taria",
+                           email: "secre.#{@esc.colegio.id}@test.edu", password: "123123",
+                        document: "V-#{"secre.#{@esc.colegio.id}@test.edu".bytes.sum}")
     Admin.create!(user: usuario, school: @esc.colegio, role: rol)
     usuario
   end

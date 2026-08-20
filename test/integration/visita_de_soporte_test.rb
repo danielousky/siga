@@ -17,8 +17,9 @@ class VisitaDeSoporteTest < ActionDispatch::IntegrationTest
   setup do
     @a, @b = dos_colegios_completos
 
-    @siga_user = User.create!(name: "Ana", last_name: "Soporte", password: "123123",
-                              email: "soporte@siga.app")
+    @siga_user = User.create!(first_name: "Ana", last_name: "Soporte", password: "123123",
+                              email: "soporte@siga.app",
+                        document: "V-#{"soporte@siga.app".bytes.sum}")
     SigaStaff.create!(user: @siga_user, role: :fundador)
   end
 

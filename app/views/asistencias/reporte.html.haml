@@ -50,7 +50,7 @@
         - @filas.each do |fila|
           - inscripcion = fila[:inscripcion]
           %tr
-            %td= "#{inscripcion.student.user.last_name}, #{inscripcion.student.user.name}"
+            %td= "#{inscripcion.student.user.last_name}, #{inscripcion.student.user.first_name}"
             %td= "#{inscripcion.section.grade.name} – #{inscripcion.section.name}"
             %td
               -# El número manda: es el que decide si hay que llamar a la casa.

@@ -14,4 +14,4 @@
         %tr
           %td= link_to grade.name, grade
           %td= grade.level.humanize
-          %td= grade.leader_teacher&.user&.then { |u| "#{u.name} #{u.last_name}" } || "—"
+          %td= grade.leader_teacher&.user&.then { |u| "#{u.first_name} #{u.last_name}" } || "—"

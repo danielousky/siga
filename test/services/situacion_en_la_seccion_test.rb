@@ -81,7 +81,8 @@ class SituacionEnLaSeccionTest < ActiveSupport::TestCase
 
       boletin = ReportCard.create!(
         enrollment: @esc.inscripcion(1), evaluation_moment: @esc.lapso(1),
-        issued_by: User.create!(name: "Dir", last_name: "Test", email: "dir@sec.test", password: "123123"),
+        issued_by: User.create!(first_name: "Dir", last_name: "Test", email: "dir@sec.test", password: "123123",
+                        document: "V-#{"dir@sec.test".bytes.sum}"),
         snapshot: ReportCardData.para(enrollment: @esc.inscripcion(1), evaluation_moment: @esc.lapso(1))
       )
       congelado = boletin.snapshot.dig("comparacion", "materias", 0, "seccion")

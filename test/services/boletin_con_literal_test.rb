@@ -140,8 +140,9 @@ class BoletinConLiteralTest < ActiveSupport::TestCase
   test "el boletín por literal se sigue imprimiendo" do
     con_el_colegio(@escenario.colegio) do
       @escenario.grado.update!(escala: :literal)
-      emisor = User.create!(name: "Dir", last_name: "Emisor", password: "123123",
-                            email: "dir.emisor@literal.test")
+      emisor = User.create!(first_name: "Dir", last_name: "Emisor", password: "123123",
+                            email: "dir.emisor@literal.test",
+                        document: "V-#{"dir.emisor@literal.test".bytes.sum}")
       Admin.create!(user: emisor, school: @escenario.colegio, role: :director)
 
       boletin = ReportCard.create!(

@@ -57,7 +57,7 @@ class ReportCardsController < ApplicationController
 
     log_activity(
       action: "report_cards_issued",
-      message: "#{current_user.name} #{current_user.last_name} emitió " \
+      message: "#{current_user.nombre_completo} emitió " \
                "#{helpers.contar(boletines.size, 'boletín', 'boletines')} " \
                "de #{seccion.grade.name} – #{seccion.name} (#{lapso&.name || 'anual'})",
       subject: seccion,
@@ -90,7 +90,7 @@ class ReportCardsController < ApplicationController
            .where(status: :regular)
            .includes(student: :user)
            .to_a
-           .sort_by { |i| [i.student.user.last_name, i.student.user.name] }
+           .sort_by { |i| [i.student.user.last_name, i.student.user.first_name] }
   end
 
   # `anual` o el id de un lapso, buscado ENTRE LOS DEL PERÍODO DE LA SECCIÓN: un

@@ -9,7 +9,7 @@
     %dt Teléfono
     %dd= @representative.phone.presence || "—"
     %dt Cédula
-    %dd= @representative.user.id_card.presence || "—"
+    %dd= @representative.user.document.presence || "—"
 
 .card-academic
   .card-academic-header
@@ -28,5 +28,5 @@
       %tbody
         - @vinculos.each do |vinculo|
           %tr
-            %td= "#{vinculo.student.user.last_name}, #{vinculo.student.user.name}"
+            %td= "#{vinculo.student.user.last_name}, #{vinculo.student.user.first_name}"
             %td= vinculo.etiqueta

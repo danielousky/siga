@@ -52,7 +52,7 @@
           %span.navbar-brand-text SIGA
         - if user_signed_in?
           .session-menu.d-flex.align-items-center
-            = link_to current_user.name, edit_user_registration_path, class: "user-info", style: "color: inherit;"
+            = link_to current_user.first_name, edit_user_registration_path, class: "user-info", style: "color: inherit;"
             = link_to "Cerrar sesión", destroy_user_session_path, data: { turbo_method: :delete }, class: "btn btn-outline-light btn-sm"
 
     - if user_signed_in? && current_user_type.nil?

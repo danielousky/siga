@@ -67,5 +67,5 @@
   .aviso-visita
     .aviso-visita-inner
       %strong Soporte de SIGA adentro.
-      = "#{current_user.name} #{current_user.last_name} está viendo el sistema de #{colegio_visitado.name}."
+      = "#{current_user.nombre_completo} está viendo el sistema de #{colegio_visitado.name}."
       = button_to "Salir del colegio", siga_visita_path(colegio_visitado), method: :delete, class: "aviso-visita-salir"
