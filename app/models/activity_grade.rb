@@ -2,7 +2,7 @@ class ActivityGrade < ApplicationRecord
   include SchoolScoped
 
   belongs_to :evaluation_activity
-  belongs_to :student, foreign_key: :student_id, primary_key: :user_id
+  belongs_to :student, foreign_key: :student_id
 
   derives_school_from :evaluation_activity
   validates_same_school :student

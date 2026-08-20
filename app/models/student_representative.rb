@@ -5,7 +5,7 @@ class StudentRepresentative < ApplicationRecord
   derives_school_from :representative
 
   belongs_to :representative
-  belongs_to :student, primary_key: :user_id
+  belongs_to :student
 
   # El representante y el alumno tienen que ser del mismo colegio. Sin esto se
   # podría vincular al hijo de otro inquilino y el portal se lo mostraría —

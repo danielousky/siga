@@ -191,7 +191,7 @@ class AislamientoEntreColegiosTest < ActionDispatch::IntegrationTest
     sign_in @a.profesor
 
     assert_no_difference -> { cantidad(ActivityGrade) } do
-      patch "/evaluation_activities/#{@a.actividad.id}/notas/#{@b.alumno.user_id}",
+      patch "/evaluation_activities/#{@a.actividad.id}/notas/#{@b.alumno.id}",
             params: { score: "20" }, as: :json
     end
 

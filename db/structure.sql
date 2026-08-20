@@ -156,11 +156,11 @@ ALTER SEQUENCE public.active_storage_variant_records_id_seq OWNED BY public.acti
 CREATE TABLE public.activity_grades (
     id bigint NOT NULL,
     evaluation_activity_id bigint NOT NULL,
-    student_id bigint NOT NULL,
     score numeric(4,2) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     school_id bigint NOT NULL,
+    student_id bigint NOT NULL,
     CONSTRAINT activity_grades_score_escala_1_20 CHECK (((score IS NULL) OR ((score >= (1)::numeric) AND (score <= (20)::numeric))))
 );
 
@@ -271,10 +271,30 @@ CREATE TABLE public.admins (
     school_id bigint NOT NULL,
     role integer NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    id bigint NOT NULL
 );
 
 ALTER TABLE ONLY public.admins FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: admins_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.admins_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: admins_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.admins_id_seq OWNED BY public.admins.id;
 
 
 --
@@ -430,12 +450,12 @@ ALTER SEQUENCE public.departments_id_seq OWNED BY public.departments.id;
 CREATE TABLE public.enrollments (
     id bigint NOT NULL,
     section_id bigint NOT NULL,
-    student_id bigint NOT NULL,
     enrollment_date date NOT NULL,
     status integer DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    school_id bigint NOT NULL
+    school_id bigint NOT NULL,
+    student_id bigint NOT NULL
 );
 
 ALTER TABLE ONLY public.enrollments FORCE ROW LEVEL SECURITY;
@@ -622,11 +642,11 @@ CREATE TABLE public.grades (
     id bigint NOT NULL,
     name character varying NOT NULL,
     level integer NOT NULL,
-    leader_teacher_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     school_id bigint NOT NULL,
     escala integer DEFAULT 0 NOT NULL,
+    leader_teacher_id bigint,
     CONSTRAINT grades_escala_valida CHECK ((escala = ANY (ARRAY[0, 1])))
 );
 
@@ -1253,12 +1273,12 @@ ALTER SEQUENCE public.solid_queue_semaphores_id_seq OWNED BY public.solid_queue_
 CREATE TABLE public.student_representatives (
     id bigint NOT NULL,
     representative_id bigint NOT NULL,
-    student_id bigint NOT NULL,
     school_id bigint NOT NULL,
     parentesco integer DEFAULT 0 NOT NULL,
     principal boolean DEFAULT false NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
+    student_id bigint NOT NULL,
     CONSTRAINT student_representatives_parentesco_valido CHECK ((parentesco = ANY (ARRAY[0, 1, 2, 3])))
 );
 
@@ -1293,10 +1313,30 @@ CREATE TABLE public.students (
     school_card character varying NOT NULL,
     school_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    id bigint NOT NULL
 );
 
 ALTER TABLE ONLY public.students FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: students_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.students_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: students_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.students_id_seq OWNED BY public.students.id;
 
 
 --
@@ -1403,12 +1443,12 @@ ALTER SEQUENCE public.subscriptions_id_seq OWNED BY public.subscriptions.id;
 
 CREATE TABLE public.teacher_sections (
     id bigint NOT NULL,
-    teacher_id bigint NOT NULL,
     section_id bigint NOT NULL,
     subject_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    school_id bigint NOT NULL
+    school_id bigint NOT NULL,
+    teacher_id bigint NOT NULL
 );
 
 ALTER TABLE ONLY public.teacher_sections FORCE ROW LEVEL SECURITY;
@@ -1441,10 +1481,30 @@ CREATE TABLE public.teachers (
     user_id bigint NOT NULL,
     school_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    id bigint NOT NULL
 );
 
 ALTER TABLE ONLY public.teachers FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: teachers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.teachers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: teachers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.teachers_id_seq OWNED BY public.teachers.id;
 
 
 --
@@ -1564,6 +1624,13 @@ ALTER TABLE ONLY public.addresses ALTER COLUMN id SET DEFAULT nextval('public.ad
 --
 
 ALTER TABLE ONLY public.admins ALTER COLUMN user_id SET DEFAULT nextval('public.admins_user_id_seq'::regclass);
+
+
+--
+-- Name: admins id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.admins ALTER COLUMN id SET DEFAULT nextval('public.admins_id_seq'::regclass);
 
 
 --
@@ -1763,6 +1830,13 @@ ALTER TABLE ONLY public.students ALTER COLUMN user_id SET DEFAULT nextval('publi
 
 
 --
+-- Name: students id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.students ALTER COLUMN id SET DEFAULT nextval('public.students_id_seq'::regclass);
+
+
+--
 -- Name: subjects id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1788,6 +1862,13 @@ ALTER TABLE ONLY public.teacher_sections ALTER COLUMN id SET DEFAULT nextval('pu
 --
 
 ALTER TABLE ONLY public.teachers ALTER COLUMN user_id SET DEFAULT nextval('public.teachers_user_id_seq'::regclass);
+
+
+--
+-- Name: teachers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.teachers ALTER COLUMN id SET DEFAULT nextval('public.teachers_id_seq'::regclass);
 
 
 --
@@ -1858,7 +1939,7 @@ ALTER TABLE ONLY public.addresses
 --
 
 ALTER TABLE ONLY public.admins
-    ADD CONSTRAINT admins_pkey PRIMARY KEY (user_id);
+    ADD CONSTRAINT admins_pkey PRIMARY KEY (id);
 
 
 --
@@ -2098,7 +2179,7 @@ ALTER TABLE ONLY public.student_representatives
 --
 
 ALTER TABLE ONLY public.students
-    ADD CONSTRAINT students_pkey PRIMARY KEY (user_id);
+    ADD CONSTRAINT students_pkey PRIMARY KEY (id);
 
 
 --
@@ -2130,7 +2211,7 @@ ALTER TABLE ONLY public.teacher_sections
 --
 
 ALTER TABLE ONLY public.teachers
-    ADD CONSTRAINT teachers_pkey PRIMARY KEY (user_id);
+    ADD CONSTRAINT teachers_pkey PRIMARY KEY (id);
 
 
 --
@@ -2177,13 +2258,6 @@ CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.ac
 
 
 --
--- Name: index_activity_grades_on_activity_and_student; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_activity_grades_on_activity_and_student ON public.activity_grades USING btree (evaluation_activity_id, student_id);
-
-
---
 -- Name: index_activity_grades_on_evaluation_activity_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2195,13 +2269,6 @@ CREATE INDEX index_activity_grades_on_evaluation_activity_id ON public.activity_
 --
 
 CREATE INDEX index_activity_grades_on_school_id ON public.activity_grades USING btree (school_id);
-
-
---
--- Name: index_activity_grades_on_student_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_activity_grades_on_student_id ON public.activity_grades USING btree (student_id);
 
 
 --
@@ -2251,6 +2318,13 @@ CREATE UNIQUE INDEX index_addresses_on_user_id ON public.addresses USING btree (
 --
 
 CREATE INDEX index_admins_on_school_id ON public.admins USING btree (school_id);
+
+
+--
+-- Name: index_admins_on_user_id_and_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_admins_on_user_id_and_school_id ON public.admins USING btree (user_id, school_id);
 
 
 --
@@ -2349,20 +2423,6 @@ CREATE INDEX index_enrollments_on_school_id ON public.enrollments USING btree (s
 --
 
 CREATE INDEX index_enrollments_on_section_id ON public.enrollments USING btree (section_id);
-
-
---
--- Name: index_enrollments_on_section_id_and_student_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_enrollments_on_section_id_and_student_id ON public.enrollments USING btree (section_id, student_id);
-
-
---
--- Name: index_enrollments_on_student_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_enrollments_on_student_id ON public.enrollments USING btree (student_id);
 
 
 --
@@ -2828,20 +2888,6 @@ CREATE INDEX index_student_representatives_on_school_id ON public.student_repres
 
 
 --
--- Name: index_student_representatives_on_student_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_student_representatives_on_student_id ON public.student_representatives USING btree (student_id);
-
-
---
--- Name: index_student_representatives_unicos; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX index_student_representatives_unicos ON public.student_representatives USING btree (representative_id, student_id);
-
-
---
 -- Name: index_students_on_school_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2853,6 +2899,13 @@ CREATE INDEX index_students_on_school_id ON public.students USING btree (school_
 --
 
 CREATE UNIQUE INDEX index_students_on_school_id_and_school_card ON public.students USING btree (school_id, school_card);
+
+
+--
+-- Name: index_students_on_user_id_and_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_students_on_user_id_and_school_id ON public.students USING btree (user_id, school_id);
 
 
 --
@@ -2919,17 +2972,17 @@ CREATE INDEX index_teacher_sections_on_subject_id ON public.teacher_sections USI
 
 
 --
--- Name: index_teacher_sections_on_teacher_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_teacher_sections_on_teacher_id ON public.teacher_sections USING btree (teacher_id);
-
-
---
 -- Name: index_teachers_on_school_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_teachers_on_school_id ON public.teachers USING btree (school_id);
+
+
+--
+-- Name: index_teachers_on_user_id_and_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_teachers_on_user_id_and_school_id ON public.teachers USING btree (user_id, school_id);
 
 
 --
@@ -2965,7 +3018,7 @@ CREATE UNIQUE INDEX index_users_on_reset_password_token ON public.users USING bt
 --
 
 ALTER TABLE ONLY public.student_representatives
-    ADD CONSTRAINT fk_rails_08e2b9969f FOREIGN KEY (student_id) REFERENCES public.students(user_id);
+    ADD CONSTRAINT fk_rails_08e2b9969f FOREIGN KEY (student_id) REFERENCES public.students(id);
 
 
 --
@@ -3133,7 +3186,7 @@ ALTER TABLE ONLY public.subjects
 --
 
 ALTER TABLE ONLY public.grades
-    ADD CONSTRAINT fk_rails_5441746b71 FOREIGN KEY (leader_teacher_id) REFERENCES public.teachers(user_id);
+    ADD CONSTRAINT fk_rails_5441746b71 FOREIGN KEY (leader_teacher_id) REFERENCES public.teachers(id);
 
 
 --
@@ -3309,7 +3362,7 @@ ALTER TABLE ONLY public.solid_queue_claimed_executions
 --
 
 ALTER TABLE ONLY public.activity_grades
-    ADD CONSTRAINT fk_rails_9e041c690a FOREIGN KEY (student_id) REFERENCES public.students(user_id);
+    ADD CONSTRAINT fk_rails_9e041c690a FOREIGN KEY (student_id) REFERENCES public.students(id);
 
 
 --
@@ -3341,7 +3394,7 @@ ALTER TABLE ONLY public.attendances
 --
 
 ALTER TABLE ONLY public.teacher_sections
-    ADD CONSTRAINT fk_rails_b2b858bbcc FOREIGN KEY (teacher_id) REFERENCES public.teachers(user_id);
+    ADD CONSTRAINT fk_rails_b2b858bbcc FOREIGN KEY (teacher_id) REFERENCES public.teachers(id);
 
 
 --
@@ -3469,7 +3522,7 @@ ALTER TABLE ONLY public.evaluation_activities
 --
 
 ALTER TABLE ONLY public.enrollments
-    ADD CONSTRAINT fk_rails_f01c555e06 FOREIGN KEY (student_id) REFERENCES public.students(user_id);
+    ADD CONSTRAINT fk_rails_f01c555e06 FOREIGN KEY (student_id) REFERENCES public.students(id);
 
 
 --
@@ -3789,6 +3842,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260820180000'),
 ('20260820040000'),
 ('20260816120000'),
 ('20260815120000'),

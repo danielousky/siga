@@ -69,7 +69,7 @@ class VerificacionesControllerTest < ActionDispatch::IntegrationTest
 
   test "muestra lo ARCHIVADO, no lo que diga la base ahora" do
     con_el_colegio(@esc.colegio) do
-      ActivityGrade.find_by(student_id: @esc.alumno.user_id).update!(score: 3)
+      ActivityGrade.find_by(student_id: @esc.alumno.id).update!(score: 3)
     end
 
     get verificar_url(code: @boletin.code)

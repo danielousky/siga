@@ -169,7 +169,7 @@ class AsistenciasController < ApplicationController
         Section.includes(:grade, :academic_period).order("grades.name", :name).to_a
       else
         Section.includes(:grade, :academic_period)
-               .where(grade: Grade.where(leader_teacher_id: current_user.id))
+               .where(grade: Grade.where(leader_teacher_id: current_user.teacher&.id))
                .order("grades.name", :name).to_a
       end
   end

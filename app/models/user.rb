@@ -22,9 +22,22 @@ class User < ApplicationRecord
   SEX_LABELS = { "female" => "Femenino", "male" => "Masculino" }.freeze
 
   has_one :address, dependent: :destroy
-  has_one :student, dependent: :destroy
-  has_one :teacher, dependent: :destroy
-  has_one :admin, dependent: :destroy
+
+  # `has_many` y no `has_one`: una persona puede tener el mismo rol en varios
+  # colegios —un alumno que se cambia de plantel, un profesor que dicta en dos—.
+  # Es el caso normal en Venezuela, y con `has_one` no se podía ni representar.
+  #
+  # `student` / `teacher` / `admin` en singular siguen existiendo abajo: devuelven
+  # el rol EN EL COLEGIO ACTUAL, que es lo que casi todo el código necesita.
+  has_many :students, dependent: :destroy
+  has_many :teachers, dependent: :destroy
+  has_many :admins,   dependent: :destroy
+
+  # El rol en el colegio de la sesión. `Current.school` lo pone el `around_action`
+  # a partir del rol del usuario autenticado, nunca de un parámetro.
+  def student = students.find_by(school_id: Current.school_id) || students.first
+  def teacher = teachers.find_by(school_id: Current.school_id) || teachers.first
+  def admin   = admins.find_by(school_id: Current.school_id)   || admins.first
 
   validates :document,       uniqueness: true, allow_nil: true
   validates :cedula_escolar, uniqueness: true, allow_nil: true

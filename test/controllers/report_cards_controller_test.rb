@@ -106,7 +106,7 @@ class ReportCardsControllerTest < ActionDispatch::IntegrationTest
     boletin = Current.sin_aislamiento { ReportCard.unscoped.order(:id).last }
 
     con_el_colegio(@esc.colegio) do
-      ActivityGrade.find_by(evaluation_activity: @examen, student_id: @esc.alumno(1).user_id).update!(score: 5)
+      ActivityGrade.find_by(evaluation_activity: @examen, student_id: @esc.alumno(1).id).update!(score: 5)
     end
 
     matematica = Current.sin_aislamiento { boletin.reload }.snapshot["materias"].find { |m| m["materia"] == "Matemática" }

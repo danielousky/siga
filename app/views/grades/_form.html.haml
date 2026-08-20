@@ -31,7 +31,7 @@
 
   .form-group
     = f.label :leader_teacher_id, "Profesor guía", class: "form-label"
-    = f.select :leader_teacher_id, Teacher.includes(:user).map { |t| [t.user.first_name + " " + t.user.last_name, t.user_id] }, { include_blank: "Ninguno" }, class: "form-select"
+    = f.select :leader_teacher_id, Teacher.includes(:user).map { |t| [t.user.first_name + " " + t.user.last_name, t.id] }, { include_blank: "Ninguno" }, class: "form-select"
 
   .form-acciones
 

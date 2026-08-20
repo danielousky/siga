@@ -31,8 +31,8 @@
     %ul.carga-lista
       - @inscripciones.each do |inscripcion|
         - alumno = inscripcion.student
-        - nota   = @notas_por_alumno[alumno.user_id]
-        %li.carga-fila{data: { carga_notas_target: "fila", alumno: alumno.user_id }}
+        - nota   = @notas_por_alumno[alumno.id]
+        %li.carga-fila{data: { carga_notas_target: "fila", alumno: alumno.id }}
           .carga-alumno
             .carga-alumno-nombre= "#{alumno.user.last_name}, #{alumno.user.first_name}"
             .carga-alumno-carnet= alumno.school_card

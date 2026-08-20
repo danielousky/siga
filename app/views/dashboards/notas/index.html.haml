@@ -85,7 +85,7 @@
             .nota-cabecera
               %span.nota-valor{class: materia.nota_lapso >= 10 ? "nota-valor--aprobada" : "nota-valor--aplazada"}= materia.nota_lapso
               - if materia.parcial?
-                %span.nota-parcial= "parcial · sobre #{number_with_precision(materia.peso_cargado, precision: materia.peso_cargado.frac.zero? ? 0 : 2)} % corregido"
+                %span.nota-parcial= "parcial · sobre #{number_with_precision(materia.peso_cargado, precision: materia.peso_cargado.to_d.frac.zero? ? 0 : 2)} % corregido"
           - else
             .nota-cabecera
               %span.nota-pendiente Sin nota todavía

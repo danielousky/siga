@@ -41,7 +41,7 @@ class StudentsController < ApplicationController
                            .find(&:regular?)
 
     @responsables = StudentRepresentative
-                      .where(student_id: @student.user_id)
+                      .where(student_id: @student.id)
                       .includes(representative: :user)
                       .order(principal: :desc)
 

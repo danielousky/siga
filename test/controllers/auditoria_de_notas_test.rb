@@ -17,7 +17,7 @@ class AuditoriaDeNotasTest < ActionDispatch::IntegrationTest
   end
 
   def cambiar(score)
-    patch evaluation_activity_nota_path(@actividad, @alumno.user_id),
+    patch evaluation_activity_nota_path(@actividad, @alumno.id),
           params: { score: score }, as: :json
   end
 
@@ -85,7 +85,7 @@ class AuditoriaDeNotasTest < ActionDispatch::IntegrationTest
     end
 
     nota = con_el_colegio(@a.escenario.colegio) do
-      @actividad.activity_grades.find_by(student_id: @alumno.user_id)
+      @actividad.activity_grades.find_by(student_id: @alumno.id)
     end
     assert_equal 14, nota.score.to_i
   end

@@ -36,7 +36,7 @@ class EvaluationActivity < ApplicationRecord
               ON teacher_sections.section_id = evaluation_activities.section_id
              AND teacher_sections.subject_id = evaluation_activities.subject_id
     SQL
-      .where(teacher_sections: { teacher_id: teacher.user_id })
+      .where(teacher_sections: { teacher_id: teacher.id })
   }
 
   # Todas las evaluaciones de un mismo lapso de una materia en una sección: el

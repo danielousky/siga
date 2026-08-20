@@ -16,7 +16,7 @@ class Grade < ApplicationRecord
   enum :escala, { numerica: 0, literal: 1 }, prefix: :escala
 
   belongs_to :school
-  belongs_to :leader_teacher, class_name: "Teacher", primary_key: :user_id, optional: true
+  belongs_to :leader_teacher, class_name: "Teacher", optional: true
 
   # El profesor guía tiene que ser del mismo colegio que el grado.
   validates_same_school :leader_teacher

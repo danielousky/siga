@@ -64,7 +64,7 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
     vencer!(@a)
     sign_in @a.profesor
 
-    patch "/evaluation_activities/#{@a.actividad.id}/notas/#{@a.alumno.user_id}",
+    patch "/evaluation_activities/#{@a.actividad.id}/notas/#{@a.alumno.id}",
           params: { score: "20" }, as: :json
 
     assert_response :payment_required

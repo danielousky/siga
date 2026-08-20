@@ -106,7 +106,7 @@ class PortalRepresentanteTest < ActionDispatch::IntegrationTest
     sign_in @madre
 
     assert_no_difference -> { cantidad(ActivityGrade) } do
-      patch "/evaluation_activities/#{@a.actividad.id}/notas/#{@a.alumno.user_id}",
+      patch "/evaluation_activities/#{@a.actividad.id}/notas/#{@a.alumno.id}",
             params: { score: "20" }, as: :json
     end
   end
@@ -188,13 +188,13 @@ class PortalRepresentanteTest < ActionDispatch::IntegrationTest
         user: { first_name: "Nueva", last_name: "Madre", email: "nueva.madre@portal.test",
                 document: "V-16223004", document_type: "cedula_v" },
         representative: { phone: "0414-9998877" },
-        student_ids: [@a.alumno.user_id]
+        student_ids: [@a.alumno.id]
       }
     end
 
     con_el_colegio(@a.colegio) do
       creado = Representative.joins(:user).find_by(users: { email: "nueva.madre@portal.test" })
-      assert_includes creado.students.map(&:user_id), @a.alumno.user_id
+      assert_includes creado.students.map(&:id), @a.alumno.id
     end
   end
 

@@ -38,7 +38,7 @@ class RepresentanteController < ApplicationController
   end
 
   def hijo
-    @hijo = hijos_con_datos.find { |h| h[:student].user_id == params[:id].to_i }
+    @hijo = hijos_con_datos.find { |h| h[:student].id == params[:id].to_i }
     raise ActiveRecord::RecordNotFound if @hijo.nil?
 
     @inscripcion = @hijo[:inscripcion]
@@ -69,7 +69,7 @@ class RepresentanteController < ApplicationController
   def hijos_con_datos
     @hijos_con_datos ||= @representante.students.includes(:user).map do |alumno|
       inscripcion = Enrollment.includes(section: [:grade, :academic_period])
-                              .where(student_id: alumno.user_id)
+                              .where(student_id: alumno.id)
                               .order(enrollment_date: :desc).first
       { student: alumno, inscripcion: inscripcion }
     end.sort_by { |h| h[:student].user.first_name }

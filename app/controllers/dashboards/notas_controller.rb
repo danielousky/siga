@@ -44,7 +44,7 @@ class Dashboards::NotasController < ApplicationController
     @vista_anual = params[:lapso] == "anual"
 
     actividades = EvaluationActivity.where(section_id: @seccion.id).includes(:subject, :evaluation_moment).to_a
-    notas       = ActivityGrade.where(student_id: @student.user_id,
+    notas       = ActivityGrade.where(student_id: @student.id,
                                       evaluation_activity_id: actividades.map(&:id)).index_by(&:evaluation_activity_id)
     lapsos_alumno = MomentGrade.where(enrollment_id: @enrollment.id)
                                .index_by { |mg| [mg.subject_id, mg.evaluation_moment_id] }

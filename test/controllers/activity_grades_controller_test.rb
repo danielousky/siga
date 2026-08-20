@@ -32,7 +32,7 @@ class ActivityGradesControllerTest < ActionDispatch::IntegrationTest
     sign_in @garcia
 
     assert_difference -> { cantidad(ActivityGrade) }, 1 do
-      patch evaluation_activity_nota_url(@examen, @esc.alumno(1).user_id),
+      patch evaluation_activity_nota_url(@examen, @esc.alumno(1).id),
             params: { score: "18" }, as: :json
     end
 
@@ -47,10 +47,10 @@ class ActivityGradesControllerTest < ActionDispatch::IntegrationTest
   test "volver a mandar la misma nota la actualiza, no la duplica" do
     sign_in @garcia
 
-    patch evaluation_activity_nota_url(@examen, @esc.alumno(1).user_id), params: { score: "18" }, as: :json
+    patch evaluation_activity_nota_url(@examen, @esc.alumno(1).id), params: { score: "18" }, as: :json
 
     assert_no_difference -> { cantidad(ActivityGrade) } do
-      patch evaluation_activity_nota_url(@examen, @esc.alumno(1).user_id), params: { score: "12" }, as: :json
+      patch evaluation_activity_nota_url(@examen, @esc.alumno(1).id), params: { score: "12" }, as: :json
     end
 
     assert_equal 12, response.parsed_body["nota"]
@@ -62,10 +62,10 @@ class ActivityGradesControllerTest < ActionDispatch::IntegrationTest
 
   test "mandar el campo vacío BORRA la nota y devuelve al alumno a sin nota" do
     sign_in @garcia
-    patch evaluation_activity_nota_url(@examen, @esc.alumno(1).user_id), params: { score: "18" }, as: :json
+    patch evaluation_activity_nota_url(@examen, @esc.alumno(1).id), params: { score: "18" }, as: :json
 
     assert_difference -> { cantidad(ActivityGrade) }, -1 do
-      patch evaluation_activity_nota_url(@examen, @esc.alumno(1).user_id), params: { score: "" }, as: :json
+      patch evaluation_activity_nota_url(@examen, @esc.alumno(1).id), params: { score: "" }, as: :json
     end
 
     assert_response :success
@@ -76,8 +76,8 @@ class ActivityGradesControllerTest < ActionDispatch::IntegrationTest
 
   test "borrar una nota no deja al alumno con el promedio en cero" do
     sign_in @garcia
-    patch evaluation_activity_nota_url(@examen, @esc.alumno(1).user_id), params: { score: "18" }, as: :json
-    patch evaluation_activity_nota_url(@examen, @esc.alumno(1).user_id), params: { score: "" }, as: :json
+    patch evaluation_activity_nota_url(@examen, @esc.alumno(1).id), params: { score: "18" }, as: :json
+    patch evaluation_activity_nota_url(@examen, @esc.alumno(1).id), params: { score: "" }, as: :json
 
     con_el_colegio(@esc.colegio) do
       resultado = GradeCalculator.calculate_moment_grade(
@@ -96,7 +96,7 @@ class ActivityGradesControllerTest < ActionDispatch::IntegrationTest
 
     ["0", "21", "-3"].each do |invalida|
       assert_no_difference -> { cantidad(ActivityGrade) } do
-        patch evaluation_activity_nota_url(@examen, @esc.alumno(1).user_id), params: { score: invalida }, as: :json
+        patch evaluation_activity_nota_url(@examen, @esc.alumno(1).id), params: { score: invalida }, as: :json
       end
 
       assert_response :unprocessable_entity
@@ -124,7 +124,7 @@ class ActivityGradesControllerTest < ActionDispatch::IntegrationTest
     sign_in @garcia
 
     assert_no_difference -> { cantidad(ActivityGrade) } do
-      patch evaluation_activity_nota_url(@examen, otro.alumno.user_id), params: { score: "20" }, as: :json
+      patch evaluation_activity_nota_url(@examen, otro.alumno.id), params: { score: "20" }, as: :json
     end
 
     assert_response :not_found

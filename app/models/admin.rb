@@ -1,8 +1,6 @@
 class Admin < ApplicationRecord
   include SchoolScoped
 
-  self.primary_key = :user_id
-
   # ⚠️ Los cinco son roles DENTRO de un colegio. `desarrollador` es el
   # super-admin de ESE colegio, no "gente de SIGA": eso vive en `SigaStaff`, sin
   # `school_id` (MOR-133).

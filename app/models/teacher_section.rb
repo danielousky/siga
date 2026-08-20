@@ -1,7 +1,7 @@
 class TeacherSection < ApplicationRecord
   include SchoolScoped
 
-  belongs_to :teacher, primary_key: :user_id
+  belongs_to :teacher
   belongs_to :section
   belongs_to :subject
 

@@ -48,7 +48,7 @@
       - vinculados = representative.persisted? ? representative.student_ids : []
       - Student.includes(:user).order("users.last_name").each do |alumno|
         %label.representante-alumno
-          = check_box_tag "student_ids[]", alumno.user_id, vinculados.include?(alumno.user_id)
+          = check_box_tag "student_ids[]", alumno.id, vinculados.include?(alumno.id)
           %span= "#{alumno.user.last_name}, #{alumno.user.first_name}"
 
   = submit_tag(representative.persisted? ? "Guardar" : "Registrar", class: "btn btn-primary")
