@@ -1,0 +1,16 @@
+%p= "Hola, #{@usuario.first_name}:"
+
+%p
+  %strong= @colegio.name
+  registró su acceso a SIGA, donde puede consultar las notas, la asistencia y los
+  boletines de sus representados.
+
+%p= link_to "Elegir mi contraseña y entrar", @url
+
+%p
+  El enlace sirve una sola vez y vence en #{@horas} horas. Si vence, pídale uno
+  nuevo al colegio: no se pierde nada.
+
+%p
+  Si no reconoce este mensaje, ignórelo. Nadie puede entrar a la cuenta hasta que
+  alguien abra ese enlace y elija una contraseña.

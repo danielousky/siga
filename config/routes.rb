@@ -115,7 +115,20 @@ Rails.application.routes.draw do
     delete :sello, action: :quitar_sello, as: :quitar_sello
   end
 
-  resources :representatives, path: "representantes"
+  # La activación del acceso (MOR-143). Es `recoverable` de Devise con otro
+  # texto: el colegio genera el código, la persona elige su contraseña.
+  #
+  # ⚠️ PÚBLICA, y tiene que serlo: quien abre este enlace todavía no tiene
+  # contraseña, así que no puede estar del otro lado de `authenticate_user!`.
+  # Lo que la protege es el código, que es de un solo uso y caduca.
+  get   "activar/:token", to: "activaciones#edit",   as: :activar
+  patch "activar",        to: "activaciones#update", as: :activacion
+
+  resources :representatives, path: "representantes" do
+    # POST y no GET: genera un código nuevo e invalida el anterior. Un enlace
+    # que un navegador puede pre-cargar no debería cambiar nada.
+    post :codigo, on: :member, action: :generar_codigo
+  end
   resources :departments, except: [ :show ]
   resources :subjects
   resources :academic_periods, except: [ :show ]

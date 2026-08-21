@@ -13,6 +13,7 @@ import { application } from "controllers/application"
 import AsistenciaController from "controllers/asistencia_controller"
 import AutoEnvioController from "controllers/auto_envio_controller"
 import CargaNotasController from "controllers/carga_notas_controller"
+import CopiarController from "controllers/copiar_controller"
 import PasswordVisibilityController from "controllers/password_visibility_controller"
 import PonderacionController from "controllers/ponderacion_controller"
 import SearchFilterController from "controllers/search_filter_controller"
@@ -20,6 +21,7 @@ import SearchFilterController from "controllers/search_filter_controller"
 application.register("asistencia", AsistenciaController)
 application.register("auto-envio", AutoEnvioController)
 application.register("carga-notas", CargaNotasController)
+application.register("copiar", CopiarController)
 application.register("password-visibility", PasswordVisibilityController)
 application.register("ponderacion", PonderacionController)
 application.register("search-filter", SearchFilterController)

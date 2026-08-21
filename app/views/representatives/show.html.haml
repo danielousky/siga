@@ -14,15 +14,40 @@
     %dd= @representative.phone.presence || "—"
     %dt Cédula
     %dd= @representative.user.identificador.presence || "—"
-    %dt Acceso
+
+.card-academic
+  .card-academic-header
+    %h2 Acceso al sistema
+
+  - if flash[:codigo].present?
+    -# Se ve UNA vez y nunca más: Devise guarda el token digerido, así que ni
+    -# esta pantalla ni ninguna otra puede volver a leerlo. Que no quede visible
+    -# de forma permanente es la propiedad que se quiere, no una limitación —
+    -# una pantalla con el código vigente de cualquier representante sería una
+    -# lista de llaves de todas las casas.
+    .codigo-de-acceso{"data-controller": "copiar"}
+      %p.codigo-de-acceso-aviso
+        Este enlace se ve una sola vez. Sirve por 72 horas y para un solo uso.
+      %p.codigo-de-acceso-enlace{"data-copiar-target": "fuente"}= activar_url(flash[:codigo])
+      = button_tag "Copiar el enlace", type: "button", class: "btn btn-secondary",
+                   "data-action": "copiar#copiar", "data-copiar-target": "boton"
+
+  %dl.detalle
+    %dt Estado
     %dd
-      -# Gris y no ámbar a propósito: que todavía no haya entrado es un HECHO,
-      -# no una alerta. La regla de color reserva el ámbar para lo que exige
-      -# actuar ya, y acá lo que hay que hacer se dice en palabras.
       - if @representative.user.puede_entrar?
         %span.estado.estado--al-dia Activo
       - else
         %span.estado.estado--inactivo Sin activar
+
+  = button_to (@representative.user.puede_entrar? ? "Regenerar el código de acceso" : "Generar el código de acceso"),
+              codigo_representative_path(@representative), class: "btn btn-primary"
+  %p.nota-ayuda
+    - if @representative.user.email.present?
+      Se le envía por correo y además queda visible acá una sola vez.
+    - else
+      Queda visible acá una sola vez: cópielo y hágaselo llegar como prefiera.
+    Generar uno nuevo invalida el anterior.
 
 .card-academic
   .card-academic-header

@@ -3618,3 +3618,34 @@ nav.pagy a.gap {
 .identidad-firma-imagen { max-width: 220px; max-height: 70px; object-fit: contain; }
 
 .identidad-sello-imagen { max-width: 110px; max-height: 110px; object-fit: contain; }
+
+/* El enlace de activación, que se ve una sola vez (MOR-143).
+   ─────────────────────────────────────────────────────────
+   Tratado como un dato frágil y no como un aviso: quien lo tiene delante lo va
+   a copiar y pegar en WhatsApp, y perder tres caracteres de la URL rompe el
+   enlace sin decir por qué. De ahí el monoespaciado y el `word-break`.
+
+   Sin color semántico: no es un éxito ni un peligro, es algo que hay que
+   copiar ahora. Lo que lo destaca es el marco y la tipografía, no el tono. */
+.codigo-de-acceso {
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-input);
+}
+
+.codigo-de-acceso-aviso {
+  margin: 0 0 var(--space-sm);
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.codigo-de-acceso-enlace {
+  margin: 0 0 var(--space-md);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-all;
+  user-select: all;
+}

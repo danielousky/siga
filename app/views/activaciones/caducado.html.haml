@@ -1,0 +1,15 @@
+.card-academic.acceso
+  %h1.acceso-titulo Este enlace ya no sirve
+
+  -# Un código que no existe y uno que caducó dan la misma pantalla a propósito:
+  -# no hay nada útil que distinguirle a quien no lo tiene, y sí hay algo que
+  -# aprender para quien lo está adivinando.
+  %p
+    Los enlaces de acceso sirven una sola vez y vencen a las 72 horas. Puede que
+    ya lo haya usado, o que haya pasado el plazo.
+
+  %p.nota-ayuda
+    Pídale uno nuevo al colegio: no se pierde nada, se genera en el momento.
+
+  .acceso-pie
+    = link_to "Ir a la pantalla de ingreso", new_user_session_path

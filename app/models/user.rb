@@ -92,6 +92,42 @@ class User < ApplicationRecord
   # —"todavía no ha activado su acceso"—, no porque cambie el comportamiento.
   def puede_entrar? = encrypted_password.present?
 
+  # --- activar el acceso (MOR-143) ----------------------------------------
+
+  # Genera el código de un solo uso con el que esta persona entra por primera
+  # vez, y devuelve el valor EN CLARO.
+  #
+  # Es `reset_password_token` de Devise, sin disfraz: genera, digiere, guarda el
+  # hash y caduca. Reimplementarlo sería escribir de nuevo, peor, código que ya
+  # está probado por miles de aplicaciones. Lo único que cambia es de dónde sale
+  # el disparo —la secretaria, no el usuario— y qué dice el mensaje.
+  #
+  # ⚠️ El valor devuelto existe UNA sola vez, acá, en memoria. En la columna
+  # queda el digest, así que no se puede volver a mostrar: si se perdió, se
+  # regenera. Eso no es una limitación que haya que sortear — es la propiedad
+  # que se quiere. Una pantalla que muestre el código vigente de cualquier
+  # representante es una lista de llaves de todas las casas.
+  def generar_codigo_de_acceso!
+    set_reset_password_token
+  end
+
+  # Un código de ACTIVACIÓN vive 72 horas; uno de recuperación, las 6 de Devise.
+  #
+  # No son el mismo riesgo ni el mismo apuro. Quien pidió recuperar su
+  # contraseña está sentado frente a la pantalla esperando el correo. A quien lo
+  # activan no pidió nada: la secretaria carga la matrícula un jueves y la mamá
+  # abre el mensaje el domingo.
+  #
+  # La diferencia se deduce del estado, sin guardar ninguna bandera: quien
+  # todavía no tiene contraseña está activando, no recuperando.
+  ACTIVACION_VALIDA_POR = 72.hours
+
+  def reset_password_period_valid?
+    return super if puede_entrar?
+
+    reset_password_sent_at && reset_password_sent_at.utc >= ACTIVACION_VALIDA_POR.ago.utc
+  end
+
   # --- Devise -------------------------------------------------------------
 
   # Un alumno de 2do grado no tiene correo y no lo necesita: no es una cuenta,

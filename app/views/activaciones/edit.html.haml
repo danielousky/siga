@@ -1,0 +1,34 @@
+.card-academic.acceso
+  %h1.acceso-titulo= "Bienvenido, #{@usuario.first_name}"
+
+  %p.nota-ayuda
+    Elija una contraseña para entrar a SIGA. De ahora en adelante entra con ella.
+
+  = form_with(model: @usuario, url: activacion_path, method: :patch, scope: :user) do |f|
+    = render "shared/errors", object: @usuario
+    = hidden_field_tag "user[token]", @token
+
+    -# El correo solo se pide si falta. Se pide JUNTO con la contraseña y no
+    -# después porque aceptarlos por separado deja a alguien con contraseña
+    -# puesta y sin correo: o sea, sin ninguna forma de recuperarla. Devise solo
+    -# sabe escribirle al correo del usuario.
+    - if @pide_correo
+      .form-group
+        = f.label :email, "Su correo electrónico", class: "form-label"
+        = f.email_field :email, autofocus: true, required: true, class: "form-control"
+        %p.nota-ayuda
+          Con este correo entra al sistema, y es por donde va a poder recuperar
+          su contraseña si la olvida.
+
+    .form-group
+      = f.label :password, "Contraseña", class: "form-label"
+      = f.password_field :password, autocomplete: "new-password", required: true,
+                         autofocus: !@pide_correo, class: "form-control"
+      %p.nota-ayuda= "Mínimo #{User.password_length.min} caracteres."
+
+    .form-group
+      = f.label :password_confirmation, "Repita la contraseña", class: "form-label"
+      = f.password_field :password_confirmation, autocomplete: "new-password",
+                         required: true, class: "form-control"
+
+    = f.submit "Entrar a SIGA", class: "btn btn-primary acceso-enviar"
