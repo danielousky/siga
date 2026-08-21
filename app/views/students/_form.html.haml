@@ -1,8 +1,8 @@
 = form_with(model: student) do |f|
   = render "shared/errors", object: student
 
-  .card-academic
-    %h3{style: "margin-bottom: var(--space-lg);"} Datos del usuario
+  .form-seccion
+    %h2.form-seccion-titulo Datos de la persona
     = f.fields_for :user do |u|
       .form-group
         = u.label :first_name, "Nombres", class: "form-label"
@@ -40,15 +40,14 @@
         -# bachiller que sí tenga, pero dejarlo vacío es lo normal.
         %p.nota-ayuda Opcional. Quien consulta las notas del alumno es su representante.
 
-  .card-academic
-    %h3{style: "margin-bottom: var(--space-lg);"} Datos del estudiante
+  .form-seccion
+    %h2.form-seccion-titulo Datos del estudiante
     .form-group
       = f.label :school_card, "Carnet escolar", class: "form-label"
       = f.text_field :school_card, class: "form-control", placeholder: "Número de carnet"
+      %p.nota-ayuda Lo numera el colegio. No es la cédula escolar, que la asigna el MPPE.
 
-  .actions-group
-    .form-acciones
-      = f.submit "Guardar registro", class: "btn btn-primary"
-      - if local_assigns[:volver]
-        = link_to "Volver", volver, class: "btn btn-secondary"
-    = link_to "Cancelar", students_path, class: "btn btn-secondary"
+  .form-acciones
+    = f.submit "Guardar registro", class: "btn btn-primary"
+    - if local_assigns[:volver]
+      = link_to "Volver", volver, class: "btn btn-secondary"

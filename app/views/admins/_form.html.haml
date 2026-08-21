@@ -1,8 +1,8 @@
 = form_with(model: admin) do |f|
   = render "shared/errors", object: admin
 
-  %fieldset
-    %legend Datos del Usuario
+  .form-seccion
+    %h2.form-seccion-titulo Datos de la persona
     = f.fields_for :user do |u|
       .form-group
         = u.label :first_name, "Nombres", class: "form-label"
@@ -16,7 +16,7 @@
           = u.text_field :second_last_name, class: "form-control"
       .form-row
         .form-group
-          = u.label :document, "Cédula", class: "form-label"
+          = u.label :document, "Cédula de identidad", class: "form-label"
           = u.text_field :document, class: "form-control"
         .form-group
           = u.label :document_type, "Tipo de documento", class: "form-label"
@@ -28,6 +28,10 @@
         .form-group
           = u.label :sex, "Sexo", class: "form-label"
           = u.select :sex, User::SEX_LABELS.map { |v, t| [t, v] }, { include_blank: "—" }, class: "form-select"
+
+  .form-seccion
+    %h2.form-seccion-titulo Cómo entra al sistema
+    = f.fields_for :user do |u|
       .form-group
         = u.label :email, "Correo electrónico", class: "form-label"
         = u.email_field :email, class: "form-control", required: true
@@ -45,16 +49,13 @@
           = u.label :password_confirmation, "Repita la contraseña", class: "form-label"
           = u.password_field :password_confirmation, class: "form-control", required: true
 
-  %fieldset
-    %legend Datos del Administrador
+  .form-seccion
+    %h2.form-seccion-titulo Su rol en el colegio
     .form-group
       = f.label :role, "Rol", class: "form-label"
       = f.select :role, Admin.roles.keys.map { |r| [r.humanize, r] }, { include_blank: "Seleccione..." }, class: "form-select"
 
   .form-acciones
-
     = f.submit class: "btn btn-primary"
-
     - if local_assigns[:volver]
-
       = link_to "Volver", volver, class: "btn btn-secondary"

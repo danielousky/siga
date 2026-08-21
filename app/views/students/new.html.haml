@@ -1,5 +1,5 @@
-%h1 Registrar nuevo estudiante
+.card-academic
+  .card-academic-header
+    %h1 Registrar nuevo estudiante
 
-%p.entrada-pagina Complete el formulario para registrar un nuevo estudiante en el sistema.
-
-= render "form", student: @student
+  = render "form", student: @student, volver: students_path

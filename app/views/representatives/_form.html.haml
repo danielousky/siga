@@ -2,53 +2,73 @@
 -# usuario, después asígnele el rol"— es pedirle a la secretaría que entienda el
 -# modelo de datos para hacer su trabajo, y eso termina en una llamada por
 -# teléfono.
-= form_with url: (representative.persisted? ? representative_path(representative) : representatives_path), method: (representative.persisted? ? :patch : :post), class: "" do
+= form_with url: (representative.persisted? ? representative_path(representative) : representatives_path), method: (representative.persisted? ? :patch : :post) do
   = render "shared/errors", object: usuario
   = render "shared/errors", object: representative
 
-  .form-row
-    .form-group
-      = label_tag "user[first_name]", "Nombre", class: "form-label"
-      = text_field_tag "user[first_name]", usuario.first_name, class: "form-control"
-    .form-group
-      = label_tag "user[last_name]", "Primer apellido", class: "form-label"
-      = text_field_tag "user[last_name]", usuario.last_name, class: "form-control"
-    .form-group
-      = label_tag "user[second_last_name]", "Segundo apellido", class: "form-label"
-      = text_field_tag "user[second_last_name]", usuario.second_last_name, class: "form-control"
+  .form-seccion
+    %h2.form-seccion-titulo Quién es
+    .form-row
+      .form-group
+        = label_tag "user[first_name]", "Nombres", class: "form-label"
+        = text_field_tag "user[first_name]", usuario.first_name, class: "form-control"
+      .form-group
+        = label_tag "user[last_name]", "Primer apellido", class: "form-label"
+        = text_field_tag "user[last_name]", usuario.last_name, class: "form-control"
+      .form-group
+        = label_tag "user[second_last_name]", "Segundo apellido", class: "form-label"
+        = text_field_tag "user[second_last_name]", usuario.second_last_name, class: "form-control"
 
-  .form-row
-    .form-group
-      = label_tag "user[document]", "Cédula", class: "form-label"
-      = text_field_tag "user[document]", usuario.document, class: "form-control", placeholder: "V-12345678"
-    .form-group
-      = label_tag "user[document_type]", "Tipo de documento", class: "form-label"
-      = select_tag "user[document_type]", options_for_select(User::DOCUMENT_TYPE_LABELS.map { |v, t| [t, v] }, usuario.document_type), include_blank: "—", class: "form-select"
+    .form-row
+      .form-group
+        = label_tag "user[document]", "Cédula de identidad", class: "form-label"
+        = text_field_tag "user[document]", usuario.document, class: "form-control", placeholder: "V-12345678"
+      .form-group
+        = label_tag "user[document_type]", "Tipo de documento", class: "form-label"
+        = select_tag "user[document_type]", options_for_select(User::DOCUMENT_TYPE_LABELS.map { |v, t| [t, v] }, usuario.document_type), include_blank: "—", class: "form-select"
+      .form-group
+        = label_tag "user[cedula_escolar]", "Cédula escolar", class: "form-label"
+        = text_field_tag "user[cedula_escolar]", usuario.cedula_escolar, class: "form-control", placeholder: "V20140000001"
 
-  .form-row
-    .form-group
-      = label_tag "user[email]", "Correo electrónico", class: "form-label"
-      = email_field_tag "user[email]", usuario.email, class: "form-control"
-      %small.nota-ayuda
-        Si esta persona ya tiene cuenta en el sistema —porque trabaja aquí o ya
-        representa a otro alumno— se reutiliza la misma.
-    .form-group
-      = label_tag "user[document]", "Cédula", class: "form-label"
-      = text_field_tag "user[document]", usuario.document, class: "form-control"
+    %p.nota-ayuda
+      Si esta persona ya existe en SIGA —porque trabaja aquí, o ya representa a
+      otro alumno, o tiene un hijo en otro colegio— se reutiliza su registro. La
+      encontramos por la cédula, así que da igual cómo la escriba.
 
-  .form-group
-    = label_tag "representative[phone]", "Teléfono", class: "form-label"
-    = telephone_field_tag "representative[phone]", representative.phone, class: "form-control", placeholder: "0414-1234567"
+  .form-seccion
+    %h2.form-seccion-titulo Cómo la contacta el colegio
+    .form-row
+      .form-group
+        = label_tag "user[email]", "Correo electrónico", class: "form-label"
+        = email_field_tag "user[email]", usuario.email, class: "form-control"
+        %p.nota-ayuda
+          Con este correo entra a consultar las notas. Si no lo tiene, déjelo
+          vacío: el acceso se le puede dar después.
+      .form-group
+        = label_tag "representative[phone]", "Teléfono", class: "form-label"
+        = telephone_field_tag "representative[phone]", representative.phone, class: "form-control", placeholder: "0414-1234567"
 
-  .form-group
-    = label_tag :student_ids, "Alumnos que representa", class: "form-label"
-    %small.nota-ayuda
-      El listado solo trae alumnos de este colegio: Student es SchoolScoped.
+  .form-seccion{"data-controller": "filtro-local"}
+    %h2.form-seccion-titulo Alumnos que representa
+
+    -# El filtro corre en el NAVEGADOR, no en el servidor: las casillas ya están
+    -# en la página, y recargarlas perdería lo que la persona lleva marcado.
+    -# Con 200 alumnos, encontrar a uno scrolleando es el trabajo que nadie hace.
+    .form-group.lista-filtrable-buscar
+      = label_tag :filtro_alumnos, "Buscar", class: "form-label"
+      = text_field_tag :filtro_alumnos, nil, class: "form-control", autocomplete: "off",
+                       placeholder: "Escriba un apellido",
+                       data: { "filtro-local-target": "buscar", action: "input->filtro-local#filtrar" }
+
     .representante-alumnos
       - vinculados = representative.persisted? ? representative.student_ids : []
       - Student.includes(:user).order("users.last_name").each do |alumno|
-        %label.representante-alumno
+        %label.representante-alumno{"data-filtro-local-target": "item"}
           = check_box_tag "student_ids[]", alumno.id, vinculados.include?(alumno.id)
           %span= alumno.user.apellidos_y_nombres
+      %p.lista-filtrable-vacio{hidden: true, "data-filtro-local-target": "vacio"}
+        Ningún alumno de este colegio coincide con lo que escribió.
 
-  = submit_tag(representative.persisted? ? "Guardar" : "Registrar", class: "btn btn-primary")
+  .form-acciones
+    = submit_tag(representative.persisted? ? "Guardar cambios" : "Registrar", class: "btn btn-primary")
+    = link_to "Volver", representatives_path, class: "btn btn-secondary"

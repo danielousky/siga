@@ -18,9 +18,6 @@
     = f.date_field :end_date, class: "form-control"
 
   .form-acciones
-
     = f.submit class: "btn btn-primary"
-
     - if local_assigns[:volver]
-
       = link_to "Volver", volver, class: "btn btn-secondary"

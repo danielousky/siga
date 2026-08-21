@@ -14,9 +14,6 @@
     = f.select :department_id, Department.order(:name).map { |d| [d.name, d.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
   .form-acciones
-
     = f.submit class: "btn btn-primary"
-
     - if local_assigns[:volver]
-
       = link_to "Volver", volver, class: "btn btn-secondary"

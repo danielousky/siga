@@ -46,7 +46,7 @@
         = text_field_tag "director[second_last_name]", @usuario&.second_last_name, class: "form-control"
     .form-row
       .form-group
-        = label_tag "director[document]", "Cédula", class: "form-label"
+        = label_tag "director[document]", "Cédula de identidad", class: "form-label"
         = text_field_tag "director[document]", @usuario&.document, class: "form-control", placeholder: "V-12345678"
       .form-group
         = label_tag "director[document_type]", "Tipo de documento", class: "form-label"

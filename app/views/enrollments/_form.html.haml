@@ -18,9 +18,6 @@
     = f.select :status, Enrollment.statuses.keys.map { |s| [s.humanize, s] }, {}, class: "form-select"
 
   .form-acciones
-
     = f.submit class: "btn btn-primary"
-
     - if local_assigns[:volver]
-
       = link_to "Volver", volver, class: "btn btn-secondary"

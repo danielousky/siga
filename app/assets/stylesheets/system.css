@@ -3665,3 +3665,41 @@ nav.pagy a.gap {
   word-break: break-all;
   user-select: all;
 }
+
+/* Grupos de campos dentro de un formulario.
+   ─────────────────────────────────────────
+   Reemplaza a `%fieldset` + `%legend`, que en el tema del colegio **no tenían
+   ninguna regla**: el navegador los dibujaba con su borde gris hundido y la
+   etiqueta flotando encima del trazo. Adentro de una `.card-academic` eso se
+   veía como una caja mal pegada dentro de otra caja.
+
+   Acá el grupo no dibuja marco: separa. Es la misma idea que
+   `.card-academic-header` —una línea y un título— un escalón más abajo. */
+.form-seccion + .form-seccion {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.form-seccion-titulo {
+  margin: 0 0 var(--space-md);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* Buscador local de una lista larga de casillas.
+   No va al servidor: filtra lo que ya está en la página. Con 200 alumnos en el
+   colegio, encontrar a uno scrolleando es el trabajo que nadie quiere hacer. */
+.lista-filtrable-buscar {
+  margin-bottom: var(--space-sm);
+}
+
+.lista-filtrable-vacio {
+  padding: var(--space-md);
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-style: italic;
+}
