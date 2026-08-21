@@ -92,6 +92,40 @@ class UserTest < ActiveSupport::TestCase
     assert_not User.new(first_name: "Nadie", last_name: "Sin Nada").valid?
   end
 
+  # ⚠️ La regresión que rompió producción.
+  #
+  # `MOR-138` agregó `tiene_algun_identificador` sobre una tabla que YA tenía
+  # datos. En producción 298 de 313 filas no lo cumplían, y el efecto no fue un
+  # error al crear: fueron 298 usuarios CONGELADOS. Cualquier `save` fallaba,
+  # incluido el de Devise al cambiar la contraseña — así que la fila no se podía
+  # ni arreglar.
+  #
+  # `bin/ci` no lo veía porque los seeds regeneran todo desde cero y ahí todos
+  # cumplen. Para reproducirlo hay que saltarse la validación al crear, que es
+  # exactamente lo que hizo la migración.
+  test "una fila que ya existía sin identificador puede cambiar su contraseña" do
+    legado = User.new(first_name: "Ramón", last_name: "Díaz", email: "legado@siga.test")
+    legado.save!(validate: false)
+
+    assert legado.reset_password("clave-nueva", "clave-nueva"),
+           "quedó congelado: #{legado.errors.full_messages.to_sentence}"
+    assert legado.reload.valid_password?("clave-nueva")
+  end
+
+  test "pero no puede BORRAR el identificador que ya tenía" do
+    persona = User.create!(first_name: "Con", last_name: "Cédula",
+                           document: "99000010", document_type: :cedula_v)
+
+    persona.document = ""
+
+    assert_not persona.valid?
+  end
+
+  test "y una fila nueva sigue necesitando uno" do
+    assert_not User.new(first_name: "Nueva", last_name: "SinNada",
+                        email: "nueva@siga.test").valid?
+  end
+
   # ── normalización del documento ───────────────────────────────────────────
 
   test "la cédula se guarda con solo dígitos, la escriban como la escriban" do

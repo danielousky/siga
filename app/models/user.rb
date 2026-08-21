@@ -218,10 +218,33 @@ class User < ApplicationRecord
   #
   # No es `presence` sobre ninguno de los dos por separado: un alumno de primaria
   # normalmente NO tiene cédula, y un profesor NUNCA tiene cédula escolar.
+  #
+  # ⚠️ Y NO se aplica a una fila que ya existía sin identificador.
+  #
+  # Esta validación nació con `MOR-138`, sobre una tabla que ya tenía datos. En
+  # producción **298 de 313 usuarios** no la cumplían —todos los alumnos, los
+  # tres administradores y el equipo de SIGA— y el efecto no fue un error al
+  # crear: fue dejarlos CONGELADOS. Cualquier `save` fallaba, incluido el de
+  # Devise al cambiar la contraseña. O sea que la fila no se podía ni arreglar.
+  #
+  # Una validación nueva sobre datos que ya existen es una migración de datos
+  # disfrazada, y `bin/ci` no lo ve porque los seeds regeneran todo desde cero.
+  #
+  # Lo que sí se sigue impidiendo, que es lo que la regla quería decir:
+  #
+  #     nacer sin identificador          → rechazado
+  #     borrar el que ya tenía           → rechazado
+  #     guardar otra cosa de una fila
+  #     que nunca tuvo uno               → permitido, para poder arreglarla
   def tiene_algun_identificador
     return if document.present? || cedula_escolar.present?
+    return if fila_vieja_sin_identificador?
 
     errors.add(:base, "Hace falta la cédula de identidad o la cédula escolar")
+  end
+
+  def fila_vieja_sin_identificador?
+    persisted? && !will_save_change_to_document? && !will_save_change_to_cedula_escolar?
   end
 
   def normalizar_identificadores
