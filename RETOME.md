@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 15 de agosto de 2026 (madrugada)
+# 🔖 Punto de retome — actualizado 21 de agosto de 2026 (madrugada)
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 
@@ -451,6 +451,184 @@ enlazado al final.
   (`danielousky/siga`), así que el workflow de GitHub Actions puede correr —
   decía lo contrario. La rama actual está **21 commits adelante de su remoto**;
   subir es decisión de Daniel.
+
+---
+
+## 17–21 de agosto · SIGA está en producción, y el modelo aguanta a una persona real
+
+### La app corre en Contabo, con dominio y HTTPS
+
+`https://sigaeducando.com` — Dokku 0.38.27, PostgreSQL 18.4, Let's Encrypt con renovación
+automática por el plugin de cron de Dokku (**no** `crontab -l`, que dice "no crontab for root"
+y no significa nada).
+
+Lo que costó descubrir, en orden:
+
+- **La app se conectaba como `postgres`**, que es SUPERUSER y tiene BYPASSRLS. Con eso el
+  aislamiento entre colegios **no se evalúa ni una vez** y nada lo delata. Ahora corre como
+  `siga_app`, dueño de la base, sin ninguno de los dos atributos.
+- **Mi verificación de la contraseña fue un falso positivo.** La probé por `127.0.0.1`, donde
+  `pg_hba.conf` usa `trust`; la app se conecta desde otro contenedor, donde usa `scram-sha-256`.
+  El `ALTER ROLE ... PASSWORD` había fallado en silencio —el heredoc se perdió entre `ssh` y
+  `docker exec`— y la prueba pasaba igual. Se rehízo con `psql -c` y se verificó contra
+  `172.17.0.2`.
+- **Las migraciones no corrían en ningún despliegue.** El `entrypoint` comprobaba `./bin/rails`
+  y el `Procfile` decía `bundle exec rails`. Daniel señaló que en otras apps usa `release:` y
+  que no había doble ejecución — tenía razón y yo había omitido esa opción. Quedó
+  `release: sh -c "..."`, con el `sh -c` porque Dokku no pasa `&&` por un shell.
+- **Let's Encrypt rechazó la orden entera** por tener una IP en la lista de dominios. Culpa mía
+  por agregarla.
+- **HSTS duplicado**: nginx agregaba `max-age=15724800` encima del `max-age=3600` deliberado de
+  Rails. Se apagó con `dokku nginx:set siga hsts false`.
+
+El runbook privado está en `references/SERVIDOR-PRODUCCION.md` (+ `.html`), fuera de git,
+`chmod 600`. Incluye restaurar desde cero y cómo entrar desde otra máquina.
+
+### `MOR-138` · La identidad vive en la persona, no en su rol
+
+Cuatro cosas, y la tercera es la que abrió todo lo demás:
+
+1. **`id_card` → `document` + `document_type`.** El MPPE acepta cuatro documentos, no uno.
+2. **`cedula_escolar` en `users`.** No era el carnet del plantel: es un identificador
+   **nacional** que acompaña al alumno cuando se muda de colegio. El backfill desde
+   `students.school_card` **falló**, y ese fallo es la prueba: 90 de 290 alumnos compartían
+   carnet entre Bolívar y Bello. Eran numeración interna, no cédulas escolares.
+3. **Los roles tienen PK propia.** `students` usaba `user_id` como clave primaria, así que una
+   persona podía ser alumno en **un solo colegio de toda la plataforma**. `representatives` ya
+   tenía la forma correcta: la misma pregunta estaba respondida de dos maneras dentro del
+   mismo modelo. Ahora los cuatro roles llevan `id` propio + ÚNICO `(user_id, school_id)`.
+4. **`name` → `first_name` / `last_name` / `second_last_name`.** El SAIME verifica el PRIMER
+   apellido contra la partida de nacimiento, y con "López Medina" entero eso no coincide nunca.
+
+⚠️ **Tres índices únicos se perdieron en silencio** al recrear las columnas de la migración, y
+`bin/ci` quedó en verde porque ningún test intenta dos veces una operación prohibida. Se
+encontraron **difeando `db/structure.sql` contra el commit anterior**, que de ahora en adelante
+es el paso obligatorio después de una migración que toque claves.
+
+⚠️ **Y los campos nuevos se guardaban sin verse.** Actualicé los 5 formularios y ninguna de las
+~20 vistas de lectura. Lo encontró Daniel mirando la app, no un test.
+
+### Decisión de producto: el alumno no es una cuenta
+
+Se investigó con agentes especialistas y con búsqueda web sobre los competidores globales.
+Todos convergen en lo mismo, y la ley (GDPR/COPPA) los empujó ahí — Venezuela no tiene ley de
+protección de datos, así que acá la razón es puramente de producto:
+
+```
+   Student         nunca entra   ·  el que consulta es su representante
+   Representative  opcional      ·  entra si tiene correo; si no, el colegio se lo pide
+   Teacher         obligado
+   Admin           obligado
+   SigaStaff       obligado
+```
+
+El login sigue siendo el **correo**, no la cédula. Autenticar por cédula se evaluó y se
+descartó: mueve el hueco en vez de taparlo, porque un alumno de primaria tampoco tiene cédula.
+
+De ahí salieron tres issues: `MOR-142`, `MOR-143` y la reescritura de `MOR-126`.
+
+### `MOR-142` · Una persona puede existir en SIGA sin poder entrar — **hecho**
+
+`email` y `encrypted_password` pasan a nullable. Volver `email` nullable **no alcanzaba**: el
+índice único era plano y `''` es un valor como cualquier otro, así que PostgreSQL admitía
+**exactamente un usuario sin correo en toda la plataforma** — el alumno 2 de 360 reventaba.
+Hacen falta las tres cosas y ninguna sirve sola: pasar los `''` a NULL, un índice
+`WHERE email IS NOT NULL`, y que el modelo convierta a `nil` el `""` que manda cada `<input>`.
+
+Sin contraseña nadie entra, y sin agregar ninguna bandera: `Devise::Encryptor.compare` arranca
+con `return false if hashed_password.blank?`.
+
+El correo lo exige el **rol**, no `User` — concern `EntraAlSistema` en `Teacher`, `Admin` y
+`SigaStaff`. Y `document` se normaliza según su tipo: la cédula queda en dígitos (la
+nacionalidad ya está en `document_type`), pero un pasaporte tratado igual pierde sus letras y
+termina identificando a otra persona.
+
+⚠️ **Escribí en el issue que el alta de representantes "duplicaba", y lo medí contra la app:
+no duplica, BLOQUEA.** El índice único de `users.document` impide el duplicado; lo que pasa es
+que el colegio B no puede registrar a una madre que ya existe en el colegio A —422 "Document ya
+está en uso"— y la secretaria no tiene salida, porque el RLS no la deja ver a esa persona. Es
+la promesa de `MOR-138` rota justo en el camino por el que se llega a ella. El issue quedó
+corregido.
+
+⚠️ **Y cinco de seis tests de esa suite pasaban igual contra el código viejo.** Contar personas
+no prueba nada acá: bloquear el alta también deja el conteo quieto. La aserción tuvo que exigir
+las dos mitades —ni persona nueva, **y** rol creado—.
+
+Los seeds ahora cargan **90 alumnos de primaria sin correo ni contraseña**, que además de ser el
+caso real es la prueba a escala del índice parcial, y una cuarta representante **sin correo**
+para poder ver en pantalla lo que el importador va a producir por centenas.
+
+### `MOR-143` · El colegio da de alta y la persona elige su contraseña — **hecho**
+
+Es `recoverable` de Devise con otro texto: genera el token, lo digiere, lo caduca, lo consume
+una vez. Cambia de dónde sale el disparo —la secretaria, no el usuario— y qué dice el mensaje.
+El correo va en un mailer propio porque recibir *"¿pediste cambiar tu contraseña?"* cuando uno
+nunca tuvo cuenta se lee como phishing.
+
+```
+  ficha del representante  →  [Generar el código de acceso]
+                                    │
+                    ┌───────────────┴───────────────┐
+              con correo                        sin correo
+        se envía Y se ve una vez          se ve una vez, y nada más
+                    └───────────────┬───────────────┘
+                                    ▼
+                        /activar/:token   (público)
+                     contraseña + correo si falta
+```
+
+Dos plazos, deducidos del estado sin guardar ninguna bandera: quien **no tiene** contraseña
+está activando (**72 h**, porque la secretaria carga un jueves y la mamá abre el domingo);
+quien ya la tiene está recuperando (las **6 h** de Devise, sentada frente a la pantalla).
+
+El código se ve **una sola vez**, y eso es la propiedad que se quiere, no una limitación: una
+pantalla con el código vigente de cualquier representante sería una lista de llaves de todas
+las casas.
+
+### `MOR-126` reescrito, no cerrado
+
+El importador ya tiene su forma: tres tandas (1 · alumnos + representantes + secciones +
+inscripción · 2 · materias, pensum y profesores · 3 · historial de notas), la clave de
+identidad decidida (`document`, si no `cedula_escolar`, **nunca** el nombre ni el carnet del
+plantel), y el correo del representante como **único prerrequisito** — que no bloquea la carga:
+la fila entra igual y sale listada al final, en pantalla y en planilla.
+
+---
+
+## Dónde está todo ahora
+
+**Ramas** (nada subido — subir sigue siendo decisión de Daniel):
+
+```
+  main                                   ← viejo
+   └─ feat/mor-82-school-id-en-grades     ← PR #1 ABIERTO contra main
+       └─ feat/mor-138-identidad-de-la-persona
+           └─ feat/mor-142-persona-sin-credenciales   ← acá está lo de esta noche
+```
+
+`bin/ci` en verde: **452 tests**, 1325 aserciones.
+
+**Producción** está en `6ec14f9`, o sea **antes** de `MOR-138`. Nada de estos tres issues está
+desplegado.
+
+## ⚠️ Pendientes que necesitan a Daniel
+
+1. **Rotar `RAILS_MASTER_KEY` y la contraseña de `siga_app`.** Las dos quedaron visibles en la
+   transcripción de esta sesión: la master key ya venía de antes, y la de la base la expuse yo
+   al leer `dokku config:show` con un `sed` de enmascarado que no coincidió con el formato
+   —`dokku` imprime `CLAVE:` con espacios, no `CLAVE=`— así que no ocultó nada. Es un
+   repositorio privado y una transcripción local, pero hay que rotarlas igual.
+2. **`MOR-102` · SMTP.** El lado de Rails está completo y `SIGA_HOST=sigaeducando.com` está bien
+   puesto, así que los enlaces de los correos van a salir correctos. **Falta lo único que no
+   puedo hacer yo:** elegir proveedor y cargar `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`,
+   `SMTP_PASSWORD` y `SIGA_MAIL_FROM`. Hoy `perform_deliveries` es `false` porque
+   `SMTP_ADDRESS` está vacío: **el correo de activación de `MOR-143` no sale**. El flujo funciona
+   igual mostrando el enlace en pantalla, pero la mitad automática está apagada.
+3. **Una segunda llave SSH en el servidor.** Hay **una sola** en `authorized_keys`: si se pierde
+   `~/.ssh/siga_deploy`, se pierde el acceso.
+4. **Subir `SIGA_HSTS_SEGUNDOS` a 31536000** cuando pasen unos días sin sobresaltos.
+5. **Desplegar.** Producción no tiene `MOR-138`, `MOR-142` ni `MOR-143`.
+
 
 **Cómo se entrega, desde ahora** (convención escrita en el documento *Cómo trabajamos* de Linear):
 cada issue cerrado deja **transferencia de aprendizaje** (qué salió distinto, qué falló y cómo se

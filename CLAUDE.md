@@ -64,9 +64,20 @@ Credenciales de los seeds (contraseña universal `123123`):
 - **Frontend**: Hotwire (Turbo + Stimulus) con Importmap (sin Node.js/Webpack)
 - **Auth**: Devise sobre `User`. `ApplicationController` aplica `authenticate_user!` global —
   los controllers nuevos deben hacer `skip_before_action` para páginas públicas.
-- **Roles**: `User` tiene `has_one` a `Student` / `Teacher` / `Admin` (PK = `user_id`).
+  **`email` y `encrypted_password` son OPCIONALES** (`MOR-142`): un alumno de primaria es un
+  registro, no una cuenta. Quién sí necesita correo lo decide el ROL, con el concern
+  `EntraAlSistema` (`Teacher`, `Admin`, `SigaStaff`). Ver `## ⚠️ Estado conocido § 5`.
+- **Roles**: `User` tiene `has_many` a `Student` / `Teacher` / `Admin` / `Representative`, cada
+  uno con `id` propio y ÚNICO `(user_id, school_id)` — una persona puede tener el mismo rol en
+  varios colegios (`MOR-138`). Los singulares `user.student` / `.teacher` / `.admin` siguen
+  existiendo y devuelven el rol **en el colegio de la sesión**, que es lo que casi todo el
+  código necesita.
   `Admin#role` es un enum: desarrollador, director, finanzas, coordinador, secretaria.
   Los helpers de autorización viven en `ApplicationController` (`can_manage_students?`, etc.).
+- **Identidad de una persona**: `document` + `document_type` (los cuatro documentos que acepta
+  el MPPE) y `cedula_escolar` aparte — no es "otro tipo de documento", es lo que se usa
+  **mientras no hay** documento, y NO se borra cuando llega. Nombre partido en `first_name` /
+  `last_name` / `second_last_name`, porque el SAIME verifica el PRIMER apellido.
 - **Paginación**: Pagy. **Auditoría**: concern `Auditable` + modelo `ActivityLog`.
 - **Multi-tenancy**: `Current.school` + concern `SchoolScoped` (app) + RLS con `FORCE` (base).
   La app se conecta como **`siga_app`**, un rol sin `SUPERUSER` ni `BYPASSRLS` — con cualquiera de
@@ -99,8 +110,10 @@ El diagnóstico original, con lo que quedó de cada punto:
 - ~~Índices únicos globales que deberían ser por colegio~~ → **resuelto** (`MOR-84`).
   `grades.name`, `subjects.code` y `students.school_card` son compuestos con `school_id`.
   Quedan globales **a propósito**: `schools.dea_code` (lo asigna el MPPE), `users.email`
-  (Devise autentica antes de saber el inquilino) y `users.id_card` (identifica a una persona,
-  no a un rol).
+  (Devise autentica antes de saber el inquilino, y desde `MOR-142` el índice es **parcial**:
+  `WHERE email IS NOT NULL`), y `users.document` / `users.cedula_escolar` — identifican a una
+  PERSONA, no a un rol, y la cédula escolar es nacional justamente para acompañar al alumno
+  cuando se cambia de plantel.
 - ~~Nueve tablas deducen su colegio por cadena~~ → **resuelto** (`MOR-85`). `school_id`
   materializado y mantenido al día por el concern `DerivesSchoolFrom`. Es el prerrequisito
   del RLS: una política de PostgreSQL evalúa columnas de la fila, no asociaciones.
@@ -236,6 +249,53 @@ ni sus propios trabajos.
 
 Verificado a mano: encolar, matar el proceso que encoló, levantar `bin/jobs`, y el trabajo se
 ejecuta. Sin worker, se acumula y espera — que es exactamente lo que se quería.
+
+### 5. Quién entra al sistema, y quién solo existe en él
+
+Decisión de producto de agosto de 2026, investigada con los competidores globales. La ley
+(GDPR/COPPA) empujó a todos al mismo lugar; Venezuela **no tiene ley de protección de datos**,
+así que acá la razón es puramente de producto: un niño de 8 años no tiene correo, y quien
+consulta sus notas es su madre.
+
+```
+   Student         nunca entra   ·  el que consulta es su representante
+   Representative  opcional      ·  entra si tiene correo; si no, el colegio se lo pide
+   Teacher         obligado
+   Admin           obligado
+   SigaStaff       obligado
+```
+
+**El login es el CORREO, no la cédula.** Autenticar por cédula se evaluó y se descartó: mueve
+el hueco en vez de taparlo, porque un alumno de primaria tampoco tiene cédula. Y el correo es
+además el canal oficial de comunicación del sistema.
+
+**Cuatro cosas que son fáciles de romper acá:**
+
+1. **El índice de `users.email` es PARCIAL** (`WHERE email IS NOT NULL`). Con un índice plano,
+   `''` es un valor como cualquier otro y PostgreSQL admite **uno solo** en toda la plataforma:
+   el alumno 2 de 360 revienta la importación. Y no alcanza con el índice — el modelo tiene que
+   convertir a `nil` el `""` que manda cada `<input>` vacío, en cada guardado.
+2. **Buscar a una persona por correo DUPLICA o BLOQUEA.** Se busca por `document`, y si no hay,
+   por `cedula_escolar`. **Normalizando antes de preguntar**: en la base vive `12345678` y
+   `WHERE document = 'V-12.345.678'` no devuelve nada. Está en `User.normalizar_documento`,
+   que es método de clase justamente para eso.
+3. **La normalización del documento depende del tipo.** Cédula → solo dígitos (la nacionalidad
+   ya está en `document_type`). Pasaporte y carné → alfanumérico en mayúscula: aplicarle la
+   regla de la cédula le come las letras y lo deja identificando a otra persona. La
+   `cedula_escolar` **no** se normaliza igual — su formato lo define el MPPE y los guiones son
+   parte del dato.
+4. **Un test que solo cuenta personas no prueba nada** en esta zona: bloquear un alta también
+   deja el conteo quieto. La aserción tiene que exigir las dos mitades — ni persona nueva, **y**
+   rol creado.
+
+**Activar el acceso** (`MOR-143`) es `recoverable` de Devise con otro texto: el colegio genera
+un código de un solo uso desde la ficha del representante, se ve en pantalla **una vez** —Devise
+guarda el digest, no el código— y además se envía por correo si lo hay. Dos plazos, deducidos
+del estado sin ninguna bandera: **72 h** para activar (la secretaria carga un jueves, la mamá
+abre el domingo) y las **6 h** de Devise para recuperar.
+
+⚠️ **Hoy el correo no sale**: falta `SMTP_ADDRESS` en producción (`MOR-102`), así que
+`perform_deliveries` es `false`. El flujo funciona igual mostrando el enlace en pantalla.
 
 ## Contexto de mercado (investigado, agosto 2026)
 
