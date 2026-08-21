@@ -26,7 +26,7 @@ Devise.setup do |config|
   # with default "from" parameter.
   # El remitente sale del entorno: el dominio cambia entre la demo y el definitivo,
   # y un "from" que no coincide con el dominio que envía va derecho a spam.
-  config.mailer_sender = ENV.fetch("SIGA_MAIL_FROM", "no-responder@siga.edu")
+  config.mailer_sender = ENV.fetch("SIGA_MAIL_FROM", "no-responder@sigaeducando.com")
 
   # Configure the class responsible to send e-mails.
   # config.mailer = 'Devise::Mailer'
