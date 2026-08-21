@@ -182,6 +182,14 @@ class UserTest < ActiveSupport::TestCase
     end
   end
 
+  test "el equipo de SIGA necesita correo" do
+    sin_correo = SigaStaff.new(role: :operaciones,
+                               user: User.new(first_name: "Ops", last_name: "SinCorreo",
+                                              document: "99000008", document_type: :cedula_v))
+
+    assert_not sin_correo.valid?
+  end
+
   test "el alumno NO necesita correo" do
     colegio = escenario_academico.colegio
 
