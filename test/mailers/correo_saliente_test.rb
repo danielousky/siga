@@ -59,6 +59,51 @@ class CorreoSalienteTest < ActionMailer::TestCase
     assert_match(/\Asiga-[a-z0-9-]+\z/, canal, "quedó #{canal.inspect}")
   end
 
+  # ── nada de rastreo ──────────────────────────────────────────────────────
+
+  # ⚠️ El seguimiento de clics REESCRIBE los enlaces. Con él encendido, el
+  # correo de activación dejaría de llevar `sigaeducando.com/activar/<código>` y
+  # llevaría un redirect de terceros: el código de un solo uso quedaría en el
+  # registro de clics de ElasticEmail, y la mamá vería un dominio que no es el
+  # del colegio — la forma exacta de un correo de phishing.
+  test "el correo de activación no se rastrea" do
+    colegio = escenario_academico.colegio
+    persona = User.create!(first_name: "Dora", last_name: "Rastreo",
+                           document: "99000095", document_type: :cedula_v,
+                           email: "dora@familia.test")
+
+    correo = AccesoMailer.activacion(persona, "un-codigo", colegio)
+
+    assert_equal "false", correo["trackclicks"].to_s
+    assert_equal "false", correo["trackopens"].to_s
+  end
+
+  # La cuenta de ElasticEmail es compartida con COES-FAU, COES-FHE y CODEX. Sin
+  # esto, una dirección que se dio de baja de una campaña de otro sistema no
+  # recibiría su código de acceso a SIGA, y el descarte es silencioso.
+  test "el correo va marcado como transaccional" do
+    colegio = escenario_academico.colegio
+    persona = User.create!(first_name: "Elsa", last_name: "Transaccional",
+                           document: "99000094", document_type: :cedula_v,
+                           email: "elsa@familia.test")
+
+    correo = AccesoMailer.activacion(persona, "un-codigo", colegio)
+
+    assert_equal "True", correo["IsTransactional"].to_s
+  end
+
+  test "los correos de Devise tampoco se rastrean" do
+    persona = User.create!(first_name: "Fito", last_name: "Rastreo",
+                           document: "99000093", document_type: :cedula_v,
+                           email: "fito@familia.test", password: "123123")
+    token = persona.send(:set_reset_password_token)
+
+    correo = Devise::Mailer.reset_password_instructions(persona, token)
+
+    assert_equal "false", correo["trackclicks"].to_s
+    assert_equal "True", correo["IsTransactional"].to_s
+  end
+
   # Devise tiene su propio remitente y NO usa el `default from:` del mailer.
   # Que los dos salgan del mismo lado es lo que hace que verificar un dominio
   # alcance para todo el correo de la app.

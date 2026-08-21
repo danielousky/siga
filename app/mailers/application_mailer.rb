@@ -31,11 +31,39 @@ class ApplicationMailer < ActionMailer::Base
   # la planilla y hay que pedirlos de nuevo. Diluido en un total, ese número no
   # dice nada.
   before_action :marcar_el_canal
+  before_action :sin_seguimiento
 
   private
 
   def marcar_el_canal
     headers["X-ElasticEmail-Channel"] = canal
+  end
+
+  # SIGA no rastrea sus correos, y no es una postura: es que rastrearlos los
+  # rompe.
+  #
+  # El seguimiento de clics **reescribe los enlaces**. El correo de activación
+  # dejaría de llevar `https://sigaeducando.com/activar/<código>` y llevaría un
+  # redirect por `tracking.sigaeducando.com`. Tres consecuencias, y ninguna es
+  # aceptable para un correo que transporta una credencial:
+  #
+  #   1. El código de un solo uso viaja por el sistema de terceros y queda en
+  #      SU registro de clics. Un código sin usar es una llave viva por 72 h.
+  #   2. La mamá ve un dominio de redirección donde esperaba el del colegio.
+  #      Es exactamente la forma de un correo de phishing.
+  #   3. Si el rastreo falla, el enlace de activación falla con él — y el
+  #      colegio no tiene forma de saber por qué nadie puede entrar.
+  #
+  # Se apaga POR MENSAJE y no en la cuenta a propósito: la misma cuenta manda el
+  # correo de COES-FAU, COES-FHE y CODEX, donde el rastreo de campañas sí sirve.
+  #
+  # `IsTransactional` es lo que evita el otro accidente de compartir cuenta: si
+  # una dirección se dio de baja de una campaña de otro sistema, sin esta
+  # cabecera su código de acceso a SIGA se descartaría en silencio.
+  def sin_seguimiento
+    headers["trackclicks"]     = "false"
+    headers["trackopens"]      = "false"
+    headers["IsTransactional"] = "True"
   end
 
   # "AccesoMailer#activacion"                  → siga-acceso-activacion
