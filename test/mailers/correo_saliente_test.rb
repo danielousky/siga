@@ -21,6 +21,44 @@ class CorreoSalienteTest < ActionMailer::TestCase
     assert_match(/@sigaeducando\.com\z/, correo.from.first)
   end
 
+  # ── el canal de ElasticEmail ─────────────────────────────────────────────
+
+  test "el correo de activación va etiquetado con su canal" do
+    colegio = escenario_academico.colegio
+    persona = User.create!(first_name: "Ana", last_name: "Canal",
+                           document: "99000098", document_type: :cedula_v,
+                           email: "ana.canal@familia.test")
+
+    correo = AccesoMailer.activacion(persona, "un-codigo", colegio)
+
+    assert_equal "siga-acceso-activacion", correo["X-ElasticEmail-Channel"].to_s
+  end
+
+  # ⚠️ Devise hereda de `ActionMailer::Base` por defecto, así que sin
+  # `config.parent_mailer` el correo de "olvidé mi contraseña" —el más frecuente
+  # de la app— sería el único que quedaría fuera de las estadísticas.
+  test "los correos de Devise también van etiquetados" do
+    persona = User.create!(first_name: "Beto", last_name: "Canal",
+                           document: "99000097", document_type: :cedula_v,
+                           email: "beto.canal@familia.test", password: "123123")
+    token = persona.send(:set_reset_password_token)
+
+    correo = Devise::Mailer.reset_password_instructions(persona, token)
+
+    assert_equal "siga-devise-reset-password-instructions",
+                 correo["X-ElasticEmail-Channel"].to_s
+  end
+
+  test "el canal nunca lleva guion bajo ni barra" do
+    colegio = escenario_academico.colegio
+    persona = User.create!(first_name: "Ceci", last_name: "Canal",
+                           document: "99000096", document_type: :cedula_v,
+                           email: "ceci.canal@familia.test")
+    canal = AccesoMailer.activacion(persona, "x", colegio)["X-ElasticEmail-Channel"].to_s
+
+    assert_match(/\Asiga-[a-z0-9-]+\z/, canal, "quedó #{canal.inspect}")
+  end
+
   # Devise tiene su propio remitente y NO usa el `default from:` del mailer.
   # Que los dos salgan del mismo lado es lo que hace que verificar un dominio
   # alcance para todo el correo de la app.

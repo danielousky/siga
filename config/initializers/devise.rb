@@ -32,7 +32,13 @@ Devise.setup do |config|
   # config.mailer = 'Devise::Mailer'
 
   # Configure the parent class responsible to send e-mails.
-  # config.parent_mailer = 'ActionMailer::Base'
+  # Los correos de Devise heredan de `ApplicationMailer` y no de
+  # `ActionMailer::Base`, que es el default.
+  #
+  # Es lo que hace que la cabecera `X-ElasticEmail-Channel` los alcance a ellos
+  # también: sin esto, "olvidé mi contraseña" —el correo más frecuente de la
+  # app— sería el único que quedaría fuera de las estadísticas.
+  config.parent_mailer = "ApplicationMailer"
 
   # ==> ORM configuration
   # Load and configure the ORM. Supports :active_record (default) and
