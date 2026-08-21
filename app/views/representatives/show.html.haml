@@ -9,7 +9,7 @@
       - if @representative.user.email.present?
         = @representative.user.email
       - else
-        %span.nota-pendiente Sin correo — no puede consultar las notas
+        %span.nota-pendiente Sin correo — hay que hacerle llegar el enlace de acceso
     %dt Teléfono
     %dd= @representative.phone.presence || "—"
     %dt Cédula

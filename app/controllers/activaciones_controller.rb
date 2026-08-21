@@ -66,9 +66,12 @@ class ActivacionesController < ApplicationController
   # Que el correo choque contra otro ya registrado es el caso normal, no un
   # error raro: la misma mamá pudo quedar cargada dos veces antes de que el
   # colegio lo notara. Merece una frase que diga qué hacer, no "ya está en uso".
+  # Los mensajes van en `:base` y no en `:email` para que se lean como frases.
+  # Rails antepone el nombre del atributo —"Email hace falta…"— y ese nombre está
+  # en inglés en toda la app, así que sobre una frase en español queda mal.
   def correo_utilizable?
     if @usuario.email.blank?
-      @usuario.errors.add(:email, "hace falta: es por donde va a poder recuperar su contraseña")
+      @usuario.errors.add(:base, "Hace falta un correo: es por donde va a poder recuperar su contraseña.")
       return false
     end
 
@@ -76,9 +79,9 @@ class ActivacionesController < ApplicationController
     return true unless ya_registrado
 
     @usuario.errors.add(
-      :email,
-      "ya está registrado en SIGA. Si usted ya tiene una cuenta, entre con ella; " \
-      "si no, avísele al colegio."
+      :base,
+      "Ese correo ya está registrado en SIGA. Si usted ya tiene una cuenta, entre " \
+      "con ella; si no, avísele al colegio."
     )
     false
   end
