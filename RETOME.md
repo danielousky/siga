@@ -585,6 +585,46 @@ El código se ve **una sola vez**, y eso es la propiedad que se quiere, no una l
 pantalla con el código vigente de cualquier representante sería una lista de llaves de todas
 las casas.
 
+⚠️ **Buscando huecos en lo que acababa de escribir encontré uno de verdad.** El mismo token
+abre también `/users/password/edit`, el formulario estándar de Devise, **que no pregunta por el
+correo**:
+
+```
+    GET  /users/password/edit  → 200
+    PUT  /users/password       → 303
+    ¿quedó con contraseña? true
+    ¿quedó con correo?     nil
+```
+
+Eso es exactamente el estado que el issue dice que no puede existir. Se cerró con un
+**invariante en `User`** —tener contraseña obliga a tener correo— y no con un parche en el
+controller, porque la puerta de Devise no es la única: están la consola y el importador que
+todavía no existe. Al revés sí se puede, y es el caso normal: correo sin contraseña es alguien
+a quien todavía no le activaron el acceso.
+
+### Y con eso, el primer minuto de vida de un cliente dejó de ser un callejón
+
+El alta de un colegio le ponía al director una contraseña aleatoria de 14 caracteres que
+**nadie conocía**, y la nota del propio formulario lo admitía: *"hay que mandarle un enlace para
+que la defina. Eso llega cuando haya correo configurado"*. El enlace ya existe, así que ahora el
+alta lo genera y lo muestra. Hay un test que recorre el camino entero: fundador da de alta → sale
+el enlace → la directora elige su contraseña → cae en el panel de **su** colegio.
+
+En ese mismo formulario, `director[document]` estaba **dos veces con el mismo `name`** —ganaba
+el segundo, que es el que nadie llenaba— y faltaba el segundo apellido aunque
+`usuario_params` ya lo permitía.
+
+Y **ocho vistas más seguían mostrando un solo apellido**: los listados de profesores y
+administradores, el selector de profesor guía, las dos tablas de inscritos de una sección, la
+ficha del alumno y las dos pantallas del portal del representante. Misma clase de bug que en
+`MOR-138`: los helpers `nombre_completo` / `apellidos` / `apellidos_y_nombres` existen y esas
+vistas seguían concatenando a mano.
+
+⚠️ **Y una regresión mía:** al aflojar `password_required?`, el formulario de profesor y el de
+administrador dejaron de fallar con la contraseña en blanco — creaban a alguien que no puede
+entrar, en silencio. El campo volvió a ser obligatorio, y los dos listados ganaron una columna
+"Acceso" para que nunca vuelva a ser invisible.
+
 ### `MOR-126` reescrito, no cerrado
 
 El importador ya tiene su forma: tres tandas (1 · alumnos + representantes + secciones +
@@ -628,6 +668,17 @@ desplegado.
    `~/.ssh/siga_deploy`, se pierde el acceso.
 4. **Subir `SIGA_HSTS_SEGUNDOS` a 31536000** cuando pasen unos días sin sobresaltos.
 5. **Desplegar.** Producción no tiene `MOR-138`, `MOR-142` ni `MOR-143`.
+
+## Lo que sigue, en orden
+
+1. **`MOR-126` · el importador, tanda 1** — alumnos, representantes, secciones e inscripción.
+   Ya no está bloqueado: `MOR-142` y `MOR-143` eran sus dos prerrequisitos.
+2. **Extender el código de activación al personal del colegio.** Hoy lo tienen los
+   representantes y el primer director de un colegio nuevo; profesores y administradores
+   siguen con "que alguien más te elija la contraseña", que es el patrón que este trabajo vino
+   a sacar. Es media hora y deja **una sola** forma de dar acceso en toda la app.
+3. **`MOR-92`** — el acceso amplio del equipo de SIGA, que es la decisión con fecha de
+   vencimiento. Se retoma cuando haya colegios pagando.
 
 
 **Cómo se entrega, desde ahora** (convención escrita en el documento *Cómo trabajamos* de Linear):
