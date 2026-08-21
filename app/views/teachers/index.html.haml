@@ -11,11 +11,17 @@
         %th Nombre
         %th Apellido
         %th Cédula
-        %th Email
+        %th Correo
+        %th Acceso
     %tbody
       - @teachers.each do |teacher|
         %tr
           %td= link_to teacher.user.first_name, teacher
           %td= teacher.user.apellidos
-          %td= teacher.user.document || "—"
+          %td= teacher.user.identificador || "—"
           %td= teacher.user.email
+          %td
+            - if teacher.user.puede_entrar?
+              %span.estado.estado--al-dia Activo
+            - else
+              %span.estado.estado--inactivo Sin activar

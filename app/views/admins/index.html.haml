@@ -10,6 +10,7 @@
         %th Apellido
         %th Correo
         %th Rol
+        %th Acceso
     %tbody
       - @admins.each do |admin|
         %tr
@@ -18,3 +19,8 @@
           %td= admin.user.email
           %td
             %span.role-badge= admin.role.humanize
+          %td
+            - if admin.user.puede_entrar?
+              %span.estado.estado--al-dia Activo
+            - else
+              %span.estado.estado--inactivo Sin activar

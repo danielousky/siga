@@ -33,12 +33,17 @@
         = u.email_field :email, class: "form-control", required: true
         %p.nota-ayuda El profesor entra al sistema con este correo, y es por donde recupera su contraseña.
       - if teacher.new_record?
+        -# `required` porque desde `MOR-142` el modelo ya no la exige: una persona
+        -# puede existir sin credenciales. Para el personal del colegio eso todavía
+        -# no tiene salida —el código de activación existe para representantes y
+        -# para el primer director de un colegio, no acá— así que dejarla en blanco
+        -# crearía un profesor que no puede entrar y nadie se enteraría.
         .form-group
           = u.label :password, "Contraseña", class: "form-label"
-          = u.password_field :password, class: "form-control"
+          = u.password_field :password, class: "form-control", required: true
         .form-group
-          = u.label :password_confirmation, "Confirmar Contraseña", class: "form-label"
-          = u.password_field :password_confirmation, class: "form-control"
+          = u.label :password_confirmation, "Repita la contraseña", class: "form-label"
+          = u.password_field :password_confirmation, class: "form-control", required: true
 
   %fieldset
     %legend Datos del Profesor
