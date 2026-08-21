@@ -17,7 +17,13 @@
         %tr
           %td= link_to representante.user.apellidos_y_nombres, representante
           %td
-            = representante.user.email
+            -# Sin correo el representante no puede consultar nada, así que la
+            -# celda vacía no sirve: hay que poder VER a quién falta llamar
+            -# antes de que la mamá pregunte por qué no entra (MOR-142).
+            - if representante.user.email.present?
+              = representante.user.email
+            - else
+              %span.nota-pendiente Sin correo
             - if representante.phone.present?
               %br
               %span.nota-ayuda= representante.phone

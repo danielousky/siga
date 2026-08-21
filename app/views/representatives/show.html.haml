@@ -5,11 +5,24 @@
 
   %dl.detalle
     %dt Correo
-    %dd= @representative.user.email
+    %dd
+      - if @representative.user.email.present?
+        = @representative.user.email
+      - else
+        %span.nota-pendiente Sin correo — no puede consultar las notas
     %dt Teléfono
     %dd= @representative.phone.presence || "—"
     %dt Cédula
-    %dd= @representative.user.document.presence || "—"
+    %dd= @representative.user.identificador.presence || "—"
+    %dt Acceso
+    %dd
+      -# Gris y no ámbar a propósito: que todavía no haya entrado es un HECHO,
+      -# no una alerta. La regla de color reserva el ámbar para lo que exige
+      -# actuar ya, y acá lo que hay que hacer se dice en palabras.
+      - if @representative.user.puede_entrar?
+        %span.estado.estado--al-dia Activo
+      - else
+        %span.estado.estado--inactivo Sin activar
 
 .card-academic
   .card-academic-header

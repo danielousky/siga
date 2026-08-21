@@ -33,15 +33,12 @@
           = u.label :sex, "Sexo", class: "form-label"
           = u.select :sex, User::SEX_LABELS.map { |v, t| [t, v] }, { include_blank: "—" }, class: "form-select"
       .form-group
-        = u.label :email, "Email", class: "form-label"
+        = u.label :email, "Correo electrónico", class: "form-label"
         = u.email_field :email, class: "form-control", placeholder: "ejemplo@dominio.com"
-      - if student.new_record?
-        .form-group
-          = u.label :password, "Contraseña", class: "form-label"
-          = u.password_field :password, class: "form-control", placeholder: "Mínimo 6 caracteres"
-        .form-group
-          = u.label :password_confirmation, "Confirmar Contraseña", class: "form-label"
-          = u.password_field :password_confirmation, class: "form-control", placeholder: "Reingrese la contraseña"
+        -# Un alumno de primaria no tiene correo y no lo necesita: quien consulta
+        -# sus notas es su representante (MOR-142). El campo se queda para el
+        -# bachiller que sí tenga, pero dejarlo vacío es lo normal.
+        %p.nota-ayuda Opcional. Quien consulta las notas del alumno es su representante.
 
   .card-academic
     %h3{style: "margin-bottom: var(--space-lg);"} Datos del estudiante

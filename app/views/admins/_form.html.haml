@@ -29,8 +29,9 @@
           = u.label :sex, "Sexo", class: "form-label"
           = u.select :sex, User::SEX_LABELS.map { |v, t| [t, v] }, { include_blank: "—" }, class: "form-select"
       .form-group
-        = u.label :email, "Email", class: "form-label"
-        = u.email_field :email, class: "form-control"
+        = u.label :email, "Correo electrónico", class: "form-label"
+        = u.email_field :email, class: "form-control", required: true
+        %p.nota-ayuda Esta persona entra al sistema con este correo, y es por donde recupera su contraseña.
       - if admin.new_record?
         .form-group
           = u.label :password, "Contraseña", class: "form-label"

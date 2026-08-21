@@ -562,6 +562,16 @@ end
 # Los seeds tienen que ser idempotentes ante cambios de CONTENIDO, no solo ante
 # volver a correrlos con los mismos datos. Buscando por carnet, cambiar un
 # nombre renombra al alumno que ya existe en vez de intentar duplicarlo.
+# ⚠️ La búsqueda de respaldo va por CÉDULA ESCOLAR, no por correo.
+#
+# Desde `MOR-142` la mayoría de los alumnos no tiene correo, y
+# `find_or_create_by!(email: nil)` **encuentra al primer alumno sin correo que
+# haya** y lo devuelve como si fuera éste: 240 alumnos colapsados en uno. Es el
+# mismo error que ya quemó estos seeds una vez —ver el comentario de arriba—,
+# con otro campo.
+#
+# La cédula escolar sirve porque es única en todo el país y no se deriva del
+# nombre: cambiar la lista de apellidos no la mueve.
 def make_student(email:, nombre:, apellido:, segundo_apellido:, card:, school:,
                  cedula_escolar:, nacimiento:, sexo:)
   atributos = {
@@ -575,9 +585,13 @@ def make_student(email:, nombre:, apellido:, segundo_apellido:, card:, school:,
     return existente
   end
 
-  u = User.find_or_create_by!(email: email) do |uu|
-    uu.password = uu.password_confirmation = CLAVE_DE_PRUEBA
-    atributos.each { |k, v| uu[k] = v }
+  u = Current.sin_aislamiento { User.find_by(cedula_escolar: cedula_escolar) }
+  u ||= User.new(atributos).tap do |uu|
+    # Contraseña SOLO si va a entrar. Un alumno de primaria no entra: quien
+    # consulta sus notas es su representante. Y sin correo no hay forma de
+    # recuperar nada, así que una contraseña ahí sobra por partida doble.
+    uu.password = uu.password_confirmation = CLAVE_DE_PRUEBA if email.present?
+    uu.save!
   end
   Student.create!(user: u, school_card: card, school: school)
 end
@@ -600,7 +614,12 @@ sec_bol.each_with_index do |(sec_key, section), sec_idx|
     segundo  = APELLIDOS[segundo_apellido_para(j)]
     num      = (j + 1).to_s.rjust(3, "0")
     card     = "25-#{num}"
-    email    = "#{normalize(nombre)}.#{normalize(apellido)}#{num}@bolivar.edu"
+    # Correo SOLO en secundaria, y no es un detalle de los datos de prueba:
+    # es la regla del dominio hecha visible. Un alumno de 3er grado tiene 8
+    # años y no tiene correo; el bachiller de 5to sí puede tener uno.
+    # Así los seeds cargan ~240 personas sin correo de una sola vez, que es
+    # justo lo que el índice único plano no permitía (MOR-142).
+    email    = section.grade.secundaria? ? "#{normalize(nombre)}.#{normalize(apellido)}#{num}@bolivar.edu" : nil
     nace     = nacimiento_para(section.grade, j)
     k_nacional += 1
 
@@ -625,7 +644,12 @@ sec_bel.each_with_index do |(sec_key, section), sec_idx|
     segundo  = APELLIDOS[segundo_apellido_para(j)]
     num      = (sec_idx * 15 + i + 1).to_s.rjust(3, "0")
     card     = "25-#{num}"
-    email    = "#{normalize(nombre)}.#{normalize(apellido)}#{num}@bello.edu"
+    # Correo SOLO en secundaria, y no es un detalle de los datos de prueba:
+    # es la regla del dominio hecha visible. Un alumno de 3er grado tiene 8
+    # años y no tiene correo; el bachiller de 5to sí puede tener uno.
+    # Así los seeds cargan ~240 personas sin correo de una sola vez, que es
+    # justo lo que el índice único plano no permitía (MOR-142).
+    email    = section.grade.secundaria? ? "#{normalize(nombre)}.#{normalize(apellido)}#{num}@bello.edu" : nil
     nace     = nacimiento_para(section.grade, j)
     k_nacional += 1
 
@@ -958,13 +982,33 @@ puts "     #{usuario_siga.email} (fundador) · operaciones@siga.app (operaciones
 puts ""
 puts "👨‍👩‍👧 Registrando representantes..."
 
-def representante!(email:, nombre:, apellido:, telefono:, colegio:, alumnos:, parentesco: :madre)
-  usuario = User.find_or_create_by!(email: email) do |u|
-    u.first_name = nombre; u.last_name = apellido
-    u.document = documento_de_prueba(email); u.document_type = :cedula_v
-    u.sex = parentesco == :padre ? :male : :female
-    u.password = u.password_confirmation = CLAVE_DE_PRUEBA
-  end
+# `email:` puede ser nil, y por eso la búsqueda va por DOCUMENTO: con
+# `find_or_create_by!(email: nil)` la segunda representante sin correo
+# encontraría a la primera y se quedaría con sus hijos (MOR-142).
+#
+# `documento_de_prueba` se deriva del nombre justamente para poder identificarla
+# cuando no hay correo del cual derivar nada.
+def representante!(nombre:, apellido:, telefono:, colegio:, alumnos:,
+                   email: nil, parentesco: :madre)
+  # ⚠️ Normalizar ANTES de preguntar. `documento_de_prueba` devuelve
+  # `"V-12345678"`, pero en la base vive `"12345678"`: el modelo le quita la
+  # letra y los signos al guardar (MOR-142). Buscar el valor crudo no encuentra
+  # nada y la segunda llamada intenta crear a la misma persona otra vez —
+  # exactamente el error que este issue vino a arreglar, cometido acá.
+  documento = User.normalizar_documento(
+    documento_de_prueba(email.presence || "#{nombre}.#{apellido}"), :cedula_v
+  )
+
+  usuario = Current.sin_aislamiento { User.find_by(document: documento) }
+  usuario ||= User.create!(
+    first_name: nombre, last_name: apellido, email: email,
+    document: documento, document_type: :cedula_v,
+    sex: parentesco == :padre ? :male : :female,
+    # Sin correo no hay contraseña: nadie se la podría hacer llegar, y
+    # "Olvidé mi contraseña" tampoco tiene a dónde escribir. Queda esperando
+    # el código de activación (`MOR-143`).
+    password: (CLAVE_DE_PRUEBA if email.present?)
+  )
   rep = Representative.find_or_create_by!(user: usuario, school: colegio) { |r| r.phone = telefono }
   Array(alumnos).each do |alumno|
     StudentRepresentative.find_or_create_by!(representative: rep, student: alumno) do |v|
@@ -998,6 +1042,14 @@ representante!(email: "maria.perez@familia.test", nombre: "María", apellido: "P
 representante!(email: "maria.perez@familia.test", nombre: "María", apellido: "Pérez",
                telefono: "0412-7778899", colegio: school_bello,
                alumnos: alumnos_bel_1a[0], parentesco: :madre)
+
+# 4 · SIN CORREO — el caso que va a producir el importador en masa.
+#     Existe, está vinculada a su hija, aparece en los listados… y no puede
+#     entrar. Sin sembrarlo no hay forma de VER cómo se ve eso en pantalla
+#     antes de que le pase a un colegio de verdad (MOR-142).
+representante!(nombre: "Yolanda", apellido: "Guerra",
+               telefono: "0416-3334455", colegio: school_bello,
+               alumnos: alumnos_bel_1a[1], parentesco: :madre)
 
 puts "   ✓ #{Representative.count} vínculos de representación · #{StudentRepresentative.count} alumnos representados"
 puts "     maría.pérez tiene hijos en LOS DOS colegios: #{Representative.where(user: User.find_by(email: 'maria.perez@familia.test')).count} filas"
@@ -1084,7 +1136,21 @@ puts "   prof.castillo@bolivar.edu    → Inglés"
 puts "   prof.moreno@bolivar.edu      → Arte y Patrimonio"
 puts "   prof.rojas@bolivar.edu       → Educación Física"
 puts ""
-puts "   ESTUDIANTES (ejemplo):"
+puts "   ESTUDIANTES (ejemplo) — solo los de SECUNDARIA tienen correo:"
 puts "   alvaro.lopez001@bolivar.edu  → 1er Año A"
 puts "   sofia.ramos002@bolivar.edu   → 1er Año A"
-puts "   paula.medina001@bello.edu    → 4to Grado A (Bello · PRIMARIA, notas por literal A–E)"
+puts ""
+alumnos_sin_correo = Current.sin_aislamiento do
+  Student.unscoped.joins(:user).where(users: { email: nil }).count
+end
+puts "   Los #{alumnos_sin_correo} alumnos de PRIMARIA (Bello) no tienen correo ni contraseña,"
+puts "   que es el caso normal: quien consulta sus notas es su representante."
+puts "   Para ver la vista de primaria —notas por literal A–E— entra como"
+puts "   director.bello@siga.edu o como carmen.lopez@familia.test."
+puts ""
+puts "   REPRESENTANTES:"
+puts "   carmen.lopez@familia.test    → una hija en Bolívar"
+puts "   jose.ramos@familia.test      → dos hijos en Bolívar, grados distintos"
+puts "   maria.perez@familia.test     → hijos en LOS DOS colegios (selector de colegio)"
+puts "   Yolanda Guerra (Bello)       → SIN CORREO: existe, aparece en el listado,"
+puts "                                  y no puede entrar hasta que se lo carguen."
