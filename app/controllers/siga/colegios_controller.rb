@@ -40,13 +40,21 @@ module Siga
 
       School.transaction do
         @colegio.save!
-        @usuario.password = SecureRandom.alphanumeric(14)
+        # Sin contraseña, a propósito. Antes se le ponía una aleatoria de 14
+        # caracteres que NADIE conocía —ni el director ni quien lo dio de alta—,
+        # así que el primer cliente de un colegio nuevo quedaba sin poder entrar
+        # y la nota del formulario lo admitía. Ahora se activa como todos
+        # (`MOR-143`), y el código sale abajo.
         @usuario.save!
         Admin.create!(user: @usuario, school: @colegio, role: :director)
       end
 
+      codigo = @usuario.generar_codigo_de_acceso!
+      AccesoMailer.activacion(@usuario, codigo, @colegio).deliver_later
+
       redirect_to siga_colegio_path(@colegio),
-                  notice: "Colegio dado de alta con su director. Falta que reciba su contraseña."
+                  flash: { codigo: codigo,
+                           notice: "Colegio dado de alta. Hágale llegar este enlace a #{@usuario.first_name}." }
     rescue ActiveRecord::RecordInvalid
       render :new, status: :unprocessable_entity
     end

@@ -38,7 +38,7 @@
           - persona = vinculo.representative.user
           %li.ficha-responsable
             %div
-              %span.ficha-responsable-nombre= "#{persona.first_name} #{persona.last_name}"
+              %span.ficha-responsable-nombre= persona.nombre_completo
               %span.ficha-responsable-vinculo= vinculo.etiqueta
               - if vinculo.principal?
                 %span.ficha-principal Principal

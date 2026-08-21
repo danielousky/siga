@@ -65,7 +65,7 @@
             %tr
               %td= i + 1
               %td= enrollment.student.user.first_name
-              %td= enrollment.student.user.last_name
+              %td= enrollment.student.user.apellidos
               %td= enrollment.student.school_card
     - else
       .empty-state
@@ -108,7 +108,7 @@
             = f.select :subject_id, options_for_select(@available_subjects.map { |s| ["#{s.code} - #{s.name}", s.id] }), {}, class: "form-select"
           .form-group
             = f.label :teacher_id, "Profesor", class: "form-label"
-            = f.select :teacher_id, options_for_select(@available_teachers.map { |t| ["#{t.user.last_name}, #{t.user.first_name} (#{t.user.document})", t.user_id] }), {}, class: "form-select"
+            = f.select :teacher_id, options_for_select(@available_teachers.map { |t| ["#{t.user.apellidos_y_nombres} (#{t.user.identificador})", t.user_id] }), {}, class: "form-select"
           .form-group.form-group--boton
             = f.submit "Asignar", class: "btn btn-primary"
 
@@ -130,7 +130,7 @@
             %tr
               %td= i + 1
               %td= enrollment.student.user.first_name
-              %td= enrollment.student.user.last_name
+              %td= enrollment.student.user.apellidos
               %td= enrollment.student.school_card
               %td= enrollment.enrollment_date.strftime("%d/%m/%Y")
     - else

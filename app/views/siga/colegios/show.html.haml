@@ -16,6 +16,18 @@
     %span.siga-cifra-numero= @secciones
     %span.siga-cifra-que secciones
 
+- if flash[:codigo].present?
+  %section.siga-bloque
+    .siga-bloque-cab
+      %h2 El enlace para que el director entre
+    .siga-codigo{"data-controller": "copiar"}
+      %p.siga-nota
+        Se ve una sola vez. Sirve por 72 horas y para un solo uso; si se pierde,
+        se genera otro desde la ficha de esa persona.
+      %p.mono{"data-copiar-target": "fuente"}= activar_url(flash[:codigo])
+      = button_tag "Copiar el enlace", type: "button", class: "btn btn-secondary",
+                   "data-action": "copiar#copiar", "data-copiar-target": "boton"
+
 %section.siga-bloque
   .siga-bloque-cab
     %h2 Quién administra
@@ -30,12 +42,18 @@
             %th Persona
             %th Correo
             %th Rol
+            %th Acceso
         %tbody
           - @admins.each do |admin|
             %tr
               %td= admin.user.apellidos_y_nombres
               %td.mono= admin.user.email
               %td.apagado= admin.role.humanize
+              %td
+                - if admin.user.puede_entrar?
+                  %span.siga-estado.siga-estado--activa Activo
+                - else
+                  %span.siga-estado.siga-estado--cancelada Sin activar
 
 %section.siga-bloque
   .siga-bloque-cab

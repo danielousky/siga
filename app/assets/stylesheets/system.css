@@ -3649,3 +3649,19 @@ nav.pagy a.gap {
   word-break: break-all;
   user-select: all;
 }
+
+/* El enlace de activación, sobre el panel oscuro de SIGA (MOR-143).
+   Mismo significado que `.codigo-de-acceso` del colegio; lo que cambia es el
+   sustrato, no la idea: algo frágil que hay que copiar ahora. */
+.siga-codigo {
+  padding: var(--space-md);
+  border: 1px dashed var(--siga-borde);
+  border-radius: 6px;
+}
+
+.siga-codigo .mono {
+  margin: var(--space-sm) 0 var(--space-md);
+  color: var(--siga-acento);
+  word-break: break-all;
+  user-select: all;
+}

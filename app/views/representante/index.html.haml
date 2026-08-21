@@ -28,7 +28,7 @@
     - @hijos.each do |fila|
       %li
         = link_to hijo_representante_path(fila[:student]), class: "portal-tarjeta-hijo" do
-          %span.portal-tarjeta-nombre= "#{fila[:student].user.first_name} #{fila[:student].user.last_name}"
+          %span.portal-tarjeta-nombre= fila[:student].user.nombre_completo
           %span.portal-tarjeta-seccion
             - if fila[:inscripcion]
               = "#{fila[:inscripcion].section.grade.name} – #{fila[:inscripcion].section.name}"

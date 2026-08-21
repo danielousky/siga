@@ -39,8 +39,11 @@
         = label_tag "director[first_name]", "Nombre", class: "form-label"
         = text_field_tag "director[first_name]", @usuario&.first_name, class: "form-control"
       .form-group
-        = label_tag "director[last_name]", "Apellido", class: "form-label"
+        = label_tag "director[last_name]", "Primer apellido", class: "form-label"
         = text_field_tag "director[last_name]", @usuario&.last_name, class: "form-control"
+      .form-group
+        = label_tag "director[second_last_name]", "Segundo apellido", class: "form-label"
+        = text_field_tag "director[second_last_name]", @usuario&.second_last_name, class: "form-control"
     .form-row
       .form-group
         = label_tag "director[document]", "Cédula", class: "form-label"
@@ -51,13 +54,10 @@
     .form-row
       .form-group
         = label_tag "director[email]", "Correo", class: "form-label"
-        = email_field_tag "director[email]", @usuario&.email, class: "form-control"
-      .form-group
-        = label_tag "director[document]", "Cédula", class: "form-label"
-        = text_field_tag "director[document]", @usuario&.document, class: "form-control", placeholder: "V-12345678"
+        = email_field_tag "director[email]", @usuario&.email, class: "form-control", required: true
     %small.nota-ayuda
-      La contraseña se genera sola y no se muestra: hay que mandarle un enlace
-      para que la defina. Eso llega cuando haya correo configurado
+      No se le pone contraseña: al guardar sale un enlace de un solo uso para que
+      la elija él mismo. Se le envía por correo, y además queda visible una vez
       (%code MOR-102).
 
   = submit_tag "Dar de alta", class: "btn btn-primary"

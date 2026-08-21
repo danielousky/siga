@@ -5,7 +5,7 @@
 -# y todo lo demás viene después.
 .portal-hijo
   .portal-cabecera
-    %h1= "#{@hijo[:student].user.first_name} #{@hijo[:student].user.last_name}"
+    %h1= @hijo[:student].user.nombre_completo
     - if @inscripcion
       %p.portal-seccion
         = "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
