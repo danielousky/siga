@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 21 de agosto de 2026 (madrugada)
+# 🔖 Punto de retome — actualizado 21 de agosto de 2026 (mañana)
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 
@@ -653,21 +653,41 @@ desplegado.
 
 ## ⚠️ Pendientes que necesitan a Daniel
 
-1. **Rotar `RAILS_MASTER_KEY` y la contraseña de `siga_app`.** Las dos quedaron visibles en la
-   transcripción de esta sesión: la master key ya venía de antes, y la de la base la expuse yo
-   al leer `dokku config:show` con un `sed` de enmascarado que no coincidió con el formato
-   —`dokku` imprime `CLAVE:` con espacios, no `CLAVE=`— así que no ocultó nada. Es un
-   repositorio privado y una transcripción local, pero hay que rotarlas igual.
-2. **`MOR-102` · SMTP.** El lado de Rails está completo y `SIGA_HOST=sigaeducando.com` está bien
-   puesto, así que los enlaces de los correos van a salir correctos. **Falta lo único que no
-   puedo hacer yo:** elegir proveedor y cargar `SMTP_ADDRESS`, `SMTP_PORT`, `SMTP_USERNAME`,
-   `SMTP_PASSWORD` y `SIGA_MAIL_FROM`. Hoy `perform_deliveries` es `false` porque
-   `SMTP_ADDRESS` está vacío: **el correo de activación de `MOR-143` no sale**. El flujo funciona
-   igual mostrando el enlace en pantalla, pero la mitad automática está apagada.
+1. ~~Rotar la contraseña de `siga_app`~~ → **hecha** el 21 de agosto.
+   **Falta `RAILS_MASTER_KEY`**, que no es un `config:set`: hay que regenerar
+   `config/credentials.yml.enc` en local con la llave nueva, commitearlo y volver a desplegar.
+   La que está puesta quedó expuesta en varias transcripciones.
+2. **`MOR-102` · SMTP con ElasticEmail.** El lado de Rails está completo y
+   `SIGA_HOST=sigaeducando.com` está bien puesto. Falta verificar el dominio en ElasticEmail y
+   cargar las cinco variables.
+
+   ⚠️ **`sigaeducando.com` YA TIENE un registro SPF** —el del reenvío de correo de Namecheap,
+   `v=spf1 include:spf.efwd.registrar-servers.com ~all`— y **solo puede haber uno**. El de
+   ElasticEmail no se agrega como TXT aparte: se FUSIONA en ese mismo registro. Dos TXT de SPF
+   invalidan los dos y todo el correo empieza a caer en spam.
 3. **Una segunda llave SSH en el servidor.** Hay **una sola** en `authorized_keys`: si se pierde
    `~/.ssh/siga_deploy`, se pierde el acceso.
 4. **Subir `SIGA_HSTS_SEGUNDOS` a 31536000** cuando pasen unos días sin sobresaltos.
-5. **Desplegar.** Producción no tiene `MOR-138`, `MOR-142` ni `MOR-143`.
+5. ~~Desplegar~~ → **hecho**. Producción está en `bef8b28`.
+
+## 21 de agosto, mañana · desplegado y con los formularios parejos
+
+- **Clave de `siga_app` rotada.** Se generó y se usó enteramente en el servidor, con un script
+  que se borra: no pasó por ninguna terminal local. Verificada por la ruta que usa la app
+  —contra la IP de red, no contra el loopback, que es `trust` y da falso positivo— y con el
+  fusible del RLS confirmado después. El respaldo diario no se toca: usa `dokku postgres:export`,
+  que va con las credenciales del servicio.
+- **`main` al día y desplegado.** 110 commits, PR #1 cerrado solo como merged. Las cuatro
+  migraciones corrieron en producción por el `release:` y el índice parcial de `users.email`
+  está puesto. Respaldo tomado antes de migrar.
+- **Los formularios, parejos.** Había cuatro estructuras para la misma pantalla. La peor:
+  `%fieldset`/`%legend` **no tienen ninguna regla** en el tema del colegio —solo existe
+  `.siga-fieldset`, del panel oscuro— así que profesor y administrador salían con el borde gris
+  hundido del navegador adentro de una tarjeta, y el de profesor tenía uno **vacío**. Ahora las
+  diez altas usan `.card-academic` + `.form-seccion` + una sola `.form-acciones`, con un test
+  que falla 5 de 31 contra el código viejo.
+- **Y otro campo duplicado**, esta vez `user[document]` en el alta de representantes — el mismo
+  bug que en el alta de colegios. El test nuevo lo busca en las diez pantallas.
 
 ## Lo que sigue, en orden
 
