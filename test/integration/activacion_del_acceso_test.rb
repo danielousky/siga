@@ -228,6 +228,59 @@ class ActivacionDelAccesoTest < ActionDispatch::IntegrationTest
     assert_nil usuario.email
   end
 
+  # ── una sola puerta, y dice de quién es la cuenta ─────────────────────────
+
+  # La pantalla de Devise construye un usuario EN BLANCO a partir del token y
+  # nunca carga la persona, así que no puede decir de quién es la cuenta. Le
+  # pasó a Daniel: "no sé de cuál usuario estoy reseteando la contraseña".
+  test "la pantalla dice de quién es la cuenta" do
+    codigo = generar_codigo_para(@con_correo)
+    sign_out @a.director
+
+    get activar_path(codigo)
+
+    assert_response :success
+    assert_select ".acceso-quien", text: /Carmen López/
+    assert_select ".acceso-quien-correo", text: "carmen@familia.test"
+  end
+
+  # Activar y recuperar son la misma pantalla, pero no dicen lo mismo: a quien
+  # nunca tuvo cuenta se le da la bienvenida; a quien la está recuperando, no.
+  test "el texto distingue activar de recuperar" do
+    codigo = generar_codigo_para(@sin_correo)
+    sign_out @a.director
+    get activar_path(codigo)
+
+    assert_select "h1", text: /Bienvenido/
+
+    sign_in @a.director
+    @con_correo.user.update!(password: "clave-vieja")
+    codigo = generar_codigo_para(@con_correo)
+    sign_out @a.director
+    get activar_path(codigo)
+
+    assert_select "h1", text: /contraseña nueva/
+  end
+
+  # ⚠️ 302 y no 301: la URL lleva un token de un solo uso, y un navegador que
+  # cachee una redirección permanente se queda con el token viejo.
+  test "la pantalla vieja de Devise redirige a la nueva, sin cachear" do
+    get "/users/password/edit", params: { reset_password_token: "un-token" }
+
+    assert_response :found
+    assert_redirected_to "/activar/un-token"
+  end
+
+  test "el correo de recuperación lleva al mismo lugar" do
+    @con_correo.user.update!(password: "clave-vieja")
+    token = @con_correo.user.send(:set_reset_password_token)
+
+    cuerpo = Devise::Mailer.reset_password_instructions(@con_correo.user, token).body.to_s
+
+    assert_match %r{/activar/#{token}}, cuerpo
+    assert_no_match(%r{/users/password/edit}, cuerpo)
+  end
+
   # ── una persona sin credenciales sigue sin poder entrar ───────────────────
 
   test "antes de activar, la cuenta no entra por la puerta normal" do

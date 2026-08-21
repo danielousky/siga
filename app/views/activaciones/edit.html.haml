@@ -1,8 +1,27 @@
 .card-academic.acceso
-  %h1.acceso-titulo= "Bienvenido, #{@usuario.first_name}"
+  - if @usuario.puede_entrar?
+    %h1.acceso-titulo Elija una contraseña nueva
+  - else
+    %h1.acceso-titulo= "Bienvenido, #{@usuario.first_name}"
+
+  -# ⚠️ Decir DE QUIÉN es la cuenta no es decoración.
+  -#
+  -# El formulario de Devise no lo dice —construye un usuario en blanco a partir
+  -# del token y nunca carga la persona—, así que quien abre el enlace no tiene
+  -# forma de saber a qué cuenta le está poniendo contraseña. Le pasó a Daniel
+  -# con este mismo enlace: "no sé de cuál usuario estoy reseteando".
+  -#
+  -# Y no filtra nada: quien tiene el código ya controla esa cuenta.
+  %p.acceso-quien
+    = @usuario.nombre_completo
+    - if @usuario.email.present?
+      %span.acceso-quien-correo= @usuario.email
 
   %p.nota-ayuda
-    Elija una contraseña para entrar a SIGA. De ahora en adelante entra con ella.
+    - if @usuario.puede_entrar?
+      La anterior deja de servir en cuanto guarde esta.
+    - else
+      De ahora en adelante entra a SIGA con ella.
 
   = form_with(model: @usuario, url: activacion_path, method: :patch, scope: :user) do |f|
     = render "shared/errors", object: @usuario

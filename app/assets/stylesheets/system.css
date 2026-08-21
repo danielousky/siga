@@ -3703,3 +3703,19 @@ nav.pagy a.gap {
   font-size: 13px;
   font-style: italic;
 }
+
+/* De quién es la cuenta que se está activando o recuperando (MOR-143).
+   Va arriba del formulario y no como ayuda al pie: es lo primero que hay que
+   poder confirmar antes de escribir una contraseña. */
+.acceso-quien {
+  margin: 0 0 var(--space-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.acceso-quien-correo {
+  display: block;
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}

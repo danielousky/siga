@@ -22,6 +22,20 @@ Rails.application.routes.draw do
   # actualizar: un usuario tiene que poder cambiarse la contraseña estando
   # adentro. Lo que NO vuelve es `destroy` — que un alumno se borre a sí mismo de
   # un sistema académico no es una función, es una pérdida de datos.
+  # ⚠️ La pantalla de contraseña de Devise redirige a `/activar/:token`.
+  #
+  # Son dos puertas a lo mismo con calidad distinta. La de Devise construye un
+  # usuario EN BLANCO a partir del token y nunca carga la persona, así que no
+  # puede decir de quién es la cuenta —"no sé de cuál usuario estoy
+  # reseteando", textual— y ante un token vencido igual dibuja el formulario:
+  # una trampa que solo falla al enviar.
+  #
+  # Va ANTES de `devise_for` porque gana la primera ruta que coincide.
+  # 302 y no el 301 por defecto: la URL lleva un token de un solo uso, y un
+  # navegador que cachee la redirección permanente se queda con el token viejo.
+  get "users/password/edit",
+      to: redirect(status: 302) { |_p, req| "/activar/#{req.params[:reset_password_token]}" }
+
   devise_for :users, skip: [:registrations]
 
   devise_scope :user do
