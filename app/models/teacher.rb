@@ -1,5 +1,6 @@
 class Teacher < ApplicationRecord
   include SchoolScoped
+  include EntraAlSistema
 
   belongs_to :user
   belongs_to :school

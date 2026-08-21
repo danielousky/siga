@@ -1,5 +1,6 @@
 class Admin < ApplicationRecord
   include SchoolScoped
+  include EntraAlSistema
 
   # ⚠️ Los cinco son roles DENTRO de un colegio. `desarrollador` es el
   # super-admin de ESE colegio, no "gente de SIGA": eso vive en `SigaStaff`, sin

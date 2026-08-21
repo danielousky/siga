@@ -1532,8 +1532,8 @@ ALTER SEQUENCE public.teachers_user_id_seq OWNED BY public.teachers.user_id;
 
 CREATE TABLE public.users (
     id bigint NOT NULL,
-    email character varying DEFAULT ''::character varying NOT NULL,
-    encrypted_password character varying DEFAULT ''::character varying NOT NULL,
+    email character varying,
+    encrypted_password character varying,
     reset_password_token character varying,
     reset_password_sent_at timestamp(6) without time zone,
     remember_created_at timestamp(6) without time zone,
@@ -3024,7 +3024,7 @@ CREATE UNIQUE INDEX index_users_on_document ON public.users USING btree (documen
 -- Name: index_users_on_email; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email);
+CREATE UNIQUE INDEX index_users_on_email ON public.users USING btree (email) WHERE (email IS NOT NULL);
 
 
 --
@@ -3863,6 +3863,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260821030000'),
 ('20260820210000'),
 ('20260820180000'),
 ('20260820040000'),

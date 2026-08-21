@@ -13,6 +13,8 @@
 class SigaStaff < ApplicationRecord
   self.table_name = "siga_staffs"
 
+  include EntraAlSistema
+
   belongs_to :user
 
   enum :role, { operaciones: 0, fundador: 1 }

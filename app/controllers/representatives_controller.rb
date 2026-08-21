@@ -36,8 +36,11 @@ class RepresentativesController < ApplicationController
   def create
     @usuario = usuario_existente || User.new(user_params)
 
+    # Sin contraseña, a propósito: antes se le ponía una aleatoria de 12
+    # caracteres que NADIE conocía —ni el representante ni la secretaria—, así
+    # que la cuenta nacía inutilizable igual, pero pareciendo utilizable.
+    # Ahora nace sin credenciales y el acceso se activa aparte (`MOR-143`).
     if @usuario.new_record?
-      @usuario.password = SecureRandom.alphanumeric(12)
       unless @usuario.save
         @representative = Representative.new
         return render :new, status: :unprocessable_entity
@@ -76,13 +79,30 @@ class RepresentativesController < ApplicationController
   private
 
   # Si la persona ya tiene cuenta —porque es profesora del colegio, o ya
-  # representa a otro alumno— se reutiliza. `users.email` es único global
-  # justamente para que una persona sea una sola cuenta (MOR-84).
+  # representa a otro alumno— se reutiliza, para que una persona siga siendo una
+  # sola cuenta (MOR-84, MOR-138).
+  #
+  # ⚠️ Se busca por DOCUMENTO primero, no por correo. Buscar por un campo que
+  # desde `MOR-142` puede venir vacío no falla ruidosamente: DUPLICA. La misma
+  # mamá, cargada para su segundo hijo sin correo, nacía como una persona nueva
+  # — justo lo contrario de lo que construyó `MOR-138`.
+  #
+  # El orden es el de confiabilidad: el documento identifica a la PERSONA, el
+  # correo identifica un buzón que puede cambiar de dueño.
+  #
+  # Los valores se normalizan antes de preguntar: en la base vive `12345678`, y
+  # `WHERE document = 'V-12.345.678'` no devuelve nada.
   def usuario_existente
-    correo = params.dig(:user, :email).to_s.strip.downcase
-    return nil if correo.blank?
+    documento = User.normalizar_documento(params.dig(:user, :document),
+                                          params.dig(:user, :document_type))
+    cedula    = User.normalizar_cedula_escolar(params.dig(:user, :cedula_escolar))
+    correo    = params.dig(:user, :email).to_s.strip.downcase.presence
 
-    Current.sin_aislamiento { User.find_by(email: correo) }
+    Current.sin_aislamiento do
+      (documento && User.find_by(document: documento)) ||
+        (cedula && User.find_by(cedula_escolar: cedula)) ||
+        (correo && User.find_by(email: correo))
+    end
   end
 
   def vincular_alumnos(representante)

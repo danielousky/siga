@@ -39,6 +39,12 @@ class User < ApplicationRecord
   def teacher = teachers.find_by(school_id: Current.school_id) || teachers.first
   def admin   = admins.find_by(school_id: Current.school_id)   || admins.first
 
+  # El documento se guarda normalizado SIEMPRE, venga de un formulario, de los
+  # seeds o del importador. Si la regla viviera en el importador, el formulario
+  # seguiría creando `V-12.345.678` y `12345678` como dos personas distintas.
+  before_validation :normalizar_identificadores
+  before_validation :descartar_credenciales_en_blanco
+
   validates :document,       uniqueness: true, allow_nil: true
   validates :cedula_escolar, uniqueness: true, allow_nil: true
   validates :first_name, :last_name, presence: true
@@ -78,6 +84,75 @@ class User < ApplicationRecord
     "Cédula escolar" if cedula_escolar.present?
   end
 
+  # Una persona sin contraseña no puede entrar, y no hace falta un flag para
+  # saberlo: `Devise::Encryptor.compare` arranca con
+  # `return false if hashed_password.blank?`.
+  #
+  # Existe como método porque las vistas necesitan decirlo en palabras
+  # —"todavía no ha activado su acceso"—, no porque cambie el comportamiento.
+  def puede_entrar? = encrypted_password.present?
+
+  # --- Devise -------------------------------------------------------------
+
+  # Un alumno de 2do grado no tiene correo y no lo necesita: no es una cuenta,
+  # es un registro. Quién SÍ necesita correo lo decide el rol —`Teacher` y
+  # `Admin` lo exigen— porque es ahí donde se sabe.
+  def email_required? = false
+
+  # Devise exige contraseña en toda alta (`!persisted?`). Acá una persona puede
+  # nacer sin credenciales y recibirlas después, cuando active su acceso.
+  #
+  # Se sigue exigiendo —longitud, confirmación— en cuanto alguien esté PONIENDO
+  # una: eso es lo que devuelve `super`.
+  def password_required?
+    return false if password.nil? && password_confirmation.nil?
+
+    super
+  end
+
+  # --- normalización de identificadores -----------------------------------
+  #
+  # Son métodos de CLASE porque no solo hace falta al guardar: quien BUSCA los
+  # necesita igual. Para encontrar a la persona `12345678` hay que normalizar
+  # `V-12.345.678` ANTES de preguntar, o la consulta no devuelve nada y el
+  # importador crea a la misma persona por segunda vez.
+
+  # Cada tipo de documento se limpia distinto, y confundirlos destruye datos:
+  #
+  #   cédula (V/E) ......  solo dígitos, sin ceros a la izquierda
+  #                        "V-12.345.678" → "12345678"
+  #   pasaporte / carné .  alfanumérico en mayúscula
+  #                        "a1234567b" → "A1234567B"
+  #
+  # La regla de la cédula aplicada a un pasaporte se come las letras y lo deja
+  # identificando a otra persona. Por eso el caso DESCONOCIDO cae en la regla
+  # conservadora, no en la destructiva.
+  #
+  # La nacionalidad no se guarda en el número: ya está en `document_type`.
+  def self.normalizar_documento(valor, tipo)
+    case tipo_de_documento(tipo)
+    when "cedula_v", "cedula_e" then valor&.gsub(/\D/, "")&.sub(/\A0+/, "").presence
+    else                             valor&.gsub(/[^A-Za-z0-9]/, "")&.upcase.presence
+    end
+  end
+
+  # La cédula escolar NO se normaliza como un documento: su formato lo define el
+  # MPPE —12 caracteres que empiezan por la nacionalidad— y los guiones son
+  # parte del dato. Solo se quitan espacios y se sube a mayúscula.
+  def self.normalizar_cedula_escolar(valor)
+    valor&.gsub(/\s/, "")&.upcase.presence
+  end
+
+  # El tipo llega de tres formas según quién pregunte: el símbolo del enum
+  # (modelo), su nombre en cadena —lo que manda el `<select>` del formulario— o
+  # el entero crudo, que es como vive en la base y como sale de la exportación
+  # de otro sistema. El importador va a ver las tres.
+  def self.tipo_de_documento(tipo)
+    return document_types.key(tipo.to_i) if tipo.to_s.match?(/\A\d+\z/)
+
+    tipo.to_s.presence
+  end
+
   private
 
   # Una persona sin ningún identificador no puede aparecer en una planilla del
@@ -89,5 +164,32 @@ class User < ApplicationRecord
     return if document.present? || cedula_escolar.present?
 
     errors.add(:base, "Hace falta la cédula de identidad o la cédula escolar")
+  end
+
+  def normalizar_identificadores
+    self.document       = self.class.normalizar_documento(document, document_type)
+    self.cedula_escolar = self.class.normalizar_cedula_escolar(cedula_escolar)
+  end
+
+  # Un campo de formulario vacío llega como `""`, nunca como `nil`. Y para este
+  # par de columnas la diferencia es todo (MOR-142):
+  #
+  #   email ....  `''` SÍ choca contra el índice único. PostgreSQL admite muchos
+  #               NULL porque cada uno es distinto, pero `''` es un valor como
+  #               cualquier otro: sin esta línea, el SEGUNDO alumno sin correo
+  #               revienta la carga.
+  #
+  #   password .  `""` no es `nil`, así que Devise entiende "está poniendo una
+  #               contraseña" y exige presencia. Guardar un alumno dejando el
+  #               campo en blanco fallaba con "no puede estar en blanco", que es
+  #               justamente lo que este issue vino a permitir.
+  #
+  # Corre DESPUÉS de `strip_whitespace` de Devise —que se registra al llamar a
+  # `devise` arriba—, así que un correo de puros espacios ya llegó como `""`.
+  def descartar_credenciales_en_blanco
+    self.email = email.presence
+
+    self.password              = nil if password.blank?
+    self.password_confirmation = nil if password_confirmation.blank?
   end
 end
