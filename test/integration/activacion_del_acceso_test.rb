@@ -207,6 +207,27 @@ class ActivacionDelAccesoTest < ActionDispatch::IntegrationTest
     assert_response :gone
   end
 
+  # ⚠️ El MISMO token abre el formulario estándar de Devise, que NO pregunta por
+  # el correo. Sin el invariante del modelo, por ahí quedaba una persona con
+  # contraseña y sin correo: sin ninguna forma de recuperarla nunca, que es el
+  # estado exacto que este issue dice que no puede existir.
+  #
+  # Se cierra en `User` y no en un controller porque la puerta de Devise no es
+  # la única: están la consola y el importador que todavía no existe.
+  test "el formulario estándar de Devise no sirve para saltarse el correo" do
+    codigo = generar_codigo_para(@sin_correo)
+    sign_out @a.director
+
+    put user_password_path, params: { user: { reset_password_token: codigo,
+                                              password: "clave-nueva",
+                                              password_confirmation: "clave-nueva" } }
+
+    usuario = @sin_correo.user.reload
+
+    assert_not usuario.puede_entrar?, "quedó con contraseña"
+    assert_nil usuario.email
+  end
+
   # ── una persona sin credenciales sigue sin poder entrar ───────────────────
 
   test "antes de activar, la cuenta no entra por la puerta normal" do

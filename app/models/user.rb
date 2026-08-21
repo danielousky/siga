@@ -49,6 +49,7 @@ class User < ApplicationRecord
   validates :cedula_escolar, uniqueness: true, allow_nil: true
   validates :first_name, :last_name, presence: true
   validate  :tiene_algun_identificador
+  validate  :con_contrasena_hace_falta_correo
 
   # Nombre completo con los dos apellidos: "Álvaro José López Medina".
   #
@@ -152,6 +153,27 @@ class User < ApplicationRecord
   # necesita igual. Para encontrar a la persona `12345678` hay que normalizar
   # `V-12.345.678` ANTES de preguntar, o la consulta no devuelve nada y el
   # importador crea a la misma persona por segunda vez.
+
+  # Tener contraseña obliga a tener correo, y es un invariante del MODELO y no
+  # una regla de un formulario a propósito.
+  #
+  # `MOR-143` lo exige en la pantalla de activación… y el MISMO token abre el
+  # formulario estándar de Devise —`/users/password/edit`—, que no pregunta por
+  # el correo. Medido: quedaba una persona con contraseña y sin correo, o sea
+  # **sin ninguna forma de recuperarla nunca**, que es exactamente el estado que
+  # ese issue dice que no puede existir.
+  #
+  # Puesto acá, se cierra por cualquier puerta: la de Devise, la de activación,
+  # la consola y el importador que todavía no existe.
+  #
+  # Al revés SÍ se puede: correo sin contraseña es una persona a la que todavía
+  # no le activaron el acceso, y es el caso normal.
+  def con_contrasena_hace_falta_correo
+    return if email.present? || encrypted_password.blank?
+
+    errors.add(:base, "Hace falta un correo electrónico para poder tener contraseña: " \
+                      "es el único lugar donde el sistema puede escribirle si la olvida.")
+  end
 
   # Cada tipo de documento se limpia distinto, y confundirlos destruye datos:
   #
