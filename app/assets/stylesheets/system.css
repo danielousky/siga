@@ -3799,3 +3799,9 @@ nav.pagy a.gap {
   font-size: 13px;
   color: var(--text-secondary);
 }
+
+/* El selector de año escolar de una importación (MOR-126). */
+.periodo-de-importacion {
+  margin-top: var(--space-md);
+  max-width: 340px;
+}

@@ -8,6 +8,20 @@
   %p.nota-ayuda
     Todavía no se ha escrito nada. Revise esto y confirme abajo.
 
+  -# ⚠️ El año escolar va acá arriba y no escondido en la configuración.
+  -#
+  -# Una importación es de UN año, y adivinarlo sale mal: en agosto el «vigente»
+  -# es el que está por empezar, pero un colegio que llega en esa fecha puede
+  -# estar subiendo la matrícula del que acaba de terminar. Las secciones se
+  -# buscan dentro de este año, así que si está mal, todas van a aparecer como
+  -# inexistentes — y esta es la línea que lo explica.
+  = form_with url: previsualizar_importacion_path(@importacion), method: :get, class: "periodo-de-importacion" do
+    = label_tag :periodo_id, "Año escolar de esta matrícula", class: "form-label"
+    = select_tag :periodo_id,
+                 options_from_collection_for_select(@periodos, :id, :name, @importacion.periodo&.id),
+                 class: "form-select", onchange: "this.form.requestSubmit()"
+    %noscript= submit_tag "Cambiar", class: "btn btn-secondary"
+
   .cifras-de-importacion
     .cifra-de-importacion
       %span.cifra-numero= @matricula.cargables.size

@@ -21,6 +21,11 @@ class Importacion < ApplicationRecord
   belongs_to :school
   belongs_to :subido_por, class_name: "User"
 
+  # El año escolar que se está cargando. Se puede cambiar antes de confirmar:
+  # un colegio que entra en agosto está subiendo la matrícula del año que
+  # empieza, pero uno que llega a mitad de año sube la del que está corriendo.
+  belongs_to :academic_period, optional: true
+
   # `cargada`      el archivo está arriba y ya se leyeron sus encabezados
   # `mapeada`      alguien dijo qué columna es cuál y vio la previsualización
   # `confirmada`   se escribió en la base; `resultado` dice qué pasó
@@ -76,4 +81,11 @@ class Importacion < ApplicationRecord
   end
 
   def lista_para_previsualizar? = obligatorias_sin_mapear.empty?
+
+  # El año escolar al que va la matrícula. Por defecto el que la app considera
+  # vigente —el que está en curso, o el que viene si estamos entre julio y
+  # septiembre— y quien importa lo puede cambiar.
+  def periodo
+    academic_period || AcademicPeriod.vigente
+  end
 end

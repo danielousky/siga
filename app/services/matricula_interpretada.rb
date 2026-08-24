@@ -43,12 +43,22 @@ class MatriculaInterpretada
 
   attr_reader :filas
 
-  def initialize(planilla:, mapeo:, colegio:)
+  attr_reader :periodo
+
+  def initialize(planilla:, mapeo:, colegio:, periodo: nil)
     @planilla = planilla
     @mapeo = mapeo.to_h { |encabezado, clave| [ clave.to_s, encabezado ] }
     @colegio = colegio
+    @periodo = periodo || AcademicPeriod.vigente
     @grados = Grade.where(school: colegio).to_a
-    @secciones = Section.includes(:grade).where(grade: @grados).to_a
+
+    # ⚠️ Las secciones se buscan DENTRO del año escolar, no en todos.
+    #
+    # Un colegio tiene «1er Año A» en cada año que lleva abierto. Buscando sin
+    # filtrar, la primera que aparece gana — y podía ser la del año pasado
+    # mientras una sección nueva se creaba en el que viene. La importación
+    # quedaba partida entre dos años, sin que nadie lo viera.
+    @secciones = @periodo ? Section.includes(:grade).where(grade: @grados, academic_period: @periodo).to_a : []
 
     # El sexo se decide con la COLUMNA entera, no celda por celda: `H` es
     # femenino junto a `V` y masculino junto a `M`. Ver `Normaliza.sexos`.

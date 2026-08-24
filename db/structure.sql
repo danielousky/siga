@@ -687,6 +687,7 @@ CREATE TABLE public.importaciones (
     filas_leidas integer,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
+    academic_period_id bigint,
     CONSTRAINT importaciones_estado_valido CHECK ((estado = ANY (ARRAY[0, 1, 2, 3])))
 );
 
@@ -2621,6 +2622,13 @@ CREATE UNIQUE INDEX index_grades_on_school_id_and_name ON public.grades USING bt
 
 
 --
+-- Name: index_importaciones_on_academic_period_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_importaciones_on_academic_period_id ON public.importaciones USING btree (academic_period_id);
+
+
+--
 -- Name: index_importaciones_on_school_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3583,6 +3591,14 @@ ALTER TABLE ONLY public.attendances
 
 
 --
+-- Name: importaciones fk_rails_d7eeace914; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.importaciones
+    ADD CONSTRAINT fk_rails_d7eeace914 FOREIGN KEY (academic_period_id) REFERENCES public.academic_periods(id);
+
+
+--
 -- Name: evaluation_activities fk_rails_d7f6d58aee; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3968,6 +3984,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260824200000'),
 ('20260824180000'),
 ('20260824140000'),
 ('20260821030000'),

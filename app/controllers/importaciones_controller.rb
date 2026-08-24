@@ -86,10 +86,19 @@ class ImportacionesController < ApplicationController
     @importacion.mapeo = mapeo_desde_el_formulario
     @importacion.estado = :mapeada if @importacion.lista_para_previsualizar?
 
-    if @importacion.save
-      redirect_to @importacion, notice: "Mapeo guardado."
+    return redirect_to(@importacion, alert: @importacion.errors.full_messages.to_sentence) unless @importacion.save
+
+    # ⚠️ El botón dice «Guardar y continuar», así que tiene que continuar.
+    #
+    # Antes redirigía siempre a esta misma pantalla con un «Mapeo guardado» y
+    # nada más. Con el mapeo completo eso es un callejón: la persona ve que algo
+    # pasó, no ve a dónde, y vuelve a apretar el mismo botón.
+    #
+    # Si falta una columna sí se queda acá, porque acá es donde se arregla.
+    if @importacion.lista_para_previsualizar?
+      redirect_to previsualizar_importacion_path(@importacion)
     else
-      redirect_to @importacion, alert: @importacion.errors.full_messages.to_sentence
+      redirect_to @importacion, alert: "Falta decir dónde están algunas columnas."
     end
   end
 
@@ -98,6 +107,11 @@ class ImportacionesController < ApplicationController
   def previsualizar
     return redirect_to(@importacion, alert: "Falta decir dónde están algunas columnas.") unless @importacion.lista_para_previsualizar?
 
+    # Cambiar el año escolar desde la propia previsualización: es donde se ve
+    # que las secciones no cuadran, así que es donde hay que poder corregirlo.
+    @importacion.update!(academic_period_id: params[:periodo_id]) if params[:periodo_id].present?
+
+    @periodos = AcademicPeriod.order(start_date: :desc)
     @matricula = interpretada
   rescue Planilla::NoSePuedeLeer => e
     redirect_to importaciones_path, alert: e.message
@@ -111,7 +125,13 @@ class ImportacionesController < ApplicationController
   # esperan, y se crea de un clic.
   def crear_seccion
     grado = Grade.find(params[:grade_id])
-    periodo = AcademicPeriod.vigente || AcademicPeriod.order(:start_date).last
+
+    # ⚠️ En el año escolar de ESTA importación, no en el «vigente».
+    #
+    # Con `vigente` a secas, un colegio que sube la matrícula del año que acaba
+    # de terminar terminaba con los alumnos de las secciones existentes en un
+    # año y los de las secciones nuevas en el siguiente.
+    periodo = @importacion.periodo
 
     return redirect_to(previsualizar_importacion_path(@importacion), alert: "El colegio no tiene ningún año escolar cargado.") if periodo.nil?
 
@@ -191,7 +211,8 @@ class ImportacionesController < ApplicationController
   def interpretada
     MatriculaInterpretada.new(planilla: @importacion.planilla,
                               mapeo: @importacion.mapeo_efectivo,
-                              colegio: Current.school)
+                              colegio: Current.school,
+                              periodo: @importacion.periodo)
   end
 
   def set_importacion

@@ -116,6 +116,28 @@ class ImportarMatriculaTest < ActionDispatch::IntegrationTest
     assert_not con_el_colegio(@a.colegio) { Importacion.last.mapeada? }
   end
 
+  # ⚠️ El botón dice «Guardar y continuar». Antes solo guardaba y volvía a la
+  # misma pantalla con un aviso: la persona veía que algo pasó, no veía a dónde,
+  # y volvía a apretar el mismo botón. El test viejo solo miraba el estado, no
+  # a dónde llevaba.
+  test "con el mapeo completo, guardar CONTINÚA a la previsualización" do
+    subir
+    importacion = con_el_colegio(@a.colegio) { Importacion.last }
+
+    mapear_todo(importacion)
+
+    assert_redirected_to previsualizar_importacion_path(importacion)
+  end
+
+  test "con una columna obligatoria sin mapear, se queda donde se arregla" do
+    subir
+    importacion = con_el_colegio(@a.colegio) { Importacion.last }
+
+    patch importacion_path(importacion), params: { mapeo: { "APELLIDOS Y NOMBRES" => "nombre_completo" } }
+
+    assert_redirected_to importacion_path(importacion)
+  end
+
   test "con las obligatorias mapeadas, la importación queda lista" do
     subir
     importacion = con_el_colegio(@a.colegio) { Importacion.last }
@@ -221,6 +243,59 @@ class ImportarMatriculaTest < ActionDispatch::IntegrationTest
     get previsualizar_importacion_path(importacion)
 
     assert_select "button[type=submit]", text: /Cargar/, count: 0
+  end
+
+  # ── el año escolar ────────────────────────────────────────────────────────
+
+  # ⚠️ El bug que no fallaba: la importación quedaba PARTIDA entre dos años.
+  #
+  # Las secciones que ya existían vivían en el año pasado, pero
+  # `AcademicPeriod.vigente` devuelve el que está por empezar —correcto para el
+  # resto de la app, porque es el que el colegio prepara—. Los alumnos con
+  # sección existente caían en un año y los de una sección nueva en el otro, sin
+  # que nadie lo viera.
+  test "la sección nueva se crea en el año escolar de ESTA importación" do
+    viejo_periodo = con_el_colegio(@a.colegio) { AcademicPeriod.order(:start_date).first }
+    proximo = con_el_colegio(@a.colegio) do
+      AcademicPeriod.create!(school: @a.colegio, name: "2027-2028",
+                             start_date: Date.new(2027, 9, 15), end_date: Date.new(2028, 7, 15))
+    end
+
+    subir
+    importacion = con_el_colegio(@a.colegio) { Importacion.last }
+    mapear_todo(importacion)
+
+    # El colegio dice que esta matrícula es del año viejo, aunque el «vigente»
+    # de la app sea el que viene.
+    get previsualizar_importacion_path(importacion), params: { periodo_id: viejo_periodo.id }
+    grado = con_el_colegio(@a.colegio) { Grade.find_by(name: "1er Año") }
+    post crear_seccion_importacion_path(importacion),
+         params: { grade_id: grado.id, nombre: "C", alumnos: 1 }
+
+    con_el_colegio(@a.colegio) do
+      seccion = Section.find_by(grade: grado, name: "C")
+
+      assert_equal viejo_periodo, seccion.academic_period,
+                   "la sección tiene que seguir al año de la importación, no al «vigente»"
+      assert_not_equal proximo, seccion.academic_period
+    end
+  end
+
+  test "cambiar el año escolar cambia contra qué secciones se busca" do
+    subir
+    importacion = con_el_colegio(@a.colegio) { Importacion.last }
+    mapear_todo(importacion)
+    otro = con_el_colegio(@a.colegio) do
+      AcademicPeriod.create!(school: @a.colegio, name: "2027-2028",
+                             start_date: Date.new(2027, 9, 15), end_date: Date.new(2028, 7, 15))
+    end
+
+    get previsualizar_importacion_path(importacion), params: { periodo_id: otro.id }
+
+    assert_response :success
+    assert_equal otro, con_el_colegio(@a.colegio) { Importacion.last.periodo }
+    # En un año sin ninguna sección cargada, TODAS aparecen como inexistentes.
+    assert_select "button[type=submit]", text: /Crear/, minimum: 2
   end
 
   # ── cargar de verdad ──────────────────────────────────────────────────────
