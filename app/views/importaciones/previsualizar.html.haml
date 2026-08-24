@@ -1,0 +1,163 @@
+- faltan = @matricula.secciones_que_faltan
+
+.card-academic
+  .card-academic-header
+    %h1 Qué se va a cargar
+    = link_to "Cambiar el mapeo", importacion_path(@importacion), class: "btn btn-secondary"
+
+  %p.nota-ayuda
+    Todavía no se ha escrito nada. Revise esto y confirme abajo.
+
+  .cifras-de-importacion
+    .cifra-de-importacion
+      %span.cifra-numero= @matricula.cargables.size
+      %span.cifra-que se cargan
+    - if @matricula.rechazadas.any?
+      .cifra-de-importacion.--rechazadas
+        %span.cifra-numero= @matricula.rechazadas.size
+        %span.cifra-que no se pueden cargar
+    - if @matricula.con_avisos.any?
+      .cifra-de-importacion
+        %span.cifra-numero= @matricula.con_avisos.size
+        %span.cifra-que se cargan con una advertencia
+    - if @matricula.representantes_sin_correo.positive?
+      .cifra-de-importacion
+        %span.cifra-numero= @matricula.representantes_sin_correo
+        %span.cifra-que sin correo del representante
+
+-# ── lo que hay que resolver antes ──────────────────────────────────────────
+- if faltan.any?
+  .card-academic
+    .card-academic-header
+      %h2 Estas secciones todavía no existen
+
+    %p
+      La planilla las nombra y el colegio no las tiene. Créelas acá mismo, o
+      corrija la planilla si alguna es un error de escritura.
+
+    %table.table-academic
+      %thead
+        %tr
+          %th En la planilla
+          %th Alumnos
+          %th
+      %tbody
+        - faltan.each do |s|
+          %tr
+            %td
+              %strong= s[:texto]
+            %td
+              -# ⚠️ El conteo es lo que delata el dedazo. «1er Año C · 18
+              -# alumnos» es una sección de verdad; «1er Año Á · 1 alumno» es un
+              -# error de escritura, y verlos uno al lado del otro lo hace obvio
+              -# ANTES de crear basura que después nadie borra.
+              = pluralizar(s[:alumnos], "alumno", "alumnos")
+            %td
+              - if s[:grado] && s[:nombre_de_seccion].present?
+                = button_to "Crear #{s[:grado].name} #{s[:nombre_de_seccion]}",
+                            crear_seccion_importacion_path(@importacion),
+                            params: { grade_id: s[:grado].id, nombre: s[:nombre_de_seccion], alumnos: s[:alumnos] },
+                            class: "btn btn-secondary"
+              - else
+                %span.nota-pendiente
+                  No hay ningún grado que se llame así. Créelo primero en
+                  = succeed "." do
+                    = link_to "Grados", grades_path
+
+-# ── la pregunta de las fechas ──────────────────────────────────────────────
+- if @matricula.fechas_ambiguas.positive?
+  .card-academic
+    .card-academic-header
+      %h2 Confirme el formato de las fechas
+
+    %p
+      = pluralizar(@matricula.fechas_ambiguas, "fecha se leería", "fechas se leerían")
+      distinto según el idioma del Excel que las escribió. SIGA las está leyendo
+      como
+      %strong día/mes/año
+      \: «03/12/2014» es el 3 de diciembre.
+
+    %p.nota-ayuda
+      Si su planilla salió de un Excel en inglés, esas fechas están al revés y
+      hay que corregirlas antes de cargar. Las demás no tienen esa duda —en
+      «22/11» no existe el mes 22— así que basta con mirar una.
+
+-# ── lo que no entra ────────────────────────────────────────────────────────
+- if @matricula.rechazadas.any?
+  .card-academic
+    .card-academic-header
+      %h2 Filas que no se van a cargar
+
+    %p.nota-ayuda
+      Les falta algo sin lo cual el registro no existiría. Corrija la planilla y
+      vuelva a subirla, o cargue el resto y estas después.
+
+    .tabla-envoltura
+      %table.table-academic
+        %thead
+          %tr
+            %th Fila
+            %th Alumno
+            %th Qué falta
+        %tbody
+          - @matricula.rechazadas.each do |fila|
+            %tr
+              %td= fila.numero
+              %td= fila.nombre_del_alumno.presence || "—"
+              %td
+                %ul.motivos
+                  - fila.errores.each do |motivo|
+                    %li= motivo
+
+-# ── lo que entra con reparos ───────────────────────────────────────────────
+- if @matricula.con_avisos.any?
+  .card-academic
+    .card-academic-header
+      %h2 Se cargan, pero conviene mirarlas
+
+    .tabla-envoltura
+      %table.table-academic
+        %thead
+          %tr
+            %th Fila
+            %th Alumno
+            %th Advertencia
+        %tbody
+          - @matricula.con_avisos.each do |fila|
+            %tr
+              %td= fila.numero
+              %td= fila.nombre_del_alumno
+              %td
+                %ul.motivos
+                  - fila.avisos.each do |motivo|
+                    %li= motivo
+
+-# ── confirmar ──────────────────────────────────────────────────────────────
+.card-academic
+  .card-academic-header
+    %h2 Confirmar la carga
+
+  - if faltan.any?
+    %p.nota-pendiente
+      Primero cree las secciones que faltan, o corrija la planilla.
+  - elsif @matricula.cargables.empty?
+    %p.nota-pendiente
+      No hay ninguna fila que se pueda cargar.
+  - else
+    %p
+      Se van a crear o actualizar
+      %strong= pluralizar(@matricula.cargables.size, "alumno", "alumnos")
+      con su representante y su inscripción.
+      - if @matricula.rechazadas.any?
+        = "Las otras #{@matricula.rechazadas.size} quedan fuera."
+
+    %p.nota-ayuda
+      Reimportar la misma planilla corregida no duplica a nadie: cada persona se
+      reconoce por su cédula.
+
+  .form-acciones
+    - if faltan.empty? && @matricula.cargables.any?
+      = button_to "Cargar #{pluralizar(@matricula.cargables.size, 'alumno', 'alumnos')}",
+                  importacion_path(@importacion), method: :patch,
+                  params: { confirmar: "1" }, class: "btn btn-primary"
+    = link_to "Volver al mapeo", importacion_path(@importacion), class: "btn btn-secondary"

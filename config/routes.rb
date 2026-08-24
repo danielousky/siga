@@ -148,6 +148,17 @@ Rails.application.routes.draw do
       # pertenece a ninguna importación: se descarga ANTES de que exista.
       get :plantilla
     end
+
+    member do
+      # Qué se va a cargar y qué no, ANTES de escribir nada.
+      get :previsualizar
+
+      # Crear una sección que la planilla nombra y el colegio no tiene. Va acá
+      # y no en `sections#create` porque el contexto importa: se crea sabiendo
+      # cuántos alumnos de ESTA planilla la esperan, que es lo que distingue una
+      # sección nueva de un error de tipeo.
+      post :crear_seccion
+    end
   end
 
   resources :representatives, path: "representantes" do

@@ -14,7 +14,7 @@
 #     confirmar    escribir                          ← todavía no
 class ImportacionesController < ApplicationController
   before_action :require_puede_gestionar!
-  before_action :set_importacion, only: [ :show, :update, :destroy ]
+  before_action :set_importacion, only: [ :show, :update, :destroy, :previsualizar, :crear_seccion ]
 
   def index
     @pagy, @importaciones = pagy(Importacion.includes(:subido_por).recientes)
@@ -90,6 +90,41 @@ class ImportacionesController < ApplicationController
     end
   end
 
+  # Qué se va a cargar y qué no, ANTES de escribir nada. Es el paso que hace
+  # que un import salga bien a la primera en vez de descubrirse roto después.
+  def previsualizar
+    return redirect_to(@importacion, alert: "Falta decir dónde están algunas columnas.") unless @importacion.lista_para_previsualizar?
+
+    @matricula = interpretada
+  rescue Planilla::NoSePuedeLeer => e
+    redirect_to importaciones_path, alert: e.message
+  end
+
+  # ⚠️ Crear la sección desde acá, y no mandando a la persona a otra pantalla.
+  #
+  # Ni se crean solas —un dedazo en la planilla dejaría una sección «1er Año Á»
+  # para siempre— ni se rechaza la fila y listo, que obligaría a salir, crear a
+  # mano y volver a empezar. Se muestra qué falta, con cuántos alumnos la
+  # esperan, y se crea de un clic.
+  def crear_seccion
+    grado = Grade.find(params[:grade_id])
+    periodo = AcademicPeriod.vigente || AcademicPeriod.order(:start_date).last
+
+    return redirect_to(previsualizar_importacion_path(@importacion), alert: "El colegio no tiene ningún año escolar cargado.") if periodo.nil?
+
+    seccion = Section.new(grade: grado, academic_period: periodo,
+                          name: params[:nombre].to_s.strip.upcase,
+                          capacity: [ params[:alumnos].to_i, 30 ].max)
+
+    if seccion.save
+      redirect_to previsualizar_importacion_path(@importacion),
+                  notice: "Se creó #{grado.name} #{seccion.name}."
+    else
+      redirect_to previsualizar_importacion_path(@importacion),
+                  alert: seccion.errors.full_messages.to_sentence
+    end
+  end
+
   def destroy
     @importacion.archivo.purge_later
     @importacion.update(estado: :descartada)
@@ -110,6 +145,12 @@ class ImportacionesController < ApplicationController
   # `=> ""` haría que `mapeo_efectivo` las contara como mapeadas a nada.
   def mapeo_desde_el_formulario
     params.fetch(:mapeo, {}).permit!.to_h.compact_blank
+  end
+
+  def interpretada
+    MatriculaInterpretada.new(planilla: @importacion.planilla,
+                              mapeo: @importacion.mapeo_efectivo,
+                              colegio: Current.school)
   end
 
   def set_importacion

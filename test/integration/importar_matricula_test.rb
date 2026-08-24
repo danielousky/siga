@@ -143,6 +143,86 @@ class ImportarMatriculaTest < ActionDispatch::IntegrationTest
     assert_not con_el_colegio(@a.colegio) { Importacion.last.mapeo.key?("Nº") }
   end
 
+  # ── la previsualización ───────────────────────────────────────────────────
+
+  def mapear_todo(importacion)
+    patch importacion_path(importacion), params: { mapeo: {
+      "APELLIDOS Y NOMBRES" => "nombre_completo", "C.I." => "documento",
+      "CEDULA ESCOLAR" => "cedula_escolar", "F. NACIM." => "fecha_de_nacimiento",
+      "SEXO" => "sexo", "AÑO/SECC" => "seccion", "REPRESENTANTE" => "representante",
+      "CEDULA REPRESENTANTE" => "cedula_del_representante",
+      "CORREO REPRESENTANTE" => "correo_del_representante"
+    } }
+  end
+
+  test "la previsualización dice cuántas entran y cuántas no, sin escribir nada" do
+    subir
+    importacion = con_el_colegio(@a.colegio) { Importacion.last }
+    mapear_todo(importacion)
+
+    assert_no_difference -> { con_el_colegio(@a.colegio) { Student.count } } do
+      get previsualizar_importacion_path(importacion)
+    end
+
+    assert_response :success
+    assert_select ".cifra-de-importacion", minimum: 2
+  end
+
+  # El mapeo automático ya cubre las cuatro obligatorias, así que para llegar
+  # acá hay que haber quitado una a mano.
+  test "sin mapear las obligatorias no deja previsualizar" do
+    subir
+    importacion = con_el_colegio(@a.colegio) { Importacion.last }
+
+    patch importacion_path(importacion), params: { mapeo: { "APELLIDOS Y NOMBRES" => "nombre_completo" } }
+    get previsualizar_importacion_path(importacion)
+
+    assert_redirected_to importacion_path(importacion)
+  end
+
+  # ⚠️ El caso que Daniel pidió: la planilla nombra una sección que no existe.
+  # Ni se crea sola —un dedazo dejaría «1er Año Á» para siempre— ni se manda a
+  # la persona a otra pantalla. Se muestra qué falta, CON CUÁNTOS ALUMNOS la
+  # esperan, y se crea de un clic.
+  test "una sección que no existe se ofrece crear, con su conteo" do
+    subir
+    importacion = con_el_colegio(@a.colegio) { Importacion.last }
+    mapear_todo(importacion)
+
+    get previsualizar_importacion_path(importacion)
+
+    assert_response :success
+    assert_select "td", text: /1er Año C/
+    assert_select "button[type=submit]", text: /Crear .*C/
+  end
+
+  test "crear la sección desde la previsualización la deja lista" do
+    subir
+    importacion = con_el_colegio(@a.colegio) { Importacion.last }
+    mapear_todo(importacion)
+    grado = con_el_colegio(@a.colegio) { Grade.find_by(name: "1er Año") }
+
+    assert_difference -> { con_el_colegio(@a.colegio) { Section.count } }, 1 do
+      post crear_seccion_importacion_path(importacion),
+           params: { grade_id: grado.id, nombre: "C", alumnos: 2 }
+    end
+
+    seccion = con_el_colegio(@a.colegio) { Section.find_by(grade: grado, name: "C") }
+
+    assert_not_nil seccion
+    assert_operator seccion.capacity, :>=, 30, "la capacidad no puede quedar por debajo de los que ya la esperan"
+  end
+
+  test "el botón de cargar no aparece mientras falte una sección" do
+    subir
+    importacion = con_el_colegio(@a.colegio) { Importacion.last }
+    mapear_todo(importacion)
+
+    get previsualizar_importacion_path(importacion)
+
+    assert_select "button[type=submit]", text: /Cargar/, count: 0
+  end
+
   # ── quién puede ───────────────────────────────────────────────────────────
 
   test "un profesor no puede importar matrícula" do
