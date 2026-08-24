@@ -83,7 +83,7 @@ class EscalaLiteralTest < ActiveSupport::TestCase
   # ══════════════════════════════════════════════════════════════════════════
 
   test "un grado nuevo de primaria nace con la escala literal" do
-    escenario = escenario_academico
+    escenario = escenario_academico(nivel: :primaria)
 
     con_el_colegio(escenario.colegio) do
       grado = Grade.create!(name: "3er Grado", level: :primaria)
@@ -93,7 +93,7 @@ class EscalaLiteralTest < ActiveSupport::TestCase
   end
 
   test "un grado nuevo de media nace con la escala numérica" do
-    escenario = escenario_academico
+    escenario = escenario_academico(nivel: :primaria)
 
     con_el_colegio(escenario.colegio) do
       grado = Grade.create!(name: "4to Año", level: :secundaria)
@@ -107,10 +107,10 @@ class EscalaLiteralTest < ActiveSupport::TestCase
   # regímenes como un problema real. Con la escala en `School` ese colegio no se
   # podría representar.
   test "un mismo colegio sostiene las dos escalas a la vez" do
-    escenario = escenario_academico
+    escenario = escenario_academico(nivel: :primaria)
 
     con_el_colegio(escenario.colegio) do
-      primaria = Grade.create!(name: "6to Grado", level: :primaria)
+      primaria = Grade.create!(name: "5to Grado", level: :primaria)
       media    = Grade.create!(name: "3er Año",   level: :secundaria)
 
       assert primaria.escala_literal?
@@ -118,15 +118,41 @@ class EscalaLiteralTest < ActiveSupport::TestCase
     end
   end
 
-  # Se declara, no se deduce: la certificación EMG de media general tiene dos
-  # áreas por literal, así que ni dentro de un nivel la respuesta es única.
-  test "la escala se puede declarar contra lo que diría el nivel" do
-    escenario = escenario_academico
+  # ⚠️ Acá había un test que afirmaba lo contrario: que la escala se podía
+  # declarar contra el nivel, justificado en que la certificación EMG de media
+  # general tiene dos áreas por literal.
+  #
+  # El propio ejemplo lo desmiente. Creaba esto:
+  #
+  #     Grade.create!(name: "Orientación y Convivencia", level: :secundaria, escala: :literal)
+  #
+  # «Orientación y Convivencia» **no es un grado: es una materia.** El caso que
+  # justificaba la excepción estaba modelado como `Grade` cuando es un
+  # `Subject`, y `escala` vive en el grado — así que declararlo literal habría
+  # puesto en literal a Matemática también.
+  #
+  # Si esas áreas hacen falta algún día, la escala tiene que vivir en
+  # `GradeSubject`. Al nivel donde el campo existe hoy, la respuesta es única.
+  test "en secundaria la escala es siempre numérica" do
+    escenario = escenario_academico(nivel: :primaria)
 
     con_el_colegio(escenario.colegio) do
-      grado = Grade.create!(name: "Orientación y Convivencia", level: :secundaria, escala: :literal)
+      grado = Grade.new(name: "3er Año", level: :secundaria, escala: :literal)
 
-      assert grado.escala_literal?, "el nivel da el default, no la última palabra"
+      assert_not grado.valid?
+      assert_match(/siempre es numérica/, grado.errors[:escala].to_sentence)
+    end
+  end
+
+  # La primaria sí elige: hay colegios que califican por número desde primer
+  # grado. Por eso solo se valida un lado.
+  test "en primaria la escala se puede declarar contra el default" do
+    escenario = escenario_academico(nivel: :primaria)
+
+    con_el_colegio(escenario.colegio) do
+      grado = Grade.create!(name: "4to Grado", level: :primaria, escala: :numerica)
+
+      assert grado.escala_numerica?, "el nivel da el default, no la última palabra"
     end
   end
 
@@ -135,7 +161,7 @@ class EscalaLiteralTest < ActiveSupport::TestCase
   # ══════════════════════════════════════════════════════════════════════════
 
   test "la base sigue guardando el entero del 1 al 20" do
-    escenario = escenario_academico
+    escenario = escenario_academico(nivel: :primaria)
 
     con_el_colegio(escenario.colegio) do
       escenario.grado.update!(escala: :literal)
@@ -150,7 +176,7 @@ class EscalaLiteralTest < ActiveSupport::TestCase
   end
 
   test "la base sigue rechazando una nota fuera de 1 a 20" do
-    escenario = escenario_academico
+    escenario = escenario_academico(nivel: :primaria)
 
     con_el_colegio(escenario.colegio) do
       escenario.grado.update!(escala: :literal)
