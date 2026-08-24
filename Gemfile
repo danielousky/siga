@@ -122,3 +122,21 @@ end
 group :development, :test do
   gem "rubocop-rails-omakase", require: false
 end
+
+# Leer la planilla que trae el colegio (MOR-126).
+#
+# `roo` da UNA sola interfaz para xlsx, csv y ods; `roo-xls` le suma el .xls de
+# Excel 97-2003, que no es opcional acá: el sistema que usan hoy la mayoría de
+# los colegios venezolanos es de escritorio y con 25 años encima, así que lo que
+# exporta es .xls, no .xlsx.
+#
+# Se descartó `creek` —más liviano en memoria— porque su último release es de
+# 2023 y acá una planilla son 360 filas, no 400.000.
+gem "roo", "~> 3.0"
+gem "roo-xls", "~> 2.0"
+
+# Escribir planillas: la plantilla que el colegio descarga para llenar, y el
+# reporte de lo que quedó fuera de una importación. Los dos son criterio de
+# aceptación de MOR-126, y además es lo que deja probar el lector contra un
+# .xlsx de verdad y no solo contra CSV.
+gem "caxlsx", "~> 4.5"
