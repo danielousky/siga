@@ -3,11 +3,10 @@
 # El nombre va en español —como `Planilla`, `EscalaLiteral` o `BusquedaSinAcentos`—
 # porque toda la maquinaria del importador lo está, y mezclar `Import` con
 # `Planilla` en la misma línea se lee peor que mezclar `Importacion` con
-# `Student`. La tabla se declara a mano porque el inflector de Rails no sabe
-# español; `SigaStaff` ya hace lo mismo.
+# `Student`. El plural lo aprende el inflector en `config/initializers/
+# inflections.rb`, donde ya viven `solicitud` y `constancia`: con eso la tabla,
+# las rutas y los helpers salen bien solos.
 class Importacion < ApplicationRecord
-  self.table_name = "importaciones"
-
   include SchoolScoped
 
   # ⚠️ El archivo trae los datos personales de 360 menores, así que no vive para

@@ -53,6 +53,11 @@
     - if can_manage_students?
       %li.sidebar-nav-item
         = link_to "Representantes", representatives_path, class: "sidebar-nav-link #{'active' if controller_name == 'representatives'}"
+      -# Va acá y no en Configuración: se usa una vez al año, pero esa vez es la
+      -# PRIMERA semana del colegio en SIGA. Esconderlo detrás de un `<details>`
+      -# plegado justo cuando más se busca sería el peor momento posible.
+      %li.sidebar-nav-item
+        = link_to "Importar matrícula", importaciones_path, class: "sidebar-nav-link #{'active' if controller_name == 'importaciones'}"
 
 -# `<details>` del navegador y no un controlador de Stimulus: funciona sin
 -# JavaScript, responde al teclado solo y no hay estado que se pueda desincronizar.

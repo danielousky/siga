@@ -138,6 +138,18 @@ Rails.application.routes.draw do
   get   "activar/:token", to: "activaciones#edit",   as: :activar
   patch "activar",        to: "activaciones#update", as: :activacion
 
+  # Traer la matrícula de un colegio desde una planilla (MOR-126).
+  #
+  # `update` es el paso del MAPEO, no una edición: guarda qué columna del
+  # archivo es cuál campo. Confirmar la carga es otro verbo y viene después.
+  resources :importaciones, path: "importaciones", except: [:edit] do
+    collection do
+      # La planilla en blanco con su leyenda. Va en `collection` porque no
+      # pertenece a ninguna importación: se descarga ANTES de que exista.
+      get :plantilla
+    end
+  end
+
   resources :representatives, path: "representantes" do
     # POST y no GET: genera un código nuevo e invalida el anterior. Un enlace
     # que un navegador puede pre-cargar no debería cambiar nada.

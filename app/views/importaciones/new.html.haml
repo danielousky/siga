@@ -1,0 +1,33 @@
+.card-academic
+  .card-academic-header
+    %h1 Subir una planilla
+
+  = form_with(model: @importacion, url: importaciones_path) do |f|
+    .form-seccion
+      %h2.form-seccion-titulo El archivo
+      .form-group
+        = f.label :archivo, "Planilla de matrícula", class: "form-label"
+        = f.file_field :archivo, class: "form-control", required: true,
+                       accept: Planilla::EXTENSIONES.join(",")
+        %p.nota-ayuda
+          Excel (.xlsx o .xls), CSV u ODS. No hace falta que esté limpia: el
+          membrete de arriba y los subtotales del medio se ignoran solos, y el
+          sistema le dice cuáles filas dejó fuera.
+
+    .form-acciones
+      = f.submit "Subir y ver las columnas", class: "btn btn-primary"
+      = link_to "Volver", importaciones_path, class: "btn btn-secondary"
+
+.card-academic
+  .card-academic-header
+    %h2 ¿No sabe qué columnas poner?
+
+  %p
+    Descargue la plantilla: trae los encabezados, tres filas de ejemplo y una
+    hoja con qué significa cada columna y cómo se escribe.
+
+  %p.nota-ayuda
+    No es obligatoria. Si su sistema actual ya exporta la matrícula, súbala tal
+    como sale — en la pantalla siguiente se dice qué columna es cuál.
+
+  = link_to "Descargar la plantilla", plantilla_importaciones_path, class: "btn btn-secondary"
