@@ -98,7 +98,7 @@ class Planilla
     (1..tope).each do |n|
       celdas = celdas_de(n)
       next unless parece_encabezado?(celdas)
-      next unless pegado_a_sus_datos?(n, celdas)
+      next unless pegado_a_sus_datos?(n)
 
       @fila_de_encabezado = n
       @encabezados = nombrar(celdas)
@@ -133,13 +133,24 @@ class Planilla
   #
   # Buscar datos "en algún lugar más abajo" no sirve: más abajo siempre hay,
   # y por eso la primera versión elegía el membrete.
-  def pegado_a_sus_datos?(numero, celdas)
+  #
+  # ⚠️ Y no se le pide NADA de densidad a esa fila de datos. Dos intentos me
+  # costó llegar acá.
+  #
+  # La primera versión pedía «una celda menos que el encabezado». La segunda, la
+  # mitad. Las dos rechazaban planillas de verdad, porque una matrícula real
+  # está llena de huecos: el alumno que todavía no tiene cédula, el
+  # representante sin correo, la columna de observaciones vacía en casi todas.
+  #
+  # Y ninguna de las dos compraba nada, que es lo importante: lo que separa al
+  # encabezado del membrete NO es cuántas celdas trae la fila siguiente, es que
+  # el membrete tiene una línea en blanco debajo y el encabezado no. Eso ya lo
+  # dice `basura?`. La densidad sobra, y de la del propio encabezado —media
+  # anchura, en `parece_encabezado?`— ya se ocupa el otro lado.
+  def pegado_a_sus_datos?(numero)
     return false if numero >= @hoja.last_row
 
-    siguiente = celdas_de(numero + 1)
-    return false if basura?(siguiente)
-
-    llenas(siguiente) >= llenas(celdas) - 1
+    !basura?(celdas_de(numero + 1))
   end
 
   def numero_suelto?(valor)

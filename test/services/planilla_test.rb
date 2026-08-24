@@ -74,6 +74,27 @@ class PlanillaTest < ActiveSupport::TestCase
     assert_equal "SUBTOTAL 1er AÑO", hoja.descartadas.first.datos["CÉDULA"]
   end
 
+  # ⚠️ Una fila de datos NO viene tan llena como el encabezado, y exigirlo
+  # rechazaba planillas de verdad.
+  #
+  # Una matrícula real trae huecos por todos lados: el alumno sin cédula
+  # todavía, el representante sin correo, la columna de observaciones vacía en
+  # casi todas. Con doce columnas, la primera fila traía diez llenas — y la
+  # versión que pedía «una menos que el encabezado» rechazaba el archivo entero.
+  test "una fila con huecos sigue siendo una fila de datos" do
+    hoja = planilla_csv([
+      [ "U.E. COLEGIO SAN JOSÉ" ],
+      [],
+      [ "Nº", "APELLIDOS Y NOMBRES", "C.I.", "CÉDULA ESCOLAR", "F. NACIM.",
+        "SEXO", "AÑO/SECC", "REPRESENTANTE", "CÉDULA REP.", "CORREO", "TELÉFONO", "OBSERVACIONES" ],
+      [ "1", "DE LA CRUZ MARÍN JOSÉ", "", "V20140000123", "12/03/2014",
+        "M", "1er Año A", "MARÍN MARÍA", "V-12345678", "m@m.com", "0414-1234567", "" ]
+    ])
+
+    assert_equal 3, hoja.fila_de_encabezado
+    assert_equal 1, hoja.filas.size
+  end
+
   test "descarta las filas vacías del final" do
     hoja = planilla_csv([
       [ "NOMBRE", "CÉDULA", "SECCIÓN" ],
