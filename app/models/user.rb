@@ -43,6 +43,7 @@ class User < ApplicationRecord
   # seeds o del importador. Si la regla viviera en el importador, el formulario
   # seguiría creando `V-12.345.678` y `12345678` como dos personas distintas.
   before_validation :normalizar_identificadores
+  before_validation :normalizar_el_nombre
   before_validation :descartar_credenciales_en_blanco
 
   validates :document,       uniqueness: true, allow_nil: true
@@ -56,11 +57,20 @@ class User < ApplicationRecord
   # Vive acá y no en cada vista porque el segundo apellido es opcional, y
   # `"#{first_name} #{last_name} #{second_last_name}"` deja un espacio colgando
   # cuando falta. Se veía en pantalla.
+  #
+  # ⚠️ Devuelve **Tipo Título**, no lo que hay en la columna. En la base los
+  # nombres viven en MAYÚSCULA —la forma de la cédula, de la partida y de las
+  # planillas del MPPE— y estos tres métodos son los que la app usa para
+  # mostrarlos. Quien necesite la forma canónica lee los atributos directo.
   def nombre_completo
-    [ first_name, apellidos ].compact_blank.join(" ")
+    Normaliza.titulo([ first_name, apellidos_crudos ].compact_blank.join(" "))
   end
 
   def apellidos
+    Normaliza.titulo(apellidos_crudos)
+  end
+
+  def apellidos_crudos
     [ last_name, second_last_name ].compact_blank.join(" ")
   end
 
@@ -68,7 +78,7 @@ class User < ApplicationRecord
   # oficiales. Los DOS apellidos: el primero es el que valida el SAIME, pero el
   # segundo es parte del nombre de la persona y omitirlo la identifica peor.
   def apellidos_y_nombres
-    [ apellidos, first_name ].compact_blank.join(", ")
+    [ apellidos, Normaliza.titulo(first_name) ].compact_blank.join(", ")
   end
 
   # Cómo se identifica esta persona, con lo que tenga.
@@ -245,6 +255,14 @@ class User < ApplicationRecord
 
   def fila_vieja_sin_identificador?
     persisted? && !will_save_change_to_document? && !will_save_change_to_cedula_escolar?
+  end
+
+  # Se guarda en MAYÚSCULA, que es la forma de los documentos. Lo que se ve en
+  # pantalla lo deciden `nombre_completo` y compañía.
+  def normalizar_el_nombre
+    self.first_name       = Normaliza.mayuscula(first_name)
+    self.last_name        = Normaliza.mayuscula(last_name)
+    self.second_last_name = Normaliza.mayuscula(second_last_name)
   end
 
   def normalizar_identificadores

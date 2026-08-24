@@ -66,6 +66,42 @@ module Normaliza
     valor.to_s.strip.gsub(/\s+/, " ").presence
   end
 
+  # ── el nombre de una persona ──────────────────────────────────────────────
+  #
+  # Se GUARDA en mayúscula y se MUESTRA en Tipo Título.
+  #
+  # La mayúscula es la forma canónica porque es la de los documentos: la cédula,
+  # la partida de nacimiento y las planillas del MPPE vienen así, y una planilla
+  # de colegio también. Guardar lo que llegó dejaría a los alumnos importados en
+  # MAYÚSCULA y a los cargados a mano en Tipo Título, desparejos en el mismo
+  # listado.
+  #
+  # Y se muestra en Tipo Título porque «DE LA CRUZ MARÍN JOSÉ LUIS» en la
+  # pantalla de una madre grita.
+
+  # Partículas que NO se capitalizan cuando van en medio: «De la Cruz», no «De
+  # La Cruz». `san`, `santa` y `mc` sí se capitalizan —San Martín, McDonald— y
+  # por eso esta lista no es la misma que la de `NombreDePersona`.
+  MINUSCULAS = %w[de del la las los y e da das dos van von].freeze
+
+  def mayuscula(texto)
+    texto.to_s.strip.gsub(/\s+/, " ").upcase.presence
+  end
+
+  def titulo(texto)
+    palabras = texto.to_s.strip.gsub(/\s+/, " ").downcase.split(" ")
+
+    palabras.each_with_index.map do |palabra, i|
+      i.positive? && MINUSCULAS.include?(limpiar(palabra)) ? palabra : capitalizar(palabra)
+    end.join(" ")
+  end
+
+  # `capitalize` a secas deja «María-josé»: los nombres compuestos con guion
+  # llevan las dos mitades en mayúscula.
+  def capitalizar(palabra)
+    palabra.split("-").map(&:capitalize).join("-")
+  end
+
   # Quita acentos, baja a minúscula y colapsa espacios. Para comparar contra una
   # lista, no para guardar.
   def limpiar(valor)

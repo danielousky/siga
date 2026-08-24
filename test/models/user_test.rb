@@ -126,6 +126,55 @@ class UserTest < ActiveSupport::TestCase
                         email: "nueva@siga.test").valid?
   end
 
+  # ── el nombre: se guarda en MAYÚSCULA, se muestra en Tipo Título ──────────
+
+  # La mayúscula es la forma de los documentos: la cédula, la partida de
+  # nacimiento y las planillas del MPPE vienen así, y la planilla que manda un
+  # colegio también. Sin unificar, los alumnos importados quedarían EN MAYÚSCULA
+  # y los cargados a mano en Tipo Título, desparejos en el mismo listado.
+  test "el nombre se guarda en mayúscula, lo escriban como lo escriban" do
+    persona = User.create!(first_name: "josé luis", last_name: "de la cruz",
+                           second_last_name: "Marín", cedula_escolar: "V2099005001")
+
+    assert_equal "JOSÉ LUIS", persona.first_name
+    assert_equal "DE LA CRUZ", persona.last_name
+    assert_equal "MARÍN", persona.second_last_name
+  end
+
+  # Y se muestra en Tipo Título porque «DE LA CRUZ MARÍN JOSÉ LUIS» en la
+  # pantalla de una madre grita.
+  #
+  # ✅ Y sale exactamente la regla de la RAE, sin haberla programado: la
+  # partícula va en MINÚSCULA cuando el nombre de pila va delante —«José Luis de
+  # la Cruz»— y en MAYÚSCULA cuando el apellido va solo —«De la Cruz, José
+  # Luis»—. Cae sola de «la primera palabra siempre se capitaliza», porque en un
+  # caso la partícula es la primera y en el otro no.
+  test "se muestra en Tipo Título, con las partículas donde van" do
+    persona = User.new(first_name: "JOSÉ LUIS", last_name: "DE LA CRUZ", second_last_name: "MARÍN")
+
+    assert_equal "José Luis de la Cruz Marín", persona.nombre_completo
+    assert_equal "De la Cruz Marín", persona.apellidos
+    assert_equal "De la Cruz Marín, José Luis", persona.apellidos_y_nombres
+  end
+
+  # `san` NO es de las que van en minúscula, y por eso la lista de presentación
+  # no es la misma que la de `NombreDePersona`, que sirve para partir el nombre.
+  test "San sí se capitaliza" do
+    assert_equal "San Martín", User.new(last_name: "SAN MARTÍN").apellidos
+  end
+
+  test "un nombre compuesto con guion lleva las dos mitades en mayúscula" do
+    assert_equal "María-José", User.new(first_name: "MARÍA-JOSÉ").nombre_completo
+  end
+
+  test "los espacios de más no sobreviven" do
+    persona = User.new(first_name: "  josé   luis  ", last_name: "pérez")
+
+    persona.valid?
+
+    assert_equal "JOSÉ LUIS", persona.first_name
+  end
+
   # ── normalización del documento ───────────────────────────────────────────
 
   test "la cédula se guarda con solo dígitos, la escriban como la escriban" do

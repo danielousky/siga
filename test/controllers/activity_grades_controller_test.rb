@@ -25,7 +25,7 @@ class ActivityGradesControllerTest < ActionDispatch::IntegrationTest
     get evaluation_activity_notas_url(@examen)
 
     assert_response :success
-    @esc.alumnos.each { |a| assert_match a.user.last_name, response.body }
+    @esc.alumnos.each { |a| assert_match a.user.apellidos, response.body }
   end
 
   test "una nota se guarda sola y la respuesta trae el avance" do

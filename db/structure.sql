@@ -3968,6 +3968,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260824180000'),
 ('20260824140000'),
 ('20260821030000'),
 ('20260820210000'),
