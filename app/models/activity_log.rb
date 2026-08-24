@@ -40,6 +40,7 @@ class ActivityLog < ApplicationRecord
   ACCIONES_SIN_EMISOR = [].freeze
 
   LABELS = {
+    "matricula_importada" => "Matrícula importada",
     "login"                => "Inicio de sesión",
     "enrollment_created"   => "Inscripción creada",
     "enrollment_destroyed" => "Inscripción anulada",

@@ -14,7 +14,8 @@
 #     confirmar    escribir                          ← todavía no
 class ImportacionesController < ApplicationController
   before_action :require_puede_gestionar!
-  before_action :set_importacion, only: [ :show, :update, :destroy, :previsualizar, :crear_seccion ]
+  before_action :set_importacion,
+                only: [ :show, :update, :destroy, :previsualizar, :crear_seccion, :resultado ]
 
   def index
     @pagy, @importaciones = pagy(Importacion.includes(:subido_por).recientes)
@@ -77,9 +78,11 @@ class ImportacionesController < ApplicationController
     redirect_to importaciones_path, alert: e.message
   end
 
-  # Guarda qué columna del archivo es cuál campo nuestro. No escribe nada de la
-  # matrícula todavía.
+  # Dos cosas por el mismo verbo, y la diferencia la marca `confirmar`:
+  # guardar el mapeo, o escribir la matrícula.
   def update
+    return confirmar if params[:confirmar].present?
+
     @importacion.mapeo = mapeo_desde_el_formulario
     @importacion.estado = :mapeada if @importacion.lista_para_previsualizar?
 
@@ -125,6 +128,15 @@ class ImportacionesController < ApplicationController
     end
   end
 
+  # El reporte de lo que pasó. Se lee de `resultado`, que quedó guardado al
+  # confirmar: el archivo puede cambiar después y el reporte tiene que seguir
+  # describiendo lo que de verdad ocurrió.
+  def resultado
+    return redirect_to(@importacion, alert: "Esta importación todavía no se ha cargado.") unless @importacion.confirmada?
+
+    @resultado = @importacion.resultado
+  end
+
   def destroy
     @importacion.archivo.purge_later
     @importacion.update(estado: :descartada)
@@ -145,6 +157,35 @@ class ImportacionesController < ApplicationController
   # `=> ""` haría que `mapeo_efectivo` las contara como mapeadas a nada.
   def mapeo_desde_el_formulario
     params.fetch(:mapeo, {}).permit!.to_h.compact_blank
+  end
+
+  # ⚠️ Se vuelve a interpretar la planilla acá, en vez de confiar en lo que se
+  # mostró en la pantalla anterior.
+  #
+  # Entre que alguien miró la previsualización y apretó el botón pudo pasar de
+  # todo: crearon una sección desde otra pestaña, otro usuario cargó un alumno,
+  # pasaron veinte minutos. Escribir contra una foto vieja es cómo se cargan
+  # datos que ya no corresponden.
+  def confirmar
+    if @importacion.confirmada?
+      return redirect_to resultado_importacion_path(@importacion),
+                         alert: "Esta importación ya se cargó."
+    end
+
+    matricula = interpretada
+    return redirect_to(previsualizar_importacion_path(@importacion), alert: "Todavía hay secciones que no existen.") if matricula.secciones_que_faltan.any?
+
+    resultado = CargaDeMatricula.new(matricula: matricula, colegio: Current.school).ejecutar
+    @importacion.update!(estado: :confirmada, resultado: resultado.to_h_para_guardar)
+
+    log_activity(action: "matricula_importada",
+                 message: "#{current_user.nombre_completo} importó #{resultado.total_cargado} alumnos desde #{@importacion.nombre_del_archivo}",
+                 subject: @importacion)
+
+    redirect_to resultado_importacion_path(@importacion),
+                notice: "Se cargaron #{resultado.total_cargado} alumnos."
+  rescue Planilla::NoSePuedeLeer => e
+    redirect_to importaciones_path, alert: e.message
   end
 
   def interpretada

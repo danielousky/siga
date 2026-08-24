@@ -20,7 +20,7 @@ class MatriculaInterpretada
   # único que le sirve a quien tiene que ir a corregirla.
   class Fila
     attr_reader :numero, :alumno, :representante, :errores, :avisos
-    attr_accessor :parentesco, :seccion_texto, :seccion
+    attr_accessor :parentesco, :seccion_texto, :seccion, :carnet
 
     def initialize(numero:)
       @numero = numero
@@ -133,6 +133,10 @@ class MatriculaInterpretada
     leer_documentos(fila, cruda)
     leer_nacimiento(fila, cruda)
     fila.alumno[:sex] = @sexos[Normaliza.limpiar(valor(cruda, :sexo))]
+
+    # El carnet lo numera el colegio y la planilla casi nunca lo trae. Si viene,
+    # se respeta; si no, lo genera la carga.
+    fila.carnet = valor(cruda, :carnet).to_s.strip.presence
   end
 
   # El tipo de documento sale del propio número: `V-31.222.333` es una cédula

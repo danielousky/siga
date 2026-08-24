@@ -223,6 +223,124 @@ class ImportarMatriculaTest < ActionDispatch::IntegrationTest
     assert_select "button[type=submit]", text: /Cargar/, count: 0
   end
 
+  # ── cargar de verdad ──────────────────────────────────────────────────────
+
+  def hasta_poder_cargar
+    subir
+    importacion = con_el_colegio(@a.colegio) { Importacion.last }
+    mapear_todo(importacion)
+    grado = con_el_colegio(@a.colegio) { Grade.find_by(name: "1er Año") }
+    post crear_seccion_importacion_path(importacion), params: { grade_id: grado.id, nombre: "C", alumnos: 1 }
+    importacion
+  end
+
+  def cargar(importacion)
+    patch importacion_path(importacion), params: { confirmar: "1" }
+  end
+
+  test "confirmar crea alumnos, representantes e inscripciones" do
+    importacion = hasta_poder_cargar
+
+    assert_difference -> { con_el_colegio(@a.colegio) { Student.count } }, 3 do
+      assert_difference -> { con_el_colegio(@a.colegio) { Enrollment.count } }, 3 do
+        assert_difference -> { con_el_colegio(@a.colegio) { Representative.count } }, 3 do
+          cargar(importacion)
+        end
+      end
+    end
+
+    assert con_el_colegio(@a.colegio) { Importacion.last.confirmada? }
+  end
+
+  # ⚠️ Es el caso NORMAL, no la excepción: el colegio manda la planilla, ve el
+  # reporte, corrige cuatro filas y la vuelve a mandar.
+  test "reimportar la misma planilla no duplica a nadie" do
+    cargar(hasta_poder_cargar)
+    alumnos = con_el_colegio(@a.colegio) { Student.count }
+
+    otra = hasta_poder_cargar
+    cargar(otra)
+
+    assert_equal alumnos, con_el_colegio(@a.colegio) { Student.count }
+  end
+
+  # El alumno se guarda EN MAYÚSCULA y se muestra en Tipo Título.
+  test "el alumno queda con sus dos apellidos bien partidos" do
+    cargar(hasta_poder_cargar)
+
+    jose = con_el_colegio(@a.colegio) { User.find_by(cedula_escolar: "V20140000123") }
+
+    assert_equal "JOSÉ LUIS", jose.first_name
+    assert_equal "DE LA CRUZ", jose.last_name
+    assert_equal "MARÍN", jose.second_last_name
+    assert_equal "José Luis de la Cruz Marín", jose.nombre_completo
+  end
+
+  test "el carnet se genera cuando la planilla no lo trae" do
+    cargar(hasta_poder_cargar)
+
+    carnets = con_el_colegio(@a.colegio) { Student.pluck(:school_card) }
+
+    assert carnets.all?(&:present?)
+    assert_equal carnets.size, carnets.uniq.size, "dos alumnos no pueden compartir carnet en el mismo colegio"
+  end
+
+  # ── el reporte ────────────────────────────────────────────────────────────
+
+  # ⚠️ Esta lista ES el producto del reporte. Sin ella, «2 sin correo» es un
+  # número que nadie puede accionar; con nombre y cédula, la secretaria la
+  # imprime y sabe a quién llamar.
+  test "el reporte lista con nombre y cédula a los representantes sin correo" do
+    importacion = hasta_poder_cargar
+    cargar(importacion)
+    follow_redirect!
+
+    assert_response :success
+    assert_select "h2", text: /representante sin correo/i
+    assert_select "td", text: /Pérez Rojas, Luis/
+  end
+
+  test "el reporte dice cuántos alumnos y cuántas inscripciones se crearon" do
+    importacion = hasta_poder_cargar
+    cargar(importacion)
+    follow_redirect!
+
+    assert_select ".cifra-numero", text: "3", minimum: 2
+  end
+
+  test "confirmar dos veces no carga dos veces" do
+    importacion = hasta_poder_cargar
+    cargar(importacion)
+
+    assert_no_difference -> { con_el_colegio(@a.colegio) { Student.count } } do
+      cargar(importacion)
+    end
+
+    assert_redirected_to resultado_importacion_path(importacion)
+  end
+
+  test "no se puede confirmar mientras falte una sección" do
+    subir
+    importacion = con_el_colegio(@a.colegio) { Importacion.last }
+    mapear_todo(importacion)
+
+    assert_no_difference -> { con_el_colegio(@a.colegio) { Student.count } } do
+      cargar(importacion)
+    end
+
+    assert_redirected_to previsualizar_importacion_path(importacion)
+  end
+
+  # La pregunta de un colegio al que le aparecieron alumnos de más.
+  test "queda registrado quién importó y desde qué archivo" do
+    cargar(hasta_poder_cargar)
+
+    rastro = con_el_colegio(@a.colegio) { ActivityLog.where(action: "matricula_importada").last }
+
+    assert_not_nil rastro
+    assert_match(/matricula_de_colegio\.csv/, rastro.message)
+  end
+
   # ── quién puede ───────────────────────────────────────────────────────────
 
   test "un profesor no puede importar matrícula" do

@@ -17,15 +17,15 @@ class PlantillaDeMatricula
   EJEMPLOS = [
     # Un alumno de primaria: sin cédula de identidad, con escolar. Es el caso
     # más común y el que más dudas genera.
-    [ "DE LA CRUZ MARÍN JOSÉ LUIS", "V20140000123", "", "12/03/2014", "M", "1er Año A",
+    [ "DE LA CRUZ MARÍN JOSÉ LUIS", "V20140000123", "", "12/03/2014", "M", "", "1er Año A",
       "MARÍN GONZÁLEZ MARÍA", "V-12.345.678", "maria.marin@gmail.com", "0414-1234567", "Madre" ],
     # Su hermana: MISMA representante, misma cédula. Enseña que no hay que
     # inventarle una fila aparte al representante.
-    [ "DE LA CRUZ MARÍN ANA SOFÍA", "V20160000456", "", "22/11/2016", "F", "1er Año A",
+    [ "DE LA CRUZ MARÍN ANA SOFÍA", "V20160000456", "", "22/11/2016", "F", "", "1er Año A",
       "MARÍN GONZÁLEZ MARÍA", "V-12.345.678", "maria.marin@gmail.com", "0414-1234567", "Madre" ],
     # Un bachiller: ya tiene cédula, y su representante NO tiene correo.
     # Enseña que la fila entra igual.
-    [ "BLANCO NIEVES PEDRO ANTONIO", "", "V-31.222.333", "05/07/2009", "M", "5to Año B",
+    [ "BLANCO NIEVES PEDRO ANTONIO", "", "V-31.222.333", "05/07/2009", "M", "25-104", "5to Año B",
       "NIEVES ROJAS CARMEN", "V-10.987.654", "", "0424-9876543", "Madre" ]
   ].freeze
 

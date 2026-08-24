@@ -77,6 +77,18 @@ class ColumnasDeMatricula
       sinonimos: [ "sexo", "genero", "s." ]
     ),
     Columna.new(
+      clave: :carnet,
+      ambito: :alumno,
+      titulo: "CARNET",
+      obligatorio: false,
+      formato: "El número interno del colegio",
+      ejemplo: "25-001",
+      nota: "Si no lo trae, SIGA le pone uno correlativo. NO es la cédula escolar: " \
+            "el carnet lo numera cada plantel desde 1 y se repite entre colegios.",
+      sinonimos: [ "carnet", "carnet escolar", "expediente", "nro. expediente",
+                   "n de expediente", "matricula" ]
+    ),
+    Columna.new(
       clave: :seccion,
       ambito: :inscripcion,
       titulo: "SECCIÓN",

@@ -153,6 +153,10 @@ Rails.application.routes.draw do
       # Qué se va a cargar y qué no, ANTES de escribir nada.
       get :previsualizar
 
+      # Qué pasó al cargarla. Es lo que la secretaria imprime para ir a pedir
+      # los correos que faltan.
+      get :resultado
+
       # Crear una sección que la planilla nombra y el colegio no tiene. Va acá
       # y no en `sections#create` porque el contexto importa: se crea sabiendo
       # cuántos alumnos de ESTA planilla la esperan, que es lo que distingue una
