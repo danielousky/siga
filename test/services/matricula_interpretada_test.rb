@@ -147,6 +147,58 @@ class MatriculaInterpretadaTest < ActiveSupport::TestCase
     assert_match(/Fecha de nacimiento/, fila.avisos.first)
   end
 
+  # ── la cédula que ya es de otra persona ───────────────────────────────────
+
+  # ⚠️ Pasó de verdad, importando en desarrollo: la planilla traía a «MARÍN
+  # GONZÁLEZ MARÍA» con una cédula que en SIGA era la del profesor Carlos
+  # García. El importador la encontró —hace bien, se busca por cédula— y le
+  # sobrescribió el nombre. El profesor dejó de llamarse como se llama.
+  #
+  # Buscar por cédula no se toca: es lo que hace que una madre con hijos en dos
+  # colegios sea una sola persona. Lo que faltaba era NOTARLO.
+  test "avisa cuando la cédula ya es de alguien con otro nombre" do
+    con_el_colegio(@colegio) do
+      User.create!(first_name: "CARLOS", last_name: "GARCÍA",
+                   document: "12345678", document_type: :cedula_v,
+                   email: "prof.garcia@colegio.test", password: "123123")
+    end
+
+    fila = interpretar([ "PÉREZ ANA", "", "V20140000001", "", "", "1er Año A",
+                         "MARÍN GONZÁLEZ MARÍA", "V-12.345.678", "", "" ]).filas.first
+
+    assert fila.cargable?, "no bloquea: puede ser legítimo"
+    assert_match(/Carlos García/, fila.avisos.to_sentence)
+    assert_match(/Confirme que es la misma persona/, fila.avisos.to_sentence)
+  end
+
+  # Un apellido mal escrito o abreviado NO es una colisión: es la misma persona
+  # y el aviso sería ruido en 360 filas.
+  test "no avisa cuando es claramente la misma persona" do
+    con_el_colegio(@colegio) do
+      User.create!(first_name: "MARÍA", last_name: "MARÍN", second_last_name: "GONZÁLEZ",
+                   document: "12345678", document_type: :cedula_v,
+                   email: "maria@familia.test")
+    end
+
+    fila = interpretar([ "PÉREZ ANA", "", "V20140000001", "", "", "1er Año A",
+                         "MARIN GONZALEZ MARIA", "V-12.345.678", "", "" ]).filas.first
+
+    assert_no_match(/misma persona/, fila.avisos.to_sentence)
+  end
+
+  test "también avisa cuando la cédula del ALUMNO es de otro" do
+    con_el_colegio(@colegio) do
+      User.create!(first_name: "PEDRO", last_name: "BLANCO",
+                   document: "31222333", document_type: :cedula_v,
+                   cedula_escolar: "V20090000111")
+    end
+
+    fila = interpretar([ "SILVA TORRES LUIS", "V-31.222.333", "", "", "", "1er Año A",
+                         "MARÍN MARÍA", "V-99887766", "", "" ]).filas.first
+
+    assert_match(/Pedro Blanco/, fila.avisos.to_sentence)
+  end
+
   # ── el conteo por sección ─────────────────────────────────────────────────
 
   # ⚠️ El conteo es lo que delata el error de tipeo: «1er Año A · 20 alumnos» es

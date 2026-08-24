@@ -15,7 +15,7 @@
 class ImportacionesController < ApplicationController
   before_action :require_puede_gestionar!
   before_action :set_importacion,
-                only: [ :show, :update, :destroy, :previsualizar, :crear_seccion, :resultado ]
+                only: [ :show, :update, :destroy, :previsualizar, :crear_seccion, :crear_periodo, :resultado ]
 
   def index
     @pagy, @importaciones = pagy(Importacion.includes(:subido_por).recientes)
@@ -155,6 +155,28 @@ class ImportacionesController < ApplicationController
     return redirect_to(@importacion, alert: "Esta importación todavía no se ha cargado.") unless @importacion.confirmada?
 
     @resultado = @importacion.resultado
+  end
+
+  # ⚠️ Un colegio recién dado de alta nace SIN ningún año escolar, y sin él no
+  # se puede crear una sección —`Section` pertenece a uno— así que el importador
+  # rechaza todas las filas y el botón de crear sección tampoco funciona.
+  #
+  # La salida se ofrece acá, donde el problema se ve, en vez de mandar a la
+  # persona a Configuración a buscar algo que todavía no sabe que le falta. El
+  # alta guiada de un colegio nuevo es otra cosa y va aparte.
+  def crear_periodo
+    periodo = AcademicPeriod.new(school: Current.school,
+                                 name: params[:nombre].to_s.strip,
+                                 start_date: params[:desde], end_date: params[:hasta])
+
+    if periodo.save
+      @importacion.update(academic_period: periodo)
+      redirect_to previsualizar_importacion_path(@importacion),
+                  notice: "Se creó el año escolar #{periodo.name}."
+    else
+      redirect_to previsualizar_importacion_path(@importacion),
+                  alert: periodo.errors.full_messages.to_sentence
+    end
   end
 
   def destroy

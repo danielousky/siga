@@ -162,6 +162,11 @@ Rails.application.routes.draw do
       # cuántos alumnos de ESTA planilla la esperan, que es lo que distingue una
       # sección nueva de un error de tipeo.
       post :crear_seccion
+
+      # La red de rescate: un colegio nuevo nace sin ningún año escolar, y sin
+      # él no se puede crear ni una sección. Se ofrece donde falla, en vez de
+      # mandar a la persona a Configuración a buscarlo.
+      post :crear_periodo
     end
   end
 

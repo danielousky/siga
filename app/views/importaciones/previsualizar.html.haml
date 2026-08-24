@@ -1,5 +1,40 @@
 - faltan = @matricula.secciones_que_faltan
 
+-# ── la red: un colegio nuevo nace sin año escolar ──────────────────────────
+-#
+-# Y sin él no se puede crear ni una sección, así que el importador rechazaría
+-# las 360 filas con un «la sección no existe» que no dice qué hacer. Se ofrece
+-# acá, donde el problema se ve, en vez de mandar a la persona a Configuración a
+-# buscar algo que todavía no sabe que le falta.
+- if @periodos.empty?
+  - sugerido = ano_escolar_sugerido
+  .card-academic
+    .card-academic-header
+      %h2 Primero hay que crear el año escolar
+
+    %p
+      Este colegio todavía no tiene ninguno, y las secciones pertenecen a un año
+      escolar. Sin él no se puede cargar la matrícula.
+
+    = form_with url: crear_periodo_importacion_path(@importacion), method: :post do
+      .form-row
+        .form-group
+          = label_tag :nombre, "Nombre", class: "form-label"
+          = text_field_tag :nombre, sugerido[:nombre], class: "form-control", required: true
+        .form-group
+          = label_tag :desde, "Comienza", class: "form-label"
+          = date_field_tag :desde, sugerido[:desde], class: "form-control", required: true
+        .form-group
+          = label_tag :hasta, "Termina", class: "form-label"
+          = date_field_tag :hasta, sugerido[:hasta], class: "form-control", required: true
+
+      %p.nota-ayuda
+        Ya viene con el año escolar venezolano típico —de mediados de septiembre
+        a finales de julio—. Cámbielo si su calendario es otro.
+
+      .form-acciones
+        = submit_tag "Crear el año escolar", class: "btn btn-primary"
+
 .card-academic
   .card-academic-header
     %h1 Qué se va a cargar
@@ -15,12 +50,13 @@
   -# estar subiendo la matrícula del que acaba de terminar. Las secciones se
   -# buscan dentro de este año, así que si está mal, todas van a aparecer como
   -# inexistentes — y esta es la línea que lo explica.
-  = form_with url: previsualizar_importacion_path(@importacion), method: :get, class: "periodo-de-importacion" do
-    = label_tag :periodo_id, "Año escolar de esta matrícula", class: "form-label"
-    = select_tag :periodo_id,
-                 options_from_collection_for_select(@periodos, :id, :name, @importacion.periodo&.id),
-                 class: "form-select", onchange: "this.form.requestSubmit()"
-    %noscript= submit_tag "Cambiar", class: "btn btn-secondary"
+  - if @periodos.any?
+    = form_with url: previsualizar_importacion_path(@importacion), method: :get, class: "periodo-de-importacion" do
+      = label_tag :periodo_id, "Año escolar de esta matrícula", class: "form-label"
+      = select_tag :periodo_id,
+                   options_from_collection_for_select(@periodos, :id, :name, @importacion.periodo&.id),
+                   class: "form-select", onchange: "this.form.requestSubmit()"
+      %noscript= submit_tag "Cambiar", class: "btn btn-secondary"
 
   .cifras-de-importacion
     .cifra-de-importacion
@@ -40,7 +76,7 @@
         %span.cifra-que sin correo del representante
 
 -# ── lo que hay que resolver antes ──────────────────────────────────────────
-- if faltan.any?
+- if faltan.any? && @periodos.any?
   .card-academic
     .card-academic-header
       %h2 Estas secciones todavía no existen
@@ -151,7 +187,10 @@
   .card-academic-header
     %h2 Confirmar la carga
 
-  - if faltan.any?
+  - if @periodos.empty?
+    %p.nota-pendiente
+      Primero cree el año escolar, arriba.
+  - elsif faltan.any?
     %p.nota-pendiente
       Primero cree las secciones que faltan, o corrija la planilla.
   - elsif @matricula.cargables.empty?
@@ -170,7 +209,7 @@
       reconoce por su cédula.
 
   .form-acciones
-    - if faltan.empty? && @matricula.cargables.any?
+    - if @periodos.any? && faltan.empty? && @matricula.cargables.any?
       = button_to "Cargar #{pluralizar(@matricula.cargables.size, 'alumno', 'alumnos')}",
                   importacion_path(@importacion), method: :patch,
                   params: { confirmar: "1" }, class: "btn btn-primary"

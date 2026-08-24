@@ -142,6 +142,7 @@ class MatriculaInterpretada
 
     leer_documentos(fila, cruda)
     leer_nacimiento(fila, cruda)
+    avisar_si_la_cedula_es_de_otra_persona(fila, fila.alumno, "El alumno")
     fila.alumno[:sex] = @sexos[Normaliza.limpiar(valor(cruda, :sexo))]
 
     # El carnet lo numera el colegio y la planilla casi nunca lo trae. Si viene,
@@ -201,6 +202,8 @@ class MatriculaInterpretada
     fila.representante[:email] = Normaliza.correo(valor(cruda, :correo_del_representante))
     fila.representante[:phone] = Normaliza.telefono(valor(cruda, :telefono_del_representante))
 
+    avisar_si_la_cedula_es_de_otra_persona(fila, fila.representante, "El representante")
+
     avisar_por_el_correo(fila, cruda)
     fila.parentesco = leer_parentesco(cruda)
   end
@@ -217,6 +220,39 @@ class MatriculaInterpretada
     else
       fila.aviso("El representante no tiene correo: no va a poder consultar las notas")
     end
+  end
+
+  # ⚠️ La cédula ya está registrada, pero a nombre de alguien que se llama muy
+  # distinto.
+  #
+  # Pasó de verdad: la planilla traía a «MARÍN GONZÁLEZ MARÍA» con la cédula
+  # 12.345.678, que en SIGA era la del profesor Carlos García. El importador la
+  # encontró —hace bien, se busca por cédula— y le sobrescribió el nombre. El
+  # profesor dejó de llamarse como se llama.
+  #
+  # Buscar por cédula es correcto y no se toca: es lo que hace que una madre con
+  # hijos en dos colegios sea una sola persona. Lo que faltaba era NOTARLO. Un
+  # apellido mal escrito se corrige solo; dos nombres que no se parecen en nada
+  # son una cédula mal tipeada, y sobrescribir ahí destruye la ficha de alguien.
+  def avisar_si_la_cedula_es_de_otra_persona(fila, datos, quien)
+    return if datos[:document].blank?
+
+    existente = Current.sin_aislamiento { User.find_by(document: datos[:document]) }
+    return if existente.nil?
+    return if se_parecen?(existente, datos)
+
+    fila.aviso("#{quien} tiene la cédula #{datos[:document]}, que en SIGA es de " \
+               "#{existente.nombre_completo}. Confirme que es la misma persona.")
+  end
+
+  # Alcanza con que compartan el primer apellido o el primer nombre: la planilla
+  # de un colegio abrevia, invierte y escribe mal, pero no cambia a la persona.
+  def se_parecen?(existente, datos)
+    de_la_planilla = [ datos[:first_name], datos[:last_name] ].compact_blank.map { |n| Normaliza.limpiar(n) }
+    en_siga = [ existente.first_name, existente.last_name, existente.second_last_name ]
+                .compact_blank.map { |n| Normaliza.limpiar(n) }
+
+    de_la_planilla.any? { |n| en_siga.any? { |e| e.include?(n) || n.include?(e) } }
   end
 
   PARENTESCOS = {

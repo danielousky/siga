@@ -20,6 +20,23 @@ class ImportarMatriculaTest < ActionDispatch::IntegrationTest
 
   def importaciones = con_el_colegio(@a.colegio) { Importacion.count }
 
+  # Un colegio como sale de `/siga`: con su director y nada más. Sin año
+  # escolar, sin grados y sin secciones.
+  def entrar_a_un_colegio_recien_creado
+    sign_out @a.director
+
+    @nuevo = Current.sin_aislamiento do
+      School.create!(name: "U.E. Recién Abierta", dea_code: "S-9100",
+                     location: "Caracas", school_type: :primary)
+    end
+    directora = User.create!(first_name: "Rosa", last_name: "Peña",
+                             document: "99555001", document_type: :cedula_v,
+                             email: "rosa@recien.edu", password: "123123")
+    con_el_colegio(@nuevo) { Admin.create!(user: directora, school: @nuevo, role: :director) }
+
+    sign_in directora
+  end
+
   # ── la plantilla ──────────────────────────────────────────────────────────
 
   test "el colegio descarga la plantilla en blanco" do
@@ -296,6 +313,64 @@ class ImportarMatriculaTest < ActionDispatch::IntegrationTest
     assert_equal otro, con_el_colegio(@a.colegio) { Importacion.last.periodo }
     # En un año sin ninguna sección cargada, TODAS aparecen como inexistentes.
     assert_select "button[type=submit]", text: /Crear/, minimum: 2
+  end
+
+  # ── el colegio recién dado de alta ────────────────────────────────────────
+
+  # ⚠️ Un colegio nace SIN ningún año escolar: `Siga::ColegiosController` crea el
+  # colegio y su director, nada más. Y sin año escolar no se puede crear una
+  # sección —`Section` pertenece a uno— así que el importador rechazaría las 360
+  # filas con un «la sección no existe» que no dice qué hacer.
+  #
+  # El alta guiada de un colegio nuevo es otra cosa y va aparte; esto es la red
+  # para que el importador no sea un callejón mientras tanto.
+  test "sin año escolar, el importador ofrece crearlo en vez de morirse" do
+    entrar_a_un_colegio_recien_creado
+
+    subir
+    importacion = con_el_colegio(@nuevo) { Importacion.last }
+    mapear_todo(importacion)
+    follow_redirect!
+
+    assert_response :success
+    assert_select "h2", text: /crear el año escolar/i
+    # Prellenado con el año escolar venezolano: de mediados de septiembre a
+    # finales de julio. De agosto en adelante ya es el que arranca.
+    inicio = Date.current.month >= 8 ? Date.current.year : Date.current.year - 1
+
+    assert_select "input[name=nombre][value=?]", "#{inicio}-#{inicio + 1}"
+    assert_select "input[name=desde][value=?]", "#{inicio}-09-15"
+    assert_select "button[type=submit]", text: /Cargar/, count: 0
+  end
+
+  test "crearlo desde ahí deja la importación lista para seguir" do
+    entrar_a_un_colegio_recien_creado
+    subir
+    importacion = con_el_colegio(@nuevo) { Importacion.last }
+    mapear_todo(importacion)
+
+    assert_difference -> { con_el_colegio(@nuevo) { AcademicPeriod.count } }, 1 do
+      post crear_periodo_importacion_path(importacion),
+           params: { nombre: "2026-2027", desde: "2026-09-15", hasta: "2027-07-31" }
+    end
+
+    # Y queda apuntada a ESE año, no al que la app considere vigente.
+    assert_equal "2026-2027", con_el_colegio(@nuevo) { Importacion.last.periodo.name }
+    assert_redirected_to previsualizar_importacion_path(importacion)
+  end
+
+  test "un año escolar con las fechas al revés se rechaza con su motivo" do
+    entrar_a_un_colegio_recien_creado
+    subir
+    importacion = con_el_colegio(@nuevo) { Importacion.last }
+    mapear_todo(importacion)
+
+    assert_no_difference -> { con_el_colegio(@nuevo) { AcademicPeriod.count } } do
+      post crear_periodo_importacion_path(importacion),
+           params: { nombre: "2026-2027", desde: "2027-07-31", hasta: "2026-09-15" }
+    end
+
+    assert flash[:alert].present?
   end
 
   # ── cargar de verdad ──────────────────────────────────────────────────────
