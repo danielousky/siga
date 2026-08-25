@@ -775,17 +775,45 @@ alrededor:** nada cobra (`MOR-128`), un colegio nuevo no puede darse de alta sol
 
 ## ⚠️ Pendientes que necesitan a Daniel
 
-1. **Rotar `RAILS_MASTER_KEY`.** No es un `config:set`: hay que regenerar
-   `config/credentials.yml.enc` en local con la llave nueva, commitearlo y volver a
-   desplegar. La que está puesta quedó expuesta en varias transcripciones.
-   *(La clave de `siga_app` ya se rotó el 21 de agosto.)*
-2. **Una segunda llave SSH en el servidor.** Hay **una sola** en `authorized_keys`: si se
-   pierde `~/.ssh/siga_deploy`, se pierde el acceso.
-3. **Subir `SIGA_HSTS_SEGUNDOS` a 31536000** cuando pasen unos días sin sobresaltos.
-4. **`MOR-144` · DMARC a `p=reject`** — vence el 4 de septiembre de 2026.
-5. **`MOR-146` · Limpiar los datos de prueba de producción** antes del primer colegio real.
-6. **Restaurar la suscripción de Bello a `vencida`** — la cambié para probar y es el caso de
-   QA de `MOR-108`.
+1. **Una segunda llave SSH en el servidor.** Hay **una sola** en `authorized_keys`: si se
+   pierde `~/.ssh/siga_deploy`, se pierde el acceso a la máquina. Es el pendiente más
+   barato y el que peor se paga.
+2. **Subir `SIGA_HSTS_SEGUNDOS` a 31536000** cuando pasen unos días sin sobresaltos.
+3. **`MOR-144` · DMARC a `p=reject`** — vence el 4 de septiembre de 2026.
+4. **`MOR-146` · Limpiar los datos de prueba de producción** antes del primer colegio real.
+   Es lo único **urgente** del backlog, y es destructivo: necesita a Daniel delante.
+
+**Resueltos:**
+
+- ~~Rotar la clave de `siga_app`~~ → hecha el 21 de agosto.
+- ~~Rotar `RAILS_MASTER_KEY`~~ → **resuelto el 25 quitándola, no rotándola.** Ver abajo.
+- ~~Restaurar la suscripción de Bello a `vencida`~~ → ya estaba, verificado.
+
+### Los secretos: un sistema, no dos
+
+`config/credentials.yml.enc` guardaba **un solo valor**, `secret_key_base`, y todo lo demás
+—SMTP, base de datos, host, dominios— ya vivía como variable de entorno en Dokku. El archivo
+cifrado era el raro, y traía su propia llave que cuidar, que rotar y que filtrar.
+
+```
+   ANTES                              DESPUÉS
+   ─────                              ───────
+   master.key      (local, secreta)   —
+   credentials.yml.enc (en el repo)   —
+   RAILS_MASTER_KEY   (en Dokku)      SECRET_KEY_BASE (en Dokku)
+   SMTP_PASSWORD      (en Dokku)      SMTP_PASSWORD   (en Dokku)
+```
+
+El secreto nuevo se generó **en el servidor** y se puso en la misma orden: no pasó por
+ninguna terminal ni quedó en ningún archivo. Verificado por su largo, no por su valor.
+
+⚠️ Cambiarlo **desconecta a todo el mundo** —invalida sesiones y cookies firmadas—. Se hizo
+con datos de demo, que era el momento más barato. Los códigos de activación NO se afectan:
+Devise los guarda digeridos en la base, no firmados con esta llave.
+
+⚠️ Si algún día hace falta guardar un secreto **en el repo** —una llave privada, un
+certificado— vuelve a hacer falta `credentials`. Mientras el despliegue sea por variables de
+entorno, no.
 
 ## Lo que sigue, en orden
 
