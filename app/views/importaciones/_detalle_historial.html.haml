@@ -1,0 +1,47 @@
+- fallidas = Array(resultado["fallidas"])
+
+- if fallidas.any?
+  .card-academic
+    .card-academic-header
+      %h2 Filas que no se pudieron guardar
+
+    %p.nota-ayuda
+      El resto sí se cargó. Corrija estas en la planilla y vuelva a subirla:
+      reimportar no duplica nada, porque cada alumno se reconoce por su cédula y
+      cada nota por su lapso y materia.
+
+    .tabla-envoltura
+      %table.table-academic
+        %thead
+          %tr
+            %th Fila
+            %th Alumno y materia
+            %th Qué pasó
+        %tbody
+          - fallidas.each do |fila|
+            %tr
+              %td= fila["fila"]
+              %td= fila["alumno"].presence || "—"
+              %td= fila["motivo"]
+
+.card-academic
+  .card-academic-header
+    %h2 Qué sigue
+
+  %ul.lista
+    %li
+      -# ⚠️ Es lo que más conviene decir: estas notas NO se recalculan, y esa es
+      -# la propiedad que hace que el historial sobreviva.
+      Estas calificaciones quedaron marcadas como
+      %strong importadas
+      \: no tienen evaluaciones debajo y
+      %strong nadie las va a recalcular
+      \. Si algún día carga las evaluaciones de verdad, esas mandan.
+    %li
+      Revise los boletines en
+      = succeed "." do
+        = link_to "Boletines", report_cards_path
+    %li
+      Las notas de un alumno se ven en su ficha, en
+      = succeed "." do
+        = link_to "Estudiantes", students_path

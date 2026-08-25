@@ -4,17 +4,19 @@
     .acciones-de-cabecera
       = link_to "Subir matrícula", new_importacion_path(tipo: :matricula), class: "btn btn-primary"
       = link_to "Subir materias y profesores", new_importacion_path(tipo: :pensum), class: "btn btn-secondary"
+      = link_to "Subir notas anteriores", new_importacion_path(tipo: :historial), class: "btn btn-secondary"
 
   - if @importaciones.empty?
     .empty-state
       %h3 Todavía no ha importado nada
       %p
-        Traiga sus datos desde el sistema que usa hoy, en Excel o CSV: primero la
-        matrícula —alumnos y representantes— y después las materias con sus
-        profesores.
+        Traiga sus datos desde el sistema que usa hoy, en Excel o CSV, y en este
+        orden: la matrícula —alumnos y representantes—, después las materias con
+        sus profesores, y por último las notas de años anteriores.
       .acciones-de-cabecera
         = link_to "Plantilla de matrícula", plantilla_importaciones_path(tipo: :matricula), class: "btn btn-secondary"
         = link_to "Plantilla de materias", plantilla_importaciones_path(tipo: :pensum), class: "btn btn-secondary"
+        = link_to "Plantilla de notas", plantilla_importaciones_path(tipo: :historial), class: "btn btn-secondary"
   - else
     = render "shared/escala", total: @pagy.count, singular: "importación", plural: "importaciones"
 

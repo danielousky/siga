@@ -1,0 +1,16 @@
+-# ⚠️ Alumnos y materias DISTINTOS, no filas. Un alumno con nueve materias son
+-# nueve filas y una persona: sin esta distinción, «340 se cargan» hace pensar
+-# que el colegio va a terminar con 340 alumnos nuevos.
+.cifra-de-importacion
+  %span.cifra-numero= planilla.alumnos_distintos
+  %span.cifra-que alumnos distintos
+.cifra-de-importacion
+  %span.cifra-numero= planilla.anos_distintos
+  %span.cifra-que años escolares
+- if planilla.en_literal.positive?
+  .cifra-de-importacion
+    %span.cifra-numero= planilla.en_literal
+    %span.cifra-que
+      con la nota en letra
+      %br
+      (se pierde el número exacto)

@@ -34,6 +34,12 @@
       Los ejemplos enseñan lo que más se pregunta: una fila es
       %strong una materia en una sección
       \, así que la misma materia se repite tantas veces como secciones la tengan.
+  - if @importacion.historial?
+    %p.nota-ayuda
+      Una fila es
+      %strong una materia de un alumno en un año escolar
+      \, así que el mismo alumno se repite tantas veces como materias cursó.
+      Importe primero las materias: una nota necesita su materia y acá no se crean.
 
   %p.nota-ayuda
     No es obligatoria. Si su sistema actual ya exporta la matrícula, súbala tal

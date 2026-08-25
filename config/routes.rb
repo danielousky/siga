@@ -164,6 +164,10 @@ Rails.application.routes.draw do
       # Y el GRADO, cuando no existe ninguno que se le parezca. Va acá por lo
       # mismo que la sección: se crea sabiendo cuántas filas de ESTA planilla lo
       # esperan, que es lo que distingue un grado nuevo de un error de tipeo.
+      # Y el AÑO ESCOLAR VIEJO con sus lapsos, que es lo que exige el historial:
+      # una nota de 2023 no tiene dónde colgarse sin ellos.
+      post :crear_ano_escolar
+
       post :crear_grado
 
       post :crear_seccion

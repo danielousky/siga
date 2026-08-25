@@ -45,6 +45,24 @@ class EscalaLiteral
   #
   # Sin nota **no es cero** y tampoco es E: es que todavía no hay nada que
   # calificar. Confundirlos reprueba a una sección entera a mitad de lapso.
+  # ⚠️ El camino inverso PIERDE información, y por eso se dice en voz alta.
+  #
+  # «B» abarca 17 y 18: el número exacto que sacó el alumno no está en la letra.
+  # Hace falta igual, porque el historial de un colegio de primaria viene en
+  # letras —es lo único que se imprimió— y la base guarda el entero del Artículo
+  # 108.
+  #
+  # Se devuelve el EXTREMO INFERIOR del rango, y no el promedio, por dos razones:
+  # el promedio de 17..18 es 17,5 y el 108 exige un entero; y el extremo inferior
+  # nunca le atribuye al alumno una nota que no se sabe si sacó. Vuelve a dar la
+  # misma letra, así que nada de lo que el colegio imprimió cambia.
+  #
+  # Quien importe con letras recibe un aviso: si tiene el número exacto, ese vale
+  # más.
+  def self.numero_de(letra)
+    RANGOS.find { |l, _| l == letra.to_s.strip.upcase }&.last&.first
+  end
+
   def self.para(nota)
     return nil if nota.blank?
 

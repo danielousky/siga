@@ -34,23 +34,46 @@ class Importacion < ApplicationRecord
 
   # Qué trae la planilla. Cambia qué columnas se esperan y qué se crea; el
   # lector, el mapeo, la previsualización y el reporte son los mismos.
-  enum :tipo, { matricula: 0, pensum: 1 }
+  enum :tipo, { matricula: 0, pensum: 1, historial: 2 }
 
   TIPOS = {
     "matricula" => "Matrícula de alumnos",
-    "pensum" => "Materias y profesores"
+    "pensum" => "Materias y profesores",
+    "historial" => "Notas de años anteriores"
   }.freeze
 
   def etiqueta_de_tipo = TIPOS.fetch(tipo, tipo)
 
+  # El título del reporte. Va aparte de `TIPOS` porque la concordancia cambia con
+  # cada uno —«importada», «importados», «importadas»— y armarlo pegando palabras
+  # da «Materias y profesores: importada».
+  REPORTES = {
+    "matricula" => "Matrícula importada",
+    "pensum" => "Materias y profesores importados",
+    "historial" => "Notas de años anteriores importadas"
+  }.freeze
+
+  def titulo_del_reporte = REPORTES.fetch(tipo, etiqueta_de_tipo)
+
+  DEFINICIONES = {
+    "matricula" => ColumnasDeMatricula,
+    "pensum" => ColumnasDePensum,
+    "historial" => ColumnasDeHistorial
+  }.freeze
+
   # Las columnas que esta importación espera, según su tipo.
-  def columnas = pensum? ? ColumnasDePensum : ColumnasDeMatricula
+  def columnas = DEFINICIONES.fetch(tipo)
 
-  # Y las del otro tipo, para poder darse cuenta de que la planilla no es la que
-  # se creía. Ver `#parece_del_otro_tipo?`.
-  def columnas_del_otro_tipo = pensum? ? ColumnasDeMatricula : ColumnasDePensum
+  # ⚠️ Subir la planilla equivocada es fácil: son tres botones al lado.
+  #
+  # `otro_tipo` es aquel cuyas columnas encajan MEJOR que las del tipo declarado.
+  # Con dos tipos alcanzaba con «el otro»; con tres hay que elegir, y se elige
+  # midiendo, no adivinando.
+  def otro_tipo
+    (DEFINICIONES.keys - [ tipo ]).max_by { |t| encaje_con(DEFINICIONES.fetch(t)) }
+  end
 
-  def otro_tipo = pensum? ? "matricula" : "pensum"
+  def columnas_del_otro_tipo = DEFINICIONES.fetch(otro_tipo)
 
   def etiqueta_del_otro_tipo = TIPOS.fetch(otro_tipo)
 

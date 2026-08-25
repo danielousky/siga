@@ -1,0 +1,33 @@
+-# ── las notas que vinieron en letra ────────────────────────────────────────
+-#
+-# ⚠️ El camino de la letra al número PIERDE información: «B» abarca 17 y 18. Se
+-# guarda el extremo inferior —vuelve a dar la misma letra y nunca le atribuye al
+-# alumno una nota que no se sabe si sacó— pero el colegio tiene que enterarse.
+- if planilla.en_literal.positive?
+  .card-academic
+    .card-academic-header
+      %h2 Notas en letra
+
+    %p
+      = contar(planilla.en_literal, "calificación viene", "calificaciones vienen")
+      en literal A–E. Se guardan como número porque es lo que exige el Artículo
+      108 del Reglamento, y se vuelven a mostrar en letra donde corresponde.
+
+    %p.nota-ayuda
+      ⚠️ El número exacto se pierde: «B» abarca 17 y 18, y se guarda 17. Vuelve a
+      dar la misma letra, así que nada de lo que usted imprimió cambia — pero si
+      tiene los números, cárguelos: valen más.
+
+    %table.table-academic
+      %thead
+        %tr
+          %th Letra
+          %th Se guarda como
+          %th Rango que abarca
+      %tbody
+        - EscalaLiteral::RANGOS.each do |letra, rango|
+          %tr
+            %td
+              %strong= letra
+            %td= rango.first
+            %td= "#{rango.first} – #{rango.last}"

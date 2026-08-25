@@ -1,0 +1,24 @@
+.cifras-de-importacion
+  .cifra-de-importacion
+    %span.cifra-numero= resultado["notas_de_lapso"]
+    %span.cifra-que notas de lapso
+  .cifra-de-importacion
+    %span.cifra-numero= resultado["definitivas"]
+    %span.cifra-que definitivas del año
+  .cifra-de-importacion
+    %span.cifra-numero= resultado["alumnos_creados"]
+    %span.cifra-que
+      alumnos nuevos
+      %br
+      (egresados que no estaban)
+  - if resultado["alumnos_reutilizados"].to_i.positive?
+    .cifra-de-importacion
+      %span.cifra-numero= resultado["alumnos_reutilizados"]
+      %span.cifra-que alumnos que ya existían
+  .cifra-de-importacion
+    %span.cifra-numero= resultado["inscripciones"]
+    %span.cifra-que inscripciones de años pasados
+
+- if Array(resultado["anos"]).any?
+  %p.nota-ayuda
+    Años escolares tocados: #{Array(resultado['anos']).join(' · ')}

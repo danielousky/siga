@@ -65,7 +65,13 @@ module EscenarioAcademico
           password: "123123",
           # Un alumno de prueba se identifica con cédula ESCOLAR, no nacional:
           # es el caso real de primaria y ejercita la validación de MOR-138.
-          cedula_escolar: "T#{n}#{(i + 1).to_s.rjust(9, '0')}"[0, 12]
+          #
+          # ⚠️ Sin truncar. Antes era `"T#{n}#{...}"[0, 12]`, y el corte a doce
+          # hacía COLISIONAR escenarios distintos: con n=100 y con n=1000 el
+          # resultado era el mismo `T10000000000`. No se veía porque hacían falta
+          # ~1000 escenarios en una corrida para llegar ahí — y la suite creció
+          # hasta ahí. El índice de `users.cedula_escolar` es único y global.
+          cedula_escolar: "T#{n.to_s.rjust(6, '0')}#{(i + 1).to_s.rjust(3, '0')}"
         )
         estudiante = Student.create!(user: usuario, school: colegio, school_card: "#{n}-#{i + 1}")
         inscripcion = Enrollment.create!(student: estudiante, section: seccion, enrollment_date: Date.new(2025, 9, 20))
@@ -76,6 +82,29 @@ module EscenarioAcademico
         colegio: colegio, periodo: periodo, lapsos: lapsos, grado: grado, seccion: seccion,
         materia: materia, alumnos: registros.map(&:first), inscripciones: registros.map(&:last)
       )
+    end
+  end
+
+  # Un año escolar ANTERIOR, con sus lapsos y una sección del mismo grado.
+  #
+  # Es lo que exige el historial (`MOR-126`, tanda 3): una nota de 2023 cuelga de
+  # un lapso, el lapso del período, y la inscripción de una sección de ESE año.
+  def ano_escolar_viejo(escenario, nombre: "2023-2024", lapsos: 3, seccion: "A")
+    inicio = nombre[/\A(\d{4})/, 1].to_i
+
+    con_el_colegio(escenario.colegio) do
+      periodo = AcademicPeriod.create!(
+        school: escenario.colegio, name: nombre,
+        start_date: Date.new(inicio, 9, 15), end_date: Date.new(inicio + 1, 7, 31)
+      )
+      parejo = 100 / lapsos
+      lapsos.times do |i|
+        peso = i == lapsos - 1 ? 100 - (parejo * (lapsos - 1)) : parejo
+        EvaluationMoment.create!(academic_period: periodo, name: "Lapso #{i + 1}", weight: peso)
+      end
+      Section.create!(grade: escenario.grado, academic_period: periodo, name: seccion, capacity: 30)
+
+      periodo
     end
   end
 

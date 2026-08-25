@@ -25,7 +25,8 @@ class ImportacionesController < ApplicationController
   before_action :require_puede_gestionar!
   before_action :set_importacion,
                 only: [ :show, :update, :destroy, :previsualizar,
-                        :crear_seccion, :crear_grado, :crear_periodo, :resultado ]
+                        :crear_seccion, :crear_grado, :crear_periodo,
+                        :crear_ano_escolar, :resultado ]
 
   def index
     @pagy, @importaciones = pagy(Importacion.includes(:subido_por).recientes)
@@ -33,9 +34,14 @@ class ImportacionesController < ApplicationController
 
   # La planilla en blanco, con su hoja de instrucciones. Se descarga ANTES de
   # que exista ninguna importación, así que no cuelga de ninguna.
+  PLANTILLAS = {
+    "matricula" => PlantillaDeMatricula,
+    "pensum" => PlantillaDePensum,
+    "historial" => PlantillaDeHistorial
+  }.freeze
+
   def plantilla
-    hoja = tipo_pedido == "pensum" ? PlantillaDePensum : PlantillaDeMatricula
-    hoja = hoja.new(colegio: Current.school)
+    hoja = PLANTILLAS.fetch(tipo_pedido).new(colegio: Current.school)
 
     send_data hoja.to_stream.read,
               filename: hoja.nombre_de_archivo,
@@ -168,6 +174,38 @@ class ImportacionesController < ApplicationController
     end
   end
 
+  # ⚠️ El año escolar VIEJO, con sus lapsos, y los dos de un golpe.
+  #
+  # Una nota de 2023 no tiene dónde colgarse sin el año y sin sus lapsos: un
+  # `MomentGrade` pertenece a un `EvaluationMoment`, y un momento pertenece al
+  # período. Crear el año y dejarlo sin lapsos deja a la persona mirando la misma
+  # pantalla con otro mensaje.
+  #
+  # **Cuántos lapsos no se pregunta: se cuenta.** Si la planilla trae LAPSO 1 y
+  # LAPSO 2, ese colegio tenía dos ese año. Preguntarlo sería pedir un dato que
+  # ya está en el archivo.
+  #
+  # Las fechas salen del nombre —«2023-2024» es del 15 de septiembre de 2023 al
+  # 31 de julio de 2024, que es el año escolar venezolano— y se pueden corregir
+  # después desde Años escolares. Para notas ya cerradas, la fecha exacta no
+  # cambia ningún cálculo.
+  def crear_ano_escolar
+    nombre = params[:nombre].to_s.strip
+    desde, hasta = rango_del_ano(nombre)
+
+    return redirect_to(previsualizar_importacion_path(@importacion), alert: "«#{nombre}» no parece un año escolar: use la forma 2023-2024.") if desde.nil?
+
+    periodo = AcademicPeriod.new(school: Current.school, name: nombre,
+                                 start_date: desde, end_date: hasta)
+
+    return redirect_to(previsualizar_importacion_path(@importacion), alert: periodo.errors.full_messages.to_sentence) unless periodo.save
+
+    creados = crear_los_lapsos(periodo, params[:lapsos].to_i)
+
+    redirect_to previsualizar_importacion_path(@importacion),
+                notice: "Se creó #{periodo.name} con #{helpers.pluralize(creados, 'lapso')}."
+  end
+
   # ⚠️ Crear el GRADO, no solo la sección — y es el caso que faltaba.
   #
   # `crear_seccion` sirve cuando el grado existe. Cuando no existe ninguno que se
@@ -240,6 +278,29 @@ class ImportacionesController < ApplicationController
   # fallaba, y el formulario volvía a decir «Subir matrícula de alumnos» con la
   # URL todavía en `?tipo=pensum`. Reintentando desde ahí, el pensum entraba como
   # matrícula.
+  # «2023-2024» → del 15 de septiembre de 2023 al 31 de julio de 2024. Es el año
+  # escolar venezolano, el mismo que propone `ano_escolar_sugerido` para el año
+  # en curso.
+  def rango_del_ano(nombre)
+    inicio = nombre[/\A(\d{4})/, 1]&.to_i
+    return [ nil, nil ] if inicio.nil? || !inicio.between?(1950, 2100)
+
+    [ Date.new(inicio, 9, 15), Date.new(inicio + 1, 7, 31) ]
+  end
+
+  # Los pesos describen la estructura del año y NO entran en ningún cálculo —el
+  # anual es promedio simple por el Artículo 111—, pero el modelo exige que
+  # cierren en 100. Se reparten parejos y el resto va al último.
+  def crear_los_lapsos(periodo, cuantos)
+    cuantos = cuantos.clamp(1, ColumnasDeHistorial::LAPSOS)
+    parejo = 100 / cuantos
+
+    cuantos.times.count do |i|
+      peso = i == cuantos - 1 ? 100 - (parejo * (cuantos - 1)) : parejo
+      EvaluationMoment.create!(academic_period: periodo, name: "Lapso #{i + 1}", weight: peso)
+    end
+  end
+
   # La sección del grado recién creado. Devuelve `nil` si la planilla no nombraba
   # ninguna —«5to Año» a secas es un grado sin sección, y es válido—.
   def crear_la_seccion(grado, periodo)
@@ -290,7 +351,12 @@ class ImportacionesController < ApplicationController
     end
 
     planilla = interpretada
-    return redirect_to(previsualizar_importacion_path(@importacion), alert: "Todavía hay secciones que no existen.") if planilla.secciones_que_faltan.any?
+
+    # ⚠️ El guard va ACÁ, no solo en la pantalla. Un POST directo a `confirmar`
+    # se salta lo que la vista decida mostrar, y el importador escribiría notas
+    # de un año escolar que no existe.
+    falta = lo_que_falta(planilla)
+    return redirect_to(previsualizar_importacion_path(@importacion), alert: falta) if falta
 
     resultado = escribir(planilla)
     @importacion.update!(estado: :confirmada, resultado: resultado.to_h_para_guardar)
@@ -305,8 +371,14 @@ class ImportacionesController < ApplicationController
     redirect_to importaciones_path, alert: e.message
   end
 
+  INTERPRETES = {
+    "matricula" => MatriculaInterpretada,
+    "pensum" => PensumInterpretado,
+    "historial" => HistorialInterpretado
+  }.freeze
+
   def interpretada
-    clase = @importacion.pensum? ? PensumInterpretado : MatriculaInterpretada
+    clase = INTERPRETES.fetch(@importacion.tipo)
 
     clase.new(planilla: @importacion.planilla,
               mapeo: @importacion.mapeo_efectivo,
@@ -314,11 +386,20 @@ class ImportacionesController < ApplicationController
               periodo: @importacion.periodo)
   end
 
+  # Qué impide escribir, en la frase que se le muestra a quien confirma.
+  def lo_que_falta(planilla)
+    if @importacion.historial? && planilla.anos_que_faltan.any?
+      "Todavía hay años escolares que no existen."
+    elsif planilla.secciones_que_faltan.any?
+      "Todavía hay secciones que no existen."
+    end
+  end
+
   def escribir(planilla)
-    if @importacion.pensum?
-      CargaDePensum.new(pensum: planilla, colegio: Current.school).ejecutar
-    else
-      CargaDeMatricula.new(matricula: planilla, colegio: Current.school).ejecutar
+    case @importacion.tipo
+    when "pensum"    then CargaDePensum.new(pensum: planilla, colegio: Current.school).ejecutar
+    when "historial" then CargaDeHistorial.new(historial: planilla, colegio: Current.school).ejecutar
+    else                  CargaDeMatricula.new(matricula: planilla, colegio: Current.school).ejecutar
     end
   end
 
@@ -326,8 +407,11 @@ class ImportacionesController < ApplicationController
   # pensum en asignaciones: «12 materias» no dice nada si son las mismas cuatro
   # repartidas en tres secciones.
   def resumen(resultado)
-    if @importacion.pensum?
+    case @importacion.tipo
+    when "pensum"
       helpers.pluralize(resultado.asignaciones, "materia asignada", plural: "materias asignadas")
+    when "historial"
+      helpers.pluralize(resultado.total_cargado, "calificación", plural: "calificaciones")
     else
       helpers.pluralize(resultado.total_cargado, "alumno")
     end

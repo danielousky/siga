@@ -51,7 +51,9 @@
   -# estar subiendo la matrícula del que acaba de terminar. Las secciones se
   -# buscan dentro de este año, así que si está mal, todas van a aparecer como
   -# inexistentes — y esta es la línea que lo explica.
-  - if @periodos.any?
+  -# El historial NO lleva selector: cada fila trae su propio año escolar en una
+  -# columna. Ponerlo sugeriría que hay uno solo, que es justo lo contrario.
+  - if @periodos.any? && !@importacion.historial?
     = form_with url: previsualizar_importacion_path(@importacion), method: :get, class: "periodo-de-importacion" do
       = label_tag :periodo_id, "Año escolar de esta planilla", class: "form-label"
       = select_tag :periodo_id,
@@ -72,6 +74,40 @@
         %span.cifra-numero= @planilla.con_avisos.size
         %span.cifra-que se cargan con una advertencia
     = render "cifras_#{@importacion.tipo}", planilla: @planilla
+
+-# ── los años escolares que la planilla nombra y el colegio no tiene ────────
+-#
+-# Solo el historial puede traer años viejos: la matrícula y el pensum son de UN
+-# año, el de la importación.
+- if @importacion.historial? && @planilla.anos_que_faltan.any?
+  .card-academic
+    .card-academic-header
+      %h2 Estos años escolares todavía no existen
+
+    %p
+      La planilla trae notas de años que el colegio no tiene cargados. Créelos
+      acá mismo: van con sus lapsos, porque una nota de un lapso no tiene dónde
+      colgarse sin ellos.
+
+    %table.table-academic
+      %thead
+        %tr
+          %th En la planilla
+          %th Calificaciones
+          %th
+      %tbody
+        - @planilla.anos_que_faltan.each do |a|
+          %tr
+            %td
+              %strong= a[:nombre]
+            %td= contar(a[:cuantas], "calificación", "calificaciones")
+            %td
+              -# Cuántos lapsos NO se pregunta: se cuentan las columnas de la
+              -# planilla. Si trae LAPSO 1 y LAPSO 2, ese colegio tenía dos.
+              = button_to "Crear #{a[:nombre]} con #{pluralizar(a[:lapsos], 'un lapso', "#{a[:lapsos]} lapsos")}",
+                          crear_ano_escolar_importacion_path(@importacion),
+                          params: { nombre: a[:nombre], lapsos: a[:lapsos] },
+                          class: "btn btn-secondary"
 
 -# ── lo que hay que resolver antes ──────────────────────────────────────────
 - if faltan.any? && @periodos.any?
@@ -199,6 +235,9 @@
   - if @periodos.empty?
     %p.nota-pendiente
       Primero cree el año escolar, arriba.
+  - elsif @importacion.historial? && @planilla.anos_que_faltan.any?
+    %p.nota-pendiente
+      Primero cree los años escolares que faltan, arriba.
   - elsif faltan.any?
     %p.nota-pendiente
       Primero cree las secciones que faltan, o corrija la planilla.
@@ -219,7 +258,9 @@
       reconoce por su cédula y cada materia por su código.
 
   .form-acciones
-    - if @periodos.any? && faltan.empty? && @planilla.cargables.any?
+    - listo = @periodos.any? && faltan.empty? && @planilla.cargables.any?
+    - listo &&= @planilla.anos_que_faltan.empty? if @importacion.historial?
+    - if listo
       = button_to "Cargar #{contar(@planilla.cargables.size, *que_es)}",
                   importacion_path(@importacion), method: :patch,
                   params: { confirmar: "1" }, class: "btn btn-primary"
