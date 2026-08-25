@@ -848,7 +848,10 @@ CREATE TABLE public.schools (
     location character varying NOT NULL,
     school_type integer NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    entidad_federal character varying,
+    municipio character varying,
+    direccion character varying
 );
 
 
@@ -1414,7 +1417,8 @@ CREATE TABLE public.subjects (
     department_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    school_id bigint NOT NULL
+    school_id bigint NOT NULL,
+    escala integer
 );
 
 ALTER TABLE ONLY public.subjects FORCE ROW LEVEL SECURITY;
@@ -4002,6 +4006,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260825200000'),
 ('20260825160000'),
 ('20260825140000'),
 ('20260824220000'),
