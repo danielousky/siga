@@ -111,6 +111,39 @@ class ImportarHistorialTest < ActionDispatch::IntegrationTest
     assert_select "select[name=periodo_id]", count: 0
   end
 
+  # ⚠️ Una sección que falta se busca EN EL AÑO DE LA FILA, no en el vigente.
+  #
+  # Con el método del concern se listaban secciones de años que ni siquiera
+  # existen —ruido, porque al crear el año pueden aparecer— y el botón las habría
+  # creado en el año equivocado: «1er Año A de 2022» en 2026, y la nota seguiría
+  # sin poder colgarse.
+  test "las secciones que faltan se listan con su año escolar" do
+    subir
+    mapear
+    post crear_ano_escolar_importacion_path(ultima), params: { nombre: "2023-2024", lapsos: 3 }
+    get previsualizar_importacion_path(ultima)
+
+    assert_select "td", text: /1er Año A · 2023-2024/
+    # 2019-2020 no existe todavía: su sección NO se lista —ya se reportó el año—
+    # aunque el año sí aparezca en la otra tarjeta, que es lo correcto.
+    assert_select "td", text: /1er Año A · 2019-2020/, count: 0
+  end
+
+  test "la sección se crea en el año escolar de la fila" do
+    subir
+    mapear
+    post crear_ano_escolar_importacion_path(ultima), params: { nombre: "2023-2024", lapsos: 3 }
+    viejo = con_el_colegio(@a.colegio) { AcademicPeriod.find_by(name: "2023-2024") }
+    grado = con_el_colegio(@a.colegio) { Grade.first }
+
+    post crear_seccion_importacion_path(ultima),
+         params: { grade_id: grado.id, nombre: "A", periodo_id: viejo.id, cuantas: 3 }
+
+    con_el_colegio(@a.colegio) do
+      assert_equal viejo, Section.find_by(grade: grado, name: "A", academic_period: viejo)&.academic_period
+    end
+  end
+
   # ── confirmar ─────────────────────────────────────────────────────────────
 
   test "carga las notas, marcadas como importadas, y sobreviven al recálculo" do

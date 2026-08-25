@@ -145,12 +145,16 @@ class ImportacionesController < ApplicationController
   def crear_seccion
     grado = Grade.find(params[:grade_id])
 
-    # ⚠️ En el año escolar de ESTA importación, no en el «vigente».
+    # ⚠️ En el año escolar de ESTA FILA, y si no viene, en el de la importación.
     #
     # Con `vigente` a secas, un colegio que sube la matrícula del año que acaba
-    # de terminar terminaba con los alumnos de las secciones existentes en un
-    # año y los de las secciones nuevas en el siguiente.
-    periodo = @importacion.periodo
+    # de terminar terminaba con los alumnos de las secciones existentes en un año
+    # y los de las secciones nuevas en el siguiente.
+    #
+    # Y el historial va más lejos: cada fila trae su propio año, así que la
+    # sección se crea en el que dice la fila. Sin `periodo_id`, «1er Año A de
+    # 2022» se crearía en 2026 y la nota seguiría sin poder colgarse.
+    periodo = periodo_pedido || @importacion.periodo
 
     return redirect_to(previsualizar_importacion_path(@importacion), alert: "El colegio no tiene ningún año escolar cargado.") if periodo.nil?
 
@@ -216,7 +220,7 @@ class ImportacionesController < ApplicationController
   # resolver una sección: crear el grado y dejarlo sin secciones lo dejaría a
   # mitad de camino, mirando la misma pantalla con otro mensaje.
   def crear_grado
-    periodo = @importacion.periodo
+    periodo = periodo_pedido || @importacion.periodo
     return redirect_to(previsualizar_importacion_path(@importacion), alert: "El colegio no tiene ningún año escolar cargado.") if periodo.nil?
 
     grado = Grade.new(school: Current.school,
@@ -278,6 +282,15 @@ class ImportacionesController < ApplicationController
   # fallaba, y el formulario volvía a decir «Subir matrícula de alumnos» con la
   # URL todavía en `?tipo=pensum`. Reintentando desde ahí, el pensum entraba como
   # matrícula.
+  # El año escolar que pide la fila. Va por `find_by` y no por `find`: un id que
+  # no es de este colegio no existe —el `default_scope` lo filtra— y ahí cae al
+  # de la importación en vez de reventar.
+  def periodo_pedido
+    return nil if params[:periodo_id].blank?
+
+    AcademicPeriod.find_by(id: params[:periodo_id])
+  end
+
   # «2023-2024» → del 15 de septiembre de 2023 al 31 de julio de 2024. Es el año
   # escolar venezolano, el mismo que propone `ano_escolar_sugerido` para el año
   # en curso.

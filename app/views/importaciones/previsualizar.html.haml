@@ -145,7 +145,8 @@
               - if s[:grado] && s[:nombre_de_seccion].present?
                 = button_to "Crear #{s[:grado].name} #{s[:nombre_de_seccion]}",
                             crear_seccion_importacion_path(@importacion),
-                            params: { grade_id: s[:grado].id, nombre: s[:nombre_de_seccion], cuantas: s[:cuantas] },
+                            params: { grade_id: s[:grado].id, nombre: s[:nombre_de_seccion],
+                                      cuantas: s[:cuantas], periodo_id: s[:periodo]&.id },
                             class: "btn btn-secondary"
               - else
                 -# ⚠️ El único callejón que quedaba en todo el recorrido: acá se
@@ -157,6 +158,7 @@
                 -# confirma: los dos campos vienen llenos y se pueden corregir.
                 = form_with url: crear_grado_importacion_path(@importacion), method: :post, class: "carga-rapida" do
                   = hidden_field_tag :cuantas, s[:cuantas]
+                  = hidden_field_tag :periodo_id, s[:periodo]&.id
                   .carga-rapida-campos
                     .form-group
                       = label_tag "grado_#{s[:texto].parameterize}", "Grado nuevo", class: "form-label"

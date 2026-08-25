@@ -59,6 +59,29 @@ class HistorialInterpretado
     @filas = @planilla.filas.map { |cruda| interpretar(cruda) }
   end
 
+  # ⚠️ Las secciones que faltan, POR AÑO ESCOLAR — y solo de los años que ya
+  # existen.
+  #
+  # El método del concern agrupa por sección y busca dentro de UN año, que es lo
+  # correcto para la matrícula y el pensum. Acá daba dos cosas mal: buscaba en el
+  # año vigente aunque la fila fuera de 2022, y listaba secciones de años que
+  # todavía no existen — ruido, porque después de crear el año esas secciones
+  # pueden estar perfectamente.
+  #
+  # Una fila cuyo AÑO falta ya se reporta en `anos_que_faltan`. Una cosa rota se
+  # dice una vez.
+  def secciones_de_la_planilla
+    filas.select { |f| f.periodo && f.seccion_texto.present? }
+         .group_by { |f| [ f.periodo, f.seccion_texto ] }
+         .map do |(periodo, texto), de_esa|
+           grado, nombre = partir(texto)
+
+           { texto: "#{texto} · #{periodo.name}", tambien: [], cuantas: de_esa.size,
+             seccion: de_esa.first.seccion, grado: grado, nombre_de_seccion: nombre,
+             periodo: periodo, **propuesta_de_grado(grado ? nil : texto) }
+         end.sort_by { |s| s[:texto] }
+  end
+
   # ── los resúmenes de esta planilla ────────────────────────────────────────
 
   # Los años escolares que la planilla nombra y el colegio no tiene. Se listan
