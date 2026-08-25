@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 25 de agosto de 2026 (mediodía)
+# 🔖 Punto de retome — actualizado 25 de agosto de 2026 (tarde)
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 
@@ -653,7 +653,28 @@ qué se crea.
 |---|---|---|
 | **1** | alumnos · representantes · secciones · inscripción | ✅ |
 | **2** | materias · pensum por grado · profesores y su asignación | ✅ |
-| **3** | historial de notas de años anteriores | abierta |
+| **3** | historial de notas de años anteriores | ✅ |
+
+**El importador está cerrado.** Un colegio trae todo lo que tiene, y **nada es un callejón**:
+cuando falta una entidad, la previsualización la lista con su conteo y ofrece crearla de un
+clic — el año escolar con sus lapsos, el grado proponiendo dónde cortar «3er Año C», y la
+sección.
+
+### Lo que hizo difícil a la tanda 3
+
+**Cada fila puede ser de un año escolar distinto**, y eso rompe el supuesto de las otras dos:
+«3er Año A» es una sección diferente en cada año. Por eso `HistorialInterpretado` sobrescribe
+`secciones_de_la_planilla` y esta planilla no lleva selector de año.
+
+Y antes de escribir una línea del importador había que resolver esto, medido:
+
+```
+   nota histórica cargada:   1
+   tras UN recálculo:        0     ← destruida
+```
+
+No era un bug: es la regla que hace que «sin nota» no sea cero. La regla no se aflojó; se
+agregó `origen` para distinguir «sin respaldo» de «con un respaldo que no está acá».
 
 ### Lo que costó más de un intento
 

@@ -180,6 +180,13 @@ guardado incremental, los promedios se recalculan solos y el alumno los ve el mi
 `evaluation_moments.weight` describe la estructura del año y **no entra en ningún cálculo**:
 la decisión fue apegarse a la norma en vez de generalizarla.
 
+⚠️ **Una calificación IMPORTADA no la recalcula ni la borra nadie** (`origen` en
+`moment_grades` y `final_grade_books`). El historial de un colegio no tiene actividades debajo
+—las cinco evaluaciones que produjeron ese 15 están en papel— y el cálculo borraba exactamente
+eso. La regla de borrar está bien y no se aflojó: lo que faltaba era distinguir «sin respaldo»
+de «con un respaldo que no está acá». Si alguien carga las evaluaciones de verdad, esas ganan
+y la nota vuelve a ser `calculada`.
+
 **"Sin nota" no es cero, y hay que sostenerlo en las tres capas.** El cálculo devuelve `nil` y
 borra la calificación que quedó sin respaldo; la planilla borra la fila al vaciar el campo; la
 vista del alumno escribe "Pendiente" en letras, nunca un número. Confundirlos reprueba a una
@@ -199,13 +206,19 @@ sección entera a mitad de lapso, y le hace perder la confianza a la familia.
 
 ### 3. El importador de planillas (`MOR-126`)
 
-Un colegio que ya usa otro sistema **no va a tipear 360 alumnos de nuevo**. Dos planillas, un
+Un colegio que ya usa otro sistema **no va a tipear 360 alumnos de nuevo**. Tres planillas, un
 solo recorrido; `Importacion#tipo` decide qué se espera y qué se crea:
 
 ```
    matricula   alumnos y representantes   →  MatriculaInterpretada · CargaDeMatricula
    pensum      materias y profesores      →  PensumInterpretado    · CargaDePensum
+   historial   notas de años anteriores   →  HistorialInterpretado · CargaDeHistorial
 ```
+
+**Nada se crea solo, y nada es un callejón.** Cuando falta una entidad, la previsualización la
+lista *con su conteo* —lo que delata el dedazo— y ofrece crearla de un clic: el año escolar
+(con sus lapsos, contados de las columnas), el grado (proponiendo dónde cortar «3er Año C» y
+qué nivel es) y la sección.
 
 **La distinción que ordena todo es ERROR vs AVISO.** Error: la fila NO se carga, le falta algo
 sin lo cual el registro no existiría. Aviso: se carga, pero alguien tiene que enterarse.
@@ -216,7 +229,7 @@ sin correo no puede importar nada; si todo es aviso, se cargan alumnos sin nombr
 representante sin correo se le carga igual y sale listado al final; un profesor sin correo es un
 ERROR, porque `EntraAlSistema` lo exige y sin entrar no puede cargar notas. Ver `§ 6`.
 
-**Seis cosas que ya se rompieron y no hay que volver a romper:**
+**Siete cosas que ya se rompieron y no hay que volver a romper:**
 
 1. **La fila de encabezados se detecta por la LÍNEA EN BLANCO, no por densidad.** Costó tres
    intentos («una celda menos», «la mitad»). El membrete de un colegio también es denso.
@@ -229,10 +242,14 @@ ERROR, porque `EntraAlSistema` lo exige y sin entrar no puede cargar notas. Ver 
 4. **Las secciones se buscan DENTRO del año escolar de la importación.** Con `vigente` a secas,
    un import queda partido entre dos años sin que nadie lo vea. El selector va en la
    previsualización, que es donde el problema se ve.
-5. **Cada fila en su propio `SAVEPOINT`.** Con una transacción única, la fila 200 de 360 se lleva
+5. **El historial NO es de un año: cada fila trae el suyo.** Por eso `HistorialInterpretado`
+   sobrescribe `secciones_de_la_planilla` —agrupa por (año, sección)— y no lleva selector de
+   año escolar. Y **`origen: :importada`** es lo que impide que `GradeCalculator` borre esas
+   notas: no tienen actividades debajo ni las van a tener. Ver `§ 2`.
+6. **Cada fila en su propio `SAVEPOINT`.** Con una transacción única, la fila 200 de 360 se lleva
    las 359 buenas. El reporte da el número de fila **del archivo** — «la fila 47», no «el
    registro 43».
-6. **Un CSV no dice con qué está separado, y Excel NO usa coma.** Un Excel en español guarda con
+7. **Un CSV no dice con qué está separado, y Excel NO usa coma.** Un Excel en español guarda con
    punto y coma —la coma ya es el separador decimal—, Numbers exporta con tabulaciones, y un
    Excel de Windows escribe en Windows-1252 con `\r\n` y a veces con BOM. `Planilla` adivina las
    dos cosas del propio archivo; el separador **por el ancho que resulta**, no contando caracteres
