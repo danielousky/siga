@@ -360,8 +360,13 @@ plataforma— así que un controller central tendría que resolver a mano si esa
 colegio, y acá lo que se filtra no es una ficha, es una **llave**. El `set_teacher` /
 `set_representative` que ya existe hace ese filtro con el `default_scope` del rol.
 
-⚠️ **Hoy el correo no sale**: falta `SMTP_ADDRESS` en producción (`MOR-102`), así que
-`perform_deliveries` es `false`. El flujo funciona igual mostrando el enlace en pantalla.
+**El correo YA SALE en producción** desde el 21 de agosto: ElasticEmail configurado,
+`perform_deliveries=true` y `raise_delivery_errors=true` —un correo que no sale tiene que
+aparecer en el log, no desaparecer— (`MOR-102`). El enlace se muestra igual en pantalla: el
+correo puede tardar, caer en spam o rebotar, y la secretaria tiene a la persona delante.
+
+⚠️ Lo que **no** existe todavía es enterarse de un REBOTE (`MOR-145`). Hoy un correo que rebota
+se queda ahí y solo se sabe si el usuario lo reporta.
 
 ## Contexto de mercado (investigado, agosto 2026)
 
