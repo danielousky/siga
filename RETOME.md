@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 21 de agosto de 2026 (mañana)
+# 🔖 Punto de retome — actualizado 25 de agosto de 2026
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 
@@ -635,71 +635,101 @@ la fila entra igual y sale listada al final, en pantalla y en planilla.
 
 ---
 
+## 24–25 de agosto · el importador, tandas 1 y 2
+
+`MOR-126` completo hasta la tanda 2. Un colegio sube su planilla, ve qué se va a cargar y
+confirma; el recorrido es el mismo para las dos planillas y `tipo` decide qué se espera y
+qué se crea.
+
+```
+   new/create   subir el archivo         ← ?tipo=matricula | ?tipo=pensum
+   show         el mapeo propuesto, con un ejemplo de la primera fila al lado
+   update       guardarlo  →  previsualizar
+   confirmar    escribir, fila por fila en su propio SAVEPOINT
+   resultado    qué entró y qué no, con el número de fila DEL ARCHIVO
+```
+
+| Tanda | Qué trae | Estado |
+|---|---|---|
+| **1** | alumnos · representantes · secciones · inscripción | ✅ |
+| **2** | materias · pensum por grado · profesores y su asignación | ✅ |
+| **3** | historial de notas de años anteriores | abierta |
+
+### Lo que costó más de un intento
+
+- **La fila de encabezados.** Tres versiones: «una celda menos que el encabezado», «la
+  mitad», y al final ninguna densidad — lo que de verdad separa el membrete de los datos es
+  la **línea en blanco**.
+- **Cuatro bugs de mapeo**, los cuatro destapados por el mismo test: generar la plantilla y
+  volver a leerla con el mapeo automático. `«APELLIDOS Y NOMBRES DEL REPRESENTANTE»` caía en
+  el nombre del alumno; `«OBSERVACIONES»` en la cédula, porque contiene `ci`.
+- **El import partido entre dos años escolares.** Las secciones vivían en 2025-2026 y
+  `vigente` era 2026-2027. El año escolar quedó como selector **en la previsualización**,
+  que es donde se ve el problema.
+- **El importador le borró el nombre a un profesor.** La planilla traía a otra persona con
+  una cédula ya registrada. Buscar por cédula es correcto y no se toca —es lo que hace que
+  una persona con rol en dos colegios sea una sola—; lo que faltaba era **notarlo**.
+
+### Lo compartido se extrajo, no se copió
+
+| Módulo | Qué guarda |
+|---|---|
+| `InterpretaLaPlanilla` | secciones, personas, error vs aviso, el año escolar |
+| `EscribePersonas` | buscar **sin aislamiento** y qué se pisa al actualizar |
+| `PlantillaDeImportacion` | el libro, los estilos, el panel congelado |
+
+### Y una decisión de la tanda 2 que se puede leer mal
+
+El **código de la materia** identifica a la materia dentro del colegio y sale en boletines.
+Cuando la planilla no lo trae, SIGA lo inventa —y lo **lista** antes de confirmar, porque
+ningún algoritmo acierta las elecciones humanas de un colegio: en los propios seeds
+«Castellano y Literatura» es `LEN`. Reutilizar y chocar no son lo mismo: si el colegio ya
+tiene `MAT` = Matemática, la planilla que trae «Matemática» lo reutiliza; solo se busca otro
+código cuando el ocupado pertenece a **otro** nombre.
+
+---
+
 ## Dónde está todo ahora
 
-**Ramas** (nada subido — subir sigue siendo decisión de Daniel):
-
 ```
-  main                                   ← viejo
-   └─ feat/mor-82-school-id-en-grades     ← PR #1 ABIERTO contra main
-       └─ feat/mor-138-identidad-de-la-persona
-           └─ feat/mor-142-persona-sin-credenciales   ← acá está lo de esta noche
+  main  (b76412b)                              ← desplegado en producción
+   └─ feat/mor-138-identidad-de-la-persona
+       └─ feat/mor-126-importador-de-matricula  ← acá, 13 commits SIN PUSH
 ```
 
-`bin/ci` en verde: **452 tests**, 1325 aserciones.
+`bin/ci` en verde: **699 tests**, 2114 aserciones, ~39 s.
 
-**Producción** está en `6ec14f9`, o sea **antes** de `MOR-138`. Nada de estos tres issues está
-desplegado.
+⚠️ **El importador entero está sin desplegar.** Producción sigue en `main`, que no lo tiene.
 
 ## ⚠️ Pendientes que necesitan a Daniel
 
-1. ~~Rotar la contraseña de `siga_app`~~ → **hecha** el 21 de agosto.
-   **Falta `RAILS_MASTER_KEY`**, que no es un `config:set`: hay que regenerar
-   `config/credentials.yml.enc` en local con la llave nueva, commitearlo y volver a desplegar.
-   La que está puesta quedó expuesta en varias transcripciones.
-2. **`MOR-102` · SMTP con ElasticEmail.** El lado de Rails está completo y
-   `SIGA_HOST=sigaeducando.com` está bien puesto. Falta verificar el dominio en ElasticEmail y
-   cargar las cinco variables.
-
-   ⚠️ **`sigaeducando.com` YA TIENE un registro SPF** —el del reenvío de correo de Namecheap,
-   `v=spf1 include:spf.efwd.registrar-servers.com ~all`— y **solo puede haber uno**. El de
-   ElasticEmail no se agrega como TXT aparte: se FUSIONA en ese mismo registro. Dos TXT de SPF
-   invalidan los dos y todo el correo empieza a caer en spam.
-3. **Una segunda llave SSH en el servidor.** Hay **una sola** en `authorized_keys`: si se pierde
-   `~/.ssh/siga_deploy`, se pierde el acceso.
-4. **Subir `SIGA_HSTS_SEGUNDOS` a 31536000** cuando pasen unos días sin sobresaltos.
-5. ~~Desplegar~~ → **hecho**. Producción está en `bef8b28`.
-
-## 21 de agosto, mañana · desplegado y con los formularios parejos
-
-- **Clave de `siga_app` rotada.** Se generó y se usó enteramente en el servidor, con un script
-  que se borra: no pasó por ninguna terminal local. Verificada por la ruta que usa la app
-  —contra la IP de red, no contra el loopback, que es `trust` y da falso positivo— y con el
-  fusible del RLS confirmado después. El respaldo diario no se toca: usa `dokku postgres:export`,
-  que va con las credenciales del servicio.
-- **`main` al día y desplegado.** 110 commits, PR #1 cerrado solo como merged. Las cuatro
-  migraciones corrieron en producción por el `release:` y el índice parcial de `users.email`
-  está puesto. Respaldo tomado antes de migrar.
-- **Los formularios, parejos.** Había cuatro estructuras para la misma pantalla. La peor:
-  `%fieldset`/`%legend` **no tienen ninguna regla** en el tema del colegio —solo existe
-  `.siga-fieldset`, del panel oscuro— así que profesor y administrador salían con el borde gris
-  hundido del navegador adentro de una tarjeta, y el de profesor tenía uno **vacío**. Ahora las
-  diez altas usan `.card-academic` + `.form-seccion` + una sola `.form-acciones`, con un test
-  que falla 5 de 31 contra el código viejo.
-- **Y otro campo duplicado**, esta vez `user[document]` en el alta de representantes — el mismo
-  bug que en el alta de colegios. El test nuevo lo busca en las diez pantallas.
+1. **Rotar `RAILS_MASTER_KEY`.** No es un `config:set`: hay que regenerar
+   `config/credentials.yml.enc` en local con la llave nueva, commitearlo y volver a
+   desplegar. La que está puesta quedó expuesta en varias transcripciones.
+   *(La clave de `siga_app` ya se rotó el 21 de agosto.)*
+2. **Una segunda llave SSH en el servidor.** Hay **una sola** en `authorized_keys`: si se
+   pierde `~/.ssh/siga_deploy`, se pierde el acceso.
+3. **Subir `SIGA_HSTS_SEGUNDOS` a 31536000** cuando pasen unos días sin sobresaltos.
+4. **`MOR-144` · DMARC a `p=reject`** — vence el 4 de septiembre de 2026.
+5. **`MOR-146` · Limpiar los datos de prueba de producción** antes del primer colegio real.
+6. **Restaurar la suscripción de Bello a `vencida`** — la cambié para probar y es el caso de
+   QA de `MOR-108`.
 
 ## Lo que sigue, en orden
 
-1. **`MOR-126` · el importador, tanda 1** — alumnos, representantes, secciones e inscripción.
-   Ya no está bloqueado: `MOR-142` y `MOR-143` eran sus dos prerrequisitos.
-2. **Extender el código de activación al personal del colegio.** Hoy lo tienen los
-   representantes y el primer director de un colegio nuevo; profesores y administradores
-   siguen con "que alguien más te elija la contraseña", que es el patrón que este trabajo vino
-   a sacar. Es media hora y deja **una sola** forma de dar acceso en toda la app.
-3. **`MOR-92`** — el acceso amplio del equipo de SIGA, que es la decisión con fecha de
-   vencimiento. Se retoma cuando haya colegios pagando.
-
+1. **`MOR-148` · Wizard de alta de un colegio nuevo.** Hoy un colegio recién creado nace sin
+   año escolar, sin grados y sin secciones, y el importador es el que se lo encuentra. La
+   salida de emergencia ya está puesta —crear el año escolar y las secciones **desde la
+   previsualización**, donde el problema se ve— pero el alta guiada es otra cosa.
+2. **El repaso de estilo que quedó postergado.** `shared/_errors` sale como un titular serif
+   gigante con lenguaje de programador. Daniel lo dejó explícitamente para después de lo
+   funcional.
+3. **`MOR-145` · Rebotes de correo.** Hoy un correo que rebota se queda ahí y solo se entera
+   alguien si el usuario lo reporta.
+4. **`MOR-126` tanda 3** — historial de notas de años anteriores. Lo más difícil y lo menos
+   necesario para arrancar; puede esperar a que haya un colegio pidiéndolo.
+5. **`MOR-92`** — el acceso amplio del equipo de SIGA, la decisión con fecha de vencimiento.
+   Se retoma cuando haya colegios pagando.
 
 **Cómo se entrega, desde ahora** (convención escrita en el documento *Cómo trabajamos* de Linear):
 cada issue cerrado deja **transferencia de aprendizaje** (qué salió distinto, qué falló y cómo se
