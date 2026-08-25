@@ -25,6 +25,11 @@ class PurgarPlanillasJob < ApplicationJob
       # `purge_later` y no `purge`: son archivos en disco y borrarlos en línea
       # deja el job esperando por E/S que no tiene por qué esperar.
       importacion.archivo.purge_later
+
+      # ⚠️ Una importación a medias que se queda sin archivo deja de ser «lista
+      # para confirmar»: ya no se puede confirmar nada. Decir la verdad en el
+      # listado es parte de borrarla, no un adorno.
+      importacion.update_column(:estado, Importacion.estados[:descartada]) unless importacion.confirmada?
     end
 
     Rails.logger.info("[PurgarPlanillasJob] #{vencidas.size} planillas encoladas para borrar")

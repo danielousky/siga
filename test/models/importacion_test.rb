@@ -142,12 +142,32 @@ class ImportacionTest < ActiveSupport::TestCase
     end
   end
 
-  test "una importación a medias no se purga aunque sea vieja" do
+  # ⚠️ Antes decía lo contrario, y estaba mal.
+  #
+  # Una importación a medias —alguien sube una planilla, se confunde y se va—
+  # conservaba su archivo PARA SIEMPRE. Que quede a medias no la vuelve menos
+  # sensible: adentro están el nombre, la cédula y la fecha de nacimiento de 360
+  # menores. Un mes sin que nadie la toque es abandono, no trabajo en curso.
+  test "una importación abandonada a medias también se purga" do
     con_el_colegio(@colegio) do
       importacion = importar("A,B\n1,2\n")
       importacion.update_column(:updated_at, 90.days.ago)
 
-      assert_not importacion.reload.purgable?
+      assert importacion.reload.purgable?
+    end
+  end
+
+  # ⚠️ `archivo.open` sobre un adjunto purgado NO revienta: devuelve nil sin
+  # llamar al bloque, así que el primer `.encabezados` daba un `NoMethodError` —
+  # un 500 pelado. Y no era hipotético: `#destroy` purga el archivo, o sea que
+  # bastaba con descartar una importación y volver a abrirla desde el listado.
+  test "sin archivo se levanta un error que la app sabe mostrar" do
+    con_el_colegio(@colegio) do
+      importacion = importar("A,B\n1,2\n")
+      importacion.archivo.purge
+
+      error = assert_raises(Planilla::NoSePuedeLeer) { Importacion.find(importacion.id).planilla }
+      assert_match(/ya no está/, error.message)
     end
   end
 

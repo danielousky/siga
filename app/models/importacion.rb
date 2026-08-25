@@ -123,13 +123,36 @@ class Importacion < ApplicationRecord
     end
   end
 
+  SIN_ARCHIVO = "El archivo de esta importación ya no está: se borra a los " \
+                "#{CONSERVAR_EL_ARCHIVO.inspect}, o al descartarla. El reporte de lo que se " \
+                "cargó sigue disponible.".freeze
+
   # La planilla, leída. Se relee del adjunto en cada paso a propósito: la
   # previsualización tiene que mostrar exactamente lo que después se va a
   # escribir, y eso solo se garantiza leyendo la misma fuente las dos veces.
+  #
+  # ⚠️ Sin archivo se levanta `NoSePuedeLeer`, que es lo que los controllers ya
+  # saben rescatar.
+  #
+  # `archivo.open` sobre un adjunto purgado no revienta: devuelve `nil` sin
+  # llamar al bloque. Así que `@planilla` quedaba en nil y el primer
+  # `.encabezados` daba un `NoMethodError` — un 500 pelado, y NO era hipotético:
+  # `#destroy` purga el archivo, así que bastaba con descartar una importación y
+  # volver a abrirla desde el listado.
   def planilla
-    @planilla ||= archivo.open do |archivo_local|
+    return @planilla if @planilla
+
+    raise Planilla::NoSePuedeLeer, SIN_ARCHIVO unless archivo.attached?
+
+    @planilla = archivo.open do |archivo_local|
       Planilla.new(archivo_local.path, extension: File.extname(nombre_del_archivo))
     end
+
+    raise Planilla::NoSePuedeLeer, SIN_ARCHIVO if @planilla.nil?
+
+    @planilla
+  rescue ActiveStorage::FileNotFoundError
+    raise Planilla::NoSePuedeLeer, SIN_ARCHIVO
   end
 
   # El mapeo que propone el sistema, para que la persona solo corrija lo que

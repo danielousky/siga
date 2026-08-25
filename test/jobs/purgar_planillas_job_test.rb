@@ -39,6 +39,19 @@ class PurgarPlanillasJobTest < ActiveJob::TestCase
     PurgarPlanillasJob.perform_now
 
     assert_not adjunto?(importacion, @a)
+
+    # Y deja de decir que está lista para confirmar: sin archivo no se puede
+    # confirmar nada.
+    assert con_el_colegio(@a.colegio) { Importacion.find(importacion.id).descartada? }
+  end
+
+  # Una confirmada conserva su estado: su reporte sigue sirviendo sin el archivo.
+  test "la confirmada sigue confirmada" do
+    importacion = importacion_en(@a, estado: :confirmada, hace: 40.days)
+
+    PurgarPlanillasJob.perform_now
+
+    assert con_el_colegio(@a.colegio) { Importacion.find(importacion.id).confirmada? }
   end
 
   # ⚠️ La obligación es de SIGA, no de un colegio: un worker con contexto de uno
