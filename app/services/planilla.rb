@@ -27,6 +27,32 @@ class Planilla
   # cualquier membrete razonable; más allá, lo que hay no es una planilla.
   FILAS_A_INSPECCIONAR = 20
 
+  # ⚠️ Un CSV no dice con qué está separado, y Excel no usa coma.
+  #
+  # Un Excel configurado en español guarda con **punto y coma**, porque la coma
+  # ya es el separador decimal. Numbers exporta con tabulaciones. Asumiendo coma,
+  # el archivo entero se lee como UNA columna, ninguna fila «parece encabezado»
+  # y el colegio recibe «no encontré la fila de encabezados» sobre un archivo que
+  # está perfectamente bien.
+  #
+  # Y no es un caso de borde: es lo que sale de abrir un CSV en Excel y volver a
+  # guardarlo, que es exactamente lo que hace una secretaria antes de mandarlo.
+  DELIMITADORES = [ ",", ";", "\t", "|" ].freeze
+
+  # Cuánto se mira para adivinar separador y codificación.
+  MUESTRA = 64 * 1024
+
+  # ⚠️ El BOM se le pega al PRIMER encabezado y lo vuelve irreconocible.
+  #
+  # «NOMBRE» con marca delante no es «NOMBRE» para nadie: el mapeo automático
+  # falla en esa columna y en ninguna otra, que es peor que fallar entero porque
+  # no se nota.
+  #
+  # Van las DOS formas y no una: si el archivo trae marca de UTF-8 con contenido
+  # que no lo es —Excel produce esa quimera— los tres bytes se leen como `ï»¿`,
+  # tres caracteres de texto normal, y `\uFEFF` no los toca.
+  BOM = /\A(?:\uFEFF|ï»¿)/
+
   class NoSePuedeLeer < StandardError; end
 
   attr_reader :fila_de_encabezado, :encabezados
@@ -80,7 +106,7 @@ class Planilla
   private
 
   def abrir
-    @hoja = Roo::Spreadsheet.open(@ruta, extension: @extension.delete(".").to_sym)
+    @hoja = Roo::Spreadsheet.open(@ruta, **opciones_para_abrir)
     raise NoSePuedeLeer, "La planilla no tiene ninguna hoja con datos" if @hoja.last_row.to_i.zero?
   rescue NoSePuedeLeer
     raise
@@ -88,6 +114,68 @@ class Planilla
     # roo levanta cosas muy distintas según el formato. Quien sube un archivo
     # necesita saber que no se pudo leer, no el nombre de la excepción.
     raise NoSePuedeLeer, "No se pudo leer la planilla (#{e.class}). ¿Está dañada o protegida con contraseña?"
+  end
+
+  def opciones_para_abrir
+    opciones = { extension: @extension.delete(".").to_sym }
+    return opciones unless @extension == ".csv"
+
+    opciones.merge(csv_options: opciones_de_csv)
+  end
+
+  # El separador y la codificación, adivinados del propio archivo.
+  #
+  # La codificación se prueba primero porque la otra depende de ella: un archivo
+  # en Windows-1252 leído como UTF-8 revienta antes de poder contar comas.
+  def opciones_de_csv
+    muestra = File.binread(@ruta, MUESTRA).to_s
+
+    # Cortar en el último salto de línea, INCLUYÉNDOLO: la muestra puede partir
+    # un carácter multibyte por la mitad y hacer que un UTF-8 válido parezca que
+    # no lo es.
+    #
+    # ⚠️ El `+ 1` no es cosmético. Un archivo de Windows termina cada línea con
+    # `\r\n`; cortando justo ANTES del `\n` queda un `\r` suelto al final, y
+    # `CSV` lo rechaza con «Unquoted fields do not allow new line». Todos los
+    # separadores fallaban igual y ganaba la coma por ser la primera.
+    final = muestra.rindex("\n")
+    muestra = muestra[0, final + 1] if final
+
+    codificacion = codificacion_de(muestra)
+    texto = muestra.dup.force_encoding(codificacion).scrub
+
+    # El `bom|` solo tiene sentido en UTF-8 —un Windows-1252 no lleva BOM— y CSV
+    # avisa por consola si se le pide igual.
+    marca = codificacion == "utf-8" ? "bom|" : ""
+
+    { col_sep: delimitador_de(texto), encoding: "#{marca}#{codificacion}" }
+  end
+
+  # Windows-1252 y no ISO-8859-1: es lo que escribe Excel en Windows, y el
+  # superconjunto —tiene las comillas tipográficas y el guion largo que un
+  # colegio pega desde Word—.
+  def codificacion_de(bytes)
+    bytes.dup.force_encoding(Encoding::UTF_8).valid_encoding? ? "utf-8" : "windows-1252"
+  end
+
+  # Gana el separador que produce la tabla más ancha.
+  #
+  # Contar cuántas veces aparece cada carácter no sirve: «GARCÍA PÉREZ, CARLOS»
+  # dentro de una celda entrecomillada tiene comas que no separan nada. Lo que sí
+  # distingue es el ANCHO que resulta — con el separador correcto todas las filas
+  # dan el mismo número de columnas, y con el equivocado dan una.
+  def delimitador_de(texto)
+    DELIMITADORES.max_by { |separador| ancho_tipico(texto, separador) }
+  end
+
+  def ancho_tipico(texto, separador)
+    filas = CSV.parse(texto, col_sep: separador).reject { |f| f.compact.empty? }
+    return 0 if filas.empty?
+
+    # El ancho que más se repite, y a igualdad de repeticiones el mayor.
+    filas.map(&:size).tally.max_by { |ancho, veces| [ veces, ancho ] }.first
+  rescue CSV::MalformedCSVError, ArgumentError
+    0
   end
 
   # El encabezado es la primera fila que PARECE un encabezado y además está
@@ -107,6 +195,7 @@ class Planilla
 
     raise NoSePuedeLeer,
           "No encontré la fila de encabezados en las primeras #{tope} filas. " \
+          "Leí #{ancho} #{ancho == 1 ? 'columna' : 'columnas'}. " \
           "¿La planilla tiene una fila con el nombre de cada columna?"
   end
 
@@ -178,7 +267,7 @@ class Planilla
     vistos = Hash.new(0)
 
     celdas.each_with_index.map do |celda, i|
-      base = celda.to_s.strip.gsub(/\s+/, " ")
+      base = celda.to_s.sub(BOM, "").strip.gsub(/\s+/, " ")
       base = "Columna #{i + 1}" if base.empty?
 
       vistos[base] += 1

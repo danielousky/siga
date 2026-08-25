@@ -37,6 +37,35 @@ class ImportarPensumTest < ActionDispatch::IntegrationTest
     assert_match(/matricula-/, response.headers["Content-Disposition"])
   end
 
+  # ⚠️ El archivo llega como lo guarda Excel, no como lo escribiría un programa.
+  #
+  # Un Excel en español separa con punto y coma, escribe en Windows-1252 y
+  # termina las líneas con `\r\n`. Asumiendo coma, todo el archivo se lee como
+  # UNA columna y el colegio recibe «no encontré la fila de encabezados» sobre
+  # una planilla que está perfectamente bien.
+  test "un CSV guardado por Excel en español se lee igual" do
+    subir("pensum_de_excel_espanol.csv")
+
+    assert ultima.pensum?
+    assert_equal 5, ultima.filas_leidas, "el subtotal del medio tampoco cuenta acá"
+    assert_equal "cedula_del_profesor", ultima.mapeo_sugerido["CEDULA PROFESOR"]
+  end
+
+  # ⚠️ `Planilla.new` revienta ANTES de que exista la importación, así que el
+  # formulario se rearmaba con el tipo por defecto: alguien subía un pensum, el
+  # archivo fallaba, y la pantalla volvía a decir «Subir matrícula de alumnos»
+  # con la URL todavía en `?tipo=pensum`. Reintentando desde ahí, el pensum
+  # entraba como matrícula.
+  test "si el archivo falla, el formulario sigue siendo el de pensum" do
+    post importaciones_path,
+         params: { importacion: { archivo: fixture_file_upload("no_es_una_planilla.csv", "text/csv"),
+                                  tipo: "pensum" } }
+
+    assert_response :unprocessable_entity
+    assert_select "h1", text: /materias y profesores/i
+    assert_select "input[name=?][value=?]", "importacion[tipo]", "pensum"
+  end
+
   # ── subir y mapear ────────────────────────────────────────────────────────
 
   test "la importación recuerda que trae materias, no alumnos" do

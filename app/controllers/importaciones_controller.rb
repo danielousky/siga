@@ -206,8 +206,15 @@ class ImportacionesController < ApplicationController
 
   private
 
+  # ⚠️ Conservando el TIPO, que es lo que se estaba subiendo.
+  #
+  # `Planilla.new` revienta ANTES de que exista `@importacion`, así que acá se
+  # armaba una nueva con el tipo por defecto: alguien subía un pensum, el archivo
+  # fallaba, y el formulario volvía a decir «Subir matrícula de alumnos» con la
+  # URL todavía en `?tipo=pensum`. Reintentando desde ahí, el pensum entraba como
+  # matrícula.
   def rechazar(mensaje)
-    @importacion ||= Importacion.new
+    @importacion ||= Importacion.new(tipo: tipo_pedido)
     flash.now[:alert] = mensaje
     render :new, status: :unprocessable_entity
   end

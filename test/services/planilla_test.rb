@@ -183,7 +183,107 @@ class PlanillaTest < ActiveSupport::TestCase
     assert_match(/no se pudo leer/i, error.message)
   end
 
+  # ── los dialectos de CSV que manda un colegio ─────────────────────────────
+  #
+  # ⚠️ Un CSV no dice con qué está separado, y Excel NO usa coma.
+  #
+  # Un Excel configurado en español guarda con punto y coma —la coma ya es el
+  # separador decimal—, Numbers exporta con tabulaciones, y un Excel de Windows
+  # escribe en Windows-1252 con BOM y saltos `\r\n`. Asumiendo coma, el archivo
+  # entero se lee como UNA columna y el colegio recibe «no encontré la fila de
+  # encabezados» sobre un archivo que está perfectamente bien.
+  #
+  # No es un caso de borde: es lo que sale de abrir un CSV en Excel y volver a
+  # guardarlo, que es exactamente lo que hace una secretaria antes de mandarlo.
+
+  test "lee un CSV separado por punto y coma, como lo guarda un Excel en español" do
+    hoja = leer_csv(";")
+
+    assert_equal 3, hoja.encabezados.size
+    assert_equal %w[NOMBRE CEDULA SECCION], hoja.encabezados
+    assert_equal "PÉREZ ANA", hoja.filas.first["NOMBRE"]
+  end
+
+  test "lee un CSV separado por tabulaciones" do
+    hoja = leer_csv("\t")
+
+    assert_equal %w[NOMBRE CEDULA SECCION], hoja.encabezados
+  end
+
+  # Windows-1252 y no ISO-8859-1: es lo que escribe Excel en Windows.
+  test "lee un CSV en la codificación de Windows sin comerse los acentos" do
+    hoja = leer_csv(";", codificacion: "Windows-1252")
+
+    assert_equal "PÉREZ ANA", hoja.filas.first["NOMBRE"]
+  end
+
+  # ⚠️ El BOM y el `\r\n` van juntos porque juntos vienen, y el `\r` costó una
+  # hora: al cortar la muestra justo antes del último `\n` quedaba un `\r` suelto
+  # y `CSV` fallaba con TODOS los separadores por igual — así que ganaba la coma
+  # por ser la primera de la lista, y el archivo se leía como una sola columna.
+  test "lee un CSV con BOM y saltos de línea de Windows" do
+    hoja = leer_csv(";", bom: true, salto: "\r\n")
+
+    assert_equal %w[NOMBRE CEDULA SECCION], hoja.encabezados
+    assert_equal 2, hoja.filas.size
+  end
+
+  # Una coma DENTRO de una celda entrecomillada no separa nada. Contar cuántas
+  # veces aparece cada carácter elegiría mal; lo que decide es el ancho que sale.
+  test "una coma dentro de una celda no confunde al detector" do
+    hoja = leer_csv(";", nombre: "GARCÍA PÉREZ, CARLOS")
+
+    assert_equal 3, hoja.encabezados.size
+    assert_equal "GARCÍA PÉREZ, CARLOS", hoja.filas.first["NOMBRE"]
+  end
+
+  # ⚠️ Un BOM pegado al primer encabezado lo vuelve irreconocible para el mapeo,
+  # y falla en esa columna nada más — que es peor que fallar entero, porque no se
+  # nota. Pasa cuando el archivo trae marca de UTF-8 y contenido que no lo es.
+  test "un BOM no se le pega al primer encabezado" do
+    # Los bytes del BOM a mano: `\uFEFF` no EXISTE en Windows-1252, y eso es
+    # justamente lo que hace al archivo una quimera — marca de UTF-8 delante de
+    # contenido que no lo es.
+    ruta = archivo_temporal(".csv") do |r|
+      File.binwrite(r, "\xEF\xBB\xBF".b +
+                       "NOMBRE;CEDULA;SECCION\r\nPÉREZ ANA;V-1;1er Año A\r\n".encode("Windows-1252").b)
+    end
+
+    assert_equal "NOMBRE", Planilla.new(ruta).encabezados.first
+  end
+
+  # Y el caso normal no se rompe por soportar los otros.
+  test "sigue leyendo el CSV separado por comas de toda la vida" do
+    hoja = leer_csv(",")
+
+    assert_equal %w[NOMBRE CEDULA SECCION], hoja.encabezados
+  end
+
+  # El mensaje tiene que dejar diagnosticar: «leí 1 columna» es la pista de que
+  # el separador no era el que se creía.
+  test "cuando no encuentra encabezados dice cuántas columnas leyó" do
+    ruta = archivo_temporal(".csv") { |r| File.write(r, "una sola celda\n" * 3) }
+
+    error = assert_raises(Planilla::NoSePuedeLeer) { Planilla.new(ruta) }
+    assert_match(/Leí 1 columna/, error.message)
+  end
+
   private
+
+  # Arma un CSV con el separador, la codificación y el salto de línea que se
+  # pidan, para probar cómo llega de verdad.
+  def leer_csv(separador, codificacion: "UTF-8", bom: false, salto: "\n", nombre: "PÉREZ ANA")
+    filas = [ %w[NOMBRE CEDULA SECCION],
+              [ nombre, "V-12345678", "1er Año A" ],
+              [ "SILVA LUIS", "V-23456789", "1er Año A" ] ]
+
+    texto = filas.map { |f| f.map { |c| c.include?(separador) || c.include?(",") ? "\"#{c}\"" : c }.join(separador) }
+                 .join(salto) + salto
+    texto = "\uFEFF#{texto}" if bom
+
+    Planilla.new(archivo_temporal(".csv") { |ruta| File.binwrite(ruta, texto.encode(codificacion)) })
+  end
+
 
   def planilla_csv(filas)
     ruta = archivo_temporal(".csv") do |r|
