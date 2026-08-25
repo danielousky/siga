@@ -117,7 +117,7 @@ class BusquedaSinAcentosTest < ActiveSupport::TestCase
                           .where(*BusquedaSinAcentos.condicion(%w[users.last_name], "nunez"))
                           .first
 
-      assert_equal "Núñez", encontrada.user.last_name,
+      assert_equal "NÚÑEZ", encontrada.user.last_name,
                    "la búsqueda no puede tocar el dato guardado"
     end
   end

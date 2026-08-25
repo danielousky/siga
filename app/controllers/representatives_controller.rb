@@ -5,6 +5,9 @@
 # tendría que demostrar de algún modo que ese alumno es su hijo, y el único que
 # puede saberlo es el colegio.
 class RepresentativesController < ApplicationController
+  include GeneraCodigosDeAcceso
+
+  genera_codigos_de_acceso_para :representative
   before_action :require_puede_gestionar!
   before_action :set_representative, only: [:show, :edit, :update, :destroy, :generar_codigo]
 
@@ -85,19 +88,6 @@ class RepresentativesController < ApplicationController
   # ⚠️ Viaja en el flash porque solo se puede mostrar UNA vez: Devise guarda el
   # token digerido, así que ni esta pantalla ni ninguna otra puede volver a
   # leerlo. Si se perdió, se genera otro y el anterior deja de servir.
-  def generar_codigo
-    usuario = @representative.user
-    codigo  = usuario.generar_codigo_de_acceso!
-
-    if usuario.email.present?
-      AccesoMailer.activacion(usuario, codigo, Current.school).deliver_later
-      aviso = "Se le envió el enlace a #{usuario.email}."
-    else
-      aviso = "#{usuario.first_name} no tiene correo cargado: hágale llegar el enlace usted."
-    end
-
-    redirect_to @representative, flash: { codigo: codigo, notice: aviso }
-  end
 
   private
 

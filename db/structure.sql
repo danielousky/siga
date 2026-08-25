@@ -673,6 +673,49 @@ ALTER SEQUENCE public.grades_id_seq OWNED BY public.grades.id;
 
 
 --
+-- Name: importaciones; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.importaciones (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    subido_por_id bigint NOT NULL,
+    estado integer DEFAULT 0 NOT NULL,
+    mapeo jsonb DEFAULT '{}'::jsonb NOT NULL,
+    resultado jsonb DEFAULT '{}'::jsonb NOT NULL,
+    nombre_del_archivo character varying,
+    filas_leidas integer,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    academic_period_id bigint,
+    tipo integer DEFAULT 0 NOT NULL,
+    CONSTRAINT importaciones_estado_valido CHECK ((estado = ANY (ARRAY[0, 1, 2, 3]))),
+    CONSTRAINT importaciones_tipo_valido CHECK ((tipo = ANY (ARRAY[0, 1])))
+);
+
+ALTER TABLE ONLY public.importaciones FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: importaciones_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.importaciones_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: importaciones_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.importaciones_id_seq OWNED BY public.importaciones.id;
+
+
+--
 -- Name: moment_grades; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1697,6 +1740,13 @@ ALTER TABLE ONLY public.grades ALTER COLUMN id SET DEFAULT nextval('public.grade
 
 
 --
+-- Name: importaciones id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.importaciones ALTER COLUMN id SET DEFAULT nextval('public.importaciones_id_seq'::regclass);
+
+
+--
 -- Name: moment_grades id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2020,6 +2070,14 @@ ALTER TABLE ONLY public.grade_subjects
 
 ALTER TABLE ONLY public.grades
     ADD CONSTRAINT grades_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: importaciones importaciones_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.importaciones
+    ADD CONSTRAINT importaciones_pkey PRIMARY KEY (id);
 
 
 --
@@ -2563,6 +2621,34 @@ CREATE INDEX index_grades_on_school_id ON public.grades USING btree (school_id);
 --
 
 CREATE UNIQUE INDEX index_grades_on_school_id_and_name ON public.grades USING btree (school_id, name);
+
+
+--
+-- Name: index_importaciones_on_academic_period_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_importaciones_on_academic_period_id ON public.importaciones USING btree (academic_period_id);
+
+
+--
+-- Name: index_importaciones_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_importaciones_on_school_id ON public.importaciones USING btree (school_id);
+
+
+--
+-- Name: index_importaciones_on_school_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_importaciones_on_school_id_and_created_at ON public.importaciones USING btree (school_id, created_at);
+
+
+--
+-- Name: index_importaciones_on_subido_por_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_importaciones_on_subido_por_id ON public.importaciones USING btree (subido_por_id);
 
 
 --
@@ -3235,6 +3321,14 @@ ALTER TABLE ONLY public.enrollments
 
 
 --
+-- Name: importaciones fk_rails_5e5599990c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.importaciones
+    ADD CONSTRAINT fk_rails_5e5599990c FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
 -- Name: sections fk_rails_61d9612b47; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3272,6 +3366,14 @@ ALTER TABLE ONLY public.enrollments
 
 ALTER TABLE ONLY public.attendances
     ADD CONSTRAINT fk_rails_728acf438a FOREIGN KEY (recorded_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: importaciones fk_rails_74ec49d6ea; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.importaciones
+    ADD CONSTRAINT fk_rails_74ec49d6ea FOREIGN KEY (subido_por_id) REFERENCES public.users(id);
 
 
 --
@@ -3491,6 +3593,14 @@ ALTER TABLE ONLY public.attendances
 
 
 --
+-- Name: importaciones fk_rails_d7eeace914; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.importaciones
+    ADD CONSTRAINT fk_rails_d7eeace914 FOREIGN KEY (academic_period_id) REFERENCES public.academic_periods(id);
+
+
+--
 -- Name: evaluation_activities fk_rails_d7f6d58aee; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3679,6 +3789,13 @@ CREATE POLICY aislamiento_por_colegio ON public.grades USING (((current_setting(
 
 
 --
+-- Name: importaciones aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.importaciones USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
 -- Name: moment_grades aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -3797,6 +3914,12 @@ ALTER TABLE public.grade_subjects ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.grades ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: importaciones; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.importaciones ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: moment_grades; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -3863,6 +3986,10 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260824220000'),
+('20260824200000'),
+('20260824180000'),
+('20260824140000'),
 ('20260821030000'),
 ('20260820210000'),
 ('20260820180000'),

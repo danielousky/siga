@@ -1,0 +1,205 @@
+- faltan = @planilla.secciones_que_faltan
+- que_es = @planilla.class::QUE_ES_UNA_FILA
+
+-# ── la red: un colegio nuevo nace sin año escolar ──────────────────────────
+-#
+-# Y sin él no se puede crear ni una sección, así que el importador rechazaría
+-# las 360 filas con un «la sección no existe» que no dice qué hacer. Se ofrece
+-# acá, donde el problema se ve, en vez de mandar a la persona a Configuración a
+-# buscar algo que todavía no sabe que le falta.
+- if @periodos.empty?
+  - sugerido = ano_escolar_sugerido
+  .card-academic
+    .card-academic-header
+      %h2 Primero hay que crear el año escolar
+
+    %p
+      Este colegio todavía no tiene ninguno, y las secciones pertenecen a un año
+      escolar. Sin él no se puede cargar la matrícula.
+
+    = form_with url: crear_periodo_importacion_path(@importacion), method: :post do
+      .form-row
+        .form-group
+          = label_tag :nombre, "Nombre", class: "form-label"
+          = text_field_tag :nombre, sugerido[:nombre], class: "form-control", required: true
+        .form-group
+          = label_tag :desde, "Comienza", class: "form-label"
+          = date_field_tag :desde, sugerido[:desde], class: "form-control", required: true
+        .form-group
+          = label_tag :hasta, "Termina", class: "form-label"
+          = date_field_tag :hasta, sugerido[:hasta], class: "form-control", required: true
+
+      %p.nota-ayuda
+        Ya viene con el año escolar venezolano típico —de mediados de septiembre
+        a finales de julio—. Cámbielo si su calendario es otro.
+
+      .form-acciones
+        = submit_tag "Crear el año escolar", class: "btn btn-primary"
+
+.card-academic
+  .card-academic-header
+    %h1 Qué se va a cargar
+    = link_to "Cambiar el mapeo", importacion_path(@importacion), class: "btn btn-secondary"
+
+  %p.nota-ayuda
+    Todavía no se ha escrito nada. Revise esto y confirme abajo.
+
+  -# ⚠️ El año escolar va acá arriba y no escondido en la configuración.
+  -#
+  -# Una importación es de UN año, y adivinarlo sale mal: en agosto el «vigente»
+  -# es el que está por empezar, pero un colegio que llega en esa fecha puede
+  -# estar subiendo la matrícula del que acaba de terminar. Las secciones se
+  -# buscan dentro de este año, así que si está mal, todas van a aparecer como
+  -# inexistentes — y esta es la línea que lo explica.
+  - if @periodos.any?
+    = form_with url: previsualizar_importacion_path(@importacion), method: :get, class: "periodo-de-importacion" do
+      = label_tag :periodo_id, "Año escolar de esta planilla", class: "form-label"
+      = select_tag :periodo_id,
+                   options_from_collection_for_select(@periodos, :id, :name, @importacion.periodo&.id),
+                   class: "form-select", onchange: "this.form.requestSubmit()"
+      %noscript= submit_tag "Cambiar", class: "btn btn-secondary"
+
+  .cifras-de-importacion
+    .cifra-de-importacion
+      %span.cifra-numero= @planilla.cargables.size
+      %span.cifra-que se cargan
+    - if @planilla.rechazadas.any?
+      .cifra-de-importacion.--rechazadas
+        %span.cifra-numero= @planilla.rechazadas.size
+        %span.cifra-que no se pueden cargar
+    - if @planilla.con_avisos.any?
+      .cifra-de-importacion
+        %span.cifra-numero= @planilla.con_avisos.size
+        %span.cifra-que se cargan con una advertencia
+    = render "cifras_#{@importacion.tipo}", planilla: @planilla
+
+-# ── lo que hay que resolver antes ──────────────────────────────────────────
+- if faltan.any? && @periodos.any?
+  .card-academic
+    .card-academic-header
+      %h2 Estas secciones todavía no existen
+
+    %p
+      La planilla las nombra y el colegio no las tiene. Créelas acá mismo, o
+      corrija la planilla si alguna es un error de escritura.
+
+    %table.table-academic
+      %thead
+        %tr
+          %th En la planilla
+          %th= que_es.last.capitalize
+          %th
+      %tbody
+        - faltan.each do |s|
+          %tr
+            %td
+              %strong= s[:texto]
+              -# Que la planilla la escriba de dos formas es algo que el colegio
+              -# querrá corregir, aunque SIGA la entienda igual.
+              - if s[:tambien].any?
+                %span.nota-ayuda
+                  = "también escrita #{s[:tambien].map { |t| "«#{t}»" }.to_sentence}"
+            %td
+              -# ⚠️ El conteo es lo que delata el dedazo. «1er Año C · 18
+              -# alumnos» es una sección de verdad; «1er Año Á · 1 alumno» es un
+              -# error de escritura, y verlos uno al lado del otro lo hace obvio
+              -# ANTES de crear basura que después nadie borra.
+              = contar(s[:cuantas], *que_es)
+            %td
+              - if s[:grado] && s[:nombre_de_seccion].present?
+                = button_to "Crear #{s[:grado].name} #{s[:nombre_de_seccion]}",
+                            crear_seccion_importacion_path(@importacion),
+                            params: { grade_id: s[:grado].id, nombre: s[:nombre_de_seccion], cuantas: s[:cuantas] },
+                            class: "btn btn-secondary"
+              - else
+                %span.nota-pendiente
+                  No hay ningún grado que se llame así. Créelo primero en
+                  = succeed "." do
+                    = link_to "Grados", grades_path
+
+-# ── lo que conviene revisar, y es distinto en cada planilla ────────────────
+= render "revisar_#{@importacion.tipo}", planilla: @planilla
+
+-# ── lo que no entra ────────────────────────────────────────────────────────
+- if @planilla.rechazadas.any?
+  .card-academic
+    .card-academic-header
+      %h2 Filas que no se van a cargar
+
+    %p.nota-ayuda
+      Les falta algo sin lo cual el registro no existiría. Corrija la planilla y
+      vuelva a subirla, o cargue el resto y estas después.
+
+    .tabla-envoltura
+      %table.table-academic
+        %thead
+          %tr
+            %th Fila
+            %th= @planilla.class::COLUMNA_DE_FILA
+            %th Qué falta
+        %tbody
+          - @planilla.rechazadas.each do |fila|
+            %tr
+              %td= fila.numero
+              %td= fila.etiqueta.presence || "—"
+              %td
+                %ul.motivos
+                  - fila.errores.each do |motivo|
+                    %li= motivo
+
+-# ── lo que entra con reparos ───────────────────────────────────────────────
+- if @planilla.con_avisos.any?
+  .card-academic
+    .card-academic-header
+      %h2 Se cargan, pero conviene mirarlas
+
+    .tabla-envoltura
+      %table.table-academic
+        %thead
+          %tr
+            %th Fila
+            %th= @planilla.class::COLUMNA_DE_FILA
+            %th Advertencia
+        %tbody
+          - @planilla.con_avisos.each do |fila|
+            %tr
+              %td= fila.numero
+              %td= fila.etiqueta
+              %td
+                %ul.motivos
+                  - fila.avisos.each do |motivo|
+                    %li= motivo
+
+-# ── confirmar ──────────────────────────────────────────────────────────────
+.card-academic
+  .card-academic-header
+    %h2 Confirmar la carga
+
+  - if @periodos.empty?
+    %p.nota-pendiente
+      Primero cree el año escolar, arriba.
+  - elsif faltan.any?
+    %p.nota-pendiente
+      Primero cree las secciones que faltan, o corrija la planilla.
+  - elsif @planilla.cargables.empty?
+    %p.nota-pendiente
+      No hay ninguna fila que se pueda cargar.
+  - else
+    %p
+      Se van a crear o actualizar
+      %strong= contar(@planilla.cargables.size, *que_es)
+      = render "que_se_crea_#{@importacion.tipo}"
+      - fuera = @planilla.rechazadas.size
+      - if fuera.positive?
+        = fuera == 1 ? "La otra queda fuera." : "Las otras #{fuera} quedan fuera."
+
+    %p.nota-ayuda
+      Reimportar la misma planilla corregida no duplica nada: cada persona se
+      reconoce por su cédula y cada materia por su código.
+
+  .form-acciones
+    - if @periodos.any? && faltan.empty? && @planilla.cargables.any?
+      = button_to "Cargar #{contar(@planilla.cargables.size, *que_es)}",
+                  importacion_path(@importacion), method: :patch,
+                  params: { confirmar: "1" }, class: "btn btn-primary"
+    = link_to "Volver al mapeo", importacion_path(@importacion), class: "btn btn-secondary"

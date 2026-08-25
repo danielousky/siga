@@ -55,6 +55,6 @@ class TurboFramesTest < ActionDispatch::IntegrationTest
     get student_path(@a.alumno)
 
     assert_response :success
-    assert_match(/#{Regexp.escape(@a.alumno.user.last_name)}/, response.body)
+    assert_match(/#{Regexp.escape(@a.alumno.user.apellidos)}/, response.body)
   end
 end

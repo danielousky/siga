@@ -1,0 +1,27 @@
+-# El acceso al sistema de UNA PERSONA, sea cual sea su rol (MOR-143).
+-#
+-# La tarjeta es la misma para representantes, profesores y administradores —y
+-# para un alumno el día que haga falta— porque entrar a SIGA es lo mismo para
+-# todos. `url` es la ruta `codigo_*_path` del rol.
+.card-academic
+  .card-academic-header
+    %h2 Acceso al sistema
+
+  = render "shared/codigo_generado"
+
+  %dl.detalle
+    %dt Estado
+    %dd
+      - if usuario.puede_entrar?
+        %span.estado.estado--al-dia Activo
+      - else
+        %span.estado.estado--inactivo Sin activar
+
+  = button_to (usuario.puede_entrar? ? "Regenerar el código de acceso" : "Generar el código de acceso"),
+              url, class: "btn btn-primary"
+  %p.nota-ayuda
+    - if usuario.email.present?
+      Se le envía por correo y además queda visible acá una sola vez.
+    - else
+      Queda visible acá una sola vez: cópielo y hágaselo llegar como prefiera.
+    Generar uno nuevo invalida el anterior.

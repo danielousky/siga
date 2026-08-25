@@ -1,4 +1,4 @@
-= form_with(model: grade) do |f|
+= form_with(model: grade, data: { controller: "escala-por-nivel" }) do |f|
   = render "shared/errors", object: grade
 
   -# El colegio NO se elige: sale de la sesión (Current.school). Un selector acá
@@ -13,16 +13,25 @@
 
   .form-group
     = f.label :level, "Nivel", class: "form-label"
-    = f.select :level, Grade.levels.keys.map { |l| [l.humanize, l] }, { include_blank: "Seleccione..." }, class: "form-select"
+    = f.select :level, Grade.levels.keys.map { |l| [l.humanize, l] }, { include_blank: "Seleccione..." },
+               class: "form-select",
+               data: { "escala-por-nivel-target": "nivel", action: "change->escala-por-nivel#ajustar" }
 
   -# Cómo se escribe la calificación del año en este grado (MOR-129).
   -#
   -# Va acá y no en la ficha del colegio porque un mismo colegio tiene primaria
   -# por literal y bachillerato por número. Al elegir el nivel, el grado nuevo ya
   -# viene con la escala que le toca; esto es para cambiarla.
+  -#
+  -# En secundaria no hay nada que elegir —no existe la calificación literal en
+  -# bachillerato— así que esa opción se esconde en vez de dejar que la persona
+  -# llene el formulario entero para que el modelo se lo rechace al final.
   .form-group
     = f.label :escala, "Escala de calificación", class: "form-label"
-    = f.select :escala, [["Numérica — del 1 al 20 (media general)", "numerica"], ["Literal — A, B, C, D, E (primaria)", "literal"]], {}, class: "form-select"
+    = f.select :escala, [["Numérica — del 1 al 20 (media general)", "numerica"], ["Literal — A, B, C, D, E (primaria)", "literal"]], {},
+               class: "form-select", data: { "escala-por-nivel-target": "escala" }
+    %p.nota-ayuda{hidden: true, "data-escala-por-nivel-target": "aviso"}
+      En secundaria la calificación es siempre numérica. La literal es de primaria.
     %small.nota-ayuda
       La nota siempre se carga del 1 al 20. La escala solo cambia cómo se
       %strong muestra
@@ -31,7 +40,7 @@
 
   .form-group
     = f.label :leader_teacher_id, "Profesor guía", class: "form-label"
-    = f.select :leader_teacher_id, Teacher.includes(:user).map { |t| [t.user.first_name + " " + t.user.last_name, t.id] }, { include_blank: "Ninguno" }, class: "form-select"
+    = f.select :leader_teacher_id, Teacher.includes(:user).map { |t| [t.user.apellidos_y_nombres, t.id] }, { include_blank: "Ninguno" }, class: "form-select"
 
   .form-acciones
     = f.submit class: "btn btn-primary"

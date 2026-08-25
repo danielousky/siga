@@ -1,0 +1,30 @@
+-# ⚠️ Materias y profesores DISTINTOS, no filas: una materia dictada en cinco
+-# secciones son cinco filas y una sola materia.
+.cifras-de-importacion
+  .cifra-de-importacion
+    %span.cifra-numero= resultado["materias_creadas"]
+    %span.cifra-que materias nuevas
+  - if resultado["materias_reutilizadas"].to_i.positive?
+    .cifra-de-importacion
+      %span.cifra-numero= resultado["materias_reutilizadas"]
+      %span.cifra-que materias que ya existían
+  .cifra-de-importacion
+    %span.cifra-numero= resultado["asignaciones"]
+    %span.cifra-que
+      materias asignadas
+      %br
+      (una por sección)
+  .cifra-de-importacion
+    %span.cifra-numero= resultado["profesores_creados"]
+    %span.cifra-que profesores nuevos
+  - if resultado["profesores_reutilizados"].to_i.positive?
+    .cifra-de-importacion
+      %span.cifra-numero= resultado["profesores_reutilizados"]
+      %span.cifra-que
+        profesores que ya existían
+        %br
+        (otra materia, u otro colegio)
+
+- if Array(resultado["secciones"]).any?
+  %p.nota-ayuda
+    Secciones tocadas: #{Array(resultado['secciones']).join(' · ')}

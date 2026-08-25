@@ -58,7 +58,7 @@ class AltaDeColegioTest < ActionDispatch::IntegrationTest
     dar_de_alta
     directora = Current.sin_aislamiento { User.find_by(email: DIRECTORA[:email]) }
 
-    assert_equal "Guillén", directora.second_last_name
+    assert_equal "GUILLÉN", directora.second_last_name, "en la base, en mayúscula"
     assert_equal "Peña Guillén", directora.apellidos
   end
 

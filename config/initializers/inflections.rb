@@ -35,4 +35,5 @@
 ActiveSupport::Inflector.inflections(:en) do |inflect|
   inflect.irregular "solicitud", "solicitudes"
   inflect.irregular "constancia", "constancias"
+  inflect.irregular "importacion", "importaciones"
 end

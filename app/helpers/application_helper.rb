@@ -69,4 +69,20 @@ module ApplicationHelper
     when :finalizado   then "finalizado el #{dia_y_mes(periodo.end_date)}"
     end
   end
+
+  # El año escolar que le tocaría a un colegio hoy, para prellenar el formulario
+  # de rescate del importador.
+  #
+  # En Venezuela va de mediados de septiembre a mediados de julio. Si estamos
+  # antes de agosto seguimos dentro del año que empezó el septiembre pasado; de
+  # agosto en adelante, el que arranca ahora.
+  def ano_escolar_sugerido(hoy = Date.current)
+    inicio = hoy.month >= 8 ? hoy.year : hoy.year - 1
+
+    {
+      nombre: "#{inicio}-#{inicio + 1}",
+      desde: Date.new(inicio, 9, 15),
+      hasta: Date.new(inicio + 1, 7, 31)
+    }
+  end
 end

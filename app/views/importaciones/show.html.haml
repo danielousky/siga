@@ -1,0 +1,121 @@
+.card-academic
+  .card-academic-header
+    %h1 Qué columna es cuál
+    = render "shared/borrar", registro: @importacion, aviso: "Se descarta la planilla subida.", alternativa: nil
+
+  %dl.detalle
+    %dt Archivo
+    %dd= @importacion.nombre_del_archivo
+    %dt Qué trae
+    %dd= @importacion.etiqueta_de_tipo
+    %dt Filas con datos
+    %dd
+      = @importacion.planilla.filas.size
+      - if @importacion.planilla.descartadas.any?
+        %span.nota-ayuda
+          = "· #{contar(@importacion.planilla.descartadas.size, 'fila ignorada', 'filas ignoradas')}"
+    %dt Encabezados
+    %dd
+      -# Que diga en qué fila los encontró no es un detalle técnico: si se
+      -# equivocó, es lo único que le permite a la persona darse cuenta antes de
+      -# cargar 360 alumnos con las columnas corridas.
+      = "Fila #{@importacion.planilla.fila_de_encabezado} del archivo"
+
+-# ⚠️ Va ANTES de «falta decir dónde están estas columnas», porque si la planilla
+-# es la del otro tipo, esa lista de faltantes no es el problema: es el síntoma.
+- if @importacion.parece_del_otro_tipo?
+  .card-academic
+    .card-academic-header
+      %h2= "Esto parece una planilla de #{@importacion.etiqueta_del_otro_tipo.downcase}"
+
+    %p
+      Sus columnas encajan mucho mejor con
+      %strong= @importacion.etiqueta_del_otro_tipo.downcase
+      que con
+      = succeed "." do
+        %strong= @importacion.etiqueta_de_tipo.downcase
+      Se sube desde el mismo lugar y son dos botones al lado, así que es fácil
+      equivocarse.
+
+    %p.nota-ayuda
+      Si de verdad es la que quiso subir, ignore este aviso y siga mapeando abajo:
+      nadie le va a impedir nada.
+
+    = button_to "Leerla como #{@importacion.etiqueta_del_otro_tipo.downcase}",
+                importacion_path(@importacion), method: :patch,
+                params: { cambiar_tipo: "1" }, class: "btn btn-primary"
+
+- if @importacion.obligatorias_sin_mapear.any?
+  .card-academic
+    .card-academic-header
+      %h2 Falta decir dónde están estas columnas
+
+    %p
+      Sin ellas no se puede cargar nada. No se rellenan solas: inventar el
+      nombre o la sección de un registro sería peor que no importarlo.
+
+    %ul.lista-faltantes
+      - @importacion.obligatorias_sin_mapear.each do |columna|
+        %li
+          %strong= columna.titulo
+          %span.nota-ayuda= columna.formato
+
+.card-academic
+  .card-academic-header
+    %h2 Las columnas de su planilla
+
+  %p.nota-ayuda
+    El sistema ya propuso a qué corresponde cada una. Corrija lo que esté mal y
+    deje en «No importar» las que no le sirvan a SIGA.
+
+  = form_with(url: importacion_path(@importacion), method: :patch) do
+    .tabla-envoltura
+      %table.table-academic
+        %thead
+          %tr
+            %th En su planilla
+            %th Ejemplo de la primera fila
+            %th En SIGA
+        %tbody
+          - @importacion.planilla.encabezados.each do |encabezado|
+            %tr
+              %td
+                %strong= encabezado
+              %td
+                -# ⚠️ Esto es lo que hace usable la pantalla. Un encabezado como
+                -# «AÑO/SECC» no dice nada; «1er Año A» al lado lo dice todo, y
+                -# deja ver de un vistazo si el mapeo automático se equivocó.
+                - valor = @muestra&.[](encabezado)
+                - if valor.to_s.strip.present?
+                  %span.muestra-de-celda= valor.to_s.truncate(40)
+                - else
+                  %span.nota-pendiente Vacía
+              %td
+                = select_tag "mapeo[#{encabezado}]",
+                             options_for_select(@columnas.map { |c| [c.titulo, c.clave] }, @mapeo[encabezado]),
+                             include_blank: "— No importar —", class: "form-select"
+
+    .form-acciones
+      = submit_tag "Guardar y continuar", class: "btn btn-primary"
+      = link_to "Volver", importaciones_path, class: "btn btn-secondary"
+
+- if @importacion.planilla.descartadas.any?
+  .card-academic
+    .card-academic-header
+      %h2 Filas que se ignoraron
+
+    %p.nota-ayuda
+      Son las que no parecen un registro: el membrete de arriba, los subtotales
+      del medio, las vacías del final. Se listan para que pueda comprobar que
+      ninguna traía datos de verdad.
+
+    %table.table-academic
+      %thead
+        %tr
+          %th Fila del archivo
+          %th Qué decía
+      %tbody
+        - @importacion.planilla.descartadas.each do |fila|
+          %tr
+            %td= fila.numero
+            %td= fila.datos.values.compact_blank.join(" · ").truncate(80)

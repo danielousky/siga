@@ -1,13 +1,13 @@
 require "test_helper"
 
-# El colegio da de alta al representante y él elige su contraseña (MOR-143).
+# El colegio da de alta a alguien y esa persona elige su contraseña (MOR-143).
 #
 # Es `recoverable` de Devise con otro texto: genera el token, lo digiere, lo
 # caduca, lo consume una vez. Lo único que cambia es de dónde sale el disparo
 # —la secretaria, no el usuario— y qué dice el mensaje.
 class ActivacionDelAccesoTest < ActionDispatch::IntegrationTest
   setup do
-    @a, _b = dos_colegios_completos
+    @a, @b = dos_colegios_completos
     con_el_colegio(@a.colegio) do
       @sin_correo = representante("Yolanda", "Guerra", "99887766")
       @con_correo = representante("Carmen", "López", "99887767", email: "carmen@familia.test")
@@ -28,6 +28,74 @@ class ActivacionDelAccesoTest < ActionDispatch::IntegrationTest
     post codigo_representative_path(representante)
     follow_redirect!
     flash[:codigo]
+  end
+
+  # ── el código es de la PERSONA, no de su rol ──────────────────────────────
+  #
+  # ⚠️ Nació en la ficha del representante y se quedó ahí, así que profesores y
+  # administradores seguían con "que alguien más te elija la contraseña" — el
+  # patrón que este trabajo vino a sacar. El importador de pensum lo volvió
+  # urgente: carga ocho profesores de un golpe, todos con correo y ninguno con
+  # contraseña.
+
+  test "un profesor recibe su código igual que un representante" do
+    sign_in @a.director
+
+    assert_emails 1 do
+      post codigo_teacher_path(@a.registro_de_profesor)
+    end
+    follow_redirect!
+
+    assert_not_nil flash[:codigo]
+    assert_select "p.codigo-de-acceso-enlace", text: /#{Regexp.escape(flash[:codigo])}/
+  end
+
+  test "un administrador recibe su código igual, desde el listado" do
+    sign_in @a.director
+
+    post codigo_admin_path(@a.registro_de_admin)
+    follow_redirect!
+
+    assert_response :success
+    assert_not_nil flash[:codigo]
+    assert_select "p.codigo-de-acceso-enlace", text: /#{Regexp.escape(flash[:codigo])}/
+  end
+
+  # Y el código sirve para lo mismo: no es un enlace decorativo por rol.
+  test "el profesor entra con su código y elige su contraseña" do
+    sign_in @a.director
+    post codigo_teacher_path(@a.registro_de_profesor)
+    codigo = flash[:codigo]
+    sign_out @a.director
+
+    get activar_path(codigo)
+    assert_response :success
+
+    patch activacion_path, params: { user: { token: codigo, password: "clave-nueva-123",
+                                             password_confirmation: "clave-nueva-123" } }
+
+    assert_redirected_to dashboards_profesor_path
+    assert @a.profesor.reload.valid_password?("clave-nueva-123")
+  end
+
+  # ⚠️ Acá lo que se filtra no es una ficha: es una LLAVE.
+  #
+  # `User` no es `SchoolScoped` —una persona es de la plataforma— así que un
+  # `POST /personas/:id/codigo` central tendría que resolver a mano si esa
+  # persona es de este colegio. Colgando de cada rol, el `default_scope` del rol
+  # lo hace solo: el profesor del colegio B no existe para el director de A.
+  test "no se le puede generar código a alguien de otro colegio" do
+    sign_in @a.director
+
+    post codigo_teacher_path(@b.registro_de_profesor)
+
+    assert_response :not_found
+    assert_nil flash[:codigo]
+
+    # ⚠️ Lo que de verdad hay que probar es que NO SE ESCRIBIÓ NADA. Un 404 con
+    # el token ya generado sería el peor de los dos mundos: la pantalla no lo
+    # muestra, pero la llave existe y el correo pudo salir.
+    assert_nil Current.sin_aislamiento { @b.profesor.reload.reset_password_token }
   end
 
   # ── generar el código ─────────────────────────────────────────────────────

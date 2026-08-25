@@ -1,6 +1,9 @@
 class TeachersController < ApplicationController
+  include GeneraCodigosDeAcceso
+
+  genera_codigos_de_acceso_para :teacher
   before_action :require_admin_access!
-  before_action :set_teacher, only: [:show, :edit, :update, :destroy]
+  before_action :set_teacher, only: [:show, :edit, :update, :destroy, :generar_codigo]
 
   def index
     @pagy, @teachers = pagy(Teacher.includes(:user, :school))

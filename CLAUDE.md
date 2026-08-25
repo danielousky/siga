@@ -66,7 +66,7 @@ Credenciales de los seeds (contraseña universal `123123`):
   los controllers nuevos deben hacer `skip_before_action` para páginas públicas.
   **`email` y `encrypted_password` son OPCIONALES** (`MOR-142`): un alumno de primaria es un
   registro, no una cuenta. Quién sí necesita correo lo decide el ROL, con el concern
-  `EntraAlSistema` (`Teacher`, `Admin`, `SigaStaff`). Ver `## ⚠️ Estado conocido § 5`.
+  `EntraAlSistema` (`Teacher`, `Admin`, `SigaStaff`). Ver `## ⚠️ Estado conocido § 6`.
 - **Roles**: `User` tiene `has_many` a `Student` / `Teacher` / `Admin` / `Representative`, cada
   uno con `id` propio y ÚNICO `(user_id, school_id)` — una persona puede tener el mismo rol en
   varios colegios (`MOR-138`). Los singulares `user.student` / `.teacher` / `.admin` siguen
@@ -197,7 +197,57 @@ sección entera a mitad de lapso, y le hace perder la confianza a la familia.
   reparar inconsistencias  ──► bin/rails notas:recalcular   (idempotente)
 ```
 
-### 3. Otros pendientes
+### 3. El importador de planillas (`MOR-126`)
+
+Un colegio que ya usa otro sistema **no va a tipear 360 alumnos de nuevo**. Dos planillas, un
+solo recorrido; `Importacion#tipo` decide qué se espera y qué se crea:
+
+```
+   matricula   alumnos y representantes   →  MatriculaInterpretada · CargaDeMatricula
+   pensum      materias y profesores      →  PensumInterpretado    · CargaDePensum
+```
+
+**La distinción que ordena todo es ERROR vs AVISO.** Error: la fila NO se carga, le falta algo
+sin lo cual el registro no existiría. Aviso: se carga, pero alguien tiene que enterarse.
+Confundirlas hace inservible al importador — si todo es error, un colegio con 45 representantes
+sin correo no puede importar nada; si todo es aviso, se cargan alumnos sin nombre.
+
+⚠️ **El correo NO es lo mismo en las dos planillas, y la diferencia es del modelo.** A un
+representante sin correo se le carga igual y sale listado al final; un profesor sin correo es un
+ERROR, porque `EntraAlSistema` lo exige y sin entrar no puede cargar notas. Ver `§ 6`.
+
+**Seis cosas que ya se rompieron y no hay que volver a romper:**
+
+1. **La fila de encabezados se detecta por la LÍNEA EN BLANCO, no por densidad.** Costó tres
+   intentos («una celda menos», «la mitad»). El membrete de un colegio también es denso.
+2. **Se busca por cédula, nunca por nombre, y SIN aislamiento** (`EscribePersonas`). Una persona
+   es de la plataforma; su rol es del colegio. Buscar dentro del colegio la duplica y choca
+   contra el índice único de `users.document` con un error que no dice nada.
+3. **Y por eso hay que AVISAR cuando la cédula ya es de alguien muy distinto.** Pasó: la planilla
+   sobrescribió el nombre del profesor García. Buscar por cédula es correcto y no se toca; lo que
+   faltaba era notarlo.
+4. **Las secciones se buscan DENTRO del año escolar de la importación.** Con `vigente` a secas,
+   un import queda partido entre dos años sin que nadie lo vea. El selector va en la
+   previsualización, que es donde el problema se ve.
+5. **Cada fila en su propio `SAVEPOINT`.** Con una transacción única, la fila 200 de 360 se lleva
+   las 359 buenas. El reporte da el número de fila **del archivo** — «la fila 47», no «el
+   registro 43».
+6. **Un CSV no dice con qué está separado, y Excel NO usa coma.** Un Excel en español guarda con
+   punto y coma —la coma ya es el separador decimal—, Numbers exporta con tabulaciones, y un
+   Excel de Windows escribe en Windows-1252 con `\r\n` y a veces con BOM. `Planilla` adivina las
+   dos cosas del propio archivo; el separador **por el ancho que resulta**, no contando caracteres
+   (una coma dentro de una celda entrecomillada no separa nada).
+
+**Las secciones NO se crean solas**, pero tampoco se rechaza la fila y listo: la previsualización
+las lista con **cuántas filas las esperan** —«1er Año C · 18» es una sección, «1er Año Á · 1» es un
+dedazo— y ofrece crearlas de un clic.
+
+**El código de la materia es un INVENTO cuando la planilla no lo trae**, y por eso se lista antes
+de confirmar: los códigos de un colegio son elecciones humanas y ningún algoritmo las acierta —en
+los propios seeds, «Castellano y Literatura» es `LEN`—. Reutilizar y chocar no son lo mismo: si el
+colegio ya tiene `MAT` = Matemática, la planilla que trae «Matemática» lo reutiliza.
+
+### 4. Otros pendientes
 
 **Resueltos** (esta lista estuvo desactualizada un tiempo; se verificó uno por uno el 15 de agosto):
 
@@ -226,7 +276,7 @@ sección entera a mitad de lapso, y le hace perder la confianza a la familia.
   corre, la cola se llena y los promedios de una sección quedan viejos para siempre. Sobrevive
   al reinicio, pero nadie la vacía. `bin/rails notas:recalcular` sigue siendo la reparación.
 
-### 4. La cola de trabajos
+### 5. La cola de trabajos
 
 `config.active_job.queue_adapter = :solid_queue` en **producción y desarrollo**, y `:test` en
 tests. Que los dos primeros coincidan no es simetría por gusto: con `:async` en desarrollo, el
@@ -250,7 +300,7 @@ ni sus propios trabajos.
 Verificado a mano: encolar, matar el proceso que encoló, levantar `bin/jobs`, y el trabajo se
 ejecuta. Sin worker, se acumula y espera — que es exactamente lo que se quería.
 
-### 5. Quién entra al sistema, y quién solo existe en él
+### 6. Quién entra al sistema, y quién solo existe en él
 
 Decisión de producto de agosto de 2026, investigada con los competidores globales. La ley
 (GDPR/COPPA) empujó a todos al mismo lugar; Venezuela **no tiene ley de protección de datos**,
@@ -287,12 +337,22 @@ además el canal oficial de comunicación del sistema.
 4. **Un test que solo cuenta personas no prueba nada** en esta zona: bloquear un alta también
    deja el conteo quieto. La aserción tiene que exigir las dos mitades — ni persona nueva, **y**
    rol creado.
+5. **`set_reset_password_token` devuelve el código en claro y guarda el digest.** Leer
+   `usuario.reset_password_token` DESPUÉS envía por correo un enlace que no abre nada.
 
 **Activar el acceso** (`MOR-143`) es `recoverable` de Devise con otro texto: el colegio genera
-un código de un solo uso desde la ficha del representante, se ve en pantalla **una vez** —Devise
-guarda el digest, no el código— y además se envía por correo si lo hay. Dos plazos, deducidos
-del estado sin ninguna bandera: **72 h** para activar (la secretaria carga un jueves, la mamá
-abre el domingo) y las **6 h** de Devise para recuperar.
+un código de un solo uso, se ve en pantalla **una vez** —Devise guarda el digest, no el código—
+y además se envía por correo si lo hay. Dos plazos, deducidos del estado sin ninguna bandera:
+**72 h** para activar (la secretaria carga un jueves, la mamá abre el domingo) y las **6 h** de
+Devise para recuperar.
+
+⚠️ **El código es de la PERSONA, no de su rol.** Representante, profesor y administrador usan la
+MISMA funcionalidad, en el concern `GeneraCodigosDeAcceso`; el día que un alumno tenga que entrar
+son dos líneas en su controller. Cuelga de cada controller de rol y **no** de un
+`POST /personas/:id/codigo` central a propósito: `User` no es `SchoolScoped` —una persona es de la
+plataforma— así que un controller central tendría que resolver a mano si esa persona es de este
+colegio, y acá lo que se filtra no es una ficha, es una **llave**. El `set_teacher` /
+`set_representative` que ya existe hace ese filtro con el `default_scope` del rol.
 
 ⚠️ **Hoy el correo no sale**: falta `SMTP_ADDRESS` en producción (`MOR-102`), así que
 `perform_deliveries` es `false`. El flujo funciona igual mostrando el enlace en pantalla.

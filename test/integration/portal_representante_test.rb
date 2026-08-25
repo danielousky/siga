@@ -54,7 +54,7 @@ class PortalRepresentanteTest < ActionDispatch::IntegrationTest
     get hijo_representante_path(@a.alumno)
 
     assert_response :success
-    assert_match(/#{Regexp.escape(@a.alumno.user.last_name)}/, response.body)
+    assert_match(/#{Regexp.escape(@a.alumno.user.apellidos)}/, response.body)
   end
 
   # El corazón del issue: "un representante ve las notas de sus hijos y de nadie

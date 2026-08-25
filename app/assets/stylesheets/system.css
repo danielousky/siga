@@ -364,6 +364,15 @@ a:hover {
   margin: 0;
 }
 
+/* Dos botones en la cabecera de una tarjeta —«Subir matrícula» y «Subir
+   materias y profesores»—. Se agrupan para que envuelvan juntos: sin esto, en
+   un teléfono el segundo cae solo debajo del título y parece de otra sección. */
+.acciones-de-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
 /* ---- Tables ---- */
 
 .table-academic {
@@ -3718,4 +3727,90 @@ nav.pagy a.gap {
   font-weight: 400;
   font-size: 13px;
   color: var(--text-tertiary);
+}
+
+/* El importador de matrícula (MOR-126).
+   ─────────────────────────────────────
+   Un valor de ejemplo al lado de cada encabezado. Es lo que hace usable la
+   pantalla del mapeo: «AÑO/SECC» no dice nada, «1er Año A» lo dice todo. Va en
+   monoespaciado porque es un dato tal como vino, no texto de la interfaz. */
+.muestra-de-celda {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.lista-faltantes {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.lista-faltantes li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-sm);
+  align-items: baseline;
+  padding: var(--space-sm) var(--space-md);
+  border-left: 3px solid var(--border-strong);
+  background: var(--surface-input);
+}
+
+.lista-faltantes .nota-ayuda { margin: 0; }
+
+/* El resumen de una importación, antes de confirmarla (MOR-126).
+   ──────────────────────────────────────────────────────────────
+   Los números primero y grandes: es lo único que alguien mira de verdad antes
+   de apretar el botón. El rojo va SOLO en las que no se van a cargar —un dato
+   que se pierde— y no en el marco ni en el botón, que es la regla de color. */
+.cifras-de-importacion {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.cifra-de-importacion {
+  flex: 1 1 150px;
+  padding: var(--space-md);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cifra-numero {
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.cifra-que {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  line-height: 1.35;
+}
+
+.cifra-de-importacion.--rechazadas .cifra-numero { color: var(--danger-text); }
+
+.motivos {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* El selector de año escolar de una importación (MOR-126). */
+.periodo-de-importacion {
+  margin-top: var(--space-md);
+  max-width: 340px;
 }

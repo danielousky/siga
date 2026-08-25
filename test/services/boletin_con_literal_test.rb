@@ -13,7 +13,7 @@ require "test_helper"
 # Verificado: buscar "A (" en los 32 KB del PDF no encuentra nada.
 class BoletinConLiteralTest < ActiveSupport::TestCase
   setup do
-    @escenario = escenario_academico
+    @escenario = escenario_academico(nivel: :primaria)
 
     # Una nota de 19 al 100 % del primer lapso. Con tres lapsos y solo uno
     # cargado, el anual y la definitiva también dan 19 (Art. 111: promedio de

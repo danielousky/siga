@@ -1,0 +1,49 @@
+- fallidas = Array(resultado["fallidas"])
+
+-# ── lo que no entró ────────────────────────────────────────────────────────
+- if fallidas.any?
+  .card-academic
+    .card-academic-header
+      %h2 Filas que no se pudieron guardar
+
+    %p.nota-ayuda
+      El resto sí se cargó. El caso más común es que la misma materia aparezca
+      dos veces en la misma sección con profesores distintos: una sección tiene
+      un solo profesor por materia, así que se cargó la primera.
+
+    .tabla-envoltura
+      %table.table-academic
+        %thead
+          %tr
+            %th Fila
+            %th Materia
+            %th Qué pasó
+        %tbody
+          - fallidas.each do |fila|
+            %tr
+              %td= fila["fila"]
+              %td= fila["materia"].presence || "—"
+              %td= fila["motivo"]
+
+.card-academic
+  .card-academic-header
+    %h2 Qué sigue
+
+  %ul.lista
+    %li
+      Revise el pensum en
+      = succeed " " do
+        = link_to "Materias", subjects_path
+      y las asignaciones en
+      = succeed "." do
+        = link_to "Profesores", teachers_path
+    %li
+      -# Sin esto el módulo de evaluación no arranca: una actividad cuelga de un
+      -# lapso, y los lapsos son del año escolar.
+      Defina los
+      = succeed " " do
+        = link_to "lapsos del año escolar", evaluation_moments_path
+      y sus ponderaciones, si todavía no lo hizo.
+    %li
+      Genere los códigos de acceso de los profesores desde su ficha, para que
+      puedan entrar a cargar notas.

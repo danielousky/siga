@@ -245,7 +245,7 @@ class AsistenciaTest < ActionDispatch::IntegrationTest
     get reporte_asistencia_path
 
     assert_response :success
-    assert_match(/#{Regexp.escape(@a.alumno.user.last_name)}/, response.body)
+    assert_match(/#{Regexp.escape(@a.alumno.user.apellidos)}/, response.body)
   end
 
   test "el historial de un alumno resume sus días" do

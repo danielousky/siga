@@ -59,7 +59,7 @@ class ConstanciasTest < ActionDispatch::IntegrationTest
     con_el_colegio(@a.colegio) do
       rastro = ActivityLog.where(action: "constancia_emitida").last
       assert rastro.present?, "una constancia sin rastro de quién la emitió no sirve como documento"
-      assert_match(/#{Regexp.escape(@a.director.last_name)}/, rastro.message)
+      assert_match(/#{Regexp.escape(@a.director.apellidos)}/, rastro.message)
     end
   end
 

@@ -1,0 +1,25 @@
+.cifras-de-importacion
+  .cifra-de-importacion
+    %span.cifra-numero= resultado["alumnos_creados"]
+    %span.cifra-que alumnos nuevos
+  - if resultado["alumnos_actualizados"].to_i.positive?
+    .cifra-de-importacion
+      %span.cifra-numero= resultado["alumnos_actualizados"]
+      %span.cifra-que alumnos que ya existían, actualizados
+  .cifra-de-importacion
+    %span.cifra-numero= resultado["inscripciones"]
+    %span.cifra-que inscripciones
+  .cifra-de-importacion
+    %span.cifra-numero= resultado["representantes_creados"]
+    %span.cifra-que representantes nuevos
+  - if resultado["representantes_reutilizados"].to_i.positive?
+    .cifra-de-importacion
+      %span.cifra-numero= resultado["representantes_reutilizados"]
+      %span.cifra-que
+        representantes que ya existían
+        %br
+        (hermanos, u otro colegio)
+
+- if Array(resultado["secciones"]).any?
+  %p.nota-ayuda
+    Secciones tocadas: #{Array(resultado['secciones']).join(' · ')}

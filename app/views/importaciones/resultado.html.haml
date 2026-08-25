@@ -1,0 +1,13 @@
+.card-academic
+  .card-academic-header
+    %h1= @importacion.pensum? ? "Materias y profesores importados" : "Matrícula importada"
+    = link_to "Volver a importaciones", importaciones_path, class: "btn btn-secondary"
+
+  %p.nota-ayuda
+    Desde
+    %strong= @importacion.nombre_del_archivo
+    \, el #{l(@importacion.updated_at.to_date, format: :long)}.
+
+  = render "totales_#{@importacion.tipo}", resultado: @resultado
+
+= render "detalle_#{@importacion.tipo}", resultado: @resultado

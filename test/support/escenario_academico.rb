@@ -30,7 +30,12 @@ module EscenarioAcademico
 
   # `pesos` son los de los lapsos: [30, 30, 40] es lo habitual en Venezuela,
   # [50, 50] un colegio con dos semestres.
-  def escenario_academico(nombre: "U.E. de Prueba", pesos: [30, 30, 40], alumnos: 1)
+  #
+  # `nivel` decide si el grado es de bachillerato o de primaria, y con él viene
+  # la escala: en secundaria la calificación es SIEMPRE numérica, la literal es
+  # de primaria (MOR-129). Un test que necesite literal pide `nivel: :primaria`
+  # en vez de forzarle la escala a un grado de bachillerato.
+  def escenario_academico(nombre: "U.E. de Prueba", pesos: [30, 30, 40], alumnos: 1, nivel: :secundaria)
     n = EscenarioAcademico.siguiente
 
     colegio = Current.sin_aislamiento do
@@ -48,7 +53,8 @@ module EscenarioAcademico
 
       departamento = Department.create!(school: colegio, name: "Ciencias #{n}")
       materia      = Subject.create!(department: departamento, code: "MAT", name: "Matemática")
-      grado        = Grade.create!(school: colegio, name: "1er Año", level: :secundaria)
+      grado        = Grade.create!(school: colegio, level: nivel,
+                                   name: nivel.to_sym == :primaria ? "6to Grado" : "1er Año")
       GradeSubject.create!(grade: grado, subject: materia)
 
       seccion = Section.create!(grade: grado, academic_period: periodo, name: "A", capacity: 30)

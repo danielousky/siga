@@ -138,11 +138,53 @@ Rails.application.routes.draw do
   get   "activar/:token", to: "activaciones#edit",   as: :activar
   patch "activar",        to: "activaciones#update", as: :activacion
 
-  resources :representatives, path: "representantes" do
-    # POST y no GET: genera un código nuevo e invalida el anterior. Un enlace
-    # que un navegador puede pre-cargar no debería cambiar nada.
+  # Traer la matrícula de un colegio desde una planilla (MOR-126).
+  #
+  # `update` es el paso del MAPEO, no una edición: guarda qué columna del
+  # archivo es cuál campo. Confirmar la carga es otro verbo y viene después.
+  resources :importaciones, path: "importaciones", except: [:edit] do
+    collection do
+      # La planilla en blanco con su leyenda. Va en `collection` porque no
+      # pertenece a ninguna importación: se descarga ANTES de que exista.
+      get :plantilla
+    end
+
+    member do
+      # Qué se va a cargar y qué no, ANTES de escribir nada.
+      get :previsualizar
+
+      # Qué pasó al cargarla. Es lo que la secretaria imprime para ir a pedir
+      # los correos que faltan.
+      get :resultado
+
+      # Crear una sección que la planilla nombra y el colegio no tiene. Va acá
+      # y no en `sections#create` porque el contexto importa: se crea sabiendo
+      # cuántos alumnos de ESTA planilla la esperan, que es lo que distingue una
+      # sección nueva de un error de tipeo.
+      post :crear_seccion
+
+      # La red de rescate: un colegio nuevo nace sin ningún año escolar, y sin
+      # él no se puede crear ni una sección. Se ofrece donde falla, en vez de
+      # mandar a la persona a Configuración a buscarlo.
+      post :crear_periodo
+    end
+  end
+
+  # ⚠️ El código de acceso es de la PERSONA, no de su rol, y por eso es la misma
+  # ruta en los tres —y en el cuarto, el día que un alumno tenga que entrar—.
+  #
+  # POST y no GET: genera un código nuevo e invalida el anterior. Un enlace que
+  # un navegador puede pre-cargar no debería cambiar nada.
+  #
+  # Cuelga de cada rol y no de un `/personas/:id` central a propósito: así el
+  # `set_x` del controller, con el `default_scope` del rol, es el que decide si
+  # esa persona es de este colegio. `User` no es `SchoolScoped` —una persona es
+  # de la plataforma— y resolverlo a mano acá sería un IDOR que reparte llaves.
+  concern :con_codigo_de_acceso do
     post :codigo, on: :member, action: :generar_codigo
   end
+
+  resources :representatives, path: "representantes", concerns: :con_codigo_de_acceso
   resources :departments, except: [ :show ]
   resources :subjects
   resources :academic_periods, except: [ :show ]
@@ -151,7 +193,7 @@ Rails.application.routes.draw do
   end
   resources :enrollments, except: [ :show ]
   resources :students
-  resources :teachers
-  resources :admins, except: [ :show ]
+  resources :teachers, concerns: :con_codigo_de_acceso
+  resources :admins, except: [ :show ], concerns: :con_codigo_de_acceso
   root "inicio#index"
 end
