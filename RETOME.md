@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 25 de agosto de 2026
+# 🔖 Punto de retome — actualizado 25 de agosto de 2026 (tarde)
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 
@@ -687,6 +687,41 @@ ningún algoritmo acierta las elecciones humanas de un colegio: en los propios s
 tiene `MAT` = Matemática, la planilla que trae «Matemática» lo reutiliza; solo se busca otro
 código cuando el ocupado pertenece a **otro** nombre.
 
+### Lo que salió de probarlo en la pantalla, no en los tests
+
+Montar el escenario en local y recorrerlo entero destapó seis cosas que ningún
+test miraba:
+
+- **El conteo por sección salía sin el número.** `pluralizar` devuelve solo la
+  palabra; el número lo pone `contar`. Anulaba justo la columna cuyo propósito es
+  el conteo, y estaba en seis lugares desde la tanda 1. ⚠️ El test que debía
+  atraparlo se llamaba «con su conteo» y verificaba el NOMBRE de la sección.
+- **Dos botones «Crear 1er Año A»**, porque `1er Año Á` y `1er Año A` se
+  agrupaban por el texto crudo aunque apuntan a la misma sección.
+- **El choque de profesor se sabía y se decía tarde**: la planilla ya lo delata,
+  pero solo salía después de escribir.
+- **Los nombres gritaban** en las dos tablas del importador.
+- **Excel no guarda los CSV con coma.** Daniel subió un archivo hecho a partir
+  del de prueba y recibió «no encontré la fila de encabezados» sobre una planilla
+  perfectamente bien. Un Excel en español separa con punto y coma. ⚠️ El `\r`
+  costó una hora: al recortar la muestra antes del último `\n` quedaba un `\r`
+  suelto y `CSV` fallaba con TODOS los separadores por igual, así que ganaba la
+  coma por ser la primera y el síntoma era idéntico al bug original.
+- **El formulario volvía a matrícula al fallar el archivo**, con la URL todavía
+  en `?tipo=pensum`.
+
+### Y el código de acceso dejó de ser del rol
+
+El importador lo volvió urgente: carga ocho profesores de un golpe, todos con
+correo y ninguno con contraseña, y no había forma de darles acceso salvo
+editarlos uno por uno y tipearles la clave — el patrón que `MOR-143` vino a
+sacar. Ahora es `GeneraCodigosDeAcceso`, el mismo para representante, profesor y
+administrador; un alumno son dos líneas el día que entre.
+
+⚠️ Cuelga de cada controller de rol y **no** de un `/personas/:id/codigo`
+central: `User` no es `SchoolScoped`, y acá lo que se filtra no es una ficha, es
+una llave.
+
 ---
 
 ## Dónde está todo ahora
@@ -694,10 +729,10 @@ código cuando el ocupado pertenece a **otro** nombre.
 ```
   main  (b76412b)                              ← desplegado en producción
    └─ feat/mor-138-identidad-de-la-persona
-       └─ feat/mor-126-importador-de-matricula  ← acá, 13 commits SIN PUSH
+       └─ feat/mor-126-importador-de-matricula  ← acá, 17 commits SIN PUSH
 ```
 
-`bin/ci` en verde: **699 tests**, 2114 aserciones, ~39 s.
+`bin/ci` en verde: **718 tests**, 2170 aserciones, ~22 s.
 
 ⚠️ **El importador entero está sin desplegar.** Producción sigue en `main`, que no lo tiene.
 

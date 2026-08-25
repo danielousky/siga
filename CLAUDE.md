@@ -216,7 +216,7 @@ sin correo no puede importar nada; si todo es aviso, se cargan alumnos sin nombr
 representante sin correo se le carga igual y sale listado al final; un profesor sin correo es un
 ERROR, porque `EntraAlSistema` lo exige y sin entrar no puede cargar notas. Ver `§ 6`.
 
-**Cinco cosas que ya se rompieron y no hay que volver a romper:**
+**Seis cosas que ya se rompieron y no hay que volver a romper:**
 
 1. **La fila de encabezados se detecta por la LÍNEA EN BLANCO, no por densidad.** Costó tres
    intentos («una celda menos», «la mitad»). El membrete de un colegio también es denso.
@@ -232,6 +232,11 @@ ERROR, porque `EntraAlSistema` lo exige y sin entrar no puede cargar notas. Ver 
 5. **Cada fila en su propio `SAVEPOINT`.** Con una transacción única, la fila 200 de 360 se lleva
    las 359 buenas. El reporte da el número de fila **del archivo** — «la fila 47», no «el
    registro 43».
+6. **Un CSV no dice con qué está separado, y Excel NO usa coma.** Un Excel en español guarda con
+   punto y coma —la coma ya es el separador decimal—, Numbers exporta con tabulaciones, y un
+   Excel de Windows escribe en Windows-1252 con `\r\n` y a veces con BOM. `Planilla` adivina las
+   dos cosas del propio archivo; el separador **por el ancho que resulta**, no contando caracteres
+   (una coma dentro de una celda entrecomillada no separa nada).
 
 **Las secciones NO se crean solas**, pero tampoco se rechaza la fila y listo: la previsualización
 las lista con **cuántas filas las esperan** —«1er Año C · 18» es una sección, «1er Año Á · 1» es un
@@ -332,12 +337,22 @@ además el canal oficial de comunicación del sistema.
 4. **Un test que solo cuenta personas no prueba nada** en esta zona: bloquear un alta también
    deja el conteo quieto. La aserción tiene que exigir las dos mitades — ni persona nueva, **y**
    rol creado.
+5. **`set_reset_password_token` devuelve el código en claro y guarda el digest.** Leer
+   `usuario.reset_password_token` DESPUÉS envía por correo un enlace que no abre nada.
 
 **Activar el acceso** (`MOR-143`) es `recoverable` de Devise con otro texto: el colegio genera
-un código de un solo uso desde la ficha del representante, se ve en pantalla **una vez** —Devise
-guarda el digest, no el código— y además se envía por correo si lo hay. Dos plazos, deducidos
-del estado sin ninguna bandera: **72 h** para activar (la secretaria carga un jueves, la mamá
-abre el domingo) y las **6 h** de Devise para recuperar.
+un código de un solo uso, se ve en pantalla **una vez** —Devise guarda el digest, no el código—
+y además se envía por correo si lo hay. Dos plazos, deducidos del estado sin ninguna bandera:
+**72 h** para activar (la secretaria carga un jueves, la mamá abre el domingo) y las **6 h** de
+Devise para recuperar.
+
+⚠️ **El código es de la PERSONA, no de su rol.** Representante, profesor y administrador usan la
+MISMA funcionalidad, en el concern `GeneraCodigosDeAcceso`; el día que un alumno tenga que entrar
+son dos líneas en su controller. Cuelga de cada controller de rol y **no** de un
+`POST /personas/:id/codigo` central a propósito: `User` no es `SchoolScoped` —una persona es de la
+plataforma— así que un controller central tendría que resolver a mano si esa persona es de este
+colegio, y acá lo que se filtra no es una ficha, es una **llave**. El `set_teacher` /
+`set_representative` que ya existe hace ese filtro con el `default_scope` del rol.
 
 ⚠️ **Hoy el correo no sale**: falta `SMTP_ADDRESS` en producción (`MOR-102`), así que
 `perform_deliveries` es `false`. El flujo funciona igual mostrando el enlace en pantalla.
