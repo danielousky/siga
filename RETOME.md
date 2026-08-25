@@ -775,10 +775,7 @@ alrededor:** nada cobra (`MOR-128`), un colegio nuevo no puede darse de alta sol
 
 ## ⚠️ Pendientes que necesitan a Daniel
 
-1. **Una segunda llave SSH en el servidor.** Hay **una sola** en `authorized_keys`: si se
-   pierde `~/.ssh/siga_deploy`, se pierde el acceso a la máquina. Es el pendiente más
-   barato y el que peor se paga.
-2. **Subir `SIGA_HSTS_SEGUNDOS` a 31536000** cuando pasen unos días sin sobresaltos.
+1. **Subir `SIGA_HSTS_SEGUNDOS` a 31536000** cuando pasen unos días sin sobresaltos.
 3. **`MOR-144` · DMARC a `p=reject`** — vence el 4 de septiembre de 2026.
 4. **`MOR-146` · Limpiar los datos de prueba de producción** antes del primer colegio real.
    Es lo único **urgente** del backlog, y es destructivo: necesita a Daniel delante.
@@ -788,6 +785,19 @@ alrededor:** nada cobra (`MOR-128`), un colegio nuevo no puede darse de alta sol
 - ~~Rotar la clave de `siga_app`~~ → hecha el 21 de agosto.
 - ~~Rotar `RAILS_MASTER_KEY`~~ → **resuelto el 25 quitándola, no rotándola.** Ver abajo.
 - ~~Restaurar la suscripción de Bello a `vencida`~~ → ya estaba, verificado.
+- ~~Una segunda llave SSH~~ → puesta el 25, y era peor de lo que decía esta nota: la MISMA
+  llave abría `root` **y** `dokku`, así que perderla no era perder los despliegues, era
+  perder la máquina. Ahora hay dos, en dos equipos, en los dos lugares:
+
+  ```
+     root@80.190.77.167    administración   ┐  siga-deploy-202608
+     dokku@80.190.77.167   git push         ┘  siga-MacBook-Air-2015-de-Daniel-202608
+  ```
+
+  ⚠️ Esto resuelve «si pierdo una, pierdo el servidor» y crea «hay dos laptops que abren
+  producción». Es el intercambio correcto para un equipo de dos; cuando entre alguien más,
+  lo que toca no es una tercera llave, es que el acceso deje de ser por llaves personales
+  repartidas.
 
 ### Los secretos: un sistema, no dos
 
