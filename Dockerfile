@@ -7,7 +7,7 @@
 # probó.
 #
 #   docker build -t siga .
-#   docker run --rm -p 3000:3000 -e RAILS_MASTER_KEY=<...> siga
+#   docker run --rm -p 3000:3000 -e SECRET_KEY_BASE=<...> siga
 #
 # Ver MOR-106.
 

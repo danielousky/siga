@@ -90,7 +90,7 @@ dokku postgres:link siga-db siga        # inyecta DATABASE_URL
 
 ```bash
 dokku config:set siga \
-  RAILS_MASTER_KEY=<el contenido de config/master.key> \
+  SECRET_KEY_BASE=$(openssl rand -hex 64) \
   SIGA_HOST=siga.tudominio.com \
   SIGA_HOSTS=siga.tudominio.com \
   SIGA_MAIL_FROM=no-responder@tudominio.com
@@ -98,12 +98,23 @@ dokku config:set siga \
 
 | Variable | Para qué | Si falta |
 | -- | -- | -- |
-| `RAILS_MASTER_KEY` | descifrar credenciales | la app no arranca |
+| `SECRET_KEY_BASE` | firmar sesiones y cookies | la app no arranca |
 | `SIGA_HOST` | dominio en los enlaces del correo | los enlaces apuntan a `localhost` |
 | `SIGA_HOSTS` | qué dominios acepta | **no filtra nada** — hay que ponerlo |
 | `SIGA_FORCE_SSL` | `false` para el primer arranque | queda en `true` |
 | `SIGA_HSTS_SEGUNDOS` | vida del HSTS | 1 hora |
 | `SMTP_ADDRESS` y compañía | envío de correo | "olvidé mi contraseña" **no envía nada** |
+
+> ⚠️ **`SECRET_KEY_BASE` se genera en el servidor y no se guarda en ningún lado.**
+>
+> SIGA no usa `config/credentials.yml.enc`: guardaba exactamente un valor —este— y
+> todo lo demás ya vivía como variable de entorno, así que era un segundo sistema
+> de secretos con su propia llave que cuidar. Rails lee `ENV["SECRET_KEY_BASE"]`
+> antes que las credenciales; en desarrollo y en tests se genera solo.
+>
+> Cambiarlo **desconecta a todo el mundo**: invalida las sesiones y las cookies
+> firmadas. Los códigos de activación NO se ven afectados —Devise los guarda
+> digeridos en la base, no firmados con esta llave—.
 
 #### Sobre `force_ssl` y HSTS
 

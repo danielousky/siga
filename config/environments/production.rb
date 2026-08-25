@@ -32,6 +32,21 @@ Rails.application.configure do
   # por HTTP… y el navegador corta por bucle de redirecciones.
   config.assume_ssl = ENV.fetch("SIGA_ASSUME_SSL", "true") == "true"
 
+  # ⚠️ `secret_key_base` viene de la VARIABLE DE ENTORNO, no de un archivo cifrado.
+  #
+  # `config/credentials.yml.enc` existió y guardaba exactamente un valor: este.
+  # Todo lo demás que SIGA necesita —SMTP, base de datos, host— ya vivía como
+  # variable de entorno, así que el archivo cifrado era un SEGUNDO sistema de
+  # secretos para un solo secreto, con su propia llave que cuidar y que filtrar.
+  #
+  # Se sacó, y con él `config/master.key`. Rails lee `ENV["SECRET_KEY_BASE"]`
+  # antes que las credenciales, así que no hace falta nada más; en desarrollo y
+  # en tests se genera solo en `tmp/local_secret.txt`.
+  #
+  # ⚠️ Si algún día hace falta guardar un secreto EN EL REPO —una llave privada,
+  # un certificado— vuelve a hacer falta `credentials`. Mientras el despliegue
+  # sea por variables de entorno, no.
+
   # ⚠️ `force_ssl` activa HSTS, y **HSTS es difícil de deshacer**: el navegador
   # recuerda "esta gente solo habla HTTPS" durante `max_age` y no acepta que le
   # digan lo contrario. Si el certificado no está en orden, el sitio queda
