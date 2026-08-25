@@ -249,7 +249,8 @@ colegio ya tiene `MAT` = Matemática, la planilla que trae «Matemática» lo re
 
 ### 4. Otros pendientes
 
-**Resueltos** (esta lista estuvo desactualizada un tiempo; se verificó uno por uno el 15 de agosto):
+**Resueltos** (esta lista estuvo desactualizada un tiempo; se verificó uno por uno el 15 de agosto,
+y otra vez el 25):
 
 - ~~Ruby 3.1 y Rails 7.0 fuera de soporte~~ → Ruby 3.4.9 / Rails 8.1.3.1. Los enums migraron a
   la sintaxis posicional (`enum :status, {...}`), obligatoria desde Rails 8.
@@ -266,10 +267,15 @@ colegio ya tiene `MAT` = Matemática, la planilla que trae «Matemática» lo re
 - ~~Sin Dockerfile~~ → existe, con su `.dockerignore`.
 - ~~El adaptador de jobs pierde lo encolado al reiniciar~~ → **Solid Queue**, sobre la misma base
   de PostgreSQL. Ver abajo.
+- ~~Nada borra los archivos de las importaciones~~ → `PurgarPlanillasJob`, todos los días a las 3.
+  Se borra el **archivo**, no la fila: la importación es la bitácora de quién cargó qué. Alcanza a
+  las abandonadas a medias, que eran las que se quedaban para siempre.
 
 **Abiertos de verdad:**
 
 - **Sin monitoreo.** Nada avisa si el worker se cae o si la cola crece.
+- **Producción corre con los datos de demo** (`MOR-146`). Es lo más urgente del backlog: hay
+  usuarios con contraseña `123123` y 290 alumnos inventados en la base que ve el mundo.
 - **Colisión de nombres:** `Grade` es "grado escolar", pero `ActivityLog::LABELS` traduce
   `grade_created` como "Calificación registrada". Dos conceptos, un nombre.
 - **El worker hay que levantarlo.** El `Procfile` declara `web` y `worker`; si el segundo no
@@ -383,9 +389,11 @@ colegio, y acá lo que se filtra no es una ficha, es una **llave**. El `set_teac
   a mano, de preescolar a bachillerato, porque **los sistemas son caros para el colegio pequeño**.
   El precio es la barrera, no la funcionalidad — y ninguno de los tres apunta a ese colegio.
 - **Cobranza, asistencia y portal de representantes son tabla de entrada**: los tres competidores
-  los tienen y SIGA no tiene ninguno. El único hueco que nadie llenó es **persistir competencias e
-  indicadores** entre lapsos y años (`MOR-136`) — un problema del docente, no del director, y por
-  eso invisible para quien vende.
+  los tienen. SIGA ya tiene **asistencia** (`MOR-111`) y **portal de representantes** (`MOR-110`);
+  de cobranza tiene el ESTADO de la suscripción (`MOR-108`) pero **nada que cobre** — `MOR-128`
+  sigue abierto y es la única de las tres que falta.
+  El único hueco que nadie llenó es **persistir competencias e indicadores** entre lapsos y años
+  (`MOR-136`) — un problema del docente, no del director, y por eso invisible para quien vende.
 - Venezuela **no tiene ley de protección de datos** ni autoridad de control. El riesgo de un
   cruce de datos es reputacional y de churn en red, no regulatorio.
 

@@ -98,7 +98,30 @@ class Importacion < ApplicationRecord
   def terminada? = confirmada? || descartada?
 
   # El archivo ya no hace falta y tiene datos de menores adentro.
-  def purgable? = confirmada? && updated_at < CONSERVAR_EL_ARCHIVO.ago
+  #
+  # Dos casos, un mismo plazo:
+  #
+  #   confirmada          ya cumplió su función; los 30 días son para poder
+  #                       investigar un reclamo —«a mi hijo lo pusieron en la
+  #                       sección equivocada»—.
+  #   cargada / mapeada   nadie la tocó en un mes: alguien subió una planilla,
+  #                       se confundió y se fue. Que quede a medias no la vuelve
+  #                       menos sensible, y era el caso que se quedaba para
+  #                       siempre.
+  #
+  # `descartada` no aparece: `#destroy` ya purga el archivo en el momento.
+  def purgable? = !descartada? && updated_at < CONSERVAR_EL_ARCHIVO.ago
+
+  # ⚠️ Cruza colegios a propósito: el archivo no es de nadie en particular, es
+  # una obligación de la plataforma. Por eso el scope va SIN aislamiento y el
+  # job que lo usa se declara `de_toda_la_plataforma`.
+  def self.con_archivo_vencido
+    Current.sin_aislamiento do
+      joins(archivo_attachment: :blob)
+        .where.not(estado: estados[:descartada])
+        .where(updated_at: ...CONSERVAR_EL_ARCHIVO.ago)
+    end
+  end
 
   # La planilla, leída. Se relee del adjunto en cada paso a propósito: la
   # previsualización tiene que mostrar exactamente lo que después se va a
