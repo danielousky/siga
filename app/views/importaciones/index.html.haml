@@ -1,15 +1,20 @@
 .card-academic
   .card-academic-header
-    %h1 Importar matrícula
-    = link_to "Subir una planilla", new_importacion_path, class: "btn btn-primary"
+    %h1 Importar datos
+    .acciones-de-cabecera
+      = link_to "Subir matrícula", new_importacion_path(tipo: :matricula), class: "btn btn-primary"
+      = link_to "Subir materias y profesores", new_importacion_path(tipo: :pensum), class: "btn btn-secondary"
 
   - if @importaciones.empty?
     .empty-state
       %h3 Todavía no ha importado nada
       %p
-        Traiga su matrícula desde el sistema que usa hoy, en Excel o CSV.
-      %p
-        = link_to "Descargar la plantilla", plantilla_importaciones_path, class: "btn btn-secondary"
+        Traiga sus datos desde el sistema que usa hoy, en Excel o CSV: primero la
+        matrícula —alumnos y representantes— y después las materias con sus
+        profesores.
+      .acciones-de-cabecera
+        = link_to "Plantilla de matrícula", plantilla_importaciones_path(tipo: :matricula), class: "btn btn-secondary"
+        = link_to "Plantilla de materias", plantilla_importaciones_path(tipo: :pensum), class: "btn btn-secondary"
   - else
     = render "shared/escala", total: @pagy.count, singular: "importación", plural: "importaciones"
 
@@ -17,6 +22,7 @@
       %thead
         %tr
           %th Archivo
+          %th Qué trae
           %th Filas
           %th Estado
           %th Subida por
@@ -25,6 +31,7 @@
         - @importaciones.each do |importacion|
           %tr
             %td= link_to importacion.nombre_del_archivo, importacion
+            %td= importacion.etiqueta_de_tipo
             %td= importacion.filas_leidas || "—"
             %td
               - if importacion.confirmada?

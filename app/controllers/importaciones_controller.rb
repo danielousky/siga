@@ -1,4 +1,4 @@
-# Traer la matrícula de un colegio desde una planilla (MOR-126).
+# Traer los datos de un colegio desde una planilla (MOR-126).
 #
 # Es la respuesta a la objeción que aparece en la primera conversación con
 # cualquier colegio que ya tiene sistema: *"¿y lo que ya tengo?"*. Sin esto, el
@@ -11,7 +11,16 @@
 #     new/create   subir el archivo
 #     show         ver el mapeo propuesto y corregirlo
 #     update       guardarlo  →  previsualizar
-#     confirmar    escribir                          ← todavía no
+#     confirmar    escribir
+#
+# ## Dos planillas, un recorrido
+#
+# `tipo` decide qué se espera y qué se crea; el lector, el mapeo, la
+# previsualización y el reporte son los mismos. Lo que cambia se resuelve en
+# `#interpretada` y `#escribir`, y en ningún otro lado:
+#
+#     matricula   alumnos y representantes  →  MatriculaInterpretada · CargaDeMatricula
+#     pensum      materias y profesores     →  PensumInterpretado    · CargaDePensum
 class ImportacionesController < ApplicationController
   before_action :require_puede_gestionar!
   before_action :set_importacion,
@@ -24,7 +33,8 @@ class ImportacionesController < ApplicationController
   # La planilla en blanco, con su hoja de instrucciones. Se descarga ANTES de
   # que exista ninguna importación, así que no cuelga de ninguna.
   def plantilla
-    hoja = PlantillaDeMatricula.new(colegio: Current.school)
+    hoja = tipo_pedido == "pensum" ? PlantillaDePensum : PlantillaDeMatricula
+    hoja = hoja.new(colegio: Current.school)
 
     send_data hoja.to_stream.read,
               filename: hoja.nombre_de_archivo,
@@ -32,7 +42,7 @@ class ImportacionesController < ApplicationController
   end
 
   def new
-    @importacion = Importacion.new
+    @importacion = Importacion.new(tipo: tipo_pedido)
   end
 
   # ⚠️ El archivo se LEE antes de guardar nada, y del que acaba de llegar.
@@ -58,7 +68,8 @@ class ImportacionesController < ApplicationController
     @importacion = Importacion.new(
       school: Current.school, subido_por: current_user,
       nombre_del_archivo: archivo.original_filename,
-      filas_leidas: hoja.filas.size
+      filas_leidas: hoja.filas.size,
+      tipo: tipo_pedido
     )
 
     return rechazar(@importacion.errors.full_messages.to_sentence) unless @importacion.save
@@ -71,7 +82,7 @@ class ImportacionesController < ApplicationController
   end
 
   def show
-    @columnas = ColumnasDeMatricula::TODAS
+    @columnas = @importacion.columnas::TODAS
     @mapeo = @importacion.mapeo_efectivo
     @muestra = @importacion.planilla.filas.first
   rescue Planilla::NoSePuedeLeer => e
@@ -112,7 +123,7 @@ class ImportacionesController < ApplicationController
     @importacion.update!(academic_period_id: params[:periodo_id]) if params[:periodo_id].present?
 
     @periodos = AcademicPeriod.order(start_date: :desc)
-    @matricula = interpretada
+    @planilla = interpretada
   rescue Planilla::NoSePuedeLeer => e
     redirect_to importaciones_path, alert: e.message
   end
@@ -135,9 +146,16 @@ class ImportacionesController < ApplicationController
 
     return redirect_to(previsualizar_importacion_path(@importacion), alert: "El colegio no tiene ningún año escolar cargado.") if periodo.nil?
 
+    # ⚠️ El conteo de la planilla es capacidad solo en una matrícula.
+    #
+    # En un pensum ese número son MATERIAS, y usarlo daría un aula para ocho
+    # personas. Ahí no hay de dónde deducir la capacidad, así que va la de por
+    # defecto y el colegio la corrige si hace falta.
+    esperados = @importacion.matricula? ? params[:cuantas].to_i : 0
+
     seccion = Section.new(grade: grado, academic_period: periodo,
                           name: params[:nombre].to_s.strip.upcase,
-                          capacity: [ params[:alumnos].to_i, 30 ].max)
+                          capacity: [ esperados, 30 ].max)
 
     if seccion.save
       redirect_to previsualizar_importacion_path(@importacion),
@@ -214,27 +232,57 @@ class ImportacionesController < ApplicationController
                          alert: "Esta importación ya se cargó."
     end
 
-    matricula = interpretada
-    return redirect_to(previsualizar_importacion_path(@importacion), alert: "Todavía hay secciones que no existen.") if matricula.secciones_que_faltan.any?
+    planilla = interpretada
+    return redirect_to(previsualizar_importacion_path(@importacion), alert: "Todavía hay secciones que no existen.") if planilla.secciones_que_faltan.any?
 
-    resultado = CargaDeMatricula.new(matricula: matricula, colegio: Current.school).ejecutar
+    resultado = escribir(planilla)
     @importacion.update!(estado: :confirmada, resultado: resultado.to_h_para_guardar)
 
-    log_activity(action: "matricula_importada",
-                 message: "#{current_user.nombre_completo} importó #{resultado.total_cargado} alumnos desde #{@importacion.nombre_del_archivo}",
+    log_activity(action: "#{@importacion.tipo}_importada",
+                 message: "#{current_user.nombre_completo} importó #{resumen(resultado)} desde #{@importacion.nombre_del_archivo}",
                  subject: @importacion)
 
     redirect_to resultado_importacion_path(@importacion),
-                notice: "Se cargaron #{resultado.total_cargado} alumnos."
+                notice: "Se cargaron #{resumen(resultado)}."
   rescue Planilla::NoSePuedeLeer => e
     redirect_to importaciones_path, alert: e.message
   end
 
   def interpretada
-    MatriculaInterpretada.new(planilla: @importacion.planilla,
-                              mapeo: @importacion.mapeo_efectivo,
-                              colegio: Current.school,
-                              periodo: @importacion.periodo)
+    clase = @importacion.pensum? ? PensumInterpretado : MatriculaInterpretada
+
+    clase.new(planilla: @importacion.planilla,
+              mapeo: @importacion.mapeo_efectivo,
+              colegio: Current.school,
+              periodo: @importacion.periodo)
+  end
+
+  def escribir(planilla)
+    if @importacion.pensum?
+      CargaDePensum.new(pensum: planilla, colegio: Current.school).ejecutar
+    else
+      CargaDeMatricula.new(matricula: planilla, colegio: Current.school).ejecutar
+    end
+  end
+
+  # Qué contar al terminar. Un import de matrícula se mide en alumnos y uno de
+  # pensum en asignaciones: «12 materias» no dice nada si son las mismas cuatro
+  # repartidas en tres secciones.
+  def resumen(resultado)
+    if @importacion.pensum?
+      helpers.pluralize(resultado.asignaciones, "materia asignada", plural: "materias asignadas")
+    else
+      helpers.pluralize(resultado.total_cargado, "alumno")
+    end
+  end
+
+  # El tipo llega por la URL al abrir el formulario (`?tipo=pensum`) y por el
+  # campo oculto al enviarlo. Cualquier cosa que no sea un tipo conocido es
+  # matrícula: es lo que un colegio sube primero, y lo que sube siempre.
+  def tipo_pedido
+    pedido = params[:tipo].presence || params.dig(:importacion, :tipo)
+
+    Importacion.tipos.key?(pedido) ? pedido : "matricula"
   end
 
   def set_importacion
@@ -244,6 +292,6 @@ class ImportacionesController < ApplicationController
   def require_puede_gestionar!
     return if can_manage_students?
 
-    redirect_to dashboard_path_for_user, alert: "No tienes permiso para importar matrícula."
+    redirect_to dashboard_path_for_user, alert: "No tienes permiso para importar datos."
   end
 end

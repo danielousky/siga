@@ -1,0 +1,17 @@
+-# ── la pregunta de las fechas ──────────────────────────────────────────────
+- if planilla.fechas_ambiguas.positive?
+  .card-academic
+    .card-academic-header
+      %h2 Confirme el formato de las fechas
+
+    %p
+      = pluralizar(planilla.fechas_ambiguas, "fecha se leería", "fechas se leerían")
+      distinto según el idioma del Excel que las escribió. SIGA las está leyendo
+      como
+      %strong día/mes/año
+      \: «03/12/2014» es el 3 de diciembre.
+
+    %p.nota-ayuda
+      Si su planilla salió de un Excel en inglés, esas fechas están al revés y
+      hay que corregirlas antes de cargar. Las demás no tienen esa duda —en
+      «22/11» no existe el mes 22— así que basta con mirar una.

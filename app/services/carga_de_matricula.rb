@@ -18,6 +18,8 @@
 # —nunca por nombre—: `MOR-138` probó que 90 de 290 alumnos compartían carnet
 # entre dos colegios, y los nombres se repiten todavía más.
 class CargaDeMatricula
+  include EscribePersonas
+
   Resultado = Struct.new(:alumnos_creados, :alumnos_actualizados,
                          :representantes_creados, :representantes_reutilizados,
                          :inscripciones, :secciones_tocadas,
@@ -74,34 +76,9 @@ class CargaDeMatricula
   end
 
   # ── las personas ──────────────────────────────────────────────────────────
-
-  # ⚠️ La búsqueda va SIN aislamiento, y no es un descuido.
   #
-  # Una persona es de la plataforma, no de un colegio: la madre que ya
-  # representa a un hijo en otro colegio de SIGA, o el alumno que se trasladó
-  # trayendo su cédula escolar nacional. Buscándola solo dentro de este colegio
-  # no se la encuentra, se intenta crearla de nuevo, y choca contra el índice
-  # único de `users.document` con un error que no dice nada — que es exactamente
-  # el bloqueo que arregló `MOR-142`.
-  def persona_existente(documento, cedula_escolar = nil)
-    Current.sin_aislamiento do
-      (documento.present? && User.find_by(document: documento)) ||
-        (cedula_escolar.present? && User.find_by(cedula_escolar: cedula_escolar)) ||
-        nil
-    end
-  end
-
-  # Qué se le escribe encima a una persona que ya existía.
-  #
-  # Si ya tiene rol en ESTE colegio, la planilla es la fuente de verdad y se
-  # actualiza. Si solo existe en OTRO colegio, se rellenan los huecos y nada
-  # más: la planilla de un colegio no puede pisarle el nombre a la ficha que
-  # otro colegio mantiene.
-  def actualizar(persona, datos, ya_es_de_este_colegio)
-    datos.compact_blank.each do |campo, valor|
-      persona[campo] = valor if ya_es_de_este_colegio || persona[campo].blank?
-    end
-  end
+  # La búsqueda y la actualización viven en `EscribePersonas`: el importador de
+  # pensum hace lo mismo con los profesores.
 
   def crear_alumno(fila)
     datos = fila.alumno

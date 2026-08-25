@@ -213,10 +213,10 @@ class MatriculaInterpretadaTest < ActiveSupport::TestCase
     a = m.secciones_de_la_planilla.find { |s| s[:texto] == "1er Año A" }
     z = m.secciones_de_la_planilla.find { |s| s[:texto] == "1er Año Z" }
 
-    assert_equal 3, a[:alumnos]
+    assert_equal 3, a[:cuantas]
     assert_not_nil a[:seccion]
 
-    assert_equal 1, z[:alumnos]
+    assert_equal 1, z[:cuantas]
     assert_nil z[:seccion]
     assert_equal "Z", z[:nombre_de_seccion]
     assert_equal @escenario.grado, z[:grado], "el grado sí existe: falta solo la sección"

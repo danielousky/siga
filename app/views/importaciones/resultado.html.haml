@@ -1,9 +1,6 @@
-- sin_correo = Array(@resultado["sin_correo"])
-- fallidas = Array(@resultado["fallidas"])
-
 .card-academic
   .card-academic-header
-    %h1 Matrícula importada
+    %h1= @importacion.pensum? ? "Materias y profesores importados" : "Matrícula importada"
     = link_to "Volver a importaciones", importaciones_path, class: "btn btn-secondary"
 
   %p.nota-ayuda
@@ -11,105 +8,6 @@
     %strong= @importacion.nombre_del_archivo
     \, el #{l(@importacion.updated_at.to_date, format: :long)}.
 
-  .cifras-de-importacion
-    .cifra-de-importacion
-      %span.cifra-numero= @resultado["alumnos_creados"]
-      %span.cifra-que alumnos nuevos
-    - if @resultado["alumnos_actualizados"].to_i.positive?
-      .cifra-de-importacion
-        %span.cifra-numero= @resultado["alumnos_actualizados"]
-        %span.cifra-que alumnos que ya existían, actualizados
-    .cifra-de-importacion
-      %span.cifra-numero= @resultado["inscripciones"]
-      %span.cifra-que inscripciones
-    .cifra-de-importacion
-      %span.cifra-numero= @resultado["representantes_creados"]
-      %span.cifra-que representantes nuevos
-    - if @resultado["representantes_reutilizados"].to_i.positive?
-      .cifra-de-importacion
-        %span.cifra-numero= @resultado["representantes_reutilizados"]
-        %span.cifra-que
-          representantes que ya existían
-          %br
-          (hermanos, u otro colegio)
+  = render "totales_#{@importacion.tipo}", resultado: @resultado
 
-  - if Array(@resultado["secciones"]).any?
-    %p.nota-ayuda
-      Secciones tocadas: #{Array(@resultado['secciones']).join(' · ')}
-
--# ── lo que la secretaria imprime ───────────────────────────────────────────
-- if sin_correo.any?
-  .card-academic
-    .card-academic-header
-      %h2
-        = pluralizar(sin_correo.size, "representante sin correo", "representantes sin correo")
-
-    %p
-      Están cargados y vinculados a sus alumnos, pero
-      %strong no van a poder consultar las notas
-      hasta que alguien les cargue un correo. Esta es la lista para pedírselos.
-
-    -# ⚠️ Esta lista ES el producto de esta pantalla. Sin ella, «45 sin correo»
-    -# es un número que nadie puede accionar; con nombre y cédula, la secretaria
-    -# la imprime y sabe a quién llamar.
-    .tabla-envoltura
-      %table.table-academic
-        %thead
-          %tr
-            %th Representante
-            %th Cédula
-        %tbody
-          - sin_correo.each do |persona|
-            %tr
-              %td= persona["nombre"]
-              %td= persona["cedula"] || "—"
-
-    %p.nota-ayuda
-      Cuando tenga los correos, cárguelos desde
-      = succeed " " do
-        = link_to "Representantes", representatives_path
-      y genere ahí mismo su código de acceso.
-
--# ── lo que no entró ────────────────────────────────────────────────────────
-- if fallidas.any?
-  .card-academic
-    .card-academic-header
-      %h2 Filas que no se pudieron guardar
-
-    %p.nota-ayuda
-      El resto sí se cargó. Corrija estas en la planilla y vuelva a subirla:
-      reimportar no duplica a nadie, porque cada persona se reconoce por su
-      cédula.
-
-    .tabla-envoltura
-      %table.table-academic
-        %thead
-          %tr
-            %th Fila
-            %th Alumno
-            %th Qué pasó
-        %tbody
-          - fallidas.each do |fila|
-            %tr
-              %td= fila["fila"]
-              %td= fila["alumno"].presence || "—"
-              %td= fila["motivo"]
-
-.card-academic
-  .card-academic-header
-    %h2 Qué sigue
-
-  %ul.lista
-    %li
-      Revise la matrícula en
-      = succeed " " do
-        = link_to "Estudiantes", students_path
-      y las
-      = succeed "." do
-        = link_to "Inscripciones", enrollments_path
-    - if sin_correo.any?
-      %li
-        Consiga los #{pluralizar(sin_correo.size, 'correo que falta', 'correos que faltan')} y cárguelos.
-    %li
-      Genere los códigos de acceso de los representantes desde su ficha, para
-      que puedan entrar a ver las notas.
+= render "detalle_#{@importacion.tipo}", resultado: @resultado

@@ -688,7 +688,9 @@ CREATE TABLE public.importaciones (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     academic_period_id bigint,
-    CONSTRAINT importaciones_estado_valido CHECK ((estado = ANY (ARRAY[0, 1, 2, 3])))
+    tipo integer DEFAULT 0 NOT NULL,
+    CONSTRAINT importaciones_estado_valido CHECK ((estado = ANY (ARRAY[0, 1, 2, 3]))),
+    CONSTRAINT importaciones_tipo_valido CHECK ((tipo = ANY (ARRAY[0, 1])))
 );
 
 ALTER TABLE ONLY public.importaciones FORCE ROW LEVEL SECURITY;
@@ -3984,6 +3986,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260824220000'),
 ('20260824200000'),
 ('20260824180000'),
 ('20260824140000'),

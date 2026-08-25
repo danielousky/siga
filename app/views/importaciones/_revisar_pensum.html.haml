@@ -1,0 +1,28 @@
+-# ── los códigos que SIGA se inventó ────────────────────────────────────────
+-#
+-# ⚠️ Un código generado es un INVENTO, no una deducción: los códigos de un
+-# colegio son elecciones humanas —«Castellano y Literatura» suele ser LEN, no
+-# CASL— y ningún algoritmo las acierta. Por eso se listan: el código es lo que
+-# identifica a la materia dentro del colegio y aparece en boletines y horarios.
+- if planilla.codigos_generados.any?
+  .card-academic
+    .card-academic-header
+      %h2 Códigos que SIGA le puso a las materias
+
+    %p
+      Estas materias vinieron sin código en la planilla, así que se les armó uno.
+      Si su colegio usa otros, escríbalos en la columna
+      %strong CÓDIGO DE LA MATERIA
+      y vuelva a subirla.
+
+    %table.table-academic
+      %thead
+        %tr
+          %th Materia
+          %th Código
+      %tbody
+        - planilla.codigos_generados.each do |materia, codigo|
+          %tr
+            %td= materia
+            %td
+              %code= codigo

@@ -6,7 +6,9 @@
   %dl.detalle
     %dt Archivo
     %dd= @importacion.nombre_del_archivo
-    %dt Filas de alumnos
+    %dt Qué trae
+    %dd= @importacion.etiqueta_de_tipo
+    %dt Filas con datos
     %dd
       = @importacion.planilla.filas.size
       - if @importacion.planilla.descartadas.any?
@@ -26,7 +28,7 @@
 
     %p
       Sin ellas no se puede cargar nada. No se rellenan solas: inventar el
-      nombre o la sección de un alumno sería peor que no importarlo.
+      nombre o la sección de un registro sería peor que no importarlo.
 
     %ul.lista-faltantes
       - @importacion.obligatorias_sin_mapear.each do |columna|
@@ -79,9 +81,9 @@
       %h2 Filas que se ignoraron
 
     %p.nota-ayuda
-      Son las que no parecen un alumno: el membrete de arriba, los subtotales
+      Son las que no parecen un registro: el membrete de arriba, los subtotales
       del medio, las vacías del final. Se listan para que pueda comprobar que
-      ninguna era un alumno de verdad.
+      ninguna traía datos de verdad.
 
     %table.table-academic
       %thead

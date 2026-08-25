@@ -364,6 +364,15 @@ a:hover {
   margin: 0;
 }
 
+/* Dos botones en la cabecera de una tarjeta —«Subir matrícula» y «Subir
+   materias y profesores»—. Se agrupan para que envuelvan juntos: sin esto, en
+   un teléfono el segundo cae solo debajo del título y parece de otra sección. */
+.acciones-de-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
 /* ---- Tables ---- */
 
 .table-academic {

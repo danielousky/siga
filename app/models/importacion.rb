@@ -32,6 +32,20 @@ class Importacion < ApplicationRecord
   # `descartada`   se abandonó a mitad, o se subió otra en su lugar
   enum :estado, { cargada: 0, mapeada: 1, confirmada: 2, descartada: 3 }
 
+  # Qué trae la planilla. Cambia qué columnas se esperan y qué se crea; el
+  # lector, el mapeo, la previsualización y el reporte son los mismos.
+  enum :tipo, { matricula: 0, pensum: 1 }
+
+  TIPOS = {
+    "matricula" => "Matrícula de alumnos",
+    "pensum" => "Materias y profesores"
+  }.freeze
+
+  def etiqueta_de_tipo = TIPOS.fetch(tipo, tipo)
+
+  # Las columnas que esta importación espera, según su tipo.
+  def columnas = pensum? ? ColumnasDePensum : ColumnasDeMatricula
+
   ETIQUETAS = {
     "cargada" => "Sin mapear", "mapeada" => "Lista para confirmar",
     "confirmada" => "Importada", "descartada" => "Descartada"
@@ -66,7 +80,7 @@ class Importacion < ApplicationRecord
   # El mapeo que propone el sistema, para que la persona solo corrija lo que
   # esté mal en vez de armarlo desde cero.
   def mapeo_sugerido
-    planilla.encabezados.index_with { |e| ColumnasDeMatricula.para(e)&.clave&.to_s }.compact
+    planilla.encabezados.index_with { |e| columnas.para(e)&.clave&.to_s }.compact
   end
 
   def mapeo_efectivo = mapeo.presence || mapeo_sugerido
@@ -77,7 +91,7 @@ class Importacion < ApplicationRecord
   def obligatorias_sin_mapear
     mapeadas = mapeo_efectivo.values.map(&:to_s)
 
-    ColumnasDeMatricula.obligatorias.reject { |c| mapeadas.include?(c.clave.to_s) }
+    columnas.obligatorias.reject { |c| mapeadas.include?(c.clave.to_s) }
   end
 
   def lista_para_previsualizar? = obligatorias_sin_mapear.empty?

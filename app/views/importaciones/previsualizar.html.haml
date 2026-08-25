@@ -1,4 +1,5 @@
-- faltan = @matricula.secciones_que_faltan
+- faltan = @planilla.secciones_que_faltan
+- que_es = @planilla.class::QUE_ES_UNA_FILA
 
 -# ── la red: un colegio nuevo nace sin año escolar ──────────────────────────
 -#
@@ -52,7 +53,7 @@
   -# inexistentes — y esta es la línea que lo explica.
   - if @periodos.any?
     = form_with url: previsualizar_importacion_path(@importacion), method: :get, class: "periodo-de-importacion" do
-      = label_tag :periodo_id, "Año escolar de esta matrícula", class: "form-label"
+      = label_tag :periodo_id, "Año escolar de esta planilla", class: "form-label"
       = select_tag :periodo_id,
                    options_from_collection_for_select(@periodos, :id, :name, @importacion.periodo&.id),
                    class: "form-select", onchange: "this.form.requestSubmit()"
@@ -60,20 +61,17 @@
 
   .cifras-de-importacion
     .cifra-de-importacion
-      %span.cifra-numero= @matricula.cargables.size
+      %span.cifra-numero= @planilla.cargables.size
       %span.cifra-que se cargan
-    - if @matricula.rechazadas.any?
+    - if @planilla.rechazadas.any?
       .cifra-de-importacion.--rechazadas
-        %span.cifra-numero= @matricula.rechazadas.size
+        %span.cifra-numero= @planilla.rechazadas.size
         %span.cifra-que no se pueden cargar
-    - if @matricula.con_avisos.any?
+    - if @planilla.con_avisos.any?
       .cifra-de-importacion
-        %span.cifra-numero= @matricula.con_avisos.size
+        %span.cifra-numero= @planilla.con_avisos.size
         %span.cifra-que se cargan con una advertencia
-    - if @matricula.representantes_sin_correo.positive?
-      .cifra-de-importacion
-        %span.cifra-numero= @matricula.representantes_sin_correo
-        %span.cifra-que sin correo del representante
+    = render "cifras_#{@importacion.tipo}", planilla: @planilla
 
 -# ── lo que hay que resolver antes ──────────────────────────────────────────
 - if faltan.any? && @periodos.any?
@@ -89,7 +87,7 @@
       %thead
         %tr
           %th En la planilla
-          %th Alumnos
+          %th= que_es.last.capitalize
           %th
       %tbody
         - faltan.each do |s|
@@ -101,12 +99,12 @@
               -# alumnos» es una sección de verdad; «1er Año Á · 1 alumno» es un
               -# error de escritura, y verlos uno al lado del otro lo hace obvio
               -# ANTES de crear basura que después nadie borra.
-              = pluralizar(s[:alumnos], "alumno", "alumnos")
+              = pluralizar(s[:cuantas], *que_es)
             %td
               - if s[:grado] && s[:nombre_de_seccion].present?
                 = button_to "Crear #{s[:grado].name} #{s[:nombre_de_seccion]}",
                             crear_seccion_importacion_path(@importacion),
-                            params: { grade_id: s[:grado].id, nombre: s[:nombre_de_seccion], alumnos: s[:alumnos] },
+                            params: { grade_id: s[:grado].id, nombre: s[:nombre_de_seccion], cuantas: s[:cuantas] },
                             class: "btn btn-secondary"
               - else
                 %span.nota-pendiente
@@ -114,26 +112,11 @@
                   = succeed "." do
                     = link_to "Grados", grades_path
 
--# ── la pregunta de las fechas ──────────────────────────────────────────────
-- if @matricula.fechas_ambiguas.positive?
-  .card-academic
-    .card-academic-header
-      %h2 Confirme el formato de las fechas
-
-    %p
-      = pluralizar(@matricula.fechas_ambiguas, "fecha se leería", "fechas se leerían")
-      distinto según el idioma del Excel que las escribió. SIGA las está leyendo
-      como
-      %strong día/mes/año
-      \: «03/12/2014» es el 3 de diciembre.
-
-    %p.nota-ayuda
-      Si su planilla salió de un Excel en inglés, esas fechas están al revés y
-      hay que corregirlas antes de cargar. Las demás no tienen esa duda —en
-      «22/11» no existe el mes 22— así que basta con mirar una.
+-# ── lo que conviene revisar, y es distinto en cada planilla ────────────────
+= render "revisar_#{@importacion.tipo}", planilla: @planilla
 
 -# ── lo que no entra ────────────────────────────────────────────────────────
-- if @matricula.rechazadas.any?
+- if @planilla.rechazadas.any?
   .card-academic
     .card-academic-header
       %h2 Filas que no se van a cargar
@@ -147,20 +130,20 @@
         %thead
           %tr
             %th Fila
-            %th Alumno
+            %th= @planilla.class::COLUMNA_DE_FILA
             %th Qué falta
         %tbody
-          - @matricula.rechazadas.each do |fila|
+          - @planilla.rechazadas.each do |fila|
             %tr
               %td= fila.numero
-              %td= fila.nombre_del_alumno.presence || "—"
+              %td= fila.etiqueta.presence || "—"
               %td
                 %ul.motivos
                   - fila.errores.each do |motivo|
                     %li= motivo
 
 -# ── lo que entra con reparos ───────────────────────────────────────────────
-- if @matricula.con_avisos.any?
+- if @planilla.con_avisos.any?
   .card-academic
     .card-academic-header
       %h2 Se cargan, pero conviene mirarlas
@@ -170,13 +153,13 @@
         %thead
           %tr
             %th Fila
-            %th Alumno
+            %th= @planilla.class::COLUMNA_DE_FILA
             %th Advertencia
         %tbody
-          - @matricula.con_avisos.each do |fila|
+          - @planilla.con_avisos.each do |fila|
             %tr
               %td= fila.numero
-              %td= fila.nombre_del_alumno
+              %td= fila.etiqueta
               %td
                 %ul.motivos
                   - fila.avisos.each do |motivo|
@@ -193,24 +176,24 @@
   - elsif faltan.any?
     %p.nota-pendiente
       Primero cree las secciones que faltan, o corrija la planilla.
-  - elsif @matricula.cargables.empty?
+  - elsif @planilla.cargables.empty?
     %p.nota-pendiente
       No hay ninguna fila que se pueda cargar.
   - else
     %p
       Se van a crear o actualizar
-      %strong= pluralizar(@matricula.cargables.size, "alumno", "alumnos")
-      con su representante y su inscripción.
-      - if @matricula.rechazadas.any?
-        = "Las otras #{@matricula.rechazadas.size} quedan fuera."
+      %strong= pluralizar(@planilla.cargables.size, *que_es)
+      = render "que_se_crea_#{@importacion.tipo}"
+      - if @planilla.rechazadas.any?
+        = "Las otras #{@planilla.rechazadas.size} quedan fuera."
 
     %p.nota-ayuda
-      Reimportar la misma planilla corregida no duplica a nadie: cada persona se
-      reconoce por su cédula.
+      Reimportar la misma planilla corregida no duplica nada: cada persona se
+      reconoce por su cédula y cada materia por su código.
 
   .form-acciones
-    - if @periodos.any? && faltan.empty? && @matricula.cargables.any?
-      = button_to "Cargar #{pluralizar(@matricula.cargables.size, 'alumno', 'alumnos')}",
+    - if @periodos.any? && faltan.empty? && @planilla.cargables.any?
+      = button_to "Cargar #{pluralizar(@planilla.cargables.size, *que_es)}",
                   importacion_path(@importacion), method: :patch,
                   params: { confirmar: "1" }, class: "btn btn-primary"
     = link_to "Volver al mapeo", importacion_path(@importacion), class: "btn btn-secondary"
