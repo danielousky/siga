@@ -1,0 +1,13 @@
+-# El enlace de acceso recién generado (MOR-143).
+-#
+-# Se ve UNA vez y nunca más: Devise guarda el token digerido, así que ni esta
+-# pantalla ni ninguna otra puede volver a leerlo. Que no quede visible de forma
+-# permanente es la propiedad que se quiere, no una limitación — una pantalla con
+-# el código vigente de cualquiera sería una lista de llaves de todas las casas.
+- if flash[:codigo].present?
+  .codigo-de-acceso{"data-controller": "copiar"}
+    %p.codigo-de-acceso-aviso
+      Este enlace se ve una sola vez. Sirve por 72 horas y para un solo uso.
+    %p.codigo-de-acceso-enlace{"data-copiar-target": "fuente"}= activar_url(flash[:codigo])
+    = button_tag "Copiar el enlace", type: "button", class: "btn btn-secondary",
+                 "data-action": "copiar#copiar", "data-copiar-target": "boton"

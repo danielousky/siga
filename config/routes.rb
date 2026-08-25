@@ -170,11 +170,21 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :representatives, path: "representantes" do
-    # POST y no GET: genera un código nuevo e invalida el anterior. Un enlace
-    # que un navegador puede pre-cargar no debería cambiar nada.
+  # ⚠️ El código de acceso es de la PERSONA, no de su rol, y por eso es la misma
+  # ruta en los tres —y en el cuarto, el día que un alumno tenga que entrar—.
+  #
+  # POST y no GET: genera un código nuevo e invalida el anterior. Un enlace que
+  # un navegador puede pre-cargar no debería cambiar nada.
+  #
+  # Cuelga de cada rol y no de un `/personas/:id` central a propósito: así el
+  # `set_x` del controller, con el `default_scope` del rol, es el que decide si
+  # esa persona es de este colegio. `User` no es `SchoolScoped` —una persona es
+  # de la plataforma— y resolverlo a mano acá sería un IDOR que reparte llaves.
+  concern :con_codigo_de_acceso do
     post :codigo, on: :member, action: :generar_codigo
   end
+
+  resources :representatives, path: "representantes", concerns: :con_codigo_de_acceso
   resources :departments, except: [ :show ]
   resources :subjects
   resources :academic_periods, except: [ :show ]
@@ -183,7 +193,7 @@ Rails.application.routes.draw do
   end
   resources :enrollments, except: [ :show ]
   resources :students
-  resources :teachers
-  resources :admins, except: [ :show ]
+  resources :teachers, concerns: :con_codigo_de_acceso
+  resources :admins, except: [ :show ], concerns: :con_codigo_de_acceso
   root "inicio#index"
 end

@@ -3,6 +3,10 @@
     %h1 Administradores
     = link_to "Nuevo administrador", new_admin_path, class: "btn btn-primary"
 
+  -# ⚠️ El código va acá arriba y no en la fila: es lo que hay que copiar ahora,
+  -# y perdido entre las columnas de una tabla no se ve.
+  = render "shared/codigo_generado"
+
   %table.table-academic
     %thead
       %tr
@@ -11,6 +15,7 @@
         %th Correo
         %th Rol
         %th Acceso
+        %th
     %tbody
       - @admins.each do |admin|
         %tr
@@ -24,3 +29,9 @@
               %span.estado.estado--al-dia Activo
             - else
               %span.estado.estado--inactivo Sin activar
+          %td
+            -# Un administrador no tiene ficha —se edita y se lista— así que el
+            -# botón vive acá. El código de acceso es el mismo para todos; lo que
+            -# cambia es desde dónde se pide.
+            = button_to (admin.user.puede_entrar? ? "Regenerar código" : "Generar código"),
+                        codigo_admin_path(admin), class: "btn btn-secondary"

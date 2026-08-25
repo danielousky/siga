@@ -50,5 +50,7 @@
         %span.detail-label Correo
         %p.detail-value= persona.email
 
+  = render "shared/acceso_al_sistema", usuario: persona, url: codigo_teacher_path(@teacher)
+
   %p.ficha-volver
     = link_to "← Volver a los profesores", teachers_path
