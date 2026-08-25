@@ -94,12 +94,17 @@
           %tr
             %td
               %strong= s[:texto]
+              -# Que la planilla la escriba de dos formas es algo que el colegio
+              -# querrá corregir, aunque SIGA la entienda igual.
+              - if s[:tambien].any?
+                %span.nota-ayuda
+                  = "también escrita #{s[:tambien].map { |t| "«#{t}»" }.to_sentence}"
             %td
               -# ⚠️ El conteo es lo que delata el dedazo. «1er Año C · 18
               -# alumnos» es una sección de verdad; «1er Año Á · 1 alumno» es un
               -# error de escritura, y verlos uno al lado del otro lo hace obvio
               -# ANTES de crear basura que después nadie borra.
-              = pluralizar(s[:cuantas], *que_es)
+              = contar(s[:cuantas], *que_es)
             %td
               - if s[:grado] && s[:nombre_de_seccion].present?
                 = button_to "Crear #{s[:grado].name} #{s[:nombre_de_seccion]}",
@@ -182,10 +187,11 @@
   - else
     %p
       Se van a crear o actualizar
-      %strong= pluralizar(@planilla.cargables.size, *que_es)
+      %strong= contar(@planilla.cargables.size, *que_es)
       = render "que_se_crea_#{@importacion.tipo}"
-      - if @planilla.rechazadas.any?
-        = "Las otras #{@planilla.rechazadas.size} quedan fuera."
+      - fuera = @planilla.rechazadas.size
+      - if fuera.positive?
+        = fuera == 1 ? "La otra queda fuera." : "Las otras #{fuera} quedan fuera."
 
     %p.nota-ayuda
       Reimportar la misma planilla corregida no duplica nada: cada persona se
@@ -193,7 +199,7 @@
 
   .form-acciones
     - if @periodos.any? && faltan.empty? && @planilla.cargables.any?
-      = button_to "Cargar #{pluralizar(@planilla.cargables.size, *que_es)}",
+      = button_to "Cargar #{contar(@planilla.cargables.size, *que_es)}",
                   importacion_path(@importacion), method: :patch,
                   params: { confirmar: "1" }, class: "btn btn-primary"
     = link_to "Volver al mapeo", importacion_path(@importacion), class: "btn btn-secondary"

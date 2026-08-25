@@ -60,22 +60,38 @@ module InterpretaLaPlanilla
 
   # Las secciones que nombra la planilla, agrupadas y CON SU CONTEO.
   #
+  # ⚠️ Se agrupa por la sección a la que APUNTAN, no por cómo están escritas.
+  #
+  # `1er Año A`, `1ER AÑO / A` y `1er Año Á` son la misma sección: `partir` las
+  # resuelve todas al mismo grado y nombre. Agrupando por el texto crudo salían
+  # como tres secciones distintas, con tres botones «Crear 1er Año A» que hacen
+  # lo mismo — y el tercero, después de apretar el primero, ya no hacía nada.
+  #
+  # Las variantes de escritura no se pierden: van en `tambien`, porque que la
+  # planilla escriba «1er Año Á» es algo que el colegio querrá corregir aunque
+  # SIGA lo entienda igual. La que se muestra de principal es la que MÁS SE
+  # REPITE —no la primera del abecedario, que dejaba «1ER AÑO / A» de titular y
+  # la escritura limpia de variante— y a igual conteo, la que aparece antes en
+  # el archivo.
+  #
   # ⚠️ El conteo no es decorativo: es lo que delata el error de tipeo. «1er Año
-  # A · 20 alumnos» es una sección; «1er Año Á · 1» es un dedazo, y verlos uno al
+  # C · 18 alumnos» es una sección; «1er Año K · 1» es un dedazo, y verlos uno al
   # lado del otro lo hace obvio antes de crear basura.
   #
   # Se llama `cuantas` y no `alumnos` porque en la planilla de pensum son
   # materias — y usarlo de capacidad de la sección, como se usa en matrícula,
   # daría un aula para ocho personas.
   def secciones_de_la_planilla
-    filas.group_by(&:seccion_texto).filter_map do |texto, de_esa|
-      next if texto.blank?
+    filas.reject { |f| f.seccion_texto.blank? }
+         .group_by { |f| identidad_de_seccion(f.seccion_texto) }
+         .map do |(grado, nombre), de_esa|
+           escrituras = de_esa.group_by(&:seccion_texto)
+                              .sort_by { |_, filas| [ -filas.size, filas.first.numero ] }
+                              .map(&:first)
 
-      grado, nombre = partir(texto)
-
-      { texto: texto, cuantas: de_esa.size, seccion: buscar_seccion(grado, nombre),
-        grado: grado, nombre_de_seccion: nombre }
-    end.sort_by { |s| s[:texto] }
+           { texto: escrituras.first, tambien: escrituras.drop(1), cuantas: de_esa.size,
+             seccion: buscar_seccion(grado, nombre), grado: grado, nombre_de_seccion: nombre }
+         end.sort_by { |s| s[:texto] }
   end
 
   def secciones_que_faltan = secciones_de_la_planilla.reject { |s| s[:seccion] }
@@ -133,6 +149,17 @@ module InterpretaLaPlanilla
 
     resto = comparable.delete_prefix(Normaliza.limpiar(grado.name).delete(" "))
     [ grado, resto.gsub(/\A[^a-z0-9]+/, "").upcase.presence ]
+  end
+
+  # Cómo se agrupan dos escrituras: por el grado y la sección a los que apuntan.
+  #
+  # Cuando no hay ningún grado que se parezca no hay identidad que compartir, así
+  # que cada texto queda solo — si no, «Preescolar B» y «basura» se sumarían en
+  # una misma fila inexistente.
+  def identidad_de_seccion(texto)
+    grado, nombre = partir(texto)
+
+    grado ? [ grado, nombre ] : [ nil, texto ]
   end
 
   def buscar_seccion(grado, nombre)

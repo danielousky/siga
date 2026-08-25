@@ -6,7 +6,7 @@
   .card-academic
     .card-academic-header
       %h2
-        = pluralizar(sin_correo.size, "representante sin correo", "representantes sin correo")
+        = contar(sin_correo.size, "representante sin correo", "representantes sin correo")
 
     %p
       Están cargados y vinculados a sus alumnos, pero

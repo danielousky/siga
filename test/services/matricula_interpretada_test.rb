@@ -201,8 +201,8 @@ class MatriculaInterpretadaTest < ActiveSupport::TestCase
 
   # ── el conteo por sección ─────────────────────────────────────────────────
 
-  # ⚠️ El conteo es lo que delata el error de tipeo: «1er Año A · 20 alumnos» es
-  # una sección, «1er Año Á · 1 alumno» es un dedazo. Verlos juntos lo hace
+  # ⚠️ El conteo es lo que delata el error de tipeo: «1er Año C · 20 alumnos» es
+  # una sección, «1er Año K · 1 alumno» es un dedazo. Verlos juntos lo hace
   # obvio antes de crear basura.
   test "agrupa las secciones con su conteo" do
     m = interpretar(
@@ -220,6 +220,42 @@ class MatriculaInterpretadaTest < ActiveSupport::TestCase
     assert_nil z[:seccion]
     assert_equal "Z", z[:nombre_de_seccion]
     assert_equal @escenario.grado, z[:grado], "el grado sí existe: falta solo la sección"
+  end
+
+  # ⚠️ `1er Año A` y `1er Año Á` son la MISMA sección: `partir` compara sin
+  # acentos, así que el dedazo se resuelve solo.
+  #
+  # Agrupando por el texto crudo salían como dos, con dos botones «Crear 1er Año
+  # A» que hacen lo mismo — y el segundo, después de apretar el primero, ya no
+  # hacía nada. Se agrupan por la sección a la que APUNTAN, y las variantes de
+  # escritura se listan para que el colegio las corrija.
+  test "dos formas de escribir la misma sección son una sola" do
+    m = interpretar(
+      [ "ROJAS EVA", "", "V20140000003", "", "", "1ER AÑO / A", "MARÍN MARÍA", "V-12345678", "", "" ],
+      [ "PÉREZ ANA", "", "V20140000001", "", "", "1er Año A", "MARÍN MARÍA", "V-12345678", "", "" ],
+      [ "SILVA LUIS", "", "V20140000002", "", "", "1er Año Á", "MARÍN MARÍA", "V-12345678", "", "" ],
+      [ "DÍAZ SOL", "", "V20140000004", "", "", "1er Año A", "MARÍN MARÍA", "V-12345678", "", "" ]
+    )
+
+    assert_equal 1, m.secciones_de_la_planilla.size
+    seccion = m.secciones_de_la_planilla.first
+
+    assert_equal 4, seccion[:cuantas]
+    assert_equal "1er Año A", seccion[:texto], "manda la escritura que más se repite"
+    assert_equal [ "1ER AÑO / A", "1er Año Á" ], seccion[:tambien]
+    assert_equal @escenario.seccion, seccion[:seccion]
+  end
+
+  # Sin grado reconocible no hay identidad que compartir: si se agruparan igual,
+  # dos textos que no son nada quedarían sumados en una misma fila inexistente.
+  test "lo que no se parece a ningún grado no se agrupa entre sí" do
+    m = interpretar(
+      [ "PÉREZ ANA", "", "V20140000001", "", "", "Preescolar B", "MARÍN MARÍA", "V-12345678", "", "" ],
+      [ "SILVA LUIS", "", "V20140000002", "", "", "SIN ASIGNAR", "MARÍN MARÍA", "V-12345678", "", "" ]
+    )
+
+    assert_equal 2, m.secciones_de_la_planilla.size
+    assert_equal [ "Preescolar B", "SIN ASIGNAR" ], m.secciones_de_la_planilla.map { |s| s[:texto] }
   end
 
   test "las secciones que faltan se listan aparte" do

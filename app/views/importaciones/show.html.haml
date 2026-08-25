@@ -13,7 +13,7 @@
       = @importacion.planilla.filas.size
       - if @importacion.planilla.descartadas.any?
         %span.nota-ayuda
-          = "· #{pluralizar(@importacion.planilla.descartadas.size, 'fila ignorada', 'filas ignoradas')}"
+          = "· #{contar(@importacion.planilla.descartadas.size, 'fila ignorada', 'filas ignoradas')}"
     %dt Encabezados
     %dd
       -# Que diga en qué fila los encontró no es un detalle técnico: si se

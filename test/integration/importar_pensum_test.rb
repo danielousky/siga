@@ -106,6 +106,17 @@ class ImportarPensumTest < ActionDispatch::IntegrationTest
     assert_select "form[action=?]", crear_seccion_importacion_path(ultima)
   end
 
+  # ⚠️ CON EL NÚMERO. El conteo es lo único que separa una sección de verdad de
+  # un dedazo —«1er Año C · 18» contra «1er Año K · 1»— y sin él la columna no
+  # dice nada. `pluralizar` devuelve solo la palabra; el número lo pone `contar`.
+  test "el conteo de la sección que falta sale con su número" do
+    subir
+    patch importacion_path(ultima), params: { mapeo: ultima.mapeo_sugerido }
+    follow_redirect!
+
+    assert_select "td", text: "1 materia"
+  end
+
   # ⚠️ La diferencia con la matrícula, y es del modelo: `EntraAlSistema` exige el
   # correo del profesor. Un representante sin correo se carga igual.
   test "el profesor sin correo se rechaza, y se dice por qué" do

@@ -5,7 +5,7 @@
       %h2 Confirme el formato de las fechas
 
     %p
-      = pluralizar(planilla.fechas_ambiguas, "fecha se leería", "fechas se leerían")
+      = contar(planilla.fechas_ambiguas, "fecha se leería", "fechas se leerían")
       distinto según el idioma del Excel que las escribió. SIGA las está leyendo
       como
       %strong día/mes/año

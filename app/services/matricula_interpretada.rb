@@ -33,8 +33,12 @@ class MatriculaInterpretada
       @representante = {}
     end
 
+    # En Tipo Título, como TODOS los nombres de la app: los datos se guardan en
+    # MAYÚSCULA —es la forma de la cédula y de las planillas del MPPE— y se
+    # muestran así. Una tabla que grita al lado de diez que no, desentona.
     def nombre_del_alumno
-      [ alumno[:first_name], alumno[:last_name], alumno[:second_last_name] ].compact_blank.join(" ")
+      Normaliza.titulo([ alumno[:first_name], alumno[:last_name], alumno[:second_last_name] ]
+                         .compact_blank.join(" "))
     end
 
     def etiqueta = nombre_del_alumno

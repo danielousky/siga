@@ -26,9 +26,10 @@ class PensumInterpretado
       @profesor = {}
     end
 
+    # En Tipo Título, como TODOS los nombres de la app. Ver `MatriculaInterpretada::Fila`.
     def nombre_del_profesor
-      [ profesor[:first_name], profesor[:last_name], profesor[:second_last_name] ]
-        .compact_blank.join(" ")
+      Normaliza.titulo([ profesor[:first_name], profesor[:last_name], profesor[:second_last_name] ]
+                         .compact_blank.join(" "))
     end
 
     def etiqueta = [ materia, nombre_del_profesor ].compact_blank.join(" · ")
@@ -40,6 +41,7 @@ class PensumInterpretado
     preparar(planilla: planilla, mapeo: mapeo, colegio: colegio, periodo: periodo)
 
     @filas = @planilla.filas.map { |cruda| interpretar(cruda) }
+    avisar_de_los_choques
   end
 
   # ── los resúmenes de esta planilla ────────────────────────────────────────
@@ -63,6 +65,33 @@ class PensumInterpretado
   end
 
   private
+
+  # ⚠️ Una sección tiene UN profesor por materia, y la propia planilla lo delata.
+  #
+  # Antes esto solo salía DESPUÉS de escribir, en el reporte de fallidas: el
+  # colegio confirmaba, se cargaba todo, y recién ahí se enteraba de que una fila
+  # había quedado fuera. La planilla ya tiene la información —dos filas con la
+  # misma sección y materia y distinto profesor— así que se dice antes.
+  #
+  # Es un AVISO y no un error: la fila igual se carga si es la primera, y forzar
+  # a corregir la planilla para poder importar sería peor que cargar 359 filas y
+  # señalar la que sobra.
+  def avisar_de_los_choques
+    cargables.group_by { |f| [ f.seccion&.id, f.codigo ] }.each_value do |mismas|
+      primera = mismas.first
+      next if mismas.size < 2
+
+      mismas.drop(1).each do |repetida|
+        next if repetida.profesor[:document] == primera.profesor[:document]
+
+        repetida.aviso("#{primera.materia} en #{etiqueta(primera.seccion)} ya la dicta " \
+                       "#{primera.nombre_del_profesor} en la fila #{primera.numero}. " \
+                       "Una sección tiene un solo profesor por materia, así que esta no se carga.")
+      end
+    end
+  end
+
+  def etiqueta(seccion) = "#{seccion.grade.name} #{seccion.name}"
 
   def interpretar(cruda)
     fila = Fila.new(numero: cruda.numero)

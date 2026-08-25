@@ -194,6 +194,33 @@ class PensumInterpretadoTest < ActiveSupport::TestCase
     assert fila.limpia?, "quedó con #{fila.avisos.to_sentence}"
   end
 
+  # ⚠️ Una sección tiene UN profesor por materia, y la planilla ya lo delata: dos
+  # filas con la misma sección y materia y distinto profesor.
+  #
+  # Antes esto solo salía DESPUÉS de escribir, en el reporte de fallidas. El
+  # colegio confirmaba, se cargaba todo, y recién ahí se enteraba.
+  test "avisa si la planilla trae dos profesores para la misma materia y sección" do
+    p = interpretar(
+      [ "1er Año A", "Biología", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ],
+      [ "1er Año A", "Biología", "BIO", "", "SILVA LUIS", "V-84111222", "l@b.edu" ]
+    )
+
+    assert p.filas.first.limpia?, "la primera se carga sin reparos"
+    assert p.filas.second.cargable?, "el aviso no bloquea"
+    assert_match(/ya la dicta Carlos García en la fila 2/, p.filas.second.avisos.first)
+  end
+
+  # La misma materia en la misma sección con el MISMO profesor no es un choque:
+  # es una planilla que repite una fila, y eso se resuelve solo.
+  test "no avisa si la fila repetida trae al mismo profesor" do
+    p = interpretar(
+      [ "1er Año A", "Biología", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ],
+      [ "1er Año A", "Biología", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ]
+    )
+
+    assert_empty p.con_avisos
+  end
+
   # ── los resúmenes ─────────────────────────────────────────────────────────
 
   test "cuenta materias y profesores distintos, no filas" do

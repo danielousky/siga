@@ -233,6 +233,12 @@ class ImportarMatriculaTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "td", text: /1er Año C/
     assert_select "button[type=submit]", text: /Crear .*C/
+
+    # ⚠️ CON EL NÚMERO, que es todo el punto de la columna. `pluralizar` devuelve
+    # solo la palabra —el número lo pone `contar`— y durante un tiempo esta celda
+    # decía «alumnos» a secas. Este mismo test lo dejó pasar porque su aserción
+    # miraba el NOMBRE de la sección, no el conteo que su título prometía.
+    assert_select "td", text: "1 alumno"
   end
 
   test "crear la sección desde la previsualización la deja lista" do
@@ -243,7 +249,7 @@ class ImportarMatriculaTest < ActionDispatch::IntegrationTest
 
     assert_difference -> { con_el_colegio(@a.colegio) { Section.count } }, 1 do
       post crear_seccion_importacion_path(importacion),
-           params: { grade_id: grado.id, nombre: "C", alumnos: 2 }
+           params: { grade_id: grado.id, nombre: "C", cuantas: 2 }
     end
 
     seccion = con_el_colegio(@a.colegio) { Section.find_by(grade: grado, name: "C") }
@@ -287,7 +293,7 @@ class ImportarMatriculaTest < ActionDispatch::IntegrationTest
     get previsualizar_importacion_path(importacion), params: { periodo_id: viejo_periodo.id }
     grado = con_el_colegio(@a.colegio) { Grade.find_by(name: "1er Año") }
     post crear_seccion_importacion_path(importacion),
-         params: { grade_id: grado.id, nombre: "C", alumnos: 1 }
+         params: { grade_id: grado.id, nombre: "C", cuantas: 1 }
 
     con_el_colegio(@a.colegio) do
       seccion = Section.find_by(grade: grado, name: "C")
@@ -380,7 +386,7 @@ class ImportarMatriculaTest < ActionDispatch::IntegrationTest
     importacion = con_el_colegio(@a.colegio) { Importacion.last }
     mapear_todo(importacion)
     grado = con_el_colegio(@a.colegio) { Grade.find_by(name: "1er Año") }
-    post crear_seccion_importacion_path(importacion), params: { grade_id: grado.id, nombre: "C", alumnos: 1 }
+    post crear_seccion_importacion_path(importacion), params: { grade_id: grado.id, nombre: "C", cuantas: 1 }
     importacion
   end
 
