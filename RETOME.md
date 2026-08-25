@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 25 de agosto de 2026 (tarde)
+# 🔖 Punto de retome — actualizado 25 de agosto de 2026 (mediodía)
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 
@@ -724,17 +724,54 @@ una llave.
 
 ---
 
+## 25 de agosto · desplegado, y la revisión de funcionalidad
+
+**Producción está al día**, en `7139e7c`. Se desplegaron las tandas 1 y 2 del importador,
+el código de acceso generalizado y dos arreglos que salieron de revisar. Respaldo
+tomado antes de migrar y verificado (43 tablas con datos), en
+`~/Documents/SIGA-respaldos/`.
+
+**Revisión completa de qué hay y qué falta:**
+https://claude.ai/code/artifact/59e39507-c3f0-4b36-a432-7ed299ea92ab
+
+El resumen de esa revisión, para no depender del enlace:
+
+```
+   EL COLEGIO          LA FAMILIA          EL NEGOCIO DE SIGA
+   ──────────          ──────────          ──────────────────
+   matrícula      ✓    portal         ✓    aislamiento      ✓
+   asistencia     ✓    acceso         ✓    suscripciones    ✓
+   notas          ✓    boletines      ✓    cobrar           ✗
+   boletines      ✓    WhatsApp       ✗    alta sin ayuda   ✗
+   importador     ✓                        monitoreo        ✗
+```
+
+**El producto que el colegio usa está construido. Lo que no existe es el negocio
+alrededor:** nada cobra (`MOR-128`), un colegio nuevo no puede darse de alta solo
+(`MOR-148`, `MOR-109`), y si el worker se cae nadie se entera (`MOR-106`).
+
+### Lo que se hizo de más en esta sesión
+
+- **Nada borraba los archivos importados.** `purgable?` existía desde la tanda 1 y no lo
+  llamaba nadie. Ahora `PurgarPlanillasJob` corre todos los días a las 3 —ya registrado en
+  el scheduler de producción— y alcanza a las importaciones **abandonadas a medias**, que
+  eran las que se quedaban para siempre con datos de 360 menores adentro.
+- **Descartar una importación y volver a abrirla daba un 500**, y estaba en producción.
+  `archivo.open` sobre un adjunto purgado no revienta: devuelve `nil` sin llamar al bloque.
+- **Tres afirmaciones viejas en `CLAUDE.md`**: decía que el correo no sale (sale desde el 21),
+  que SIGA no tiene asistencia ni portal (los tiene), y contaba 22 tablas con RLS (son 23).
+- **Linear al día**: `MOR-103` llevaba semanas resuelto y figuraba «In Progress»;
+  `MOR-126` estaba en Backlog con dos tandas entregadas.
+
+---
+
 ## Dónde está todo ahora
 
 ```
-  main  (b76412b)                              ← desplegado en producción
-   └─ feat/mor-138-identidad-de-la-persona
-       └─ feat/mor-126-importador-de-matricula  ← acá, 17 commits SIN PUSH
+  main  (7139e7c)   ← origin y producción, los tres al día
 ```
 
-`bin/ci` en verde: **718 tests**, 2170 aserciones, ~22 s.
-
-⚠️ **El importador entero está sin desplegar.** Producción sigue en `main`, que no lo tiene.
+`bin/ci` en verde: **729 tests**, 2195 aserciones, ~21 s.
 
 ## ⚠️ Pendientes que necesitan a Daniel
 
@@ -752,6 +789,9 @@ una llave.
 
 ## Lo que sigue, en orden
 
+0. **`MOR-146` · Limpiar los datos de demo de producción.** Es lo único marcado como
+   **urgente** en todo el backlog, y no lo toqué a propósito: borrar 290 alumnos y sus notas
+   de la base que ve el mundo es irreversible y necesita a Daniel delante.
 1. **`MOR-148` · Wizard de alta de un colegio nuevo.** Hoy un colegio recién creado nace sin
    año escolar, sin grados y sin secciones, y el importador es el que se lo encuentra. La
    salida de emergencia ya está puesta —crear el año escolar y las secciones **desde la

@@ -130,12 +130,12 @@ El diagnóstico original, con lo que quedó de cada punto:
                     │
                     ├─ CAPA 1 · SchoolScoped
                     │    default_scope { where(school_id: Current.school_id) }
-                    │    23 modelos. Evita el error humano.
+                    │    24 modelos. Evita el error humano.
                     │    Se la saltan: unscoped, find_by_sql, SQL crudo.
                     │
                     └─ CAPA 2 · PostgreSQL RLS con FORCE
                          SET LOCAL siga.school_id, dentro de la transacción
-                         22 tablas. Hace que el error no tenga consecuencias.
+                         23 tablas. Hace que el error no tenga consecuencias.
                          Sin contexto → CERO filas, no todas.
 ```
 
