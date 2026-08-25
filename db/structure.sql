@@ -572,6 +572,7 @@ CREATE TABLE public.final_grade_books (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     school_id bigint NOT NULL,
+    origen integer DEFAULT 0 NOT NULL,
     CONSTRAINT final_grade_books_annual_average_escala_1_20 CHECK (((annual_average IS NULL) OR ((annual_average >= (1)::numeric) AND (annual_average <= (20)::numeric)))),
     CONSTRAINT final_grade_books_final_score_escala_1_20 CHECK (((final_score IS NULL) OR ((final_score >= (1)::numeric) AND (final_score <= (20)::numeric)))),
     CONSTRAINT final_grade_books_remedial_exam_score_escala_1_20 CHECK (((remedial_exam_score IS NULL) OR ((remedial_exam_score >= (1)::numeric) AND (remedial_exam_score <= (20)::numeric))))
@@ -728,6 +729,7 @@ CREATE TABLE public.moment_grades (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     school_id bigint NOT NULL,
+    origen integer DEFAULT 0 NOT NULL,
     CONSTRAINT moment_grades_final_moment_score_escala_1_20 CHECK (((final_moment_score IS NULL) OR ((final_moment_score >= (1)::numeric) AND (final_moment_score <= (20)::numeric))))
 );
 
@@ -2575,6 +2577,13 @@ CREATE INDEX index_final_grade_books_on_school_id ON public.final_grade_books US
 
 
 --
+-- Name: index_final_grade_books_on_school_id_and_origen; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_final_grade_books_on_school_id_and_origen ON public.final_grade_books USING btree (school_id, origen);
+
+
+--
 -- Name: index_final_grade_books_on_subject_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2677,6 +2686,13 @@ CREATE INDEX index_moment_grades_on_evaluation_moment_id ON public.moment_grades
 --
 
 CREATE INDEX index_moment_grades_on_school_id ON public.moment_grades USING btree (school_id);
+
+
+--
+-- Name: index_moment_grades_on_school_id_and_origen; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_moment_grades_on_school_id_and_origen ON public.moment_grades USING btree (school_id, origen);
 
 
 --
@@ -3986,6 +4002,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260825140000'),
 ('20260824220000'),
 ('20260824200000'),
 ('20260824180000'),

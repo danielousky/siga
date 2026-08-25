@@ -54,6 +54,15 @@ class GradeCalculator
       evaluation_moment_id: evaluation_moment.id
     )
 
+    # ⚠️ Sin actividades hay DOS casos, y confundirlos borra el historial de un
+    # colegio entero.
+    #
+    #   la nota la calculamos nosotros  → no tiene respaldo, se borra
+    #   la nota la trajo el colegio     → su respaldo está en papel, se respeta
+    #
+    # La regla de borrar está bien y no se afloja: una calificación de lapso
+    # huérfana contaría en el promedio anual para siempre. Lo que faltaba era
+    # distinguir «sin respaldo» de «con un respaldo que no está acá».
     return borrar_nota_de_lapso(enrollment, subject, evaluation_moment) if activities.empty?
 
     total_weight = 0
@@ -89,6 +98,11 @@ class GradeCalculator
       evaluation_moment_id: evaluation_moment.id
     ).tap do |mg|
       mg.final_moment_score = score
+      # Si había una importada y ahora hay actividades, el colegio decidió cargar
+      # las evaluaciones de verdad: pasa a calculada y se comporta como el resto.
+      # Es una acción explícita de una persona, y tiene que poder ganarle a un
+      # import.
+      mg.origen = :calculada
       mg.save!
     end
   end
@@ -96,7 +110,15 @@ class GradeCalculator
   # La calificación definitiva del año: el promedio de las calificaciones de los
   # lapsos, que ya son enteras (Art. 108 + 111). Promedio simple: el peso del
   # lapso no interviene.
+  # ⚠️ Un libro IMPORTADO no se recalcula. El colegio trae su definitiva
+  # certificada —la que está impresa en el boletín que ya entregó— y esa manda
+  # sobre lo que dé el promedio de los lapsos. Pueden no coincidir por una
+  # reparación vieja, por un redondeo que aquel sistema hacía distinto, o
+  # simplemente porque el colegio no nos dio los tres lapsos.
   def self.calculate_final_grade(enrollment:, subject:)
+    libro = FinalGradeBook.find_by(enrollment_id: enrollment.id, subject_id: subject.id)
+    return libro if libro&.importada?
+
     # Solo los momentos del período de ESTA inscripción. Antes decía
     # `EvaluationMoment.all`, que con los momentos compartidos daba lo mismo —
     # pero desde que cuelgan del período eso traería también los lapsos de otros
@@ -121,10 +143,7 @@ class GradeCalculator
 
     annual_average = redondear(calificaciones.sum / calificaciones.size)
 
-    FinalGradeBook.find_or_initialize_by(
-      enrollment_id: enrollment.id,
-      subject_id: subject.id
-    ).tap do |fgb|
+    (libro || FinalGradeBook.new(enrollment_id: enrollment.id, subject_id: subject.id)).tap do |fgb|
       fgb.annual_average = annual_average
 
       # La reparación solo se presenta estando aplazado, así que en la práctica
@@ -158,10 +177,17 @@ class GradeCalculator
   # Una calificación de lapso sin notas que la respalden no se deja: se borra.
   # Devuelve nil, que es lo que el llamador entiende como "este alumno no tiene
   # nota de este lapso".
+  #
+  # ⚠️ Salvo que sea IMPORTADA, en cuyo caso se devuelve tal cual. Su respaldo
+  # existe: está en el archivo del colegio, no en esta base.
   def self.borrar_nota_de_lapso(enrollment, subject, evaluation_moment)
-    MomentGrade.find_by(
+    nota = MomentGrade.find_by(
       enrollment_id: enrollment.id, subject_id: subject.id, evaluation_moment_id: evaluation_moment.id
-    )&.destroy
+    )
+    return nil if nota.nil?
+    return nota if nota.importada?
+
+    nota.destroy
     nil
   end
   private_class_method :borrar_nota_de_lapso
@@ -172,6 +198,7 @@ class GradeCalculator
   def self.vaciar_libro(enrollment, subject)
     libro = FinalGradeBook.find_by(enrollment_id: enrollment.id, subject_id: subject.id)
     return nil if libro.nil?
+    return libro if libro.importada?
 
     if libro.remedial_exam_score.present? || libro.comments.present?
       libro.update!(annual_average: nil, final_score: redondear(libro.remedial_exam_score))
