@@ -3814,3 +3814,22 @@ nav.pagy a.gap {
   margin-top: var(--space-md);
   max-width: 340px;
 }
+
+/* ---- Carga rápida desde la previsualización de una importación ---- */
+
+/* La planilla nombra un grado que no existe y SIGA no sabe dónde cortarlo, así
+   que propone y la persona confirma. Va dentro de una celda de tabla: los
+   campos se apilan en el teléfono y se alinean en el escritorio. */
+.carga-rapida-campos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  align-items: flex-end;
+  margin-bottom: var(--space-sm);
+}
+
+.carga-rapida-campos .form-group {
+  margin-bottom: 0;
+  min-width: 7rem;
+  flex: 1 1 7rem;
+}

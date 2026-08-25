@@ -90,7 +90,8 @@ module InterpretaLaPlanilla
                               .map(&:first)
 
            { texto: escrituras.first, tambien: escrituras.drop(1), cuantas: de_esa.size,
-             seccion: buscar_seccion(grado, nombre), grado: grado, nombre_de_seccion: nombre }
+             seccion: buscar_seccion(grado, nombre), grado: grado, nombre_de_seccion: nombre,
+             **propuesta_de_grado(grado ? nil : escrituras.first) }
          end.sort_by { |s| s[:texto] }
   end
 
@@ -160,6 +161,36 @@ module InterpretaLaPlanilla
     grado, nombre = partir(texto)
 
     grado ? [ grado, nombre ] : [ nil, texto ]
+  end
+
+  # ── cuando NINGÚN grado del colegio se parece ─────────────────────────────
+  #
+  # Ahí no hay dónde cortar el texto: «3er Año C» puede ser el grado «3er Año»
+  # con la sección «C», o un grado que se llame así entero. Sin un grado
+  # existente contra el cual comparar, `partir` no puede decidir.
+  #
+  # Así que se PROPONE un corte y la persona confirma o corrige. Es el mismo
+  # trato que con la sección que falta: ni se crea sola —un dedazo dejaría un
+  # grado basura para siempre— ni se manda a nadie a otra pantalla a hacerlo a
+  # mano y volver a empezar.
+
+  # El último token de una o dos letras es la sección, en casi toda planilla
+  # venezolana: «3er Año C», «6to Grado B», «5to Año 2».
+  CORTE = /\A(?<grado>.+?)[\s\-\/]+(?<seccion>[A-Za-z0-9]{1,2})\z/
+
+  # ⚠️ Primaria dice GRADO y secundaria dice AÑO, y eso decide la escala.
+  #
+  # No es una convención nuestra: es cómo se nombran los niveles en Venezuela —
+  # 1er a 6to **Grado**, y 1er a 5to **Año**—. Y de ahí sale el nivel, que a su
+  # vez decide si se califica del 1 al 20 o por literales (`MOR-129`).
+  def propuesta_de_grado(texto)
+    return {} if texto.blank?
+
+    partes = CORTE.match(texto.strip)
+    nombre = (partes ? partes[:grado] : texto).strip
+    nivel  = Normaliza.limpiar(nombre).include?("grado") ? :primaria : :secundaria
+
+    { grado_propuesto: nombre, seccion_propuesta: partes && partes[:seccion].upcase, nivel_propuesto: nivel }
   end
 
   def buscar_seccion(grado, nombre)

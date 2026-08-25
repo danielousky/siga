@@ -24,7 +24,8 @@
 class ImportacionesController < ApplicationController
   before_action :require_puede_gestionar!
   before_action :set_importacion,
-                only: [ :show, :update, :destroy, :previsualizar, :crear_seccion, :crear_periodo, :resultado ]
+                only: [ :show, :update, :destroy, :previsualizar,
+                        :crear_seccion, :crear_grado, :crear_periodo, :resultado ]
 
   def index
     @pagy, @importaciones = pagy(Importacion.includes(:subido_por).recientes)
@@ -167,6 +168,31 @@ class ImportacionesController < ApplicationController
     end
   end
 
+  # ⚠️ Crear el GRADO, no solo la sección — y es el caso que faltaba.
+  #
+  # `crear_seccion` sirve cuando el grado existe. Cuando no existe ninguno que se
+  # parezca, la pantalla mandaba a la persona a Configuración a crearlo a mano y
+  # volver a empezar: el único callejón que quedaba en todo el recorrido.
+  #
+  # Se crean los DOS de un golpe, porque quien llega acá está tratando de
+  # resolver una sección: crear el grado y dejarlo sin secciones lo dejaría a
+  # mitad de camino, mirando la misma pantalla con otro mensaje.
+  def crear_grado
+    periodo = @importacion.periodo
+    return redirect_to(previsualizar_importacion_path(@importacion), alert: "El colegio no tiene ningún año escolar cargado.") if periodo.nil?
+
+    grado = Grade.new(school: Current.school,
+                      name: params[:grado].to_s.strip,
+                      level: params[:nivel])
+
+    return redirect_to(previsualizar_importacion_path(@importacion), alert: grado.errors.full_messages.to_sentence) unless grado.save
+
+    seccion = crear_la_seccion(grado, periodo)
+
+    redirect_to previsualizar_importacion_path(@importacion),
+                notice: "Se creó #{grado.name}#{" #{seccion.name}" if seccion&.persisted?}."
+  end
+
   # El reporte de lo que pasó. Se lee de `resultado`, que quedó guardado al
   # confirmar: el archivo puede cambiar después y el reporte tiene que seguir
   # describiendo lo que de verdad ocurrió.
@@ -214,6 +240,16 @@ class ImportacionesController < ApplicationController
   # fallaba, y el formulario volvía a decir «Subir matrícula de alumnos» con la
   # URL todavía en `?tipo=pensum`. Reintentando desde ahí, el pensum entraba como
   # matrícula.
+  # La sección del grado recién creado. Devuelve `nil` si la planilla no nombraba
+  # ninguna —«5to Año» a secas es un grado sin sección, y es válido—.
+  def crear_la_seccion(grado, periodo)
+    nombre = params[:seccion].to_s.strip.upcase
+    return nil if nombre.blank?
+
+    Section.create(grade: grado, academic_period: periodo, name: nombre,
+                   capacity: [ (@importacion.matricula? ? params[:cuantas].to_i : 0), 30 ].max)
+  end
+
   def rechazar(mensaje)
     @importacion ||= Importacion.new(tipo: tipo_pedido)
     flash.now[:alert] = mensaje

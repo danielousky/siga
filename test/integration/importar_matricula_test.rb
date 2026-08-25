@@ -533,4 +533,86 @@ class ImportarMatriculaTest < ActionDispatch::IntegrationTest
 
     assert con_el_colegio(@a.colegio) { Importacion.find(importacion.id).descartada? }
   end
+  # ── el grado que no existe ────────────────────────────────────────────────
+  #
+  # ⚠️ Era el único callejón que quedaba en todo el recorrido: la pantalla
+  # mandaba a la persona a Configuración a crear el grado a mano y volver a
+  # empezar. Ahora se crea de acá, igual que la sección y el año escolar.
+
+  test "un grado que no existe se ofrece crear, con el corte ya propuesto" do
+    con_grado_nuevo do |importacion|
+      get previsualizar_importacion_path(importacion)
+
+      assert_response :success
+      assert_select "form[action=?]", crear_grado_importacion_path(importacion)
+      # El corte propuesto: «3er Año C» es el grado «3er Año» con la sección «C».
+      assert_select "input[name=grado][value=?]", "3er Año"
+      assert_select "input[name=seccion][value=?]", "C"
+    end
+  end
+
+  # Primaria dice GRADO y secundaria dice AÑO. No es una convención nuestra: es
+  # cómo se nombran los niveles en Venezuela, y de ahí sale la escala (MOR-129).
+  test "propone el nivel según diga «Año» o «Grado»" do
+    con_grado_nuevo do |importacion|
+      get previsualizar_importacion_path(importacion)
+
+      assert_select "select[name=nivel] option[selected][value=?]", "secundaria"
+    end
+  end
+
+  # Se crean los DOS de un golpe: quien llega acá está tratando de resolver una
+  # sección, y dejarle el grado sin secciones lo deja a mitad de camino.
+  test "crear el grado crea también su sección" do
+    con_grado_nuevo do |importacion|
+      assert_difference [ -> { con_el_colegio(@a.colegio) { Grade.count } },
+                          -> { con_el_colegio(@a.colegio) { Section.count } } ], 1 do
+        post crear_grado_importacion_path(importacion),
+             params: { grado: "3er Año", seccion: "C", nivel: "secundaria", cuantas: 1 }
+      end
+
+      con_el_colegio(@a.colegio) do
+        grado = Grade.find_by(name: "3er Año")
+        assert grado.secundaria?
+        assert grado.escala_numerica?, "en secundaria la escala es siempre numérica"
+        assert_equal importacion.periodo, Section.find_by(grade: grado, name: "C").academic_period
+      end
+    end
+  end
+
+  # Un grado sin sección es válido: «5to Año» a secas no nombra ninguna.
+  test "sin nombre de sección se crea solo el grado" do
+    con_grado_nuevo do |importacion|
+      assert_no_difference -> { con_el_colegio(@a.colegio) { Section.count } } do
+        post crear_grado_importacion_path(importacion),
+             params: { grado: "5to Año", seccion: "", nivel: "secundaria" }
+      end
+
+      assert_not_nil con_el_colegio(@a.colegio) { Grade.find_by(name: "5to Año") }
+    end
+  end
+
+  # Un nombre repetido no crea basura: el índice es único por colegio.
+  test "un grado que ya existe se rechaza con su motivo" do
+    con_grado_nuevo do |importacion|
+      existente = con_el_colegio(@a.colegio) { Grade.first.name }
+
+      assert_no_difference -> { con_el_colegio(@a.colegio) { Grade.count } } do
+        post crear_grado_importacion_path(importacion),
+             params: { grado: existente, seccion: "Z", nivel: "secundaria" }
+      end
+
+      assert_match(/ya está en uso|already been taken/i, flash[:alert].to_s)
+    end
+  end
+
+  # Sube la planilla que nombra «3er Año C», un grado que el colegio no tiene, y
+  # deja el mapeo hecho.
+  def con_grado_nuevo
+    subir("matricula_con_grado_nuevo.csv")
+    importacion = con_el_colegio(@a.colegio) { Importacion.last }
+    mapear_todo(importacion)
+
+    yield importacion
+  end
 end

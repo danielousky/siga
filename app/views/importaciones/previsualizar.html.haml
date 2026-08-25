@@ -112,10 +112,31 @@
                             params: { grade_id: s[:grado].id, nombre: s[:nombre_de_seccion], cuantas: s[:cuantas] },
                             class: "btn btn-secondary"
               - else
-                %span.nota-pendiente
-                  No hay ningún grado que se llame así. Créelo primero en
-                  = succeed "." do
-                    = link_to "Grados", grades_path
+                -# ⚠️ El único callejón que quedaba en todo el recorrido: acá se
+                -# mandaba a la persona a Configuración a crear el grado a mano y
+                -# volver a empezar.
+                -#
+                -# No hay ningún grado que se le parezca, así que SIGA no sabe
+                -# dónde cortar «3er Año C». Propone un corte y la persona
+                -# confirma: los dos campos vienen llenos y se pueden corregir.
+                = form_with url: crear_grado_importacion_path(@importacion), method: :post, class: "carga-rapida" do
+                  = hidden_field_tag :cuantas, s[:cuantas]
+                  .carga-rapida-campos
+                    .form-group
+                      = label_tag "grado_#{s[:texto].parameterize}", "Grado nuevo", class: "form-label"
+                      = text_field_tag :grado, s[:grado_propuesto], class: "form-control",
+                                       id: "grado_#{s[:texto].parameterize}", required: true
+                    .form-group
+                      = label_tag "seccion_#{s[:texto].parameterize}", "Sección", class: "form-label"
+                      = text_field_tag :seccion, s[:seccion_propuesta], class: "form-control",
+                                       id: "seccion_#{s[:texto].parameterize}"
+                    .form-group
+                      = label_tag "nivel_#{s[:texto].parameterize}", "Nivel", class: "form-label"
+                      -# El nivel decide la escala: secundaria califica del 1 al
+                      -# 20 y primaria por literales. Ver MOR-129.
+                      = select_tag :nivel, options_for_select(Grade.levels.keys.map { |n| [n.capitalize, n] }, s[:nivel_propuesto].to_s),
+                                   class: "form-select", id: "nivel_#{s[:texto].parameterize}"
+                  = submit_tag "Crear el grado", class: "btn btn-secondary"
 
 -# ── lo que conviene revisar, y es distinto en cada planilla ────────────────
 = render "revisar_#{@importacion.tipo}", planilla: @planilla

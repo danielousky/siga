@@ -161,6 +161,11 @@ Rails.application.routes.draw do
       # y no en `sections#create` porque el contexto importa: se crea sabiendo
       # cuántos alumnos de ESTA planilla la esperan, que es lo que distingue una
       # sección nueva de un error de tipeo.
+      # Y el GRADO, cuando no existe ninguno que se le parezca. Va acá por lo
+      # mismo que la sección: se crea sabiendo cuántas filas de ESTA planilla lo
+      # esperan, que es lo que distingue un grado nuevo de un error de tipeo.
+      post :crear_grado
+
       post :crear_seccion
 
       # La red de rescate: un colegio nuevo nace sin ningún año escolar, y sin
