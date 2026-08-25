@@ -93,6 +93,7 @@ class ImportacionesController < ApplicationController
   # guardar el mapeo, o escribir la matrícula.
   def update
     return confirmar if params[:confirmar].present?
+    return cambiar_tipo if params[:cambiar_tipo].present?
 
     @importacion.mapeo = mapeo_desde_el_formulario
     @importacion.estado = :mapeada if @importacion.lista_para_previsualizar?
@@ -224,6 +225,19 @@ class ImportacionesController < ApplicationController
   # `=> ""` haría que `mapeo_efectivo` las contara como mapeadas a nada.
   def mapeo_desde_el_formulario
     params.fetch(:mapeo, {}).permit!.to_h.compact_blank
+  end
+
+  # Subió la planilla en el lugar equivocado — son dos botones al lado— y el
+  # sistema se dio cuenta. Cambiar el tipo sin volver a subir nada.
+  #
+  # ⚠️ El mapeo guardado se BORRA: apunta a las columnas del tipo anterior, y
+  # conservarlo dejaría «APELLIDOS Y NOMBRES» apuntando al profesor en una
+  # planilla de alumnos.
+  def cambiar_tipo
+    @importacion.update!(tipo: @importacion.otro_tipo, mapeo: {}, estado: :cargada)
+
+    redirect_to @importacion,
+                notice: "Ahora se lee como #{@importacion.etiqueta_de_tipo.downcase}."
   end
 
   # ⚠️ Se vuelve a interpretar la planilla acá, en vez de confiar en lo que se

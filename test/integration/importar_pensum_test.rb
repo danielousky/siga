@@ -100,6 +100,59 @@ class ImportarPensumTest < ActionDispatch::IntegrationTest
     assert_select "select option", text: "CÉDULA DEL REPRESENTANTE", count: 0
   end
 
+  # ⚠️ Subir la planilla equivocada es fácil: son dos botones al lado.
+  #
+  # Y sale caro: una planilla de MATRÍCULA subida como pensum mapea «APELLIDOS Y
+  # NOMBRES» al PROFESOR, «CEDULA REPRESENTANTE» a su cédula y «CORREO
+  # REPRESENTANTE» a su correo. Pasó en pruebas, y lo único que lo frenó fue que
+  # faltaba MATERIA — con una columna más, el colegio habría terminado con sus
+  # ALUMNOS cargados como profesores, cada uno con el correo de su mamá.
+  test "avisa si la planilla es en realidad la del otro tipo" do
+    post importaciones_path,
+         params: { importacion: { archivo: fixture_file_upload("matricula_de_colegio.csv", "text/csv"),
+                                  tipo: "pensum" } }
+    follow_redirect!
+
+    assert ultima.parece_del_otro_tipo?
+    assert_select "h2", text: /parece una planilla de matrícula/i
+  end
+
+  # No se bloquea nada: quien sube sabe cosas que el sistema no.
+  test "el aviso no impide seguir mapeando" do
+    post importaciones_path,
+         params: { importacion: { archivo: fixture_file_upload("matricula_de_colegio.csv", "text/csv"),
+                                  tipo: "pensum" } }
+    follow_redirect!
+
+    assert_select "select[name=?]", "mapeo[APELLIDOS Y NOMBRES]"
+  end
+
+  # ⚠️ El mapeo guardado se BORRA al cambiar: apunta a las columnas del tipo
+  # anterior, y conservarlo dejaría «APELLIDOS Y NOMBRES» apuntando al profesor
+  # en una planilla de alumnos.
+  test "se puede cambiar el tipo sin volver a subir el archivo" do
+    post importaciones_path,
+         params: { importacion: { archivo: fixture_file_upload("matricula_de_colegio.csv", "text/csv"),
+                                  tipo: "pensum" } }
+    importacion = ultima
+    patch importacion_path(importacion), params: { mapeo: importacion.mapeo_sugerido }
+
+    patch importacion_path(importacion), params: { cambiar_tipo: "1" }
+
+    assert_redirected_to importacion_path(importacion)
+    assert ultima.matricula?
+    assert_empty ultima.mapeo, "el mapeo viejo apunta a las columnas del otro tipo"
+    assert_equal "nombre_completo", ultima.mapeo_efectivo["APELLIDOS Y NOMBRES"]
+  end
+
+  # Y no se nota nada cuando la planilla SÍ es la que se dijo: 360 avisos son
+  # cero avisos.
+  test "no avisa cuando la planilla es la correcta" do
+    subir
+
+    assert_not ultima.parece_del_otro_tipo?
+  end
+
   # ── previsualizar ─────────────────────────────────────────────────────────
 
   test "muestra materias y profesores distintos, no filas" do

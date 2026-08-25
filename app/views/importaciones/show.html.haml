@@ -21,6 +21,30 @@
       -# cargar 360 alumnos con las columnas corridas.
       = "Fila #{@importacion.planilla.fila_de_encabezado} del archivo"
 
+-# ⚠️ Va ANTES de «falta decir dónde están estas columnas», porque si la planilla
+-# es la del otro tipo, esa lista de faltantes no es el problema: es el síntoma.
+- if @importacion.parece_del_otro_tipo?
+  .card-academic
+    .card-academic-header
+      %h2= "Esto parece una planilla de #{@importacion.etiqueta_del_otro_tipo.downcase}"
+
+    %p
+      Sus columnas encajan mucho mejor con
+      %strong= @importacion.etiqueta_del_otro_tipo.downcase
+      que con
+      = succeed "." do
+        %strong= @importacion.etiqueta_de_tipo.downcase
+      Se sube desde el mismo lugar y son dos botones al lado, así que es fácil
+      equivocarse.
+
+    %p.nota-ayuda
+      Si de verdad es la que quiso subir, ignore este aviso y siga mapeando abajo:
+      nadie le va a impedir nada.
+
+    = button_to "Leerla como #{@importacion.etiqueta_del_otro_tipo.downcase}",
+                importacion_path(@importacion), method: :patch,
+                params: { cambiar_tipo: "1" }, class: "btn btn-primary"
+
 - if @importacion.obligatorias_sin_mapear.any?
   .card-academic
     .card-academic-header

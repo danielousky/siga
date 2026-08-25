@@ -46,6 +46,38 @@ class Importacion < ApplicationRecord
   # Las columnas que esta importación espera, según su tipo.
   def columnas = pensum? ? ColumnasDePensum : ColumnasDeMatricula
 
+  # Y las del otro tipo, para poder darse cuenta de que la planilla no es la que
+  # se creía. Ver `#parece_del_otro_tipo?`.
+  def columnas_del_otro_tipo = pensum? ? ColumnasDeMatricula : ColumnasDePensum
+
+  def otro_tipo = pensum? ? "matricula" : "pensum"
+
+  def etiqueta_del_otro_tipo = TIPOS.fetch(otro_tipo)
+
+  # ⚠️ Subir la planilla equivocada es fácil: son dos botones al lado.
+  #
+  # Y salió caro de verdad en pruebas: una planilla de MATRÍCULA subida como
+  # pensum mapeó «APELLIDOS Y NOMBRES» al PROFESOR, «CEDULA REPRESENTANTE» a su
+  # cédula y «CORREO REPRESENTANTE» a su correo. Lo único que la frenó fue que
+  # faltaba MATERIA — con una columna más, el colegio habría terminado con sus
+  # alumnos cargados como PROFESORES, cada uno con el correo de su mamá de
+  # usuario.
+  #
+  # No se bloquea nada: se avisa y se ofrece cambiar. Quien sube sabe cosas que
+  # el sistema no, y una planilla rara pero legítima tiene que poder entrar.
+  def parece_del_otro_tipo?
+    return false if obligatorias_sin_mapear.empty?
+
+    encaje_con(columnas_del_otro_tipo) > encaje_con(columnas)
+  end
+
+  # Cuántas columnas DISTINTAS reconoce cada definición. Distintas y no totales:
+  # en una planilla de matrícula, tres columnas de cédula caen todas en
+  # `cedula_del_profesor` e inflarían el puntaje del tipo equivocado.
+  def encaje_con(definicion)
+    planilla.encabezados.filter_map { |e| definicion.para(e)&.clave }.uniq.size
+  end
+
   ETIQUETAS = {
     "cargada" => "Sin mapear", "mapeada" => "Lista para confirmar",
     "confirmada" => "Importada", "descartada" => "Descartada"
