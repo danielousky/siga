@@ -10,6 +10,18 @@
 # ⚠️ **Certifican el LITERAL, no el número.** Es la escala A–E de primaria
 # (`MOR-129`), y sale del promedio de las materias del año.
 class DocumentoDePrimaria
+  # ⚠️ **La Educación Primaria venezolana son SEIS grados.** No es una
+  # configuración por colegio: lo fija la Ley Orgánica de Educación, y un plantel
+  # dicta la primaria completa o no la dicta.
+  #
+  # Antes esto se deducía preguntando «¿existe un grado siguiente en este
+  # colegio?», y estaba mal por una razón peor que la inexactitud: hacía depender
+  # un DOCUMENTO OFICIAL de qué grados alguien hubiera cargado en SIGA. Un
+  # colegio que todavía no creó 5to y 6to —porque los está cargando de a poco, o
+  # porque este año no tiene alumnos ahí— le habría emitido «Certificado de
+  # Educación Primaria» a un alumno de 3er Grado.
+  ULTIMO_GRADO = 6
+
   # A dónde promueve el último grado de primaria. No es un grado de este colegio:
   # es el nivel siguiente del sistema, y el formato lo trae impreso así.
   DESPUES_DE_PRIMARIA = "al 1er Año del Nivel de Educación Media".freeze
@@ -46,32 +58,28 @@ class DocumentoDePrimaria
 
   private
 
-  # El certificado se emite al terminar la primaria; la constancia, en cualquier
-  # otro grado. Se decide por si hay un grado siguiente, no por el número: un
-  # colegio que solo llega a 4to Grado termina ahí, y su alumno no prosigue a un
-  # 5to que no existe.
-  def tipo = siguiente.nil? ? "certificado" : "prosecucion"
+  # Quien termina 6to Grado recibe el CERTIFICADO; cualquier otro grado de
+  # primaria, la CONSTANCIA de prosecución.
+  def tipo = ultimo_grado? ? "certificado" : "prosecucion"
 
   def promovido_a
-    return DESPUES_DE_PRIMARIA if siguiente.nil?
+    return DESPUES_DE_PRIMARIA if ultimo_grado?
 
-    "al #{siguiente.name} del Nivel de Educación Primaria"
+    "al #{ordinal(numero + 1)} Grado del Nivel de Educación Primaria"
   end
 
-  # El grado que sigue dentro del MISMO colegio, por el número que lleva en el
-  # nombre. «5to Grado» sigue a «4to Grado» aunque alguien los haya creado en
-  # otro orden.
-  def siguiente
-    return @siguiente if defined?(@siguiente)
+  def ultimo_grado? = numero == ULTIMO_GRADO
 
-    mio = numero_de(@grado)
-    @siguiente = mio && Grade.where(school: @colegio, level: :primaria)
-                             .to_a
-                             .select { |g| numero_de(g) == mio + 1 }
-                             .first
-  end
+  # El número del grado sale de su nombre: «6to Grado» → 6. Un nombre sin número
+  # no se puede ubicar en la secuencia, y ante la duda se emite la CONSTANCIA:
+  # es el documento de todos los años, y el certificado —que promueve al nivel
+  # de media— es el que no se puede emitir de más.
+  def numero = @numero ||= @grado.name.to_s[/\d+/]&.to_i || 0
 
-  def numero_de(grado) = grado.name.to_s[/\d+/]&.to_i
+  ORDINALES = { 1 => "1er", 2 => "2do", 3 => "3er", 4 => "4to",
+                5 => "5to", 6 => "6to" }.freeze
+
+  def ordinal(n) = ORDINALES.fetch(n, "#{n}º")
 
   # ── el literal ────────────────────────────────────────────────────────────
 

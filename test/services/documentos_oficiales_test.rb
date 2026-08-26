@@ -71,9 +71,11 @@ class DocumentosOficialesTest < ActiveSupport::TestCase
 
   # ── los documentos de PRIMARIA ────────────────────────────────────────────
 
-  # ⚠️ El último grado de primaria promueve al nivel siguiente y lleva
-  # CERTIFICADO; los demás llevan CONSTANCIA DE PROSECUCIÓN.
-  test "el último grado de primaria emite el certificado" do
+  # ⚠️ 6to Grado cierra la primaria y lleva CERTIFICADO; los demás llevan
+  # CONSTANCIA DE PROSECUCIÓN. La Educación Primaria venezolana son SEIS grados
+  # y lo fija la Ley Orgánica de Educación: un plantel la dicta completa o no la
+  # dicta.
+  test "6to Grado emite el certificado, que promueve al nivel de media" do
     esc = escenario_academico(nivel: :primaria)
 
     con_el_colegio(esc.colegio) do
@@ -85,18 +87,32 @@ class DocumentosOficialesTest < ActiveSupport::TestCase
     end
   end
 
-  test "un grado con siguiente emite la constancia de prosecución" do
+  test "cualquier otro grado emite la constancia de prosecución" do
     esc = escenario_academico(nivel: :primaria)
 
     con_el_colegio(esc.colegio) do
-      # El escenario trae «6to Grado»; se agrega el 7mo para que tenga a dónde
-      # promover, que es lo que decide cuál documento va.
-      Grade.create!(school: esc.colegio, name: "7mo Grado", level: :primaria)
+      esc.grado.update!(name: "3er Grado")
       libro(esc, 18)
       d = DocumentoDePrimaria.para(enrollment: esc.inscripcion)
 
       assert_equal "prosecucion", d["tipo"]
-      assert_equal "al 7mo Grado del Nivel de Educación Primaria", d["promovido_a"]
+      assert_equal "al 4to Grado del Nivel de Educación Primaria", d["promovido_a"]
+    end
+  end
+
+  # ⚠️ El bug que esto reemplaza: la regla vieja preguntaba «¿existe un grado
+  # siguiente en este colegio?», y así un plantel que todavía no cargó 5to y 6to
+  # le habría emitido CERTIFICADO DE EDUCACIÓN PRIMARIA a un alumno de 3er Grado.
+  # Un documento oficial no puede depender de qué alcanzó a cargar la secretaria.
+  test "no depende de qué grados estén cargados en el colegio" do
+    esc = escenario_academico(nivel: :primaria)
+
+    con_el_colegio(esc.colegio) do
+      esc.grado.update!(name: "3er Grado")
+      assert_equal 1, Grade.count, "este colegio solo tiene un grado cargado"
+      libro(esc, 18)
+
+      assert_equal "prosecucion", DocumentoDePrimaria.para(enrollment: esc.inscripcion)["tipo"]
     end
   end
 
