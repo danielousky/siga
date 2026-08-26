@@ -23,8 +23,28 @@ ENV RAILS_ENV="production" \
 
 # `curl` queda en la imagen final a propósito: Dokku consulta el health check.
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y curl libjemalloc2 postgresql-client && \
+    apt-get install --no-install-recommends -y curl libjemalloc2 postgresql-client libvips42t64 && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# ⚠️ `libvips42t64` no es opcional aunque nada falle al arrancar.
+#
+# `image_processing` está en el Gemfile y `ActiveStorage.variant_processor` es
+# `:vips`, pero la librería del sistema faltaba: cada arranque del contenedor
+# escribía «Using vips to process variants requires the libvips library» y
+# **cualquier miniatura reventaba en el momento de generarse**, no antes.
+#
+# Se notaba poco porque hasta ahora solo el escudo del colegio se redimensiona,
+# y se dibuja en el PDF con Prawn —que no usa variantes—. Con las fotos de las
+# personas pasa a ser la ruta normal: un avatar de 32 px servido en tamaño
+# original es la foto entera de 3 MB, en cada fila de una lista de 360 alumnos.
+#
+# Va en la imagen BASE y no en la de construcción: la necesita el proceso que
+# corre, no el que compila.
+#
+# El sufijo `t64` no es un capricho: la imagen es `ruby:3.4.9-slim`, o sea Debian
+# 13 (trixie), donde los paquetes que exponen `time_t` en su ABI se renombraron
+# por la transición a 64 bits. En bookworm el mismo paquete se llama `libvips42`
+# a secas, así que si algún día se baja la imagen base hay que cambiarlo.
 
 
 # ── Construcción ────────────────────────────────────────────────────────────

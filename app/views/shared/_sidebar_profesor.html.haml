@@ -2,14 +2,28 @@
   .sidebar-section-title Mi panel
   %ul.sidebar-nav
     %li.sidebar-nav-item
-      = link_to "Inicio", dashboards_profesor_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/profesor'}"
+      = link_to dashboards_profesor_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/profesor'}" do
+        = icono(:panel, tamano: 18)
+        %span Inicio
     %li.sidebar-nav-item
-      = link_to "Mis evaluaciones", evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}"
+      = link_to evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}" do
+        = icono(:notas, tamano: 18)
+        %span Mis evaluaciones
     %li.sidebar-nav-item
-      = link_to "Asistencia", asistencias_path, class: "sidebar-nav-link #{'active' if controller_name == 'asistencias'}"
+      = link_to asistencias_path, class: "sidebar-nav-link #{'active' if controller_name == 'asistencias'}" do
+        = icono(:asistencia, tamano: 18)
+        %span Asistencia
 
 .sidebar-section
   .sidebar-section-title Mis secciones
+  -# ⚠️ Estas NO llevan icono, y es a propósito (MOR-149).
+  -#
+  -# Un icono distingue categorías distintas: «Asistencia» de «Boletines». Diez
+  -# secciones son diez cosas del MISMO tipo, así que el mismo símbolo repetido
+  -# diez veces no agrega información — agrega ruido, y encima empuja el nombre
+  -# de la sección hacia la derecha justo donde el ancho escasea.
+  -#
+  -# Lo que las distingue es su nombre, que ya está.
   %ul.sidebar-nav
     - current_user.teacher.teacher_sections.includes(section: :grade).each do |ts|
       %li.sidebar-nav-item

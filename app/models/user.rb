@@ -52,6 +52,25 @@ class User < ApplicationRecord
   validate  :tiene_algun_identificador
   validate  :con_contrasena_hace_falta_correo
 
+  # ⚠️ La foto es OPCIONAL y va a seguir siéndolo (MOR-149).
+  #
+  # Se agrega porque reconocer una cara es más rápido que leer un nombre, y en una
+  # lista de 360 alumnos con apellidos repetidos eso importa. Pero un colegio
+  # venezolano que carga su matrícula desde una planilla **no tiene 360 fotos**, y
+  # un sistema que se ve incompleto sin ellas presiona a subir cualquier cosa.
+  #
+  # Por eso el caso normal es SIN foto: `AvataresHelper` dibuja las iniciales con
+  # un color estable, y eso no es un marcador de posición — es el avatar. La foto,
+  # cuando existe, lo reemplaza.
+  has_one_attached :foto
+
+  FORMATOS_DE_FOTO = %w[image/png image/jpeg image/webp].freeze
+  # 2 MB es lo que sale de un teléfono sin editar. Más que eso es una foto que
+  # nadie miró antes de subirla.
+  PESO_MAXIMO_DE_FOTO = 2.megabytes
+
+  validate :la_foto_es_una_foto
+
   # Nombre completo con los dos apellidos: "Álvaro José López Medina".
   #
   # Vive acá y no en cada vista porque el segundo apellido es opcional, y
@@ -251,6 +270,21 @@ class User < ApplicationRecord
     return if fila_vieja_sin_identificador?
 
     errors.add(:base, "Hace falta la cédula de identidad o la cédula escolar")
+  end
+
+  # La foto tiene que ser una foto, y de un tamaño que una conexión de colegio
+  # pueda con ella. Mismo criterio que el escudo en `School`.
+  def la_foto_es_una_foto
+    return unless foto.attached?
+
+    unless FORMATOS_DE_FOTO.include?(foto.blob.content_type)
+      errors.add(:foto, "tiene que ser PNG, JPG o WEBP")
+    end
+
+    return unless foto.blob.byte_size > PESO_MAXIMO_DE_FOTO
+
+    errors.add(:foto, "no puede pesar más de 2 MB — una foto de carnet no lo necesita, " \
+                      "y la conexión del colegio sí")
   end
 
   def fila_vieja_sin_identificador?

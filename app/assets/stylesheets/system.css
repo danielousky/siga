@@ -3833,3 +3833,118 @@ nav.pagy a.gap {
   min-width: 7rem;
   flex: 1 1 7rem;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ICONOS Y AVATARES (MOR-149)
+
+   La app llegó a agosto de 2026 con CERO iconos: diecinueve enlaces de menú,
+   todos texto, y ningún botón con nada al lado. Una pantalla así no distingue
+   «cargar asistencia» de «emitir una certificación del MPPE», y las dos viven
+   en el mismo menú.
+
+   Los SVG los pone `IconosHelper` en el HTML, no un archivo aparte, para que
+   hereden `currentColor` — ver el comentario del helper.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.icono {
+  /* `flex: none` porque el caso normal es un icono dentro de un flex con texto,
+     y sin esto el icono se aplasta cuando el texto es largo. Se veía en
+     «Participación en Grupos de Creación, Recreación y Producción». */
+  flex: none;
+  display: inline-block;
+  vertical-align: -0.15em;
+}
+
+/* El icono acompaña al texto: nunca compite con él. */
+.btn .icono,
+.sidebar-nav-link .icono,
+.persona-linea .icono {
+  opacity: 0.85;
+}
+.btn:hover .icono,
+.sidebar-nav-link:hover .icono,
+.sidebar-nav-link.active .icono {
+  opacity: 1;
+}
+
+/* ── el menú, ahora con iconos ─────────────────────────────────────────── */
+
+/* ⚠️ De `display: block` a flex. El enlace era una línea de texto y ahora es
+   icono + palabra, así que el `gap` es lo que los mantiene alineados cuando la
+   palabra envuelve —«Inasistencias» en un teléfono angosto—. */
+.sidebar-nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* ── el avatar ─────────────────────────────────────────────────────────────
+
+   `--avatar-lado` viene del helper y no de una clase por tamaño: son cinco
+   tamaños y cada uno necesitaría su propia regla de `width`, `height`,
+   `font-size` y `border-radius`. Con la variable, una regla sirve para todos.  */
+
+.avatar {
+  width: var(--avatar-lado, 36px);
+  height: var(--avatar-lado, 36px);
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  /* Un radio proporcional al lado: un cuadrado de 24 px con 10 px de radio es
+     casi un círculo, y uno de 96 px con 10 px es casi un cuadrado. */
+  border-radius: calc(var(--avatar-lado, 36px) * 0.28);
+  background: var(--avatar-color, var(--brand-primary));
+  color: #fff;
+  font-family: var(--font-sans);
+  /* Las iniciales ocupan el 38 % del lado: probado en los cinco tamaños con
+     «CJ», que es el par más ancho que produce el helper. */
+  font-size: calc(var(--avatar-lado, 36px) * 0.38);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  user-select: none;
+  overflow: hidden;
+}
+
+/* Cuando hay foto, `object-fit` evita que una foto vertical de carnet salga
+   estirada — que es exactamente cómo llega la mayoría. */
+img.avatar {
+  object-fit: cover;
+  background: var(--surface-hover);
+}
+
+/* ── avatar + nombre, que es como se usa casi siempre ──────────────────── */
+
+.persona-linea {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.persona-linea-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.persona-linea-nombre {
+  font-weight: 500;
+  color: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.persona-linea-detalle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* En un teléfono el detalle es lo primero que sobra: el nombre no se puede
+   perder, la cédula sí se puede consultar entrando. */
+@media (max-width: 480px) {
+  .persona-linea-detalle { display: none; }
+}

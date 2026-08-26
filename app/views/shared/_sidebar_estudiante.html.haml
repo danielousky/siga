@@ -11,6 +11,10 @@
   .sidebar-section-title Mi panel
   %ul.sidebar-nav
     %li.sidebar-nav-item
-      = link_to "Inicio", dashboards_estudiante_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/estudiante'}"
+      = link_to dashboards_estudiante_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/estudiante'}" do
+        = icono(:panel, tamano: 18)
+        %span Inicio
     %li.sidebar-nav-item
-      = link_to "Mis notas", dashboards_notas_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/notas'}"
+      = link_to dashboards_notas_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/notas'}" do
+        = icono(:notas, tamano: 18)
+        %span Mis notas

@@ -17,6 +17,13 @@
 -# que uno largo.
 -# Minúscula y variable local: una plantilla compila a un método, y adentro de un
 -# método asignar una CONSTANTE es error de sintaxis de Ruby.
+-# ⚠️ Cada enlace lleva icono, y el icono NO reemplaza a la palabra.
+-#
+-# Un menú de iconos solos obliga a aprenderse el alfabeto antes de poder usarlo,
+-# y quien abre SIGA por primera vez es una secretaria que hasta ayer llevaba todo
+-# en Word. El icono acelera a quien ya sabe dónde está cada cosa; la palabra es
+-# la que enseña. Por eso el SVG va `aria-hidden`: leerlo repetiría lo que la
+-# palabra de al lado ya dice.
 - pantallas_de_configuracion = %w[grades subjects departments evaluation_moments academic_periods evaluation_activities admins colegio]
 - en_configuracion = pantallas_de_configuracion.include?(controller_name) || controller_path == "dashboards/activity_logs"
 
@@ -24,40 +31,62 @@
   .sidebar-section-title Día a día
   %ul.sidebar-nav
     %li.sidebar-nav-item
-      = link_to "Panel", dashboards_administrador_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/administrador'}"
+      = link_to dashboards_administrador_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/administrador'}" do
+        = icono(:panel, tamano: 18)
+        %span Panel
     - if can_manage_students?
       %li.sidebar-nav-item
-        = link_to "Estudiantes", students_path, class: "sidebar-nav-link #{'active' if controller_name == 'students'}"
+        = link_to students_path, class: "sidebar-nav-link #{'active' if controller_name == 'students'}" do
+          = icono(:alumnos, tamano: 18)
+          %span Estudiantes
     - if can_manage_sections?
       %li.sidebar-nav-item
-        = link_to "Asistencia", asistencias_path, class: "sidebar-nav-link #{'active' if controller_name == 'asistencias' && action_name != 'reporte'}"
+        = link_to asistencias_path, class: "sidebar-nav-link #{'active' if controller_name == 'asistencias' && action_name != 'reporte'}" do
+          = icono(:asistencia, tamano: 18)
+          %span Asistencia
       %li.sidebar-nav-item
-        = link_to "Inasistencias", reporte_asistencia_path, class: "sidebar-nav-link #{'active' if action_name == 'reporte'}"
+        = link_to reporte_asistencia_path, class: "sidebar-nav-link #{'active' if action_name == 'reporte'}" do
+          = icono(:inasistencias, tamano: 18)
+          %span Inasistencias
     - if can_manage_students?
       %li.sidebar-nav-item
-        = link_to "Boletines", report_cards_path, class: "sidebar-nav-link #{'active' if controller_name == 'report_cards'}"
+        = link_to report_cards_path, class: "sidebar-nav-link #{'active' if controller_name == 'report_cards'}" do
+          = icono(:boletines, tamano: 18)
+          %span Boletines
       %li.sidebar-nav-item
-        = link_to "Constancias", constancias_path, class: "sidebar-nav-link #{'active' if controller_name == 'constancias'}"
+        = link_to constancias_path, class: "sidebar-nav-link #{'active' if controller_name == 'constancias'}" do
+          = icono(:constancias, tamano: 18)
+          %span Constancias
 
 .sidebar-section
   .sidebar-section-title El colegio
   %ul.sidebar-nav
     - if can_manage_sections?
       %li.sidebar-nav-item
-        = link_to "Secciones", sections_path, class: "sidebar-nav-link #{'active' if controller_name == 'sections'}"
+        = link_to sections_path, class: "sidebar-nav-link #{'active' if controller_name == 'sections'}" do
+          = icono(:secciones, tamano: 18)
+          %span Secciones
       %li.sidebar-nav-item
-        = link_to "Inscripciones", enrollments_path, class: "sidebar-nav-link #{'active' if controller_name == 'enrollments'}"
+        = link_to enrollments_path, class: "sidebar-nav-link #{'active' if controller_name == 'enrollments'}" do
+          = icono(:inscripciones, tamano: 18)
+          %span Inscripciones
     - if can_manage_teachers?
       %li.sidebar-nav-item
-        = link_to "Profesores", teachers_path, class: "sidebar-nav-link #{'active' if controller_name == 'teachers'}"
+        = link_to teachers_path, class: "sidebar-nav-link #{'active' if controller_name == 'teachers'}" do
+          = icono(:profesores, tamano: 18)
+          %span Profesores
     - if can_manage_students?
       %li.sidebar-nav-item
-        = link_to "Representantes", representatives_path, class: "sidebar-nav-link #{'active' if controller_name == 'representatives'}"
+        = link_to representatives_path, class: "sidebar-nav-link #{'active' if controller_name == 'representatives'}" do
+          = icono(:representantes, tamano: 18)
+          %span Representantes
       -# Va acá y no en Configuración: se usa una vez al año, pero esa vez es la
       -# PRIMERA semana del colegio en SIGA. Esconderlo detrás de un `<details>`
       -# plegado justo cuando más se busca sería el peor momento posible.
       %li.sidebar-nav-item
-        = link_to "Importar datos", importaciones_path, class: "sidebar-nav-link #{'active' if controller_name == 'importaciones'}"
+        = link_to importaciones_path, class: "sidebar-nav-link #{'active' if controller_name == 'importaciones'}" do
+          = icono(:importar, tamano: 18)
+          %span Importar datos
 
 -# `<details>` del navegador y no un controlador de Stimulus: funciona sin
 -# JavaScript, responde al teclado solo y no hay estado que se pueda desincronizar.
