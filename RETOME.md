@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 25 de agosto de 2026 (tarde)
+# 🔖 Punto de retome — actualizado 26 de agosto de 2026
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 
@@ -786,13 +786,74 @@ alrededor:** nada cobra (`MOR-128`), un colegio nuevo no puede darse de alta sol
 
 ---
 
+## 26 de agosto · los documentos oficiales del MPPE (`MOR-99`)
+
+Un colegio venezolano no compite sin poder emitirlos, y hasta ayer los llenaba a
+mano en Word. Ahora salen del sistema:
+
+| Documento | Para quién | Formatos |
+|---|---|---|
+| **Certificación de Calificaciones** · forma **31059** | bachillerato, 1º a 5º en un solo papel | PDF y **Excel** |
+| **Certificado de Educación Primaria** | quien termina 6to Grado | PDF |
+| **Constancia de Prosecución** | quien aprueba cualquier otro grado de primaria | PDF |
+
+### Lo que costó: la especificación, no el código
+
+El issue avisaba que *«un formato mal hecho se rechaza en la zona educativa y el
+colegio pierde el trámite»*. Se buscó la norma —Resolución DM/0033, **Gaceta
+Oficial 41.221** del 24 de agosto de 2017, en vigencia desde el **17 de noviembre
+de 2017**— y con eso se dibujó una primera versión.
+
+**Después Daniel mandó un ejemplar real, lleno y sellado, y no se parecía.** La
+31059 es una planilla de gobierno: densa, con rótulos diminutos, ocho secciones y
+todo apretado en una hoja. Lo que había era un documento moderno, y la diferencia
+no es de gusto — quien la recibe la coteja contra la que conoce.
+
+Lo que ninguna descripción escrita mencionaba:
+
+- La calificación va en **número Y EN LETRAS** («11 · ONCE»), que es como se
+  protege un documento oficial contra la adulteración. **No** es el literal A–E.
+- Un **recuadro por año**, no una matriz: las áreas cambian entre años.
+- Columnas `T-E` (**F** final · **R** reparación · **P** pendiente), `Mes`, `Año`.
+- **Orientación y Convivencia** y **Participación en Grupos** salen de la tabla y
+  van en tablitas aparte, con literal por año.
+- **Dos firmas**: VII el plantel certifica, VIII el CDCEE avala.
+- El **pie fiscal**: sin las tres décimas de U.T. el documento no tiene validez.
+
+### Y una dependencia que el propio código había anticipado
+
+Esas dos áreas se califican con **letra** aunque estén en bachillerato. El
+comentario de `Grade#escala` ya lo había escrito: *«si esas áreas del EMG hacen
+falta algún día, la escala tendría que vivir por MATERIA»*. Hacen falta:
+`subjects.escala`, NULL por defecto.
+
+### Dos correcciones de Daniel que valen más que el código
+
+1. **La 31059 no cubre primaria** — mandó los dos formatos que sí, y llenaron el
+   hueco que había quedado marcado.
+2. **Un colegio no dicta «hasta 4to Grado».** La primaria venezolana son SEIS
+   grados y se dicta completa. Mi regla decidía cuál documento emitir preguntando
+   «¿existe un grado siguiente en este colegio?», y eso hacía depender un
+   documento oficial de **qué grados alguien alcanzó a cargar en SIGA**: un
+   plantel que todavía no creó 5to y 6to le habría emitido «Certificado de
+   Educación Primaria» a un alumno de 3er Grado.
+
+### Y por qué también en Excel
+
+El formato tiene casillas que SIGA no puede llenar —teléfono del plantel, grupo
+de Participación, datos del director del CDCEE— y mientras esto se asienta va a
+haber más. **Con solo el PDF, el colegio queda bloqueado esperando que nosotros
+cambiemos algo.**
+
+---
+
 ## Dónde está todo ahora
 
 ```
   main  (7139e7c)   ← origin y producción, los tres al día
 ```
 
-`bin/ci` en verde: **729 tests**, 2195 aserciones, ~21 s.
+`bin/ci` en verde: **798 tests**, ~22 s.
 
 ## ⚠️ Pendientes que necesitan a Daniel
 
@@ -860,9 +921,7 @@ entorno, no.
    funcional.
 3. **`MOR-145` · Rebotes de correo.** Hoy un correo que rebota se queda ahí y solo se entera
    alguien si el usuario lo reporta.
-4. **`MOR-126` tanda 3** — historial de notas de años anteriores. Lo más difícil y lo menos
-   necesario para arrancar; puede esperar a que haya un colegio pidiéndolo.
-5. **`MOR-92`** — el acceso amplio del equipo de SIGA, la decisión con fecha de vencimiento.
+4. **`MOR-92`** — el acceso amplio del equipo de SIGA, la decisión con fecha de vencimiento.
    Se retoma cuando haya colegios pagando.
 
 **Cómo se entrega, desde ahora** (convención escrita en el documento *Cómo trabajamos* de Linear):
