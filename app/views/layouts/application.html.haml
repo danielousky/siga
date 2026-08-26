@@ -51,6 +51,10 @@
           = image_tag 'logo.svg', alt: '', class: 'navbar-brand-logo'
           %span.navbar-brand-text SIGA
         - if user_signed_in?
+          -# El buscador va en la barra superior porque tiene que estar en TODAS
+          -# las pantallas y no depender de qué menú de rol se esté mostrando.
+          = render "shared/buscador_global"
+
           .session-menu.d-flex.align-items-center
             = link_to current_user.first_name, edit_user_registration_path, class: "user-info", style: "color: inherit;"
             = link_to "Cerrar sesión", destroy_user_session_path, data: { turbo_method: :delete }, class: "btn btn-outline-light btn-sm"
@@ -68,7 +72,7 @@
     - elsif user_signed_in?
       = render 'shared/barra_de_contexto'
 
-      .app-layout
+      .app-layout{"data-controller": "sidebar"}
         %aside.sidebar-index
           - if administrador?
             = render 'shared/sidebar_administrador'
@@ -78,6 +82,17 @@
             = render 'shared/sidebar_estudiante'
           - elsif representante?
             = render 'shared/sidebar_representante'
+
+          -# ⚠️ Va al PIE del menú, no arriba.
+          -#
+          -# Arriba competiría con el primer enlace —el que más se usa— por el
+          -# lugar donde el ojo cae primero. Y encoger el menú es algo que se
+          -# hace una vez y no se vuelve a tocar: no merece el mejor sitio.
+          %button.sidebar-encoger{type: "button", "data-action": "sidebar#alternar",
+                                  "data-sidebar-target": "boton",
+                                  "aria-expanded": "true", "aria-label": "Encoger el menú"}
+            = icono(:volver, tamano: 15)
+            %span Encoger el menú
 
         %main.container-academic
           - if notice.present?

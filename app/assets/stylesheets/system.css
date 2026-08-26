@@ -568,6 +568,10 @@ textarea.form-control {
   top: 0;
   height: calc(100vh - 120px);
   overflow-y: auto;
+  /* El ancho se anima porque el `main` de al lado se ensancha al mismo tiempo:
+     sin transición el contenido salta 204 px de golpe y se pierde el hilo de
+     dónde estaba uno leyendo. */
+  transition: width var(--transition-base);
 }
 
 .sidebar-section {
@@ -4015,4 +4019,444 @@ img.avatar {
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--text-tertiary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL MENÚ QUE SE ENCOGE (MOR-149)
+
+   La estructura de la propuesta «Consola»: el menú pasa de 260 px a un riel de
+   56 px con solo iconos, y el contenido gana ese ancho. En una laptop de 13"
+   —que es con lo que trabaja media secretaría— son 204 px más para la tabla.
+
+   ⚠️ La clase la pone el controlador en <html>, no en el <aside>: el `main`
+   también tiene que reaccionar, y desde el aside no se alcanza a un hermano
+   anterior sin `:has()`.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.menu-encogido .sidebar-index {
+  width: 56px;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* ⚠️ El texto se oculta A LA VISTA, no del árbol de accesibilidad.
+   
+   Con `display: none` un lector de pantalla leería «enlace, imagen» y nada más:
+   el icono va `aria-hidden` a propósito, así que la palabra es lo ÚNICO que
+   nombra al enlace. Recortarlo a un píxel lo saca de la pantalla y lo deja
+   donde tiene que estar para quien no la mira. */
+.menu-encogido .sidebar-nav-link span,
+.menu-encogido .sidebar-section-title,
+.menu-encogido .sidebar-plegable summary {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.menu-encogido .sidebar-nav-link {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+  /* El objetivo táctil no se encoge con el menú: 44 px es el mínimo que se
+     puede tocar sin apuntar, y un riel de iconos se usa más con el dedo que el
+     menú ancho. */
+  min-height: 44px;
+}
+
+/* Un separador que sustituye al título de sección cuando el título se esconde:
+   sin él los diez iconos quedan en una tira continua y se pierde el
+   agrupamiento por frecuencia que MOR-135 estableció. */
+.menu-encogido .sidebar-section + .sidebar-section::before,
+.menu-encogido .sidebar-section + .sidebar-plegable::before {
+  content: "";
+  display: block;
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 0 var(--space-sm) var(--space-sm);
+}
+
+/* ── el nombre al pasar el ratón ─────────────────────────────────────────
+   
+   Un riel de iconos sin nombres obliga a memorizar; el tooltip es lo que hace
+   que se pueda aprender usándolo. Va en CSS y no como `title` nativo porque el
+   nativo tarda un segundo largo en aparecer y se ve como una etiqueta del
+   sistema operativo, no del producto.                                        */
+
+.menu-encogido .sidebar-nav-item {
+  position: relative;
+}
+
+.menu-encogido .sidebar-nav-link::after {
+  content: attr(data-nombre);
+  position: absolute;
+  left: calc(100% + 6px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--text-primary);
+  color: var(--surface-elevated);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+  z-index: 30;
+}
+
+.menu-encogido .sidebar-nav-link:hover::after,
+.menu-encogido .sidebar-nav-link:focus-visible::after {
+  opacity: 1;
+}
+
+/* ── el botón que lo alterna ─────────────────────────────────────────────── */
+
+.sidebar-encoger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: calc(100% - var(--space-lg) * 2);
+  margin: var(--space-md) var(--space-lg) 0;
+  padding: var(--space-xs) var(--space-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sidebar-encoger:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+.sidebar-encoger .icono {
+  transition: transform var(--transition-base);
+}
+
+.menu-encogido .sidebar-encoger {
+  width: auto;
+  margin: var(--space-md) auto 0;
+  justify-content: center;
+}
+
+.menu-encogido .sidebar-encoger span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.menu-encogido .sidebar-encoger .icono {
+  transform: rotate(180deg);
+}
+
+/* En el teléfono el menú ya es una tira horizontal que se desliza: encogerlo no
+   significa nada, y el botón solo ocuparía lugar. */
+@media (max-width: 768px) {
+  .sidebar-encoger { display: none; }
+
+  .menu-encogido .sidebar-index { width: 100%; }
+  .menu-encogido .sidebar-nav-link span { position: static; width: auto; height: auto; clip-path: none; margin: 0; }
+  .menu-encogido .sidebar-nav-link::after { content: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-index,
+  .sidebar-encoger .icono { transition: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL BUSCADOR GLOBAL · ⌘K (MOR-149)
+
+   La secretaria busca a un alumno cuarenta veces al día con la mamá esperando
+   del otro lado del mostrador. Hoy son cuatro pasos y dos cargas de página.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── el disparador en la barra ─────────────────────────────────────────────
+   
+   ⚠️ Existe porque un atajo invisible solo sirve a quien ya sabe que existe —
+   y quien más lo necesita es justamente quien no lo sabe. El botón enseña el
+   atajo mostrándolo escrito al lado.                                         */
+
+.buscador-disparador {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-left: auto;
+  margin-right: var(--space-md);
+  padding: 6px var(--space-sm);
+  min-width: 220px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-sm);
+  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.buscador-disparador:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.buscador-disparador-texto { flex: 1; text-align: left; }
+
+.buscador-tecla {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 5px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  opacity: 0.65;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* En el teléfono no hay teclado físico: el atajo no existe y el botón se
+   reduce a la lupa, que es lo único que hace falta. */
+@media (max-width: 768px) {
+  .buscador-disparador { min-width: 0; }
+  .buscador-disparador-texto,
+  .buscador-disparador .buscador-tecla { display: none; }
+}
+
+/* ── el modal ─────────────────────────────────────────────────────────────── */
+
+.buscador-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 16, 26, 0.55);
+  /* Arriba y no centrado: el ojo ya está arriba —viene de la barra— y centrar
+     obliga a bajar la vista para volver a subirla al leer los resultados. */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 10vh var(--space-md) var(--space-md);
+  z-index: 100;
+}
+
+.buscador-fondo[hidden] { display: none; }
+
+.buscador-panel {
+  width: 100%;
+  max-width: 560px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 60px rgba(10, 16, 26, 0.28);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 70vh;
+}
+
+.buscador-campo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-tertiary);
+}
+
+.buscador-campo input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  color: var(--text-primary);
+  outline: none;
+  min-width: 0;
+}
+
+/* ⚠️ 16 px y no menos: por debajo de eso Safari en iOS hace zoom al enfocar un
+   campo, y el modal se sale de la pantalla. */
+.buscador-campo input::placeholder { color: var(--text-muted); }
+
+/* La cruz nativa de `type=search` en WebKit no hereda color y se ve como un
+   elemento del sistema operativo pegado al diseño. */
+.buscador-campo input::-webkit-search-cancel-button { display: none; }
+
+#resultados-de-busqueda { overflow-y: auto; }
+
+.busqueda-lista { list-style: none; margin: 0; padding: var(--space-xs); }
+
+.busqueda-resultado {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--text-primary);
+  min-height: 44px;
+}
+
+/* ⚠️ `.activo` y no `:hover`: la selección la mueve el TECLADO, y el ratón no
+   tiene por qué robársela mientras alguien navega con las flechas. El hover se
+   agrega aparte para quien sí usa el ratón. */
+.busqueda-resultado.activo,
+.busqueda-resultado:hover {
+  background: var(--brand-subtle);
+}
+
+.busqueda-icono {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+.busqueda-texto { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.busqueda-titulo { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.busqueda-detalle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.busqueda-tipo {
+  margin-left: auto;
+  flex: none;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.busqueda-vacia {
+  padding: var(--space-xl) var(--space-lg);
+  text-align: center;
+  color: var(--text-tertiary);
+}
+.busqueda-vacia .icono { opacity: 0.4; margin-bottom: var(--space-sm); }
+.busqueda-vacia p { margin: 0 0 var(--space-xs); }
+
+.buscador-pie {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  padding: var(--space-xs) var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-canvas);
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.buscador-pie span { display: flex; align-items: center; gap: 4px; }
+
+/* En el teléfono el pie explica atajos que no se pueden usar. */
+@media (max-width: 768px) {
+  .buscador-pie { display: none; }
+  .buscador-fondo { padding-top: 4vh; }
+}
+
+/* Con el modal abierto la página de atrás no se desplaza: sin esto, mover las
+   flechas hace scroll de las dos cosas a la vez. */
+body.con-modal { overflow: hidden; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL PANEL DEL DIRECTOR (MOR-149)
+
+   La estructura ya era correcta desde MOR-135: lo accionable arriba, las cifras
+   después. Lo que faltaba era que se VIERA la diferencia — «3 secciones sin
+   profesor» y «212 alumnos» se dibujaban exactamente igual, y una de las dos
+   pide una decisión hoy.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.pendiente-enlace {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 44px;
+}
+
+/* ⚠️ Ámbar sobre el DATO, no sobre el control. La regla de color prohíbe teñir
+   el botón, no señalar lo que está pendiente: acá el icono describe un hecho
+   —hay tres secciones sin profesor— igual que un número en rojo describe a un
+   niño aplazado. */
+.pendiente-alerta {
+  display: grid;
+  place-items: center;
+  color: var(--warning-text);
+  flex: none;
+}
+
+/* La flecha aparece al pasar: en reposo sería una tercera cosa compitiendo con
+   el número y el texto, y lo que importa leer primero es cuántos son. */
+.pendiente-ir {
+  margin-left: auto;
+  flex: none;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all var(--transition-fast);
+  color: var(--brand-primary);
+}
+
+.pendiente-enlace:hover .pendiente-ir,
+.pendiente-enlace:focus-visible .pendiente-ir {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* En pantalla táctil no hay hover: la flecha se queda puesta, tenue. */
+@media (hover: none) {
+  .pendiente-ir { opacity: 0.45; transform: none; }
+}
+
+.titulo-ok { color: var(--success-text); vertical-align: -0.2em; margin-right: 4px; }
+
+/* ── las cifras, ahora navegables ──────────────────────────────────────────
+   
+   Eran cuatro números muertos. Ahora cada uno lleva a donde se administra eso
+   mismo, con el icono de su sección del menú: es lo que enseña dónde buscarlo
+   la próxima vez sin tener que explicarlo.                                   */
+
+.stat-card {
+  position: relative;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: all var(--transition-fast);
+}
+
+a.stat-card:hover {
+  border-color: var(--brand-primary);
+  transform: translateY(-1px);
+}
+
+.stat-card-icono {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+
+a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
+
+@media (prefers-reduced-motion: reduce) {
+  a.stat-card:hover { transform: none; }
+  .pendiente-ir { transition: none; }
 }

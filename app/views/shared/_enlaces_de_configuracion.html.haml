@@ -6,41 +6,41 @@
 %ul.sidebar-nav
   - if can_manage_academic_config?
     %li.sidebar-nav-item
-      = link_to academic_periods_path, class: "sidebar-nav-link #{'active' if controller_name == 'academic_periods'}" do
+      = link_to academic_periods_path, class: "sidebar-nav-link #{'active' if controller_name == 'academic_periods'}", data: { nombre: "Años escolares" } do
         = icono(:calendario, tamano: 18)
         %span Años escolares
     %li.sidebar-nav-item
-      = link_to evaluation_moments_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_moments'}" do
+      = link_to evaluation_moments_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_moments'}", data: { nombre: "Momentos de evaluación" } do
         = icono(:lapsos, tamano: 18)
         %span Momentos de evaluación
     %li.sidebar-nav-item
-      = link_to grades_path, class: "sidebar-nav-link #{'active' if controller_name == 'grades'}" do
+      = link_to grades_path, class: "sidebar-nav-link #{'active' if controller_name == 'grades'}", data: { nombre: "Grados" } do
         = icono(:grados, tamano: 18)
         %span Grados
   %li.sidebar-nav-item
-    = link_to subjects_path, class: "sidebar-nav-link #{'active' if controller_name == 'subjects'}" do
+    = link_to subjects_path, class: "sidebar-nav-link #{'active' if controller_name == 'subjects'}", data: { nombre: "Materias" } do
       = icono(:materias, tamano: 18)
       %span Materias
   %li.sidebar-nav-item
-    = link_to departments_path, class: "sidebar-nav-link #{'active' if controller_name == 'departments'}" do
+    = link_to departments_path, class: "sidebar-nav-link #{'active' if controller_name == 'departments'}", data: { nombre: "Departamentos" } do
       = icono(:colegio, tamano: 18)
       %span Departamentos
   - if can_manage_sections?
     %li.sidebar-nav-item
-      = link_to evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}" do
+      = link_to evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}", data: { nombre: "Evaluaciones del colegio" } do
         = icono(:notas, tamano: 18)
         %span Evaluaciones del colegio
   - if %w[desarrollador director].include?(rol_de_admin)
     %li.sidebar-nav-item
-      = link_to admins_path, class: "sidebar-nav-link #{'active' if controller_name == 'admins'}" do
+      = link_to admins_path, class: "sidebar-nav-link #{'active' if controller_name == 'admins'}", data: { nombre: "Administradores" } do
         = icono(:profesores, tamano: 18)
         %span Administradores
   - if can_manage_academic_config?
     %li.sidebar-nav-item
-      = link_to colegio_path, class: "sidebar-nav-link #{'active' if controller_name == 'colegio'}" do
+      = link_to colegio_path, class: "sidebar-nav-link #{'active' if controller_name == 'colegio'}", data: { nombre: "Identidad del colegio" } do
         = icono(:configuracion, tamano: 18)
         %span Identidad del colegio
   %li.sidebar-nav-item
-    = link_to dashboards_activity_logs_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/activity_logs'}" do
+    = link_to dashboards_activity_logs_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/activity_logs'}", data: { nombre: "Registro de actividad" } do
       = icono(:auditoria, tamano: 18)
       %span Registro de actividad

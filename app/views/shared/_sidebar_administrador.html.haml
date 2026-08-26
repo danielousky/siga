@@ -31,30 +31,30 @@
   .sidebar-section-title Día a día
   %ul.sidebar-nav
     %li.sidebar-nav-item
-      = link_to dashboards_administrador_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/administrador'}" do
+      = link_to dashboards_administrador_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/administrador'}", data: { nombre: "Panel" } do
         = icono(:panel, tamano: 18)
         %span Panel
     - if can_manage_students?
       %li.sidebar-nav-item
-        = link_to students_path, class: "sidebar-nav-link #{'active' if controller_name == 'students'}" do
+        = link_to students_path, class: "sidebar-nav-link #{'active' if controller_name == 'students'}", data: { nombre: "Estudiantes" } do
           = icono(:alumnos, tamano: 18)
           %span Estudiantes
     - if can_manage_sections?
       %li.sidebar-nav-item
-        = link_to asistencias_path, class: "sidebar-nav-link #{'active' if controller_name == 'asistencias' && action_name != 'reporte'}" do
+        = link_to asistencias_path, class: "sidebar-nav-link #{'active' if controller_name == 'asistencias' && action_name != 'reporte'}", data: { nombre: "Asistencia" } do
           = icono(:asistencia, tamano: 18)
           %span Asistencia
       %li.sidebar-nav-item
-        = link_to reporte_asistencia_path, class: "sidebar-nav-link #{'active' if action_name == 'reporte'}" do
+        = link_to reporte_asistencia_path, class: "sidebar-nav-link #{'active' if action_name == 'reporte'}", data: { nombre: "Inasistencias" } do
           = icono(:inasistencias, tamano: 18)
           %span Inasistencias
     - if can_manage_students?
       %li.sidebar-nav-item
-        = link_to report_cards_path, class: "sidebar-nav-link #{'active' if controller_name == 'report_cards'}" do
+        = link_to report_cards_path, class: "sidebar-nav-link #{'active' if controller_name == 'report_cards'}", data: { nombre: "Boletines" } do
           = icono(:boletines, tamano: 18)
           %span Boletines
       %li.sidebar-nav-item
-        = link_to constancias_path, class: "sidebar-nav-link #{'active' if controller_name == 'constancias'}" do
+        = link_to constancias_path, class: "sidebar-nav-link #{'active' if controller_name == 'constancias'}", data: { nombre: "Constancias" } do
           = icono(:constancias, tamano: 18)
           %span Constancias
 
@@ -63,28 +63,28 @@
   %ul.sidebar-nav
     - if can_manage_sections?
       %li.sidebar-nav-item
-        = link_to sections_path, class: "sidebar-nav-link #{'active' if controller_name == 'sections'}" do
+        = link_to sections_path, class: "sidebar-nav-link #{'active' if controller_name == 'sections'}", data: { nombre: "Secciones" } do
           = icono(:secciones, tamano: 18)
           %span Secciones
       %li.sidebar-nav-item
-        = link_to enrollments_path, class: "sidebar-nav-link #{'active' if controller_name == 'enrollments'}" do
+        = link_to enrollments_path, class: "sidebar-nav-link #{'active' if controller_name == 'enrollments'}", data: { nombre: "Inscripciones" } do
           = icono(:inscripciones, tamano: 18)
           %span Inscripciones
     - if can_manage_teachers?
       %li.sidebar-nav-item
-        = link_to teachers_path, class: "sidebar-nav-link #{'active' if controller_name == 'teachers'}" do
+        = link_to teachers_path, class: "sidebar-nav-link #{'active' if controller_name == 'teachers'}", data: { nombre: "Profesores" } do
           = icono(:profesores, tamano: 18)
           %span Profesores
     - if can_manage_students?
       %li.sidebar-nav-item
-        = link_to representatives_path, class: "sidebar-nav-link #{'active' if controller_name == 'representatives'}" do
+        = link_to representatives_path, class: "sidebar-nav-link #{'active' if controller_name == 'representatives'}", data: { nombre: "Representantes" } do
           = icono(:representantes, tamano: 18)
           %span Representantes
       -# Va acá y no en Configuración: se usa una vez al año, pero esa vez es la
       -# PRIMERA semana del colegio en SIGA. Esconderlo detrás de un `<details>`
       -# plegado justo cuando más se busca sería el peor momento posible.
       %li.sidebar-nav-item
-        = link_to importaciones_path, class: "sidebar-nav-link #{'active' if controller_name == 'importaciones'}" do
+        = link_to importaciones_path, class: "sidebar-nav-link #{'active' if controller_name == 'importaciones'}", data: { nombre: "Importar datos" } do
           = icono(:importar, tamano: 18)
           %span Importar datos
 

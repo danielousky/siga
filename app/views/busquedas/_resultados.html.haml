@@ -1,0 +1,39 @@
+-# Los resultados del buscador global (MOR-149).
+-#
+-# Se reemplaza entero en cada tecleo, así que va sin estado propio: lo único que
+-# recuerda cuál está seleccionado es el controlador de Stimulus.
+%turbo-frame#resultados-de-busqueda
+  - if !suficiente
+    .busqueda-vacia
+      = icono(:buscar, tamano: 28)
+      %p Escriba al menos dos letras para buscar.
+      %p.nota-ayuda
+        Puede buscar por nombre, apellido, cédula o cédula escolar. También
+        secciones —«1er Año A»— y materias.
+
+  - elsif resultados.empty?
+    .busqueda-vacia
+      = icono(:buscar, tamano: 28)
+      %p
+        No hay nada que se llame
+        %strong= "“#{termino}”"
+      %p.nota-ayuda
+        Los acentos no importan: «lopez» encuentra a López. Si busca una persona
+        de otro colegio, no va a aparecer acá.
+
+  - else
+    %ul.busqueda-lista{role: "listbox", "aria-label": "Resultados de la búsqueda"}
+      - resultados.each_with_index do |r, i|
+        %li{role: "option", "aria-selected": (i.zero? ? "true" : "false")}
+          = link_to r.ruta, class: "busqueda-resultado #{'activo' if i.zero?}", "data-busqueda-target": "resultado" do
+            -# Una persona lleva su avatar; lo demás, su icono. Es la misma
+            -# distinción que en los listados: donde hay alguien, se le ve la cara.
+            - if r.persona
+              = avatar(r.persona, tamano: :chico)
+            - else
+              %span.busqueda-icono= icono(r.icono, tamano: 18)
+            %span.busqueda-texto
+              %span.busqueda-titulo= r.titulo
+              - if r.detalle.present?
+                %span.busqueda-detalle= r.detalle
+            %span.busqueda-tipo= r.tipo

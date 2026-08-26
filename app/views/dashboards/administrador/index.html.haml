@@ -18,13 +18,20 @@
         - @pendientes.each do |p|
           %li.pendiente
             = link_to p[:ruta], class: "pendiente-enlace" do
+              -# ⚠️ El ámbar acá SÍ va: describe un DATO —hay tres secciones sin
+              -# profesor— y no el control. La regla de color prohíbe teñir el
+              -# botón, no señalar lo que está pendiente.
+              %span.pendiente-alerta= icono(:alerta, tamano: 18)
               %span.pendiente-numero= p[:cuantas]
               %span.pendiente-que= p[:cuantas] == 1 ? p[:singular] : p[:plural]
+              %span.pendiente-ir= icono(:siguiente, tamano: 16)
 
   - else
     .card-academic
       .card-academic-header
-        %h2 Todo al día
+        %h2
+        = icono(:ok, tamano: 20, clase: "titulo-ok")
+        Todo al día
       %p.nota-ayuda
         No hay secciones sin profesor ni alumnos sin representante registrado.
 
@@ -32,22 +39,17 @@
     .card-academic-header
       %h2 El colegio
 
+    -# Cada cifra lleva el icono de SU sección del menú, no uno decorativo: es lo
+    -# que enseña dónde se va a buscar eso mismo después.
     .stats-grid
-      .stat-card
-        %h3= @total_students
-        %p= pluralizar(@total_students, "alumno", "alumnos")
-
-      .stat-card
-        %h3= @total_teachers
-        %p= pluralizar(@total_teachers, "profesor", "profesores")
-
-      .stat-card
-        %h3= @total_sections
-        %p= pluralizar(@total_sections, "sección", "secciones")
-
-      .stat-card
-        %h3= @total_admins
-        %p= pluralizar(@total_admins, "administrador", "administradores")
+      - [[@total_students, :alumnos, "alumno", "alumnos", students_path],
+         [@total_teachers, :profesores, "profesor", "profesores", teachers_path],
+         [@total_sections, :secciones, "sección", "secciones", sections_path],
+         [@total_admins, :profesores, "administrador", "administradores", admins_path]].each do |cuantos, ico, uno, varios, ruta|
+        = link_to ruta, class: "stat-card" do
+          %span.stat-card-icono= icono(ico, tamano: 18)
+          %h3= cuantos
+          %p= pluralizar(cuantos, uno, varios)
 
   - if show_recent_activity?
     .card-academic
@@ -64,7 +66,7 @@
           %tbody
             - @recent_enrollments.each do |enrollment|
               %tr
-                %td= link_to enrollment.student.user.apellidos_y_nombres, enrollment.student
+                %td= link_to persona_con_avatar(enrollment.student.user), enrollment.student
                 %td= "#{enrollment.section.grade.name} – #{enrollment.section.name}"
                 %td= l(enrollment.created_at.to_date, format: :long)
       - else

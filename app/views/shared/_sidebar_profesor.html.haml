@@ -2,15 +2,15 @@
   .sidebar-section-title Mi panel
   %ul.sidebar-nav
     %li.sidebar-nav-item
-      = link_to dashboards_profesor_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/profesor'}" do
+      = link_to dashboards_profesor_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/profesor'}", data: { nombre: "Inicio" } do
         = icono(:panel, tamano: 18)
         %span Inicio
     %li.sidebar-nav-item
-      = link_to evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}" do
+      = link_to evaluation_activities_path, class: "sidebar-nav-link #{'active' if controller_name == 'evaluation_activities'}", data: { nombre: "Mis evaluaciones" } do
         = icono(:notas, tamano: 18)
         %span Mis evaluaciones
     %li.sidebar-nav-item
-      = link_to asistencias_path, class: "sidebar-nav-link #{'active' if controller_name == 'asistencias'}" do
+      = link_to asistencias_path, class: "sidebar-nav-link #{'active' if controller_name == 'asistencias'}", data: { nombre: "Asistencia" } do
         = icono(:asistencia, tamano: 18)
         %span Asistencia
 

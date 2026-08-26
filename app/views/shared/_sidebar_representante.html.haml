@@ -2,6 +2,6 @@
   .sidebar-section-title Mis representados
   %ul.sidebar-nav
     %li.sidebar-nav-item
-      = link_to representante_path, class: "sidebar-nav-link #{'active' if action_name == 'index'}" do
+      = link_to representante_path, class: "sidebar-nav-link #{'active' if action_name == 'index'}", data: { nombre: "Todos" } do
         = icono(:alumnos, tamano: 18)
         %span Todos

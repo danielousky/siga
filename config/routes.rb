@@ -212,6 +212,10 @@ Rails.application.routes.draw do
   get "documentos/primaria/:enrollment_id",
       to: "documentos_oficiales#primaria", as: :documento_de_primaria
 
+  # El buscador global de `⌘K` (MOR-149). Devuelve un fragmento, no una página:
+  # el modal lo pega dentro de su `<turbo-frame>` mientras se escribe.
+  get "buscar", to: "busquedas#show", as: :busqueda
+
   resources :students
   resources :teachers, concerns: :con_codigo_de_acceso
   resources :admins, except: [ :show ], concerns: :con_codigo_de_acceso

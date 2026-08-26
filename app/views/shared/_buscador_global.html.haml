@@ -1,0 +1,42 @@
+-# El buscador de `⌘K` (MOR-149).
+-#
+-# Va en el layout y no en cada pantalla: el atajo tiene que funcionar en las
+-# 131 vistas, y montarlo por pantalla sería 131 lugares donde olvidarlo.
+%div{"data-controller": "busqueda"}
+  -# El disparador visible. Sin él, el buscador solo existiría para quien ya
+  -# sabe que existe — y quien más lo necesita es justamente quien no lo sabe.
+  %button.buscador-disparador{type: "button", "data-action": "busqueda#abrir"}
+    = icono(:buscar, tamano: 15)
+    %span.buscador-disparador-texto Buscar
+    %kbd.buscador-tecla ⌘K
+
+  .buscador-fondo{"data-busqueda-target": "modal", hidden: true,
+                  "data-action": "click->busqueda#fuera keydown->busqueda#enModal",
+                  role: "dialog", "aria-modal": "true", "aria-label": "Buscar en el colegio"}
+    .buscador-panel
+      .buscador-campo
+        = icono(:buscar, tamano: 18)
+        %input{type: "search", "data-busqueda-target": "campo",
+               "data-action": "input->busqueda#buscar",
+               placeholder: "Buscar alumno, profesor, sección o materia…",
+               autocomplete: "off", "aria-label": "Qué busca"}
+        %kbd.buscador-tecla esc
+
+      -# `src` vacío y la URL en un `data`: el frame no debe pedir nada hasta que
+      -# alguien escriba. Con `src` puesto, abrir el modal dispararía una consulta
+      -# con el término vacío en cada apertura.
+      %turbo-frame#resultados-de-busqueda{"data-busqueda-target": "frame",
+                                          "data-url": busqueda_path}
+        = render "busquedas/resultados", resultados: [], termino: "", suficiente: false
+
+      .buscador-pie
+        %span
+          %kbd.buscador-tecla ↑
+          %kbd.buscador-tecla ↓
+          para moverse
+        %span
+          %kbd.buscador-tecla ↵
+          para abrir
+        %span
+          %kbd.buscador-tecla /
+          desde cualquier pantalla
