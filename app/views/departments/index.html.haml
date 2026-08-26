@@ -1,7 +1,9 @@
 .card-academic
   .card-academic-header
     %h1 Departamentos académicos
-    = link_to "Crear nuevo departamento", new_department_path, class: "btn btn-primary"
+    = link_to new_department_path, class: "btn btn-primary" do
+      = icono(:agregar, tamano: 16)
+      %span Crear nuevo departamento
 
   %table.table-academic
     %thead

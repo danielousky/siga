@@ -14,7 +14,9 @@
 %section.siga-bloque
   .siga-bloque-cab
     %h2 Colegios
-    = link_to "Dar de alta", new_siga_colegio_path, class: "btn btn-primary" if siga_staff.puede_dar_de_alta_colegios?
+    = link_to new_siga_colegio_path, class: "btn btn-primary" if siga_staff.puede_dar_de_alta_colegios? do
+      = icono(:agregar, tamano: 16)
+      %span Dar de alta
 
   - if @colegios.empty?
     %p.siga-vacio Todavía no hay ningún colegio en la plataforma.

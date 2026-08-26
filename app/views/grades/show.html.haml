@@ -18,7 +18,9 @@
         = contar(@grade.sections.size, "sección", "secciones")
 
     .ficha-acciones
-      = link_to "Editar", edit_grade_path(@grade), class: "btn btn-secondary"
+      = link_to edit_grade_path(@grade), class: "btn btn-secondary" do
+        = icono(:editar, tamano: 16)
+        %span Editar
 
   .card-academic
     .card-academic-header

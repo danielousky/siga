@@ -1,7 +1,9 @@
 .card-academic
   .card-academic-header
     %h1 Representantes
-    = link_to "Registrar representante", new_representative_path, class: "btn btn-primary"
+    = link_to new_representative_path, class: "btn btn-primary" do
+      = icono(:agregar, tamano: 16)
+      %span Registrar representante
 
   = render "shared/escala", total: @pagy.count, singular: "representante", plural: "representantes",
            detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
@@ -15,7 +17,7 @@
     %tbody
       - @representatives.each do |representante|
         %tr
-          %td= link_to representante.user.apellidos_y_nombres, representante
+          %td= link_to persona_con_avatar(representante.user), representante
           %td
             -# Sin correo el representante no puede consultar nada, así que la
             -# celda vacía no sirve: hay que poder VER a quién falta llamar

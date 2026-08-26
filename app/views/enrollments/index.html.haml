@@ -1,7 +1,9 @@
 .card-academic
   .card-academic-header
     %h1 Inscripciones
-    = link_to "Nueva inscripción", new_enrollment_path, class: "btn btn-primary"
+    = link_to new_enrollment_path, class: "btn btn-primary" do
+      = icono(:agregar, tamano: 16)
+      %span Nueva inscripción
 
 - enrollment_fields = []
 - enrollment_fields << { type: :text,   name: :q,        label: "Estudiante", placeholder: "Nombre, apellido o cédula...", flex: 2 }

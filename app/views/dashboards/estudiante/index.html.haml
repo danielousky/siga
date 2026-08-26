@@ -11,7 +11,9 @@
     .card-academic
       .card-academic-header
         %h2= "Mis notas de #{@lapso.name.downcase}"
-        = link_to "Ver el detalle", dashboards_notas_path, class: "btn btn-secondary"
+        = link_to dashboards_notas_path, class: "btn btn-secondary" do
+          = icono(:ver, tamano: 16)
+          %span Ver el detalle
 
       - if @lapsos.many?
         .filter-pills

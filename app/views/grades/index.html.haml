@@ -1,7 +1,9 @@
 .card-academic
   .card-academic-header
     %h1 Grados
-    = link_to "Nuevo grado", new_grade_path, class: "btn btn-primary"
+    = link_to new_grade_path, class: "btn btn-primary" do
+      = icono(:agregar, tamano: 16)
+      %span Nuevo grado
 
   %table.table-academic
     %thead

@@ -1,7 +1,9 @@
 .card-academic
   .card-academic-header
     %h1 Catálogo de materias
-    = link_to "Registrar nueva materia", new_subject_path, class: "btn btn-primary"
+    = link_to new_subject_path, class: "btn btn-primary" do
+      = icono(:agregar, tamano: 16)
+      %span Registrar nueva materia
 
   %table.table-academic
     %thead

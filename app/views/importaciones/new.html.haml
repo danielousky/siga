@@ -20,7 +20,9 @@
 
     .form-acciones
       = f.submit "Subir y ver las columnas", class: "btn btn-primary"
-      = link_to "Volver", importaciones_path, class: "btn btn-secondary"
+      = link_to importaciones_path, class: "btn btn-secondary" do
+        = icono(:volver, tamano: 16)
+        %span Volver
 
 .card-academic
   .card-academic-header
@@ -45,4 +47,6 @@
     No es obligatoria. Si su sistema actual ya exporta la matrícula, súbala tal
     como sale — en la pantalla siguiente se dice qué columna es cuál.
 
-  = link_to "Descargar la plantilla", plantilla_importaciones_path(tipo: @importacion.tipo), class: "btn btn-secondary"
+  = link_to plantilla_importaciones_path(tipo: @importacion.tipo), class: "btn btn-secondary" do
+    = icono(:descargar, tamano: 16)
+    %span Descargar la plantilla

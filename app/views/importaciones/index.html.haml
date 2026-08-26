@@ -2,9 +2,15 @@
   .card-academic-header
     %h1 Importar datos
     .acciones-de-cabecera
-      = link_to "Subir matrícula", new_importacion_path(tipo: :matricula), class: "btn btn-primary"
-      = link_to "Subir materias y profesores", new_importacion_path(tipo: :pensum), class: "btn btn-secondary"
-      = link_to "Subir notas anteriores", new_importacion_path(tipo: :historial), class: "btn btn-secondary"
+      = link_to new_importacion_path(tipo: :matricula), class: "btn btn-primary" do
+        = icono(:subir, tamano: 16)
+        %span Subir matrícula
+      = link_to new_importacion_path(tipo: :pensum), class: "btn btn-secondary" do
+        = icono(:subir, tamano: 16)
+        %span Subir materias y profesores
+      = link_to new_importacion_path(tipo: :historial), class: "btn btn-secondary" do
+        = icono(:subir, tamano: 16)
+        %span Subir notas anteriores
 
   - if @importaciones.empty?
     .empty-state
@@ -14,9 +20,15 @@
         orden: la matrícula —alumnos y representantes—, después las materias con
         sus profesores, y por último las notas de años anteriores.
       .acciones-de-cabecera
-        = link_to "Plantilla de matrícula", plantilla_importaciones_path(tipo: :matricula), class: "btn btn-secondary"
-        = link_to "Plantilla de materias", plantilla_importaciones_path(tipo: :pensum), class: "btn btn-secondary"
-        = link_to "Plantilla de notas", plantilla_importaciones_path(tipo: :historial), class: "btn btn-secondary"
+        = link_to plantilla_importaciones_path(tipo: :matricula), class: "btn btn-secondary" do
+          = icono(:descargar, tamano: 16)
+          %span Plantilla de matrícula
+        = link_to plantilla_importaciones_path(tipo: :pensum), class: "btn btn-secondary" do
+          = icono(:descargar, tamano: 16)
+          %span Plantilla de materias
+        = link_to plantilla_importaciones_path(tipo: :historial), class: "btn btn-secondary" do
+          = icono(:descargar, tamano: 16)
+          %span Plantilla de notas
   - else
     = render "shared/escala", total: @pagy.count, singular: "importación", plural: "importaciones"
 

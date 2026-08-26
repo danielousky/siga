@@ -10,12 +10,27 @@
 # Todo lo que se crea vive dentro de una transacción de test, así que se deshace
 # solo al terminar.
 module EscenarioAcademico
-  # Contadores para que los índices únicos globales (dea_code, email) no choquen
-  # entre tests dentro de la misma corrida.
+  # ⚠️ El contador es POR PROCESO, y los tests corren en diez a la vez.
+  #
+  # `parallelize(workers: :number_of_processors)` forkea, así que cada worker
+  # arranca su propio `@@secuencia` en 0 — y el escenario 7 del worker A y el
+  # escenario 7 del worker B pedían el mismo `dea_code` y la misma cédula
+  # escolar, que son índices únicos GLOBALES.
+  #
+  # Fallaba una corrida de cada varias, y siempre en un test distinto: el que
+  # tuviera la mala suerte de que dos workers coincidieran. Se veía como
+  # «Cedula escolar ya está en uso» en un test que no toca cédulas escolares.
+  #
+  # El PID desempata, y no hace falta que sea bonito: solo que dos procesos vivos
+  # a la vez no puedan chocar.
   @@secuencia = 0
 
   def self.siguiente
     @@secuencia += 1
+
+    # Cinco dígitos del PID alcanzan para no chocar y dejan el número corto:
+    # `cedula_escolar` tiene su propio formato y no conviene inflarlo.
+    (Process.pid % 100_000) * 1_000 + @@secuencia
   end
 
   Escenario = Struct.new(

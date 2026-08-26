@@ -24,7 +24,9 @@
   .card-academic-header
     %h1= profesor? ? "Mis Evaluaciones" : "Evaluaciones del Colegio"
     - if profesor?
-      = link_to "Nueva evaluación", new_evaluation_activity_path, class: "btn btn-primary"
+      = link_to new_evaluation_activity_path, class: "btn btn-primary" do
+        = icono(:agregar, tamano: 16)
+        %span Nueva evaluación
 
   - if @lapsos_disponibles.many?
     .filter-pills
@@ -60,4 +62,6 @@
               no se llega a ella desde ningún otro lado en un paso.
             %td
               - if profesor?
-                = link_to "Cargar notas", evaluation_activity_notas_path(actividad), class: "btn btn-primary btn-sm"
+                = link_to evaluation_activity_notas_path(actividad), class: "btn btn-primary btn-sm" do
+                  = icono(:subir, tamano: 16)
+                  %span Cargar notas

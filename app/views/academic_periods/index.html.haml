@@ -1,7 +1,9 @@
 .card-academic
   .card-academic-header
     %h1 Períodos académicos
-    = link_to "Nuevo período", new_academic_period_path, class: "btn btn-primary"
+    = link_to new_academic_period_path, class: "btn btn-primary" do
+      = icono(:agregar, tamano: 16)
+      %span Nuevo período
 
   %table.table-academic
     %thead

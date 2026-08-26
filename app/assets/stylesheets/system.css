@@ -62,8 +62,21 @@
   --radius-lg: 8px;        /* Modals */
 
   /* ---- Typography ---- */
-  --font-serif: Georgia, 'Times New Roman', serif;
+  /* ⚠️ Fuentes del SISTEMA, sin Google Fonts, y es una decisión (MOR-149).
+     
+     Cargar dos familias de Google son ~120 KB y dos peticiones a un dominio
+     ajeno ANTES de que se pinte una letra. En Caracas con una conexión de
+     colegio eso es medio segundo de pantalla en blanco, todos los días, para
+     que un título se vea distinto.
+     
+     El stack cubre lo mismo: cada sistema aporta su mejor cara y ninguna se
+     descarga. */
+  --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia,
+                'Times New Roman', serif;
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  /* Para lo que se lee como dato y no como prosa: cédulas, carnets, códigos. */
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas,
+               'Liberation Mono', monospace;
 
   /* ---- Animation ---- */
   --transition-fast: 120ms cubic-bezier(0.2, 0, 0, 1);
@@ -3947,4 +3960,59 @@ img.avatar {
    perder, la cédula sí se puede consultar entrando. */
 @media (max-width: 480px) {
   .persona-linea-detalle { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOS NÚMEROS SE LEEN COMO REGISTRO (MOR-149)
+
+   Es la mitad de la «piel de Expediente» que faltaba. Los títulos ya iban en
+   serif; lo que no iba era lo que de verdad se lee en esta app — columnas de
+   cédulas, carnets y notas.
+
+   Sin `tabular-nums`, el 1 es más angosto que el 8 y una columna de doscientas
+   cédulas queda con el borde derecho dentado. Con él, los dígitos ocupan lo
+   mismo y la columna se alinea sola: es la diferencia entre una lista y un
+   registro, y no cuesta un byte de descarga.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.table-academic td,
+.table-academic th,
+.stat-card-value,
+.cifra-numero,
+.persona-linea-detalle,
+.detail-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Un identificador NO es prosa: es una cadena que alguien va a cotejar carácter
+   por carácter contra una cédula de cartón. La monoespaciada hace que un 0 y
+   una O no se confundan, que es exactamente el error que arruina un trámite. */
+.dato,
+.identificador {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  letter-spacing: -0.01em;
+}
+
+/* ── la jerarquía de la pantalla ─────────────────────────────────────────
+
+   `h1` es el nombre del documento que se está mirando, no un rótulo de sección.
+   Se le da aire y una línea abajo, como el encabezado de una planilla del MPPE:
+   lo que sigue pertenece a lo que dice arriba.                                */
+
+.card-academic-header h1 {
+  font-size: 26px;
+  letter-spacing: -0.015em;
+}
+
+/* Una tabla que se lee como registro necesita que el encabezado se distinga por
+   PESO y espaciado, no por color de fondo: el fondo gris compite con las filas
+   que sí llevan color por su estado. */
+.table-academic thead th {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
 }

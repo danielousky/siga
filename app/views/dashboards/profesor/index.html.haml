@@ -29,7 +29,9 @@
               -# El avance en letras y no una barra: "12 de 20" dice cuántas
               -# faltan, que es la pregunta. Una barra dice "60 %", que no.
               %span.por-corregir-cuenta= "#{fila[:puestas]} de #{fila[:total]}"
-              = link_to "Cargar notas", evaluation_activity_notas_path(e), class: "btn btn-primary btn-sm"
+              = link_to evaluation_activity_notas_path(e), class: "btn btn-primary btn-sm" do
+                = icono(:subir, tamano: 16)
+                %span Cargar notas
 
       %p.nota-ayuda
         Se listan las evaluaciones cuya fecha ya pasó y a las que les falta

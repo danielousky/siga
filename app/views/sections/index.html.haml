@@ -1,7 +1,9 @@
 .card-academic
   .card-academic-header
     %h1 Secciones
-    = link_to "Nueva sección", new_section_path, class: "btn btn-primary"
+    = link_to new_section_path, class: "btn btn-primary" do
+      = icono(:agregar, tamano: 16)
+      %span Nueva sección
 
 - section_fields = []
 - section_fields << { type: :select, name: :grade_id,          label: "Grado",             options: @grades_options }

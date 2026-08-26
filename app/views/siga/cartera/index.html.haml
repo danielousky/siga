@@ -71,7 +71,9 @@
                 —
             %td
               - if s.nil?
-                = button_to "Dar de alta", siga_cartera_index_path, params: { school_id: colegio.id }, class: "btn btn-secondary btn-sm"
+                = button_to siga_cartera_index_path, params: { school_id: colegio.id }, class: "btn btn-secondary btn-sm" do
+                  = icono(:agregar, tamano: 16)
+                  %span Dar de alta
 
 %p.siga-nota
   El plan se

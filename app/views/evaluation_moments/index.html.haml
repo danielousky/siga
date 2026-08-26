@@ -1,7 +1,9 @@
 .card-academic
   .card-academic-header
     %h1 Momentos de evaluación
-    = link_to "Nuevo momento", new_evaluation_moment_path, class: "btn btn-primary"
+    = link_to new_evaluation_moment_path, class: "btn btn-primary" do
+      = icono(:agregar, tamano: 16)
+      %span Nuevo momento
 
   %table.table-academic
     %thead

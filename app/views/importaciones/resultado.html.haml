@@ -1,7 +1,9 @@
 .card-academic
   .card-academic-header
     %h1= @importacion.titulo_del_reporte
-    = link_to "Volver a importaciones", importaciones_path, class: "btn btn-secondary"
+    = link_to importaciones_path, class: "btn btn-secondary" do
+      = icono(:volver, tamano: 16)
+      %span Volver a importaciones
 
   %p.nota-ayuda
     Desde

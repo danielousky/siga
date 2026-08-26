@@ -71,4 +71,6 @@
 
   .form-acciones
     = submit_tag(representative.persisted? ? "Guardar cambios" : "Registrar", class: "btn btn-primary")
-    = link_to "Volver", representatives_path, class: "btn btn-secondary"
+    = link_to representatives_path, class: "btn btn-secondary" do
+      = icono(:volver, tamano: 16)
+      %span Volver
