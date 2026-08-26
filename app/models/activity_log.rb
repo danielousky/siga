@@ -41,6 +41,8 @@ class ActivityLog < ApplicationRecord
 
   LABELS = {
     "matricula_importada" => "Matrícula importada",
+    "certificacion_emitida" => "Certificación de calificaciones emitida",
+    "documento_de_primaria_emitido" => "Documento de primaria emitido",
     "pensum_importada"     => "Materias y profesores importados",
     "login"                => "Inicio de sesión",
     "enrollment_created"   => "Inscripción creada",

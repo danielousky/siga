@@ -201,6 +201,17 @@ Rails.application.routes.draw do
     resources :teacher_sections, only: [:create, :destroy]
   end
   resources :enrollments, except: [ :show ]
+  # Los documentos oficiales del MPPE (MOR-99). Cuelgan del alumno o de su
+  # inscripción, no de una sección: se emiten de a uno y a pedido de la familia.
+  #
+  # La 31059 acepta `.pdf` y `.xlsx`: el PDF es el documento terminado y el Excel
+  # es el que el colegio completa mientras el formato se asienta.
+  get "documentos/certificacion/:student_id",
+      to: "documentos_oficiales#certificacion", as: :certificacion_de_calificaciones,
+      defaults: { format: "pdf" }, constraints: { format: /pdf|xlsx/ }
+  get "documentos/primaria/:enrollment_id",
+      to: "documentos_oficiales#primaria", as: :documento_de_primaria
+
   resources :students
   resources :teachers, concerns: :con_codigo_de_acceso
   resources :admins, except: [ :show ], concerns: :con_codigo_de_acceso

@@ -853,7 +853,8 @@ CREATE TABLE public.schools (
     municipio character varying,
     direccion character varying,
     telefono character varying,
-    cdcee character varying
+    cdcee character varying,
+    parroquia character varying
 );
 
 
@@ -4011,6 +4012,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260826040000'),
 ('20260826020000'),
 ('20260825200000'),
 ('20260825160000'),

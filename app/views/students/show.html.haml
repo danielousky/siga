@@ -114,5 +114,48 @@
         %span.detail-label Correo
         %p.detail-value= alumno.email
 
+  -# ── 4. Los documentos oficiales del MPPE (MOR-99) ────────────────────────
+  -#
+  -# Van en la ficha del alumno y no en un menú aparte porque se piden de a uno:
+  -# la mamá llega a la secretaría por el papel de SU hijo.
+  .card-academic
+    .card-academic-header
+      %h2 Documentos oficiales
+
+    - if @inscripcion&.section&.grade&.secundaria?
+      %p
+        %strong Certificación de Calificaciones
+        \— forma
+        %code 31059
+        \· Educación Media General. Trae los cinco años en un solo papel.
+      %p.nota-ayuda
+        El PDF es el documento terminado. El Excel es el mismo, editable: sirve para
+        completar a mano lo que el sistema todavía no guarda —el teléfono del plantel,
+        el grupo de Participación, los datos del director de la zona educativa—.
+      .acciones-de-cabecera
+        = link_to "Certificación en PDF",
+                  certificacion_de_calificaciones_path(student_id: @student, format: :pdf),
+                  class: "btn btn-primary"
+        = link_to "Certificación en Excel",
+                  certificacion_de_calificaciones_path(student_id: @student, format: :xlsx),
+                  class: "btn btn-secondary"
+
+    - elsif @inscripcion&.section&.grade&.primaria?
+      %p
+        -# El grado decide cuál de los dos: el último de primaria promueve al
+        -# nivel de media y lleva CERTIFICADO; los demás llevan CONSTANCIA.
+        %strong Certificado de Educación Primaria
+        o
+        %strong Constancia de Prosecución
+        \, según el grado que cursó. Certifica el literal del año.
+      = link_to "Emitir el documento",
+                documento_de_primaria_path(enrollment_id: @inscripcion),
+                class: "btn btn-primary"
+
+    - else
+      %p.nota-pendiente
+        Este alumno no tiene una inscripción activa, así que todavía no hay nada que
+        certificar.
+
   %p.ficha-volver
     = link_to "← Volver a la lista", students_path
