@@ -35,7 +35,47 @@ module DibujaDocumentosOficiales
     end
   end
 
+  # ── los emblemas de la República ──────────────────────────────────────────
+  #
+  # ⚠️ **Prawn no lee SVG.** El escudo llegó como `.svg` de 1,7 MB y se convirtió
+  # UNA VEZ a PNG en vez de agregar `prawn-svg`: esa gema interpretaría el
+  # archivo en cada emisión —y un SVG de ese tamaño es un bitmap trazado, con
+  # degradados y filtros que prawn-svg no siempre resuelve—. Un PNG de 400 px de
+  # alto se dibuja igual, siempre, y no depende de qué tan raro venga el SVG.
+  #
+  # El tamaño importa por otra razón: Prawn EMBEBE la imagen completa en cada
+  # PDF. El logo del ministerio llegó en 1104 px y 435 KB; a 600 px pesa un
+  # tercio y en un documento impreso no se nota la diferencia.
+  EMBLEMAS = {
+    escudo: "escudo_vzla.png",
+    ministerio: "logo_me.png"
+  }.freeze
+
   private
+
+  def emblema(cual)
+    ruta = Rails.root.join("app/assets/images", EMBLEMAS.fetch(cual))
+
+    ruta.exist? ? ruta.to_s : nil
+  end
+
+  # Dibuja un emblema sin dejar que un archivo dañado tumbe el documento: un
+  # certificado no se puede caer por un logo.
+  def dibujar_emblema(pdf, cual, ancho:, alto:, en: nil, posicion: :left)
+    ruta = emblema(cual)
+    return false if ruta.nil?
+
+    if en
+      pdf.bounding_box(en, width: ancho, height: alto) do
+        pdf.image ruta, fit: [ ancho, alto ], position: posicion, vposition: :top
+      end
+    else
+      pdf.image ruta, fit: [ ancho, alto ], position: posicion
+    end
+    true
+  rescue StandardError
+    false
+  end
 
   def texto(valor) = self.class.texto(valor)
 

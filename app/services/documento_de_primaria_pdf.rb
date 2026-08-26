@@ -56,14 +56,27 @@ class DocumentoDePrimariaPdf
 
   private
 
+  # ⚠️ El logo del ministerio arriba a la izquierda y el ESCUDO centrado sobre el
+  # título, que es como vienen los dos formatos oficiales.
   def membrete(pdf)
-    pdf.text "Ministerio del Poder Popular para la Educación", size: 7, align: :left
-    pdf.text "Despacho del Viceministerio de Educación   ·   Dirección General de Registro y " \
-             "Control Académico", size: 6.5, align: :left, color: "666666"
-    pdf.move_down 26
+    arriba = pdf.cursor
+    con_logo = dibujar_emblema(pdf, :ministerio, ancho: 72, alto: 40, en: [ 0, arriba ])
+
+    pdf.move_cursor_to arriba
+    pdf.indent(con_logo ? 82 : 0) do
+      pdf.text "Ministerio del Poder Popular para la Educación", size: 7
+      pdf.text "Despacho del Viceministerio de Educación", size: 6.5, color: "666666"
+      pdf.text "Dirección General de Registro y Control Académico", size: 6.5, color: "666666"
+    end
+
+    pdf.move_cursor_to arriba - 46
+    pdf.move_down 14
   end
 
   def titulo(pdf)
+    dibujar_emblema(pdf, :escudo, ancho: 62, alto: 58, posicion: :center)
+    pdf.move_down 10
+
     pdf.text TITULOS.fetch(@tipo), size: 15, style: :bold, align: :center, leading: 3
     pdf.move_down 26
   end

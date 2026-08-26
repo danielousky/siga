@@ -57,12 +57,18 @@ class CertificacionPdf
   # ── el membrete ───────────────────────────────────────────────────────────
 
   def membrete(pdf)
-    pdf.bounding_box([ 0, pdf.cursor ], width: pdf.bounds.width * 0.5) do
+    arriba = pdf.cursor
+    # El escudo pequeño a la izquierda del membrete, como en el formato impreso.
+    con_escudo = dibujar_emblema(pdf, :escudo, ancho: 26, alto: 26, en: [ 0, arriba ])
+
+    pdf.move_cursor_to arriba
+    pdf.bounding_box([ con_escudo ? 32 : 0, arriba ], width: pdf.bounds.width * 0.5) do
       pdf.text "Gobierno Bolivariano de Venezuela", size: 7, style: :bold
       pdf.text "Ministerio del Poder Popular para la Educación", size: 7
     end
 
-    pdf.move_up 22
+    pdf.move_cursor_to arriba
+    pdf.move_down 2
     pdf.text "CERTIFICACIÓN DE CALIFICACIONES EMG", size: 12, style: :bold, align: :right
     pdf.text "Código: #{texto(@d.dig('plan', 'codigo'))}", size: 8, align: :right
     pdf.move_down 6
