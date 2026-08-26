@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 26 de agosto de 2026
+# 🔖 Punto de retome — actualizado 26 de agosto de 2026 (tarde)
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 
@@ -847,13 +847,76 @@ cambiemos algo.**
 
 ---
 
+## 26 de agosto, tarde · el rediseño de la sesión del colegio (`MOR-149`)
+
+La app llegó a agosto con **cero iconos**. Se presentaron tres propuestas
+—renderizadas con datos reales, no descritas— y Daniel eligió una combinación:
+
+| Plano | Propuesta | Qué aporta |
+|---|---|---|
+| Navegación | **B · Consola** | riel encogible, buscador global, atajos |
+| Tono | **A · Expediente** | serif en títulos, tablas que se leen como registros |
+| Trato | **C · Aula** | avatares donde hay una persona del otro lado |
+
+Las tres, en vivo: https://claude.ai/code/artifact/7f24948a-ff15-4b70-a613-fd139b5947b2
+
+### Lo que está hecho y desplegado
+
+```
+   40 iconos propios, sin una dependencia nueva
+   4 menús de rol + 60 botones en 46 vistas
+   avatares en los 3 listados de personas, la planilla y la asistencia
+   menú encogible · buscador global ⌘K · atajos ↑↓↵ esc /
+   panel con jerarquía: lo accionable en ámbar, las cifras navegables
+```
+
+### Las reglas que sostienen esto
+
+1. **El icono acompaña a la palabra, nunca la reemplaza.** Quien abre SIGA por
+   primera vez es una secretaria que hasta ayer llevaba todo en Word.
+2. **Nada de iconos en una lista de hermanos.** Diez secciones son diez cosas del
+   mismo tipo: el mismo símbolo repetido diez veces es ruido.
+3. **La paleta de avatares no toca los colores semánticos.** Ocho tonos fríos y
+   terrosos, los ocho con contraste ≥ 4.5:1 medido.
+4. **El color del avatar sale del NOMBRE, no del `id`** — con el `id` la misma
+   persona cambiaría de color entre dos colegios.
+5. **Al encoger el menú, el texto se oculta a la vista pero NO del árbol de
+   accesibilidad**: el icono va `aria-hidden`, así que la palabra es lo único que
+   nombra al enlace.
+6. **Sin Google Fonts.** Dos familias son ~120 KB y dos peticiones a un dominio
+   ajeno antes de que se pinte una letra.
+
+Lo fija `test/integration/iconos_y_avatares_test.rb` — 11 tests, 1598
+aserciones—, como `sistema_de_diseno_test` y `regla_de_color_test` fijan lo suyo.
+
+### Tres bugs que aparecieron en el camino
+
+- **El listado de estudiantes salía corrido**: cuatro encabezados, cinco celdas,
+  `document` repetido. «Cédula escolar» mostraba un guión y «Cédula» mostraba la
+  cédula escolar.
+- **Las variantes de imagen estaban rotas en producción desde siempre.**
+  `image_processing` en el Gemfile, `variant_processor` en `:vips`, y **libvips
+  sin instalar**. Ya está: `libvips 8.16.1 cargada ✓`, verificado generando una
+  miniatura de verdad. El paquete es `libvips42t64` —Debian 13, transición a
+  `time_t` de 64 bits— no `libvips42`.
+- **Un test intermitente que llevaba tiempo escondido.** `parallelize` forkea y
+  `EscenarioAcademico` numeraba con un contador de clase: cada worker arrancaba
+  en 0, así que dos escenarios pedían la misma cédula escolar. El PID desempata.
+
+### Lo que falta del rediseño
+
+La landing (queda como está, por decisión), las pantallas de configuración —se
+tocan una vez al año— y los estados vacíos con lenguaje de producto.
+
+---
+
 ## Dónde está todo ahora
 
 ```
   main  (7139e7c)   ← origin y producción, los tres al día
 ```
 
-`bin/ci` en verde: **798 tests**, ~22 s.
+`bin/ci` en verde: **809 tests**, 4020 aserciones, ~23 s.
 
 ## ⚠️ Pendientes que necesitan a Daniel
 
