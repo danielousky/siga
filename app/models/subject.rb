@@ -32,12 +32,15 @@ class Subject < ApplicationRecord
   # MATERIA.»* Hacen falta.
   enum :escala, { numerica: 0, literal: 1 }, prefix: :escala, allow_nil: true
 
+  # Las dos áreas que la forma 31059 saca de la tabla de calificaciones y pone en
+  # sus propias tablitas al final, con el literal por año.
+  ORIENTACION = "orientacion y convivencia".freeze
+  PARTICIPACION = "participacion en grupos".freeze
+
   # Las dos áreas del plan 31059 que van en literal. Se reconocen por nombre
   # porque es como llegan de cualquier planilla; el colegio puede corregirlo
   # marcando la materia a mano.
-  DE_LITERAL_POR_NORMA = [ "orientacion y convivencia",
-                           "participacion en grupos de creacion recreacion y produccion",
-                           "participacion en grupos" ].freeze
+  DE_LITERAL_POR_NORMA = [ ORIENTACION, PARTICIPACION ].freeze
 
   # Con qué escala se muestra una nota de esta materia en un grado dado. La de la
   # materia gana si la declara; si no, manda el grado.
@@ -45,9 +48,12 @@ class Subject < ApplicationRecord
 
   # ¿El nombre es el de un área que la norma califica con letra? Se usa al
   # importar y al sembrar, para no obligar a marcarlas una por una.
-  def self.de_literal_por_norma?(nombre)
+  def self.de_literal_por_norma?(nombre) = area_del_31059(nombre).present?
+
+  # Cuál de las dos áreas es, o `nil` si es un área de formación normal.
+  def self.area_del_31059(nombre)
     comparable = Normaliza.limpiar(nombre).gsub(/[^a-z0-9 ]/, "")
 
-    DE_LITERAL_POR_NORMA.any? { |a| comparable.start_with?(a) }
+    DE_LITERAL_POR_NORMA.find { |a| comparable.start_with?(a) }
   end
 end

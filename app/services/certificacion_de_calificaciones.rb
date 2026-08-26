@@ -11,13 +11,30 @@
 # año, con la calificación definitiva de cada área en cada año cursado. Es lo que
 # pide una universidad, una embajada o el colegio que recibe a un alumno.
 #
-# ## Las cinco secciones del formato
+# ## Las ocho secciones del formato
 #
-#     I    plan de estudio (31059) · lugar y fecha de expedición
-#     II   datos del plantel: nombre, código, dirección, entidad, municipio
-#     III  identificación del estudiante
-#     IV   planteles donde cursó
-#     V    áreas de formación con su calificación, por año
+# Están tomadas de un ejemplar REAL, lleno y sellado, no de una descripción:
+#
+#     I     plan de estudio (31059) · lugar y fecha de expedición
+#     II    la institución que emite: código, epónimo, dirección, teléfono,
+#           municipio, entidad federal y CDCEE
+#     III   identificación del estudiante, con el lugar de nacimiento partido
+#           en país, estado y municipio
+#     IV    instituciones donde cursó estudios (hasta cinco)
+#     V     el plan de estudio: un BLOQUE POR AÑO, de primero a quinto
+#     VI    observaciones, con el promedio académico
+#     VII   firma del director del plantel, con su sello
+#     VIII  firma del director del CDCEE, con el sello del estado
+#
+# ## ⚠️ La calificación va en NÚMERO y EN LETRAS
+#
+# No es el literal A–E: es el mismo número escrito de las dos maneras —«11 ·
+# ONCE»— que es como se protege un documento oficial contra la adulteración.
+# Cambiarle un trazo al 11 para volverlo 17 exige cambiar también la palabra.
+#
+# El literal A–E existe aparte, y solo para dos áreas: **Orientación y
+# Convivencia** y **Participación en Grupos**, que van en sus propias tablitas
+# al final de la sección V, por año.
 #
 # ## ⚠️ Dos áreas van en LETRA, y el resto en número
 #
@@ -73,8 +90,10 @@ class CertificacionDeCalificaciones
       "plantel" => plantel,
       "estudiante" => estudiante,
       "planteles_cursados" => planteles_cursados,
-      "anos" => anos_del_plan.map { |g, p| etiqueta_de_ano(g, p) },
-      "areas" => areas
+      "anos" => bloques_por_ano,
+      "orientacion_y_convivencia" => literal_por_ano(Subject::ORIENTACION),
+      "participacion_en_grupos" => literal_por_ano(Subject::PARTICIPACION),
+      "observaciones" => { "promedio_academico" => promedio_academico }
     }
   end
 
@@ -85,10 +104,12 @@ class CertificacionDeCalificaciones
   def plantel
     {
       "nombre" => @colegio.name,
-      "dea" => @colegio.dea_code,
+      "codigo" => @colegio.dea_code,
       "direccion" => @colegio.direccion.presence || @colegio.location,
+      "telefono" => @colegio.telefono,
       "entidad_federal" => @colegio.entidad_federal,
-      "municipio" => @colegio.municipio
+      "municipio" => @colegio.municipio,
+      "cdcee" => @colegio.cdcee
     }
   end
 
@@ -108,7 +129,12 @@ class CertificacionDeCalificaciones
       "documento" => persona.identificador,
       "cedula_escolar" => persona.cedula_escolar,
       "fecha_de_nacimiento" => persona.birth_date&.iso8601,
-      "lugar_de_nacimiento" => persona.birth_place,
+      # ⚠️ El formato tiene una casilla para cada uno. `birth_place` es texto
+      # libre y se conserva para la pantalla, pero acá no sirve: partirlo
+      # adivinando pondría un municipio donde hay un estado.
+      "pais_de_nacimiento" => persona.birth_country,
+      "estado_de_nacimiento" => persona.birth_state,
+      "municipio_de_nacimiento" => persona.birth_municipality,
       "sexo" => persona.sex
     }
   end
@@ -128,53 +154,125 @@ class CertificacionDeCalificaciones
     inscripciones.group_by { |e| e.section.grade.school }.map do |colegio, de_ese|
       { "plantel" => colegio.name,
         "dea" => colegio.dea_code,
-        "localidad" => colegio.location,
+        "localidad" => colegio.municipio.presence || colegio.location,
+        "entidad_federal" => colegio.entidad_federal,
         "anos" => de_ese.map { |e| e.section.academic_period.name }.uniq.sort }
     end
   end
 
   # ── sección V ─────────────────────────────────────────────────────────────
 
-  # Una fila por área de formación, una columna por año cursado.
+  # ⚠️ Un BLOQUE POR AÑO, no una matriz de áreas × años.
   #
-  # Las áreas salen de las MATERIAS que el alumno cursó de verdad, no del pensum:
-  # un alumno que se cambió de mención no cursó las mismas que sus compañeros, y
-  # el certificado dice lo que él hizo.
-  def areas
-    del_plan = anos_del_plan.map { |g, p| etiqueta_de_ano(g, p) }.to_set
+  # La forma real tiene cinco recuadros —PRIMER AÑO, SEGUNDO AÑO…— cada uno con
+  # su propia tabla. No es cosmético: las áreas cambian de un año a otro (en
+  # cuarto aparece Formación para la Soberanía Nacional, en quinto Ciencias de la
+  # Tierra) y una matriz común dejaría una fila con cuatro guiones para cada área
+  # que no se cursa todos los años.
+  ORDINALES = { 1 => "PRIMER", 2 => "SEGUNDO", 3 => "TERCER", 4 => "CUARTO", 5 => "QUINTO" }.freeze
 
-    libros.select { |l| del_plan.include?(etiqueta_de_ano(l.enrollment.section.grade, l.enrollment.section.academic_period)) }
-          .group_by(&:subject).map do |materia, de_esa|
-      notas = de_esa.to_h do |libro|
-        grado = libro.enrollment.section.grade
-        periodo = libro.enrollment.section.academic_period
-
-        [ etiqueta_de_ano(grado, periodo), calificacion(libro, materia, grado) ]
-      end
-
-      { "area" => materia.name, "codigo" => materia.code, "notas" => notas }
-    end.sort_by { |a| a["area"] }
+  def bloques_por_ano
+    anos_del_plan.map do |grado, periodo|
+      { "ordinal" => ordinal_de(grado),
+        "grado" => grado.name,
+        "periodo" => periodo.name,
+        "areas" => areas_de(grado, periodo) }
+    end
   end
 
-  # ⚠️ La definitiva es `final_score`, no `annual_average`.
+  # ⚠️ El ordinal sale del GRADO, no de la posición en la lista.
   #
-  # Artículo 112 del Reglamento: la nota de la segunda oportunidad es la
-  # definitiva. `final_score` ya la tiene resuelta; `annual_average` es la del
-  # año sin la reparación, y certificar esa deja aplazado a quien reparó.
-  def calificacion(libro, materia, grado)
+  # Contando posiciones, un alumno que repitió tercer año recibía «SEXTO AÑO» —
+  # un año que no existe en media general— porque tenía seis inscripciones. Lo
+  # que el formato quiere es qué año cursó, y eso lo dice el grado: quien repite
+  # tiene dos recuadros y los dos dicen TERCER AÑO, que es lo correcto.
+  def ordinal_de(grado)
+    numero = grado.name.to_s[/\d+/]&.to_i
+
+    ORDINALES[numero] ? "#{ORDINALES[numero]} AÑO" : grado.name.to_s.upcase
+  end
+
+  # «1º», «3º» — para las tablitas de literal, que van por año y no por recuadro.
+  def numero_de_ano(grado)
+    numero = grado.name.to_s[/\d+/]&.to_i
+
+    numero ? "#{numero}º" : grado.name.to_s
+  end
+
+  # Las áreas de formación de ese año, SIN las dos que van en sus tablitas
+  # aparte. El certificado dice lo que el alumno cursó, no lo que dice el pensum.
+  def areas_de(grado, periodo)
+    libros_de(grado, periodo)
+      .reject { |l| Subject.de_literal_por_norma?(l.subject.name) }
+      .map { |l| calificacion(l) }
+      .compact
+      .sort_by { |a| a["area"] }
+  end
+
+  # Una calificación como la pide el formato: número, letras, tipo y fecha.
+  def calificacion(libro)
     nota = libro.final_score
     return nil if nota.nil?
 
-    literal = materia.escala_en(grado).to_s == "literal"
+    periodo = libro.enrollment.section.academic_period
+    obtenida = periodo.end_date || Date.new(1900)
 
-    # ⚠️ En el certificado va la LETRA SOLA, no «17 (B)» como en el boletín.
-    #
-    # El boletín le muestra las dos cosas a una familia porque el número explica
-    # la letra. El formato oficial tiene una casilla y la norma dice que esas dos
-    # áreas se certifican con literal: poner el número al lado sería agregarle
-    # algo al documento que el MPPE no puso.
-    { "numero" => nota.to_i, "escala" => literal ? "literal" : "numerica",
-      "texto" => literal ? EscalaLiteral.para(nota.to_i) : nota.to_i.to_s }
+    {
+      "area" => libro.subject.name,
+      "numero" => nota.to_i,
+      # ⚠️ El mismo número escrito con palabras, no el literal A–E.
+      "letras" => NumeroEnLetras.para(nota.to_i),
+      # ⚠️ **F** es la calificación final del año; **R**, la de reparación.
+      #
+      # El ejemplar real trae un tercer valor, `P`, en filas fechadas en octubre
+      # —cuando se evalúan las materias pendientes—. SIGA no modela «pendiente»,
+      # así que no se inventa: lo que no es reparación es final.
+      "te" => libro.remedial_exam_score.present? ? "R" : "F",
+      "mes" => format("%02d", obtenida.month),
+      "ano" => obtenida.year
+    }
+  end
+
+  # ── las dos áreas con literal, al final de la sección V ───────────────────
+
+  # ⚠️ Van por AÑO y con la letra, no con el número.
+  #
+  # En el ejemplar real, «Participación en Grupos» además dice **cuál grupo**
+  # —MANUALIDADES, REPOSTERÍA, GASTRONOMÍA— y eso SIGA no lo modela: la casilla
+  # queda para que el colegio la escriba. Inventarle un grupo a un alumno sería
+  # poner en un documento oficial algo que nadie declaró.
+  def literal_por_ano(area)
+    anos_del_plan.filter_map do |grado, periodo|
+      libro = libros_de(grado, periodo).find { |l| Subject.area_del_31059(l.subject.name) == area }
+      next if libro.nil? || libro.final_score.nil?
+
+      { "ano" => numero_de_ano(grado),
+        "literal" => EscalaLiteral.para(libro.final_score.to_i),
+        "grupo" => nil }
+    end
+  end
+
+  # ── sección VI ────────────────────────────────────────────────────────────
+
+  # El promedio de TODAS las calificaciones definitivas del bachillerato, con dos
+  # decimales. Es lo que dice el ejemplar real: «Promedio Académico : 12.73».
+  #
+  # No se redondea al entero del Artículo 108: ese artículo manda sobre la
+  # calificación de una materia, y esto es un promedio de promedios que el
+  # formato pide con decimales.
+  def promedio_academico
+    notas = anos_del_plan.flat_map { |g, p| libros_de(g, p) }.filter_map(&:final_score)
+    return nil if notas.empty?
+
+    (notas.sum.to_d / notas.size).round(2).to_f
+  end
+
+  def libros_de(grado, periodo)
+    @por_ano ||= libros.group_by do |l|
+      [ l.enrollment.section.grade_id, l.enrollment.section.academic_period_id ]
+    end
+
+    @por_ano.fetch([ grado.id, periodo.id ], [])
   end
 
   # ── lo común ──────────────────────────────────────────────────────────────

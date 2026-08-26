@@ -851,7 +851,9 @@ CREATE TABLE public.schools (
     updated_at timestamp(6) without time zone NOT NULL,
     entidad_federal character varying,
     municipio character varying,
-    direccion character varying
+    direccion character varying,
+    telefono character varying,
+    cdcee character varying
 );
 
 
@@ -1596,7 +1598,10 @@ CREATE TABLE public.users (
     second_last_name character varying,
     birth_date date,
     sex integer,
-    birth_place character varying
+    birth_place character varying,
+    birth_country character varying,
+    birth_state character varying,
+    birth_municipality character varying
 );
 
 
@@ -4006,6 +4011,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260826020000'),
 ('20260825200000'),
 ('20260825160000'),
 ('20260825140000'),
