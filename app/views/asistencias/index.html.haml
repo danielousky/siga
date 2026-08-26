@@ -16,9 +16,13 @@
     .asistencia-secciones
       - @secciones.each do |seccion|
         = link_to seccion_asistencia_path(seccion, dia: Date.current), class: "asistencia-seccion" do
-          %span.asistencia-seccion-nombre= "#{seccion.grade.name} – #{seccion.name}"
+          %span.asistencia-seccion-nombre
+            = icono(:secciones, tamano: 16)
+            = "#{seccion.grade.name} – #{seccion.name}"
           %span.asistencia-seccion-dato
             - if @tomadas_hoy&.any? { |id| seccion.enrollment_ids.include?(id) }
-              %span.asistencia-marca-tomada Tomada hoy
+              %span.asistencia-marca-tomada
+                = icono(:ok, tamano: 14)
+                Tomada hoy
             - else
               = contar(seccion.enrollments.size, "alumno", "alumnos")

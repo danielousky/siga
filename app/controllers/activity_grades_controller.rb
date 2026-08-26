@@ -31,6 +31,20 @@ class ActivityGradesController < ApplicationController
                                          .sort_by { |i| [i.student.user.last_name, i.student.user.first_name] }
 
     @notas_por_alumno = @evaluation_activity.activity_grades.index_by(&:student_id)
+
+    # ⚠️ El promedio del lapso, al lado de la nota que se está cargando.
+    #
+    # Es la diferencia entre saber que un alumno sacó 8 y saber si ese 8 es un
+    # accidente o una tendencia. El profesor lo tiene en la cabeza para los cinco
+    # que conoce bien; para los otros veinticinco, no.
+    #
+    # Una sola consulta: pedirlo por alumno serían treinta.
+    @promedios = MomentGrade
+      .where(enrollment_id: @inscripciones.map(&:id),
+             subject_id: @evaluation_activity.subject_id,
+             evaluation_moment_id: @evaluation_activity.evaluation_moment_id)
+      .pluck(:enrollment_id, :final_moment_score)
+      .to_h
   end
 
   def update

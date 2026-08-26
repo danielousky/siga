@@ -34,10 +34,21 @@
       - @inscripciones.each do |inscripcion|
         - alumno = inscripcion.student
         - nota   = @notas_por_alumno[alumno.id]
+        - promedio = @promedios[inscripcion.id]
         %li.carga-fila{data: { carga_notas_target: "fila", alumno: alumno.id }}
+          -# La cara antes que el nombre: en una sección de treinta, el profesor
+          -# reconoce al alumno antes de terminar de leer el apellido.
+          = avatar(alumno.user, tamano: :chico)
           .carga-alumno
             .carga-alumno-nombre= alumno.user.apellidos_y_nombres
-            .carga-alumno-carnet= alumno.school_card
+            .carga-alumno-carnet
+              = alumno.school_card
+              - if promedio
+                -# ⚠️ Rojo si va aplazado. Es un DATO —el promedio de este alumno
+                -# en este lapso— no un control, así que la regla de color aplica
+                -# tal cual: un número en rojo es un niño en problemas.
+                %span.carga-promedio{class: ("bajo" if promedio.to_i < 10)}
+                  = "· lapso #{number_with_precision(promedio, precision: promedio.frac.zero? ? 0 : 1)}"
           .carga-campo
             %input.carga-input{type: "number", inputmode: "numeric", min: 1, max: 20, step: 1,
                                value: nota&.score&.to_i, placeholder: "—",

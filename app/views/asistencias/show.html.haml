@@ -46,6 +46,18 @@
         - estado = registro&.status || "presente"
         %li.asistencia-alumno{data: {asistencia_target: "alumno", inscripcion: inscripcion.id, estado: estado}}
           %button.asistencia-boton{type: "button", data: {action: "click->asistencia#alternar"}}
+            -# ⚠️ Los TRES iconos viven en el HTML y el CSS muestra el del estado
+            -# actual.
+            -#
+            -# Alternar es un toque que NO va al servidor —se guardan todos
+            -# juntos al final— así que el marcador tiene que poder cambiar sin
+            -# volver a dibujar la fila. Dibujar solo el icono actual obligaría
+            -# a que el controlador de Stimulus supiera de rutas SVG.
+            %span.asistencia-icono{"data-para": "presente"}= icono(:ok, tamano: 20)
+            %span.asistencia-icono{"data-para": "ausente"}= icono(:cerrar, tamano: 20)
+            %span.asistencia-icono{"data-para": "tarde"}= icono(:pendiente, tamano: 20)
+
+            = avatar(inscripcion.student.user, tamano: :chico)
             %span.asistencia-nombre
               = inscripcion.student.user.apellidos_y_nombres
             %span.asistencia-estado{data: {asistencia_target: "etiqueta"}}
@@ -55,7 +67,8 @@
       .asistencia-resumen{data: {asistencia_target: "resumen"}}
         = "#{@inscripciones.size} presentes"
       %button.btn.btn-primary.asistencia-guardar{type: "button", data: {action: "click->asistencia#guardar", asistencia_target: "guardar"}}
-        Guardar asistencia
+        = icono(:guardar, tamano: 16)
+        %span Guardar asistencia
 
     .alert.alert-danger{hidden: true, data: {asistencia_target: "aviso"}}
       %span{data: {asistencia_target: "avisoTexto"}}

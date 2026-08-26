@@ -4460,3 +4460,60 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   a.stat-card:hover { transform: none; }
   .pendiente-ir { transition: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA PLANILLA DE NOTAS Y LA ASISTENCIA (MOR-149)
+
+   Las dos pantallas donde el profesor pasa el tiempo, y las dos que más ganan
+   con el trato de la propuesta «Aula»: donde hay una persona del otro lado,
+   se le ve la cara.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.carga-fila { align-items: center; }
+
+/* El promedio del lapso al lado del carnet: es lo que distingue un 8 accidental
+   de una tendencia, y el profesor solo lo tiene en la cabeza para los cinco
+   alumnos que conoce bien. */
+.carga-promedio {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+/* ⚠️ Rojo porque es un DATO. La regla de color de SIGA no prohíbe el rojo: lo
+   reserva para lo que significa un niño aplazado, que es exactamente esto. */
+.carga-promedio.bajo {
+  color: var(--danger-text);
+  font-weight: 600;
+}
+
+/* ── la asistencia ────────────────────────────────────────────────────────
+
+   ⚠️ `.asistencia-boton` es UNA DE LAS DOS EXCEPCIONES declaradas a la regla de
+   color: tocarlo cicla presente → ausente → tarde, así que el control y el dato
+   son el mismo objeto. El icono sigue esa misma lógica.                       */
+
+.asistencia-alumno .avatar { flex: none; }
+
+.asistencia-boton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* El icono de estado se elige por CSS y no por Ruby: el estado cambia con un
+   toque, sin ir al servidor, así que el marcador tiene que poder cambiar sin
+   volver a dibujar la fila. */
+.asistencia-icono { flex: none; display: grid; place-items: center; }
+
+.asistencia-alumno[data-estado="presente"] .asistencia-icono { color: var(--success-text); }
+.asistencia-alumno[data-estado="ausente"]  .asistencia-icono { color: var(--danger-text); }
+.asistencia-alumno[data-estado="tarde"]    .asistencia-icono { color: var(--warning-text); }
+
+/* Solo se ve el icono del estado en el que está la fila. Los tres viven en el
+   HTML para que alternar no tenga que pedirle nada al servidor. */
+.asistencia-icono[data-para] { display: none; }
+.asistencia-alumno[data-estado="presente"] .asistencia-icono[data-para="presente"],
+.asistencia-alumno[data-estado="ausente"]  .asistencia-icono[data-para="ausente"],
+.asistencia-alumno[data-estado="tarde"]    .asistencia-icono[data-para="tarde"] {
+  display: grid;
+}
