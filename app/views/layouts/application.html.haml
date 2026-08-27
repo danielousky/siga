@@ -73,7 +73,11 @@
       = render 'shared/barra_de_contexto'
 
       .app-layout{"data-controller": "sidebar"}
-        %aside.sidebar-index
+        -# El controlador `menu` va acá, en la barra entera, y no en cada grupo:
+        -# los grupos tienen que coordinarse entre sí —en el navbar del teléfono
+        -# abrir uno cierra los otros—, y eso desde un grupo suelto obliga a
+        -# alcanzar a sus hermanos por el padre.
+        %aside.sidebar-index{"data-controller": "menu"}
           -# ⚠️ El botón va ARRIBA, y antes estaba al pie.
           -#
           -# Lo puse abajo razonando que «encoger se hace una vez y no merece el

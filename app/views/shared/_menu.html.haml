@@ -1,0 +1,29 @@
+-# El menú lateral: UN dibujante para los cuatro roles (MOR-149).
+-#
+-# Lo que se dibuja llega como datos desde `MenuHelper`. Acá no hay ninguna
+-# decisión de qué va en el menú — solo cómo se ve.
+-#
+-# ## ⚠️ Un solo `<details>` por grupo, y sirve para las dos formas del menú
+-#
+-# En escritorio el menú es una columna y un grupo plegado ahorra alto. En el
+-# teléfono los mismos cinco grupos son los chips de un navbar, y el que se toca
+-# despliega sus pantallas en cajas. **Es el mismo HTML**: lo único que cambia
+-# es el CSS que lo dibuja.
+-#
+-# Antes se renderizaba DOS veces —una plegada para escritorio, otra plana para
+-# el teléfono— y con cinco grupos eso duplica el menú entero, con el riesgo de
+-# que las dos copias se vayan separando.
+-#
+-# ⚠️ El evento `toggle` de un `<details>` NO burbujea. Por eso la acción va en
+-# cada grupo aunque el controlador viva en el `<aside>`: Stimulus engancha el
+-# oyente en el elemento que declara la acción, no en el del controlador.
+- grupos.each do |grupo|
+  - if grupo.plegable?
+    %details.sidebar-grupo{open: grupo_abierto?(grupo), id: grupo.id,
+                           data: { menu_target: "grupo", action: "toggle->menu#alTogglear" }}
+      %summary.sidebar-section-title= grupo.titulo
+      = render "shared/menu_enlaces", enlaces: grupo.enlaces
+  - else
+    -# Sin título: el Panel. No es una categoría, es el punto de partida.
+    .sidebar-section
+      = render "shared/menu_enlaces", enlaces: grupo.enlaces

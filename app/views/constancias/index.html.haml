@@ -1,9 +1,13 @@
 - opciones_de_seccion = @secciones.map { |s| ["#{s.grade.name} – #{s.name} · #{s.academic_period.name}", s.id] }
 - opciones_de_alumno  = [["Toda la sección (#{contar(@alumnos.size, 'alumno', 'alumnos')})", ""]] + @alumnos.map { |i| [i.student.user.apellidos_y_nombres, i.id] }
 
+- content_for :titulo, "Constancias de estudio"
+
 .card-academic
   .card-academic-header
-    %h1 Constancias de estudio
+    %h1 Documentos
+
+  = render "shared/pestanas", pestanas: pestanas_de_documentos, etiqueta: "Documentos que emite el colegio"
 
   - if @secciones.empty?
     .empty-state

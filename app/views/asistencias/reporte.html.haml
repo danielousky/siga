@@ -3,9 +3,15 @@
 -# Cuenta solo las ausencias SIN JUSTIFICAR: un alumno con seis faltas
 -# justificadas por una internación no es el mismo caso que uno con seis sin
 -# aviso, y mezclarlos hace que el reporte no sirva para decidir nada.
+- content_for :titulo, "Inasistencias"
+
 .card-academic
   .card-academic-header
-    %h1 Inasistencias
+    %h1 Asistencia
+
+  -# La pestaña dice cuál de las dos vistas es esta, así que el encabezado no lo
+  -# repite: dos rótulos para lo mismo hacen dudar de si son lo mismo.
+  = render "shared/pestanas", pestanas: pestanas_de_asistencia, etiqueta: "Vistas de la asistencia"
 
   = form_with url: reporte_asistencia_path, method: :get, class: "" do
     .form-row

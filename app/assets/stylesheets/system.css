@@ -653,14 +653,33 @@ textarea.form-control {
    carga notas DESDE EL TELÉFONO. La pantalla de carga ya estaba resuelta
    (MOR-96); llegar a ella no.
 
-   Ahora el menú es una tira horizontal que se desliza y queda pegada arriba.
-   Dos líneas de alto en vez de cuarenta, y siempre a mano.
+   Ahora el menú es un NAVBAR: los cinco grupos como chips, y el que se toca
+   despliega sus pantallas en cajas debajo.
+
+   ## Por qué dejó de ser una tira que se desliza (MOR-149)
+
+   La primera versión ponía los dieciocho enlaces en una fila con scroll
+   horizontal. Con cinco enlaces se leía bien; con dieciocho, encontrar
+   «Departamentos» es deslizar a ciegas por una tira más ancha que tres
+   pantallas — y el scroll horizontal no avisa cuánto falta.
+
+   Cinco chips caben sin deslizar nada. Y eso destraba lo demás: sin scroll no
+   hace falta `overflow`, y sin `overflow` el desplegable puede salirse de la
+   barra en vez de quedar recortado, que era el problema que antes obligaba a
+   dibujar el menú dos veces.
 */
 @media (max-width: 768px) {
   .app-layout {
     flex-direction: column;
   }
 
+  /* ⚠️ `overflow: visible` es lo que hace posible todo lo de abajo.
+     Con `overflow-y: hidden` —lo que había— el desplegable de un grupo queda
+     cortado al ras de la barra, porque crece justo hacia donde está el recorte.
+     Y no se puede pedir `overflow-x: auto` con `overflow-y: visible`: el CSS
+     convierte el `visible` en `auto` en cuanto el otro eje no lo es. O sea que
+     el scroll horizontal y el desplegable son incompatibles, y el desplegable
+     es el que resuelve el problema de verdad. */
   .sidebar-index {
     width: 100%;
     height: auto;
@@ -668,41 +687,24 @@ textarea.form-control {
     top: 0;
     z-index: 20;
     display: flex;
-    gap: var(--space-md);
-    padding: var(--space-xs) 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
     border-right: none;
     border-bottom: 1px solid var(--border-standard);
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    overflow: visible;
   }
 
-
-  /* La barra de scroll horizontal se oculta: ocupa alto en una tira que ya es
-     angosta, y el desplazamiento con el dedo no la necesita. */
-  .sidebar-index::-webkit-scrollbar {
-    display: none;
-  }
-
+  /* El Panel: no tiene título de grupo, así que se dibuja como un chip más. */
   .sidebar-section {
     display: flex;
     align-items: center;
-    gap: var(--space-xs);
     margin-bottom: 0;
     flex: 0 0 auto;
   }
 
-  /* El rótulo de sección se queda —sin él, trece enlaces en fila no se
-     entienden— pero pasa a ser una marca al costado, no un encabezado. */
-  .sidebar-section-title {
-    padding: 0 0 0 var(--space-md);
-    margin-bottom: 0;
-    font-size: 10px;
-    flex: 0 0 auto;
-  }
-
-  .sidebar-nav {
+  .sidebar-section .sidebar-nav {
     display: flex;
     gap: var(--space-micro);
   }
@@ -711,10 +713,93 @@ textarea.form-control {
     flex: 0 0 auto;
   }
 
-  /* La marca de "estás acá" pasa del borde izquierdo al de abajo: en una tira
+  /* ── el grupo, como botón del navbar ────────────────────────────────── */
+
+  .sidebar-grupo {
+    margin-bottom: 0;
+    flex: 0 0 auto;
+    /* `static` a propósito: así el desplegable se posiciona contra la BARRA
+       —que es `sticky`, o sea el bloque contenedor— y sale de lado a lado en
+       vez de quedar colgando bajo un chip de setenta píxeles. */
+    position: static;
+  }
+
+  .sidebar-grupo > summary {
+    /* `margin-bottom` y el `padding` ancho son de la columna de escritorio: acá
+       el título dejó de ser un encabezado y pasó a ser un chip. */
+    margin-bottom: 0;
+    padding: var(--space-xs) var(--space-sm);
+    /* 36px: es un objetivo del dedo, no un renglón de texto. Los chips van en
+       una barra que se toca, no se apunta. */
+    min-height: 36px;
+    font-size: 11px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+    cursor: pointer;
+  }
+
+  /* El chip abierto se marca: sin eso, con el desplegable de lado a lado no se
+     sabe cuál de los cinco lo abrió. */
+  .sidebar-grupo[open] > summary {
+    color: var(--brand-primary);
+    border-color: var(--brand-primary);
+    background: var(--surface-hover);
+  }
+
+  /* El triángulo apunta hacia ABAJO, no hacia la derecha: en una columna «a la
+     derecha» significa «se abre hacia abajo», pero en una barra horizontal
+     significaría «hay más a la derecha», que es justo lo que ya no hay. */
+  .sidebar-grupo > summary::before { transform: rotate(90deg); }
+  .sidebar-grupo[open] > summary::before { transform: rotate(-90deg); }
+
+  /* ── el desplegable, en cajas ───────────────────────────────────────── */
+
+  /* Cajas y no una lista: en una lista de una columna, cuatro pantallas ocupan
+     cuatro renglones y hay que leer para elegir. En cajas de dos columnas se
+     ven las cuatro de un vistazo, con el icono haciendo de ancla. */
+  .sidebar-grupo[open] > .sidebar-nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: var(--space-xs);
+    padding: var(--space-sm);
+    background: var(--surface-elevated);
+    border-bottom: 1px solid var(--border-standard);
+    /* Más suave que la del modal de búsqueda: esto es un desplegable pegado a
+       la barra, no una capa que tapa la página. */
+    box-shadow: 0 12px 28px rgba(10, 16, 26, 0.18);
+  }
+
+  .sidebar-grupo[open] > .sidebar-nav .sidebar-nav-link {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-micro);
+    /* 56px de alto: la caja se toca con el pulgar, y sobre una lista de datos
+       un objetivo chico se falla y navega a otro lado. */
+    min-height: 56px;
+    justify-content: center;
+    padding: var(--space-sm);
+    white-space: normal;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+  }
+
+  .sidebar-grupo[open] > .sidebar-nav .sidebar-nav-link.active {
+    border-color: var(--brand-primary);
+    border-bottom-width: 1px;
+  }
+
+  /* ── los enlaces sueltos de la barra (el Panel) ─────────────────────── */
+
+  /* La marca de "estás acá" pasa del borde izquierdo al de abajo: en una barra
      horizontal, un borde a la izquierda de cada enlace parece un separador. */
   .sidebar-nav-link {
     padding: var(--space-xs) var(--space-sm);
+    min-height: 36px;
     white-space: nowrap;
     border-left: none;
     border-bottom: 2px solid transparent;
@@ -3355,11 +3440,14 @@ nav.pagy a.gap {
   font-weight: 500;
 }
 
-/* El grupo plegable del menú (MOR-135). `<details>` nativo: sin JavaScript,
-   con teclado, y sin estado que se pueda desincronizar. */
-.sidebar-plegable { margin-bottom: var(--space-lg); }
+/* Los grupos del menú, todos plegables (MOR-149).
+   `<details>` nativo: anda sin JavaScript, responde al teclado solo, y no hay
+   un estado paralelo que se pueda desincronizar con lo que se ve.
+   El JavaScript solo RECUERDA cuál quedó plegado; abrir y cerrar es del
+   navegador. */
+.sidebar-grupo { margin-bottom: var(--space-lg); }
 
-.sidebar-plegable > summary {
+.sidebar-grupo > summary {
   cursor: pointer;
   list-style: none;
   display: flex;
@@ -3367,11 +3455,11 @@ nav.pagy a.gap {
   gap: var(--space-xs);
   user-select: none;
 }
-.sidebar-plegable > summary::-webkit-details-marker { display: none; }
+.sidebar-grupo > summary::-webkit-details-marker { display: none; }
 
 /* El triángulo lo dibujamos nosotros para que gire: el nativo no se puede
    animar ni recolorear de forma consistente entre navegadores. */
-.sidebar-plegable > summary::before {
+.sidebar-grupo > summary::before {
   content: "";
   width: 0;
   height: 0;
@@ -3380,10 +3468,10 @@ nav.pagy a.gap {
   border-bottom: 4px solid transparent;
   transition: transform var(--transition-fast);
 }
-.sidebar-plegable[open] > summary::before { transform: rotate(90deg); }
+.sidebar-grupo[open] > summary::before { transform: rotate(90deg); }
 
-.sidebar-plegable > summary:hover { color: var(--brand-primary); }
-.sidebar-plegable > summary:focus-visible {
+.sidebar-grupo > summary:hover { color: var(--brand-primary); }
+.sidebar-grupo > summary:focus-visible {
   outline: 2px solid var(--brand-primary);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
@@ -4047,7 +4135,7 @@ img.avatar {
    donde tiene que estar para quien no la mira. */
 .menu-encogido .sidebar-nav-link span,
 .menu-encogido .sidebar-section-title,
-.menu-encogido .sidebar-plegable summary {
+.menu-encogido .sidebar-grupo summary {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -4068,11 +4156,39 @@ img.avatar {
   min-height: 44px;
 }
 
+/* ⚠️ En el riel NINGÚN grupo puede quedar plegado (MOR-149).
+
+   El título del grupo es lo que se pulsa para abrirlo, y en el riel el título
+   está oculto. Un grupo plegado ahí esconde sus iconos SIN NINGUNA MANERA DE
+   RECUPERARLOS: «Configuración» nace plegado, así que encoger el menú se
+   llevaría cuatro pantallas y no habría cómo traerlas de vuelta.
+
+   Es el mismo agujero que el del teléfono, en otro lado. */
+.menu-encogido .sidebar-grupo::details-content {
+  content-visibility: visible;
+  display: contents;
+}
+
+/* Y si el navegador no conoce `::details-content`, entonces el título NO se
+   esconde: mejor un riel con rótulos de más que cuatro pantallas perdidas. */
+@supports not selector(::details-content) {
+  .menu-encogido .sidebar-grupo > summary {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    clip-path: none;
+    font-size: 9px;
+    justify-content: center;
+  }
+}
+
 /* Un separador que sustituye al título de sección cuando el título se esconde:
-   sin él los diez iconos quedan en una tira continua y se pierde el
-   agrupamiento por frecuencia que MOR-135 estableció. */
+   sin él los dieciocho iconos quedan en una tira continua y se pierde el
+   agrupamiento entero. */
 .menu-encogido .sidebar-section + .sidebar-section::before,
-.menu-encogido .sidebar-section + .sidebar-plegable::before {
+.menu-encogido .sidebar-section + .sidebar-grupo::before,
+.menu-encogido .sidebar-grupo + .sidebar-grupo::before {
   content: "";
   display: block;
   height: 1px;
@@ -4326,7 +4442,7 @@ img.avatar {
    elemento del sistema operativo pegado al diseño. */
 .buscador-campo input::-webkit-search-cancel-button { display: none; }
 
-#resultados-de-busqueda { overflow-y: auto; }
+.busqueda-resultados { overflow-y: auto; }
 
 .busqueda-lista { list-style: none; margin: 0; padding: var(--space-xs); }
 
@@ -4550,4 +4666,52 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 .asistencia-alumno[data-estado="ausente"]  .asistencia-icono[data-para="ausente"],
 .asistencia-alumno[data-estado="tarde"]    .asistencia-icono[data-para="tarde"] {
   display: grid;
+}
+
+
+/* ---- Pestañas de una misma pantalla (MOR-149) ---- */
+/* Cada una es un enlace con su propia URL: el botón de atrás y el "mirá esto"
+   por WhatsApp tienen que funcionar. Ver `shared/_pestanas`. */
+.pestanas {
+  display: flex;
+  gap: var(--space-xs);
+  border-bottom: 1px solid var(--border-standard);
+  margin-bottom: var(--space-lg);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.pestanas::-webkit-scrollbar { display: none; }
+
+.pestana {
+  padding: var(--space-sm) var(--space-md);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  /* El borde inferior se mueve 1px hacia abajo para tapar el de `.pestanas`:
+     si no, la pestaña activa queda con dos líneas de distinto color. */
+  margin-bottom: -1px;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+  /* 44px de alto mínimo: es un objetivo táctil, no un renglón de texto. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.pestana:hover {
+  color: var(--text-primary);
+  border-bottom-color: var(--border-standard);
+}
+
+.pestana.activa {
+  color: var(--brand-primary);
+  border-bottom-color: var(--brand-primary);
+}
+
+.pestana:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }

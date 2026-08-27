@@ -2,38 +2,53 @@
 -#
 -# Se reemplaza entero en cada tecleo, así que va sin estado propio: lo único que
 -# recuerda cuál está seleccionado es el controlador de Stimulus.
-%turbo-frame#resultados-de-busqueda
-  - if !suficiente
-    .busqueda-vacia
-      = icono(:buscar, tamano: 28)
-      %p Escriba al menos dos letras para buscar.
-      %p.nota-ayuda
-        Puede buscar por nombre, apellido, cédula o cédula escolar. También
-        secciones —«1er Año A»— y materias.
+-#
+-# ## ⚠️ Esto NO es un `<turbo-frame>`, y lo fue dos veces con dos bugs distintos
+-#
+-# **Primero:** el layout abría un frame y este parcial abría OTRO con el mismo
+-# id, anidados. Turbo no sabía cuál reemplazar y pintaba «Content missing».
+-#
+-# **Después**, con el id ya único, el Enter seguía dando «Content missing» — y
+-# por una razón que este proyecto YA tenía escrita, en `students/index`:
+-#
+-#     «`target: "_top"` no es un detalle: sin él, TODO enlace de adentro del
+-#      frame navega DENTRO del frame. Y como ninguna de esas páginas contiene un
+-#      frame con este id, Turbo pinta "Content missing".»
+-#
+-# Abrir un resultado es navegar a la ficha de un alumno: una página entera, no
+-# un fragmento. El frame no aportaba nada —el contenido lo pide y lo pega el
+-# controlador con `fetch`— y sí traía sus dos trampas.
+- if !suficiente
+  .busqueda-vacia
+    = icono(:buscar, tamano: 28)
+    %p Escriba al menos dos letras para buscar.
+    %p.nota-ayuda
+      Puede buscar por nombre, apellido, cédula o cédula escolar. También
+      secciones —«1er Año A»— y materias.
 
-  - elsif resultados.empty?
-    .busqueda-vacia
-      = icono(:buscar, tamano: 28)
-      %p
-        No hay nada que se llame
-        %strong= "“#{termino}”"
-      %p.nota-ayuda
-        Los acentos no importan: «lopez» encuentra a López. Si busca una persona
-        de otro colegio, no va a aparecer acá.
+- elsif resultados.empty?
+  .busqueda-vacia
+    = icono(:buscar, tamano: 28)
+    %p
+      No hay nada que se llame
+      %strong= "“#{termino}”"
+    %p.nota-ayuda
+      Los acentos no importan: «lopez» encuentra a López. Si busca una persona
+      de otro colegio, no va a aparecer acá.
 
-  - else
-    %ul.busqueda-lista{role: "listbox", "aria-label": "Resultados de la búsqueda"}
-      - resultados.each_with_index do |r, i|
-        %li{role: "option", "aria-selected": (i.zero? ? "true" : "false")}
-          = link_to r.ruta, class: "busqueda-resultado #{'activo' if i.zero?}", "data-busqueda-target": "resultado" do
-            -# Una persona lleva su avatar; lo demás, su icono. Es la misma
-            -# distinción que en los listados: donde hay alguien, se le ve la cara.
-            - if r.persona
-              = avatar(r.persona, tamano: :chico)
-            - else
-              %span.busqueda-icono= icono(r.icono, tamano: 18)
-            %span.busqueda-texto
-              %span.busqueda-titulo= r.titulo
-              - if r.detalle.present?
-                %span.busqueda-detalle= r.detalle
-            %span.busqueda-tipo= r.tipo
+- else
+  %ul.busqueda-lista{role: "listbox", "aria-label": "Resultados de la búsqueda"}
+    - resultados.each_with_index do |r, i|
+      %li{role: "option", "aria-selected": (i.zero? ? "true" : "false")}
+        = link_to r.ruta, class: "busqueda-resultado #{'activo' if i.zero?}", "data-busqueda-target": "resultado" do
+          -# Una persona lleva su avatar; lo demás, su icono. Es la misma
+          -# distinción que en los listados: donde hay alguien, se le ve la cara.
+          - if r.persona
+            = avatar(r.persona, tamano: :chico)
+          - else
+            %span.busqueda-icono= icono(r.icono, tamano: 18)
+          %span.busqueda-texto
+            %span.busqueda-titulo= r.titulo
+            - if r.detalle.present?
+              %span.busqueda-detalle= r.detalle
+          %span.busqueda-tipo= r.tipo

@@ -2,7 +2,7 @@
 -#
 -# Va en el layout y no en cada pantalla: el atajo tiene que funcionar en las
 -# 131 vistas, y montarlo por pantalla sería 131 lugares donde olvidarlo.
-%div{"data-controller": "busqueda"}
+%div{"data-controller": "busqueda", "data-busqueda-url-value": busqueda_path}
   -# El disparador visible. Sin él, el buscador solo existiría para quien ya
   -# sabe que existe — y quien más lo necesita es justamente quien no lo sabe.
   %button.buscador-disparador{type: "button", "data-action": "busqueda#abrir"}
@@ -10,8 +10,12 @@
     %span.buscador-disparador-texto Buscar
     %kbd.buscador-tecla ⌘K
 
+  -# ⚠️ Acá NO va `keydown`. Todo el teclado lo maneja un solo oyente en el
+  -# `document` (ver `busqueda_controller.js`), y si además se declara acá, el
+  -# evento dispara DOS veces al burbujear: la flecha abajo saltaría de dos en
+  -# dos resultados. El clic sí es de este elemento: cierra al tocar el fondo.
   .buscador-fondo{"data-busqueda-target": "modal", hidden: true,
-                  "data-action": "click->busqueda#fuera keydown->busqueda#enModal",
+                  "data-action": "click->busqueda#fuera",
                   role: "dialog", "aria-modal": "true", "aria-label": "Buscar en el colegio"}
     .buscador-panel
       .buscador-campo
@@ -22,11 +26,10 @@
                autocomplete: "off", "aria-label": "Qué busca"}
         %kbd.buscador-tecla esc
 
-      -# `src` vacío y la URL en un `data`: el frame no debe pedir nada hasta que
-      -# alguien escriba. Con `src` puesto, abrir el modal dispararía una consulta
-      -# con el término vacío en cada apertura.
-      %turbo-frame#resultados-de-busqueda{"data-busqueda-target": "frame",
-                                          "data-url": busqueda_path}
+      -# Un div, no un `<turbo-frame>`: el contenido lo pide y lo pega el
+      -# controlador con `fetch`, y un enlace de adentro tiene que navegar a la
+      -# página entera. Ver la cabecera de `busquedas/_resultados`.
+      .busqueda-resultados{"data-busqueda-target": "resultados"}
         = render "busquedas/resultados", resultados: [], termino: "", suficiente: false
 
       .buscador-pie

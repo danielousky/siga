@@ -1,20 +1,3 @@
--# El menú del alumno (MOR-135).
--#
--# Tenía un bloque "Mis Secciones" que listaba las inscripciones del alumno con
--# `href="#"`: enlaces que no llevaban a ninguna parte, más una consulta a la
--# base en CADA pantalla para dibujarlos. Y el dato ya estaba en su panel, con
--# grado y año escolar.
--#
--# Un enlace que no lleva a ninguna parte no es neutro: le enseña a la persona
--# que los enlaces de este sistema a veces no funcionan.
-.sidebar-section
-  .sidebar-section-title Mi panel
-  %ul.sidebar-nav
-    %li.sidebar-nav-item
-      = link_to dashboards_estudiante_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/estudiante'}", data: { nombre: "Inicio" } do
-        = icono(:panel, tamano: 18)
-        %span Inicio
-    %li.sidebar-nav-item
-      = link_to dashboards_notas_path, class: "sidebar-nav-link #{'active' if controller_path == 'dashboards/notas'}", data: { nombre: "Mis notas" } do
-        = icono(:notas, tamano: 18)
-        %span Mis notas
+-# El menú del estudiante. Lo que va adentro se declara en `MenuHelper`;
+-# cómo se ve, en `shared/_menu`. Acá no hay nada más que elegir cuál es.
+= render "shared/menu", grupos: menu_del_estudiante

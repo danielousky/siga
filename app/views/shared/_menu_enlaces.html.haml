@@ -1,0 +1,21 @@
+-# Los enlaces de un grupo del menú (MOR-149).
+-#
+-# ⚠️ Cada enlace lleva icono, y el icono NO reemplaza a la palabra.
+-#
+-# Un menú de iconos solos obliga a aprenderse el alfabeto antes de poder usarlo,
+-# y quien abre SIGA por primera vez es una secretaria que hasta ayer llevaba todo
+-# en Word. El icono acelera a quien ya sabe dónde está cada cosa; la palabra es
+-# la que enseña. Por eso el SVG va `aria-hidden`: leerlo repetiría lo que la
+-# palabra de al lado ya dice.
+-#
+-# `aria-current="page"` y no solo una clase: la marca de «estás acá» tiene que
+-# llegarle también a quien navega con lector de pantalla.
+%ul.sidebar-nav
+  - enlaces.each do |enlace|
+    - activo = enlace_activo?(enlace)
+    %li.sidebar-nav-item
+      = link_to enlace.ruta, class: class_names("sidebar-nav-link", active: activo),
+                "aria-current": ("page" if activo), data: { nombre: enlace.nombre } do
+        - if enlace.icono
+          = icono(enlace.icono, tamano: 18)
+        %span= enlace.nombre

@@ -2,9 +2,13 @@
 - opciones_de_lapso   = @lapsos.map { |l| [l.name, l.id] } + [["Boletín anual (todo el año)", "anual"]]
 - opciones_de_alumno  = [["Toda la sección (#{contar(@alumnos.size, 'alumno', 'alumnos')})", ""]] + @alumnos.map { |i| [i.student.user.apellidos_y_nombres, i.id] }
 
+- content_for :titulo, "Boletines"
+
 .card-academic
   .card-academic-header
-    %h1 Emitir boletines
+    %h1 Documentos
+
+  = render "shared/pestanas", pestanas: pestanas_de_documentos, etiqueta: "Documentos que emite el colegio"
 
   - if @secciones.empty?
     .empty-state

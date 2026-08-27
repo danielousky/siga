@@ -19,6 +19,7 @@ import EscalaPorNivelController from "controllers/escala_por_nivel_controller"
 import FiltroLocalController from "controllers/filtro_local_controller"
 import PasswordVisibilityController from "controllers/password_visibility_controller"
 import PonderacionController from "controllers/ponderacion_controller"
+import MenuController from "controllers/menu_controller"
 import SidebarController from "controllers/sidebar_controller"
 import SearchFilterController from "controllers/search_filter_controller"
 
@@ -31,5 +32,6 @@ application.register("escala-por-nivel", EscalaPorNivelController)
 application.register("filtro-local", FiltroLocalController)
 application.register("password-visibility", PasswordVisibilityController)
 application.register("ponderacion", PonderacionController)
+application.register("menu", MenuController)
 application.register("sidebar", SidebarController)
 application.register("search-filter", SearchFilterController)

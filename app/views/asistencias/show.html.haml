@@ -12,6 +12,11 @@
       = "#{@seccion.grade.name} – #{@seccion.name}"
       %span.role-badge= l(@dia, format: :long)
 
+  -# Van también acá porque `index` redirige derecho a esta pantalla cuando el
+  -# profesor tiene una sola sección: sin esto, un guía nunca vería la pestaña de
+  -# Inasistencias. Ver `pestanas_de_asistencia`.
+  = render "shared/pestanas", pestanas: pestanas_de_asistencia, etiqueta: "Vistas de la asistencia"
+
   - if @ya_tomada
     .alert.alert-success{style: "margin-bottom: var(--space-md);"}
       Ya se tomó la asistencia de este día. Puedes corregirla y volver a guardar.

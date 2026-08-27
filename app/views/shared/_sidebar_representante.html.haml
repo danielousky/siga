@@ -1,7 +1,3 @@
-.sidebar-section
-  .sidebar-section-title Mis representados
-  %ul.sidebar-nav
-    %li.sidebar-nav-item
-      = link_to representante_path, class: "sidebar-nav-link #{'active' if action_name == 'index'}", data: { nombre: "Todos" } do
-        = icono(:alumnos, tamano: 18)
-        %span Todos
+-# El menú del representante. Lo que va adentro se declara en `MenuHelper`;
+-# cómo se ve, en `shared/_menu`. Acá no hay nada más que elegir cuál es.
+= render "shared/menu", grupos: menu_del_representante

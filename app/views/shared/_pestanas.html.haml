@@ -1,0 +1,22 @@
+-# Pestañas: dos o tres vistas de la MISMA cosa (MOR-149).
+-#
+-# `pestanas` es un arreglo de `[texto, ruta, activa?]`.
+-#
+-# ## Cuándo son pestañas y cuándo son dos entradas del menú
+-#
+-# Pestañas cuando el sujeto es el mismo y cambia el ángulo: la asistencia de hoy
+-# y quién acumula faltas son la asistencia; el boletín y la constancia son
+-# papeles del mismo alumno. Entradas distintas del menú cuando el sujeto cambia.
+-#
+-# ## ⚠️ Cada pestaña es un ENLACE con su propia URL, no un `hidden` con JavaScript
+-#
+-# La secretaria manda «mirá esto» por WhatsApp, y el botón de atrás del
+-# navegador tiene que volver a la pestaña anterior. Con pestañas de JavaScript
+-# la URL no cambia: el enlace lleva a otro lado y atrás se sale de la pantalla.
+-#
+-# `role="tablist"` describe lo que se ve; `aria-current` dice cuál es la de
+-# ahora, que es lo que corresponde cuando las pestañas son navegación.
+%nav.pestanas{role: "tablist", "aria-label": (local_assigns[:etiqueta] || "Vistas de esta pantalla")}
+  - pestanas.each do |texto, ruta, activa|
+    = link_to texto, ruta, role: "tab", class: class_names("pestana", activa: activa),
+              "aria-selected": activa.to_s, "aria-current": ("page" if activa)
