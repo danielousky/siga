@@ -21,9 +21,9 @@
     %table.table-academic
       %thead
         %tr
-          %th Código
-          %th Nombre
-          %th Departamento
+          %th= Subject.human_attribute_name(:code)
+          %th= Subject.human_attribute_name(:name)
+          %th= Subject.human_attribute_name(:department)
       %tbody
         - @subjects.each do |subject|
           %tr

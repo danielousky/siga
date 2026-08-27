@@ -40,9 +40,9 @@
     %table.table-academic
       %thead
         %tr
-          %th Sección
-          %th Materia
-          %th Lapso
+          %th= EvaluationActivity.human_attribute_name(:section)
+          %th= EvaluationActivity.human_attribute_name(:subject)
+          %th= EvaluationActivity.human_attribute_name(:evaluation_moment)
           %th Evaluación
           %th Peso
           %th Fecha

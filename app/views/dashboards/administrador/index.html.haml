@@ -61,7 +61,7 @@
           %thead
             %tr
               %th Alumno
-              %th Sección
+              %th= Section.model_name.human
               %th Fecha
           %tbody
             - @recent_enrollments.each do |enrollment|

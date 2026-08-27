@@ -30,7 +30,7 @@
           %th Alumno
           %th Cédula escolar
           %th Cédula
-          %th Carnet
+          %th= Student.human_attribute_name(:school_card)
       %tbody
         - @students.each do |student|
           %tr

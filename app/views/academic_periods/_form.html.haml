@@ -2,7 +2,7 @@
   = render "shared/errors", object: academic_period
 
   .form-group
-    = f.label :name, "Nombre", class: "form-label"
+    = f.label :name, class: "form-label"
     = f.text_field :name, class: "form-control"
 
   -# El colegio NO se elige: sale de la sesión (Current.school). Un selector acá

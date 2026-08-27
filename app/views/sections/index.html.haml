@@ -25,12 +25,12 @@
     %table.table-academic
       %thead
         %tr
-          %th Grado
-          %th Sección
+          %th= Section.human_attribute_name(:grade)
+          %th= Section.model_name.human
           %th Período
-          %th Profesor guía
-          %th Capacidad
-          %th Aula
+          %th= Section.human_attribute_name(:leader_teacher)
+          %th= Section.human_attribute_name(:capacity)
+          %th= Section.human_attribute_name(:classroom)
       %tbody
         - @sections.each do |section|
           %tr

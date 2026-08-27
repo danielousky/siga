@@ -25,7 +25,7 @@
       %table.siga-tabla
         %thead
           %tr
-            %th Colegio
+            %th= School.model_name.human
             %th Ubicación
             %th.num Alumnos
             %th.num Profesores
@@ -63,7 +63,7 @@
         %thead
           %tr
             %th Cuándo
-            %th Colegio
+            %th= School.model_name.human
             %th Qué
         %tbody
           - @actividad.each do |registro|

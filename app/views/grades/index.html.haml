@@ -8,8 +8,8 @@
   %table.table-academic
     %thead
       %tr
-        %th Nombre
-        %th Nivel
+        %th= Grade.human_attribute_name(:name)
+        %th= Grade.human_attribute_name(:level)
         %th Coordinador
     %tbody
       - @grades.each do |grade|

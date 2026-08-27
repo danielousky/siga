@@ -59,7 +59,7 @@
         %tr
           %th Alumno
           %th Boletín
-          %th Código
+          %th= ReportCard.human_attribute_name(:code)
           %th Emitido
       %tbody
         - @recientes.each do |boletin|

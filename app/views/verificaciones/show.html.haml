@@ -43,7 +43,7 @@
   %table.table-academic
     %thead
       %tr
-        %th Materia
+        %th= Subject.model_name.human
         - if datos["tipo"] == "anual"
           - datos["lapsos"].each do |nombre|
             %th= nombre

@@ -38,8 +38,8 @@
       %table.table-academic
         %thead
           %tr
-            %th Profesor
-            %th Sección
+            %th= Teacher.model_name.human
+            %th= Section.model_name.human
             %th Año escolar
         %tbody
           - @quienes.each do |asignacion|

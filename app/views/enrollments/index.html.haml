@@ -22,11 +22,11 @@
     %table.table-academic
       %thead
         %tr
-          %th Estudiante
-          %th Sección
-          %th Grado
-          %th Fecha de inscripción
-          %th Estado
+          %th= Enrollment.human_attribute_name(:student)
+          %th= Enrollment.human_attribute_name(:section)
+          %th= Grade.model_name.human
+          %th= Enrollment.human_attribute_name(:enrollment_date)
+          %th= Enrollment.human_attribute_name(:status)
       %tbody
         - @enrollments.each do |enrollment|
           %tr

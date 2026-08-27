@@ -2,15 +2,15 @@
   = render "shared/errors", object: subject
 
   .form-group
-    = f.label :code, "Código", class: "form-label"
+    = f.label :code, class: "form-label"
     = f.text_field :code, class: "form-control"
 
   .form-group
-    = f.label :name, "Nombre", class: "form-label"
+    = f.label :name, class: "form-label"
     = f.text_field :name, class: "form-control"
 
   .form-group
-    = f.label :department_id, "Departamento", class: "form-label"
+    = f.label :department_id, class: "form-label"
     = f.select :department_id, Department.order(:name).map { |d| [d.name, d.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
   .form-acciones

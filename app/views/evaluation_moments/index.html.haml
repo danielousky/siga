@@ -9,7 +9,7 @@
     %thead
       %tr
         %th Período
-        %th Nombre
+        %th= EvaluationMoment.human_attribute_name(:name)
         %th Peso (%)
     %tbody
       - @evaluation_moments.each do |moment|

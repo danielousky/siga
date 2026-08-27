@@ -16,7 +16,7 @@
         %thead
           %tr
             %th Fila
-            %th Materia
+            %th= Subject.model_name.human
             %th Qué pasó
         %tbody
           - fallidas.each do |fila|

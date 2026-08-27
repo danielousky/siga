@@ -8,11 +8,11 @@
   -# El selector de coordinador de más abajo tampoco necesita filtro explícito:
   -# Teacher es SchoolScoped, así que ya solo trae los del colegio de la sesión.
   .form-group
-    = f.label :name, "Nombre", class: "form-label"
+    = f.label :name, class: "form-label"
     = f.text_field :name, class: "form-control"
 
   .form-group
-    = f.label :level, "Nivel", class: "form-label"
+    = f.label :level, class: "form-label"
     = f.select :level, Grade.levels.keys.map { |l| [l.humanize, l] }, { include_blank: "Seleccione..." },
                class: "form-select",
                data: { "escala-por-nivel-target": "nivel", action: "change->escala-por-nivel#ajustar" }
@@ -27,7 +27,7 @@
   -# bachillerato— así que esa opción se esconde en vez de dejar que la persona
   -# llene el formulario entero para que el modelo se lo rechace al final.
   .form-group
-    = f.label :escala, "Escala de calificación", class: "form-label"
+    = f.label :escala, class: "form-label"
     = f.select :escala, [["Numérica — del 1 al 20 (media general)", "numerica"], ["Literal — A, B, C, D, E (primaria)", "literal"]], {},
                class: "form-select", data: { "escala-por-nivel-target": "escala" }
     %p.nota-ayuda{hidden: true, "data-escala-por-nivel-target": "aviso"}
@@ -39,7 +39,7 @@
       van en número en los dos casos.
 
   .form-group
-    = f.label :coordinator_teacher_id, "Coordinador del grado", class: "form-label"
+    = f.label :coordinator_teacher_id, class: "form-label"
     = f.select :coordinator_teacher_id, Teacher.includes(:user).map { |t| [t.user.apellidos_y_nombres, t.id] }, { include_blank: "Ninguno" }, class: "form-select"
     %p.nota-ayuda
       Opcional. Quien coordina a los profesores guía de este grado. El

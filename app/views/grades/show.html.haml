@@ -67,7 +67,7 @@
         %thead
           %tr
             %th Código
-            %th Materia
+            %th= Subject.model_name.human
             %th
         %tbody
           - @grade_subjects.each do |gs|

@@ -92,18 +92,47 @@ es:
         other: Notas finales
 
     attributes:
+      # ⚠️ La identidad de una persona faltaba ENTERA, y no era cosmético: las
+      # vistas escribían el rótulo a mano, así que se veía bien — pero los
+      # mensajes de error salían del `human_attribute_name` sin traducir y una
+      # secretaria leía **«First name no puede estar en blanco»**.
+      #
+      # Los valores son los que las vistas ya escribían, a propósito: centralizar
+      # no es momento de cambiar lo que la gente lee.
+      user:
+        first_name: Nombres
+        last_name: Primer apellido
+        second_last_name: Segundo apellido
+        document: Cédula de identidad
+        document_type: Tipo de documento
+        cedula_escolar: Cédula escolar
+        birth_date: Fecha de nacimiento
+        sex: Sexo
+        email: Correo electrónico
+        phone: Teléfono
+        address: Dirección
+        password: Contraseña
+        password_confirmation: Repita la contraseña
+      admin:
+        role: Rol
       school:
+        name: Nombre del colegio
+        firma: Firma del director, escaneada
+        sello: Sello del colegio, escaneado
         dea_code: Código DEA
         location: Ubicación
         school_type: Tipo de institución
         logo: Logotipo
       grade:
         level: Nivel
+        escala: Escala de calificación
       academic_period:
         start_date: Fecha de inicio
         end_date: Fecha de cierre
       evaluation_moment:
         weight: Peso
+        starts_on: Comienza el
+        ends_on: Termina el
       student:
         school_card: Carnet
       evaluation_activity:

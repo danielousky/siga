@@ -45,8 +45,8 @@
       %table.table-academic
         %thead
           %tr
-            %th Materia
-            %th Profesor
+            %th= Subject.model_name.human
+            %th= Teacher.model_name.human
         %tbody
           - @teacher_sections.each do |ts|
             %tr
@@ -70,7 +70,7 @@
         %thead
           %tr
             %th #
-            %th Nombre
+            %th= Section.human_attribute_name(:name)
             %th Apellido
             %th Nro. expediente
         %tbody
@@ -95,9 +95,9 @@
       %table.table-academic
         %thead
           %tr
-            %th Profesor
+            %th= Teacher.model_name.human
             %th Cédula
-            %th Materia
+            %th= Subject.model_name.human
             %th Acciones
         %tbody
           - @teacher_sections.each do |ts|
@@ -119,10 +119,10 @@
       = form_with url: section_teacher_sections_path(@section), method: :post do |f|
         .form-row
           .form-group
-            = f.label :subject_id, "Materia", class: "form-label"
+            = f.label :subject_id, class: "form-label"
             = f.select :subject_id, options_for_select(@available_subjects.map { |s| ["#{s.code} - #{s.name}", s.id] }), {}, class: "form-select"
           .form-group
-            = f.label :teacher_id, "Profesor", class: "form-label"
+            = f.label :teacher_id, class: "form-label"
             = f.select :teacher_id, options_for_select(@available_teachers.map { |t| ["#{t.user.apellidos_y_nombres} (#{t.user.identificador})", t.user_id] }), {}, class: "form-select"
           .form-group.form-group--boton
             = f.submit "Asignar", class: "btn btn-primary"
@@ -136,7 +136,7 @@
         %thead
           %tr
             %th #
-            %th Nombre
+            %th= Section.human_attribute_name(:name)
             %th Apellido
             %th Nro. expediente
             %th Inscrito el

@@ -29,8 +29,8 @@
       %table.table-academic
         %thead
           %tr
-            %th Sección
-            %th Materia
+            %th= Section.model_name.human
+            %th= Subject.model_name.human
             %th Año escolar
         %tbody
           - @asignaciones.each do |asignacion|

@@ -18,7 +18,7 @@
     %table.table-academic
       %thead
         %tr
-          %th Materia
+          %th= Subject.model_name.human
           %th Código
       %tbody
         - planilla.codigos_generados.each do |materia, codigo|
