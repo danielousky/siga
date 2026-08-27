@@ -68,12 +68,12 @@
               %p.paso-bloqueo
                 Antes hace falta
                 %strong= falta.titulo.downcase
-              = link_to ruta_del_paso(falta), class: "btn btn-secondary btn-sm" do
+              = link_to "#{ruta_del_paso(falta)}?recorrido=#{falta.clave}", class: "btn btn-secondary btn-sm" do
                 = icono(falta.icono, tamano: 15)
                 %span= falta.verbo
             - else
               .paso-acciones
-                = link_to ruta_del_paso(paso), class: "btn btn-primary btn-sm" do
+                = link_to "#{ruta_del_paso(paso)}?recorrido=#{paso.clave}", class: "btn btn-primary btn-sm" do
                   = icono(paso.icono, tamano: 15)
                   %span= paso.verbo
                 - if paso.opcional?

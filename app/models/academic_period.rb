@@ -25,6 +25,25 @@ class AcademicPeriod < ApplicationRecord
     en_curso.first || por_comenzar.first || order(start_date: :desc).first
   end
 
+  # ⚠️ El año escolar que TIENE ALUMNOS ADENTRO, que no es `vigente`.
+  #
+  # La diferencia aparece cada agosto y ya mordió tres veces. Entre julio y
+  # septiembre `vigente` devuelve el año que EMPIEZA —lo correcto para la barra
+  # de contexto: es el que el colegio está preparando— pero ese año todavía no
+  # tiene ni una inscripción ni una evaluación.
+  #
+  # Quien pregunta «¿cuántos alumnos hay?», «¿qué secciones están sin profesor?»
+  # o «¿quién no cargó notas?» necesita el año donde hay clases, no el que viene.
+  # Preguntarle a `vigente` da CERO en agosto, y cero se lee como «todo al día».
+  #
+  # Estaba escrito a mano en el panel del director; al necesitarlo el segundo
+  # lugar se subió acá. La tercera copia habría dado dos respuestas distintas a
+  # la misma pregunta en la misma pantalla — que es justo lo que pasó.
+  def self.en_operacion
+    where(id: Section.joins(:enrollments).select(:academic_period_id))
+      .order(:start_date).last
+  end
+
   # Cómo se para el período frente a hoy. Se devuelve el símbolo y no el texto
   # para que la vista decida cómo escribirlo — y para que no haya que mirar una
   # cadena en castellano para saber si el año está corriendo.

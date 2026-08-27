@@ -21,22 +21,30 @@
 -# (`data: { turbo_frame: … }` en shared/_search_filter), y eso le gana al
 -# `target` del frame.
 = turbo_frame_tag "sections-results", target: "_top" do
-  .card-academic
-    %table.table-academic
-      %thead
-        %tr
-          %th= Section.human_attribute_name(:grade)
-          %th= Section.model_name.human
-          %th Período
-          %th= Section.human_attribute_name(:leader_teacher)
-          %th= Section.human_attribute_name(:capacity)
-          %th= Section.human_attribute_name(:classroom)
-      %tbody
-        - @sections.each do |section|
+  -# El estado vacío sale de `PasosDeArranque`, o sea del MISMO lugar que el
+  -# mapa del panel: dos redacciones del mismo paso se van separando, y quien
+  -# las lee cree que son dos cosas distintas.
+  - if @sections.empty?
+    .card-academic
+      = render "shared/lista_vacia", clave: :secciones,
+               acciones: [ { texto: "Crear una sección", ruta: new_section_path, icono: :agregar } ]
+  - else
+    .card-academic
+      %table.table-academic
+        %thead
           %tr
-            %td= link_to section.grade.name, section
-            %td= section.name
-            %td= section.academic_period.name
-            %td= section.leader_teacher&.user&.apellidos_y_nombres || "—"
-            %td= "#{section.enrollments.size} / #{section.capacity}"
-            %td= section.classroom || "—"
+            %th= Section.human_attribute_name(:grade)
+            %th= Section.model_name.human
+            %th Período
+            %th= Section.human_attribute_name(:leader_teacher)
+            %th= Section.human_attribute_name(:capacity)
+            %th= Section.human_attribute_name(:classroom)
+        %tbody
+          - @sections.each do |section|
+            %tr
+              %td= link_to section.grade.name, section
+              %td= section.name
+              %td= section.academic_period.name
+              %td= section.leader_teacher&.user&.apellidos_y_nombres || "—"
+              %td= "#{section.enrollments.size} / #{section.capacity}"
+              %td= section.classroom || "—"

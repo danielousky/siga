@@ -17,7 +17,7 @@
 
       %ul.por-corregir
         - @sin_corregir.each do |fila|
-          - e = fila[:evaluacion]
+          - e = fila.evaluacion
           %li.por-corregir-fila
             .por-corregir-que
               %span.por-corregir-nombre= e.description
@@ -28,7 +28,7 @@
             .por-corregir-avance
               -# El avance en letras y no una barra: "12 de 20" dice cuántas
               -# faltan, que es la pregunta. Una barra dice "60 %", que no.
-              %span.por-corregir-cuenta= "#{fila[:puestas]} de #{fila[:total]}"
+              %span.por-corregir-cuenta= "#{fila.puestas} de #{fila.total}"
               = link_to evaluation_activity_notas_path(e), class: "btn btn-primary btn-sm" do
                 = icono(:subir, tamano: 16)
                 %span Cargar notas

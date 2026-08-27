@@ -5,15 +5,19 @@
       = icono(:agregar, tamano: 16)
       %span Nuevo período
 
-  %table.table-academic
-    %thead
-      %tr
-        %th= AcademicPeriod.human_attribute_name(:name)
-        %th Fecha inicio
-        %th Fecha fin
-    %tbody
-      - @academic_periods.each do |period|
+  - if @academic_periods.empty?
+    = render "shared/lista_vacia", clave: :ano_escolar,
+             acciones: [ { texto: "Crear el año escolar", ruta: new_academic_period_path, icono: :agregar } ]
+  - else
+    %table.table-academic
+      %thead
         %tr
-          %td= link_to period.name, edit_academic_period_path(period)
-          %td= period.start_date.strftime("%d/%m/%Y")
-          %td= period.end_date.strftime("%d/%m/%Y")
+          %th= AcademicPeriod.human_attribute_name(:name)
+          %th Fecha inicio
+          %th Fecha fin
+      %tbody
+        - @academic_periods.each do |period|
+          %tr
+            %td= link_to period.name, edit_academic_period_path(period)
+            %td= period.start_date.strftime("%d/%m/%Y")
+            %td= period.end_date.strftime("%d/%m/%Y")

@@ -4948,3 +4948,187 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   .paso { grid-template-columns: 2rem 1fr; }
   .paso-rehacer { grid-column: 2; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   QUIÉN NO HA CARGADO SUS NOTAS (MOR-155)
+
+   El único pendiente del panel con fecha de vencimiento: el lapso cierra y los
+   boletines salen incompletos. Por eso va primero de los tres.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.atrasados { display: flex; flex-direction: column; gap: var(--space-md); }
+
+.atrasado {
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.atrasado-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--surface-input);
+}
+
+.atrasado-nombre { font-weight: 600; text-decoration: none; color: var(--text-primary); }
+.atrasado-nombre:hover { color: var(--brand-primary); }
+
+.atrasado-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.atrasado-punto { color: var(--border-emphasis); }
+
+/* ⚠️ El rojo acá describe un DATO —cuántos niños no tienen nota—, no un
+   control. La regla del proyecto prohíbe teñir el botón, no señalar la falta. */
+.atrasado-dato--alerta { color: var(--danger-text); font-weight: 500; }
+
+.atrasado-correo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-micro);
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+.atrasado-correo:hover { text-decoration: underline; }
+
+.atrasado-lista { list-style: none; margin: 0; padding: 0; }
+
+/* Una fila por evaluación, no una tabla: son dos o tres por profesor y una
+   tabla de tres filas con cinco encabezados pesa más de lo que informa. */
+.atrasado-fila {
+  display: grid;
+  grid-template-columns: 5rem minmax(9rem, 1fr) 2fr auto;
+  gap: var(--space-sm);
+  align-items: baseline;
+  padding: var(--space-sm) var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 14px;
+}
+
+.atrasado-fecha { color: var(--text-tertiary); font-size: 13px; white-space: nowrap; }
+
+.atrasado-que { display: flex; flex-direction: column; }
+.atrasado-materia { font-size: 12px; color: var(--text-tertiary); }
+
+.atrasado-descripcion { color: var(--text-secondary); min-width: 0; }
+
+.atrasado-avance {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  /* En el teléfono la descripción pasa a su propia línea: cuatro columnas en
+     375px dejan «Examen del primer corte» en una palabra por renglón. */
+  .atrasado-fila { grid-template-columns: 5rem 1fr auto; }
+  .atrasado-descripcion { grid-column: 1 / -1; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA FRANJA DEL RECORRIDO (MOR-154)
+
+   Una línea que dice dónde está y cómo vuelve al plan. Ver
+   `shared/_franja_de_recorrido`.
+
+   ⚠️ NO es `position: fixed`, a propósito. En una laptop de 13" ya hay barra de
+   contexto y a veces avisos de suscripción; una cuarta banda fija son doscientos
+   píxeles de cromo antes del primer dato del colegio.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.franja {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  /* 44px de alto mínimo: los dos enlaces son objetivos táctiles. */
+  min-height: 44px;
+  padding: var(--space-xs) var(--space-md);
+  margin-bottom: var(--space-lg);
+  background: var(--brand-subtle);
+  border: 1px solid var(--brand-primary);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+}
+
+.franja-volver,
+.franja-seguir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-micro);
+  color: var(--brand-primary);
+  text-decoration: none;
+  font-weight: 500;
+  padding: var(--space-micro) var(--space-xs);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.franja-volver:hover,
+.franja-seguir:hover { text-decoration: underline; }
+
+.franja-volver:focus-visible,
+.franja-seguir:focus-visible,
+.franja-cerrar:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.franja-centro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-micro);
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--text-secondary);
+}
+
+.franja-titulo { font-weight: 600; color: var(--text-primary); }
+.franja-avance { font-variant-numeric: tabular-nums; }
+.franja-punto { color: var(--border-emphasis); }
+.franja-paso { color: var(--text-primary); }
+
+/* Cuando se desvió a otra pantalla, la franja lo dice en vez de fingir. */
+.franja-paso--lejos { color: var(--text-secondary); font-style: italic; }
+
+.franja-acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-left: auto;
+}
+
+.franja-cerrar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 32px porque va pegado a «seguir»: más chico se falla y se sale del
+     recorrido queriendo avanzar. */
+  width: 32px;
+  height: 32px;
+  color: var(--text-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.franja-cerrar:hover { color: var(--text-primary); background: var(--surface-hover); }
+
+@media (max-width: 640px) {
+  /* En el teléfono el centro pasa a su propia línea y las acciones quedan
+     abajo: los tres bloques en 375px dejan «va por materias» ilegible. */
+  .franja { gap: var(--space-xs); }
+  .franja-centro { flex: 1 0 100%; order: 3; }
+  .franja-acciones { margin-left: auto; }
+}

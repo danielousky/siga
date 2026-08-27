@@ -1,0 +1,71 @@
+-# Quién no ha terminado de cargar sus notas (MOR-155).
+- content_for :titulo, "Carga de notas"
+
+.card-academic
+  .card-academic-header
+    %h1 Carga de notas
+    - if @lapso
+      .admin-info-badge
+        = @lapso.name
+        - if @lapso.fechas_propias?
+          %span.role-badge= "cierra el #{l(@lapso.ends_on, format: :long)}"
+
+  - if @periodo.nil?
+    .empty-state
+      %h3 Todavía no hay año escolar
+      %p
+        Sin un año escolar cargado no hay evaluaciones que revisar.
+      = link_to "Crear el año escolar", academic_periods_path, class: "btn btn-primary"
+
+  - elsif @atrasados.empty?
+    .empty-state
+      %h3
+        = icono(:ok, tamano: 20)
+        Todos al día
+      %p
+        Ningún profesor tiene evaluaciones vencidas a medio cargar. Los boletines
+        de este lapso van a salir completos.
+
+  - else
+    %p.nota-ayuda
+      Solo aparecen las evaluaciones cuya
+      %strong fecha ya pasó.
+      Una que es la semana que viene no está atrasada, y reclamarla es la forma
+      más rápida de que nadie vuelva a mirar esta pantalla.
+
+    = render "shared/escala", total: @atrasados.size,
+             singular: "profesor por llamar", plural: "profesores por llamar",
+             detalle: "en #{@periodo.name}"
+
+    .atrasados
+      - @atrasados.each do |atrasado|
+        - persona = atrasado.profesor.user
+        .atrasado
+          .atrasado-cabecera
+            = link_to teacher_path(atrasado.profesor), class: "atrasado-nombre" do
+              = persona_con_avatar(persona)
+            .atrasado-resumen
+              %span.atrasado-dato
+                = contar(atrasado.evaluaciones, "evaluación", "evaluaciones")
+              %span.atrasado-punto ·
+              -# ⚠️ Este número SÍ puede ir en color: es un dato —cuántos niños
+              -# no tienen nota— y no un control. La regla de color prohíbe teñir
+              -# el botón, no señalar lo que está en falta.
+              %span.atrasado-dato.atrasado-dato--alerta
+                = contar(atrasado.alumnos_sin_nota, "alumno sin nota", "alumnos sin nota")
+              - if persona.email.present?
+                %span.atrasado-punto ·
+                = mail_to persona.email, class: "atrasado-correo" do
+                  = icono(:correo, tamano: 14)
+                  %span Escribirle
+
+          %ul.atrasado-lista
+            - atrasado.faltantes.sort_by { |f| f.evaluacion.date_scheduled }.each do |f|
+              - e = f.evaluacion
+              %li.atrasado-fila
+                %span.atrasado-fecha= l(e.date_scheduled, format: :short)
+                %span.atrasado-que
+                  = "#{e.section.grade.name} – #{e.section.name}"
+                  %span.atrasado-materia= e.subject.name
+                %span.atrasado-descripcion= e.description
+                %span.atrasado-avance= "#{f.puestas} de #{f.total}"

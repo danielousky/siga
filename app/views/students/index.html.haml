@@ -17,28 +17,37 @@
 -# (`data: { turbo_frame: … }` en shared/_search_filter), y eso le gana al
 -# `target` del frame.
 = turbo_frame_tag "students-results", target: "_top" do
-  .card-academic
-    -# La escala va DENTRO del frame a propósito: así el número lo actualiza el
-    -# buscador. En el encabezado, de afuera, se quedaría diciendo 200 mientras
-    -# la tabla muestra 3 resultados — peor que no ponerlo.
-    = render "shared/escala", total: @pagy.count, singular: "alumno", plural: "alumnos",
-             detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
+  -# El estado vacío sale de `PasosDeArranque`, o sea del MISMO lugar que el
+  -# mapa del panel: dos redacciones del mismo paso se van separando, y quien
+  -# las lee cree que son dos cosas distintas.
+  - if @students.empty?
+    .card-academic
+      = render "shared/lista_vacia", clave: :alumnos,
+               acciones: [ { texto: "Subir la matrícula", ruta: importaciones_path, icono: :importar },
+                 { texto: "Cargar un alumno", ruta: new_student_path, icono: :agregar, clase: "btn-secondary" } ]
+  - else
+    .card-academic
+      -# La escala va DENTRO del frame a propósito: así el número lo actualiza el
+      -# buscador. En el encabezado, de afuera, se quedaría diciendo 200 mientras
+      -# la tabla muestra 3 resultados — peor que no ponerlo.
+      = render "shared/escala", total: @pagy.count, singular: "alumno", plural: "alumnos",
+               detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
 
-    %table.table-academic
-      %thead
-        %tr
-          %th Alumno
-          %th Cédula escolar
-          %th Cédula
-          %th= Student.human_attribute_name(:school_card)
-      %tbody
-        - @students.each do |student|
+      %table.table-academic
+        %thead
           %tr
-            -# ⚠️ Acá había una celda de MÁS —`document` repetido— y la tabla
-            -# salía corrida: «Cédula escolar» mostraba un guión, «Cédula»
-            -# mostraba la cédula escolar y el carnet quedaba sin encabezado.
-            -# Cuatro encabezados contra cinco celdas.
-            %td= link_to persona_con_avatar(student.user), student
-            %td= student.user.cedula_escolar.presence || "—"
-            %td= student.user.document.presence || "—"
-            %td= student.school_card
+            %th Alumno
+            %th Cédula escolar
+            %th Cédula
+            %th= Student.human_attribute_name(:school_card)
+        %tbody
+          - @students.each do |student|
+            %tr
+              -# ⚠️ Acá había una celda de MÁS —`document` repetido— y la tabla
+              -# salía corrida: «Cédula escolar» mostraba un guión, «Cédula»
+              -# mostraba la cédula escolar y el carnet quedaba sin encabezado.
+              -# Cuatro encabezados contra cinco celdas.
+              %td= link_to persona_con_avatar(student.user), student
+              %td= student.user.cedula_escolar.presence || "—"
+              %td= student.user.document.presence || "—"
+              %td= student.school_card

@@ -13,28 +13,37 @@
 -# frame con este id. El buscador sigue actualizando el frame porque declara
 -# su destino explícito, y eso le gana al `target`.
 = turbo_frame_tag "teachers-results", target: "_top" do
-  .card-academic
-    = render "shared/escala", total: @pagy.count, singular: "profesor", plural: "profesores"
+  -# El estado vacío sale de `PasosDeArranque`, o sea del MISMO lugar que el
+  -# mapa del panel: dos redacciones del mismo paso se van separando, y quien
+  -# las lee cree que son dos cosas distintas.
+  - if @teachers.empty?
+    .card-academic
+      = render "shared/lista_vacia", clave: :profesores,
+               acciones: [ { texto: "Subir una planilla", ruta: importaciones_path, icono: :importar },
+                 { texto: "Cargar un profesor", ruta: new_teacher_path, icono: :agregar, clase: "btn-secondary" } ]
+  - else
+    .card-academic
+      = render "shared/escala", total: @pagy.count, singular: "profesor", plural: "profesores"
 
-    %table.table-academic
-      %thead
-        %tr
-          -# ⚠️ Una sola columna para el nombre, como en Alumnos y
-          -# Representantes. Partirlo en «Nombre» y «Apellido» obliga a leer dos
-          -# celdas para saber a quién se está mirando, y desperdicia el ancho que
-          -# el correo sí necesita.
-          %th= Teacher.model_name.human
-          %th Cédula
-          %th Correo
-          %th Acceso
-      %tbody
-        - @teachers.each do |teacher|
+      %table.table-academic
+        %thead
           %tr
-            %td= link_to persona_con_avatar(teacher.user), teacher
-            %td= teacher.user.identificador || "—"
-            %td= teacher.user.email
-            %td
-              - if teacher.user.puede_entrar?
-                %span.estado.estado--al-dia Activo
-              - else
-                %span.estado.estado--inactivo Sin activar
+            -# ⚠️ Una sola columna para el nombre, como en Alumnos y
+            -# Representantes. Partirlo en «Nombre» y «Apellido» obliga a leer dos
+            -# celdas para saber a quién se está mirando, y desperdicia el ancho que
+            -# el correo sí necesita.
+            %th= Teacher.model_name.human
+            %th Cédula
+            %th Correo
+            %th Acceso
+        %tbody
+          - @teachers.each do |teacher|
+            %tr
+              %td= link_to persona_con_avatar(teacher.user), teacher
+              %td= teacher.user.identificador || "—"
+              %td= teacher.user.email
+              %td
+                - if teacher.user.puede_entrar?
+                  %span.estado.estado--al-dia Activo
+                - else
+                  %span.estado.estado--inactivo Sin activar

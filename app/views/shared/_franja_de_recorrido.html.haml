@@ -1,0 +1,46 @@
+-# La franja del recorrido (MOR-154).
+-#
+-# Una línea de 44 px que dice dónde está y cómo vuelve. Ver `LlevaElRecorrido`.
+-#
+-# ⚠️ NO secuestra el foco, no captura el teclado y no tiene atajos propios: es
+-# un `<nav>` con dos enlaces. El buscador de ⌘K tiene que seguir funcionando
+-# adentro de un paso — si el recorrido se lo come, la persona pierde su salida
+-# rápida.
+- paso = paso_del_recorrido
+- listos = pasos_del_recorrido.count(&:listo?)
+- siguiente = siguiente_paso_del_recorrido
+- aqui = paso && controller_path != "dashboards/administrador" && enlace_activo?(MenuHelper::Enlace.new(nombre: paso.titulo, icono: paso.icono, ruta: ruta_del_paso(paso)))
+
+%nav.franja{"aria-label": "Puesta en marcha"}
+  = link_to dashboards_administrador_path, class: "franja-volver" do
+    = icono(:volver, tamano: 15)
+    %span Volver al plan
+
+  .franja-centro
+    %span.franja-titulo Puesta en marcha
+    %span.franja-punto ·
+    %span.franja-avance= "#{listos} de #{pasos_del_recorrido.size}"
+    - if paso
+      %span.franja-punto ·
+      -# Si se desvió a otra pantalla, la franja lo dice en vez de fingir que
+      -# sigue en el paso: «va por Materias» es la verdad, y el enlace la retoma.
+      - if aqui
+        %span.franja-paso= paso.titulo
+      - else
+        %span.franja-paso.franja-paso--lejos= "va por #{paso.titulo.downcase}"
+
+  .franja-acciones
+    - if paso && !aqui
+      = link_to ruta_del_paso(paso), class: "franja-seguir" do
+        %span= "Retomar #{paso.titulo.downcase}"
+        = icono(:siguiente, tamano: 15)
+    - elsif siguiente
+      -# ⚠️ «Listo, seguir» NO marca nada: es navegación. Si alguien lo presiona
+      -# sin haber hecho el trabajo, el paso queda pendiente y el panel lo dice.
+      = link_to "#{ruta_del_paso(siguiente)}?recorrido=#{siguiente.clave}", class: "franja-seguir" do
+        %span Listo, seguir
+        = icono(:siguiente, tamano: 15)
+
+    = link_to url_for(request.query_parameters.merge(recorrido: "salir", only_path: true)),
+              class: "franja-cerrar", "aria-label": "Ocultar la franja de puesta en marcha" do
+      = icono(:cerrar, tamano: 15)

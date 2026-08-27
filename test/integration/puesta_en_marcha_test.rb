@@ -118,6 +118,127 @@ class PuestaEnMarchaTest < ActionDispatch::IntegrationTest
     assert_empty vacio.reload.pasos_omitidos
   end
 
+  # ── la franja ─────────────────────────────────────────────────────────────
+
+  # ⚠️ El parámetro se CONSUME y la URL queda limpia: la que la secretaria copia
+  # y manda por WhatsApp tiene que ser `/subjects`, no una con basura pegada.
+  test "entrar a un paso guarda el recorrido y limpia la URL" do
+    _vacio, director = colegio_vacio
+    sign_in director
+
+    get "#{subjects_path}?recorrido=materias"
+
+    assert_redirected_to subjects_path
+    follow_redirect!
+    assert_select "nav.franja", 1
+    assert_match(/Volver al plan/, response.body)
+  end
+
+  # El recorrido sobrevive a navegar por dentro sin arrastrar query strings.
+  test "la franja sigue en pie al navegar a otra pantalla" do
+    _vacio, director = colegio_vacio
+    sign_in director
+    get "#{subjects_path}?recorrido=materias"
+
+    get teachers_path
+
+    assert_select "nav.franja", 1
+    assert_match(/va por/, response.body,
+                 "se desvió a otra pantalla y la franja finge que sigue en el paso")
+  end
+
+  # Cuando el colegio termina de arrancar, la franja desaparece sola. Nadie la
+  # apaga: es la misma pregunta contra los datos.
+  test "la franja no aparece en un colegio que ya arrancó" do
+    get "#{subjects_path}?recorrido=materias"
+    follow_redirect! while response.redirect?
+
+    assert_select "nav.franja", 0
+  end
+
+  test "la equis del recorrido lo cierra" do
+    _vacio, director = colegio_vacio
+    sign_in director
+    get "#{subjects_path}?recorrido=materias"
+    follow_redirect!
+    assert_select "nav.franja", 1
+
+    get "#{subjects_path}?recorrido=salir"
+    follow_redirect!
+
+    assert_select "nav.franja", 0
+  end
+
+  # ⚠️ «Listo, seguir» es NAVEGACIÓN, no una marca. Presionarlo sin hacer el
+  # trabajo deja el paso pendiente — la forma honesta de dejar saltar adelante
+  # sin mentir sobre el estado.
+  test "seguir sin hacer nada no marca el paso como listo" do
+    vacio, director = colegio_vacio
+    sign_in director
+
+    get "#{subjects_path}?recorrido=materias"
+    follow_redirect!
+    get "#{teachers_path}?recorrido=profesores"
+    follow_redirect!
+
+    con_el_colegio(vacio) do
+      assert_not paso(:materias, vacio).listo?,
+                 "avanzar en la franja marcó un paso que nadie hizo"
+    end
+  end
+
+  # ── las precondiciones en los estados vacíos ──────────────────────────────
+
+  # ⚠️ La precondición se dice DONDE EL PROBLEMA SE VE, no se esconde apagando
+  # el menú. Apagar entradas según precondiciones se siente roto y aleatorio
+  # —«ayer estaba Secciones»—; el lugar útil es esta pantalla, vacía, con la
+  # persona parada acá.
+  test "una lista vacía dice qué hace falta antes, y lleva ahí" do
+    _vacio, director = colegio_vacio
+    sign_in director
+
+    get sections_path
+
+    assert_response :success
+    assert_select ".empty-state", 1
+    assert_match(/Antes hace falta/, response.body)
+    assert_select ".empty-state a.btn", { minimum: 1 },
+                  "el estado vacío bloqueado no ofrece salida"
+    assert_select "[disabled]", 0
+  end
+
+  # Sin precondición pendiente, el estado vacío ofrece hacer el trabajo.
+  test "una lista vacía sin bloqueo ofrece cargar" do
+    _vacio, director = colegio_vacio
+    sign_in director
+
+    get teachers_path
+
+    assert_select ".empty-state", 1
+    assert_match(/Todavía no hay profesores/, response.body)
+    assert_select ".empty-state a.btn", minimum: 1
+  end
+
+  # El texto sale de `PasosDeArranque`: la pantalla y el mapa dicen lo mismo, y
+  # renombrar el paso arrastra a los dos.
+  test "el estado vacío y el mapa hablan del mismo paso" do
+    vacio, director = colegio_vacio
+    sign_in director
+
+    esperado = con_el_colegio(vacio) { paso(:profesores, vacio).vacio }
+
+    get teachers_path
+    assert_match(/#{Regexp.escape(esperado)}/, response.body)
+  end
+
+  # Con datos cargados no hay estado vacío: la tabla ocupa su lugar.
+  test "una lista con datos no muestra el estado vacío" do
+    get teachers_path
+
+    assert_select ".empty-state", 0
+    assert_select "table.table-academic", minimum: 1
+  end
+
   private
 
   def paso(clave, colegio = @a.colegio)

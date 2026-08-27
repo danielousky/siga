@@ -13,16 +13,24 @@
 -# frame con este id. El buscador sigue actualizando el frame porque declara
 -# su destino explícito, y eso le gana al `target`.
 = turbo_frame_tag "departments-results", target: "_top" do
-  .card-academic
-    = render "shared/escala", total: @pagy.count, singular: "departamento",
-             plural: "departamentos",
-             detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
+  -# El estado vacío sale de `PasosDeArranque`, o sea del MISMO lugar que el
+  -# mapa del panel: dos redacciones del mismo paso se van separando, y quien
+  -# las lee cree que son dos cosas distintas.
+  - if @departments.empty?
+    .card-academic
+      = render "shared/lista_vacia", clave: :departamentos,
+               acciones: [ { texto: "Crear un departamento", ruta: new_department_path, icono: :agregar } ]
+  - else
+    .card-academic
+      = render "shared/escala", total: @pagy.count, singular: "departamento",
+               plural: "departamentos",
+               detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
 
-    %table.table-academic
-      %thead
-        %tr
-          %th Nombre del departamento
-      %tbody
-        - @departments.each do |department|
+      %table.table-academic
+        %thead
           %tr
-            %td= link_to department.name, edit_department_path(department)
+            %th Nombre del departamento
+        %tbody
+          - @departments.each do |department|
+            %tr
+              %td= link_to department.name, edit_department_path(department)

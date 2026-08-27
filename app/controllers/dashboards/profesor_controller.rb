@@ -37,28 +37,14 @@ class Dashboards::ProfesorController < ApplicationController
   # inscritos ya vino con el `includes` de arriba. Con quince evaluaciones la
   # diferencia no se nota; con las de un año entero, sí — y este panel lo abre
   # un profesor desde el teléfono.
+  # ⚠️ El cálculo NO vive acá (MOR-155).
+  #
+  # La dirección necesita exactamente lo mismo, agregado por profesor, para
+  # saber a quién llamarle la atención antes de cerrar el lapso. Con dos copias
+  # habría dos definiciones de «atrasado» que se van separando, y el director
+  # terminaría reclamándole a alguien que sí cargó.
   def evaluaciones_sin_corregir
-    secciones = @teacher_sections.map(&:section_id).uniq
-    return [] if secciones.empty?
-
-    evaluaciones = EvaluationActivity
-      .where(section_id: secciones, subject_id: @teacher_sections.map(&:subject_id).uniq)
-      .where(date_scheduled: ..Date.current)
-      .includes(:subject, section: :grade)
-      .order(date_scheduled: :desc)
-
-    cargadas = ActivityGrade.where(evaluation_activity_id: evaluaciones.map(&:id))
-                            .group(:evaluation_activity_id).count
-
-    inscritos = @teacher_sections.to_h { |ts| [ ts.section_id, ts.section.enrollments.size ] }
-
-    evaluaciones.filter_map do |e|
-      total = inscritos[e.section_id].to_i
-      puestas = cargadas[e.id].to_i
-      next if total.zero? || puestas >= total
-
-      { evaluacion: e, puestas: puestas, total: total }
-    end.first(6)
+    CargaDeNotas.incompletas(@teacher_sections).first(6)
   end
 
   def require_profesor!

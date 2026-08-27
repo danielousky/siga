@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::Base
+  include LlevaElRecorrido
   include Pagy::Backend
   include Auditable
   before_action :authenticate_user!

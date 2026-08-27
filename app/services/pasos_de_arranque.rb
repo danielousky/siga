@@ -32,9 +32,12 @@ class PasosDeArranque
   # copias del mismo plural son dos lugares donde volver a equivocarse.
   include ApplicationHelper
   # `listo?` no se guarda: es una pregunta contra los datos, evaluada cada vez.
-  Paso = Data.define(:clave, :titulo, :explicacion, :verbo, :ruta, :icono,
+  # `vacio` es el titular del estado vacío de la pantalla correspondiente. Va
+  # acá y no en cada vista para que la pantalla y el mapa digan lo MISMO: si el
+  # paso se renombra, el estado vacío lo sigue.
+  Paso = Data.define(:clave, :titulo, :explicacion, :verbo, :ruta, :icono, :vacio,
                      :listo, :resultado, :necesita, :opcional, :omitido) do
-    def initialize(clave:, titulo:, explicacion:, verbo:, ruta:, icono:,
+    def initialize(clave:, titulo:, explicacion:, verbo:, ruta:, icono:, vacio: nil,
                    listo: false, resultado: nil, necesita: nil, opcional: false, omitido: false)
       super
     end
@@ -62,6 +65,10 @@ class PasosDeArranque
 
   def self.para(colegio) = new(colegio).pasos
 
+  # El paso que corresponde a una pantalla. Es lo que permite que el estado
+  # vacío de `/subjects` diga lo mismo que el mapa del panel sin repetirlo.
+  def self.paso(colegio, clave) = para(colegio).find { |p| p.clave == clave.to_sym }
+
   def initialize(colegio)
     @colegio = colegio
   end
@@ -86,7 +93,7 @@ class PasosDeArranque
     cargados = Grade.count
 
     Paso.new(
-      clave: :niveles, icono: :grados,
+      clave: :niveles, vacio: "Este colegio todavía no tiene grados cargados", icono: :grados,
       titulo: "Qué niveles dicta el colegio",
       explicacion: "Los grados de Venezuela los fija el ministerio: son catorce y " \
                    "siempre los mismos. Marque los niveles que dicta y quedan creados de una vez.",
@@ -100,7 +107,7 @@ class PasosDeArranque
     listo = colegio.dea_code.present?
 
     Paso.new(
-      clave: :identidad, icono: :colegio,
+      clave: :identidad, vacio: "Falta la identidad del colegio", icono: :colegio,
       titulo: "La identidad del colegio",
       explicacion: "El código DEA, el escudo y la firma del director. Salen impresos en " \
                    "cada boletín y en cada constancia, así que conviene dejarlos listos " \
@@ -121,7 +128,7 @@ class PasosDeArranque
     lapsos = periodo ? EvaluationMoment.where(academic_period_id: periodo.id).count : 0
 
     Paso.new(
-      clave: :ano_escolar, icono: :calendario,
+      clave: :ano_escolar, vacio: "Este colegio todavía no tiene ningún año escolar", icono: :calendario,
       titulo: "El año escolar y sus lapsos",
       explicacion: "El lapso es cada corte de notas del año: lo que en la libreta va " \
                    "como I, II y III Lapso. Casi todos los colegios del país usan tres.",
@@ -136,7 +143,7 @@ class PasosDeArranque
     cargadas = Subject.count
 
     Paso.new(
-      clave: :materias, icono: :materias,
+      clave: :materias, vacio: "Todavía no hay materias cargadas", icono: :materias,
       titulo: "Las materias del colegio",
       explicacion: "Si ya tiene el pensum en un Excel, súbalo y salen todas de una vez. " \
                    "El código (MAT, CAS, FIS) es suyo: si la planilla no lo trae, SIGA " \
@@ -157,7 +164,7 @@ class PasosDeArranque
             end
 
     Paso.new(
-      clave: :secciones, icono: :secciones,
+      clave: :secciones, vacio: "Todavía no hay secciones", icono: :secciones,
       titulo: "Las secciones de cada grado",
       explicacion: "Cuántas secciones tiene cada grado. Se llaman A, B, C — no lo manda " \
                    "ningún reglamento, pero es lo que hace todo el mundo, así que SIGA se " \
@@ -172,7 +179,7 @@ class PasosDeArranque
     cargados = Teacher.count
 
     Paso.new(
-      clave: :profesores, icono: :profesores,
+      clave: :profesores, vacio: "Todavía no hay profesores cargados", icono: :profesores,
       titulo: "Los profesores",
       explicacion: "Cárguelos de una planilla o uno por uno. Cada profesor necesita " \
                    "correo: es con lo que entra a cargar sus notas.",
@@ -186,7 +193,7 @@ class PasosDeArranque
     cargados = Student.count
 
     Paso.new(
-      clave: :alumnos, icono: :alumnos,
+      clave: :alumnos, vacio: "Todavía no hay alumnos", icono: :alumnos,
       titulo: "La matrícula",
       explicacion: "Nadie va a tipear trescientos sesenta alumnos. Suba la planilla que " \
                    "ya tiene —el Excel, la nómina, lo que use— y antes de escribir nada " \
@@ -203,7 +210,7 @@ class PasosDeArranque
     cargados = Department.count
 
     Paso.new(
-      clave: :departamentos, icono: :colegio, opcional: true,
+      clave: :departamentos, vacio: "Todavía no hay departamentos", icono: :colegio, opcional: true,
       titulo: "Departamentos",
       explicacion: "Agrupan las materias por área —Ciencias, Letras— y sirven para ver " \
                    "el rendimiento por departamento. Un colegio chico puede vivir sin ellos.",

@@ -106,6 +106,13 @@
             = render 'shared/sidebar_representante'
 
         %main.container-academic
+          -# ⚠️ Va DENTRO del `main` y en el flujo, no `position: fixed`.
+          -# En una laptop de 13" ya hay barra de contexto y a veces avisos de
+          -# suscripción: una cuarta banda fija son doscientos píxeles de cromo
+          -# antes del primer dato.
+          - if recorrido_activo?
+            = render "shared/franja_de_recorrido"
+
           - if notice.present?
             .alert.alert-success
               = notice

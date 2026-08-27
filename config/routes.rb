@@ -94,6 +94,10 @@ Rails.application.routes.draw do
   # Qué niveles dicta el colegio (MOR-153). Una pantalla y no un `resources`
   # porque no se crea ni se borra nada: se declara qué dicta y de ahí salen los
   # grados oficiales.
+  # Quién no ha terminado de cargar sus notas (MOR-155). Solo GET: es una
+  # pregunta, no una acción — el llamado de atención lo hace una persona.
+  get "carga-de-notas", to: "carga_de_notas#index", as: :carga_de_notas
+
   # Los pasos opcionales del arranque que un colegio decide no hacer. Es lo
   # ÚNICO que la puesta en marcha guarda: todo lo demás se deduce de los datos.
   post "arranque/:clave/omitir", to: "arranque#omitir",  as: :omitir_paso
