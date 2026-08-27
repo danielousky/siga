@@ -5,27 +5,36 @@
       = icono(:agregar, tamano: 16)
       %span Registrar nuevo profesor
 
-  = render "shared/escala", total: @pagy.count, singular: "profesor", plural: "profesores"
+= render "shared/buscador_de_lista", ruta: teachers_path, marco: "teachers-results",
+         pista: "Nombre, apellido, cédula o correo…"
 
-  %table.table-academic
-    %thead
-      %tr
-        -# ⚠️ Una sola columna para el nombre, como en Estudiantes y
-        -# Representantes. Partirlo en «Nombre» y «Apellido» obliga a leer dos
-        -# celdas para saber a quién se está mirando, y desperdicia el ancho que
-        -# el correo sí necesita.
-        %th Profesor
-        %th Cédula
-        %th Correo
-        %th Acceso
-    %tbody
-      - @teachers.each do |teacher|
+-# ⚠️ `target: "_top"`: sin él, cada enlace de adentro navega DENTRO del frame
+-# y Turbo pinta «Content missing», porque la página de destino no tiene un
+-# frame con este id. El buscador sigue actualizando el frame porque declara
+-# su destino explícito, y eso le gana al `target`.
+= turbo_frame_tag "teachers-results", target: "_top" do
+  .card-academic
+    = render "shared/escala", total: @pagy.count, singular: "profesor", plural: "profesores"
+
+    %table.table-academic
+      %thead
         %tr
-          %td= link_to persona_con_avatar(teacher.user), teacher
-          %td= teacher.user.identificador || "—"
-          %td= teacher.user.email
-          %td
-            - if teacher.user.puede_entrar?
-              %span.estado.estado--al-dia Activo
-            - else
-              %span.estado.estado--inactivo Sin activar
+          -# ⚠️ Una sola columna para el nombre, como en Estudiantes y
+          -# Representantes. Partirlo en «Nombre» y «Apellido» obliga a leer dos
+          -# celdas para saber a quién se está mirando, y desperdicia el ancho que
+          -# el correo sí necesita.
+          %th Profesor
+          %th Cédula
+          %th Correo
+          %th Acceso
+      %tbody
+        - @teachers.each do |teacher|
+          %tr
+            %td= link_to persona_con_avatar(teacher.user), teacher
+            %td= teacher.user.identificador || "—"
+            %td= teacher.user.email
+            %td
+              - if teacher.user.puede_entrar?
+                %span.estado.estado--al-dia Activo
+              - else
+                %span.estado.estado--inactivo Sin activar

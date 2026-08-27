@@ -1,8 +1,13 @@
 class DepartmentsController < ApplicationController
   before_action :set_department, only: [:edit, :update, :destroy]
 
+  CAMPOS_DE_BUSQUEDA = %w[departments.name].freeze
+
   def index
-    @pagy, @departments = pagy(Department.includes(:school))
+    scope = Department.includes(:school)
+    scope = scope.where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:q])) if params[:q].present?
+
+    @pagy, @departments = pagy(scope.order(:name))
   end
 
 

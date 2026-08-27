@@ -3,10 +3,17 @@ class SectionsController < ApplicationController
   before_action :require_read_access!, only: [:show]
   before_action :set_section, only: [:show, :edit, :update, :destroy]
 
+  # Por el nombre del grado o el de la sección: quien escribe «1er» quiere todas
+  # las de primer año, y quien escribe «A» quiere las secciones A.
+  CAMPOS_DE_BUSQUEDA = %w[grades.name sections.name].freeze
+
   def index
     scope = Section.includes(:grade, :academic_period).joins(:grade, :academic_period)
     scope = scope.where(grade_id: params[:grade_id]) if params[:grade_id].present?
     scope = scope.where(academic_period_id: params[:academic_period_id]) if params[:academic_period_id].present?
+    # El campo de texto se suma a los selectores, no los reemplaza: buscar «1er»
+    # y además acotar al año en curso son dos preguntas distintas.
+    scope = scope.where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:q])) if params[:q].present?
     @pagy, @sections = pagy(scope.order("grades.name, sections.name"))
     @grades_options = [["Todos los grados", ""]] + Grade.order(:name).pluck(:name, :id)
     @periods_options = [["Todos los períodos", ""]] + AcademicPeriod.order(start_date: :desc).pluck(:name, :id)

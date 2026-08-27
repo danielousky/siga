@@ -5,8 +5,21 @@ class TeachersController < ApplicationController
   before_action :require_admin_access!
   before_action :set_teacher, only: [:show, :edit, :update, :destroy, :generar_codigo]
 
+  # Buscar por los datos de la PERSONA, no de la fila: quien busca tiene el
+  # apellido o la cédula en la mano, nunca el id del rol.
+  CAMPOS_DE_BUSQUEDA = %w[
+    users.first_name users.last_name users.second_last_name
+    users.document users.email
+  ].freeze
+
   def index
-    @pagy, @teachers = pagy(Teacher.includes(:user, :school))
+    scope = Teacher.includes(:user, :school)
+    if params[:q].present?
+      ids = User.where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:q])).pluck(:id)
+      scope = scope.where(user_id: ids)
+    end
+
+    @pagy, @teachers = pagy(scope.joins(:user).order("users.last_name, users.first_name"))
   end
 
   # La ficha del profesor.

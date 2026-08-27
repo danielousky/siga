@@ -74,6 +74,24 @@
 
       .app-layout{"data-controller": "sidebar"}
         %aside.sidebar-index
+          -# ⚠️ El botón va ARRIBA, y antes estaba al pie.
+          -#
+          -# Lo puse abajo razonando que «encoger se hace una vez y no merece el
+          -# mejor sitio». El razonamiento era mío y estaba mal: un control que
+          -# no se encuentra tampoco se usa esa única vez. Daniel tuvo que
+          -# buscarlo hasta el final del menú para descubrir que además no
+          -# funcionaba.
+          -#
+          -# Acá arriba no compite con el primer enlace: está en su propia franja,
+          -# alineado a la derecha, que es donde lo pone todo producto que tiene
+          -# esta función.
+          .sidebar-cabecera
+            %span.sidebar-cabecera-titulo Menú
+            %button.sidebar-encoger{type: "button", "data-action": "sidebar#alternar",
+                                    "data-sidebar-target": "boton",
+                                    "aria-expanded": "true", "aria-label": "Encoger el menú"}
+              = icono(:volver, tamano: 16)
+
           - if administrador?
             = render 'shared/sidebar_administrador'
           - elsif profesor?
@@ -82,17 +100,6 @@
             = render 'shared/sidebar_estudiante'
           - elsif representante?
             = render 'shared/sidebar_representante'
-
-          -# ⚠️ Va al PIE del menú, no arriba.
-          -#
-          -# Arriba competiría con el primer enlace —el que más se usa— por el
-          -# lugar donde el ojo cae primero. Y encoger el menú es algo que se
-          -# hace una vez y no se vuelve a tocar: no merece el mejor sitio.
-          %button.sidebar-encoger{type: "button", "data-action": "sidebar#alternar",
-                                  "data-sidebar-target": "boton",
-                                  "aria-expanded": "true", "aria-label": "Encoger el menú"}
-            = icono(:volver, tamano: 15)
-            %span Encoger el menú
 
         %main.container-academic
           - if notice.present?

@@ -1,0 +1,28 @@
+-# El filtro de una lista, igual en todas (MOR-149).
+-#
+-# ## Por qué existe además del buscador global de ⌘K
+-#
+-# Son dos trabajos distintos, no dos versiones del mismo:
+-#
+-#     ⌘K              «llevame a Álvaro López»   sé a quién busco, quiero saltar
+-#     este filtro     «mostrame los López»       quiero VER el conjunto y
+-#                                                 quedarme acá trabajando
+-#
+-# Quitar este rompería el segundo: la secretaria que filtra por apellido para
+-# revisar veinte fichas no quiere saltar a una.
+-#
+-# ## Y por qué es un parcial y no la configuración repetida
+-#
+-# Antes había filtro en Estudiantes, Secciones e Inscripciones —cada uno armando
+-# su lista de campos a mano— y NINGUNO en Profesores, Representantes, Materias ni
+-# Departamentos. Nadie podía predecir cuál lo tenía.
+-#
+-# Acá la única decisión por lista es qué se puede escribir en el campo.
+-# `local_assigns` y no `defined?`: en un parcial, una variable local que no se
+-# pasó no está «indefinida» —levanta `NameError`—, así que preguntar por ella
+-# directamente revienta la vista. Es lo que rompió la primera versión de esto.
+- campos = [ { type: :text, name: :q, label: "Buscar", placeholder: pista, flex: 2 } ]
+- campos += Array(local_assigns[:extra])
+
+= render "shared/search_filter", url: ruta, frame_id: marco, clear_url: ruta,
+         fields: campos, title: local_assigns.fetch(:titulo, "Filtros")

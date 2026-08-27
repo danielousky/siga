@@ -4115,23 +4115,52 @@ img.avatar {
   opacity: 1;
 }
 
-/* ── el botón que lo alterna ─────────────────────────────────────────────── */
+/* ── la cabecera del menú, con el botón de encoger ──────────────────────────
 
-.sidebar-encoger {
+   ⚠️ El botón estaba al PIE y no se encontraba. Acá arriba está en su propia
+   franja, alineado a la derecha: no compite con el primer enlace por el lugar
+   donde el ojo cae, y se ve apenas se abre la pantalla.                       */
+
+.sidebar-cabecera {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-sm);
-  width: calc(100% - var(--space-lg) * 2);
-  margin: var(--space-md) var(--space-lg) 0;
-  padding: var(--space-xs) var(--space-sm);
+  padding: 0 var(--space-lg) var(--space-sm);
+  margin-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sidebar-cabecera-titulo {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sidebar-encoger {
+  display: grid;
+  place-items: center;
+  /* 32 px de caja visible dentro de un objetivo táctil de 44: el botón se ve
+     discreto y se toca sin apuntar. */
+  width: 32px;
+  height: 32px;
+  padding: 0;
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   color: var(--text-tertiary);
-  font-family: var(--font-sans);
-  font-size: 12px;
   cursor: pointer;
   transition: all var(--transition-fast);
+  position: relative;
+}
+
+.sidebar-encoger::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
 }
 
 .sidebar-encoger:hover {
@@ -4144,13 +4173,15 @@ img.avatar {
   transition: transform var(--transition-base);
 }
 
-.menu-encogido .sidebar-encoger {
-  width: auto;
-  margin: var(--space-md) auto 0;
+/* Encogido: el rótulo desaparece y el botón queda centrado, con la flecha al
+   revés — que es lo que dice hacia dónde va a moverse el menú. */
+.menu-encogido .sidebar-cabecera {
   justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
 }
 
-.menu-encogido .sidebar-encoger span {
+.menu-encogido .sidebar-cabecera-titulo {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -4165,7 +4196,9 @@ img.avatar {
 /* En el teléfono el menú ya es una tira horizontal que se desliza: encogerlo no
    significa nada, y el botón solo ocuparía lugar. */
 @media (max-width: 768px) {
-  .sidebar-encoger { display: none; }
+  /* En el teléfono el menú ya es una tira horizontal que se desliza: encogerlo
+     no significa nada, y la cabecera solo ocuparía lugar. */
+  .sidebar-cabecera { display: none; }
 
   .menu-encogido .sidebar-index { width: 100%; }
   .menu-encogido .sidebar-nav-link span { position: static; width: auto; height: auto; clip-path: none; margin: 0; }
@@ -4174,6 +4207,7 @@ img.avatar {
 
 @media (prefers-reduced-motion: reduce) {
   .sidebar-index,
+  .sidebar-encoger,
   .sidebar-encoger .icono { transition: none; }
 }
 

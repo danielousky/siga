@@ -1,8 +1,15 @@
 class SubjectsController < ApplicationController
   before_action :set_subject, only: [:show, :edit, :update, :destroy]
 
+  # Por nombre o por CÓDIGO: el colegio conoce sus materias por las dos cosas, y
+  # el código es el que aparece en el horario y en el boletín.
+  CAMPOS_DE_BUSQUEDA = %w[subjects.name subjects.code].freeze
+
   def index
-    @pagy, @subjects = pagy(Subject.includes(department: :school))
+    scope = Subject.includes(department: :school)
+    scope = scope.where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:q])) if params[:q].present?
+
+    @pagy, @subjects = pagy(scope.order(:name))
   end
 
   # La materia.

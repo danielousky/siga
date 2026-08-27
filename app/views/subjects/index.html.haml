@@ -5,16 +5,29 @@
       = icono(:agregar, tamano: 16)
       %span Registrar nueva materia
 
-  %table.table-academic
-    %thead
-      %tr
-        %th Código
-        %th Nombre
-        %th Departamento
-    %tbody
-      - @subjects.each do |subject|
+= render "shared/buscador_de_lista", ruta: subjects_path, marco: "subjects-results",
+         pista: "Nombre o código de la materia…"
+
+-# ⚠️ `target: "_top"`: sin él, cada enlace de adentro navega DENTRO del frame
+-# y Turbo pinta «Content missing», porque la página de destino no tiene un
+-# frame con este id. El buscador sigue actualizando el frame porque declara
+-# su destino explícito, y eso le gana al `target`.
+= turbo_frame_tag "subjects-results", target: "_top" do
+  .card-academic
+    = render "shared/escala", total: @pagy.count, singular: "materia",
+             plural: "materias",
+             detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
+
+    %table.table-academic
+      %thead
         %tr
-          %td
-            %code{style: "font-family: var(--font-sans); color: var(--text-primary); background: var(--surface-canvas); padding: 2px 6px; border-radius: 3px; font-size: 13px;"}= subject.code
-          %td= link_to subject.name, subject
-          %td= subject.department.name
+          %th Código
+          %th Nombre
+          %th Departamento
+      %tbody
+        - @subjects.each do |subject|
+          %tr
+            %td
+              %code{style: "font-family: var(--font-sans); color: var(--text-primary); background: var(--surface-canvas); padding: 2px 6px; border-radius: 3px; font-size: 13px;"}= subject.code
+            %td= link_to subject.name, subject
+            %td= subject.department.name

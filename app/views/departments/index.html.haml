@@ -5,11 +5,24 @@
       = icono(:agregar, tamano: 16)
       %span Crear nuevo departamento
 
-  %table.table-academic
-    %thead
-      %tr
-        %th Nombre del departamento
-    %tbody
-      - @departments.each do |department|
+= render "shared/buscador_de_lista", ruta: departments_path, marco: "departments-results",
+         pista: "Nombre del departamento…"
+
+-# ⚠️ `target: "_top"`: sin él, cada enlace de adentro navega DENTRO del frame
+-# y Turbo pinta «Content missing», porque la página de destino no tiene un
+-# frame con este id. El buscador sigue actualizando el frame porque declara
+-# su destino explícito, y eso le gana al `target`.
+= turbo_frame_tag "departments-results", target: "_top" do
+  .card-academic
+    = render "shared/escala", total: @pagy.count, singular: "departamento",
+             plural: "departamentos",
+             detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
+
+    %table.table-academic
+      %thead
         %tr
-          %td= link_to department.name, edit_department_path(department)
+          %th Nombre del departamento
+      %tbody
+        - @departments.each do |department|
+          %tr
+            %td= link_to department.name, edit_department_path(department)

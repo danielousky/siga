@@ -5,10 +5,12 @@
       = icono(:agregar, tamano: 16)
       %span Nueva sección
 
-- section_fields = []
-- section_fields << { type: :select, name: :grade_id,          label: "Grado",             options: @grades_options }
-- section_fields << { type: :select, name: :academic_period_id, label: "Período académico", options: @periods_options }
-= render "shared/search_filter", url: sections_path, frame_id: "sections-results", clear_url: sections_path, fields: section_fields
+-# Los dos selectores se conservan: con 18 secciones, acotar por grado o por año
+-# es más rápido que escribir. El campo de texto se SUMA, no los reemplaza.
+= render "shared/buscador_de_lista", ruta: sections_path, marco: "sections-results",
+         pista: "Grado o sección…",
+         extra: [ { type: :select, name: :grade_id, label: "Grado", options: @grades_options },
+                  { type: :select, name: :academic_period_id, label: "Año escolar", options: @periods_options } ]
 
 -# `target: "_top"` no es un detalle: sin él, TODO enlace de adentro del frame
 -# —Ver, Editar, Eliminar— navega DENTRO del frame. Y como ninguna de esas

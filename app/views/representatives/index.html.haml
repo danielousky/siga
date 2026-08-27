@@ -5,34 +5,43 @@
       = icono(:agregar, tamano: 16)
       %span Registrar representante
 
-  = render "shared/escala", total: @pagy.count, singular: "representante", plural: "representantes",
-           detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
+= render "shared/buscador_de_lista", ruta: representatives_path, marco: "representatives-results",
+         pista: "Nombre, apellido, cédula o teléfono…"
 
-  %table.table-academic
-    %thead
-      %tr
-        %th Nombre
-        %th Contacto
-        %th Representados
-    %tbody
-      - @representatives.each do |representante|
+-# ⚠️ `target: "_top"`: sin él, cada enlace de adentro navega DENTRO del frame
+-# y Turbo pinta «Content missing», porque la página de destino no tiene un
+-# frame con este id. El buscador sigue actualizando el frame porque declara
+-# su destino explícito, y eso le gana al `target`.
+= turbo_frame_tag "representatives-results", target: "_top" do
+  .card-academic
+    = render "shared/escala", total: @pagy.count, singular: "representante", plural: "representantes",
+             detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
+
+    %table.table-academic
+      %thead
         %tr
-          %td= link_to persona_con_avatar(representante.user), representante
-          %td
-            -# Sin correo el representante no puede consultar nada, así que la
-            -# celda vacía no sirve: hay que poder VER a quién falta llamar
-            -# antes de que la mamá pregunte por qué no entra (MOR-142).
-            - if representante.user.email.present?
-              = representante.user.email
-            - else
-              %span.nota-pendiente Sin correo
-            - if representante.phone.present?
-              %br
-              %span.nota-ayuda= representante.phone
-          %td
-            - if representante.students.any?
-              = representante.students.map { |a| "#{a.user.nombre_completo}" }.join(" ·")
-            - else
-              %span.nota-pendiente Sin alumnos vinculados
-  .pagy-nav
-    != pagy_nav(@pagy)
+          %th Nombre
+          %th Contacto
+          %th Representados
+      %tbody
+        - @representatives.each do |representante|
+          %tr
+            %td= link_to persona_con_avatar(representante.user), representante
+            %td
+              -# Sin correo el representante no puede consultar nada, así que la
+              -# celda vacía no sirve: hay que poder VER a quién falta llamar
+              -# antes de que la mamá pregunte por qué no entra (MOR-142).
+              - if representante.user.email.present?
+                = representante.user.email
+              - else
+                %span.nota-pendiente Sin correo
+              - if representante.phone.present?
+                %br
+                %span.nota-ayuda= representante.phone
+            %td
+              - if representante.students.any?
+                = representante.students.map { |a| "#{a.user.nombre_completo}" }.join(" ·")
+              - else
+                %span.nota-pendiente Sin alumnos vinculados
+    .pagy-nav
+      != pagy_nav(@pagy)
