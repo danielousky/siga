@@ -7,9 +7,14 @@
       %h1.ficha-nombre= persona.apellidos_y_nombres
       %p.ficha-situacion
         = contar(@asignaciones.size, "asignación", "asignaciones")
-        - if @teacher.led_grades.any?
+        - if @guia_de.any?
           %span.ficha-punto ·
-          = "guía de #{@teacher.led_grades.map(&:name).to_sentence}"
+          = "guía de #{@guia_de.map { |s| "#{s.grade.name} – #{s.name}" }.to_sentence}"
+        -# El coordinador de grado es otro cargo, y quien lo tiene suele tener
+        -# también sus secciones: se dicen los dos, no uno u otro.
+        - if @coordina.any?
+          %span.ficha-punto ·
+          = "coordina #{@coordina.map(&:name).to_sentence}"
 
     .ficha-acciones
       = link_to edit_teacher_path(@teacher), class: "btn btn-secondary" do

@@ -50,7 +50,8 @@ module BorradoHelper
     evaluation_activities: "evaluaciones",
     sections:             "secciones",
     subjects:             "materias",
-    led_grades:           "grados a su cargo",
+    led_sections:         "secciones que guía",
+    coordinated_grades:   "grados que coordina",
     evaluation_moments:   "lapsos"
   }.freeze
 

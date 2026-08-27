@@ -28,6 +28,7 @@
           %th Grado
           %th Sección
           %th Período
+          %th Profesor guía
           %th Capacidad
           %th Aula
       %tbody
@@ -36,5 +37,6 @@
             %td= link_to section.grade.name, section
             %td= section.name
             %td= section.academic_period.name
+            %td= section.leader_teacher&.user&.apellidos_y_nombres || "—"
             %td= "#{section.enrollments.size} / #{section.capacity}"
             %td= section.classroom || "—"

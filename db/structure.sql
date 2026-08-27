@@ -647,7 +647,7 @@ CREATE TABLE public.grades (
     updated_at timestamp(6) without time zone NOT NULL,
     school_id bigint NOT NULL,
     escala integer DEFAULT 0 NOT NULL,
-    leader_teacher_id bigint,
+    coordinator_teacher_id bigint,
     CONSTRAINT grades_escala_valida CHECK ((escala = ANY (ARRAY[0, 1])))
 );
 
@@ -890,7 +890,8 @@ CREATE TABLE public.sections (
     classroom character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    school_id bigint NOT NULL
+    school_id bigint NOT NULL,
+    leader_teacher_id bigint
 );
 
 ALTER TABLE ONLY public.sections FORCE ROW LEVEL SECURITY;
@@ -2797,6 +2798,13 @@ CREATE UNIQUE INDEX index_sections_on_grade_period_name ON public.sections USING
 
 
 --
+-- Name: index_sections_on_leader_teacher_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sections_on_leader_teacher_id ON public.sections USING btree (leader_teacher_id);
+
+
+--
 -- Name: index_sections_on_school_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3171,6 +3179,14 @@ ALTER TABLE ONLY public.final_grade_books
 
 
 --
+-- Name: sections fk_rails_115ba89703; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sections
+    ADD CONSTRAINT fk_rails_115ba89703 FOREIGN KEY (leader_teacher_id) REFERENCES public.teachers(id);
+
+
+--
 -- Name: students fk_rails_148c9e88f4; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3319,7 +3335,7 @@ ALTER TABLE ONLY public.subjects
 --
 
 ALTER TABLE ONLY public.grades
-    ADD CONSTRAINT fk_rails_5441746b71 FOREIGN KEY (leader_teacher_id) REFERENCES public.teachers(id);
+    ADD CONSTRAINT fk_rails_5441746b71 FOREIGN KEY (coordinator_teacher_id) REFERENCES public.teachers(id);
 
 
 --
@@ -4012,6 +4028,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260827120000'),
 ('20260826040000'),
 ('20260826020000'),
 ('20260825200000'),

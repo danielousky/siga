@@ -10,10 +10,10 @@
       %tr
         %th Nombre
         %th Nivel
-        %th Profesor guía
+        %th Coordinador
     %tbody
       - @grades.each do |grade|
         %tr
           %td= link_to grade.name, grade
           %td= grade.level.humanize
-          %td= grade.leader_teacher&.user&.nombre_completo || "—"
+          %td= grade.coordinator_teacher&.user&.nombre_completo || "—"

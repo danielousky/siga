@@ -21,10 +21,19 @@ class Grade < ApplicationRecord
   enum :escala, { numerica: 0, literal: 1 }, prefix: :escala
 
   belongs_to :school
-  belongs_to :leader_teacher, class_name: "Teacher", optional: true
+  # El COORDINADOR del grado, no su profesor guía (MOR-150).
+  #
+  # ⚠️ Esta columna se llamaba `leader_teacher` y eso era un error con
+  # consecuencia: el guía es de la SECCIÓN —«1er Año A» tiene el suyo y «1er Año
+  # B» el suyo—, así que colgarlo del grado hacía que un profesor pasara lista de
+  # tres secciones ajenas y que los otros dos guías no vieran la propia.
+  #
+  # Del grado cuelga, si acaso, alguien que coordina a esos guías. Es opcional:
+  # la mayoría de los colegios no tiene el cargo.
+  belongs_to :coordinator_teacher, class_name: "Teacher", optional: true
 
-  # El profesor guía tiene que ser del mismo colegio que el grado.
-  validates_same_school :leader_teacher
+  # El coordinador tiene que ser del mismo colegio que el grado.
+  validates_same_school :coordinator_teacher
 
   has_many :grade_subjects, dependent: :destroy
   has_many :subjects, through: :grade_subjects

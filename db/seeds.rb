@@ -381,12 +381,21 @@ tbel = {
 }
 puts "   ✓ 7 profesores (U.E. Andrés Bello)"
 
-# Asignar directores de grado
-gbol[:g1].update!(leader_teacher: tbol[:sos]) unless gbol[:g1].leader_teacher
-gbol[:g2].update!(leader_teacher: tbol[:mat]) unless gbol[:g2].leader_teacher
-gbol[:g3].update!(leader_teacher: tbol[:bio]) unless gbol[:g3].leader_teacher
-gbol[:g4].update!(leader_teacher: tbol[:fis]) unless gbol[:g4].leader_teacher
-gbol[:g5].update!(leader_teacher: tbol[:len]) unless gbol[:g5].leader_teacher
+# Coordinadores de grado — el cargo OPCIONAL que coordina a los guías (MOR-150).
+#
+# ⚠️ Esto NO es el profesor guía. El guía es de la SECCIÓN y se asigna más
+# abajo, cuando las secciones existen. Se dejan solo tres cargados a propósito:
+# el cargo es opcional y la mayoría de los colegios no lo tiene, así que la
+# demo tiene que mostrar los dos casos.
+#
+# Sin `unless`, por lo mismo que los guías: son datos de demostración y tienen
+# que dar el mismo resultado cada corrida. Con el guard, lo que dejó la
+# migración —que copió el guía viejo a los cinco grados— ganaba para siempre y
+# la demo mostraba un coordinador en todos, que es exactamente lo contrario de
+# lo que hay que mostrar.
+gbol.each_value { |grado| grado.update!(coordinator_teacher: nil) }
+gbol[:g1].update!(coordinator_teacher: tbol[:sos])
+gbol[:g2].update!(coordinator_teacher: tbol[:mat])
 
 # =============================================================================
 # SECCIONES — todos los grados con A y B
@@ -414,7 +423,29 @@ gbel.each_with_index do |(key, grade), i|
   end
 end
 
-puts "   ✓ #{sec_bol.size} secciones (Bolívar) | #{sec_bel.size} secciones (Bello)"
+# Profesores guía, uno POR SECCIÓN (MOR-150).
+#
+# ⚠️ Que «A» y «B» tengan guías DISTINTOS es el punto de la demo: es exactamente
+# lo que el modelo anterior no podía representar. Con el guía colgando del
+# grado, el de «1er Año» pasaba lista de A y de B —de alumnos que no son
+# suyos— y el guía de B no veía su propia sección.
+#
+# Se rotan los profesores del colegio para que ninguno quede con cinco
+# secciones: un guía real tiene una, a lo sumo dos.
+#
+# ⚠️ Se asigna SIN `unless`, a diferencia de casi todo lo demás en este archivo.
+# Los seeds son datos de demostración y tienen que dar el mismo resultado cada
+# vez: con el guard, una corrida anterior —o lo que dejó una migración— gana
+# para siempre y la demo termina mostrando el mismo profesor en las diez
+# secciones, que es justo lo que este cambio vino a arreglar.
+[ [ sec_bol, tbol ], [ sec_bel, tbel ] ].each do |secciones, profesores|
+  docentes = profesores.values
+  secciones.values.each_with_index do |seccion, i|
+    seccion.update!(leader_teacher: docentes[i % docentes.size])
+  end
+end
+
+puts "   ✓ #{sec_bol.size} secciones (Bolívar) | #{sec_bel.size} secciones (Bello), cada una con su guía"
 
 # =============================================================================
 # TEACHER SECTIONS — cobertura completa de todas las secciones
@@ -843,12 +874,14 @@ puts "     Bello · 4to Grado A: #{alumnos_bel.size} alumnos con nota anual, rec
 # evaluar si sirve. Con dos semanas se ve lo que el colegio necesita ver: quién
 # acumula faltas, quién llega tarde seguido, y quién ya trajo el justificativo.
 #
-# El profesor guía es quien la toma (MOR-111), así que primero hay que asignarlo:
-# sin `leader_teacher`, la pantalla de asistencia no le aparece a nadie.
+# El profesor guía es quien la toma (MOR-111), y desde MOR-150 es guía de la
+# SECCIÓN. Se fuerza a García en «1er Año A» porque es la credencial que sale en
+# el README: quien entre con ella tiene que ver la pantalla con datos, no un
+# «sin secciones a cargo».
 puts ""
 puts "🗓️  Registrando asistencia de las últimas dos semanas..."
 
-gbol[:g1].update!(leader_teacher: Teacher.find_by(user: User.find_by(email: "prof.garcia@bolivar.edu")))
+sec_bol["g1_A"].update!(leader_teacher: Teacher.find_by(user: User.find_by(email: "prof.garcia@bolivar.edu")))
 
 seccion_asis = sec_bol["g1_A"]
 alumnos_asis = students_per_section_bol["g1_A"]

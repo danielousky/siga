@@ -5,7 +5,7 @@
   -# permitiría mandar el id de otro colegio en el formulario, que es justamente
   -# de donde el inquilino nunca puede venir.
   -#
-  -# El selector de profesor guía de más abajo tampoco necesita filtro explícito:
+  -# El selector de coordinador de más abajo tampoco necesita filtro explícito:
   -# Teacher es SchoolScoped, así que ya solo trae los del colegio de la sesión.
   .form-group
     = f.label :name, "Nombre", class: "form-label"
@@ -39,8 +39,12 @@
       van en número en los dos casos.
 
   .form-group
-    = f.label :leader_teacher_id, "Profesor guía", class: "form-label"
-    = f.select :leader_teacher_id, Teacher.includes(:user).map { |t| [t.user.apellidos_y_nombres, t.id] }, { include_blank: "Ninguno" }, class: "form-select"
+    = f.label :coordinator_teacher_id, "Coordinador del grado", class: "form-label"
+    = f.select :coordinator_teacher_id, Teacher.includes(:user).map { |t| [t.user.apellidos_y_nombres, t.id] }, { include_blank: "Ninguno" }, class: "form-select"
+    %p.nota-ayuda
+      Opcional. Quien coordina a los profesores guía de este grado. El
+      %strong profesor guía se asigna en cada sección,
+      porque es de la sección y no del grado.
 
   .form-acciones
     = f.submit class: "btn btn-primary"

@@ -2,7 +2,7 @@
 #
 # `MOR-135` lo dejó escrito: el profesor *"entra a CARGAR NOTAS. Semanal, con
 # apuro, desde el teléfono."* El panel abría con cuatro conteos —secciones
-# asignadas, estudiantes en total, materias distintas, grados liderados— que no
+# asignadas, estudiantes en total, materias distintas, secciones que guía— que no
 # le sirven para eso ni cambian de una semana a otra.
 #
 # Ahora lo primero es **lo que le falta corregir**, con el enlace directo a la
@@ -17,7 +17,9 @@ class Dashboards::ProfesorController < ApplicationController
                                 .includes(:subject, section: [ :grade, :academic_period, :enrollments ])
                                 .order("grades.name, sections.name")
 
-    @led_grades = @teacher.led_grades.includes(:sections)
+    # Las secciones de las que es GUÍA — no los grados (MOR-150). El guía es de
+    # la sección; el grado, si acaso, tiene un coordinador.
+    @led_sections = @teacher.led_sections.includes(:grade, :enrollments)
 
     @total_sections = @teacher_sections.size
     @total_students = @teacher_sections.sum { |ts| ts.section.enrollments.size }

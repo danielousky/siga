@@ -42,13 +42,16 @@
           = EscalaLiteral.mostrar(18, escala: @grade.escala)
           %span.ficha-punto ·
           = EscalaLiteral.mostrar(11, escala: @grade.escala)
+      -# ⚠️ El COORDINADOR, no el profesor guía (MOR-150). El guía es de la
+      -# sección y se ve en cada una; acá arriba decía «Profesor guía» y era
+      -# exactamente la confusión que este cambio vino a deshacer.
       .detail-item
-        %span.detail-label Profesor guía
+        %span.detail-label Coordinador del grado
         %p.detail-value
-          - if @grade.leader_teacher
-            = "#{@grade.leader_teacher.user.nombre_completo}"
+          - if @grade.coordinator_teacher
+            = @grade.coordinator_teacher.user.nombre_completo
           - else
-            Sin asignar
+            %span.nota-ayuda Sin asignar
 
     %p.nota-ayuda
       La nota siempre se guarda como número entero del 1 al 20, como manda el
@@ -98,11 +101,19 @@
       .card-academic-header
         %h2 Secciones
 
+      -# ⚠️ Cada sección con SU guía (MOR-150), que es lo que este listado no podía
+      -# mostrar cuando el guía colgaba del grado: era el mismo para todas.
+      -# Acá es donde el director ve de un vistazo cuál se quedó sin asignar.
       %ul.ficha-secciones
-        - @grade.sections.includes(:academic_period).each do |seccion|
+        - @grade.sections.includes(:academic_period, leader_teacher: :user).each do |seccion|
           %li.ficha-seccion
             = link_to seccion.name, section_path(seccion), class: "ficha-seccion-nombre"
             %span.ficha-seccion-periodo= seccion.academic_period.name
+            %span.ficha-seccion-periodo
+              - if seccion.leader_teacher
+                = "guía: #{seccion.leader_teacher.user.apellidos_y_nombres}"
+              - else
+                Sin profesor guía
 
   %p.ficha-volver
     = link_to "← Volver a los grados", grades_path

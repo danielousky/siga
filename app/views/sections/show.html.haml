@@ -21,6 +21,15 @@
     .detail-item
       %span.detail-label Capacidad
       %p.detail-value= "#{@enrollments.size} / #{@section.capacity} estudiantes"
+    -# Quién pasa lista de esta sección. Se muestra también cuando NO hay: sin
+    -# guía la asistencia solo la puede tomar la dirección, y eso hay que
+    -# enterarse mirando la sección, no descubriéndolo un lunes a las siete.
+    .detail-item
+      %span.detail-label Profesor guía
+      - if @section.leader_teacher
+        %p.detail-value= link_to @section.leader_teacher.user.apellidos_y_nombres, teacher_path(@section.leader_teacher)
+      - else
+        %p.detail-value.nota-ayuda Sin asignar
     - if @section.classroom.present?
       .detail-item
         %span.detail-label Aula

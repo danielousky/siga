@@ -160,16 +160,25 @@ class AsistenciasController < ApplicationController
     raise ActiveRecord::RecordNotFound if @seccion.nil?
   end
 
-  # El profesor guía de un grado toma la asistencia de sus secciones. La
-  # dirección puede tomarla de cualquiera: el día que el guía falta, alguien
-  # tiene que poder hacerlo.
+  # El profesor guía de una SECCIÓN toma su asistencia. La dirección puede
+  # tomarla de cualquiera: el día que el guía falta, alguien tiene que poder
+  # hacerlo.
+  #
+  # ⚠️ Acá estaba el costo real de haber puesto el guía en el grado (MOR-150).
+  # La consulta era:
+  #
+  #     Section.where(grade: Grade.where(leader_teacher_id: ...))
+  #
+  # o sea que el «guía de 1er Año» pasaba lista de A, B y C —de alumnos que no
+  # son suyos— y a los guías de B y C no les aparecía su propia sección. No era
+  # un nombre mal puesto: era la lista de asistencia equivocada.
   def secciones_a_cargo
     @secciones_a_cargo ||=
       if administrador?
         Section.includes(:grade, :academic_period).order("grades.name", :name).to_a
       else
         Section.includes(:grade, :academic_period)
-               .where(grade: Grade.where(leader_teacher_id: current_user.teacher&.id))
+               .where(leader_teacher_id: current_user.teacher&.id)
                .order("grades.name", :name).to_a
       end
   end

@@ -13,6 +13,16 @@
     = f.label :academic_period_id, "Período académico", class: "form-label"
     = f.select :academic_period_id, AcademicPeriod.all.map { |p| [p.name, p.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
+  -# El profesor guía (MOR-150). Va acá, en la SECCIÓN, y no en el grado: es
+  -# quien pasa lista de ESTOS alumnos y responde por ellos. «1er Año A» tiene su
+  -# guía y «1er Año B» el suyo.
+  .form-group
+    = f.label :leader_teacher_id, "Profesor guía", class: "form-label"
+    = f.select :leader_teacher_id, Teacher.includes(:user).order("users.last_name").map { |t| [t.user.apellidos_y_nombres, t.id] }, { include_blank: "Sin asignar" }, class: "form-select"
+    %p.nota-ayuda
+      Quien pasa lista de esta sección. Sin guía asignado, la asistencia solo la
+      puede tomar la dirección.
+
   .form-group
     = f.label :capacity, "Capacidad", class: "form-label"
     = f.number_field :capacity, class: "form-control", min: 1

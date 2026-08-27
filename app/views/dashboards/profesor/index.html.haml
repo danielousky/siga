@@ -5,8 +5,8 @@
       %h1 Panel del profesor
       .admin-info-badge
         = current_user.first_name
-        - if @led_grades.any?
-          %span.role-badge Director de grado
+        - if @led_sections.any?
+          %span.role-badge Profesor guía
 
   -# Lo primero: lo que le falta corregir, con el enlace a la planilla. El
   -# profesor entra a esto, no a mirar cuántas secciones tiene.
@@ -61,18 +61,22 @@
         %h3 Sin secciones asignadas
         %p Todavía no tienes secciones asignadas. Habla con el coordinador.
 
-  - if @led_grades.any?
+  - if @led_sections.any?
     .card-academic
       .card-academic-header
-        %h2= pluralizar(@led_grades.size, "Grado que lideras", "Grados que lideras")
+        %h2= pluralizar(@led_sections.size, "Sección que guías", "Secciones que guías")
+        -# El guía es quien pasa lista, así que el atajo va acá y no en el menú.
+        = link_to asistencias_path, class: "btn btn-secondary" do
+          = icono(:asistencia, tamano: 16)
+          %span Pasar lista
 
       %ul.ficha-secciones
-        - @led_grades.each do |grade|
+        - @led_sections.each do |seccion|
           %li.ficha-seccion
-            = link_to grade.name, grade_path(grade), class: "ficha-seccion-nombre"
-            -# `contar` y no interpolación a mano: `"sección" + "es"` da
-            -# "secciónes", con la tilde. Es lo que decía esta misma pantalla.
-            %span.ficha-seccion-periodo= contar(grade.sections.size, "sección", "secciones")
+            = link_to "#{seccion.grade.name} – #{seccion.name}", section_path(seccion), class: "ficha-seccion-nombre"
+            -# `contar` y no interpolación a mano: `"alumno" + "s"` está bien,
+            -# pero la misma pantalla ya se equivocó con "secciónes".
+            %span.ficha-seccion-periodo= contar(seccion.enrollments.size, "alumno", "alumnos")
 
   .stats-grid
     .stat-card

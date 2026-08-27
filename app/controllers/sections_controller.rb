@@ -8,7 +8,7 @@ class SectionsController < ApplicationController
   CAMPOS_DE_BUSQUEDA = %w[grades.name sections.name].freeze
 
   def index
-    scope = Section.includes(:grade, :academic_period).joins(:grade, :academic_period)
+    scope = Section.includes(:grade, :academic_period, leader_teacher: :user).joins(:grade, :academic_period)
     scope = scope.where(grade_id: params[:grade_id]) if params[:grade_id].present?
     scope = scope.where(academic_period_id: params[:academic_period_id]) if params[:academic_period_id].present?
     # El campo de texto se suma a los selectores, no los reemplaza: buscar «1er»
@@ -76,7 +76,7 @@ class SectionsController < ApplicationController
   end
 
   def section_params
-    params.require(:section).permit(:name, :grade_id, :academic_period_id, :capacity, :classroom)
+    params.require(:section).permit(:name, :grade_id, :academic_period_id, :capacity, :classroom, :leader_teacher_id)
   end
 
   def require_admin_access!

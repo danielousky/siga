@@ -15,8 +15,8 @@ class AsistenciaTest < ActionDispatch::IntegrationTest
 
     # La asistencia la toma el profesor GUÍA del grado, y el escenario no asigna
     # ninguno: se arma acá para dejar visible de qué depende el permiso.
-    con_el_colegio(@a.colegio) { @a.grado.update!(leader_teacher: @a.registro_de_profesor) }
-    con_el_colegio(@b.colegio) { @b.grado.update!(leader_teacher: @b.registro_de_profesor) }
+    con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: @a.registro_de_profesor) }
+    con_el_colegio(@b.colegio) { @b.seccion.update!(leader_teacher: @b.registro_de_profesor) }
   end
 
   # ══════════════════════════════════════════════════════════════════════════
@@ -167,8 +167,56 @@ class AsistenciaTest < ActionDispatch::IntegrationTest
     assert_redirected_to seccion_asistencia_path(@a.seccion, dia: Date.current)
   end
 
-  test "un profesor que no es guía de ningún grado no ve secciones" do
-    con_el_colegio(@a.colegio) { @a.grado.update!(leader_teacher: nil) }
+  # ⚠️ El test que faltaba, y por eso el error vivió meses (MOR-150).
+  #
+  # Con UNA sección por grado, «guía del grado» y «guía de la sección» se
+  # comportan igual: ningún test los distingue y el escenario de prueba tenía
+  # justamente una. La diferencia aparece cuando el grado tiene A y B con guías
+  # distintos —el caso normal de un colegio— y ahí el modelo viejo hacía dos
+  # cosas mal a la vez: le mostraba a un profesor alumnos que no son suyos, y le
+  # escondía al otro los propios.
+  test "cada guía ve su sección, no todas las del grado" do
+    seccion_b, profesor_b = con_el_colegio(@a.colegio) do
+      persona = User.create!(first_name: "Guía", last_name: "DeLaB",
+                             email: "guia.b@aislamiento.test", password: "123123",
+                             document: "V-98765432", document_type: :cedula_v)
+      registro = Teacher.create!(user: persona, school: @a.colegio)
+      seccion = Section.create!(grade: @a.grado, academic_period: @a.seccion.academic_period,
+                                name: "B", capacity: 30, leader_teacher: registro)
+      [ seccion, persona ]
+    end
+
+    sign_in profesor_b
+    get asistencias_path
+    assert_redirected_to seccion_asistencia_path(seccion_b, dia: Date.current),
+                         "el guía de B tiene que entrar a B, no a la primera del grado"
+
+    sign_out profesor_b
+    sign_in @a.profesor
+    get asistencias_path
+    assert_redirected_to seccion_asistencia_path(@a.seccion, dia: Date.current),
+                         "el guía de A ve las DOS secciones del grado: el guía volvió a " \
+                         "colgar del grado en vez de la sección"
+  end
+
+  # El coordinador del grado NO pasa lista: coordina a los guías, que es otra
+  # cosa. Es la mitad que quedaría suelta si alguien «arregla» esto volviendo a
+  # mirar el grado.
+  test "el coordinador de un grado no toma la asistencia de sus secciones" do
+    con_el_colegio(@a.colegio) do
+      @a.seccion.update!(leader_teacher: nil)
+      @a.grado.update!(coordinator_teacher: @a.registro_de_profesor)
+    end
+    sign_in @a.profesor
+
+    get asistencias_path
+
+    assert_response :success
+    assert_match(/Sin secciones a cargo/, response.body)
+  end
+
+  test "un profesor que no es guía de ninguna sección no ve secciones" do
+    con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: nil) }
     sign_in @a.profesor
 
     get asistencias_path

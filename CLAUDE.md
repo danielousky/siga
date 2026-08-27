@@ -74,6 +74,11 @@ Credenciales de los seeds (contraseña universal `123123`):
   código necesita.
   `Admin#role` es un enum: desarrollador, director, finanzas, coordinador, secretaria.
   Los helpers de autorización viven en `ApplicationController` (`can_manage_students?`, etc.).
+- **Profesor guía**: cuelga de la **sección** (`Section#leader_teacher`), no del grado
+  (`MOR-150`). «1er Año A» tiene su guía y «1er Año B» el suyo; es quien pasa lista de
+  ESOS alumnos. Del grado cuelga un `coordinator_teacher` **opcional**, que coordina a los
+  guías y NO toma asistencia. Los dos son opcionales: sin guía, la asistencia solo la toma
+  la dirección.
 - **Identidad de una persona**: `document` + `document_type` (los cuatro documentos que acepta
   el MPPE) y `cedula_escolar` aparte — no es "otro tipo de documento", es lo que se usa
   **mientras no hay** documento, y NO se borra cuando llega. Nombre partido en `first_name` /
@@ -119,7 +124,8 @@ El diagnóstico original, con lo que quedó de cada punto:
   del RLS: una política de PostgreSQL evalúa columnas de la fila, no asociaciones.
 - ~~`Enrollment` no valida que el colegio del alumno coincida con el de la sección~~ →
   **resuelto** (`MOR-89`), y en nueve modelos, no en tres: el issue listaba `Enrollment`,
-  `TeacherSection` y `Grade#leader_teacher`, pero cualquier modelo con dos FK a entidades con
+  `TeacherSection` y el guía del grado (hoy `Grade#coordinator_teacher`, ver abajo), pero
+  cualquier modelo con dos FK a entidades con
   colegio era candidato. Vive en el concern `ValidatesSameSchool`.
 
 **Las dos capas, implementadas** (`MOR-86` + `MOR-87`):

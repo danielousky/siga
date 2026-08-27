@@ -141,6 +141,7 @@ es:
     evaluation_moment: Momento de evaluación
     evaluation_activity: Actividad evaluativa
     leader_teacher: Profesor guía
+    coordinator_teacher: Coordinador del grado
     user: Usuario
     name: Nombre
     code: Código
@@ -162,3 +163,4 @@ es:
     evaluation_moment_id: Momento de evaluación
     evaluation_activity_id: Actividad evaluativa
     leader_teacher_id: Profesor guía
+    coordinator_teacher_id: Coordinador del grado
