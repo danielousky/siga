@@ -1,4 +1,21 @@
 class School < ApplicationRecord
+  # Qué niveles dicta este colegio, deducido de los grados que tiene cargados.
+  #
+  # ## Por qué no es una columna
+  #
+  # Sería un segundo lugar donde vive la misma verdad, y los dos se irían
+  # separando: el colegio agrega preescolar, crea sus tres niveles, y la columna
+  # sigue diciendo que no lo dicta. Los grados SON la respuesta.
+  #
+  # El único momento en que hace falta preguntarlo es el primer día, cuando
+  # todavía no hay grados — y ahí es una pregunta del asistente de arranque, no
+  # un campo que se guarda. Ver `SembrarGrados`.
+  def niveles
+    grades.distinct.pluck(:level).compact.map(&:to_sym)
+          .sort_by { |n| GradoOficial::NIVELES.index(n) || 99 }
+  end
+
+  def dicta?(nivel) = niveles.include?(nivel.to_sym)
   # El logotipo del colegio: su identidad, y tiene que aparecer en todos lados
   # —incluidos los documentos oficiales que la familia se lleva en la mano.
   #
@@ -85,7 +102,16 @@ class School < ApplicationRecord
 
     errors.add(campo, "no puede pesar más de 2 MB — #{que} no lo necesita, y la conexión de un colegio sí")
   end
+  # ⚠️ `school_type` NO alcanza para describir un colegio, y por eso ya casi no
+  # se usa (MOR-153).
+  #
+  # Es excluyente —o primaria o secundaria— y un colegio venezolano corriente
+  # dicta preescolar Y primaria Y bachillerato. Se conserva porque el MPPE lo
+  # pide en algunos formatos y porque hay filas cargadas con él.
+  #
+  # Lo que el colegio dicta de verdad se DEDUCE de sus grados: ver `#niveles`.
   enum :school_type, { primary: 0, secondary: 1 }
+
 
   has_many :departments, dependent: :restrict_with_error
   has_many :students, dependent: :restrict_with_error

@@ -1,7 +1,14 @@
 class Grade < ApplicationRecord
   include SchoolScoped
 
-  enum :level, { primaria: 0, secundaria: 1 }
+  # ⚠️ `preescolar` se agregó en MOR-153 y faltaba ENTERO: un colegio con
+  # maternal no se podía representar, y son la mitad de los colegios privados
+  # chicos de Venezuela.
+  #
+  # El valor 2 va al final a propósito aunque preescolar sea el primer nivel:
+  # los enteros ya están escritos en la base y renumerarlos movería el nivel de
+  # cada grado existente. El orden pedagógico lo da `orden`, no el enum.
+  enum :level, { primaria: 0, secundaria: 1, preescolar: 2 }
 
   # Con qué escala se califica este grado (MOR-129).
   #
@@ -35,6 +42,19 @@ class Grade < ApplicationRecord
   # El coordinador tiene que ser del mismo colegio que el grado.
   validates_same_school :coordinator_teacher
 
+  # ⚠️ El nivel y el orden NO se capturan: se DEDUCEN del nombre (MOR-153).
+  #
+  # «4to Grado» es primaria y «4to Año» es secundaria — la palabra distingue el
+  # nivel y no hay ambigüedad posible. Un campo que no se llena no se puede
+  # llenar mal, y esto venía llenándose mal: el importador ponía el nivel a ojo
+  # y una planilla de primaria terminaba con grados marcados como secundaria,
+  # lo que cambia la escala de calificación del boletín entero.
+  #
+  # Si el nombre NO está en el catálogo, se respeta lo que venga: hay grados
+  # cargados antes de esto y rechazarlos rompería colegios en producción por un
+  # nombre mal escrito. Ver `#oficial?`.
+  before_validation :deducir_nivel_y_orden
+
   has_many :grade_subjects, dependent: :destroy
   has_many :subjects, through: :grade_subjects
   has_many :sections, dependent: :restrict_with_error
@@ -42,6 +62,16 @@ class Grade < ApplicationRecord
   # El nombre es único dentro del colegio, no en toda la plataforma: dos colegios
   # tienen cada uno su "1er Año" sin saber que el otro existe.
   validates :name, presence: true, uniqueness: { scope: :school_id }
+
+  # De 1er Nivel a 5to Año, en el orden en que un niño los cursa. Los que no
+  # están en el catálogo caen al final: es mejor que caer en medio de los
+  # oficiales, donde un nombre inventado se disfraza de grado real.
+  scope :en_orden, -> { order(Arel.sql("orden IS NULL, orden"), :name) }
+
+  # ¿Es uno de los catorce que fija el reglamento?
+  def oficial? = GradoOficial.para(name).present?
+
+  def entrada_oficial = GradoOficial.para(name)
   validates :level, presence: true
   validate  :secundaria_se_califica_por_numero
 
@@ -60,7 +90,23 @@ class Grade < ApplicationRecord
   # cuando quiere ir contra el nivel.
   #
   # Ahora se recuerda si ALGUIEN la asignó, que es la pregunta real.
-  after_initialize :escala_por_defecto_del_nivel, if: :new_record?
+  # ⚠️ La escala por defecto se calcula DOS veces, y las dos hacen falta.
+  #
+  # **Al construir**, porque `/grades/new` dibuja el desplegable de escala a
+  # partir de `Grade.new(level: :primaria)`: si acá no está puesta, el
+  # formulario le propone al director la escala equivocada y él la confirma sin
+  # mirar.
+  #
+  # **Y antes de validar**, porque `Grade.new(name: "1er Año")` —el camino que
+  # usa `SembrarGrados`— llega con `level` en nil: la escala saldría literal, la
+  # deducción marcaría el grado como secundaria, y el modelo se pelearía con su
+  # propia validación. Así, NINGÚN grado de bachillerato se podía crear por el
+  # nombre.
+  #
+  # La segunda pasada solo actúa si nadie declaró la escala a mano, así que un
+  # colegio de primaria que califica por número no la pierde.
+  after_initialize  :escala_por_defecto_del_nivel, if: :new_record?
+  before_validation :escala_por_defecto_del_nivel, if: :new_record?
 
   def escala=(valor)
     @escala_declarada = true
@@ -78,10 +124,28 @@ class Grade < ApplicationRecord
     errors.add(:escala, "en secundaria siempre es numérica: la literal es de primaria")
   end
 
+  # El nivel y el orden salen del catálogo, no del formulario (MOR-153).
+  #
+  # Si el nombre no está en el catálogo se respeta lo que venga: hay grados
+  # cargados antes de esto, y rechazarlos rompería colegios en producción por un
+  # nombre escrito distinto.
+  def deducir_nivel_y_orden
+    entrada = GradoOficial.para(name)
+    return if entrada.nil?
+
+    self.level = entrada.nivel
+    self.orden = entrada.orden
+  end
+
   def escala_por_defecto_del_nivel
     return if @escala_declarada
 
-    self.escala = primaria? ? :literal : :numerica
+    # ⚠️ Preescolar va con primaria, no con secundaria. En preescolar la
+    # calificación es CUALITATIVA por reglamento; `literal` es lo más cerca que
+    # llega el modelo hoy. Un nivel de maternal con notas del 1 al 20 sería
+    # indefendible delante de una madre, y es lo que salía por omisión antes de
+    # MOR-153 porque el enum solo conocía dos niveles.
+    self.escala = secundaria? ? :numerica : :literal
     @escala_declarada = false
   end
 end

@@ -648,6 +648,7 @@ CREATE TABLE public.grades (
     school_id bigint NOT NULL,
     escala integer DEFAULT 0 NOT NULL,
     coordinator_teacher_id bigint,
+    orden integer,
     CONSTRAINT grades_escala_valida CHECK ((escala = ANY (ARRAY[0, 1])))
 );
 
@@ -2644,6 +2645,13 @@ CREATE UNIQUE INDEX index_grades_on_school_id_and_name ON public.grades USING bt
 
 
 --
+-- Name: index_grades_on_school_id_and_orden; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_grades_on_school_id_and_orden ON public.grades USING btree (school_id, orden);
+
+
+--
 -- Name: index_importaciones_on_academic_period_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4028,6 +4036,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260827200000'),
 ('20260827120000'),
 ('20260826040000'),
 ('20260826020000'),

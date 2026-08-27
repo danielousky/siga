@@ -220,7 +220,10 @@ class ReportCardData
                                 .index_by { |mg| [mg.subject_id, mg.evaluation_moment_id] }
     libros = FinalGradeBook.where(enrollment_id: @enrollment.id).index_by(&:subject_id)
 
-    @seccion.grade.subjects.order(:name).map do |materia|
+    # ⚠️ Del BOLETÍN, no del grado (MOR-152). `grade.subjects` es el pensum de
+    # hoy y no distingue períodos: agregar una materia le aparecía a un alumno de
+    # 2021 que nunca la vio. Ver `Enrollment#materias_del_boletin`.
+    @enrollment.materias_del_boletin.map do |materia|
       fila = { "materia" => materia.name }
 
       if @lapso
