@@ -138,6 +138,27 @@ module MenuHelper
     ]
   end
 
+  # ── La puesta en marcha ───────────────────────────────────────────────────
+
+  # A dónde lleva cada paso del arranque.
+  #
+  # Va acá, con el resto de la navegación, y como un `case` explícito en vez de
+  # `send("#{paso.ruta}_path")`: una clave mal escrita tiene que fallar al
+  # renderizar y no producir un enlace a ninguna parte.
+  def ruta_del_paso(paso)
+    case paso.ruta
+    when :niveles_del_colegio then niveles_del_colegio_path
+    when :colegio             then colegio_path
+    when :academic_periods    then academic_periods_path
+    when :subjects            then subjects_path
+    when :sections            then sections_path
+    when :teachers            then teachers_path
+    when :importaciones       then importaciones_path
+    when :departments         then departments_path
+    else raise ArgumentError, "paso sin ruta conocida: #{paso.ruta.inspect}"
+    end
+  end
+
   # ── «Estás acá» ───────────────────────────────────────────────────────────
 
   # Por convención: el enlace está activo si su ruta cae en el controlador donde

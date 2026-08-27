@@ -1,0 +1,70 @@
+-# Qué niveles dicta el colegio (MOR-153).
+-#
+-# Tres casillas que reemplazan catorce formularios. Ver `NivelesController`.
+- content_for :titulo, "Niveles del colegio"
+
+.card-academic
+  .card-academic-header
+    %h1 Qué niveles dicta el colegio
+
+  %p.nota-ayuda
+    Los grados de Venezuela los fija el ministerio: son catorce y siempre los
+    mismos. Marque los niveles que dicta el colegio y quedan creados de una vez,
+    con sus nombres oficiales.
+
+  = form_with url: niveles_del_colegio_path, method: :patch do
+    .niveles-opciones
+      - GradoOficial::NIVELES.each do |nivel|
+        - ya_dicta = @niveles.include?(nivel)
+        - grados = GradoOficial.de_nivel(nivel)
+        %label.nivel-opcion{class: ("nivel-opcion--puesto" if ya_dicta)}
+          = check_box_tag "niveles[]", nivel, ya_dicta, id: "nivel_#{nivel}"
+          .nivel-cuerpo
+            %span.nivel-nombre= GradoOficial::ETIQUETAS[nivel]
+            %span.nivel-detalle= GradoOficial::DESCRIPCIONES[nivel]
+            %span.nivel-grados= grados.map(&:nombre).to_sentence(last_word_connector: " y ")
+            - if ya_dicta
+              %span.nivel-puesto
+                = icono(:ok, tamano: 13)
+                Ya cargado
+
+    -# ⚠️ La escala de primaria se pregunta ACÁ y no después.
+    -#
+    -# Crear seis grados de primaria de un golpe elige, sin decirlo, que todos
+    -# sus boletines salgan por literales. El colegio que califica del 1 al 20 se
+    -# enteraría en diciembre, con los boletines ya impresos.
+    - unless @niveles.include?(:primaria)
+      .form-group.escala-de-primaria
+        = label_tag :escala_de_primaria, "Si dicta primaria, ¿cómo califica?", class: "form-label"
+        .escala-opciones
+          %label.escala-opcion
+            = radio_button_tag :escala_de_primaria, "literal", true
+            %span
+              %strong Por letras
+              %span.nota-ayuda A, B, C, D, E — lo más común en primaria
+          %label.escala-opcion
+            = radio_button_tag :escala_de_primaria, "numerica", false
+            %span
+              %strong Por números
+              %span.nota-ayuda Del 1 al 20, igual que bachillerato
+        %p.nota-ayuda
+          Se puede cambiar grado por grado después. Bachillerato no se pregunta:
+          por reglamento siempre es del 1 al 20.
+
+    .form-acciones
+      = submit_tag "Crear los grados", class: "btn btn-primary"
+      = link_to dashboards_administrador_path, class: "btn btn-secondary" do
+        = icono(:volver, tamano: 16)
+        %span Volver al panel
+
+  - if @grados.any?
+    %h2.niveles-titulo-grados Los grados que ya tiene
+    %ul.niveles-lista
+      - @grados.each do |grado|
+        %li.niveles-item
+          = link_to grado.name, grade_path(grado), class: "niveles-item-nombre"
+          %span.niveles-item-nivel= GradoOficial::ETIQUETAS[grado.level.to_sym]
+          - unless grado.oficial?
+            %span.niveles-item-aviso
+              = icono(:alerta, tamano: 13)
+              Nombre fuera del catálogo oficial

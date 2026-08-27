@@ -49,10 +49,4 @@ class ColegioController < ApplicationController
   def colegio_params
     params.require(:school).permit(:name, :location, :logo, :firma, :sello)
   end
-
-  def require_direccion!
-    return if can_manage_academic_config?
-
-    redirect_to dashboard_path_for_user, alert: "La identidad del colegio la administra la dirección."
-  end
 end

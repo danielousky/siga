@@ -4715,3 +4715,236 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   outline-offset: -2px;
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   QUÉ NIVELES DICTA EL COLEGIO (MOR-153)
+
+   Tres casillas que reemplazan catorce formularios. Se dibujan grandes a
+   propósito: es la decisión más importante de la primera hora, y de ella salen
+   los nombres de los grados, su orden y la escala de sus boletines.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.niveles-opciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.nivel-opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.nivel-opcion:hover { border-color: var(--brand-primary); }
+
+/* ⚠️ `:has()` y no una clase que ponga JavaScript: la casilla marcada ES el
+   estado, y duplicarlo en una clase deja dos verdades que se desincronizan. */
+.nivel-opcion:has(input:checked) {
+  border-color: var(--brand-primary);
+  background: var(--brand-subtle);
+}
+
+.nivel-opcion:has(input:focus-visible) {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.nivel-opcion input { margin-top: 3px; flex: 0 0 auto; }
+
+.nivel-cuerpo { display: flex; flex-direction: column; gap: var(--space-micro); min-width: 0; }
+
+.nivel-nombre { font-weight: 600; font-size: 15px; color: var(--text-primary); }
+.nivel-detalle { font-size: 13px; color: var(--text-secondary); }
+
+/* Los nombres de los grados se muestran ANTES de crear nada: un director tiene
+   que poder ver qué va a aparecer, no descubrirlo después. */
+.nivel-grados {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+
+.nivel-puesto {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-micro);
+  font-size: 12px;
+  color: var(--success-text);
+}
+
+/* ---- La escala de primaria ---- */
+
+.escala-de-primaria {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.escala-opciones { display: flex; flex-wrap: wrap; gap: var(--space-md); }
+
+.escala-opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  cursor: pointer;
+}
+
+.escala-opcion > span { display: flex; flex-direction: column; }
+.escala-opcion .nota-ayuda { margin: 0; }
+
+/* ---- Los grados que ya tiene ---- */
+
+.niveles-titulo-grados {
+  font-size: 15px;
+  margin: var(--space-xl) 0 var(--space-sm);
+  color: var(--text-secondary);
+}
+
+.niveles-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+
+.niveles-item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--surface-input);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+
+.niveles-item-nombre { font-weight: 500; }
+.niveles-item-nivel { font-size: 12px; color: var(--text-tertiary); }
+
+/* Un grado con nombre fuera del catálogo no se rechaza —hay colegios con datos
+   cargados antes de esto— pero sí se señala: es lo que el importador no va a
+   poder emparejar contra una planilla. */
+.niveles-item-aviso {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-micro);
+  font-size: 12px;
+  color: var(--danger-text);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL MAPA DE LA PUESTA EN MARCHA (MOR-154)
+
+   No es un wizard: es una lista de pasos en el panel, donde cada uno enlaza a
+   la pantalla que ya existe. Ver `_puesta_en_marcha.html.haml`.
+
+   ⚠️ El color acá lo lleva el ESTADO, que es un dato —«esto ya está»— y nunca
+   el botón. Un paso listo se tiñe; su enlace «Cambiar» no.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.puesta-en-marcha { margin-bottom: var(--space-xl); }
+
+.pasos {
+  list-style: none;
+  margin: var(--space-lg) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.paso {
+  display: grid;
+  grid-template-columns: 2rem 1fr auto;
+  gap: var(--space-sm) var(--space-md);
+  padding: var(--space-md) 0;
+  border-top: 1px solid var(--border-subtle);
+  align-items: start;
+}
+
+.paso:first-child { border-top: none; }
+
+/* La marca: número mientras falta, visto cuando está. */
+.paso-marca {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.6rem;
+  color: var(--text-tertiary);
+}
+
+.paso-numero {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.paso--listo .paso-marca { color: var(--success-text); }
+
+.paso-cuerpo { display: flex; flex-direction: column; gap: var(--space-xs); min-width: 0; }
+
+.paso-titulo {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+/* Un paso terminado se colapsa a una línea con su resultado. NO se atenúa hasta
+   volverse ilegible: sigue siendo información que alguien va a querer leer para
+   verificar qué quedó configurado. */
+.paso--listo .paso-titulo { font-weight: 500; color: var(--text-secondary); }
+
+.paso-resultado {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.paso-explicacion {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  max-width: 62ch;
+}
+
+/* El bloqueo se DICE, con el nombre de lo que falta, y el botón de al lado
+   lleva ahí. Nunca un control apagado. */
+.paso-bloqueo {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.paso-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-micro);
+}
+
+.paso-acciones form { margin: 0; }
+
+.paso-rehacer { display: flex; align-items: center; }
+
+.paso-enlace-tenue {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  padding: var(--space-micro) var(--space-xs);
+  border-radius: var(--radius-sm);
+}
+
+.paso-enlace-tenue:hover { color: var(--brand-primary); text-decoration: underline; }
+
+.paso--omitido .paso-titulo,
+.paso--omitido .paso-resultado { color: var(--text-tertiary); }
+
+@media (max-width: 640px) {
+  /* En el teléfono el enlace de «Cambiar» pasa abajo: tres columnas en 375px
+     dejan el título en dos letras por línea. */
+  .paso { grid-template-columns: 2rem 1fr; }
+  .paso-rehacer { grid-column: 2; }
+}

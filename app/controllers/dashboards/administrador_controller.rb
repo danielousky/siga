@@ -26,6 +26,11 @@ class Dashboards::AdministradorController < ApplicationController
     @total_sections = Section.count
     @total_admins   = Admin.count
 
+    # ⚠️ El mapa de arranque solo mientras falte algo obligatorio: un colegio ya
+    # configurado no lo ve nunca, y no hay que apagarlo a mano.
+    @pasos = PasosDeArranque.para(Current.school)
+    @en_marcha = @pasos.any? { |p| !p.listo? && !p.opcional? }
+
     @pendientes = pendientes_de_atencion
 
     if show_recent_activity?

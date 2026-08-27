@@ -16,6 +16,22 @@ class School < ApplicationRecord
   end
 
   def dicta?(nivel) = niveles.include?(nivel.to_sym)
+
+  # Los pasos de la puesta en marcha que este colegio decidió no hacer.
+  #
+  # ⚠️ Es lo ÚNICO que el arranque guarda. Todo lo demás se deduce de los datos
+  # —¿hay grados?, ¿hay período?— porque una bandera se queda vieja el día que
+  # nadie se acuerda de moverla. «No aplica» es la excepción honesta: un colegio
+  # sin departamentos se ve idéntico a uno que todavía no los cargó.
+  def omitio_paso?(clave) = pasos_omitidos.include?(clave.to_s)
+
+  def omitir_paso!(clave)
+    update!(pasos_omitidos: (pasos_omitidos | [ clave.to_s ]))
+  end
+
+  def retomar_paso!(clave)
+    update!(pasos_omitidos: (pasos_omitidos - [ clave.to_s ]))
+  end
   # El logotipo del colegio: su identidad, y tiene que aparecer en todos lados
   # —incluidos los documentos oficiales que la familia se lleva en la mano.
   #

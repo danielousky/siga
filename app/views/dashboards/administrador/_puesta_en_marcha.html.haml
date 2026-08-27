@@ -1,0 +1,88 @@
+-# El mapa de la puesta en marcha (MOR-154).
+-#
+-# ## ⚠️ Esto NO es un wizard, y la diferencia es lo que lo hace barato
+-#
+-# Un asistente modal necesitaría SU PROPIA versión de siete pantallas —otro
+-# formulario de materias, otro de secciones, otro de años escolares— que se
+-# desincronizan del CRUD real en tres meses. Es exactamente el problema que
+-# `MenuHelper` acaba de resolver para el menú: cuarenta copias son cuarenta
+-# lugares donde arreglar la misma cosa.
+-#
+-# Acá el mapa vive en el panel y cada paso ENLAZA a la pantalla que ya existe.
+-# Cero pantallas duplicadas.
+-#
+-# ## Y el progreso no se guarda: se deduce
+-#
+-# No hay una bandera. `PasosDeArranque` pregunta contra los datos, así que da
+-# igual por qué puerta entró la persona —el importador, el menú, un formulario
+-# a mano— y borrar la última sección devuelve el paso a pendiente, que es lo
+-# correcto. Ver el comentario del servicio.
+- listos = @pasos.count(&:listo?)
+- obligatorios = @pasos.reject(&:opcional?)
+
+.card-academic.puesta-en-marcha
+  .card-academic-header
+    %h2 Puesta en marcha
+    .admin-info-badge= "#{listos} de #{@pasos.size} listos"
+
+  %p.nota-ayuda
+    Estos son los datos que SIGA necesita para que el colegio funcione. Puede
+    hacerlos en cualquier orden y dejarlos a medias: esta lista mira lo que hay
+    cargado, así que se actualiza sola.
+
+  -# `<ol>` de verdad y no divs: un lector de pantalla tiene que poder decir
+  -# «3 de 7» sin que se lo escribamos a mano.
+  %ol.pasos
+    - @pasos.each_with_index do |paso, i|
+      - estado = paso.estado
+      %li.paso{class: "paso--#{estado}", "aria-current": ("step" if estado == :pendiente)}
+        .paso-marca
+          - case estado
+          - when :listo
+            = icono(:ok, tamano: 18, titulo: "Listo")
+          - when :bloqueado, :omitido
+            = icono(:pendiente, tamano: 18, titulo: PasosDeArranque::ETIQUETAS_DE_ESTADO[estado])
+          - else
+            %span.paso-numero= i + 1
+
+        .paso-cuerpo
+          %h3.paso-titulo= paso.titulo
+
+          - if paso.listo?
+            -# Listo se colapsa a una línea con SU RESULTADO. El resultado es un
+            -# dato —«Bachillerato · 5 grados»— y por eso puede llevar color; el
+            -# enlace de al lado no.
+            %p.paso-resultado= paso.resultado
+          - elsif estado == :omitido
+            %p.paso-resultado.nota-ayuda Este colegio no lo usa.
+          - else
+            %p.paso-explicacion= paso.explicacion
+
+            - if paso.bloqueado?
+              -# ⚠️ El paso bloqueado NO lleva su botón apagado.
+              -#
+              -# Un control deshabilitado es una pregunta sin respuesta, y quien
+              -# navega con teclado ni siquiera lo puede enfocar para averiguar
+              -# por qué. Lleva OTRO botón, que va a lo que lo desbloquea.
+              - falta = @pasos.find { |p| p.clave == paso.necesita }
+              %p.paso-bloqueo
+                Antes hace falta
+                %strong= falta.titulo.downcase
+              = link_to ruta_del_paso(falta), class: "btn btn-secondary btn-sm" do
+                = icono(falta.icono, tamano: 15)
+                %span= falta.verbo
+            - else
+              .paso-acciones
+                = link_to ruta_del_paso(paso), class: "btn btn-primary btn-sm" do
+                  = icono(paso.icono, tamano: 15)
+                  %span= paso.verbo
+                - if paso.opcional?
+                  = button_to "Este colegio no lo usa", omitir_paso_path(paso.clave),
+                              method: :post, class: "btn btn-secondary btn-sm"
+
+        - if paso.listo? || estado == :omitido
+          .paso-rehacer
+            = link_to (estado == :omitido ? "Retomar" : "Cambiar"),
+                      (estado == :omitido ? retomar_paso_path(paso.clave) : ruta_del_paso(paso)),
+                      class: "paso-enlace-tenue",
+                      data: (estado == :omitido ? { turbo_method: :post } : {})

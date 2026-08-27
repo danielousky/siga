@@ -218,6 +218,16 @@ class ApplicationController < ActionController::Base
     administrador? && %w[desarrollador director coordinador].include?(rol_de_admin)
   end
 
+  # La estructura del colegio —su identidad, sus niveles, sus grados— la
+  # administra la dirección. Vive acá y no en un controller porque lo necesitan
+  # dos, y una copia privada en cada uno es una copia que se despareja.
+  def require_direccion!
+    return if can_manage_academic_config?
+
+    redirect_to dashboard_path_for_user,
+                alert: "Esta parte del colegio la administra la dirección."
+  end
+
   def can_manage_academic_config?
     administrador? && %w[desarrollador director].include?(rol_de_admin)
   end

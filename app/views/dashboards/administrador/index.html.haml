@@ -7,6 +7,12 @@
 -# comercial de SIGA—; y el enlace del menú delataba que la sección existía.
 -# **Tapar la puerta no alcanza si la pared tiene ventana.**
 .dashboard-administrador
+  -# ⚠️ Mientras el colegio esté arrancando, el mapa manda: lo demás son ceros y
+  -# un panel de ceros no le dice a nadie qué hacer. Cuando lo obligatorio está
+  -# listo, el mapa desaparece solo y el panel vuelve a ser lo de siempre.
+  - if @en_marcha
+    = render "puesta_en_marcha"
+
   -# Primero lo accionable, y solo si existe. Un panel que siempre dice lo mismo
   -# se deja de leer, y el día que dice otra cosa tampoco se lee.
   - if @pendientes.any?

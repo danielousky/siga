@@ -91,6 +91,17 @@ Rails.application.routes.draw do
   # Constancias de estudio. NO se congelan como el boletín: certifican la
   # situación de hoy, no las calificaciones de un lapso. Ver el controller.
   resources :constancias, only: [:index, :create]
+  # Qué niveles dicta el colegio (MOR-153). Una pantalla y no un `resources`
+  # porque no se crea ni se borra nada: se declara qué dicta y de ahí salen los
+  # grados oficiales.
+  # Los pasos opcionales del arranque que un colegio decide no hacer. Es lo
+  # ÚNICO que la puesta en marcha guarda: todo lo demás se deduce de los datos.
+  post "arranque/:clave/omitir", to: "arranque#omitir",  as: :omitir_paso
+  post "arranque/:clave/retomar", to: "arranque#retomar", as: :retomar_paso
+
+  get   "niveles", to: "niveles#edit",   as: :niveles_del_colegio
+  patch "niveles", to: "niveles#update"
+
   get "verificar(/:code)", to: "verificaciones#show", as: :verificar
 
   # El portal del representante (MOR-110). Todo GET: es estrictamente de
