@@ -1,4 +1,64 @@
-# 🔖 Punto de retome — actualizado 26 de agosto de 2026 (tarde)
+# 🔖 Punto de retome — actualizado 27 de agosto de 2026 (noche)
+
+## Sesión del 27 de agosto — lo que quedó desplegado
+
+Todo en `main`, en producción, con `bin/ci` en verde (865 tests). Ocho commits.
+
+**Rediseño de la sesión del colegio (`MOR-149`), tandas 1 y 2 — aprobadas por Daniel.**
+El menú dejó de ser cuatro plantillas con el mismo bloque copiado 40 veces: ahora se
+DECLARA como datos en `MenuHelper` y «estás acá» se deduce de la ruta. Agrupado por
+*qué es la cosa* —Panel · Usuarios · Académico · Día a día · Reportes · Configuración—,
+plegable con memoria en cookie. En el teléfono es un **navbar**: cinco chips y cajas
+desplegables, sin scroll horizontal. Buscador global de ⌘K arreglado (era un
+`<turbo-frame>` que se comía el Enter).
+
+**El profesor guía es de la SECCIÓN (`MOR-150`).** No era un nombre mal puesto: la
+asistencia se filtraba por el grado, así que el guía de «1er Año» pasaba lista de A, B
+y C —alumnos que no son suyos— y los guías de B y C no veían su sección.
+`grades.leader_teacher_id` → `coordinator_teacher_id`.
+
+**Rótulos desde `es.yml` (`MOR-151`).** 55 etiquetas y 47 encabezados centralizados.
+Destapó que `User` no estaba traducido: los errores decían **«First name no puede estar
+en blanco»**. Y el término del colegio es **ALUMNO**, no estudiante.
+
+**Los grados los fija la ley (`MOR-153`).** `GradoOficial` con los 14 grados de
+Venezuela. **El nivel se DEDUCE del nombre** —«4to Grado» es primaria, «4to Año» es
+secundaria—. Preescolar faltaba entero. `School#niveles` se deriva de los grados: cero
+columnas nuevas.
+
+**Las materias son del período (`MOR-152`).** Sin agregar columna: se derivan de quién
+dicta qué en esa sección. ⚠️ Es una UNIÓN con las materias que tienen nota, porque el
+importador de historial no crea `teacher_sections` y si no, diez años de boletines
+salen en blanco.
+
+**El panel es el mapa de la puesta en marcha (`MOR-154`).** No es un wizard: cada paso
+enlaza a la pantalla que ya existe. **El progreso no se guarda, se deduce.** `/niveles`
+son tres casillas en vez de catorce formularios. Franja de recorrido, estados vacíos
+con su precondición.
+
+**Quién no cargó notas (`MOR-155`)** — el único pendiente del panel con fecha de
+vencimiento. El cálculo se compartió con el panel del profesor.
+
+**El plan Inicial es gratis (`MOR-156`).** Límite **por función**, no por registros ni
+por tiempo: cargar es libre, calificar / pasar lista / emitir se activan con el plan.
+
+### Lo que sigue, en el orden que recomendó el PM
+
+1. **Abrir el año escolar (clonar el anterior).** El PM recomienda **esperar a
+   enero-febrero de 2027**, con dos o tres colegios adentro a quienes mirar: hoy se
+   moldearía contra un agosto imaginado.
+2. **Inscripción como etapa** (el representante ratifica, administración confirma).
+   Depende de `MOR-145` —enterarse de un rebote— antes de mandarle correo a 360 familias.
+3. **`MOR-146`: producción corre con datos de demo.** Sigue siendo lo más urgente.
+4. Tanda 3 del rediseño: tarjetas de grado con KPIs y pestañas en el detalle.
+5. La **Educación Media Técnica son SEIS años** y el catálogo cierra en cinco. Decidir
+   antes de que un colegio técnico lo descubra.
+
+**Análisis del flujo del director:** https://claude.ai/code/artifact/e17d038e-5882-4622-ac1b-0ae6bebd4a82
+
+---
+
+## Sesiones anteriores
 
 > Sección volátil: es el estado de avance, no guía permanente. Actualizarla al cerrar cada sesión.
 

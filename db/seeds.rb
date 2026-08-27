@@ -283,29 +283,42 @@ gbol = {}
 end
 puts "   ✓ 5 grados Bolívar (#{gbol[:g1].grade_subjects.count} materias en 1ro; #{gbol[:g4].grade_subjects.count} en 4to)"
 
-# --- ANDRÉS BELLO — PRIMARIA ---
-# Grados, no años: en Venezuela primaria va de 1er a 6to GRADO, y media general
-# de 1er a 5to AÑO. La palabra distingue el nivel y un director lo nota.
+# --- ANDRÉS BELLO — PREESCOLAR Y PRIMARIA COMPLETAS ---
 #
-# Al ser `level: :primaria`, cada grado nace con `escala: :literal` (MOR-129):
-# sus boletines dicen "A (19)" donde los de Bolívar dicen "19".
-gbel = {}
-[
-  { key: :g1, name: "4to Grado", level: :primaria,
-    subjects: [b[:mat], b[:len], b[:sos], b[:bio], b[:ing], b[:art], b[:edf]] },
-  { key: :g2, name: "5to Grado", level: :primaria,
-    subjects: [b[:mat], b[:len], b[:sos], b[:bio], b[:ing], b[:art], b[:edf]] },
-  { key: :g3, name: "6to Grado", level: :primaria,
-    subjects: [b[:mat], b[:len], b[:sos], b[:fis], b[:ing], b[:art], b[:edf]] }
-].each do |g|
-  grade = Grade.find_or_create_by!(name: g[:name], school: school_bello) do |gr|
-    gr.level  = g[:level]
-    gr.escala = :literal
-  end
-  g[:subjects].each { |subj| GradeSubject.find_or_create_by!(grade: grade, subject: subj) }
-  gbel[g[:key]] = grade
+# ⚠️ Antes tenía TRES grados: 4to, 5to y 6to. Daniel lo señaló como raro y tiene
+# razón — «o dictas primaria completa o secundaria completa, pero no parcial».
+# Un colegio que empieza en 4to Grado no existe, y una demo con datos imposibles
+# le enseña al que la mira que el sistema no sabe de colegios.
+#
+# Ahora se siembran con `SembrarGrados` desde el catálogo oficial (MOR-153), que
+# es además lo que hace un director de verdad en su primera hora: marca los
+# niveles y los grados nacen con su nombre, su nivel y su orden.
+#
+# Bello dicta preescolar Y primaria, que es el caso que `school_type` no podía
+# representar por ser excluyente.
+Current.school = school_bello
+SembrarGrados.para(school_bello, niveles: [ :preescolar, :primaria ])
+
+MATERIAS_DE_PRIMARIA = [ b[:mat], b[:len], b[:sos], b[:bio], b[:ing], b[:art], b[:edf] ].freeze
+# Preescolar no lleva el pensum de primaria: a esa edad son ámbitos de
+# aprendizaje, no materias. Se le cargan las tres que sí tienen sentido.
+MATERIAS_DE_PREESCOLAR = [ b[:len], b[:art], b[:edf] ].freeze
+
+school_bello.grades.en_orden.each do |grade|
+  materias = grade.preescolar? ? MATERIAS_DE_PREESCOLAR : MATERIAS_DE_PRIMARIA
+  materias.each { |subj| GradeSubject.find_or_create_by!(grade: grade, subject: subj) }
 end
-puts "   ✓ 3 grados Bello · PRIMARIA, escala literal A–E (#{gbel[:g1].grade_subjects.count} materias por grado)"
+
+# ⚠️ `gbel` mapea SOLO los tres grados que después reciben secciones y alumnos.
+# Meter los nueve acá dejaba claves duplicadas —g1 y g7 apuntando al mismo 4to
+# Grado— y el bucle de secciones creaba dos veces la misma con dos nombres.
+gbel = {
+  g1: school_bello.grades.find_by!(name: "4to Grado"),
+  g2: school_bello.grades.find_by!(name: "5to Grado"),
+  g3: school_bello.grades.find_by!(name: "6to Grado")
+}
+
+puts "   ✓ #{school_bello.grades.count} grados Bello · #{school_bello.niveles.map { |n| GradoOficial::ETIQUETAS[n] }.join(' y ')}, escala literal A–E"
 
 # =============================================================================
 # ADMIN - Mi usuario
