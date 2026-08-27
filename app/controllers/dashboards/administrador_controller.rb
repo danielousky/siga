@@ -3,7 +3,7 @@
 # ## Qué contestaba antes
 #
 # Cuatro conteos que no cambian de un día para otro, **seis tarjetas que eran
-# una segunda copia del menú lateral** —Estudiantes, Profesores, Secciones,
+# una segunda copia del menú lateral** —Alumnos, Profesores, Secciones,
 # Períodos, Materias, Departamentos, todas ya en el sidebar, con un emoji cada
 # una— y las últimas inscripciones.
 #

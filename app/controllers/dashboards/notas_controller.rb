@@ -1,7 +1,7 @@
 # Las notas del alumno, como las ve el alumno.
 #
 # Es la superficie más visitada del producto y hasta ahora estaba vacía: cada
-# estudiante es un usuario que entra a mirar. Y es lo que le hace visible a la
+# alumno es un usuario que entra a mirar. Y es lo que le hace visible a la
 # familia que el colegio está pagando algo — el director firma el contrato, pero
 # quien renueva es un colegio donde las familias usan el sistema.
 #
@@ -126,6 +126,6 @@ class Dashboards::NotasController < ApplicationController
   def require_estudiante!
     return if estudiante?
 
-    redirect_to dashboard_path_for_user, alert: "Esta área es solo para estudiantes."
+    redirect_to dashboard_path_for_user, alert: "Esta área es solo para alumnos."
   end
 end

@@ -2,7 +2,7 @@
 #
 # `MOR-135` lo dejó escrito: el profesor *"entra a CARGAR NOTAS. Semanal, con
 # apuro, desde el teléfono."* El panel abría con cuatro conteos —secciones
-# asignadas, estudiantes en total, materias distintas, secciones que guía— que no
+# asignadas, alumnos en total, materias distintas, secciones que guía— que no
 # le sirven para eso ni cambian de una semana a otra.
 #
 # Ahora lo primero es **lo que le falta corregir**, con el enlace directo a la

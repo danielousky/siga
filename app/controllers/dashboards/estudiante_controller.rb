@@ -45,6 +45,6 @@ class Dashboards::EstudianteController < ApplicationController
   def require_estudiante!
     return if estudiante?
 
-    redirect_to root_path, alert: "Acceso no autorizado. Esta área es solo para estudiantes."
+    redirect_to root_path, alert: "Acceso no autorizado. Esta área es solo para alumnos."
   end
 end

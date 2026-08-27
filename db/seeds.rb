@@ -515,7 +515,7 @@ puts "   ✓ #{TeacherSection.count} asignaciones creadas"
 # ESTUDIANTES — 20 por sección en Bolívar, 15 en Bello
 # =============================================================================
 puts ""
-puts "🎓 Creando estudiantes..."
+puts "🎓 Creando alumnos..."
 
 NOMBRES = %w[Álvaro Sofía Miguel Laura Andrés Valentina Carlos Isabella José María
              Luis Ana Diego Camila Rafael Daniela Fernando Paula Gabriel Natalia
@@ -529,7 +529,7 @@ APELLIDOS = %w[López Ramos Pérez Guzmán Mora Reyes Salinas Vargas Blanco Cruz
 #
 # Así estaba, y el resultado era que de las 900 combinaciones posibles
 # (30 × 30) solo aparecían las 30 de la diagonal: en 200 alumnos, cada nombre
-# repetido siete veces. La lista de estudiantes mostraba "Blanco, José" tres
+# repetido siete veces. La lista de alumnos mostraba "Blanco, José" tres
 # veces seguidas y parecía un error del sistema en plena demostración.
 #
 #     mismo índice   → 30 pares distintos, el más repetido 7 veces
@@ -634,7 +634,7 @@ end
 # es interno del colegio; éste es aparte y no se reinicia.
 k_nacional = 0
 
-# Generar estudiantes para Bolívar: 5 secciones x 20 = 100 estudiantes
+# Generar alumnos para Bolívar: 5 secciones x 20 = 100 alumnos
 students_per_section_bol = {}
 sec_bol.each_with_index do |(sec_key, section), sec_idx|
   students_per_section_bol[sec_key] = []
@@ -662,9 +662,9 @@ sec_bol.each_with_index do |(sec_key, section), sec_idx|
     students_per_section_bol[sec_key] << student
   end
 end
-puts "   ✓ #{students_per_section_bol.values.flatten.size} estudiantes (Bolívar)"
+puts "   ✓ #{students_per_section_bol.values.flatten.size} alumnos (Bolívar)"
 
-# Generar estudiantes para Bello: 3 secciones x 15 = 45 estudiantes
+# Generar alumnos para Bello: 3 secciones x 15 = 45 alumnos
 students_per_section_bel = {}
 sec_bel.each_with_index do |(sec_key, section), sec_idx|
   students_per_section_bel[sec_key] = []
@@ -692,13 +692,13 @@ sec_bel.each_with_index do |(sec_key, section), sec_idx|
     students_per_section_bel[sec_key] << student
   end
 end
-puts "   ✓ #{students_per_section_bel.values.flatten.size} estudiantes (Bello)"
+puts "   ✓ #{students_per_section_bel.values.flatten.size} alumnos (Bello)"
 
 # =============================================================================
-# INSCRIPCIONES — todos los estudiantes en su sección
+# INSCRIPCIONES — todos los alumnos en su sección
 # =============================================================================
 puts ""
-puts "📝 Inscribiendo estudiantes..."
+puts "📝 Inscribiendo alumnos..."
 
 enroll_date = Date.new(2025, 9, 16)
 
@@ -1148,7 +1148,7 @@ puts "   Secciones:         #{Section.count}"
 puts "   Asignaciones:      #{TeacherSection.count} (profesor-materia-sección)"
 puts "   Administradores:   #{Admin.count}"
 puts "   Profesores:        #{Teacher.count}"
-puts "   Estudiantes:       #{Student.count}"
+puts "   Alumnos:       #{Student.count}"
 puts "   Inscripciones:     #{Enrollment.count}"
 puts ""
 puts "🔑 Credenciales (contraseña universal: #{CLAVE_DE_PRUEBA})"

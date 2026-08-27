@@ -65,11 +65,11 @@ class StudentsController < ApplicationController
     if @student.save
       log_activity(
         action:  "student_created",
-        message: "#{current_user.nombre_completo} registró al estudiante " \
+        message: "#{current_user.nombre_completo} registró al alumno " \
                  "#{@student.user.nombre_completo} (Exp: #{@student.school_card})",
         subject: @student
       )
-      redirect_to @student, notice: "Estudiante creado exitosamente."
+      redirect_to @student, notice: "Alumno creado exitosamente."
     else
       render :new, status: :unprocessable_entity
     end
@@ -79,11 +79,11 @@ class StudentsController < ApplicationController
     if @student.update(student_params)
       log_activity(
         action:  "student_updated",
-        message: "#{current_user.nombre_completo} actualizó los datos del estudiante " \
+        message: "#{current_user.nombre_completo} actualizó los datos del alumno " \
                  "#{@student.user.nombre_completo}",
         subject: @student
       )
-      redirect_to @student, notice: "Estudiante actualizado exitosamente."
+      redirect_to @student, notice: "Alumno actualizado exitosamente."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -94,9 +94,9 @@ class StudentsController < ApplicationController
     if @student.destroy
       log_activity(
         action:  "student_destroyed",
-        message: "#{current_user.nombre_completo} eliminó al estudiante #{student_name}"
+        message: "#{current_user.nombre_completo} eliminó al alumno #{student_name}"
       )
-      redirect_to students_url, notice: "Estudiante eliminado exitosamente."
+      redirect_to students_url, notice: "Alumno eliminado exitosamente."
     else
       redirect_to @student, alert: @student.errors.full_messages.join(", ")
     end

@@ -6,9 +6,9 @@
 # Haml con el MISMO bloque de cuatro líneas repetido cuarenta veces:
 #
 #     %li.sidebar-nav-item
-#       = link_to students_path, class: "sidebar-nav-link #{'active' if controller_name == 'students'}", data: { nombre: "Estudiantes" } do
+#       = link_to students_path, class: "sidebar-nav-link #{'active' if controller_name == 'students'}", data: { nombre: "Alumnos" } do
 #         = icono(:alumnos, tamano: 18)
-#         %span Estudiantes
+#         %span Alumnos
 #
 # Cuarenta copias son cuarenta lugares donde cambiar una clase, y cuarenta
 # lugares donde escribir mal el `controller_name` y que el enlace nunca se marque
@@ -36,7 +36,7 @@ module MenuHelper
   end
 
   # Un grupo plegable. `abierto_por_defecto` es para los que se usan todos los
-  # días: nadie quiere abrir un acordeón para llegar a Estudiantes.
+  # días: nadie quiere abrir un acordeón para llegar a Alumnos.
   #
   # Un grupo SIN título no se pliega: es el «Panel» suelto de arriba. Se
   # representa así, y no con un caso aparte en la plantilla, para que el menú
@@ -57,7 +57,7 @@ module MenuHelper
   #
   # El anterior cortaba por FRECUENCIA —«Día a día» / «El colegio»— y sonaba
   # bien, pero obligaba a saber cada cuánto se usa algo para saber dónde buscarlo.
-  # Y no se sostenía: «Representantes» estaba en «El colegio» y «Estudiantes» en
+  # Y no se sostenía: «Representantes» estaba en «El colegio» y «Alumnos» en
   # «Día a día», siendo las dos fichas de personas.
   #
   # Ahora corta por QUÉ ES LA COSA, que es como la gente pregunta: «¿dónde están
@@ -176,7 +176,7 @@ module MenuHelper
 
   def enlaces_de_usuarios
     enlaces = []
-    enlaces << Enlace.new(nombre: "Estudiantes", icono: :alumnos, ruta: students_path) if can_manage_students?
+    enlaces << Enlace.new(nombre: "Alumnos", icono: :alumnos, ruta: students_path) if can_manage_students?
     enlaces << Enlace.new(nombre: "Representantes", icono: :representantes, ruta: representatives_path) if can_manage_students?
     enlaces << Enlace.new(nombre: "Profesores", icono: :profesores, ruta: teachers_path) if can_manage_teachers?
     enlaces << Enlace.new(nombre: "Administradores", icono: :llave, ruta: admins_path) if puede_ver_administradores?  # rubocop:disable Layout/LineLength
@@ -237,7 +237,7 @@ module MenuHelper
     end
     # Va en Configuración aunque se use una vez al año, porque esa vez es la
     # PRIMERA semana del colegio en SIGA — y para esa semana el camino no es el
-    # menú: es el estado vacío de Estudiantes, que lo ofrece cuando hace falta.
+    # menú: es el estado vacío de Alumnos, que lo ofrece cuando hace falta.
     enlaces << Enlace.new(nombre: "Importar datos", icono: :importar, ruta: importaciones_path)
     if can_manage_academic_config?
       enlaces << Enlace.new(nombre: "Identidad del colegio", icono: :configuracion, ruta: colegio_path)

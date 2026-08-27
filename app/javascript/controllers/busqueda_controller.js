@@ -6,7 +6,7 @@ import { Controller } from "@hotwired/stimulus"
 //
 // La secretaria busca a un alumno cuarenta veces al día, con la mamá esperando
 // del otro lado del mostrador. Sin esto son cuatro pasos y dos cargas de página:
-// menú → Estudiantes → esperar → escribir → elegir.
+// menú → Alumnos → esperar → escribir → elegir.
 //
 // ## ⚠️ Por qué NO usa `<turbo-frame>`
 //

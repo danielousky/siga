@@ -21,7 +21,7 @@
 # ## Accesibilidad: un icono no habla solo
 #
 #     icono(:alumnos)                          decorativo, va al lado de texto
-#     icono(:alumnos, titulo: "Estudiantes")   ES el nombre del control
+#     icono(:alumnos, titulo: "Alumnos")   ES el nombre del control
 #
 # Por defecto son `aria-hidden`, porque el caso normal es un icono al lado de una
 # palabra: leerlo dos veces le hace perder tiempo a quien usa lector de pantalla.
@@ -39,7 +39,7 @@ module IconosHelper
 
   # ⚠️ Las claves van en español, como todo lo que se lee en una vista.
   #
-  # Un `icono(:students)` dentro de una vista que dice "Estudiantes" obliga a
+  # Un `icono(:students)` dentro de una vista que dice "Alumnos" obliga a
   # traducir mentalmente en cada línea, y el resto del proyecto ya decidió que
   # las vistas hablan español.
   CAMINOS = {

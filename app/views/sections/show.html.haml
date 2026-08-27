@@ -20,7 +20,7 @@
       %p.detail-value= @section.academic_period.name
     .detail-item
       %span.detail-label Capacidad
-      %p.detail-value= "#{@enrollments.size} / #{@section.capacity} estudiantes"
+      %p.detail-value= "#{@enrollments.size} / #{@section.capacity} alumnos"
     -# Quién pasa lista de esta sección. Se muestra también cuando NO hay: sin
     -# guía la asistencia solo la puede tomar la dirección, y eso hay que
     -# enterarse mirando la sección, no descubriéndolo un lunes a las siete.
@@ -62,8 +62,8 @@
         %p No hay materias asignadas aún.
 
   .card-academic
-    %h2 Estudiantes inscritos
-    %p{style: "color: var(--text-secondary); font-size: 14px; margin-bottom: var(--space-lg);"} #{@enrollments.size} estudiante#{@enrollments.size != 1 ? 's' : ''} en esta sección
+    %h2 Alumnos inscritos
+    %p{style: "color: var(--text-secondary); font-size: 14px; margin-bottom: var(--space-lg);"} #{@enrollments.size} alumno#{@enrollments.size != 1 ? 's' : ''} en esta sección
 
     - if @enrollments.any?
       %table.table-academic
@@ -82,8 +82,8 @@
               %td= enrollment.student.school_card
     - else
       .empty-state
-        %h3 Sin estudiantes inscritos
-        %p Esta sección aún no tiene estudiantes inscritos.
+        %h3 Sin alumnos inscritos
+        %p Esta sección aún no tiene alumnos inscritos.
 
 / =============================================
 / VISTA ADMINISTRADOR: Gestión completa
@@ -128,7 +128,7 @@
             = f.submit "Asignar", class: "btn btn-primary"
 
   .card-academic
-    %h2 Estudiantes inscritos
+    %h2 Alumnos inscritos
     %p{style: "color: var(--text-secondary); font-size: 14px; margin-bottom: var(--space-lg);"} #{@enrollments.size} de #{@section.capacity} lugares ocupados
 
     - if @enrollments.any?
@@ -150,5 +150,5 @@
               %td= enrollment.enrollment_date.strftime("%d/%m/%Y")
     - else
       .empty-state
-        %h3 Sin estudiantes inscritos
-        %p Aún no hay estudiantes inscritos en esta sección.
+        %h3 Sin alumnos inscritos
+        %p Aún no hay alumnos inscritos en esta sección.

@@ -1,9 +1,9 @@
 .card-academic
   .card-academic-header
-    %h1 Registro de estudiantes
+    %h1 Registro de alumnos
     = link_to new_student_path, class: "btn btn-primary" do
       = icono(:agregar, tamano: 16)
-      %span Registrar nuevo estudiante
+      %span Registrar nuevo alumno
 
 = render "shared/buscador_de_lista", ruta: students_path, marco: "students-results",
          pista: "Nombre, apellido, cédula o carnet…"
@@ -21,7 +21,7 @@
     -# La escala va DENTRO del frame a propósito: así el número lo actualiza el
     -# buscador. En el encabezado, de afuera, se quedaría diciendo 200 mientras
     -# la tabla muestra 3 resultados — peor que no ponerlo.
-    = render "shared/escala", total: @pagy.count, singular: "estudiante", plural: "estudiantes",
+    = render "shared/escala", total: @pagy.count, singular: "alumno", plural: "alumnos",
              detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
 
     %table.table-academic

@@ -5,7 +5,7 @@ class InicioController < ApplicationController
   # ## Por qué el `case` de acá se fue
   #
   # Este controller tenía su propia lista de roles —administrador, profesor,
-  # estudiante— y `dashboard_path_for_user` tenía OTRA, más completa. Cada rol
+  # alumno— y `dashboard_path_for_user` tenía OTRA, más completa. Cada rol
   # nuevo había que acordarse de agregarlo en los dos lados, y no pasó:
   #
   #   · un **representante** caía en el `else` y leía "Tu cuenta no tiene un rol

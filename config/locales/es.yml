@@ -61,8 +61,8 @@ es:
         one: Materia
         other: Materias
       student:
-        one: Estudiante
-        other: Estudiantes
+        one: Alumno
+        other: Alumnos
       teacher:
         one: Profesor
         other: Profesores
@@ -162,7 +162,7 @@ es:
     grade: Grado
     section: Sección
     subject: Materia
-    student: Estudiante
+    student: Alumno
     teacher: Profesor
     department: Departamento
     enrollment: Inscripción
@@ -184,7 +184,7 @@ es:
     grade_id: Grado
     section_id: Sección
     subject_id: Materia
-    student_id: Estudiante
+    student_id: Alumno
     teacher_id: Profesor
     department_id: Departamento
     enrollment_id: Inscripción

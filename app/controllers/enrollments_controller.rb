@@ -28,7 +28,7 @@ class EnrollmentsController < ApplicationController
     if @enrollment.save
       log_activity(
         action:  "enrollment_created",
-        message: "#{current_user.nombre_completo} inscribió al estudiante " \
+        message: "#{current_user.nombre_completo} inscribió al alumno " \
                  "#{@enrollment.student.user.nombre_completo} en " \
                  "#{@enrollment.section.grade.name} – Sección #{@enrollment.section.name}",
         subject: @enrollment
