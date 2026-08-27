@@ -17,13 +17,30 @@ class Subscription < ApplicationRecord
   # pedía definir: arriba de eso están las redes de colegios, donde la
   # suscripción probablemente sea de la RED. Inventarle un precio automático
   # sería inventar un producto que nadie definió.
-  enum :plan, { basico: 0, estandar: 1, premium: 2, a_convenir: 3 }
+  # ⚠️ `gratis` no es «todavía no se facturó»: es un plan, y se elige.
+  #
+  # Un colegio SIN fila de suscripción tiene acceso completo a propósito —es el
+  # piloto, el primer mes, el que se está evaluando de la mano de alguien—.
+  # `gratis` es lo contrario: una decisión escrita, visible en la cartera, con
+  # funciones acotadas. Confundirlos deja al piloto sin poder calificar el día
+  # que alguien "arregle" el default.
+  enum :plan, { basico: 0, estandar: 1, premium: 2, a_convenir: 3, gratis: 4 }
 
   # `en_gracia` no es decorativo: es la diferencia entre un colegio que se
   # atrasó una semana y uno que dejó de pagar. Sin ese estado intermedio, el
   # primero se queda sin cargar notas el lunes por una transferencia que sale el
   # martes — y la cobranza en Venezuela es lenta por razones que no son suyas.
   enum :status, { activa: 0, en_gracia: 1, vencida: 2, cancelada: 3 }
+
+  # Lo que el plan gratuito NO incluye. Se declara como dato y no como una lista
+  # de `if` en el concern para que la pantalla que lo explica y el bloqueo que
+  # lo aplica salgan del mismo lugar.
+  FUNCIONES_CON_PLAN = {
+    calificar: "Cargar notas y calcular promedios",
+    asistencia: "Pasar lista y llevar las inasistencias",
+    emitir: "Emitir boletines, constancias y documentos del MPPE",
+    portal: "El portal de los representantes"
+  }.freeze
 
   PLANES = {
     basico:   { hasta: 150, precio: 25, etiqueta: "Básico" },
@@ -50,6 +67,22 @@ class Subscription < ApplicationRecord
   # suscripción puede escribir: son los que todavía no se facturan —una demo, un
   # piloto—, y bloquearlos sería romper el producto para quien lo está probando.
   def permite_escribir? = activa? || en_gracia?
+
+  # ⚠️ Esto pregunta por el PLAN, no por la solvencia — y la diferencia importa.
+  #
+  # Son dos estados que se parecen y no son lo mismo:
+  #
+  #   gratis    NUNCA tuvo estas funciones. No se le quita nada: es su plan.
+  #   vencida   LAS TENÍA y debe dinero. Eso ya lo resuelve `permite_escribir?`,
+  #             que lo deja en solo lectura — no puede calificar ni pasar lista,
+  #             pero SÍ puede emitir una constancia, porque «la deuda es del
+  #             colegio y el perjuicio no puede ser del alumno» (MOR-108).
+  #
+  # Mezclarlos le quitaría a un colegio endeudado la constancia que una familia
+  # necesita para un pasaporte, que es la regla que este proyecto ya decidió y
+  # dejó probada. El resultado de las dos reglas juntas es el que se pidió:
+  # calificar y pasar lista exigen plan Y solvencia; emitir exige plan.
+  def incluye_las_funciones_del_colegio? = !gratis?
 
   def solo_lectura? = !permite_escribir?
 

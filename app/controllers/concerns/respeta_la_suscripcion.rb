@@ -51,9 +51,42 @@ module RespetaLaSuscripcion
 
   VERBOS_QUE_ESCRIBEN = %w[POST PATCH PUT DELETE].freeze
 
+  # ── El plan gratuito (MOR-156) ────────────────────────────────────────────
+  #
+  # ## Qué queda libre y por qué
+  #
+  # **Cargar es libre. Operar el colegio, no.** Un colegio que no puede terminar
+  # de cargar su matrícula nunca llega al momento en que el boletín le importa:
+  # se queda con media planilla adentro, un problema de datos y la sensación de
+  # que el sistema se rompió. Ahí no hay conversión, hay un cliente perdido.
+  #
+  # Lo que se activa con el plan es lo que el colegio HACE todos los días con
+  # esos datos: calificar, pasar lista, emitir papeles, y el portal por donde la
+  # familia entra.
+  #
+  # ## Se puede MIRAR, no hacer
+  #
+  # Las pantallas no se esconden. El director entra a la planilla de notas, ve
+  # su sección, sus alumnos y sus columnas — y el aviso de qué la activa. Una
+  # pantalla escondida no vende nada; una pantalla que se ve y no se toca, sí.
+  ACCIONES_CON_PLAN = [
+    [ "activity_grades", "create" ],
+    [ "activity_grades", "update" ],
+    [ "activity_grades", "destroy" ],
+    [ "asistencias", "create" ],
+    [ "report_cards", "create" ],
+    [ "constancias", "create" ]
+  ].freeze
+
+  # Pantallas enteras que el plan gratuito no incluye. Van por controlador y no
+  # por verbo porque son GET: un PDF del MPPE se pide con GET, y el portal del
+  # representante es de solo lectura por diseño.
+  CONTROLADORES_CON_PLAN = %w[documentos_oficiales representante].freeze
+
   included do
     before_action :exigir_suscripcion_al_dia!
-    helper_method :suscripcion_del_colegio, :colegio_en_solo_lectura?
+    before_action :exigir_plan_del_colegio!
+    helper_method :suscripcion_del_colegio, :colegio_en_solo_lectura?, :colegio_en_plan_gratis?
   end
 
   private
@@ -71,6 +104,32 @@ module RespetaLaSuscripcion
   # revés de lo que conviene.
   def colegio_en_solo_lectura?
     suscripcion_del_colegio.present? && suscripcion_del_colegio.solo_lectura?
+  end
+
+  # ⚠️ Sin fila de suscripción hay acceso COMPLETO, igual que para escribir: es
+  # el piloto y el primer mes. `gratis` es una decisión escrita, no la ausencia
+  # de una.
+  def colegio_en_plan_gratis?
+    suscripcion_del_colegio.present? && !suscripcion_del_colegio.incluye_las_funciones_del_colegio?
+  end
+
+  def exigir_plan_del_colegio!
+    return unless colegio_en_plan_gratis?
+    return unless requiere_plan?
+
+    mensaje = "Calificar, pasar lista y emitir documentos se activan con un plan. " \
+              "Cargar alumnos, profesores y materias es libre y no vence."
+
+    respond_to do |formato|
+      formato.html { redirect_back fallback_location: dashboard_path_for_user, alert: mensaje }
+      formato.json { render json: { estado: "error", mensaje: mensaje }, status: :payment_required }
+      formato.any  { head :payment_required }
+    end
+  end
+
+  def requiere_plan?
+    CONTROLADORES_CON_PLAN.include?(controller_path) ||
+      ACCIONES_CON_PLAN.include?([ controller_path, action_name ])
   end
 
   def exigir_suscripcion_al_dia!

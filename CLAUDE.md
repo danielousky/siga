@@ -466,5 +466,38 @@ frontera puesta para que ese día sea mover un namespace, no desenredar una app.
 > exacta del incidente de Canvas— y es el issue que hay que retomar cuando haya
 > colegios pagando.
 
+### 7. El plan Inicial es gratis, y el límite es por FUNCIÓN
+
+Decisión de Daniel, 27 de agosto de 2026. El corte **no es por número de
+registros ni por tiempo**:
+
+```
+   LIBRE, SIN TOPE                    SE ACTIVA CON EL PLAN
+   ───────────────                    ─────────────────────
+   alumnos, representantes            calificar
+   profesores, materias               pasar lista
+   secciones, inscripciones           emitir boletines y constancias
+   el importador de planillas         los documentos del MPPE
+                                      el portal de los representantes
+```
+
+**Por registros rompe la importación a mitad de camino:** con matrícula promedio
+de 360 y tope en 200, la fila 201 falla y el colegio queda con media matrícula y
+un problema de datos, justo cuando debía sentirse poderoso. **Por tiempo** empieza
+a correr en septiembre, que es cuando nadie en un colegio tiene un minuto.
+
+⚠️ **`gratis` es un plan que se elige, NO la ausencia de suscripción.** Un colegio
+sin fila en `subscriptions` tiene acceso completo a propósito: es el piloto o el
+primer mes. Confundirlos deja al piloto sin poder calificar.
+
+⚠️ **Y no es lo mismo que `vencida`.** Un colegio endeudado TENÍA estas funciones:
+queda en solo lectura pero **sigue emitiendo constancias**, porque la deuda es del
+colegio y el perjuicio no puede ser del alumno (`§ MOR-108`). Mezclar los dos
+estados le quita a una familia el papel del pasaporte.
+
+**Las pantallas no se esconden.** El director entra a la planilla de notas, ve su
+sección y sus alumnos, y el aviso de qué la activa. Una pantalla escondida no
+vende nada; una que se ve y no se toca, sí.
+
 Backlog completo en `BACKLOG.md`. Diagrama del modelo actual y objetivo:
 https://claude.ai/code/artifact/0e167ba9-8e21-4264-ac29-f7a2d9fe5523

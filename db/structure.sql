@@ -1466,7 +1466,7 @@ CREATE TABLE public.subscriptions (
     notas text,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    CONSTRAINT subscriptions_plan_valido CHECK ((plan = ANY (ARRAY[0, 1, 2, 3]))),
+    CONSTRAINT subscriptions_plan_valido CHECK ((plan = ANY (ARRAY[0, 1, 2, 3, 4]))),
     CONSTRAINT subscriptions_status_valido CHECK ((status = ANY (ARRAY[0, 1, 2, 3])))
 );
 
@@ -4037,6 +4037,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260827230000'),
 ('20260827220000'),
 ('20260827200000'),
 ('20260827120000'),
