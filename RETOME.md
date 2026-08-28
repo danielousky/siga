@@ -42,6 +42,34 @@ vencimiento. El cálculo se compartió con el panel del profesor.
 **El plan Inicial es gratis (`MOR-156`).** Límite **por función**, no por registros ni
 por tiempo: cargar es libre, calificar / pasar lista / emitir se activan con el plan.
 
+### `MOR-146` — producción limpia y resembrada (28 ago, madrugada)
+
+Producción **ya no corre con los datos congelados**. Estado final verificado:
+
+```
+   2 colegios de demostración   ·  314 personas  ·  0 sin identificador
+   respaldo verificado ANTES    ·  /Volumes/…/SIGA/respaldos/
+   contraseña de la demo        ·  nueva, aleatoria, se la pasé a Daniel
+```
+
+Lo que se arregló: las 297 personas sin cédula ni cédula escolar estaban
+**congeladas** —ningún `save` pasaba, ni el de cambiar la contraseña— porque la
+validación de `MOR-138` se agregó sobre filas que ya existían. Se resembró, que
+además regenera todo con los campos del MPPE. Y `dev.demo@siga.local`, que era
+`fundador` desde el primer sembrado, ya no existe.
+
+⚠️ **Sigue abierto:** `desarrollador@siga.edu` es `fundador`, o sea que ve todos
+los colegios. Hoy no importa —los dos son inventados— y el día que entre un
+colegio pagando es `MOR-92` con nombre y apellido.
+
+⚠️ **Y una lección que costó un intento fallido contra producción.** La tarea de
+borrado imprimió sus dieciocho líneas de «borradas N de tabla» y anunció «Base
+vacía» **habiendo borrado nada**: `siga_staffs` también apunta a `users`, el
+DELETE chocó contra esa FK, la transacción se deshizo, y los `puts` no son
+transaccionales. Mi prueba local no lo atrapó porque corrí sobre una base recién
+sembrada: **verifiqué el resultado, no el efecto.** Ahora `demo:limpiar`
+comprueba tabla por tabla antes de anunciar nada.
+
 ### Lo que sigue, en el orden que recomendó el PM
 
 1. **Abrir el año escolar (clonar el anterior).** El PM recomienda **esperar a
