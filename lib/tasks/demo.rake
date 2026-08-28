@@ -77,8 +77,15 @@ namespace :demo do
   # Acá el orden es explícito y las claves foráneas son la red — si el orden
   # estuviera mal, la base lo rechaza en vez de dejar filas huérfanas.
   #
-  # ⚠️ El orden va de HIJOS a PADRES. Cambiarlo no rompe en silencio: revienta
-  # contra una FK, que es exactamente lo que se quiere.
+  # ⚠️ El orden va de HIJOS a PADRES, y `siga_staffs` está en la lista por una
+  # razón que costó un intento fallido contra producción: **también apunta a
+  # `users`**. Sin él, el `DELETE FROM users` choca contra su clave foránea, la
+  # transacción entera se deshace, y —si nadie comprueba— la tarea informa que
+  # borró todo habiendo borrado nada.
+  #
+  # Que se borre es además lo correcto: `dev.demo@siga.local` quedó ahí desde el
+  # primer sembrado, con rol `fundador`, o sea con acceso a todos los colegios de
+  # la plataforma. Los seeds recrean el equipo con cuentas conocidas.
   EN_ORDEN_DE_BORRADO = %w[
     activity_grades moment_grades final_grade_books report_cards attendances
     evaluation_activities teacher_sections student_representatives enrollments
@@ -86,7 +93,7 @@ namespace :demo do
     subjects departments grades
     students teachers admins representatives
     subscriptions importaciones activity_logs addresses
-    users schools
+    siga_staffs users schools
   ].freeze
 
   desc "Borra TODA la demo y la vuelve a sembrar (MOR-146). Exige respaldo previo."
@@ -113,8 +120,28 @@ namespace :demo do
       end
     end
 
+    # ⚠️ COMPROBAR, no suponer. Esta es la lección del primer intento contra
+    # producción: la transacción se deshizo por una clave foránea y la tarea
+    # igual anunció «base vacía». Un borrado que informa lo que no hizo es peor
+    # que uno que falla, porque el siguiente paso —resembrar— se ejecuta sobre
+    # datos que se creían borrados.
+    quedan = Current.sin_aislamiento do
+      EN_ORDEN_DE_BORRADO.filter_map do |tabla|
+        cuantas = ActiveRecord::Base.connection.select_value("SELECT count(*) FROM #{tabla}").to_i
+        "#{tabla}=#{cuantas}" if cuantas.positive?
+      end
+    end
+
+    if quedan.any?
+      abort "\n🚫 EL BORRADO NO PERSISTIÓ. Todavía hay filas en: #{quedan.join(' ')}\n" \
+            "   La transacción se deshizo —casi seguro una clave foránea contra una\n" \
+            "   tabla que falta en EN_ORDEN_DE_BORRADO—. La base quedó como estaba.\n" \
+            "   NO corras los seeds hasta resolver esto.\n"
+    end
+
     puts ""
-    puts "✅ Base vacía. Antes había #{antes[0]} colegios y #{antes[1]} personas."
+    puts "✅ Base vacía, comprobado tabla por tabla."
+    puts "   Antes había #{antes[0]} colegios y #{antes[1]} personas."
     puts "   Ahora corre los seeds con SIGA_ENTORNO_DEMO=1 y SIGA_SEED_PASSWORD."
     puts ""
   end
