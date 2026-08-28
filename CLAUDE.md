@@ -296,8 +296,15 @@ y otra vez el 25):
 - ~~`action_mailer` sin configurar~~ → SMTP completo por variables de entorno, sin atarse a un
   proveedor. `perform_deliveries` solo si hay `SMTP_ADDRESS`, y `raise_delivery_errors` en true:
   un correo que no sale tiene que aparecer en el log, no desaparecer.
-- ~~Registro público abierto~~ → `devise_for :users, skip: [:registrations]`, y `/cuenta` se
-  devuelve a mano para editar el perfil. `/users/sign_up` da **404** (`MOR-101`).
+- ~~Registro público abierto~~ → cerrado en `MOR-101`… y **reabierto a propósito en
+  `MOR-158`**. La puerta es `/registrarse`, no `/users/sign_up`, que sigue dando 404.
+  ⚠️ El riesgo que motivó el cierre —`users.email` es único en toda la plataforma, así que
+  cualquiera puede quemar el correo de un profesor real— **sigue existiendo y se acepta**:
+  la decisión es facilidad de registro por encima de la seguridad mientras el acceso sea
+  compartir el enlace a mano. Lo que lo hace tolerable es el aislamiento: registrarse crea
+  **siempre un colegio nuevo** y nunca se une a uno existente, así que el daño máximo de un
+  abuso es una fila que no ve nada de nadie. Ese invariante vive en `MiColegioController` y
+  no se afloja sin volver a discutir esto. `destroy` NO volvió.
 - ~~Seeds sin guard de entorno~~ → abortan fuera de desarrollo.
 - ~~Sin CI~~ → `bin/ci` en ~15 s (`MOR-105`), y el workflow de GitHub Actions **ya puede correr**:
   el repo tiene remoto (`danielousky/siga`, privado).

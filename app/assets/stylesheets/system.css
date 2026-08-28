@@ -5132,3 +5132,17 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   .franja-centro { flex: 1 0 100%; order: 3; }
   .franja-acciones { margin-left: auto; }
 }
+
+/* El enlace al registro, al pie de la pantalla de entrada (MOR-158). */
+.acceso-registro {
+  margin-top: var(--space-md);
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.acceso-registro a { color: var(--brand-primary); font-weight: 500; }
+
+/* Las dos pantallas del camino de entrada: registro y alta del colegio. */
+.registro { max-width: 46rem; margin: 0 auto; }
+.registro-form { display: flex; flex-direction: column; gap: var(--space-md); }

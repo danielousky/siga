@@ -37,3 +37,12 @@
 
   .acceso-pie
     = render "devise/shared/links"
+
+    -# ⚠️ El enlace al registro va acá y no en la barra pública (MOR-158).
+    -#
+    -# Quien llega a la pantalla de entrada ya decidió usar SIGA. Ponerlo también
+    -# arriba invitaría a registrarse a quien vino a leer qué es esto, y el
+    -# producto todavía no se explica solo a un desconocido.
+    %p.acceso-registro
+      ¿Su colegio todavía no está en SIGA?
+      = link_to "Créelo aquí", new_user_registration_path

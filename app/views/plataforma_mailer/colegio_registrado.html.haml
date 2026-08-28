@@ -1,0 +1,33 @@
+-# El aviso interno de un colegio nuevo. Lo lee el equipo de SIGA, no un cliente:
+-# va sin diseño y con los datos que sirven para llamar por teléfono.
+%h1= @colegio.name
+
+%p
+  = @usuario.nombre_completo
+  se registró y creó este colegio el
+  = l(@cuando, format: :long)
+
+%table
+  %tr
+    %td %strong Quien lo registró
+    %td= "#{@usuario.nombre_completo} · #{@usuario.email}"
+  %tr
+    %td %strong Código DEA
+    %td= @colegio.dea_code
+  %tr
+    %td %strong Dónde queda
+    %td
+      = [ @colegio.parroquia, @colegio.municipio, @colegio.entidad_federal ].compact_blank.join(", ")
+      - if @colegio.direccion.present?
+        %br
+        = @colegio.direccion
+  %tr
+    %td %strong Teléfono
+    %td= @colegio.telefono.presence || "no lo dejó"
+  %tr
+    %td %strong Tipo
+    %td= @colegio.school_type
+
+%p
+  Está en el Plan Inicial (gratis): puede cargar todo, pero no calificar,
+  pasar lista ni emitir documentos hasta que contrate un plan.

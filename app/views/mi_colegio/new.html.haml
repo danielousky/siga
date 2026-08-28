@@ -1,0 +1,48 @@
+-# Los datos del colegio, justo después de registrarse (MOR-158).
+- content_for :titulo, "Su colegio"
+
+.card-academic.registro
+  .card-academic-header
+    %h1 Ahora, su colegio
+
+  %p.nota-ayuda
+    Con esto queda creado y puede empezar a cargar. La entidad, el municipio y
+    la parroquia salen impresos en los documentos del ministerio, así que
+    conviene dejarlos bien desde ahora.
+
+  = form_with url: mi_colegio_path, method: :post, class: "registro-form" do
+    = render "shared/errors", object: @colegio
+
+    %fieldset.siga-fieldset
+      %legend El colegio
+
+      .form-row
+        .form-group
+          = label_tag "school[name]", "Nombre del colegio", class: "form-label"
+          = text_field_tag "school[name]", @colegio.name, class: "form-control",
+                           autofocus: true, placeholder: "U.E. Colegio San José"
+        .form-group
+          = label_tag "school[dea_code]", "Código DEA", class: "form-label"
+          = text_field_tag "school[dea_code]", @colegio.dea_code, class: "form-control",
+                           placeholder: "PD01234567"
+          %small.nota-ayuda Lo asigna el ministerio. Si no lo tiene a mano, escriba algo provisional y corríjalo después.
+
+      .form-group
+        = label_tag "school[school_type]", "Qué dicta principalmente", class: "form-label"
+        = select_tag "school[school_type]",
+                     options_for_select([ [ "Primaria", "primary" ], [ "Bachillerato", "secondary" ] ], @colegio.school_type),
+                     class: "form-select"
+        %small.nota-ayuda
+          Es solo el punto de partida. En el siguiente paso marca todos los
+          niveles que dicta —preescolar, primaria, bachillerato— y los grados se
+          crean solos.
+
+      .form-group
+        = label_tag "school[location]", "Ciudad", class: "form-label"
+        = text_field_tag "school[location]", @colegio.location, class: "form-control",
+                         placeholder: "Caracas, Distrito Capital"
+
+    = render "shared/ubicacion_del_colegio", colegio: @colegio
+
+    .form-acciones
+      = submit_tag "Crear mi colegio", class: "btn btn-primary"

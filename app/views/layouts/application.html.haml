@@ -68,7 +68,18 @@
             = link_to current_user.first_name, edit_user_registration_path, class: "user-info", style: "color: inherit;"
             = link_to "Cerrar sesión", destroy_user_session_path, data: { turbo_method: :delete }, class: "btn btn-outline-light btn-sm"
 
-    - if user_signed_in? && current_user_type.nil?
+    -# ⚠️ Quien acaba de registrarse TODAVÍA no tiene rol, y eso es correcto: su
+    -# rol nace cuando crea su colegio. Sin esta excepción el layout le tapa el
+    -# formulario con «contacte al administrador» — y el administrador es él.
+    -#
+    -# Se pregunta por el CONTROLADOR y no por una bandera: la pantalla que crea
+    -# el colegio es la única que tiene sentido sin rol, y cualquier otra sí debe
+    -# mostrar el aviso.
+    - if user_signed_in? && current_user_type.nil? && controller_name == "mi_colegio"
+      .container-academic
+        = yield
+
+    - elsif user_signed_in? && current_user_type.nil?
       / Usuario autenticado sin rol asignado
       .container-academic
         .no-role-container

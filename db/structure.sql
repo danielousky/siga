@@ -856,7 +856,8 @@ CREATE TABLE public.schools (
     telefono character varying,
     cdcee character varying,
     parroquia character varying,
-    pasos_omitidos jsonb DEFAULT '[]'::jsonb NOT NULL
+    pasos_omitidos jsonb DEFAULT '[]'::jsonb NOT NULL,
+    registrado_por_id bigint
 );
 
 
@@ -2786,6 +2787,13 @@ CREATE UNIQUE INDEX index_schools_on_dea_code ON public.schools USING btree (dea
 
 
 --
+-- Name: index_schools_on_registrado_por_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_schools_on_registrado_por_id ON public.schools USING btree (registrado_por_id);
+
+
+--
 -- Name: index_sections_on_academic_period_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3185,6 +3193,14 @@ ALTER TABLE ONLY public.students
 
 ALTER TABLE ONLY public.final_grade_books
     ADD CONSTRAINT fk_rails_0ae0be115a FOREIGN KEY (enrollment_id) REFERENCES public.enrollments(id);
+
+
+--
+-- Name: schools fk_rails_107a55d48b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.schools
+    ADD CONSTRAINT fk_rails_107a55d48b FOREIGN KEY (registrado_por_id) REFERENCES public.users(id);
 
 
 --
@@ -4037,6 +4053,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260828140000'),
 ('20260827230000'),
 ('20260827220000'),
 ('20260827200000'),

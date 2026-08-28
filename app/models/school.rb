@@ -1,4 +1,15 @@
 class School < ApplicationRecord
+  # Quién dio de alta este colegio (MOR-158).
+  #
+  # Es la semilla de `Account`: el día que la cuenta exista, este usuario es su
+  # dueño natural. Se guarda ahora porque después es imposible de reconstruir —
+  # el primer `Admin` puede haberse ido, o pueden ser tres, y ninguno dice quién
+  # fue el que se registró.
+  #
+  # `optional` de verdad: los colegios que da de alta el equipo de SIGA no tienen
+  # a nadie que se haya registrado.
+  belongs_to :registrado_por, class_name: "User", optional: true
+
   # Qué niveles dicta este colegio, deducido de los grados que tiene cargados.
   #
   # ## Por qué no es una columna

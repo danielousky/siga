@@ -36,13 +36,35 @@ Rails.application.routes.draw do
   get "users/password/edit",
       to: redirect(status: 302) { |_p, req| "/activar/#{req.params[:reset_password_token]}" }
 
-  devise_for :users, skip: [:registrations]
+  # ⚠️ El registro VUELVE a estar abierto (MOR-158), y revierte a `MOR-101`.
+  #
+  # Se cerró porque cualquiera podía quemar el correo de un profesor real
+  # registrándolo antes que el colegio. Sigue siendo cierto, y se acepta: la
+  # decisión de producto es **facilidad y velocidad de registro por encima de la
+  # seguridad**, mientras el acceso sea compartir el enlace a mano y no haya
+  # publicidad.
+  #
+  # Lo que hace que el riesgo sea tolerable es el aislamiento: registrarse crea
+  # SIEMPRE un colegio nuevo, nunca se une a uno existente, así que el daño
+  # máximo de un abuso es una fila que no ve nada de nadie.
+  #
+  # `destroy` NO vuelve: que alguien se borre a sí mismo de un sistema académico
+  # no es una función, es una pérdida de datos.
+  devise_for :users, skip: [:registrations],
+                     controllers: { registrations: "registros" }
 
   devise_scope :user do
+    get   "registrarse",   to: "registros#new",    as: :new_user_registration
+    post  "registrarse",   to: "registros#create"
     get   "cuenta",        to: "devise/registrations#edit",   as: :edit_user_registration
     patch "cuenta",        to: "devise/registrations#update", as: :user_registration
     put   "cuenta",        to: "devise/registrations#update"
   end
+
+  # El colegio que crea quien acaba de registrarse. No es `resources` porque no
+  # se lista ni se borra: es un paso del camino de entrada.
+  get  "mi-colegio/nuevo", to: "mi_colegio#new",    as: :nuevo_mi_colegio
+  post "mi-colegio",       to: "mi_colegio#create", as: :mi_colegio
   get "inicio/index"
 
   # Solicitudes de demo — SOLO lo público. Ver, listar y responder se mudó a

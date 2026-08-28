@@ -1,0 +1,56 @@
+-# El registro abierto (MOR-158).
+-#
+-# ⚠️ Pide LO MÍNIMO. Quien llega acá quiere ver el producto, no llenar una
+-# ficha: nombre, apellido, correo y contraseña. La cédula y todo lo demás se
+-# piden cuando hagan falta para un documento — pedirlas ahora es la diferencia
+-# entre registrarse y abandonar.
+- content_for :titulo, "Crear una cuenta"
+
+.card-academic.registro
+  .card-academic-header
+    %h1 Cree su cuenta
+
+  %p.nota-ayuda
+    Es el primer paso. Después le vamos a pedir los datos de su colegio y ya
+    puede empezar a cargar alumnos, profesores y materias — sin pagar nada.
+    La cédula identifica a la persona en el sistema y sale en los documentos que
+    firme.
+
+  = form_with model: resource, url: registrarse_path, class: "registro-form" do |f|
+    = render "shared/errors", object: resource
+
+    .form-row
+      .form-group
+        = f.label :first_name, class: "form-label"
+        = f.text_field :first_name, class: "form-control", autofocus: true, autocomplete: "given-name"
+      .form-group
+        = f.label :last_name, class: "form-label"
+        = f.text_field :last_name, class: "form-control", autocomplete: "family-name"
+
+    .form-row
+      .form-group
+        = f.label :document_type, class: "form-label"
+        -# La misma constante que usan los formularios de profesor y
+        -# representante: los cuatro documentos que acepta el MPPE.
+        = f.select :document_type, User::DOCUMENT_TYPE_LABELS.map { |v, t| [ t, v ] },
+                   {}, class: "form-select"
+      .form-group
+        = f.label :document, class: "form-label"
+        = f.text_field :document, class: "form-control", placeholder: "V-12345678"
+
+    .form-group
+      = f.label :email, class: "form-label"
+      = f.email_field :email, class: "form-control", autocomplete: "email"
+
+    .form-row
+      .form-group
+        = f.label :password, class: "form-label"
+        = f.password_field :password, class: "form-control", autocomplete: "new-password"
+        %small.nota-ayuda= "Mínimo #{Devise.password_length.min} caracteres."
+      .form-group
+        = f.label :password_confirmation, class: "form-label"
+        = f.password_field :password_confirmation, class: "form-control", autocomplete: "new-password"
+
+    .form-acciones
+      = f.submit "Crear mi cuenta", class: "btn btn-primary"
+      = link_to "Ya tengo cuenta", new_user_session_path, class: "btn btn-secondary"

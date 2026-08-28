@@ -1,32 +1,31 @@
 require "test_helper"
 
-# El registro público no existe. Las cuentas las da de alta el colegio.
+# Qué puede y qué no puede hacer alguien con su propia cuenta.
 #
-# Ver MOR-101.
-class RegistroCerradoTest < ActionDispatch::IntegrationTest
-  test "no hay ruta de registro público" do
-    # Ni el helper existe: la ruta no está definida, no está solo escondida.
-    assert_not Rails.application.routes.url_helpers.respond_to?(:new_user_registration_path)
-
-    # Rails rescata el RoutingError y lo devuelve como 404; no lo propaga.
+# ## ⚠️ Este archivo se llamaba `registro_cerrado_test` y afirmaba lo contrario
+#
+# `MOR-101` cerró el registro público: cualquiera podía quemar el correo de un
+# profesor real registrándolo antes que su colegio, porque `users.email` es único
+# en toda la plataforma.
+#
+# `MOR-158` lo reabre. El riesgo sigue existiendo y se acepta a propósito — la
+# decisión de producto es facilidad y velocidad de registro por encima de la
+# seguridad, mientras el acceso sea compartir el enlace a mano. Lo que lo hace
+# tolerable es el aislamiento: registrarse crea SIEMPRE un colegio nuevo, así que
+# el daño máximo es una fila que no ve nada de nadie. Ver `registro_abierto_test`.
+#
+# Lo que NO se reabrió es lo que sigue probando este archivo, y no es lo mismo.
+class RegistroDeCuentasTest < ActionDispatch::IntegrationTest
+  # ⚠️ `/users/sign_up` sigue sin existir: la puerta es `/registrarse`.
+  #
+  # Se mantiene la ruta vieja muerta a propósito para que un enlace guardado de
+  # antes no lleve a un formulario distinto del que el producto ofrece hoy.
+  test "la puerta es /registrarse, no la de Devise" do
     get "/users/sign_up"
     assert_response :not_found
-  end
 
-  test "POST a /users tampoco crea una cuenta" do
-    assert_no_difference -> { Current.sin_aislamiento { User.count } } do
-      post "/users", params: { user: { email: "colado@ejemplo.com", password: "123123456", password_confirmation: "123123456" } }
-    end
-
-    assert_response :not_found
-  end
-
-  test "la pantalla de login no ofrece crear cuenta" do
-    get new_user_session_url
-
+    get new_user_registration_path
     assert_response :success
-    assert_no_match(/Crear Cuenta/, response.body)
-    assert_no_match(/sign_up/, response.body)
   end
 
   # `:recoverable` es un módulo distinto de `:registerable` y sí hace falta: es
