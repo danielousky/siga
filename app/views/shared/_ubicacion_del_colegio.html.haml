@@ -1,0 +1,52 @@
+-# Dónde queda el colegio, y cómo llamarlo (MOR-157).
+-#
+-# ## Por qué es un parcial y no está escrito en cada formulario
+-#
+-# Estos campos hacen falta en tres lugares: el alta desde el panel de SIGA, la
+-# ficha de identidad que edita el director, y el registro abierto. Escritos tres
+-# veces, el día que se agregue un campo van a quedar dos formularios viejos —y
+-# un documento del MPPE saliendo incompleto según por dónde se cargó el colegio.
+-#
+-# ⚠️ Usa `text_field_tag "school[...]"` en vez de un `form builder` para que
+-# sirva DENTRO de los dos tipos de formulario que hay: `form_with url:` (el
+-# panel de SIGA, que crea colegio y director a la vez) y `form_with model:` (la
+-# ficha del colegio). Los dos mandan los mismos nombres de parámetro.
+-#
+-# ## Y por qué esto no es cosmético
+-#
+-# `entidad_federal`, `municipio` y `parroquia` salen IMPRESAS en los documentos
+-# del MPPE. Las columnas existen desde que se hicieron esos documentos; lo que
+-# faltaba era un formulario donde escribirlas, así que había datos obligatorios
+-# que ningún humano podía cargar.
+%fieldset.siga-fieldset
+  %legend Dónde queda y cómo contactarlo
+
+  %p.nota-ayuda
+    La entidad, el municipio y la parroquia salen impresos en los documentos del
+    ministerio. El teléfono es para que SIGA pueda comunicarse con el colegio.
+
+  .form-row
+    .form-group
+      = label_tag "school[entidad_federal]", "Entidad federal", class: "form-label"
+      = select_tag "school[entidad_federal]",
+                   options_for_select(EntidadFederal::TODAS, colegio.entidad_federal),
+                   include_blank: "Seleccione…", class: "form-select"
+    .form-group
+      = label_tag "school[municipio]", "Municipio", class: "form-label"
+      = text_field_tag "school[municipio]", colegio.municipio, class: "form-control",
+                       placeholder: "Libertador"
+
+  .form-row
+    .form-group
+      = label_tag "school[parroquia]", "Parroquia", class: "form-label"
+      = text_field_tag "school[parroquia]", colegio.parroquia, class: "form-control",
+                       placeholder: "El Recreo"
+    .form-group
+      = label_tag "school[telefono]", "Teléfono de contacto", class: "form-label"
+      = telephone_field_tag "school[telefono]", colegio.telefono, class: "form-control",
+                            placeholder: "0212-555-1234"
+
+  .form-group
+    = label_tag "school[direccion]", "Dirección exacta", class: "form-label"
+    = text_field_tag "school[direccion]", colegio.direccion, class: "form-control",
+                     placeholder: "Av. Principal, entre calles 3 y 4, Edif. Escolar"

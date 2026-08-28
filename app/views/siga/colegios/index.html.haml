@@ -1,8 +1,17 @@
 .siga-bloque-cab
   %h1 Colegios
-  = link_to new_siga_colegio_path, class: "btn btn-primary" if siga_staff.puede_dar_de_alta_colegios? do
-    = icono(:agregar, tamano: 16)
-    %span Dar de alta
+  -# ⚠️ El `if` va como BLOQUE, nunca como modificador en la misma línea.
+  -#
+  -# Escrito así —`= link_to … if … do`— Ruby aplica el `if` al `link_to` y el
+  -# `do` queda huérfano: `link_to` toma su primer argumento como el TEXTO del
+  -# enlace en vez del destino. El botón se dibujaba con la ruta escrita como
+  -# etiqueta —«/siga/colegios/new»— y apuntando a la página actual con la clase
+  -# convertida en query string. O sea: no explota, se ve mal y no lleva a ningún
+  -# lado. Dejó a Daniel sin poder dar de alta un colegio.
+  - if siga_staff.puede_dar_de_alta_colegios?
+    = link_to new_siga_colegio_path, class: "btn btn-primary" do
+      = icono(:agregar, tamano: 16)
+      %span Dar de alta
 
 - if @colegios.empty?
   %p.siga-vacio

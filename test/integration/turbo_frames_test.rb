@@ -83,4 +83,34 @@ class TurboFramesTest < ActionDispatch::IntegrationTest
       end
     end
   end
+
+  # ⚠️ El representante NO busca (MOR-157).
+  #
+  # Una mamá ve a sus dos hijos: no tiene a quién buscar, y un buscador que
+  # devuelve siempre lo mismo que ya está en pantalla insinúa que hay más gente
+  # adentro a la que podría llegar.
+  #
+  # La puerta se cierra en las DOS capas. Esconder el botón dejaría la ruta
+  # respondiendo a quien la escriba — que es la lección de `/demo_requests`, que
+  # se tapó tres veces: **tapar la puerta no alcanza si la pared tiene ventana.**
+  test "el portal del representante no tiene buscador, ni por pantalla ni por ruta" do
+    persona = con_el_colegio(@a.colegio) do
+      u = User.create!(first_name: "Madre", last_name: "DePrueba",
+                       email: "madre.prueba@aislamiento.test", password: "123123",
+                       document: "V-30303030", document_type: :cedula_v)
+      rep = Representative.create!(user: u, school: @a.colegio)
+      StudentRepresentative.create!(representative: rep, student: @a.escenario.alumno)
+      u
+    end
+
+    sign_out @a.director
+    sign_in persona
+
+    get root_path
+    follow_redirect! while response.redirect?
+    assert_select ".buscador-disparador", 0, "el representante ve el buscador"
+
+    get busqueda_path, params: { q: "prueba" }
+    assert_response :forbidden, "la ruta le responde aunque el botón no esté"
+  end
 end

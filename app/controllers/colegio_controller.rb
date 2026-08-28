@@ -47,6 +47,8 @@ class ColegioController < ApplicationController
   private
 
   def colegio_params
-    params.require(:school).permit(:name, :location, :logo, :firma, :sello)
+    params.require(:school).permit(:name, :location, :logo, :firma, :sello,
+                                   :entidad_federal, :municipio, :parroquia,
+                                   :direccion, :telefono)
   end
 end

@@ -79,4 +79,9 @@
           %small.nota-ayuda
             Lo asigna el MPPE y no se edita desde aquí. Si está mal, escríbenos.
 
+        -# Los mismos campos que el alta desde el panel de SIGA. Ver el parcial:
+        -# salen impresos en los documentos del MPPE, y hasta ahora las columnas
+        -# existían sin ningún formulario donde escribirlas.
+        = render "shared/ubicacion_del_colegio", colegio: @colegio
+
         = f.submit "Guardar", class: "btn btn-primary"

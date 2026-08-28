@@ -55,7 +55,14 @@ verde porque el `default_scope` de la app filtra igual.
 
 Credenciales de los seeds (contraseña universal `123123`):
 `director.bolivar@siga.edu` (admin) · `prof.garcia@bolivar.edu` (profesor) ·
-`alvaro.lopez001@bolivar.edu` (estudiante).
+`maria.perez@familia.test` (representante, hijos en LOS DOS colegios) ·
+`alvaro.lopez001@bolivar.edu` (alumno).
+
+⚠️ **Para probar el consumo de las notas, entra como el REPRESENTANTE**, no como el alumno:
+es a quien apunta el producto (ver `## ⚠️ Estado conocido § 6`). Los otros dos representantes
+con correo son `carmen.lopez@familia.test` (una hija) y `jose.ramos@familia.test` (dos hijos en
+grados distintos). `Yolanda Guerra` existe **sin correo** a propósito: aparece en el listado y
+no puede entrar hasta que el colegio se lo cargue.
 
 ## Architecture
 
@@ -344,12 +351,23 @@ así que acá la razón es puramente de producto: un niño de 8 años no tiene c
 consulta sus notas es su madre.
 
 ```
-   Student         nunca entra   ·  el que consulta es su representante
+   Student         opcional      ·  puede entrar, pero NO es a quien apunta el producto
    Representative  opcional      ·  entra si tiene correo; si no, el colegio se lo pide
    Teacher         obligado
    Admin           obligado
    SigaStaff       obligado
 ```
+
+⚠️ **«Opcional» en el alumno no es lo mismo que en el representante, y decía otra cosa.**
+
+Acá se leía «Student nunca entra», y eso contradecía al código: existe el portal del alumno
+—`dashboards/estudiante`, `dashboards/notas`, su propio menú— y funciona. La regla real es más
+chica: **el alumno no ESTÁ OBLIGADO a tener correo** (`Student` no incluye `EntraAlSistema`),
+porque un niño de 8 años no tiene uno. Si lo tiene, entra y ve sus notas — a un muchacho de
+bachillerato no hay razón para negárselo.
+
+Lo que sí es cierto es a quién apunta el producto: **el consumidor de las notas es el
+representante**, y es la experiencia que hay que cuidar. El portal del alumno es un extra.
 
 **El login es el CORREO, no la cédula.** Autenticar por cédula se evaluó y se descartó: mueve
 el hueco en vez de taparlo, porque un alumno de primaria tampoco tiene cédula. Y el correo es

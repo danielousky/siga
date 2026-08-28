@@ -53,7 +53,16 @@
         - if user_signed_in?
           -# El buscador va en la barra superior porque tiene que estar en TODAS
           -# las pantallas y no depender de qué menú de rol se esté mostrando.
-          = render "shared/buscador_global"
+          -#
+          -# ⚠️ Salvo en el portal del representante (MOR-157). Una mamá ve a sus
+          -# dos hijos: no tiene a quién buscar. Un buscador que devuelve siempre
+          -# lo mismo que ya está en pantalla es ruido, y encima insinúa que hay
+          -# más gente adentro a la que podría llegar.
+          -#
+          -# Se saca por ROL, y `BusquedasController` cierra además la ruta:
+          -# esconder el disparador no cierra nada.
+          - unless representante?
+            = render "shared/buscador_global"
 
           .session-menu.d-flex.align-items-center
             = link_to current_user.first_name, edit_user_registration_path, class: "user-info", style: "color: inherit;"

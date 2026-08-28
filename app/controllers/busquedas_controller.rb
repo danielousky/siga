@@ -15,6 +15,16 @@
 # resultado es ir a la ficha completa de un alumno. Costó dos bugs de «Content
 # missing»; está explicado en `busquedas/_resultados.html.haml`.
 class BusquedasController < ApplicationController
+  # ⚠️ El representante NO busca (MOR-157).
+  #
+  # Se le quitó el disparador del layout —una mamá ve a sus dos hijos, no tiene
+  # a quién buscar— y esto cierra la puerta de atrás. Esconder un botón no es
+  # cerrar nada: la ruta seguía respondiendo a cualquiera que la escribiera.
+  #
+  # Es la misma lección de `/demo_requests`, que se tapó tres veces: **tapar la
+  # puerta no alcanza si la pared tiene ventana.**
+  before_action :require_puede_buscar!
+
   def show
     @termino = params[:q].to_s.strip
     @resultados = BusquedaGlobal.para(@termino, rutas: self)
@@ -23,5 +33,11 @@ class BusquedasController < ApplicationController
     # Sin layout: lo que se devuelve es el contenido del frame, no una pantalla.
     render partial: "busquedas/resultados",
            locals: { resultados: @resultados, termino: @termino, suficiente: @suficiente }
+  end
+
+  private
+
+  def require_puede_buscar!
+    head :forbidden if representante?
   end
 end
