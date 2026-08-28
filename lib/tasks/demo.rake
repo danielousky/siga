@@ -61,9 +61,67 @@ namespace :demo do
     end
   end
 
+  # ⚠️ Borra en ORDEN y dentro de UNA transacción, en vez de truncar.
+  #
+  # `db:seed:replant` usa `TRUNCATE`, y eso trae dos problemas en esta app:
+  #
+  #   1. **Privilegios.** La app se conecta como `siga_app`, que no es dueño de
+  #      las tablas a propósito (es lo que hace que el RLS se evalúe). `TRUNCATE`
+  #      es privilegio de tabla, y descubrirlo A MITAD del truncado deja la base
+  #      partida: unas tablas vacías y otras no.
+  #   2. **No es atómico entre tablas.** Un `DELETE` ordenado dentro de una
+  #      transacción sí lo es: o se borra todo, o no se borra nada.
+  #
+  # `delete_all` y no `destroy_all`: los `dependent: :restrict_with_error` están
+  # para que nadie borre un grado con alumnos por accidente desde una pantalla.
+  # Acá el orden es explícito y las claves foráneas son la red — si el orden
+  # estuviera mal, la base lo rechaza en vez de dejar filas huérfanas.
+  #
+  # ⚠️ El orden va de HIJOS a PADRES. Cambiarlo no rompe en silencio: revienta
+  # contra una FK, que es exactamente lo que se quiere.
+  EN_ORDEN_DE_BORRADO = %w[
+    activity_grades moment_grades final_grade_books report_cards attendances
+    evaluation_activities teacher_sections student_representatives enrollments
+    grade_subjects sections evaluation_moments academic_periods
+    subjects departments grades
+    students teachers admins representatives
+    subscriptions importaciones activity_logs addresses
+    users schools
+  ].freeze
+
+  desc "Borra TODA la demo y la vuelve a sembrar (MOR-146). Exige respaldo previo."
+  task limpiar: :environment do
+    Rake::Task["demo:es_solo_demo"].invoke
+
+    unless ENV["SIGA_RESPALDO_VERIFICADO"] == "1"
+      abort "\n🚫 Falta SIGA_RESPALDO_VERIFICADO=1.\n" \
+            "   No es burocracia: esto no se puede deshacer.\n" \
+            "   Exporta la base, restáurala en otra aparte, cuenta las filas, y entonces sí.\n"
+    end
+
+    antes = Current.sin_aislamiento { [ School.count, User.count ] }
+
+    Current.sin_aislamiento do
+      ActiveRecord::Base.transaction do
+        EN_ORDEN_DE_BORRADO.each do |tabla|
+          cuantas = ActiveRecord::Base.connection.select_value("SELECT count(*) FROM #{tabla}").to_i
+          next if cuantas.zero?
+
+          ActiveRecord::Base.connection.execute("DELETE FROM #{tabla}")
+          puts format("  borradas %6d de %s", cuantas, tabla)
+        end
+      end
+    end
+
+    puts ""
+    puts "✅ Base vacía. Antes había #{antes[0]} colegios y #{antes[1]} personas."
+    puts "   Ahora corre los seeds con SIGA_ENTORNO_DEMO=1 y SIGA_SEED_PASSWORD."
+    puts ""
+  end
+
   # ⚠️ Esta es la comprobación que el issue pide ANTES de tocar nada, y no es
-  # ceremonia: `db:seed:replant` trunca. Si para entonces hay un colegio real
-  # cargado, se lo lleva por delante.
+  # ceremonia: borrar acá se lleva por delante cualquier colegio real que
+  # hubiera entrado.
   desc "¿Es seguro resembrar? Falla si hay algo que no sea la demo (MOR-146)"
   task es_solo_demo: :environment do
     Current.sin_aislamiento do
