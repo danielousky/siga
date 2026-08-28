@@ -74,6 +74,13 @@ Credenciales de los seeds (contraseña universal `123123`):
   código necesita.
   `Admin#role` es un enum: desarrollador, director, finanzas, coordinador, secretaria.
   Los helpers de autorización viven en `ApplicationController` (`can_manage_students?`, etc.).
+- **Los grados los fija la ley** (`MOR-153`). `GradoOficial` es una constante con los
+  **quince** grados de Venezuela; el **nivel se DEDUCE del nombre** («4to Grado» es
+  primaria, «4to Año» es bachillerato). La Media Técnica aporta **un** grado —el 6to
+  Año— y no seis: marcarla siembra también el bachillerato, porque no hay sexto año sin
+  los cinco anteriores. ⚠️ `Grade#media?` es el concepto del dominio (general **o**
+  técnica); preguntar `secundaria?` a secas deja ciego al sexto año, y la certificación
+  31059 es de la educación **media**. `School#niveles` se deriva de los grados.
 - **Profesor guía**: cuelga de la **sección** (`Section#leader_teacher`), no del grado
   (`MOR-150`). «1er Año A» tiene su guía y «1er Año B» el suyo; es quien pasa lista de
   ESOS alumnos. Del grado cuelga un `coordinator_teacher` **opcional**, que coordina a los

@@ -31,6 +31,9 @@ class SembrarGrados
 
   def initialize(colegio, niveles)
     @colegio = colegio
+    # ⚠️ NO se filtra por `NIVELES` y se pasa tal cual a `de_niveles`: es ahí
+    # donde se expanden las implicaciones. Marcar Media Técnica tiene que sembrar
+    # también los cinco años del bachillerato — no existe un sexto año suelto.
     @niveles = Array(niveles).compact_blank.map(&:to_sym) & GradoOficial::NIVELES
   end
 

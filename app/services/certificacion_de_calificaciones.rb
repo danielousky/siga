@@ -75,12 +75,12 @@ class CertificacionDeCalificaciones
   # Se pregunta antes de armar nada, para que quien la pide se entere en la
   # pantalla y no en la ventanilla.
   def emitible?
-    anos.any? { |grado, _| grado.secundaria? }
+    anos.any? { |grado, _| grado.media? }
   end
 
   # Los años que NO son de media general y por eso quedan fuera del documento.
   def anos_fuera_del_plan
-    anos.reject { |grado, _| grado.secundaria? }.map { |g, p| etiqueta_de_ano(g, p) }
+    anos.reject { |grado, _| grado.media? }.map { |g, p| etiqueta_de_ano(g, p) }
   end
 
   def datos
@@ -288,7 +288,7 @@ class CertificacionDeCalificaciones
   end
 
   # Solo los de media general: son los que el plan 31059 certifica.
-  def anos_del_plan = anos.select { |grado, _| grado.secundaria? }
+  def anos_del_plan = anos.select { |grado, _| grado.media? }
 
   # Sin aislamiento: una persona puede ser alumno en varios colegios de SIGA
   # (`MOR-138`), y su certificación cubre todo lo que cursó.

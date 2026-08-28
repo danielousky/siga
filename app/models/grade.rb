@@ -8,7 +8,21 @@ class Grade < ApplicationRecord
   # El valor 2 va al final a propósito aunque preescolar sea el primer nivel:
   # los enteros ya están escritos en la base y renumerarlos movería el nivel de
   # cada grado existente. El orden pedagógico lo da `orden`, no el enum.
-  enum :level, { primaria: 0, secundaria: 1, preescolar: 2 }
+  enum :level, { primaria: 0, secundaria: 1, preescolar: 2, media_tecnica: 3 }
+
+  # ⚠️ «Media» es bachillerato, general O técnica — y es lo que casi todo el
+  # código quería decir cuando preguntaba `secundaria?`.
+  #
+  # Al agregar la Media Técnica había SIETE lugares preguntando por el enum:
+  # la validación de la escala, el default de la escala, la ficha del alumno y
+  # cuatro puntos de la certificación 31059. Los siete se habrían quedado ciegos
+  # ante el sexto año — y el peor de todos en silencio: la 31059 es el documento
+  # de la educación media, y un Técnico Medio no habría podido pedirla.
+  #
+  # El enum distingue dos niveles; el dominio tiene un solo concepto. Preguntar
+  # por el concepto es lo que hace que agregar un nivel no obligue a revisar el
+  # proyecto entero.
+  def media? = secundaria? || media_tecnica?
 
   # Con qué escala se califica este grado (MOR-129).
   #
@@ -73,7 +87,7 @@ class Grade < ApplicationRecord
 
   def entrada_oficial = GradoOficial.para(name)
   validates :level, presence: true
-  validate  :secundaria_se_califica_por_numero
+  validate  :la_media_se_califica_por_numero
 
   # Un grado nuevo nace con la escala que le corresponde por nivel, y quien
   # quiera lo cambia. Sin esto, cada grado de primaria que alguien cree se
@@ -118,10 +132,10 @@ class Grade < ApplicationRecord
   # La regla del dominio, no una preferencia: no existe la calificación literal
   # en secundaria. La primaria sí elige —hay colegios que usan número desde
   # primer grado— y por eso solo se valida un lado.
-  def secundaria_se_califica_por_numero
-    return unless secundaria? && escala_literal?
+  def la_media_se_califica_por_numero
+    return unless media? && escala_literal?
 
-    errors.add(:escala, "en secundaria siempre es numérica: la literal es de primaria")
+    errors.add(:escala, "en bachillerato siempre es numérica: la literal es de primaria")
   end
 
   # El nivel y el orden salen del catálogo, no del formulario (MOR-153).
@@ -145,7 +159,7 @@ class Grade < ApplicationRecord
     # llega el modelo hoy. Un nivel de maternal con notas del 1 al 20 sería
     # indefendible delante de una madre, y es lo que salía por omisión antes de
     # MOR-153 porque el enum solo conocía dos niveles.
-    self.escala = secundaria? ? :numerica : :literal
+    self.escala = media? ? :numerica : :literal
     @escala_declarada = false
   end
 end

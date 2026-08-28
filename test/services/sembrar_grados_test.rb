@@ -148,3 +148,61 @@ class SiguienteLetraDeSeccionTest < ActiveSupport::TestCase
     end
   end
 end
+
+# La Educación Media Técnica son SEIS años (MOR-153).
+class MediaTecnicaTest < ActiveSupport::TestCase
+  setup do
+    @colegio = School.create!(name: "Técnico Industrial", dea_code: "TEC-#{Process.pid}",
+                              location: "Valencia", school_type: :secondary)
+  end
+
+  # ⚠️ Media Técnica NO es un nivel paralelo: aporta UN grado, no seis. Un
+  # colegio técnico dicta 1er a 5to Año igual que cualquier bachillerato.
+  # Modelarla completa duplicaría «1er Año» y chocaría contra el índice único.
+  test "marcar media técnica siembra los seis años, no uno suelto" do
+    con_el_colegio(@colegio) do
+      resultado = SembrarGrados.para(@colegio, niveles: [ :media_tecnica ])
+
+      assert_equal 6, resultado.creados.size,
+                   "sembró un 6to Año sin los cinco anteriores"
+      assert_equal [ "1er Año", "2do Año", "3er Año", "4to Año", "5to Año", "6to Año" ],
+                   @colegio.grades.en_orden.map(&:name)
+    end
+  end
+
+  test "el sexto año es media técnica y los cinco primeros bachillerato" do
+    con_el_colegio(@colegio) do
+      SembrarGrados.para(@colegio, niveles: [ :media_tecnica ])
+
+      assert_equal "media_tecnica", @colegio.grades.find_by(name: "6to Año").level
+      assert_equal "secundaria",    @colegio.grades.find_by(name: "5to Año").level
+      assert_equal [ :secundaria, :media_tecnica ], @colegio.niveles
+    end
+  end
+
+  # ⚠️ Los siete lugares que preguntaban `secundaria?` se habrían quedado ciegos
+  # ante el sexto año. El peor en silencio: la 31059 es el documento de la
+  # educación MEDIA, y un Técnico Medio no habría podido pedirla.
+  test "el sexto año es media, y por eso se califica del 1 al 20" do
+    con_el_colegio(@colegio) do
+      SembrarGrados.para(@colegio, niveles: [ :media_tecnica ])
+      sexto = @colegio.grades.find_by!(name: "6to Año")
+
+      assert sexto.media?, "un Técnico Medio no podría pedir su certificación 31059"
+      assert sexto.escala_numerica?
+      assert_not sexto.update(escala: :literal),
+                 "aceptó calificar por letras un año de bachillerato"
+    end
+  end
+
+  # Un bachillerato general NO recibe el sexto año.
+  test "marcar solo bachillerato deja el colegio en cinco años" do
+    con_el_colegio(@colegio) do
+      SembrarGrados.para(@colegio, niveles: [ :secundaria ])
+
+      assert_equal 5, @colegio.grades.count
+      assert_nil @colegio.grades.find_by(name: "6to Año"),
+                 "a un bachillerato general le apareció un sexto año que no dicta"
+    end
+  end
+end
