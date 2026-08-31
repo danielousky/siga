@@ -6,9 +6,7 @@
     %h1 Ahora, su colegio
 
   %p.nota-ayuda
-    Con esto queda creado y puede empezar a cargar. La entidad, el municipio y
-    la parroquia salen impresos en los documentos del ministerio, así que
-    conviene dejarlos bien desde ahora.
+    Con esto queda creado y ya puede empezar a cargar.
 
   = form_with url: mi_colegio_path, method: :post, class: "registro-form" do
     = render "shared/errors", object: @colegio
@@ -22,10 +20,10 @@
           = text_field_tag "school[name]", @colegio.name, class: "form-control",
                            autofocus: true, placeholder: "U.E. Colegio San José"
         .form-group
-          = label_tag "school[dea_code]", "Código DEA", class: "form-label"
+          = etiqueta_con_pista "school[dea_code]", "Código DEA",
+                               pista: "Lo asigna el ministerio. Si no lo tiene a mano, escriba algo provisional y corríjalo después: se puede cambiar."
           = text_field_tag "school[dea_code]", @colegio.dea_code, class: "form-control",
                            placeholder: "PD01234567"
-          %small.nota-ayuda Lo asigna el ministerio. Si no lo tiene a mano, escriba algo provisional y corríjalo después.
 
       -# ⚠️ Acá NO se pregunta qué dicta el colegio (MOR-159).
       -#

@@ -65,7 +65,7 @@
             = render "shared/buscador_global"
 
           .session-menu.d-flex.align-items-center
-            = link_to current_user.first_name, edit_user_registration_path, class: "user-info", style: "color: inherit;"
+            = link_to current_user.first_name, edit_user_registration_path, class: "user-info"
             = link_to "Cerrar sesión", destroy_user_session_path, data: { turbo_method: :delete }, class: "btn btn-outline-light btn-sm"
 
     -# ⚠️ Quien acaba de registrarse TODAVÍA no tiene rol, y eso es correcto: su

@@ -22,13 +22,12 @@
                                ubicacion_otro_value: DivisionPolitica::OTRO }}
   %legend Dónde queda y cómo contactarlo
 
-  %p.nota-ayuda
-    La entidad, el municipio y la parroquia salen impresos en los documentos del
-    ministerio. El teléfono es para que SIGA pueda comunicarse con el colegio.
-
   .form-row
     .form-group
-      = label_tag "school[entidad_federal]", "Entidad federal", class: "form-label"
+      -# La explicación de por qué estos tres importan va bajo demanda: quien ya
+      -# sabe qué es una parroquia no necesita leerlo cada vez que abre esto.
+      = etiqueta_con_pista "school[entidad_federal]", "Entidad federal",
+                           pista: "La entidad, el municipio y la parroquia salen impresos en los documentos del ministerio. Conviene dejarlos bien desde ahora."
       = select_tag "school[entidad_federal]",
                    options_for_select(EntidadFederal::TODAS, colegio.entidad_federal),
                    include_blank: "Seleccione el estado…", class: "form-select",
@@ -59,7 +58,8 @@
                          disabled: true, placeholder: "Escriba la parroquia"
 
     .form-group
-      = label_tag "school[telefono]", "Teléfono de contacto", class: "form-label"
+      = etiqueta_con_pista "school[telefono]", "Teléfono de contacto",
+                           pista: "Es para que SIGA pueda comunicarse con el colegio. No sale en ningún documento."
       = telephone_field_tag "school[telefono]", colegio.telefono, class: "form-control",
                             placeholder: "0212-555-1234"
 
@@ -70,5 +70,5 @@
 
   %noscript
     %p.nota-ayuda
-      Si el municipio o la parroquia no aparecen en las listas, recargue la
-      página con JavaScript activado o escríbanos y los cargamos nosotros.
+      Si el municipio o la parroquia no aparecen, recargue con JavaScript
+      activado o escríbanos y los cargamos nosotros.

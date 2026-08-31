@@ -1,0 +1,64 @@
+# La ayuda que aparece SOLO cuando alguien la pide (MOR-161).
+#
+# ## El problema
+#
+# Cada campo llevaba dos renglones de gris debajo, siempre visibles. Ciento dos
+# en cincuenta y tres pantallas. Eso no es guiar: es ruido permanente, y tiene
+# el mismo modo de fallar que ya está escrito en el panel del director —*«un
+# panel que siempre dice lo mismo se deja de leer, y el día que dice otra cosa
+# tampoco se lee»*—. Un formulario donde todo grita, no dice nada.
+#
+# Daniel lo puso como principio: **guiar cuando el usuario lo demande, solo
+# cuando sea necesario.**
+#
+# ## Las tres cosas que se confundían bajo un mismo `.nota-ayuda`
+#
+#     QUÉ ES ESTO      «El código DEA lo asigna el ministerio»
+#                      → `pista`: un «?» al lado de la etiqueta
+#
+#     QUÉ PASA SI…     «Sin guía, la asistencia solo la toma la dirección»
+#                      → se queda visible: es una CONSECUENCIA, no una
+#                        definición, y quien no la lea toma una decisión a ciegas
+#
+#     CÓMO SE ESCRIBE  «0212-555-1234»
+#                      → `placeholder`, no un párrafo
+#
+# ## Por qué `popover` nativo y no un controlador de Stimulus
+#
+# El navegador ya sabe hacer esto, y lo hace mejor: cerrar al tocar afuera,
+# cerrar con `esc`, y dibujarse en la capa superior —o sea que **no lo recorta
+# ningún `overflow`**, que es exactamente lo que rompe a un tooltip metido en un
+# formulario—. Todo eso son cero líneas de JavaScript.
+#
+# El anclaje al botón necesita `anchor-positioning`, que todavía no está en
+# todos los navegadores; donde no está, la tarjeta se centra. Es un degradado
+# aceptable: se sigue leyendo, se sigue cerrando.
+module PistasHelper
+  # Un «?» junto a la etiqueta. El texto aparece al tocarlo y se va solo.
+  #
+  # El id sale del texto y no de un aleatorio: así una misma pista renderizada
+  # dos veces no cambia de id entre peticiones, que rompería cualquier test que
+  # la busque por selector.
+  def pista(texto, etiqueta: "Qué es esto")
+    id = "pista-#{Digest::SHA256.hexdigest(texto.to_s)[0, 10]}"
+
+    tag.span class: "pista" do
+      safe_join([
+        tag.button(icono(:info, tamano: 14), type: "button", class: "pista-boton",
+                                             popovertarget: id, "aria-label": etiqueta),
+        tag.div(texto, id: id, popover: "auto", class: "pista-texto")
+      ])
+    end
+  end
+
+  # Una etiqueta con su pista al lado, que es como se usa el 90% de las veces.
+  #
+  # ⚠️ El «?» va junto a la ETIQUETA y no al campo: quien no sabe qué es algo lo
+  # descubre leyendo su nombre, y ahí es donde busca la explicación.
+  def etiqueta_con_pista(nombre, texto, pista: nil, **opciones)
+    contenido = [ label_tag(nombre, texto, class: "form-label", **opciones) ]
+    contenido << pista(pista) if pista.present?
+
+    tag.div safe_join(contenido), class: "form-etiqueta"
+  end
+end

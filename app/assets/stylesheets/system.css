@@ -4670,7 +4670,7 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 
 /* ---- Pestañas de una misma pantalla (MOR-149) ---- */
-/* Cada una es un enlace con su propia URL: el botón de atrás y el "mirá esto"
+/* Cada una es un enlace con su propia URL: el botón de atrás y el "mira esto"
    por WhatsApp tienen que funcionar. Ver `shared/_pestanas`. */
 .pestanas {
   display: flex;
@@ -5151,3 +5151,102 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
    catálogo (MOR-159). Va pegado a su desplegable, sin etiqueta propia: la
    etiqueta ya la puso el select de arriba. */
 .ubicacion-libre { margin-top: var(--space-xs); }
+
+/* La ficha de una sección. Salieron de estilos en línea que estaban escritos
+   cinco veces en la misma vista (revisión rails-style). */
+.seccion-conteo {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: var(--space-lg);
+}
+
+.seccion-soy-yo {
+  margin-left: var(--space-micro);
+  font-size: 12px;
+  color: var(--brand-primary);
+}
+
+.seccion-separador {
+  margin: var(--space-xl) 0;
+  border: 0;
+  border-top: 1px solid var(--border-standard);
+}
+
+.seccion-subtitulo { font-size: 16px; margin-bottom: var(--space-lg); }
+
+/* El nombre de quien tiene la sesión, en la barra: hereda el color de la barra
+   en vez de declararlo. */
+.user-info { color: inherit; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA AYUDA BAJO DEMANDA (MOR-161)
+
+   Un «?» junto a la etiqueta; el texto aparece al tocarlo y se va solo. Ver
+   `PistasHelper` para el porqué.
+
+   ⚠️ Usa `popover` nativo: el navegador se encarga de cerrar al tocar afuera,
+   de `esc`, y de dibujarlo en la CAPA SUPERIOR — o sea que ningún `overflow`
+   del formulario lo recorta, que es lo que rompe a un tooltip casero.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.form-etiqueta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-micro);
+  margin-bottom: var(--space-micro);
+}
+
+.form-etiqueta .form-label { margin-bottom: 0; }
+
+.pista { display: inline-flex; anchor-name: --pista; }
+
+.pista-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 24px de caja para un icono de 14: el objetivo táctil no puede ser el
+     dibujo. Va con `padding` y no con `width` para no deformar la línea. */
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.pista-boton:hover { color: var(--brand-primary); background: var(--surface-hover); }
+
+.pista-boton:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 1px;
+}
+
+.pista-texto {
+  max-width: 26rem;
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  box-shadow: 0 8px 24px rgba(10, 16, 26, 0.16);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+/* Anclado al «?» donde el navegador sabe hacerlo. Donde no —Firefox todavía—,
+   el popover se centra solo en la pantalla: se lee igual y se cierra igual. */
+@supports (position-anchor: --pista) {
+  .pista-texto {
+    position-anchor: --pista;
+    position-area: bottom span-right;
+    margin-top: var(--space-micro);
+    position-try-fallbacks: flip-block, flip-inline;
+  }
+}
+
+/* La nota que SÍ se queda visible: la que dice qué pasa si no se hace. Se
+   afina para que no compita con el campo, pero se sigue leyendo. */
+.nota-ayuda { max-width: 62ch; }

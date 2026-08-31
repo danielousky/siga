@@ -11,10 +11,8 @@
     %h1 Cree su cuenta
 
   %p.nota-ayuda
-    Es el primer paso. Después le vamos a pedir los datos de su colegio y ya
-    puede empezar a cargar alumnos, profesores y materias — sin pagar nada.
-    La cédula identifica a la persona en el sistema y sale en los documentos que
-    firme.
+    Después le pedimos los datos de su colegio y ya puede empezar a cargar
+    alumnos, profesores y materias, sin pagar nada.
 
   = form_with model: resource, url: registrarse_path, class: "registro-form" do |f|
     = render "shared/errors", object: resource
@@ -35,7 +33,8 @@
         = f.select :document_type, User::DOCUMENT_TYPE_LABELS.map { |v, t| [ t, v ] },
                    {}, class: "form-select"
       .form-group
-        = f.label :document, class: "form-label"
+        = etiqueta_con_pista "user[document]", "Cédula de identidad",
+                             pista: "Identifica a la persona en todo el sistema, y sale en los documentos que usted firme como director."
         = f.text_field :document, class: "form-control", placeholder: "V-12345678"
 
     .form-group
@@ -45,8 +44,10 @@
     .form-row
       .form-group
         = f.label :password, class: "form-label"
-        = f.password_field :password, class: "form-control", autocomplete: "new-password"
-        %small.nota-ayuda= "Mínimo #{Devise.password_length.min} caracteres."
+        = f.password_field :password, class: "form-control", autocomplete: "new-password",
+                           placeholder: "Mínimo #{Devise.password_length.min} caracteres"
+        -# El mínimo va en el campo, no en un párrafo: es una restricción de
+        -# formato y ese es el trabajo del `placeholder`.
       .form-group
         = f.label :password_confirmation, class: "form-label"
         = f.password_field :password_confirmation, class: "form-control", autocomplete: "new-password"
