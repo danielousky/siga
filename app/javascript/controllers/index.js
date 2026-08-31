@@ -21,6 +21,7 @@ import PasswordVisibilityController from "controllers/password_visibility_contro
 import PonderacionController from "controllers/ponderacion_controller"
 import MenuController from "controllers/menu_controller"
 import SidebarController from "controllers/sidebar_controller"
+import UbicacionController from "controllers/ubicacion_controller"
 import SearchFilterController from "controllers/search_filter_controller"
 
 application.register("asistencia", AsistenciaController)
@@ -34,4 +35,5 @@ application.register("password-visibility", PasswordVisibilityController)
 application.register("ponderacion", PonderacionController)
 application.register("menu", MenuController)
 application.register("sidebar", SidebarController)
+application.register("ubicacion", UbicacionController)
 application.register("search-filter", SearchFilterController)

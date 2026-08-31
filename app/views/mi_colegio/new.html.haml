@@ -27,15 +27,14 @@
                            placeholder: "PD01234567"
           %small.nota-ayuda Lo asigna el ministerio. Si no lo tiene a mano, escriba algo provisional y corríjalo después.
 
-      .form-group
-        = label_tag "school[school_type]", "Qué dicta principalmente", class: "form-label"
-        = select_tag "school[school_type]",
-                     options_for_select([ [ "Primaria", "primary" ], [ "Bachillerato", "secondary" ] ], @colegio.school_type),
-                     class: "form-select"
-        %small.nota-ayuda
-          Es solo el punto de partida. En el siguiente paso marca todos los
-          niveles que dicta —preescolar, primaria, bachillerato— y los grados se
-          crean solos.
+      -# ⚠️ Acá NO se pregunta qué dicta el colegio (MOR-159).
+      -#
+      -# Se preguntaba, y dos pantallas después `/niveles` volvía a preguntar lo
+      -# mismo —mejor, con las tres casillas y creando los grados—. Preguntar dos
+      -# veces la misma cosa le enseña a la persona que el sistema no se acuerda
+      -# de lo que le dijo.
+      -#
+      -# `school_type` se deduce de los grados en `SembrarGrados`.
 
       .form-group
         = label_tag "school[location]", "Ciudad", class: "form-label"

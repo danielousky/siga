@@ -7,6 +7,7 @@
 # Lo administra la dirección del propio colegio y no SIGA: nadie de afuera sabe
 # cuál es el escudo correcto, ni tiene por qué decidirlo.
 class ColegioController < ApplicationController
+  include NormalizaLaUbicacion
   before_action :require_direccion!
 
   def show
@@ -16,7 +17,7 @@ class ColegioController < ApplicationController
   def update
     @colegio = Current.school
 
-    if @colegio.update(colegio_params)
+    if @colegio.update(con_la_ubicacion_resuelta(colegio_params))
       redirect_to colegio_path, notice: "Listo. El escudo aparece en el sistema y en los documentos."
     else
       render :show, status: :unprocessable_entity
@@ -48,7 +49,8 @@ class ColegioController < ApplicationController
 
   def colegio_params
     params.require(:school).permit(:name, :location, :logo, :firma, :sello,
-                                   :entidad_federal, :municipio, :parroquia,
+                                   :entidad_federal, :municipio, :municipio_libre,
+                                   :parroquia, :parroquia_libre,
                                    :direccion, :telefono)
   end
 end

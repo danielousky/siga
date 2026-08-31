@@ -5146,3 +5146,8 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 /* Las dos pantallas del camino de entrada: registro y alta del colegio. */
 .registro { max-width: 46rem; margin: 0 auto; }
 .registro-form { display: flex; flex-direction: column; gap: var(--space-md); }
+
+/* El campo que aparece cuando el municipio o la parroquia no están en el
+   catálogo (MOR-159). Va pegado a su desplegable, sin etiqueta propia: la
+   etiqueta ya la puso el select de arriba. */
+.ubicacion-libre { margin-top: var(--space-xs); }

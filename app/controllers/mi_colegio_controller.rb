@@ -17,6 +17,7 @@
 # repetido o falta un campo, la persona ya tiene su cuenta y vuelve a intentar.
 # Juntarlos haría que un error de tipeo en la dirección le borre el usuario.
 class MiColegioController < ApplicationController
+  include NormalizaLaUbicacion
   # ⚠️ Quien llega acá TODAVÍA NO TIENE colegio, así que `Current.school` queda
   # en nil y el RLS no devuelve ni una fila. Está bien: esta pantalla no consulta
   # nada del colegio — lo está creando.
@@ -27,7 +28,11 @@ class MiColegioController < ApplicationController
   end
 
   def create
-    @colegio = School.new(colegio_params.merge(registrado_por: current_user))
+    # El tipo arranca en primaria y lo corrige `SembrarGrados` en el paso
+    # siguiente. La columna es `NOT NULL`, así que necesita un valor: el que
+    # importa es el que sale de los niveles que el director marque.
+    @colegio = School.new(con_la_ubicacion_resuelta(colegio_params)
+                            .merge(registrado_por: current_user, school_type: :primary))
 
     School.transaction do
       @colegio.save!
@@ -78,8 +83,11 @@ class MiColegioController < ApplicationController
   end
 
   def colegio_params
-    params.require(:school).permit(:name, :dea_code, :location, :school_type,
-                                   :entidad_federal, :municipio, :parroquia,
+    # `school_type` NO se acepta acá: no se pregunta en el alta y se deduce de
+    # los grados en `SembrarGrados`. Ver `mi_colegio/new`.
+    params.require(:school).permit(:name, :dea_code, :location,
+                                   :entidad_federal, :municipio, :municipio_libre,
+                                   :parroquia, :parroquia_libre,
                                    :direccion, :telefono)
   end
 end

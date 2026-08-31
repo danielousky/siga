@@ -6,6 +6,7 @@ module Siga
   # terminal contra producción no escala más allá del primer cliente, y cada vez
   # que se hace hay un superusuario tocando la base de todos los colegios.
   class ColegiosController < BaseController
+    include NormalizaLaUbicacion
     before_action :exigir_fundador!, only: [:new, :create]
     before_action :set_colegio, only: [:show]
 
@@ -35,7 +36,7 @@ module Siga
     # pasos garantiza que alguna vez quede uno a medias — el alta se hace una vez
     # por cliente y nadie recuerda el segundo paso.
     def create
-      @colegio = School.new(colegio_params)
+      @colegio = School.new(con_la_ubicacion_resuelta(colegio_params))
       @usuario = User.new(usuario_params)
 
       School.transaction do
@@ -63,7 +64,8 @@ module Siga
 
     def colegio_params
       params.require(:school).permit(:name, :dea_code, :location, :school_type,
-                                     :entidad_federal, :municipio, :parroquia,
+                                     :entidad_federal, :municipio, :municipio_libre,
+                                     :parroquia, :parroquia_libre,
                                      :direccion, :telefono)
     end
 

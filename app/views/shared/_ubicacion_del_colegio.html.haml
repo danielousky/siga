@@ -1,24 +1,25 @@
--# Dónde queda el colegio, y cómo llamarlo (MOR-157).
+-# Dónde queda el colegio, y cómo llamarlo (MOR-157, MOR-159).
 -#
 -# ## Por qué es un parcial y no está escrito en cada formulario
 -#
--# Estos campos hacen falta en tres lugares: el alta desde el panel de SIGA, la
--# ficha de identidad que edita el director, y el registro abierto. Escritos tres
+-# Estos campos hacen falta en el alta desde el panel de SIGA, en la ficha de
+-# identidad que edita el director, y en el registro abierto. Escritos tres
 -# veces, el día que se agregue un campo van a quedar dos formularios viejos —y
 -# un documento del MPPE saliendo incompleto según por dónde se cargó el colegio.
 -#
--# ⚠️ Usa `text_field_tag "school[...]"` en vez de un `form builder` para que
--# sirva DENTRO de los dos tipos de formulario que hay: `form_with url:` (el
--# panel de SIGA, que crea colegio y director a la vez) y `form_with model:` (la
--# ficha del colegio). Los dos mandan los mismos nombres de parámetro.
+-# ⚠️ Usa `select_tag` / `text_field_tag` con `"school[...]"` en vez de un form
+-# builder para que sirva DENTRO de los dos tipos de formulario que hay:
+-# `form_with url:` (el panel de SIGA, que crea colegio y director a la vez) y
+-# `form_with model:` (la ficha del colegio). Los dos mandan los mismos nombres.
 -#
 -# ## Y por qué esto no es cosmético
 -#
 -# `entidad_federal`, `municipio` y `parroquia` salen IMPRESAS en los documentos
--# del MPPE. Las columnas existen desde que se hicieron esos documentos; lo que
--# faltaba era un formulario donde escribirlas, así que había datos obligatorios
--# que ningún humano podía cargar.
-%fieldset.siga-fieldset
+-# del MPPE. Como texto libre producían «Libertador», «Mcpio. Libertador» y
+-# «LIBERTADOR» para el mismo lugar; en cascada producen siempre lo mismo.
+%fieldset.siga-fieldset{data: { controller: "ubicacion",
+                               ubicacion_catalogo_value: DivisionPolitica.como_json_para_el_navegador,
+                               ubicacion_otro_value: DivisionPolitica::OTRO }}
   %legend Dónde queda y cómo contactarlo
 
   %p.nota-ayuda
@@ -30,17 +31,33 @@
       = label_tag "school[entidad_federal]", "Entidad federal", class: "form-label"
       = select_tag "school[entidad_federal]",
                    options_for_select(EntidadFederal::TODAS, colegio.entidad_federal),
-                   include_blank: "Seleccione…", class: "form-select"
+                   include_blank: "Seleccione el estado…", class: "form-select",
+                   data: { ubicacion_target: "entidad", action: "change->ubicacion#alCambiarEntidad" }
+
     .form-group
       = label_tag "school[municipio]", "Municipio", class: "form-label"
-      = text_field_tag "school[municipio]", colegio.municipio, class: "form-control",
-                       placeholder: "Libertador"
+      -# El desplegable lo llena el controlador desde el catálogo. `data-actual`
+      -# es lo que ya estaba guardado: si el formulario vuelve con errores, no se
+      -# puede perder lo que la persona ya eligió.
+      = select_tag "school[municipio]", nil, class: "form-select",
+                   data: { ubicacion_target: "municipio", actual: colegio.municipio,
+                           action: "change->ubicacion#alCambiarMunicipio" }
+      -# ⚠️ La salida a mano. El catálogo está incompleto y NO puede impedirle a
+      -# un colegio registrarse: uno que no puede registrarse no vuelve.
+      .form-group.ubicacion-libre{hidden: true, data: { ubicacion_target: "municipioLibre" }}
+        = text_field_tag "school[municipio_libre]", nil, class: "form-control",
+                         disabled: true, placeholder: "Escriba el municipio"
 
   .form-row
     .form-group
       = label_tag "school[parroquia]", "Parroquia", class: "form-label"
-      = text_field_tag "school[parroquia]", colegio.parroquia, class: "form-control",
-                       placeholder: "El Recreo"
+      = select_tag "school[parroquia]", nil, class: "form-select",
+                   data: { ubicacion_target: "parroquia", actual: colegio.parroquia,
+                           action: "change->ubicacion#alCambiarParroquia" }
+      .form-group.ubicacion-libre{hidden: true, data: { ubicacion_target: "parroquiaLibre" }}
+        = text_field_tag "school[parroquia_libre]", nil, class: "form-control",
+                         disabled: true, placeholder: "Escriba la parroquia"
+
     .form-group
       = label_tag "school[telefono]", "Teléfono de contacto", class: "form-label"
       = telephone_field_tag "school[telefono]", colegio.telefono, class: "form-control",
@@ -50,3 +67,8 @@
     = label_tag "school[direccion]", "Dirección exacta", class: "form-label"
     = text_field_tag "school[direccion]", colegio.direccion, class: "form-control",
                      placeholder: "Av. Principal, entre calles 3 y 4, Edif. Escolar"
+
+  %noscript
+    %p.nota-ayuda
+      Si el municipio o la parroquia no aparecen en las listas, recargue la
+      página con JavaScript activado o escríbanos y los cargamos nosotros.

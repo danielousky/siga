@@ -111,6 +111,28 @@ class RegistroAbiertoTest < ActionDispatch::IntegrationTest
     assert_response :redirect
   end
 
+  # ⚠️ Preguntar dos veces la misma cosa le enseña a la persona que el sistema
+  # no se acuerda de lo que le dijo. El alta preguntaba «qué dicta
+  # principalmente» y dos pantallas después `/niveles` volvía a preguntarlo,
+  # mejor. El tipo se DEDUCE de los grados en `SembrarGrados`.
+  test "el alta no pregunta qué dicta el colegio: se deduce de los niveles" do
+    registrarse
+
+    get nuevo_mi_colegio_path
+    assert_select "[name='school[school_type]']", 0,
+                  "el alta volvió a preguntar el tipo, que `/niveles` ya pregunta mejor"
+
+    post mi_colegio_path, params: { school: COLEGIO.except(:school_type) }
+    colegio = Current.sin_aislamiento { School.find_by!(dea_code: "PD00555") }
+
+    con_el_colegio(colegio) { SembrarGrados.para(colegio, niveles: [ :primaria ]) }
+    assert_equal "primary", colegio.reload.school_type
+
+    con_el_colegio(colegio) { SembrarGrados.para(colegio, niveles: [ :secundaria ]) }
+    assert_equal "secondary", colegio.reload.school_type,
+                 "un colegio con bachillerato es `secondary` aunque también dé primaria"
+  end
+
   private
 
   def registrarse
