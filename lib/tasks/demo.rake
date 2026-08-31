@@ -181,3 +181,28 @@ namespace :demo do
     end
   end
 end
+
+# ⚠️ Fuera del namespace `demo`: esto no es de la demostración, es del correo
+# que le avisa al equipo de SIGA que entró un cliente.
+namespace :avisos do
+  desc "Manda el aviso de colegio nuevo con un colegio real, para comprobar que sale (MOR-158)"
+  task probar: :environment do
+    destinatario = PlataformaMailer.destinatario
+
+    if destinatario.blank?
+      abort "\n🚫 SIGA_AVISOS_EMAIL no está configurada. Sin ella el aviso NO se manda\n" \
+            "   —y no falla, que es lo peligroso: un colegio nuevo entra y nadie se entera.\n"
+    end
+
+    colegio, usuario = Current.sin_aislamiento do
+      [ School.order(:id).first, User.order(:id).first ]
+    end
+    abort "🚫 No hay ningún colegio con el que probar." if colegio.nil?
+
+    puts "Mandando el aviso a #{destinatario} con #{colegio.name}…"
+    # `deliver_now` y no `deliver_later`: si se encola, esto termina diciendo
+    # «listo» sin que el correo haya salido, que es justo lo que se comprueba.
+    PlataformaMailer.colegio_registrado(colegio, usuario).deliver_now
+    puts "✅ Salió. Si no llega en unos minutos, revisa el log y la carpeta de spam."
+  end
+end
