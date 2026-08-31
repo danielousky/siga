@@ -120,7 +120,7 @@ class EvaluationActivitiesControllerTest < ActionDispatch::IntegrationTest
         school: @esc.colegio, name: "2026-2027",
         start_date: Date.new(2026, 9, 1), end_date: Date.new(2027, 7, 31)
       )
-      EvaluationMoment.create!(academic_period: periodo, name: "Primer Semestre", weight: 50)
+      EvaluationMoment.create!(academic_period: periodo, name: "Primer Semestre")
     end
 
     assert_no_difference -> { cantidad(EvaluationActivity) } do

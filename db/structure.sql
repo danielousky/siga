@@ -526,7 +526,6 @@ ALTER SEQUENCE public.evaluation_activities_id_seq OWNED BY public.evaluation_ac
 CREATE TABLE public.evaluation_moments (
     id bigint NOT NULL,
     name character varying NOT NULL,
-    weight numeric(5,2) NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     academic_period_id bigint NOT NULL,
@@ -4052,6 +4051,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260831210000'),
 ('20260831180000'),
 ('20260828140000'),
 ('20260827230000'),

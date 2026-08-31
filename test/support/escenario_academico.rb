@@ -63,7 +63,7 @@ module EscenarioAcademico
       )
 
       lapsos = pesos.each_with_index.map do |peso, i|
-        EvaluationMoment.create!(academic_period: periodo, name: "Lapso #{i + 1}", weight: peso)
+        EvaluationMoment.create!(academic_period: periodo, name: "Lapso #{i + 1}")
       end
 
       departamento = Department.create!(school: colegio, name: "Ciencias #{n}")
@@ -115,7 +115,7 @@ module EscenarioAcademico
       parejo = 100 / lapsos
       lapsos.times do |i|
         peso = i == lapsos - 1 ? 100 - (parejo * (lapsos - 1)) : parejo
-        EvaluationMoment.create!(academic_period: periodo, name: "Lapso #{i + 1}", weight: peso)
+        EvaluationMoment.create!(academic_period: periodo, name: "Lapso #{i + 1}")
       end
       Section.create!(grade: escenario.grado, academic_period: periodo, name: seccion, capacity: 30)
 

@@ -10,10 +10,16 @@
       %tr
         %th Período
         %th= EvaluationMoment.human_attribute_name(:name)
-        %th Peso (%)
+        %th Desde
+        %th Hasta
     %tbody
       - @evaluation_moments.each do |moment|
         %tr
           %td= link_to moment.academic_period.name, edit_evaluation_moment_path(moment)
           %td= moment.name
-          %td= number_with_precision(moment.weight, precision: 0)
+          -# ⚠️ Acá iba el «Peso (%)», que no significaba nada: el anual es el
+          -# PROMEDIO de los lapsos (Art. 111), no un promedio ponderado. Lo que
+          -# de verdad hace algo son las fechas: sin ellas el boletín cuenta las
+          -# inasistencias del año entero en vez de las del lapso.
+          %td= moment.starts_on ? l(moment.starts_on, format: :short) : "—"
+          %td= moment.ends_on ? l(moment.ends_on, format: :short) : "—"

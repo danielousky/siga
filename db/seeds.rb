@@ -152,25 +152,25 @@ puts "📊 Creando momentos de evaluación..."
 # estorbarle al otro — eso era imposible antes, cuando los pesos sumaban sobre
 # toda la tabla y el primer colegio en llegar dejaba a los demás sin espacio.
 #
-# El `weight` describe qué parte del año representa cada lapso. NO entra en el
-# cálculo de la nota anual: el Artículo 111 del Reglamento manda promedio simple
-# de los lapsos (MOR-93). Se deja el 30/30/40 porque es lo que un colegio
-# venezolano espera ver escrito.
+# ⚠️ Un lapso NO tiene peso (MOR-164). El Artículo 111 manda promedio simple de
+# los tres, así que un «30/30/40» escrito al lado no significaba nada — y la
+# columna se borró.
+#
 # Las fechas son las de un año escolar venezolano real: arranca a mediados de
 # septiembre y cierra a mediados de julio. Sin ellas el boletín cuenta las
 # inasistencias del AÑO entero en vez de las del lapso, y lo aclara en el papel.
 LAPSOS_TRES = [
-  { name: "Primer Lapso",  weight: 30.0, desde: [ 9, 15 ], hasta: [ 12, 20 ] },
-  { name: "Segundo Lapso", weight: 30.0, desde: [ 1,  8 ], hasta: [  3, 31 ] },
-  { name: "Tercer Lapso",  weight: 40.0, desde: [ 4,  6 ], hasta: [  7, 15 ] }
+  { name: "Primer Lapso", desde: [ 9, 15 ], hasta: [ 12, 20 ] },
+  { name: "Segundo Lapso", desde: [ 1,  8 ], hasta: [  3, 31 ] },
+  { name: "Tercer Lapso", desde: [ 4,  6 ], hasta: [  7, 15 ] }
 ].freeze
 
-# 2026-2027 estrena una estructura DISTINTA a propósito: dos lapsos al 50 %.
+# 2026-2027 estrena una estructura DISTINTA a propósito: dos lapsos en vez de tres.
 # Sirve para ver que reorganizar la evaluación de un año nuevo no toca en nada
 # la del año anterior ni las notas ya calculadas.
 LAPSOS_DOS = [
-  { name: "Primer Semestre",  weight: 50.0, desde: [ 9, 15 ], hasta: [ 1, 31 ] },
-  { name: "Segundo Semestre", weight: 50.0, desde: [ 2,  2 ], hasta: [ 7, 15 ] }
+  { name: "Primer Semestre", desde: [ 9, 15 ], hasta: [ 1, 31 ] },
+  { name: "Segundo Semestre", desde: [ 2,  2 ], hasta: [ 7, 15 ] }
 ].freeze
 
 {
@@ -179,9 +179,7 @@ LAPSOS_DOS = [
   periodo_bolivar_siguiente => LAPSOS_DOS
 }.each do |periodo, lapsos|
   lapsos.each do |lapso|
-    EvaluationMoment.find_or_create_by!(name: lapso[:name], academic_period: periodo) do |m|
-      m.weight = lapso[:weight]
-    end.tap do |m|
+    EvaluationMoment.find_or_create_by!(name: lapso[:name], academic_period: periodo).tap do |m|
       # `find_or_create_by!` no toca los que ya existen, y estas fechas son
       # nuevas: se asignan aparte para que un seed sobre una base ya sembrada
       # las complete en vez de dejarlas vacías.

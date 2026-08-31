@@ -12,10 +12,14 @@
     = f.label :name, class: "form-label"
     = f.text_field :name, class: "form-control"
 
-  .form-group
-    = con_pista "Describe qué parte del año representa el lapso. No entra en el cálculo: la nota anual es el promedio de los lapsos, sin ponderar (Art. 111 del Reglamento General de la LOE)." do
-      = f.label :weight, "Peso (%)", class: "form-label"
-    = f.number_field :weight, class: "form-control", step: 0.01, min: 0, max: 100
+  -# ⚠️ Acá se pedía el «Peso (%)» del lapso, y no significaba nada (MOR-164).
+  -#
+  -# El Artículo 111 dice que la calificación definitiva se obtiene del PROMEDIO
+  -# de los tres lapsos. Promedio, no promedio ponderado: los tres pesan igual
+  -# porque son un promedio, no porque tengan asignado un 33,33 %.
+  -#
+  -# Era un campo que no hacía nada y que, por su validación de «suma ≤ 100»,
+  -# podía impedir crear un lapso. La columna se borró.
 
   -# Las fechas son opcionales, y por eso van con su nota: sin ellas el boletín
   -# no puede decir cuántos días faltó el alumno EN ESTE LAPSO —contaría los del

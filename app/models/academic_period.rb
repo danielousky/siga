@@ -82,15 +82,9 @@ class AcademicPeriod < ApplicationRecord
 
     nombres = cuantos == LAPSOS.size ? LAPSOS : Array.new(cuantos) { |i| "Lapso #{i + 1}" }
 
-    # ⚠️ Los pesos NO entran en ningún cálculo —el anual es promedio simple por
-    # el Artículo 111— pero el modelo exige que cierren en 100. Se reparten
-    # parejos y el resto va al último, o tres lapsos sumarían 99.
-    parejo = 100 / cuantos
-
     nombres.each_with_index.map do |nombre, i|
       desde, hasta = tramo_del_lapso(i, cuantos)
-      evaluation_moments.create!(name: nombre, starts_on: desde, ends_on: hasta,
-                                 weight: i == cuantos - 1 ? 100 - (parejo * (cuantos - 1)) : parejo)
+      evaluation_moments.create!(name: nombre, starts_on: desde, ends_on: hasta)
     end
   end
 

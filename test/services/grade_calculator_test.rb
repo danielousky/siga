@@ -341,7 +341,7 @@ class GradeCalculatorTest < ActiveSupport::TestCase
       otro = AcademicPeriod.create!(
         school: esc.colegio, name: "2026-2027", start_date: Date.new(2026, 9, 1), end_date: Date.new(2027, 7, 31)
       )
-      semestre_ajeno = EvaluationMoment.create!(academic_period: otro, name: "Semestre 1", weight: 100)
+      semestre_ajeno = EvaluationMoment.create!(academic_period: otro, name: "Semestre 1")
 
       calificar_lapsos(esc, [10, 20])
 

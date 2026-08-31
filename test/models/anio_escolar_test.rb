@@ -84,17 +84,6 @@ class AnioEscolarTest < ActiveSupport::TestCase
     end
   end
 
-  # ⚠️ Los pesos NO entran en ningún cálculo —el anual es promedio simple por el
-  # Art. 111— pero el modelo exige que cierren en 100. Tres tercios parejos
-  # sumarían 99, así que el resto va al último.
-  test "los pesos de los lapsos cierran en 100" do
-    con_el_colegio(@colegio) do
-      periodo = AcademicPeriod.para_el_anio(2026)
-      periodo.save!
-
-      assert_equal 100, periodo.sembrar_lapsos.sum { |l| l.weight.to_i }
-    end
-  end
 
   # Idempotente: se llama al crear el año y se puede volver a llamar. Sin esto,
   # un segundo intento chocaría contra el índice único del nombre.

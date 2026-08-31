@@ -248,8 +248,17 @@ guardado incremental, los promedios se recalculan solos y el alumno los ve el mi
 | **111** | El anual es el **promedio** de los lapsos, **sin ponderar** | `calculate_final_grade` |
 | **112** | La nota de la segunda oportunidad es la definitiva | `final_score = max(anual, reparación)` |
 
-`evaluation_moments.weight` describe la estructura del año y **no entra en ningún cálculo**:
-la decisión fue apegarse a la norma en vez de generalizarla.
+⚠️ **Un lapso NO tiene peso** (`MOR-164`). La columna `evaluation_moments.weight` existía,
+se validaba y **no entraba en ningún cálculo** — el 111 manda promedio simple, así que un
+«30/30/40» escrito al lado no significaba nada. Se borró: era un campo que no hacía nada y
+que, por su validación de «suma ≤ 100», podía impedir crear un lapso.
+
+⚠️ **El 70/30 SÍ es norma, y es otra cosa.** El mismo artículo dice que la nota de un lapso
+se forma con 70 % de evaluaciones parciales más 30 % de una evaluación final del lapso. Eso
+vive en `EvaluationActivity#weight_percentage`, que sí entra en el cálculo. SIGA no impone
+esa estructura —los pesos son libres mientras cierren en 100— pero **propone el que falta**
+al crear una evaluación, en vez de pedirle al profesor una resta que el sistema ya tiene
+hecha.
 
 ⚠️ **Una calificación IMPORTADA no la recalcula ni la borra nadie** (`origen` en
 `moment_grades` y `final_grade_books`). El historial de un colegio no tiene actividades debajo

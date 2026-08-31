@@ -69,7 +69,8 @@ class ImportarHistorialTest < ActionDispatch::IntegrationTest
       assert_equal Date.new(2023, 9, 15), periodo.start_date
       assert_equal Date.new(2024, 7, 31), periodo.end_date
       assert_equal 3, EvaluationMoment.where(academic_period: periodo).count
-      assert_equal 100, EvaluationMoment.where(academic_period: periodo).sum(:weight)
+      # Un lapso ya no tiene peso (MOR-164): lo que importa es que estén los tres.
+      assert_equal 3, EvaluationMoment.where(academic_period: periodo).count
     end
   end
 

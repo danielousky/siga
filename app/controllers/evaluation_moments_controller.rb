@@ -54,7 +54,7 @@ class EvaluationMomentsController < ApplicationController
   end
 
   def evaluation_moment_params
-    params.require(:evaluation_moment).permit(:academic_period_id, :name, :weight, :starts_on, :ends_on)
+    params.require(:evaluation_moment).permit(:academic_period_id, :name, :starts_on, :ends_on)
   end
 
   def require_admin_access!

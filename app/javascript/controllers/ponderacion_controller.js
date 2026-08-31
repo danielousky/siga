@@ -34,7 +34,30 @@ export default class extends Controller {
       })
     }
 
+    this.proponerElPeso()
     this.recalcular()
+  }
+
+  // ⚠️ Propone el peso que falta, en vez de dejar el campo vacío (MOR-164).
+  //
+  // El profesor tenía que mirar el medidor, restar de cabeza y escribir el
+  // resultado. SIGA ya sabe cuánto queda libre: pedírselo es pedirle que haga
+  // una cuenta que el sistema tiene hecha.
+  //
+  // Es una PROPUESTA, no una imposición: se puede escribir otra cosa encima. Un
+  // profesor que reparte 40/30/30 borra el 100 y escribe 40 — y a partir de ahí
+  // el sistema le propone lo que va quedando.
+  proponerElPeso() {
+    // Solo si el campo está vacío: nunca se le pisa un número escrito a mano, ni
+    // el peso de una evaluación que se está editando.
+    if (this.pesoTarget.value) return
+
+    const datos = this.#asignacionActual()
+    const lapso = this.lapsoTarget.value
+    if (!datos || !lapso) return
+
+    const libre = 100 - Number(datos.usado[lapso] ?? 0)
+    if (libre > 0) this.pesoTarget.value = Number(libre.toFixed(2))
   }
 
   recalcular() {
@@ -58,6 +81,14 @@ export default class extends Controller {
 
     this.leyendaTarget.textContent = this.#leyenda(usado, nuevo, total, libre)
     this.leyendaTarget.classList.toggle("weight-meter-value--excedido", total > 100)
+  }
+
+  // Al cambiar de lapso también cambia lo que queda libre, así que la propuesta
+  // se vuelve a calcular.
+  lapsoCambio() {
+    this.pesoTarget.value = ""
+    this.proponerElPeso()
+    this.recalcular()
   }
 
   #asignacionActual() {
