@@ -25,7 +25,7 @@
           %th= School.model_name.human
           %th Código DEA
           %th Ubicación
-          %th Tipo
+          %th Niveles
           %th.num Alumnos
       %tbody
         - @colegios.each do |colegio|
@@ -33,5 +33,9 @@
             %td= link_to colegio.name, siga_colegio_path(colegio)
             %td.mono= colegio.dea_code
             %td.apagado= colegio.location
-            %td.apagado= colegio.school_type == "primary" ? "Primaria" : "Media general"
+            -# Los niveles REALES, derivados de los grados (MOR-160). «Tipo» era
+            -# excluyente y mentía: un colegio con preescolar y primaria decía
+            -# solo «Primaria». Y «— sin definir» es informativo: delata al que se
+            -# registró y no terminó de arrancar.
+            %td.apagado= colegio.que_dicta || "— sin definir"
             %td.num= @alumnos[colegio.id] || 0

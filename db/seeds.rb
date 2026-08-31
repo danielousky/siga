@@ -84,7 +84,7 @@ puts "📚 Creando escuelas..."
 # genera constancias con renglones en blanco — y es lo primero que mira un
 # director al que le estás mostrando el producto.
 school_bolivar = School.find_or_create_by!(dea_code: "BOL-001") do |s|
-  s.name = "U.E. Simón Bolívar"; s.location = "Caracas, Distrito Capital"; s.school_type = :secondary
+  s.name = "U.E. Simón Bolívar"; s.location = "Caracas, Distrito Capital"
 end
 school_bolivar.update!(entidad_federal: "Distrito Capital", municipio: "Libertador",
                        parroquia: "El Recreo", telefono: "0212-555-1234",
@@ -96,7 +96,7 @@ school_bolivar.update!(entidad_federal: "Distrito Capital", municipio: "Libertad
 # El contraste entre los dos colegios es además el mejor material de la demo:
 # mismo sistema, mismas pantallas, y cada uno calificando como le corresponde.
 school_bello = School.find_or_create_by!(dea_code: "AND-002") do |s|
-  s.name = "U.E. Andrés Bello"; s.location = "Valencia, Carabobo"; s.school_type = :primary
+  s.name = "U.E. Andrés Bello"; s.location = "Valencia, Carabobo"
 end
 school_bello.update!(entidad_federal: "Carabobo", municipio: "Valencia",
                      parroquia: "San José", telefono: "0241-555-6677",
@@ -304,8 +304,8 @@ puts "   ✓ 5 grados Bolívar (#{gbol[:g1].grade_subjects.count} materias en 1r
 # es además lo que hace un director de verdad en su primera hora: marca los
 # niveles y los grados nacen con su nombre, su nivel y su orden.
 #
-# Bello dicta preescolar Y primaria, que es el caso que `school_type` no podía
-# representar por ser excluyente.
+# Bello dicta preescolar Y primaria, que es el caso que la vieja columna
+# `school_type` no podía representar por ser excluyente (MOR-160).
 Current.school = school_bello
 SembrarGrados.para(school_bello, niveles: [ :preescolar, :primaria ])
 

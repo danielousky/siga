@@ -25,9 +25,12 @@
       .form-group
         = label_tag "school[location]", "Ubicación", class: "form-label"
         = text_field_tag "school[location]", @colegio.location, class: "form-control", placeholder: "Caracas, Distrito Capital"
-      .form-group
-        = label_tag "school[school_type]", "Tipo", class: "form-label"
-        = select_tag "school[school_type]", options_for_select([["Primaria", "primary"], ["Media general", "secondary"]], @colegio.school_type), class: "form-select"
+      -# ⚠️ Acá NO se pregunta qué dicta el colegio (MOR-160).
+      -#
+      -# `school_type` era excluyente —o primaria o bachillerato— y un colegio
+      -# venezolano corriente dicta preescolar Y primaria Y bachillerato. Lo que
+      -# dicta se DEDUCE de sus grados, y los grados se siembran marcando niveles
+      -# en `/niveles`, que es donde la pregunta se hace bien.
         %small.nota-ayuda
           Da el valor por defecto de la escala de sus grados: primaria por
           literal, media por número. Cada grado lo puede cambiar.

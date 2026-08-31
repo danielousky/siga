@@ -28,11 +28,10 @@ class MiColegioController < ApplicationController
   end
 
   def create
-    # El tipo arranca en primaria y lo corrige `SembrarGrados` en el paso
-    # siguiente. La columna es `NOT NULL`, así que necesita un valor: el que
-    # importa es el que sale de los niveles que el director marque.
+    # Qué dicta el colegio no se pregunta acá: se deduce de los grados, y los
+    # grados se siembran marcando niveles en `/niveles` (MOR-160).
     @colegio = School.new(con_la_ubicacion_resuelta(colegio_params)
-                            .merge(registrado_por: current_user, school_type: :primary))
+                            .merge(registrado_por: current_user))
 
     School.transaction do
       @colegio.save!

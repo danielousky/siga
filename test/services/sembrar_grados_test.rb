@@ -10,7 +10,7 @@ class SembrarGradosTest < ActiveSupport::TestCase
   # colegio recién dado de alta.
   setup do
     @colegio = School.create!(name: "Colegio del Catálogo", dea_code: "CAT-#{Process.pid}",
-                              location: "Caracas", school_type: :secondary)
+                              location: "Caracas")
   end
 
   test "marcar los tres niveles crea los catorce grados con su nivel correcto" do
@@ -153,7 +153,7 @@ end
 class MediaTecnicaTest < ActiveSupport::TestCase
   setup do
     @colegio = School.create!(name: "Técnico Industrial", dea_code: "TEC-#{Process.pid}",
-                              location: "Valencia", school_type: :secondary)
+                              location: "Valencia")
   end
 
   # ⚠️ Media Técnica NO es un nivel paralelo: aporta UN grado, no seis. Un

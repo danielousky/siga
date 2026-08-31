@@ -156,7 +156,7 @@ class AdministracionDeSigaTest < ActionDispatch::IntegrationTest
     assert_difference -> { Current.sin_aislamiento { School.count } }, 1 do
       post "/siga/colegios", params: {
         school: { name: "U.E. Nueva Esperanza", dea_code: "NUE-999",
-                  location: "Mérida, Mérida", school_type: "primary" },
+                  location: "Mérida, Mérida" },
         director: { first_name: "Rosa", last_name: "Peña", email: "rosa.pena@nueva.edu",
                     document: "V-15889001", document_type: "cedula_v" }
       }
@@ -177,7 +177,7 @@ class AdministracionDeSigaTest < ActionDispatch::IntegrationTest
 
     assert_no_difference -> { Current.sin_aislamiento { School.count } } do
       post "/siga/colegios", params: {
-        school: { name: "U.E. A Medias", dea_code: "MED-001", location: "Caracas", school_type: "primary" },
+        school: { name: "U.E. A Medias", dea_code: "MED-001", location: "Caracas" },
         director: { first_name: "", last_name: "", email: "no-es-un-correo" }
       }
     end

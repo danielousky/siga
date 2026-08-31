@@ -55,37 +55,15 @@ class SembrarGrados
       end
     end
 
-    alinear_el_tipo_del_colegio
-
     Resultado.new(creados: creados, ya_estaban: ya_estaban)
   end
 
   private
 
-  # ⚠️ `school_type` se DEDUCE, no se pregunta (MOR-159).
-  #
-  # El alta lo preguntaba —«qué dicta principalmente»— y dos pantallas después
-  # `/niveles` volvía a preguntar lo mismo, mejor y en serio. Daniel lo notó:
-  # «¿para qué pedimos el school_type si más adelante lo vamos a volver a
-  # preguntar?». Preguntar dos veces la misma cosa le enseña a la persona que el
-  # sistema no se acuerda de lo que le dijo.
-  #
-  # La columna se conserva porque el MPPE la pide en algunos formatos; lo que
-  # desaparece es la pregunta duplicada.
-  #
-  # Un colegio con bachillerato es `secondary` aunque también dicte primaria: es
-  # el nivel más alto que ofrece, que es lo que ese campo quiere decir.
-  def alinear_el_tipo_del_colegio
-    niveles = @colegio.niveles
-    return if niveles.empty?
-
-    tipo = niveles.intersect?(%i[secundaria media_tecnica]) ? "secondary" : "primary"
-    @colegio.update!(school_type: tipo) unless @colegio.school_type == tipo
-  end
-
   # Se compara normalizado, no por igualdad exacta: un colegio que ya tenía
   # «1ER AÑO» cargado a mano —o traído por una importación— no debe terminar con
   # dos grados que son el mismo.
+  #
   # ⚠️ `reload`, y no es paranoia.
   #
   # Al sembrar por segunda vez —un colegio que agrega bachillerato— la

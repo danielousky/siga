@@ -29,8 +29,8 @@ class CarriesSchoolTest < ActiveJob::TestCase
     JobSinColegio.vistos = []
 
     Current.sin_aislamiento do
-      @bolivar = School.create!(name: "Bolívar QA", dea_code: "QA-BOL", location: "Caracas", school_type: :secondary)
-      @bello   = School.create!(name: "Bello QA",   dea_code: "QA-BEL", location: "Valencia", school_type: :secondary)
+      @bolivar = School.create!(name: "Bolívar QA", dea_code: "QA-BOL", location: "Caracas")
+      @bello   = School.create!(name: "Bello QA",   dea_code: "QA-BEL", location: "Valencia")
 
       # Mismo nombre en los dos: si el aislamiento fallara, el job los contaría juntos.
       Grade.create!(school: @bolivar, name: "1er Año", level: :secundaria)

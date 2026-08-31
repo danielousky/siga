@@ -24,8 +24,7 @@ class RegistroAbiertoTest < ActionDispatch::IntegrationTest
   }.freeze
 
   COLEGIO = {
-    name: "U.E. Nuevo Amanecer", dea_code: "PD00555", location: "Barquisimeto",
-    school_type: "secondary", entidad_federal: "Lara", municipio: "Iribarren",
+    name: "U.E. Nuevo Amanecer", dea_code: "PD00555", location: "Barquisimeto", entidad_federal: "Lara", municipio: "Iribarren",
     parroquia: "Catedral", direccion: "Av. Vargas", telefono: "0251-444-7788"
   }.freeze
 
@@ -111,27 +110,39 @@ class RegistroAbiertoTest < ActionDispatch::IntegrationTest
     assert_response :redirect
   end
 
-  # ⚠️ Preguntar dos veces la misma cosa le enseña a la persona que el sistema
-  # no se acuerda de lo que le dijo. El alta preguntaba «qué dicta
-  # principalmente» y dos pantallas después `/niveles` volvía a preguntarlo,
-  # mejor. El tipo se DEDUCE de los grados en `SembrarGrados`.
-  test "el alta no pregunta qué dicta el colegio: se deduce de los niveles" do
+  # ⚠️ Qué dicta el colegio NO se pregunta en el alta (MOR-160).
+  #
+  # `school_type` era excluyente —o primaria o bachillerato— y para la mitad del
+  # mercado la respuesta era falsa: un colegio con preescolar y primaria decía
+  # «Primaria» a secas. La columna se borró; lo que dicta se DERIVA de sus grados,
+  # que se siembran marcando niveles en `/niveles`.
+  test "el alta no pregunta qué dicta el colegio: se deriva de los grados" do
     registrarse
 
     get nuevo_mi_colegio_path
     assert_select "[name='school[school_type]']", 0,
-                  "el alta volvió a preguntar el tipo, que `/niveles` ya pregunta mejor"
+                  "volvió una pregunta que la columna ya no puede responder"
 
-    post mi_colegio_path, params: { school: COLEGIO.except(:school_type) }
+    post mi_colegio_path, params: { school: COLEGIO }
     colegio = Current.sin_aislamiento { School.find_by!(dea_code: "PD00555") }
 
-    con_el_colegio(colegio) { SembrarGrados.para(colegio, niveles: [ :primaria ]) }
-    assert_equal "primary", colegio.reload.school_type
+    # ⚠️ Se lee DENTRO del colegio, y no es ceremonia del test: `niveles` consulta
+    # `grades`, que está bajo RLS. Sin contexto la base devuelve cero filas — que
+    # es el aislamiento haciendo lo suyo, no un error. El panel de SIGA lo
+    # resuelve corriendo dentro de `sin_aislamiento`.
+    con_el_colegio(colegio) do
+      assert_nil colegio.que_dicta, "un colegio sin grados todavía no dicta nada"
 
-    con_el_colegio(colegio) { SembrarGrados.para(colegio, niveles: [ :secundaria ]) }
-    assert_equal "secondary", colegio.reload.school_type,
-                 "un colegio con bachillerato es `secondary` aunque también dé primaria"
+      SembrarGrados.para(colegio, niveles: [ :preescolar, :primaria ])
+      assert_equal "Preescolar y Primaria", colegio.que_dicta,
+                   "un colegio con dos niveles tiene que poder decir los dos"
+
+      SembrarGrados.para(colegio, niveles: [ :media_tecnica ])
+      assert_equal "Preescolar, Primaria, Bachillerato y Media Técnica", colegio.que_dicta,
+                   "la Media Técnica es un nivel más, y arrastra el bachillerato"
+    end
   end
+
 
   private
 

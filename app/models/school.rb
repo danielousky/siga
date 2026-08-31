@@ -3,11 +3,19 @@ class School < ApplicationRecord
   # incluso de los `enum`— y cualquier método que caiga después queda privado sin
   # que nada avise hasta que una vista lo llama. Pasó tres veces en un mismo día.
 
-  # La etiqueta del tipo, en una constante del modelo como el resto de los enums
-  # de dominio del proyecto: `secondary` no le dice nada a quien lee un correo.
-  TIPOS = { "primary" => "Primaria", "secondary" => "Bachillerato" }.freeze
+  # Qué dicta el colegio, escrito para una persona (MOR-160).
+  #
+  # «Preescolar y Primaria» · «Bachillerato y Media Técnica» · «Bachillerato».
+  #
+  # ⚠️ Un colegio recién creado devuelve nil, y eso NO es un error: todavía no
+  # dijo qué dicta. Distinguirlo de «primaria» es justamente el punto — en el
+  # panel de SIGA delata al colegio que se registró y se quedó a medias.
+  def que_dicta
+    return nil if niveles.empty?
 
-  def etiqueta_de_tipo = TIPOS.fetch(school_type, school_type)
+    niveles.map { |n| GradoOficial::ETIQUETAS[n] }
+           .to_sentence(two_words_connector: " y ", last_word_connector: " y ")
+  end
   # Quién dio de alta este colegio (MOR-158).
   #
   # Es la semilla de `Account`: el día que la cuenta exista, este usuario es su
@@ -30,9 +38,20 @@ class School < ApplicationRecord
   # El único momento en que hace falta preguntarlo es el primer día, cuando
   # todavía no hay grados — y ahí es una pregunta del asistente de arranque, no
   # un campo que se guarda. Ver `SembrarGrados`.
+  # ⚠️ `Grade.unscoped.where(school_id:)` y NO `grades`, y la diferencia importa.
+  #
+  # `Grade` es `SchoolScoped`: su `default_scope` filtra por `Current.school_id`.
+  # Preguntarle los niveles a un colegio que NO es el de la sesión devolvía cero
+  # filas —y por lo tanto `nil`— sin ningún error. Justo lo que hace el panel de
+  # SIGA, que lista todos los colegios de la plataforma.
+  #
+  # Pidiendo el `school_id` explícito, quien decide qué se puede leer es el RLS,
+  # que es la capa que corresponde: un director que intente los grados de otro
+  # colegio recibe cero filas de la BASE, no un filtro de la app que se puede
+  # saltar. Es exactamente el reparto de las dos capas.
   def niveles
-    grades.distinct.pluck(:level).compact.map(&:to_sym)
-          .sort_by { |n| GradoOficial::NIVELES.index(n) || 99 }
+    Grade.unscoped.where(school_id: id).distinct.pluck(:level).compact.map(&:to_sym)
+         .sort_by { |n| GradoOficial::NIVELES.index(n) || 99 }
   end
 
   def dicta?(nivel) = niveles.include?(nivel.to_sym)
@@ -138,16 +157,6 @@ class School < ApplicationRecord
 
     errors.add(campo, "no puede pesar más de 2 MB — #{que} no lo necesita, y la conexión de un colegio sí")
   end
-  # ⚠️ `school_type` NO alcanza para describir un colegio, y por eso ya casi no
-  # se usa (MOR-153).
-  #
-  # Es excluyente —o primaria o secundaria— y un colegio venezolano corriente
-  # dicta preescolar Y primaria Y bachillerato. Se conserva porque el MPPE lo
-  # pide en algunos formatos y porque hay filas cargadas con él.
-  #
-  # Lo que el colegio dicta de verdad se DEDUCE de sus grados: ver `#niveles`.
-  enum :school_type, { primary: 0, secondary: 1 }
-
 
   has_many :departments, dependent: :restrict_with_error
   has_many :students, dependent: :restrict_with_error
@@ -158,5 +167,5 @@ class School < ApplicationRecord
   has_many :subjects, dependent: :restrict_with_error
 
   validates :dea_code, presence: true, uniqueness: true
-  validates :name, :location, :school_type, presence: true
+  validates :name, :location, presence: true
 end

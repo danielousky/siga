@@ -14,10 +14,10 @@
 -# del primero. La primera versión de este correo llegó con «%strong Código DEA»
 -# escrito tal cual en la bandeja de Daniel. El tag anidado va en su propia línea.
 - etiqueta = "padding: 6px 14px 6px 0; color: #555; vertical-align: top; white-space: nowrap;"
--# Los niveles reales del colegio si ya cargó grados; si no, el tipo que eligió
--# al darlo de alta. Se calcula acá y no en la fila porque Haml no admite una
--# expresión partida en dos líneas: la continuación se lee como indentación.
-- que_dicta = @colegio.niveles.map { |n| GradoOficial::ETIQUETAS[n] }.to_sentence.presence || @colegio.etiqueta_de_tipo
+-# Qué dicta el colegio, derivado de sus grados. Si todavía no marcó niveles no
+-# hay nada que decir, y decirlo es útil: ese colegio se registró y se quedó a
+-# medias, que es justo el que hay que llamar.
+- que_dicta = @colegio.que_dicta
 - valor    = "padding: 6px 0; color: #111;"
 
 %div{style: "font-family: -apple-system, Segoe UI, Roboto, sans-serif; color: #111; line-height: 1.5;"}
@@ -71,7 +71,10 @@
       %td{style: valor}
         -# El nombre que usa un director, no el del enum: «secondary» no le dice
         -# nada a quien va a llamar por teléfono.
-        = que_dicta
+        - if que_dicta
+          = que_dicta
+        - else
+          %em{style: "color: #999;"} todavía no eligió sus niveles
 
   %p{style: "margin: 20px 0 0; padding: 12px 14px; background: #f4f6f8; border-radius: 6px; color: #444;"}
     Está en el

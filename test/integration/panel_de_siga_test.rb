@@ -62,8 +62,7 @@ class PanelDeSigaTest < ActionDispatch::IntegrationTest
   test "se da de alta un colegio con su director y su ubicación" do
     assert_difference -> { Current.sin_aislamiento { School.count } }, 1 do
       post siga_colegios_path, params: {
-        school: { name: "U.E. Nueva", dea_code: "PD00777", location: "Barquisimeto",
-                  school_type: "secondary", entidad_federal: "Lara",
+        school: { name: "U.E. Nueva", dea_code: "PD00777", location: "Barquisimeto", entidad_federal: "Lara",
                   municipio: "Iribarren", parroquia: "Catedral",
                   direccion: "Av. Lara", telefono: "0251-555-9988" },
         director: { first_name: "Rosa", last_name: "Mendoza", email: "rosa@nueva.test",
@@ -87,8 +86,7 @@ class PanelDeSigaTest < ActionDispatch::IntegrationTest
   # lista» y lo escrito a mano gana.
   test "un municipio que no está en el catálogo se guarda igual" do
     post siga_colegios_path, params: {
-      school: { name: "U.E. Del Interior", dea_code: "PD00888", location: "Un pueblo",
-                school_type: "primary", entidad_federal: "Lara",
+      school: { name: "U.E. Del Interior", dea_code: "PD00888", location: "Un pueblo", entidad_federal: "Lara",
                 municipio: DivisionPolitica::OTRO, municipio_libre: "Un Municipio Nuevo",
                 parroquia: DivisionPolitica::OTRO, parroquia_libre: "Una Parroquia Nueva" },
       director: { first_name: "Ana", last_name: "Suárez", email: "ana@interior.test",
@@ -105,8 +103,7 @@ class PanelDeSigaTest < ActionDispatch::IntegrationTest
   # del MPPE salga diciendo que el colegio queda en «__otro__».
   test "el centinela del desplegable no se guarda nunca" do
     post siga_colegios_path, params: {
-      school: { name: "U.E. Sin Municipio", dea_code: "PD00889", location: "X",
-                school_type: "primary", entidad_federal: "Lara",
+      school: { name: "U.E. Sin Municipio", dea_code: "PD00889", location: "X", entidad_federal: "Lara",
                 municipio: DivisionPolitica::OTRO, municipio_libre: "" },
       director: { first_name: "Luis", last_name: "Pérez", email: "luis@sinmun.test",
                   document: "V-11223355", document_type: "cedula_v" }

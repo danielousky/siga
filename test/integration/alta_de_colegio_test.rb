@@ -19,7 +19,7 @@ class AltaDeColegioTest < ActionDispatch::IntegrationTest
   end
 
   COLEGIO = { name: "U.E. Nueva Esperanza", dea_code: "S-0001",
-              location: "Guanare", school_type: "primary" }.freeze
+              location: "Guanare" }.freeze
   DIRECTORA = { first_name: "Rosa", last_name: "Peña", second_last_name: "Guillén",
                 email: "rosa.pena@nuevaesperanza.edu", document: "V-14.222.333",
                 document_type: "cedula_v" }.freeze

@@ -27,7 +27,7 @@ class ImportarMatriculaTest < ActionDispatch::IntegrationTest
 
     @nuevo = Current.sin_aislamiento do
       School.create!(name: "U.E. Recién Abierta", dea_code: "S-9100",
-                     location: "Caracas", school_type: :primary)
+                     location: "Caracas")
     end
     directora = User.create!(first_name: "Rosa", last_name: "Peña",
                              document: "99555001", document_type: :cedula_v,

@@ -63,7 +63,7 @@ module Siga
     private
 
     def colegio_params
-      params.require(:school).permit(:name, :dea_code, :location, :school_type,
+      params.require(:school).permit(:name, :dea_code, :location,
                                      :entidad_federal, :municipio, :municipio_libre,
                                      :parroquia, :parroquia_libre,
                                      :direccion, :telefono)
