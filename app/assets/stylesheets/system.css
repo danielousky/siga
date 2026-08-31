@@ -5250,3 +5250,22 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 /* La nota que SÍ se queda visible: la que dice qué pasa si no se hace. Se
    afina para que no compita con el campo, pero se sigue leyendo. */
 .nota-ayuda { max-width: 62ch; }
+
+/* Un dato secundario: el teléfono debajo de un nombre, «Sin asignar», el
+   formato de una columna (MOR-161).
+   ⚠️ NO es `.nota-ayuda`. Se veían igual y por eso se confundían, pero una dice
+   «esto te explica algo» y la otra es un dato del colegio. Mezclarlas hacía que
+   el buscador de ayuda del proyecto —y quien lee el código— no supiera cuál es
+   cuál. */
+.dato-secundario {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+/* La descripción de una opción, dentro del propio control (MOR-161).
+   ⚠️ NO es ayuda: es parte de la opción. Esconderla detrás de un «?» obligaría
+   a abrir dos tarjetas para poder elegir entre dos radios. */
+.escala-opcion-detalle {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}

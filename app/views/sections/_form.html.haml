@@ -19,6 +19,9 @@
   .form-group
     = f.label :leader_teacher_id, class: "form-label"
     = f.select :leader_teacher_id, Teacher.includes(:user).order("users.last_name").map { |t| [t.user.apellidos_y_nombres, t.id] }, { include_blank: "Sin asignar" }, class: "form-select"
+    -# ⚠️ Se queda VISIBLE. No explica qué es el campo: dice qué pasa si se deja
+    -# vacío, y eso cambia quién puede trabajar el lunes. Esconderlo detrás de un
+    -# «?» sería dejar que alguien tome la decisión sin saber que la está tomando.
     %p.nota-ayuda
       Quien pasa lista de esta sección. Sin guía asignado, la asistencia solo la
       puede tomar la dirección.

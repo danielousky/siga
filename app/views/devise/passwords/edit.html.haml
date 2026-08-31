@@ -7,9 +7,9 @@
 
     .form-group
       = f.label :password, "Contraseña nueva", class: "form-label"
-      = f.password_field :password, autofocus: true, autocomplete: "new-password", class: "form-control"
-      - if @minimum_password_length
-        %small.nota-ayuda= "Mínimo #{@minimum_password_length} caracteres."
+      -# El mínimo va en el campo: es formato, y ese es el trabajo del placeholder.
+      = f.password_field :password, autofocus: true, autocomplete: "new-password", class: "form-control",
+                         placeholder: ("Mínimo #{@minimum_password_length} caracteres" if @minimum_password_length)
 
     .form-group
       = f.label :password_confirmation, "Repita la contraseña nueva", class: "form-label"

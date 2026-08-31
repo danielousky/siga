@@ -18,9 +18,9 @@
         = label_tag "school[name]", "Nombre", class: "form-label"
         = text_field_tag "school[name]", @colegio.name, class: "form-control", placeholder: "U.E. Colegio San José"
       .form-group
-        = label_tag "school[dea_code]", "Código DEA", class: "form-label"
+        = etiqueta_con_pista "school[dea_code]", "Código DEA",
+                             pista: "Lo asigna el MPPE. Es único en toda la plataforma, así que dos colegios no pueden tener el mismo."
         = text_field_tag "school[dea_code]", @colegio.dea_code, class: "form-control", placeholder: "PD01234567"
-        %small.nota-ayuda Lo asigna el MPPE. Es único en toda la plataforma.
     .form-row
       .form-group
         = label_tag "school[location]", "Ubicación", class: "form-label"
@@ -31,10 +31,6 @@
       -# venezolano corriente dicta preescolar Y primaria Y bachillerato. Lo que
       -# dicta se DEDUCE de sus grados, y los grados se siembran marcando niveles
       -# en `/niveles`, que es donde la pregunta se hace bien.
-        %small.nota-ayuda
-          Da el valor por defecto de la escala de sus grados: primaria por
-          literal, media por número. Cada grado lo puede cambiar.
-
   = render "shared/ubicacion_del_colegio", colegio: @colegio
 
   %fieldset.siga-fieldset
@@ -60,9 +56,10 @@
       .form-group
         = label_tag "director[email]", "Correo", class: "form-label"
         = email_field_tag "director[email]", @usuario&.email, class: "form-control", required: true
+    -# Se queda VISIBLE: explica por qué el formulario NO pide una contraseña,
+    -# que es la pregunta que se hace quien lo está llenando.
     %small.nota-ayuda
       No se le pone contraseña: al guardar sale un enlace de un solo uso para que
-      la elija él mismo. Se le envía por correo, y además queda visible una vez
-      (%code MOR-102).
+      la elija él mismo. Se le envía por correo y además queda visible una vez.
 
   = submit_tag "Dar de alta", class: "btn btn-primary"

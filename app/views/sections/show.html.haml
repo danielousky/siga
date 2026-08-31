@@ -29,7 +29,7 @@
       - if @section.leader_teacher
         %p.detail-value= link_to @section.leader_teacher.user.apellidos_y_nombres, teacher_path(@section.leader_teacher)
       - else
-        %p.detail-value.nota-ayuda Sin asignar
+        %p.detail-value.dato-secundario Sin asignar
     - if @section.classroom.present?
       .detail-item
         %span.detail-label Aula

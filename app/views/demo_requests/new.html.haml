@@ -35,10 +35,12 @@
 
         .form-group
           = f.label :phone, "WhatsApp", class: "form-label"
+          -# «Es por donde le vamos a escribir» sobraba: el campo se llama
+          -# WhatsApp y el placeholder muestra el formato. Decirlo era ruido.
           = f.telephone_field :phone, class: "form-control", required: true,
                                       autocomplete: "tel", inputmode: "tel",
                                       placeholder: "0424 123 4567"
-          %small.nota-ayuda Es por donde le vamos a escribir.
+
 
         .form-group
           = f.label :email, "Correo", class: "form-label"
@@ -47,12 +49,15 @@
                                   inputmode: "email", placeholder: "direccion@sucolegio.edu.ve"
 
         .form-group
-          = f.label :current_system, "¿Con qué llevan hoy las notas?", class: "form-label"
+          = con_pista "Nos sirve para prepararle la demostración con su caso, no con uno genérico." do
+            = f.label :current_system, "¿Con qué llevan hoy las notas?", class: "form-label"
           %span.solicitud-opcional opcional
+          -# El «?» y no un párrafo: quien ya entendió la pregunta no necesita
+          -# leer por qué se la hacemos.
           = f.select :current_system,
             DemoRequest::CURRENT_SYSTEM_LABELS.map { |valor, etiqueta| [ etiqueta, valor ] },
             { include_blank: "Prefiero contarlo en la llamada" }, class: "form-select"
-          %small.nota-ayuda Nos sirve para prepararle la demostración con su caso, no con uno genérico.
+
 
         = f.submit "Pedir la demostración", class: "btn btn-primary solicitud-enviar"
 

@@ -33,17 +33,15 @@
     -# sabe escribirle al correo del usuario.
     - if @pide_correo
       .form-group
-        = f.label :email, "Su correo electrónico", class: "form-label"
+        = con_pista "Con este correo entra al sistema, y es por donde va a poder recuperar su contraseña si la olvida." do
+          = f.label :email, "Su correo electrónico", class: "form-label"
         = f.email_field :email, autofocus: true, required: true, class: "form-control"
-        %p.nota-ayuda
-          Con este correo entra al sistema, y es por donde va a poder recuperar
-          su contraseña si la olvida.
 
     .form-group
       = f.label :password, "Contraseña", class: "form-label"
       = f.password_field :password, autocomplete: "new-password", required: true,
-                         autofocus: !@pide_correo, class: "form-control"
-      %p.nota-ayuda= "Mínimo #{User.password_length.min} caracteres."
+                         autofocus: !@pide_correo, class: "form-control",
+                         placeholder: "Mínimo #{User.password_length.min} caracteres"
 
     .form-group
       = f.label :password_confirmation, "Repita la contraseña", class: "form-label"

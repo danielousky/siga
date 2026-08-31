@@ -13,12 +13,9 @@
     = f.text_field :name, class: "form-control"
 
   .form-group
-    = f.label :weight, "Peso (%)", class: "form-label"
+    = con_pista "Describe qué parte del año representa el lapso. No entra en el cálculo: la nota anual es el promedio de los lapsos, sin ponderar (Art. 111 del Reglamento General de la LOE)." do
+      = f.label :weight, "Peso (%)", class: "form-label"
     = f.number_field :weight, class: "form-control", step: 0.01, min: 0, max: 100
-    %small.nota-ayuda
-      Describe qué parte del año representa el lapso. La nota anual es el
-      %strong promedio
-      de los lapsos, sin ponderar (Art. 111 del Reglamento General de la LOE).
 
   -# Las fechas son opcionales, y por eso van con su nota: sin ellas el boletín
   -# no puede decir cuántos días faltó el alumno EN ESTE LAPSO —contaría los del
@@ -34,6 +31,9 @@
       %span.solicitud-opcional opcional
       = f.date_field :ends_on, class: "form-control"
 
+  -# Se queda VISIBLE: es la consecuencia de dejar dos campos opcionales en
+  -# blanco, y aparece en un documento que se entrega a una familia. Quien no la
+  -# lea no sabe que está eligiendo algo.
   %p.nota-ayuda
     Con las fechas cargadas, el boletín cuenta las inasistencias de este lapso.
     Sin ellas cuenta las del año escolar completo, y lo aclara en el papel.

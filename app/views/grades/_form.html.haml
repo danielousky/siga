@@ -27,24 +27,20 @@
   -# bachillerato— así que esa opción se esconde en vez de dejar que la persona
   -# llene el formulario entero para que el modelo se lo rechace al final.
   .form-group
-    = f.label :escala, class: "form-label"
+    = con_pista "La nota siempre se carga del 1 al 20. La escala solo cambia cómo se MUESTRA la calificación del año: con literal se lee «A (19)». Las notas de lapso van en número en los dos casos." do
+      = f.label :escala, class: "form-label"
     = f.select :escala, [["Numérica — del 1 al 20 (media general)", "numerica"], ["Literal — A, B, C, D, E (primaria)", "literal"]], {},
                class: "form-select", data: { "escala-por-nivel-target": "escala" }
+    -# ⚠️ Este aviso NO es una pista: aparece solo cuando la elección está MAL
+    -# —literal en bachillerato— y lo enciende el controlador de Stimulus. Un
+    -# error que hay que leer no puede estar detrás de un clic.
     %p.nota-ayuda{hidden: true, "data-escala-por-nivel-target": "aviso"}
-      En secundaria la calificación es siempre numérica. La literal es de primaria.
-    %small.nota-ayuda
-      La nota siempre se carga del 1 al 20. La escala solo cambia cómo se
-      %strong muestra
-      la calificación del año: con literal se lee "A (19)". Las notas de lapso
-      van en número en los dos casos.
+      En bachillerato la calificación es siempre numérica. La literal es de primaria.
 
   .form-group
-    = f.label :coordinator_teacher_id, class: "form-label"
+    = con_pista "Quien coordina a los profesores guía de este grado. Es opcional y la mayoría de los colegios no tiene el cargo. Ojo: el profesor guía se asigna en cada SECCIÓN, porque es de la sección y no del grado." do
+      = f.label :coordinator_teacher_id, "Coordinador del grado (opcional)", class: "form-label"
     = f.select :coordinator_teacher_id, Teacher.includes(:user).map { |t| [t.user.apellidos_y_nombres, t.id] }, { include_blank: "Ninguno" }, class: "form-select"
-    %p.nota-ayuda
-      Opcional. Quien coordina a los profesores guía de este grado. El
-      %strong profesor guía se asigna en cada sección,
-      porque es de la sección y no del grado.
 
   .form-acciones
     = f.submit class: "btn btn-primary"

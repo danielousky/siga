@@ -15,10 +15,10 @@
       class: "form-select", data: { ponderacion_target: "asignacion", action: "change->ponderacion#asignacionCambio" }
 
   .form-group
-    = f.label :evaluation_moment_id, "Lapso", class: "form-label"
+    = con_pista "Solo aparecen los lapsos del año escolar de la sección que elegiste arriba." do
+      = f.label :evaluation_moment_id, "Lapso", class: "form-label"
     = f.select :evaluation_moment_id, [], { include_blank: "Elige el lapso..." },
       class: "form-select", data: { ponderacion_target: "lapso", action: "change->ponderacion#recalcular" }
-    %small.nota-ayuda Solo aparecen los lapsos del año escolar de la sección elegida.
 
   .form-group
     = f.label :description, "Qué se evalúa", class: "form-label"

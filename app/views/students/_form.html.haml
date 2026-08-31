@@ -15,9 +15,9 @@
           = u.label :second_last_name, class: "form-label"
           = u.text_field :second_last_name, class: "form-control", placeholder: "Medina"
       .form-group
-        = u.label :cedula_escolar, class: "form-label"
+        = con_pista "La asigna el MPPE. Es la que se usa mientras el alumno no tenga cédula de identidad." do
+          = u.label :cedula_escolar, class: "form-label"
         = u.text_field :cedula_escolar, class: "form-control", placeholder: "V20140000001"
-        %p.nota-ayuda La asigna el MPPE. Es la que se usa mientras el alumno no tenga cédula de identidad.
       .form-row
         .form-group
           = u.label :document, class: "form-label"
@@ -33,19 +33,19 @@
           = u.label :sex, class: "form-label"
           = u.select :sex, User::SEX_LABELS.map { |v, t| [t, v] }, { include_blank: "—" }, class: "form-select"
       .form-group
-        = u.label :email, class: "form-label"
-        = u.email_field :email, class: "form-control", placeholder: "ejemplo@dominio.com"
         -# Un alumno de primaria no tiene correo y no lo necesita: quien consulta
         -# sus notas es su representante (MOR-142). El campo se queda para el
         -# bachiller que sí tenga, pero dejarlo vacío es lo normal.
-        %p.nota-ayuda Opcional. Quien consulta las notas del alumno es su representante.
+        = con_pista "Quien consulta las notas del alumno es su representante, así que dejarlo vacío es lo normal. Un bachiller que sí tenga correo puede entrar a ver las suyas." do
+          = u.label :email, "Correo electrónico (opcional)", class: "form-label"
+        = u.email_field :email, class: "form-control", placeholder: "ejemplo@dominio.com"
 
   .form-seccion
     %h2.form-seccion-titulo Datos del alumno
     .form-group
-      = f.label :school_card, "Carnet escolar", class: "form-label"
+      = con_pista "Lo numera el colegio. No es la cédula escolar, que la asigna el MPPE." do
+        = f.label :school_card, "Carnet escolar", class: "form-label"
       = f.text_field :school_card, class: "form-control", placeholder: "Número de carnet"
-      %p.nota-ayuda Lo numera el colegio. No es la cédula escolar, que la asigna el MPPE.
 
   .form-acciones
     = f.submit "Guardar registro", class: "btn btn-primary"

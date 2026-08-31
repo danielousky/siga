@@ -25,37 +25,32 @@
 
       .identidad-campos
         .form-group
-          = f.label :logo, "Escudo del colegio", class: "form-label"
+          = con_pista "PNG o JPG, hasta 2 MB. Conviene fondo transparente o blanco: se imprime sobre papel." do
+            = f.label :logo, "Escudo del colegio", class: "form-label"
           = f.file_field :logo, accept: "image/png,image/jpeg", class: "form-control"
-          %small.nota-ayuda
-            PNG o JPG, hasta 2 MB. Conviene fondo transparente o blanco: se
-            imprime sobre papel.
 
         .form-group
-          = f.label :firma, "Firma del director, escaneada", class: "form-label"
-          %span.solicitud-opcional opcional
+          = con_pista "Se imprime sobre la línea del boletín, como el sello de goma sobre el papel. Conviene fondo transparente y trazo oscuro." do
+            = f.label :firma, "Firma del director, escaneada", class: "form-label"
+            %span.solicitud-opcional opcional
           = f.file_field :firma, accept: "image/png,image/jpeg", class: "form-control"
-          %small.nota-ayuda
-            Se imprime sobre la línea del boletín, como el sello de goma sobre
-            el papel. Conviene fondo transparente y trazo oscuro.
           - if @colegio.firma.attached?
             .identidad-firma
               = image_tag @colegio.firma, alt: "Firma del director", class: "identidad-firma-imagen"
               = link_to "Quitar firma", quitar_firma_colegio_path, data: { turbo_method: :delete, turbo_confirm: "¿Quitar la firma? Los boletines nuevos salen con la línea en blanco." }, class: "identidad-quitar"
         .form-group
-          = f.label :sello, "Sello del colegio, escaneado", class: "form-label"
-          %span.solicitud-opcional opcional
+          = con_pista "Se estampa SOBRE la firma, como en el papel. Conviene fondo transparente: uno blanco taparía el trazo de abajo." do
+            = f.label :sello, "Sello del colegio, escaneado", class: "form-label"
+            %span.solicitud-opcional opcional
           = f.file_field :sello, accept: "image/png,image/jpeg", class: "form-control"
-          %small.nota-ayuda
-            Se estampa
-            %strong sobre
-            la firma, como en el papel. Conviene fondo transparente: uno blanco
-            taparía el trazo de abajo.
           - if @colegio.sello.attached?
             .identidad-firma
               = image_tag @colegio.sello, alt: "Sello del colegio", class: "identidad-sello-imagen"
               = link_to "Quitar sello", quitar_sello_colegio_path, data: { turbo_method: :delete, turbo_confirm: "¿Quitar el sello? Los boletines nuevos salen sin él." }, class: "identidad-quitar"
 
+        -# ⚠️ Se queda VISIBLE. No explica un campo: advierte de un RIESGO que el
+        -# director asume al subir su firma escaneada. Detrás de un «?» sería una
+        -# advertencia que nadie abre.
         %p.nota-ayuda
           %strong Ni la firma ni el sello son una firma digital.
           Son imágenes, y cualquiera que tenga el PDF puede recortarlas — por eso
@@ -64,20 +59,18 @@
           que el colegio emitió, contra la base.
 
         .form-group
-          = f.label :name, "Nombre", class: "form-label"
+          = con_pista "Escríbalo como tiene que aparecer impreso en los documentos oficiales." do
+            = f.label :name, "Nombre", class: "form-label"
           = f.text_field :name, class: "form-control"
-          %small.nota-ayuda
-            Como tiene que aparecer en los documentos oficiales.
 
         .form-group
           = f.label :location, "Ubicación", class: "form-label"
           = f.text_field :location, class: "form-control", placeholder: "Caracas, Distrito Capital"
 
         .form-group
-          = f.label :dea_code, "Código DEA", class: "form-label"
+          = con_pista "Lo asigna el MPPE y no se edita desde aquí. Si está mal, escríbanos y lo corregimos." do
+            = f.label :dea_code, "Código DEA", class: "form-label"
           = f.text_field :dea_code, class: "form-control", disabled: true
-          %small.nota-ayuda
-            Lo asigna el MPPE y no se edita desde aquí. Si está mal, escríbenos.
 
         -# Los mismos campos que el alta desde el panel de SIGA. Ver el parcial:
         -# salen impresos en los documentos del MPPE, y hasta ahora las columnas

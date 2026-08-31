@@ -33,9 +33,9 @@
     %h2.form-seccion-titulo Cómo entra al sistema
     = f.fields_for :user do |u|
       .form-group
-        = u.label :email, class: "form-label"
+        = con_pista "El profesor entra al sistema con este correo, y es por donde recupera su contraseña si la olvida." do
+          = u.label :email, class: "form-label"
         = u.email_field :email, class: "form-control", required: true
-        %p.nota-ayuda El profesor entra al sistema con este correo, y es por donde recupera su contraseña.
       - if teacher.new_record?
         -# `required` porque desde `MOR-142` el modelo ya no la exige: una persona
         -# puede existir sin credenciales. Para el personal del colegio eso todavía

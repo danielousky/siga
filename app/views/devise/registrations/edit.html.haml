@@ -18,21 +18,20 @@
         = "Esperando confirmación de #{resource.unconfirmed_email}"
 
     .form-group
-      = f.label :password, "Contraseña nueva", class: "form-label"
-      = f.password_field :password, autocomplete: "new-password", class: "form-control"
-      %small.nota-ayuda
-        Déjala vacía si no quieres cambiarla.
-        - if @minimum_password_length
-          = "Mínimo #{@minimum_password_length} caracteres."
+      = f.label :password, "Contraseña nueva (déjala vacía si no la vas a cambiar)", class: "form-label"
+      -# «Déjala vacía» es una CONSECUENCIA —qué pasa si no la toco— y por eso
+      -# viaja en la etiqueta, donde se lee sin pedirla. El mínimo es formato y
+      -# va en el campo.
+      = f.password_field :password, autocomplete: "new-password", class: "form-control",
+                         placeholder: ("Mínimo #{@minimum_password_length} caracteres" if @minimum_password_length)
 
     .form-group
       = f.label :password_confirmation, "Repita la contraseña nueva", class: "form-label"
       = f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control"
 
     .form-group
-      = f.label :current_password, "Contraseña actual", class: "form-label"
+      = con_pista "Hace falta para confirmar que eres tú quien está haciendo el cambio." do
+        = f.label :current_password, "Contraseña actual", class: "form-label"
       = f.password_field :current_password, autocomplete: "current-password", class: "form-control"
-      %small.nota-ayuda
-        Hace falta para confirmar que eres tú quien está haciendo el cambio.
 
     = f.submit "Guardar", class: "btn btn-primary"

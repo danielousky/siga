@@ -30,20 +30,19 @@
         = label_tag "user[cedula_escolar]", "Cédula escolar", class: "form-label"
         = text_field_tag "user[cedula_escolar]", usuario.cedula_escolar, class: "form-control", placeholder: "V20140000001"
 
+    -# Se queda visible: no explica un campo, explica qué va a pasar al guardar.
+    -# Quien no lo lea puede creer que está creando un duplicado.
     %p.nota-ayuda
-      Si esta persona ya existe en SIGA —porque trabaja aquí, o ya representa a
-      otro alumno, o tiene un hijo en otro colegio— se reutiliza su registro. La
-      encontramos por la cédula, así que da igual cómo la escriba.
+      Si esta persona ya existe en SIGA se reutiliza su registro. La encontramos
+      por la cédula, así que da igual cómo la escriba.
 
   .form-seccion
     %h2.form-seccion-titulo Cómo la contacta el colegio
     .form-row
       .form-group
-        = label_tag "user[email]", "Correo electrónico", class: "form-label"
+        = etiqueta_con_pista "user[email]", "Correo electrónico (opcional)",
+                             pista: "Con este correo entra a consultar las notas de su representado. Si no lo tiene a mano, déjelo vacío: el acceso se le puede dar después."
         = email_field_tag "user[email]", usuario.email, class: "form-control"
-        %p.nota-ayuda
-          Con este correo entra a consultar las notas. Si no lo tiene, déjelo
-          vacío: el acceso se le puede dar después.
       .form-group
         = label_tag "representative[phone]", "Teléfono", class: "form-label"
         = telephone_field_tag "representative[phone]", representative.phone, class: "form-control", placeholder: "0414-1234567"

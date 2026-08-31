@@ -64,4 +64,49 @@ class PistasTest < ActionDispatch::IntegrationTest
 
     assert_equal primero, segundo
   end
+
+  # ⚠️ El cajón de sastre que este trabajo vino a deshacer.
+  #
+  # `.nota-ayuda` se usaba para tres cosas distintas: explicar un campo, avisar
+  # una consecuencia, y **mostrar datos** —el teléfono de alguien, «Sin
+  # asignar», el formato de una columna—. Las tres se veían igual, así que nadie
+  # notaba la diferencia; pero una clase que dice «esto te explica algo» puesta
+  # sobre el teléfono de un representante hace que ni el código ni quien lo lee
+  # sepan cuál es cuál.
+  #
+  # Los datos tienen su clase: `.dato-secundario`.
+  test "ninguna nota de ayuda contiene solo un dato" do
+    culpables = Rails.root.glob("app/views/**/*.haml").flat_map do |ruta|
+      ruta.read.lines.each_with_index.filter_map do |linea, n|
+        next unless linea.include?("nota-ayuda")
+        next if linea.strip.start_with?("-#")
+        # Una nota que en la MISMA línea imprime una expresión y nada más es un
+        # dato disfrazado: `%span.nota-ayuda= representante.phone`.
+        next unless linea.match?(/nota-ayuda\s*=\s*[@a-z]/)
+
+        "#{ruta.relative_path_from(Rails.root)}:#{n + 1} → #{linea.strip[0, 70]}"
+      end
+    end
+
+    assert_empty culpables,
+                 "`.nota-ayuda` usada para mostrar un dato. Es `.dato-secundario`:\n  " +
+                 culpables.join("\n  ")
+  end
+
+  # El helper sirve para las dos maneras de escribir una etiqueta que conviven
+  # en el proyecto. Si alguna dejara de funcionar, explicar un campo obligaría a
+  # reescribir el formulario entero.
+  test "la pista funciona con form builder y con label_tag" do
+    @a, _b = dos_colegios_completos
+    sign_in @a.director
+
+    get new_student_path   # usa `u.label` dentro de `fields_for`
+    assert_select ".form-etiqueta button.pista-boton", { minimum: 1 }, "falló con form builder"
+
+    # ⚠️ Hay que salir primero: Devise manda a quien ya entró de vuelta al panel,
+    # y el test estaría midiendo una pantalla que no es la del registro.
+    sign_out @a.director
+    get new_user_registration_path # usa `label_tag`
+    assert_select ".form-etiqueta button.pista-boton", { minimum: 1 }, "falló con label_tag"
+  end
 end

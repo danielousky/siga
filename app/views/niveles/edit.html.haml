@@ -41,15 +41,17 @@
             = radio_button_tag :escala_de_primaria, "literal", true
             %span
               %strong Por letras
-              %span.nota-ayuda A, B, C, D, E — lo más común en primaria
+              %span.escala-opcion-detalle A, B, C, D, E — lo más común en primaria
           %label.escala-opcion
             = radio_button_tag :escala_de_primaria, "numerica", false
             %span
               %strong Por números
-              %span.nota-ayuda Del 1 al 20, igual que bachillerato
+              %span.escala-opcion-detalle Del 1 al 20, igual que bachillerato
+        -# Se queda visible porque quita el miedo a equivocarse, que es lo que
+        -# frena a alguien en su primera hora: se puede cambiar después.
         %p.nota-ayuda
-          Se puede cambiar grado por grado después. Bachillerato no se pregunta:
-          por reglamento siempre es del 1 al 20.
+          Se puede cambiar grado por grado más adelante. En bachillerato no se
+          pregunta: por reglamento siempre es del 1 al 20.
 
     .form-acciones
       = submit_tag "Crear los grados", class: "btn btn-primary"

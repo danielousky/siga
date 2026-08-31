@@ -37,7 +37,7 @@
                 %span.nota-pendiente Sin correo
               - if representante.phone.present?
                 %br
-                %span.nota-ayuda= representante.phone
+                %span.dato-secundario= representante.phone
             %td
               - if representante.students.any?
                 = representante.students.map { |a| "#{a.user.nombre_completo}" }.join(" ·")

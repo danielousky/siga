@@ -51,14 +51,25 @@ module PistasHelper
     end
   end
 
-  # Una etiqueta con su pista al lado, que es como se usa el 90% de las veces.
+  # Le pone el «?» a CUALQUIER etiqueta, venga de donde venga.
+  #
+  #     = con_pista "El profesor entra con este correo" do
+  #       = f.label :email, class: "form-label"
+  #
+  # Es la forma general porque en este proyecto conviven las dos maneras de
+  # escribir una etiqueta —`f.label` en los formularios con modelo, `label_tag`
+  # en los que crean dos cosas a la vez— y un helper que solo sirva para una
+  # obliga a reescribir el formulario para poder explicar un campo.
   #
   # ⚠️ El «?» va junto a la ETIQUETA y no al campo: quien no sabe qué es algo lo
   # descubre leyendo su nombre, y ahí es donde busca la explicación.
-  def etiqueta_con_pista(nombre, texto, pista: nil, **opciones)
-    contenido = [ label_tag(nombre, texto, class: "form-label", **opciones) ]
-    contenido << pista(pista) if pista.present?
+  def con_pista(texto, &bloque)
+    tag.div safe_join([ capture(&bloque), pista(texto) ]), class: "form-etiqueta"
+  end
 
-    tag.div safe_join(contenido), class: "form-etiqueta"
+  # El atajo para `label_tag`, que es como se escriben los formularios sin
+  # modelo. Se apoya en `con_pista`: un solo motor, dos maneras de llamarlo.
+  def etiqueta_con_pista(nombre, texto, pista:, **opciones)
+    con_pista(pista) { label_tag(nombre, texto, class: "form-label", **opciones) }
   end
 end
