@@ -112,10 +112,49 @@ no puede entrar hasta que el colegio se lo cargue.
 
 ## Conventions
 
+### ⚠️ Inglés y español: dónde va cada uno (`MOR-162`)
+
+El criterio es uno y se dice en una línea: **inglés donde Rails DEDUCE un nombre
+de otro, español donde nadie deduce nada.**
+
+```
+   base de datos · modelos · asociaciones   →  INGLÉS
+   URLs · pantallas · textos · mensajes     →  ESPAÑOL
+   servicios y conceptos del dominio        →  ESPAÑOL
+```
+
+**Por qué el inglés en los modelos no es gusto.** Rails deduce el nombre de la
+tabla y el de la clase asociada pluralizando, y en español eso no funciona:
+
+```ruby
+"seccion".pluralize      # => "seccions"        ✗
+"profesor".pluralize     # => "profesors"       ✗
+"materia".pluralize      # => "materia"         ✗  ¡ni pluraliza!
+"calificacion".pluralize # => "calificacions"   ✗
+```
+
+Todo el modelo en español costaría una inflexión a medida por cada sustantivo
+irregular —ya hay tres en `config/initializers/inflections.rb`— más renombrar
+veintisiete tablas. Y **nada de eso lo ve un director**.
+
+**Lo que sí ve es la barra de direcciones**, y por eso las URLs van en español.
+`resources :students, path: "alumnos"` es la opción que Rails trae justamente
+para esto: deja `StudentsController`, `students_path` y `Student` intactos y
+muestra `/alumnos`.
+
+⚠️ **En los tests, la ruta se pide por HELPER, nunca escrita a mano.** Un
+`get "/students"` se rompe con el próximo cambio de nombre y deja de probar lo
+que decía probar. La excepción es `bin/smoke`, que es un cliente HTTP de verdad
+y ahí escribir la URL en español ES la comprobación.
+
 - Vistas en **Haml**, no ERB
-- Nombres en español para controllers/vistas (`InicioController`, no `HomeController`)
+- Controllers y vistas en español cuando no espejan un modelo (`InicioController`,
+  `ArranqueController`); en inglés cuando sí (`StudentsController` ↔ `Student`)
 - Todas las rutas requieren autenticación por defecto; hay que saltarla explícitamente
 - Los enums de dominio llevan etiquetas en constantes del modelo (ver `DemoRequest`)
+- **La ayuda va bajo demanda** (`MOR-161`): `etiqueta_con_pista` para lo que
+  explica QUÉ es un campo; `.nota-ayuda` visible solo para CONSECUENCIAS;
+  `placeholder` para el formato
 
 ## ⚠️ Estado conocido — leer antes de tocar el modelo
 

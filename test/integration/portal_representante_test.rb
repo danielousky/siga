@@ -106,7 +106,7 @@ class PortalRepresentanteTest < ActionDispatch::IntegrationTest
     sign_in @madre
 
     assert_no_difference -> { cantidad(ActivityGrade) } do
-      patch "/evaluation_activities/#{@a.actividad.id}/notas/#{@a.alumno.id}",
+      patch evaluation_activity_nota_path(@a.actividad, @a.alumno),
             params: { score: "20" }, as: :json
     end
   end

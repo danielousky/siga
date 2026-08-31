@@ -75,7 +75,7 @@ class PlanGratisTest < ActionDispatch::IntegrationTest
   # director entra a la planilla, ve su sección y sus alumnos, y entiende qué
   # está comprando.
   test "las pantallas se siguen viendo, con su aviso" do
-    %w[/boletines /constancias /asistencia].each do |ruta|
+    [ report_cards_path, constancias_path, asistencias_path ].each do |ruta|
       get ruta
       follow_redirect! while response.redirect?
 

@@ -41,6 +41,17 @@ class AislamientoEntreColegiosTest < ActionDispatch::IntegrationTest
     @a, @b = dos_colegios_completos
   end
 
+  # ⚠️ La ruta sale del HELPER, no de una cadena armada con el nombre del
+  # recurso. Desde `MOR-162` las URLs están en español —`/alumnos`— y el helper
+  # sigue en inglés —`students_path`—, que es exactamente lo que separa el
+  # código de lo que ve una persona. Un test que arme la URL a mano se rompe con
+  # el próximo cambio de nombre y no prueba nada más por eso.
+  def ruta_de(recurso, registro = nil)
+    return public_send("#{recurso}_path") if registro.nil?
+
+    public_send("#{recurso.to_s.singularize}_path", registro)
+  end
+
   # ══════════════════════════════════════════════════════════════════════════
   # Recurso por recurso: pedir lo del OTRO colegio
   # ══════════════════════════════════════════════════════════════════════════
@@ -49,7 +60,7 @@ class AislamientoEntreColegiosTest < ActionDispatch::IntegrationTest
     test "#{recurso} · GET del registro ajeno da 404" do
       entrar(config)
 
-      get "/#{recurso}/#{ajeno(config).to_param}"
+      get ruta_de(recurso, ajeno(config))
 
       assert_response :not_found, "#{recurso}: pedir un registro de otro colegio no puede devolver #{response.status}"
     end
@@ -57,7 +68,7 @@ class AislamientoEntreColegiosTest < ActionDispatch::IntegrationTest
     test "#{recurso} · el listado no muestra nada del otro colegio" do
       entrar(config)
 
-      get "/#{recurso}"
+      get ruta_de(recurso)
 
       assert_response :success
       assert_no_match(/Colegio B/, response.body,
@@ -70,7 +81,7 @@ class AislamientoEntreColegiosTest < ActionDispatch::IntegrationTest
       entrar(config)
       antes = ajeno(config).attributes.dup
 
-      patch "/#{recurso}/#{ajeno(config).to_param}",
+      patch ruta_de(recurso, ajeno(config)),
             params: { recurso.to_s.singularize => config[:cambio] }
 
       assert_response :not_found
@@ -81,7 +92,7 @@ class AislamientoEntreColegiosTest < ActionDispatch::IntegrationTest
     test "#{recurso} · DELETE al registro ajeno no lo borra" do
       entrar(config)
 
-      delete "/#{recurso}/#{ajeno(config).to_param}"
+      delete ruta_de(recurso, ajeno(config))
 
       assert_response :not_found
       assert con_el_colegio(@b.colegio) { ajeno(config).class.exists?(ajeno(config).id) },
@@ -106,19 +117,19 @@ class AislamientoEntreColegiosTest < ActionDispatch::IntegrationTest
   # `SchoolScoped` no aplica y el RLS tampoco. Las dos capas estaban bien y el
   # formulario filtraba igual — un agujero que ninguna de las dos podía tapar.
   FORMULARIOS = %w[
-    /departments/new /academic_periods/new /students/new /teachers/new /admins/new
-    /grades/new /subjects/new /evaluation_moments/new
+    department academic_period student teacher admin
+    grade subject evaluation_moment
   ].freeze
 
-  FORMULARIOS.each do |ruta|
-    test "#{ruta} no ofrece ninguna opción del otro colegio" do
+  FORMULARIOS.each do |recurso|
+    test "el formulario de #{recurso} no ofrece ninguna opción del otro colegio" do
       sign_in @a.director
 
-      get ruta
+      get public_send("new_#{recurso}_path")
 
       assert_response :success
       assert_no_match(/Colegio B/, response.body,
-                      "#{ruta}: el formulario nombra al otro colegio")
+                      "el formulario de #{recurso} nombra al otro colegio")
     end
   end
 
@@ -157,7 +168,7 @@ class AislamientoEntreColegiosTest < ActionDispatch::IntegrationTest
   test "GET /students/:id de otro colegio — el IDOR original" do
     sign_in @a.director
 
-    get "/students/#{@b.alumno.to_param}"
+    get student_path(@b.alumno)
 
     # Antes de MOR-86 esto devolvía 200 y permitía editar.
     assert_response :not_found
@@ -182,7 +193,7 @@ class AislamientoEntreColegiosTest < ActionDispatch::IntegrationTest
   test "un profesor no alcanza la planilla de notas del otro colegio" do
     sign_in @a.profesor
 
-    get "/evaluation_activities/#{@b.actividad.id}/notas"
+    get evaluation_activity_notas_path(@b.actividad)
 
     assert_response :not_found
   end
@@ -191,7 +202,7 @@ class AislamientoEntreColegiosTest < ActionDispatch::IntegrationTest
     sign_in @a.profesor
 
     assert_no_difference -> { cantidad(ActivityGrade) } do
-      patch "/evaluation_activities/#{@a.actividad.id}/notas/#{@b.alumno.id}",
+      patch evaluation_activity_nota_path(@a.actividad, @b.alumno),
             params: { score: "20" }, as: :json
     end
 

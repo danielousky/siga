@@ -103,19 +103,22 @@ JAR="${TMP}/admin.jar"
 if login "director.bolivar@siga.edu" "123123" "$JAR"; then
   echo "  ✓ login"
   check "dashboard"        "/dashboards/administrador"  200 "$JAR"
-  check "estudiantes"      "/students"                  200 "$JAR"
-  check "profesores"       "/teachers"                  200 "$JAR"
-  check "secciones"        "/sections"                  200 "$JAR"
-  check "grados"           "/grades"                    200 "$JAR"
-  check "alta de grado"    "/grades/new"                200 "$JAR"
-  check "materias"         "/subjects"                  200 "$JAR"
-  check "inscripciones"    "/enrollments"               200 "$JAR"
-  check "períodos"         "/academic_periods"          200 "$JAR"
-  check "momentos eval."   "/evaluation_moments"        200 "$JAR"
-  check "evaluaciones"     "/evaluation_activities"     200 "$JAR"
+  # ⚠️ Acá las URLs SÍ van escritas a mano, y tienen que estar en español
+  # (MOR-162): esto es un cliente HTTP, no la app. Es lo único que comprueba
+  # que la ruta que ve una persona existe de verdad.
+  check "estudiantes"      "/alumnos"                  200 "$JAR"
+  check "profesores"       "/profesores"                  200 "$JAR"
+  check "secciones"        "/secciones"                  200 "$JAR"
+  check "grados"           "/grados"                    200 "$JAR"
+  check "alta de grado"    "/grados/new"                200 "$JAR"
+  check "materias"         "/materias"                  200 "$JAR"
+  check "inscripciones"    "/inscripciones"               200 "$JAR"
+  check "períodos"         "/anios-escolares"          200 "$JAR"
+  check "momentos eval."   "/lapsos"        200 "$JAR"
+  check "evaluaciones"     "/evaluaciones"     200 "$JAR"
   check "emitir boletines" "/boletines"                 200 "$JAR"
-  check "auditoría"        "/dashboards/activity_logs"  200 "$JAR"
-  check "alta de alumno"   "/students/new"              200 "$JAR"
+  check "auditoría"        "/dashboards/actividad"  200 "$JAR"
+  check "alta de alumno"   "/alumnos/new"              200 "$JAR"
 fi
 
 echo
@@ -138,12 +141,12 @@ JAR="${TMP}/prof.jar"
 if login "prof.garcia@bolivar.edu" "123123" "$JAR"; then
   echo "  ✓ login"
   check "dashboard"           "/dashboards/profesor"        200 "$JAR"
-  check "mis evaluaciones"    "/evaluation_activities"      200 "$JAR"
-  check "nueva evaluación"    "/evaluation_activities/new"  200 "$JAR"
+  check "mis evaluaciones"    "/evaluaciones"      200 "$JAR"
+  check "nueva evaluación"    "/evaluaciones/new"  200 "$JAR"
 
   # La planilla de carga cuelga de una actividad, así que el id sale del listado.
-  PLANILLA="$(curl -s -b "$JAR" "${BASE}/evaluation_activities" \
-    | grep -o '/evaluation_activities/[0-9]*/notas' | head -1)"
+  PLANILLA="$(curl -s -b "$JAR" "${BASE}/evaluaciones" \
+    | grep -o '/evaluaciones/[0-9]*/notas' | head -1)"
   if [ -n "$PLANILLA" ]; then
     check "planilla de notas"  "$PLANILLA"                   200 "$JAR"
   else

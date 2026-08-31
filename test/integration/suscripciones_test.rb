@@ -24,7 +24,8 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
     sign_in @a.director
 
     # Lo que la familia y el colegio necesitan aunque haya una deuda de por medio.
-    %w[/dashboards/administrador /students /grades /boletines /constancias /asistencia].each do |ruta|
+    [ dashboards_administrador_path, students_path, grades_path,
+      report_cards_path, constancias_path, asistencias_path ].each do |ruta|
       get ruta
       # /asistencia redirige a la sección cuando hay una sola: es el atajo de
       # MOR-111, no un bloqueo.
@@ -64,7 +65,7 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
     vencer!(@a)
     sign_in @a.profesor
 
-    patch "/evaluation_activities/#{@a.actividad.id}/notas/#{@a.alumno.id}",
+    patch evaluation_activity_nota_path(@a.actividad, @a.alumno),
           params: { score: "20" }, as: :json
 
     assert_response :payment_required
@@ -74,10 +75,10 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
     vencer!(@a)
     sign_in @a.director
 
-    patch "/departments/#{@a.departamento.id}", params: { department: { name: "Cambiado" } }
+    patch department_path(@a.departamento), params: { department: { name: "Cambiado" } }
     assert_response :redirect
 
-    delete "/departments/#{@a.departamento.id}"
+    delete department_path(@a.departamento)
     assert_response :redirect
 
     con_el_colegio(@a.colegio) do

@@ -1,4 +1,28 @@
 Rails.application.routes.draw do
+  # ⚠️ LAS URLS VAN EN ESPAÑOL, EL CÓDIGO EN INGLÉS (MOR-162).
+  #
+  # `path:` es lo que separa las dos cosas, y no es un truco: es la opción que
+  # Rails trae justamente para esto. `resources :students, path: "alumnos"` deja
+  # el controller `StudentsController`, el helper `students_path` y el modelo
+  # `Student` intactos, y le muestra `/alumnos` a la persona.
+  #
+  # ## El criterio, en una línea
+  #
+  # **Inglés donde Rails DEDUCE un nombre de otro. Español donde nadie deduce
+  # nada.** Rails deduce en un solo lugar —modelo ↔ tabla ↔ asociación— y ahí el
+  # inglés no es gusto: es lo que hace que el plural sea automático.
+  #
+  # En español no lo es, y no es opinión:
+  #
+  #     "seccion".pluralize     → "seccions"      ✗
+  #     "profesor".pluralize    → "profesors"     ✗
+  #     "materia".pluralize     → "materia"       ✗  (¡ni pluraliza!)
+  #     "calificacion".pluralize → "calificacions" ✗
+  #
+  # Todo el modelo en español costaría una inflexión a medida por cada sustantivo
+  # irregular —ya hay tres— más renombrar veintisiete tablas, y nada de eso lo ve
+  # un director. Lo que sí ve es la barra de direcciones.
+
   # Dokku consulta esto antes de mandarle tráfico a un contenedor nuevo. Sin él,
   # un despliegue roto recibe usuarios igual.
   #
@@ -102,7 +126,7 @@ Rails.application.routes.draw do
     get "profesor",      to: "profesor#index"
     get "estudiante",    to: "estudiante#index"
     get "notas",         to: "notas#index"
-    resources :activity_logs, only: [:index]
+    resources :activity_logs, path: "actividad", only: [:index]
   end
 
   # Emisión de boletines (dirección y secretaría) y su verificación PÚBLICA.
@@ -148,15 +172,15 @@ Rails.application.routes.draw do
   get  "asistencia/:seccion_id",        to: "asistencias#show",      as: :seccion_asistencia
   post "asistencia/:seccion_id",        to: "asistencias#create"
 
-  resources :evaluation_moments, except: [ :show ]
-  resources :evaluation_activities do
+  resources :evaluation_moments, path: "lapsos", except: [ :show ]
+  resources :evaluation_activities, path: "evaluaciones" do
     # La planilla de carga. `notas/:student_id` hace upsert y borrado: mandar el
     # campo vacío devuelve al alumno a "sin nota", que NO es lo mismo que un 1.
     get   "notas",             to: "activity_grades#index",  as: :notas
     patch "notas/:student_id", to: "activity_grades#update", as: :nota
   end
-  resources :grades do
-    resources :grade_subjects, only: [:create, :destroy]
+  resources :grades, path: "grados" do
+    resources :grade_subjects, path: "materias", only: [:create, :destroy]
   end
   # La identidad del colegio: nombre, ubicación y escudo. Singular porque un
   # colegio solo se administra a sí mismo — el suyo sale de la sesión.
@@ -231,13 +255,13 @@ Rails.application.routes.draw do
   end
 
   resources :representatives, path: "representantes", concerns: :con_codigo_de_acceso
-  resources :departments, except: [ :show ]
-  resources :subjects
-  resources :academic_periods, except: [ :show ]
-  resources :sections do
-    resources :teacher_sections, only: [:create, :destroy]
+  resources :departments, path: "departamentos", except: [ :show ]
+  resources :subjects, path: "materias"
+  resources :academic_periods, path: "anios-escolares", except: [ :show ]
+  resources :sections, path: "secciones" do
+    resources :teacher_sections, path: "profesores", only: [:create, :destroy]
   end
-  resources :enrollments, except: [ :show ]
+  resources :enrollments, path: "inscripciones", except: [ :show ]
   # Los documentos oficiales del MPPE (MOR-99). Cuelgan del alumno o de su
   # inscripción, no de una sección: se emiten de a uno y a pedido de la familia.
   #
@@ -253,8 +277,8 @@ Rails.application.routes.draw do
   # el modal lo pega dentro de su `<turbo-frame>` mientras se escribe.
   get "buscar", to: "busquedas#show", as: :busqueda
 
-  resources :students
-  resources :teachers, concerns: :con_codigo_de_acceso
-  resources :admins, except: [ :show ], concerns: :con_codigo_de_acceso
+  resources :students, path: "alumnos"
+  resources :teachers, path: "profesores", concerns: :con_codigo_de_acceso
+  resources :admins, path: "administradores", except: [ :show ], concerns: :con_codigo_de_acceso
   root "inicio#index"
 end

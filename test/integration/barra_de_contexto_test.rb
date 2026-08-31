@@ -128,7 +128,7 @@ class BarraDeContextoTest < ActionDispatch::IntegrationTest
   test "ninguna pantalla pide recursos a un dominio externo" do
     sign_in @a.director
 
-    %w[/ /students /grades /report_cards].each do |ruta|
+    [ root_path, students_path, grades_path, report_cards_path ].each do |ruta|
       get ruta
 
       externos = response.body.scan(%r{(?:src|href)="(https?://[^"]+)"}).flatten
