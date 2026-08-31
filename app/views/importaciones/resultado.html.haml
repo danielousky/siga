@@ -5,7 +5,7 @@
       = icono(:volver, tamano: 16)
       %span Volver a importaciones
 
-  %p.nota-ayuda
+  %p.dato-secundario
     Desde
     %strong= @importacion.nombre_del_archivo
     \, el #{l(@importacion.updated_at.to_date, format: :long)}.

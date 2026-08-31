@@ -3,11 +3,9 @@
     %h1 Identidad del colegio
 
   %p.nota-ayuda
-    Esto es lo que ve una familia. El escudo aparece en el sistema y, sobre todo,
-    en los
-    %strong documentos que se llevan en la mano
-    — boletines y constancias. Un boletín con el escudo del colegio es el
-    boletín del colegio.
+    Esto sale impreso en los
+    %strong boletines y constancias
+    que la familia se lleva en la mano.
 
   = form_with model: @colegio, url: colegio_path, method: :patch, class: "" do |f|
     = render "shared/errors", object: @colegio
@@ -52,11 +50,13 @@
         -# director asume al subir su firma escaneada. Detrás de un «?» sería una
         -# advertencia que nadie abre.
         %p.nota-ayuda
-          %strong Ni la firma ni el sello son una firma digital.
-          Son imágenes, y cualquiera que tenga el PDF puede recortarlas — por eso
-          el sello va montado sobre la firma y no al lado. Lo que hace comprobable
-          un boletín es su código de verificación y el QR: quien lo escanee ve lo
-          que el colegio emitió, contra la base.
+          %strong Ni la firma ni el sello son una firma digital:
+          son imágenes, y cualquiera que tenga el PDF puede recortarlas.
+        = mas_detalle "Entonces, ¿qué hace comprobable un boletín?" do
+          %p
+            El código de verificación y el QR. Quien lo escanee ve, contra la
+            base, exactamente lo que el colegio emitió — y por eso el sello va
+            montado sobre la firma y no al lado.
 
         .form-group
           = con_pista "Escríbalo como tiene que aparecer impreso en los documentos oficiales." do

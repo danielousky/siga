@@ -29,9 +29,8 @@
   - else
     %p.nota-ayuda
       Solo aparecen las evaluaciones cuya
-      %strong fecha ya pasó.
-      Una que es la semana que viene no está atrasada, y reclamarla es la forma
-      más rápida de que nadie vuelva a mirar esta pantalla.
+      %strong fecha ya pasó:
+      una que es la semana que viene no está atrasada.
 
     = render "shared/escala", total: @atrasados.size,
              singular: "profesor por llamar", plural: "profesores por llamar",

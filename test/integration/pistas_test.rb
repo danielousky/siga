@@ -109,4 +109,26 @@ class PistasTest < ActionDispatch::IntegrationTest
     get new_user_registration_path # usa `label_tag`
     assert_select ".form-etiqueta button.pista-boton", { minimum: 1 }, "falló con label_tag"
   end
+
+  # ⚠️ El «por qué funciona así» va plegado, no escondido (MOR-161).
+  #
+  # Son explicaciones buenas y se leen UNA vez: quien emite la constancia número
+  # treinta ya sabe por qué no se archiva como el boletín. El título dice de qué
+  # se trata, y quien quiera la respuesta la abre.
+  #
+  # `<details>` nativo, como los grupos del menú: anda sin JavaScript y responde
+  # al teclado solo. Lo que este test sostiene es que el CONTENIDO viaje en el
+  # HTML —si se cargara después, un lector de pantalla se quedaría sin él.
+  test "el «por qué» está plegado pero su texto viaja en la página" do
+    @a, _b = dos_colegios_completos
+    sign_in @a.director
+
+    get constancias_path
+
+    assert_select "details.mas-detalle summary", { minimum: 1 },
+                  "el bloque de «por qué» dejó de ser plegable"
+    assert_match(/certifica una/, response.body,
+                 "el texto no está en la página: si se pidiera después, un lector " \
+                 "de pantalla y un buscador se quedarían sin él")
+  end
 end

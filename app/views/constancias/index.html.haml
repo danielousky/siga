@@ -16,11 +16,9 @@
 
   - else
     %p.nota-ayuda
-      El documento que más pide una familia: para el pasaporte, una beca, el
-      seguro o una embajada. Sale con la
+      Para el pasaporte, una beca, el seguro o una embajada. Sale con la
       %strong situación de hoy
-      —grado, sección y año escolar— y con el espacio para la firma y el sello
-      del director.
+      y el espacio para la firma y el sello.
 
     = form_with url: constancias_path, method: :get, data: { controller: "auto-envio", turbo: false } do
       .form-group
@@ -40,17 +38,18 @@
 
       = f.submit "Emitir y descargar", class: "btn btn-primary"
 
-.card-academic
-  .card-academic-header
-    %h2 Por qué esta no se guarda como el boletín
-
-  %p.nota-ayuda
+-# ⚠️ Era una tarjeta entera con 375 caracteres de prosa, siempre abierta. Es
+-# una explicación buena y se lee UNA vez: quien emite la constancia número
+-# treinta ya sabe por qué no se archiva. El título dice de qué se trata; quien
+-# quiera la respuesta la abre.
+= mas_detalle "Por qué esta no se guarda como el boletín" do
+  %p
     El boletín certifica
     %strong calificaciones
     y por eso queda archivado: lo que decía en diciembre tiene que seguir
-    diciéndolo en marzo. La constancia certifica una
+    diciéndolo en marzo.
+  %p
+    La constancia certifica una
     %strong situación de hoy.
-    Si el alumno cambia de sección, la constancia de mañana dice lo nuevo — y
-    eso es lo correcto. Lo que sí queda registrado es
-    %strong quién la emitió y cuándo,
-    en el Registro de Actividad.
+    Si el alumno cambia de sección, la de mañana dice lo nuevo. Lo que sí queda
+    registrado es quién la emitió y cuándo, en el Registro de Actividad.

@@ -46,9 +46,8 @@
 
   %p.nota-ayuda
     Cada emisión guarda las notas
-    %strong tal como se imprimieron.
-    Reemitir en marzo no cambia lo que decía el papel de diciembre — por eso cada
-    una tiene su propio código.
+    %strong tal como se imprimieron,
+    con su propio código.
 
   - if @recientes.any?
     = render "shared/escala", total: @total_emitidos, singular: "boletín", plural: "boletines",

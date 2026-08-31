@@ -51,6 +51,26 @@ module PistasHelper
     end
   end
 
+  # Un bloque de «por qué el sistema funciona así», plegado (MOR-161).
+  #
+  # Es el hermano de `pista` para el texto que NO cuelga de un campo: la sección
+  # que explica por qué la constancia no se archiva como el boletín, o por qué
+  # una falta justificada no cuenta igual. Son explicaciones buenas y **se leen
+  # una vez** — la número treinta que abre esa pantalla ya sabe la respuesta.
+  #
+  # ⚠️ `<details>` nativo, como los grupos del menú: anda sin JavaScript,
+  # responde al teclado solo, y no hay un estado paralelo que se pueda
+  # desincronizar con lo que se ve.
+  #
+  #     = mas_detalle "Por qué esta no se guarda como el boletín" do
+  #       %p El boletín certifica calificaciones…
+  def mas_detalle(resumen, &bloque)
+    tag.details class: "mas-detalle" do
+      safe_join([ tag.summary(resumen, class: "mas-detalle-resumen"),
+                  tag.div(capture(&bloque), class: "mas-detalle-cuerpo") ])
+    end
+  end
+
   # Le pone el «?» a CUALQUIER etiqueta, venga de donde venga.
   #
   #     = con_pista "El profesor entra con este correo" do

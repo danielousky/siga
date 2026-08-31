@@ -50,18 +50,19 @@
             %span.portal-pendiente Pendiente
 
     - if @anual && @materias.any? { |f| f[:escala].to_s == "literal" }
-      %p.nota-ayuda
-        En primaria la calificación del año se expresa en literal:
-        %strong A
-        (20–19) ·
-        %strong B
-        (18–17) ·
-        %strong C
-        (16–14) ·
-        %strong D
-        (13–10) ·
-        %strong E
-        (por debajo de 10). El número va al lado para que se lea igual.
+      = mas_detalle "Qué significa cada letra" do
+        %p
+          %strong A
+          20–19 ·
+          %strong B
+          18–17 ·
+          %strong C
+          16–14 ·
+          %strong D
+          13–10 ·
+          %strong E
+          por debajo de 10.
+        %p El número va al lado de cada nota para que se lea igual.
 
   .card-academic
     .card-academic-header

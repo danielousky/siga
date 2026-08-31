@@ -59,22 +59,23 @@
                 - else
                   %span.nota-pendiente Sin nota
       %p.nota-ayuda
-        La calificación definitiva es el promedio de los lapsos (Art. 111 del
-        Reglamento General de la LOE). Aprueba con 10.
-        - if @seccion.grade.escala_literal?
-          %br
-          En primaria la calificación del año se expresa en literal:
-          %strong A
-          (20–19) ·
-          %strong B
-          (18–17) ·
-          %strong C
-          (16–14) ·
-          %strong D
-          (13–10) ·
-          %strong E
-          (por debajo de 10, reprobado). El número va al lado porque es lo que
-          la mayoría de las familias reconoce.
+        La definitiva es el promedio de los lapsos. Aprueba con 10.
+      -# La tabla de la escala literal se lee UNA vez: quien ya sabe que «B» es
+      -# 18–17 no necesita el renglón cada vez que abre sus notas. Y el número va
+      -# al lado de la letra, así que la tabla es de repaso, no de traducción.
+      - if @seccion.grade.escala_literal?
+        = mas_detalle "Qué significa cada letra" do
+          %p
+            %strong A
+            20–19 ·
+            %strong B
+            18–17 ·
+            %strong C
+            16–14 ·
+            %strong D
+            13–10 ·
+            %strong E
+            por debajo de 10, reprobado.
 
   - else
     - @materias.each do |materia|
@@ -112,7 +113,7 @@
                     %span.nota-pendiente Pendiente
 
         - if materia.peso_definido < 100
-          %p.nota-ayuda
+          %p.dato-secundario
             El profesor definió el
             = "#{number_with_precision(materia.peso_definido, precision: materia.peso_definido.frac.zero? ? 0 : 2)} %"
             de este lapso. Falta definir el resto.

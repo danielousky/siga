@@ -5269,3 +5269,62 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   font-size: 13px;
   color: var(--text-tertiary);
 }
+
+/* ---- «Por qué funciona así», plegado (MOR-161) ---- */
+/* El hermano de `.pista` para el texto que no cuelga de un campo. Mismo
+   argumento que los grupos del menú: `<details>` nativo, sin JavaScript. */
+
+.mas-detalle {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-top: var(--space-md);
+}
+
+.mas-detalle-resumen {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  /* 44px: es un control que se toca. */
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  cursor: pointer;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.mas-detalle-resumen::-webkit-details-marker { display: none; }
+
+/* El triángulo lo dibujamos para que gire: el nativo no se anima igual entre
+   navegadores. Mismo patrón que `.sidebar-grupo`. */
+.mas-detalle-resumen::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 5px solid currentColor;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform var(--transition-fast);
+}
+
+.mas-detalle[open] > .mas-detalle-resumen::before { transform: rotate(90deg); }
+.mas-detalle-resumen:hover { color: var(--brand-primary); }
+
+.mas-detalle-resumen:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+  border-radius: var(--radius-md);
+}
+
+.mas-detalle-cuerpo {
+  padding: 0 var(--space-md) var(--space-md);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 68ch;
+}
+
+.mas-detalle-cuerpo p { margin: 0 0 var(--space-sm); }
+.mas-detalle-cuerpo p:last-child { margin-bottom: 0; }

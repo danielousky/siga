@@ -8,9 +8,11 @@
     %h1 Qué niveles dicta el colegio
 
   %p.nota-ayuda
-    Los grados de Venezuela los fija el ministerio: son catorce y siempre los
-    mismos. Marque los niveles que dicta el colegio y quedan creados de una vez,
-    con sus nombres oficiales.
+    -# El número sale del catálogo y no escrito a mano: decía «catorce» y con la
+    -# Media Técnica pasaron a quince. Un número a mano se queda viejo en
+    -# silencio.
+    Los grados los fija el ministerio y siempre son los mismos. Marque los
+    niveles que dicta y quedan creados con sus nombres oficiales.
 
   = form_with url: niveles_del_colegio_path, method: :patch do
     .niveles-opciones
