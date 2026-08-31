@@ -70,6 +70,47 @@ transaccionales. Mi prueba local no lo atrapó porque corrí sobre una base reci
 sembrada: **verifiqué el resultado, no el efecto.** Ahora `demo:limpiar`
 comprueba tabla por tabla antes de anunciar nada.
 
+### Sesión del 28–31 de agosto — el camino de entrada
+
+**El panel de SIGA volvió a servir** (`MOR-157`). El botón «Dar de alta» estaba
+escrito con un `if` modificador que se lleva el `do`: `link_to` tomaba la ruta
+como TEXTO del enlace. No explota —200, HTML válido— así que ningún test de
+códigos lo veía. Estaba en dos vistas.
+
+**Los campos de dirección ya se pueden llenar.** `entidad_federal`, `municipio`,
+`parroquia`, `direccion` y `telefono` existían en `schools` desde los documentos
+del MPPE y ningún formulario los pedía. La entidad va como lista cerrada
+(`EntidadFederal`, 25 entradas, La Guaira y no Vargas).
+
+**Registro abierto y autogestionado** (`MOR-158`):
+
+    /registrarse  →  /mi-colegio/nuevo  →  el panel, con su mapa de arranque
+
+⚠️ **Revierte `MOR-101` a propósito.** El riesgo sigue existiendo —`users.email`
+es único en la plataforma— y se acepta: facilidad por encima de seguridad
+mientras el acceso sea compartir el enlace a mano. Lo que lo hace tolerable es
+que **registrarse crea siempre un colegio nuevo**, nunca se une a uno existente.
+
+Nace en el **Plan Inicial gratis**, y `schools.registrado_por_id` guarda quién lo
+creó: la semilla de `Account`, que quedó **planteado y sin implementar**.
+
+`PlataformaMailer` le avisa a Daniel. Configurado y **probado contra producción**
+el 31 de agosto: `SIGA_AVISOS_EMAIL=moros.daniel@gmail.com`.
+
+### Lo anotado por Daniel y todavía sin resolver
+
+1. **`Account`** — varios colegios, un dueño, la suscripción colgando de la
+   cuenta. Con un colegio, la interfaz de hoy; con varios, gestión en paralelo,
+   *«y esto rompe el concepto de encapsulamiento al colegio»*.
+2. **La figura del DEMO** — con el registro abierto, `DemoRequest` probablemente
+   sobra. Ojo: se llevaría la pregunta «¿con qué llevan hoy las notas?»
+   (`MOR-127`), que conviene mudar al alta del colegio.
+3. **Cuándo avisar del costo** — pregunta abierta de Daniel. Con el plan gratis
+   no hay nada que notificar hasta que el colegio elija; la pregunta llega sola
+   al intentar calificar o emitir.
+4. **Activar el acceso desde `/siga/solicitudes`** — hoy no hay por dónde.
+5. **Correo de avisos a un dominio propio**, junto con `MOR-144` y `MOR-145`.
+
 ### Lo que sigue, en el orden que recomendó el PM
 
 1. **Abrir el año escolar (clonar el anterior).** El PM recomienda **esperar a
