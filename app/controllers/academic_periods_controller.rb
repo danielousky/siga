@@ -13,11 +13,18 @@ class AcademicPeriodsController < ApplicationController
 
   def edit; end
 
+  # ⚠️ El año escolar se construye a partir de UN número (MOR-163).
+  #
+  # `AcademicPeriod.para_el_anio` arma el nombre y las dos fechas: el formulario
+  # pregunta qué año empieza y nada más. Las fechas solo llegan si el colegio
+  # abrió «mi calendario no es el de siempre», y entonces ganan.
   def create
-    @academic_period = AcademicPeriod.new(academic_period_params)
+    @academic_period = AcademicPeriod.para_el_anio(params[:anio])
+    @academic_period.assign_attributes(fechas_propias) if fechas_propias.any?
+
     if @academic_period.save
       registrar_cambio(:creado, @academic_period, @academic_period.name)
-      redirect_to academic_periods_path, notice: "Período académico creado exitosamente."
+      redirect_to academic_periods_path, notice: "Año escolar creado."
     else
       render :new, status: :unprocessable_entity
     end
@@ -26,7 +33,7 @@ class AcademicPeriodsController < ApplicationController
   def update
     if @academic_period.update(academic_period_params)
       registrar_cambio(:actualizado, @academic_period, @academic_period.name)
-      redirect_to academic_periods_path, notice: "Período académico actualizado exitosamente."
+      redirect_to academic_periods_path, notice: "Año escolar actualizado."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -39,13 +46,22 @@ class AcademicPeriodsController < ApplicationController
 
     if @academic_period.destroy
       registrar_cambio(:eliminado, @academic_period, nombre)
-      redirect_to academic_periods_url, notice: "Período académico eliminado exitosamente."
+      redirect_to academic_periods_url, notice: "Año escolar eliminado."
     else
       redirect_to academic_periods_path, alert: @academic_period.errors.full_messages.join(", ")
     end
   end
 
   private
+
+  # Solo lo que el colegio escribió a mano. Un campo vacío NO pisa la fecha que
+  # calculó el modelo: mandaría un año sin duración, que es lo que este cambio
+  # vino a arreglar.
+  def fechas_propias
+    @fechas_propias ||= params.fetch(:academic_period, {})
+                              .permit(:start_date, :end_date)
+                              .to_h.compact_blank
+  end
 
   def set_academic_period
     @academic_period = AcademicPeriod.find(params[:id])

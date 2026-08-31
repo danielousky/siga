@@ -1,24 +1,66 @@
+-# Crear un año escolar es elegir UN número (MOR-163).
+-#
+-# ## Por qué no hay tres campos
+-#
+-# El año escolar venezolano va de mediados de septiembre a finales de julio.
+-# Todos. Preguntar el nombre y las dos fechas era pedirle a un director que
+-# escriba lo que el sistema ya sabe — y aceptaba «Año escolar 2026-2027» con
+-# las fechas vacías, que es un año sin duración.
+-#
+-# Ahora se elige el año que empieza y sale todo: el nombre («2026-2027») y el
+-# rango. Ver `AcademicPeriod.para_el_anio`.
+-#
+-# ⚠️ Las fechas siguen siendo editables, pero PLEGADAS: el colegio con un
+-# calendario propio existe y no se le puede cerrar la puerta; el que no lo
+-# tiene —que son casi todos— no debería ni verlas.
+- nuevo = academic_period.new_record?
+- anio_actual = nuevo ? AcademicPeriod.proximo_anio : academic_period.start_date&.year
+
 = form_with(model: academic_period) do |f|
   = render "shared/errors", object: academic_period
-
-  .form-group
-    = f.label :name, class: "form-label"
-    = f.text_field :name, class: "form-control"
 
   -# El colegio NO se elige: sale de la sesión (Current.school). Un selector acá
   -# lista los colegios de toda la plataforma y deja que el id venga del request,
   -# que es justo de donde el inquilino nunca puede venir (MOR-86).
 
-  .form-group
-    = f.label :start_date, "Fecha inicio", class: "form-label"
-    = f.date_field :start_date, class: "form-control"
+  - if nuevo
+    .form-group
+      = con_pista "En Venezuela el año escolar va de mediados de septiembre a finales de julio, así que con el año que empieza queda definido todo. Si su calendario es distinto, ajuste las fechas más abajo." do
+        = label_tag :anio, "¿Qué año escolar va a cargar?", class: "form-label"
+      = select_tag :anio,
+                   options_for_select(AcademicPeriod.anios_elegibles.map { |a| [ AcademicPeriod.nombre_del_anio(a), a ] }, anio_actual),
+                   class: "form-select"
 
-  .form-group
-    = f.label :end_date, "Fecha fin", class: "form-label"
-    = f.date_field :end_date, class: "form-control"
+    = mas_detalle "Mi calendario no es el de siempre" do
+      %p
+        Solo si su colegio empieza o termina en otras fechas. Déjelas vacías y
+        se usan las del calendario venezolano: del 15 de septiembre al 31 de
+        julio.
+      .form-row
+        .form-group
+          = f.label :start_date, "Primer día de clases", class: "form-label"
+          = f.date_field :start_date, class: "form-control"
+        .form-group
+          = f.label :end_date, "Último día", class: "form-label"
+          = f.date_field :end_date, class: "form-control"
+
+  - else
+    -# Al EDITAR se muestra todo: el año ya existe, tiene secciones y notas
+    -# colgando, y cambiarle las fechas es una corrección deliberada.
+    .form-group
+      = f.label :name, "Año escolar", class: "form-label"
+      = f.text_field :name, class: "form-control"
+
+    .form-row
+      .form-group
+        = f.label :start_date, "Primer día de clases", class: "form-label"
+        = f.date_field :start_date, class: "form-control"
+      .form-group
+        = f.label :end_date, "Último día", class: "form-label"
+        = f.date_field :end_date, class: "form-control"
 
   .form-acciones
-    = f.submit class: "btn btn-primary"
+    = f.submit (nuevo ? "Crear el año escolar" : "Guardar"), class: "btn btn-primary"
     - if local_assigns[:volver]
       = link_to volver, class: "btn btn-secondary" do
         = icono(:volver, tamano: 16)

@@ -60,6 +60,10 @@ module LlevaElRecorrido
   def recorrido_activo?
     return false unless respond_to?(:current_user) && Current.school && administrador?
     return false if cookies[CLAVE].blank?
+    # ⚠️ En el panel NO: el mapa completo ya está ahí abajo, así que «Volver al
+    # plan» apuntaría a la página en la que ya estás. Un enlace que no lleva a
+    # ningún lado enseña que los enlaces de este sistema a veces no funcionan.
+    return false if controller_path == "dashboards/administrador"
 
     pasos_del_recorrido.any? { |p| !p.listo? && !p.opcional? }
   end

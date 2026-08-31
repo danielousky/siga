@@ -505,11 +505,17 @@ textarea.form-control {
   right: var(--space-xs);
   top: 50%;
   transform: translateY(-50%);
+  /* ⚠️ FLEX, y por eso el ojo se veía corrido (MOR-163).
+     El botón mide 34×30 y el SVG 18×18 con `display: block`: sin centrarlo, el
+     icono se pegaba arriba a la izquierda de su propia caja. Se veía desplazado
+     y nadie sabía por qué — el botón estaba en su lugar, el dibujo no. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--border-standard);
   background: var(--surface-elevated);
   color: var(--text-secondary);
   border-radius: var(--radius-sm);
-  font-size: 16px;
   line-height: 1;
   width: 34px;
   height: 30px;

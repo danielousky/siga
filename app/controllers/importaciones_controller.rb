@@ -195,12 +195,14 @@ class ImportacionesController < ApplicationController
   # cambia ningún cálculo.
   def crear_ano_escolar
     nombre = params[:nombre].to_s.strip
-    desde, hasta = rango_del_ano(nombre)
+    anio = AcademicPeriod.anio_de(nombre)
 
-    return redirect_to(previsualizar_importacion_path(@importacion), alert: "«#{nombre}» no parece un año escolar: use la forma 2023-2024.") if desde.nil?
+    return redirect_to(previsualizar_importacion_path(@importacion), alert: "«#{nombre}» no parece un año escolar: use la forma 2023-2024.") if anio.nil?
 
-    periodo = AcademicPeriod.new(school: Current.school, name: nombre,
-                                 start_date: desde, end_date: hasta)
+    # ⚠️ El mismo constructor que el formulario del director (MOR-163). Acá
+    # vivía una copia con las fechas escritas a mano, y dos lugares que arman
+    # un año escolar son dos calendarios que se despegan.
+    periodo = AcademicPeriod.para_el_anio(anio)
 
     return redirect_to(previsualizar_importacion_path(@importacion), alert: periodo.errors.full_messages.to_sentence) unless periodo.save
 
@@ -289,16 +291,6 @@ class ImportacionesController < ApplicationController
     return nil if params[:periodo_id].blank?
 
     AcademicPeriod.find_by(id: params[:periodo_id])
-  end
-
-  # «2023-2024» → del 15 de septiembre de 2023 al 31 de julio de 2024. Es el año
-  # escolar venezolano, el mismo que propone `ano_escolar_sugerido` para el año
-  # en curso.
-  def rango_del_ano(nombre)
-    inicio = nombre[/\A(\d{4})/, 1]&.to_i
-    return [ nil, nil ] if inicio.nil? || !inicio.between?(1950, 2100)
-
-    [ Date.new(inicio, 9, 15), Date.new(inicio + 1, 7, 31) ]
   end
 
   # Los pesos describen la estructura del año y NO entran en ningún cálculo —el

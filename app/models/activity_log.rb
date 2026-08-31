@@ -78,9 +78,9 @@ class ActivityLog < ApplicationRecord
     # convierte un acceso amplio en algo defendible frente al cliente: entró,
     # el colegio lo vio en el momento, y queda en su historial.
     "soporte_siga_entro"   => "Soporte de SIGA entró al colegio",
-    "period_created"       => "Período académico creado",
-    "period_updated"       => "Período académico actualizado",
-    "period_destroyed"     => "Período académico eliminado",
+    "period_created"       => "Año escolar creado",
+    "period_updated"       => "Año escolar actualizado",
+    "period_destroyed"     => "Año escolar eliminado",
     # Un boletín es un documento oficial: queda registrado quién lo emitió.
     "report_cards_issued"  => "Boletines emitidos",
     # La constancia NO se archiva —certifica la situación de hoy, no las

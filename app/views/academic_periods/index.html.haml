@@ -1,9 +1,9 @@
 .card-academic
   .card-academic-header
-    %h1 Períodos académicos
+    %h1 Años escolares
     = link_to new_academic_period_path, class: "btn btn-primary" do
       = icono(:agregar, tamano: 16)
-      %span Nuevo período
+      %span Crear el año escolar
 
   - if @academic_periods.empty?
     = render "shared/lista_vacia", clave: :ano_escolar,

@@ -9,6 +9,70 @@ class AcademicPeriod < ApplicationRecord
   validates :name, :start_date, :end_date, presence: true
   validate :end_date_after_start_date
 
+  # ══════════════════════════════════════════════════════════════════════════
+  # El año escolar venezolano se DEDUCE de un número (MOR-163)
+  # ══════════════════════════════════════════════════════════════════════════
+  #
+  # Va de mediados de septiembre a finales de julio. **Todos.** Daniel: «eso es
+  # así cada año, no hace falta preguntar; ni en los peores años algo diferente».
+  #
+  # Así que crear un año escolar no son tres campos —nombre, fecha de inicio y
+  # fecha de fin— sino UNO: qué año empieza. De ahí salen los otros tres.
+  #
+  # ⚠️ Antes esto vivía escondido en `ImportacionesController#rango_del_ano`, y
+  # el formulario del director pedía las tres cosas a mano. O sea: el sistema ya
+  # sabía la respuesta y de todos modos preguntaba — y aceptaba «Año escolar
+  # 2026-2027» con las fechas en blanco, que es un año sin duración.
+
+  # El primer día de clases. El 15 y no el 1: septiembre arranca a mitad de mes
+  # en Venezuela, y esa es la fecha que un colegio reconoce.
+  COMIENZA = { mes: 9, dia: 15 }.freeze
+  TERMINA  = { mes: 7, dia: 31 }.freeze
+
+  # Los años que tiene sentido ofrecer. Hacia atrás alcanzan el historial que un
+  # colegio quiera importar; hacia adelante, el que está por planificar.
+  def self.anios_elegibles(desde_hoy = Date.current)
+    base = desde_hoy.year
+    ((base - 12)..(base + 1)).to_a.reverse
+  end
+
+  # «2026» → «2026-2027». El nombre no se escribe: se arma.
+  def self.nombre_del_anio(inicio) = "#{inicio}-#{inicio.to_i + 1}"
+
+  # El año que le toca crear a este colegio.
+  #
+  # Si ya tiene 2025-2026, el siguiente es 2026 — «exacto», dijo Daniel. Si no
+  # tiene ninguno, es el año escolar en curso: de enero a julio todavía se está
+  # cursando el que empezó el septiembre anterior.
+  def self.proximo_anio(hoy = Date.current)
+    ultimo = order(:start_date).last
+    return ultimo.start_date.year + 1 if ultimo
+
+    hoy.month >= COMIENZA[:mes] ? hoy.year : hoy.year - 1
+  end
+
+  # Construye el año escolar completo a partir del número. Es el único camino:
+  # el formulario, el importador y los seeds pasan por acá, así que las fechas
+  # no pueden diferir según por dónde se creó.
+  def self.para_el_anio(inicio, school: Current.school)
+    inicio = inicio.to_i
+
+    new(school: school, name: nombre_del_anio(inicio),
+        start_date: Date.new(inicio, COMIENZA[:mes], COMIENZA[:dia]),
+        end_date: Date.new(inicio + 1, TERMINA[:mes], TERMINA[:dia]))
+  end
+
+  # El año que empieza, leído del nombre.
+  #
+  # ⚠️ El primer grupo de cuatro dígitos, esté donde esté: una planilla trae
+  # «2023-2024» pero un colegio escribe «Año escolar 2023-2024», y anclando al
+  # principio de la cadena el segundo no se reconoce. El rango es el que filtra
+  # la basura.
+  def self.anio_de(nombre)
+    inicio = nombre.to_s[/(\d{4})/, 1]&.to_i
+    inicio if inicio&.between?(1950, 2100)
+  end
+
   scope :en_curso, -> { where(start_date: ..Date.current, end_date: Date.current..) }
   scope :por_comenzar, -> { where(start_date: Date.current...).order(:start_date) }
 
