@@ -87,7 +87,13 @@ no puede entrar hasta que el colegio se lo cargue.
   Año— y no seis: marcarla siembra también el bachillerato, porque no hay sexto año sin
   los cinco anteriores. ⚠️ `Grade#media?` es el concepto del dominio (general **o**
   técnica); preguntar `secundaria?` a secas deja ciego al sexto año, y la certificación
-  31059 es de la educación **media**. `School#niveles` se deriva de los grados.
+  31059 es de la educación **media**. **Qué dicta un colegio se DERIVA de sus
+  grados** (`School#niveles` / `#que_dicta`), y la columna `school_type` **se borró**
+  (`MOR-160`): era excluyente —o primaria o bachillerato— y para la mitad del mercado
+  mentía. ⚠️ `niveles` consulta con `Grade.unscoped.where(school_id:)` a propósito:
+  `Grade` es `SchoolScoped`, así que preguntarle a un colegio que NO es el de la sesión
+  devolvía cero filas en silencio —y eso lo hace el panel de SIGA en cada fila—. Quien
+  decide qué se lee es el RLS, no el `default_scope`.
 - **Profesor guía**: cuelga de la **sección** (`Section#leader_teacher`), no del grado
   (`MOR-150`). «1er Año A» tiene su guía y «1er Año B» el suyo; es quien pasa lista de
   ESOS alumnos. Del grado cuelga un `coordinator_teacher` **opcional**, que coordina a los
