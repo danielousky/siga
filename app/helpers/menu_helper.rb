@@ -150,6 +150,7 @@ module MenuHelper
     when :niveles_del_colegio then niveles_del_colegio_path
     when :colegio             then colegio_path
     when :academic_periods    then academic_periods_path
+    when :evaluation_moments  then evaluation_moments_path
     when :subjects            then subjects_path
     when :sections            then sections_path
     when :teachers            then teachers_path

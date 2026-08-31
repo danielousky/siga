@@ -132,8 +132,11 @@ class PasosDeArranque
       titulo: "El año escolar y sus lapsos",
       explicacion: "El lapso es cada corte de notas del año: lo que en la libreta va " \
                    "como I, II y III Lapso. Casi todos los colegios del país usan tres.",
+      # ⚠️ El destino cambia con el estado, y el botón lo decía sin cumplirlo:
+      # «Revisar los lapsos» llevaba al listado de AÑOS ESCOLARES. Si el año ya
+      # existe, lo que falta mirar son sus lapsos.
       verbo: periodo ? "Revisar los lapsos" : "Crear el año escolar",
-      ruta: :academic_periods,
+      ruta: periodo ? :evaluation_moments : :academic_periods,
       listo: periodo.present? && lapsos.positive?,
       resultado: periodo && lapsos.positive? ? "#{periodo.name} · #{contar(lapsos, 'lapso', 'lapsos')}" : nil
     )

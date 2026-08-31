@@ -206,7 +206,7 @@ class ImportacionesController < ApplicationController
 
     return redirect_to(previsualizar_importacion_path(@importacion), alert: periodo.errors.full_messages.to_sentence) unless periodo.save
 
-    creados = crear_los_lapsos(periodo, params[:lapsos].to_i)
+    creados = periodo.sembrar_lapsos(params[:lapsos].to_i.clamp(1, ColumnasDeHistorial::LAPSOS)).size
 
     redirect_to previsualizar_importacion_path(@importacion),
                 notice: "Se creó #{periodo.name} con #{helpers.pluralize(creados, 'lapso')}."
@@ -291,19 +291,6 @@ class ImportacionesController < ApplicationController
     return nil if params[:periodo_id].blank?
 
     AcademicPeriod.find_by(id: params[:periodo_id])
-  end
-
-  # Los pesos describen la estructura del año y NO entran en ningún cálculo —el
-  # anual es promedio simple por el Artículo 111—, pero el modelo exige que
-  # cierren en 100. Se reparten parejos y el resto va al último.
-  def crear_los_lapsos(periodo, cuantos)
-    cuantos = cuantos.clamp(1, ColumnasDeHistorial::LAPSOS)
-    parejo = 100 / cuantos
-
-    cuantos.times.count do |i|
-      peso = i == cuantos - 1 ? 100 - (parejo * (cuantos - 1)) : parejo
-      EvaluationMoment.create!(academic_period: periodo, name: "Lapso #{i + 1}", weight: peso)
-    end
   end
 
   # La sección del grado recién creado. Devuelve `nil` si la planilla no nombraba

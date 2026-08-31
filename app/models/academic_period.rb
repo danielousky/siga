@@ -62,6 +62,49 @@ class AcademicPeriod < ApplicationRecord
         end_date: Date.new(inicio + 1, TERMINA[:mes], TERMINA[:dia]))
   end
 
+  # ══════════════════════════════════════════════════════════════════════════
+  # Los lapsos también se deducen (MOR-163)
+  # ══════════════════════════════════════════════════════════════════════════
+  #
+  # Son tres, se llaman «1er Lapso», «2do Lapso» y «3er Lapso», y reparten el año
+  # en tercios. Daniel: «nada cambia, podemos deducirlo. Lo que sí puede variar
+  # un poco es la fecha por si se atraviesa un feriado».
+  #
+  # Así que el año escolar nace CON sus lapsos y el director no crea nada: si
+  # tiene que correr una fecha por un feriado, la corrige.
+  LAPSOS = [ "1er Lapso", "2do Lapso", "3er Lapso" ].freeze
+
+  # Crea los lapsos que falten. Idempotente a propósito: se llama al crear el año
+  # y se puede volver a llamar sin duplicar nada —el nombre es único dentro del
+  # período, así que un segundo intento chocaría contra el índice.
+  def sembrar_lapsos(cuantos = LAPSOS.size)
+    return evaluation_moments.to_a if evaluation_moments.any?
+
+    nombres = cuantos == LAPSOS.size ? LAPSOS : Array.new(cuantos) { |i| "Lapso #{i + 1}" }
+
+    # ⚠️ Los pesos NO entran en ningún cálculo —el anual es promedio simple por
+    # el Artículo 111— pero el modelo exige que cierren en 100. Se reparten
+    # parejos y el resto va al último, o tres lapsos sumarían 99.
+    parejo = 100 / cuantos
+
+    nombres.each_with_index.map do |nombre, i|
+      desde, hasta = tramo_del_lapso(i, cuantos)
+      evaluation_moments.create!(name: nombre, starts_on: desde, ends_on: hasta,
+                                 weight: i == cuantos - 1 ? 100 - (parejo * (cuantos - 1)) : parejo)
+    end
+  end
+
+  # El año partido en tramos parejos. El último termina el día que termina el
+  # año escolar, no un día antes por redondeo.
+  def tramo_del_lapso(indice, cuantos)
+    dias = ((end_date - start_date).to_i / cuantos.to_f).round
+
+    desde = start_date + (dias * indice)
+    hasta = indice == cuantos - 1 ? end_date : start_date + (dias * (indice + 1)) - 1
+
+    [ desde, hasta ]
+  end
+
   # El año que empieza, leído del nombre.
   #
   # ⚠️ El primer grupo de cuatro dígitos, esté donde esté: una planilla trae

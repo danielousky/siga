@@ -113,7 +113,7 @@ if login "director.bolivar@siga.edu" "123123" "$JAR"; then
   check "alta de grado"    "/grados/new"                200 "$JAR"
   check "materias"         "/materias"                  200 "$JAR"
   check "inscripciones"    "/inscripciones"               200 "$JAR"
-  check "períodos"         "/anios-escolares"          200 "$JAR"
+  check "períodos"         "/academic_periods"          200 "$JAR"
   check "momentos eval."   "/lapsos"        200 "$JAR"
   check "evaluaciones"     "/evaluaciones"     200 "$JAR"
   check "emitir boletines" "/boletines"                 200 "$JAR"

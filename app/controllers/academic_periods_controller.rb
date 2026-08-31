@@ -23,8 +23,13 @@ class AcademicPeriodsController < ApplicationController
     @academic_period.assign_attributes(fechas_propias) if fechas_propias.any?
 
     if @academic_period.save
+      # ⚠️ Los lapsos nacen CON el año (MOR-163). Son tres, se llaman igual
+      # siempre y reparten el año en tercios: pedirle al director que los cree
+      # es pedirle que escriba lo que el sistema ya sabe. Si un feriado corre
+      # una fecha, la corrige.
+      @academic_period.sembrar_lapsos
       registrar_cambio(:creado, @academic_period, @academic_period.name)
-      redirect_to academic_periods_path, notice: "Año escolar creado."
+      redirect_to academic_periods_path, notice: "Año escolar creado, con sus tres lapsos. Ajuste las fechas si su calendario es otro."
     else
       render :new, status: :unprocessable_entity
     end

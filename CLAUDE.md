@@ -142,6 +142,12 @@ veintisiete tablas. Y **nada de eso lo ve un director**.
 para esto: deja `StudentsController`, `students_path` y `Student` intactos y
 muestra `/alumnos`.
 
+⚠️ **La excepción: `/academic_periods` queda en inglés.** «Años escolares» lleva ñ, y
+una URL no la admite — quedaba `anios-escolares`, que no es español ni es nada. La regla
+no es «todo en español»: es que **la URL se lea bien**, y donde el español necesita
+muletas gana el inglés. El resto —alumnos, profesores, secciones, materias, grados,
+inscripciones, lapsos— se escribe perfecto sin acentos.
+
 ⚠️ **En los tests, la ruta se pide por HELPER, nunca escrita a mano.** Un
 `get "/students"` se rompe con el próximo cambio de nombre y deja de probar lo
 que decía probar. La excepción es `bin/smoke`, que es un cliente HTTP de verdad

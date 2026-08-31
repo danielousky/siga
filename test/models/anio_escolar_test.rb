@@ -66,4 +66,62 @@ class AnioEscolarTest < ActiveSupport::TestCase
     assert_includes anios, 2014, "tiene que alcanzar el historial que un colegio importe"
     assert_equal anios, anios.sort.reverse, "del más nuevo al más viejo"
   end
+
+  # Los lapsos también se deducen: son tres, se llaman igual siempre y reparten
+  # el año en tercios. Daniel: «nada cambia, podemos deducirlo. Lo que sí puede
+  # variar un poco es la fecha por si se atraviesa un feriado».
+  test "el año escolar nace con sus tres lapsos" do
+    con_el_colegio(@colegio) do
+      periodo = AcademicPeriod.para_el_anio(2026)
+      periodo.save!
+      lapsos = periodo.sembrar_lapsos
+
+      assert_equal [ "1er Lapso", "2do Lapso", "3er Lapso" ], lapsos.map(&:name)
+      assert_equal periodo.start_date, lapsos.first.starts_on,
+                   "el primer lapso empieza el primer día de clases"
+      assert_equal periodo.end_date, lapsos.last.ends_on,
+                   "el último termina cuando termina el año, no un día antes por redondeo"
+    end
+  end
+
+  # ⚠️ Los pesos NO entran en ningún cálculo —el anual es promedio simple por el
+  # Art. 111— pero el modelo exige que cierren en 100. Tres tercios parejos
+  # sumarían 99, así que el resto va al último.
+  test "los pesos de los lapsos cierran en 100" do
+    con_el_colegio(@colegio) do
+      periodo = AcademicPeriod.para_el_anio(2026)
+      periodo.save!
+
+      assert_equal 100, periodo.sembrar_lapsos.sum { |l| l.weight.to_i }
+    end
+  end
+
+  # Idempotente: se llama al crear el año y se puede volver a llamar. Sin esto,
+  # un segundo intento chocaría contra el índice único del nombre.
+  test "sembrar los lapsos dos veces no duplica" do
+    con_el_colegio(@colegio) do
+      periodo = AcademicPeriod.para_el_anio(2026)
+      periodo.save!
+      periodo.sembrar_lapsos
+
+      assert_no_difference -> { EvaluationMoment.where(academic_period_id: periodo.id).count } do
+        periodo.sembrar_lapsos
+      end
+    end
+  end
+
+  # Los lapsos no se solapan ni dejan huecos: el día siguiente al fin de uno es
+  # el comienzo del que sigue.
+  test "los lapsos se encadenan sin huecos ni solapes" do
+    con_el_colegio(@colegio) do
+      periodo = AcademicPeriod.para_el_anio(2026)
+      periodo.save!
+      lapsos = periodo.sembrar_lapsos
+
+      lapsos.each_cons(2) do |anterior, siguiente|
+        assert_equal anterior.ends_on + 1, siguiente.starts_on,
+                     "entre #{anterior.name} y #{siguiente.name} hay un hueco o un solape"
+      end
+    end
+  end
 end

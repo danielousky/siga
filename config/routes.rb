@@ -257,7 +257,16 @@ Rails.application.routes.draw do
   resources :representatives, path: "representantes", concerns: :con_codigo_de_acceso
   resources :departments, path: "departamentos", except: [ :show ]
   resources :subjects, path: "materias"
-  resources :academic_periods, path: "anios-escolares", except: [ :show ]
+  # ⚠️ Esta queda en INGLÉS, y es la excepción que confirma el criterio.
+  #
+  # «Años escolares» lleva ñ, y una URL no la admite: quedaba «anios-escolares»,
+  # que no es español ni es nada. Daniel, viéndolo: «si no podemos escribir ñ o
+  # acentos, es preferible en inglés».
+  #
+  # El resto de los recursos se escriben perfecto sin muletas —alumnos,
+  # profesores, secciones, materias, grados, inscripciones, lapsos— y por eso van
+  # en español. La regla no es «todo en español»: es que la URL se lea bien.
+  resources :academic_periods, except: [ :show ]
   resources :sections, path: "secciones" do
     resources :teacher_sections, path: "profesores", only: [:create, :destroy]
   end
