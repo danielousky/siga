@@ -1,33 +1,80 @@
--# El aviso interno de un colegio nuevo. Lo lee el equipo de SIGA, no un cliente:
--# va sin diseño y con los datos que sirven para llamar por teléfono.
-%h1= @colegio.name
+-# El aviso interno de un colegio nuevo (MOR-158).
+-#
+-# Lo lee el equipo de SIGA, no un cliente: va sin diseño y con los datos que
+-# sirven para levantar el teléfono y llamar.
+-#
+-# ## ⚠️ Los estilos van EN LÍNEA, no en una hoja
+-#
+-# Gmail y Outlook descartan `<style>` y `<link>`. Un correo con una hoja de
+-# estilos llega como texto plano apilado — que es cómo llegó la primera versión.
+-#
+-# ## ⚠️ Y `%td %strong Texto` NO anida: imprime «%strong Texto»
+-#
+-# Haml no interpreta un segundo tag en la misma línea; lo toma como el contenido
+-# del primero. La primera versión de este correo llegó con «%strong Código DEA»
+-# escrito tal cual en la bandeja de Daniel. El tag anidado va en su propia línea.
+- etiqueta = "padding: 6px 14px 6px 0; color: #555; vertical-align: top; white-space: nowrap;"
+-# Los niveles reales del colegio si ya cargó grados; si no, el tipo que eligió
+-# al darlo de alta. Se calcula acá y no en la fila porque Haml no admite una
+-# expresión partida en dos líneas: la continuación se lee como indentación.
+- que_dicta = @colegio.niveles.map { |n| GradoOficial::ETIQUETAS[n] }.to_sentence.presence || @colegio.etiqueta_de_tipo
+- valor    = "padding: 6px 0; color: #111;"
 
-%p
-  = @usuario.nombre_completo
-  se registró y creó este colegio el
-  = l(@cuando, format: :long)
+%div{style: "font-family: -apple-system, Segoe UI, Roboto, sans-serif; color: #111; line-height: 1.5;"}
+  %h1{style: "font-size: 20px; margin: 0 0 4px;"}= @colegio.name
 
-%table
-  %tr
-    %td %strong Quien lo registró
-    %td= "#{@usuario.nombre_completo} · #{@usuario.email}"
-  %tr
-    %td %strong Código DEA
-    %td= @colegio.dea_code
-  %tr
-    %td %strong Dónde queda
-    %td
-      = [ @colegio.parroquia, @colegio.municipio, @colegio.entidad_federal ].compact_blank.join(", ")
-      - if @colegio.direccion.present?
-        %br
-        = @colegio.direccion
-  %tr
-    %td %strong Teléfono
-    %td= @colegio.telefono.presence || "no lo dejó"
-  %tr
-    %td %strong Tipo
-    %td= @colegio.school_type
+  %p{style: "margin: 0 0 20px; color: #555;"}
+    = @usuario.nombre_completo
+    se registró y creó este colegio el
+    = l(@cuando, format: :long)
 
-%p
-  Está en el Plan Inicial (gratis): puede cargar todo, pero no calificar,
-  pasar lista ni emitir documentos hasta que contrate un plan.
+  %table{cellpadding: 0, cellspacing: 0, border: 0, style: "border-collapse: collapse;"}
+    %tr
+      %td{style: etiqueta}
+        %strong Quien lo registró
+      -# ⚠️ `&nbsp;` escrito como texto sale ESCAPADO en Haml: llega el literal
+      -# «&nbsp;» a la bandeja. Si hace falta un espacio duro, va con `!=`.
+      %td{style: valor}
+        = @usuario.nombre_completo
+        = succeed("") { " · " }
+        = mail_to @usuario.email
+    %tr
+      %td{style: etiqueta}
+        %strong Código DEA
+      %td{style: valor}= @colegio.dea_code
+    %tr
+      %td{style: etiqueta}
+        %strong Dónde queda
+      %td{style: valor}
+        -# Se dice cuándo FALTA, y no se deja el renglón vacío: un dato en blanco
+        -# se lee como un error del correo, no como un dato que el colegio no dio
+        -# — y esto es justamente lo que hay que preguntarle al llamar.
+        - donde = [ @colegio.parroquia, @colegio.municipio, @colegio.entidad_federal ].compact_blank
+        - if donde.any?
+          = donde.join(", ")
+          - if @colegio.direccion.present?
+            %br
+            = @colegio.direccion
+        - else
+          %em{style: "color: #999;"} no la cargó
+    %tr
+      %td{style: etiqueta}
+        %strong Teléfono
+      %td{style: valor}
+        - if @colegio.telefono.present?
+          = @colegio.telefono
+        - else
+          %em{style: "color: #999;"} no lo dejó
+    %tr
+      %td{style: etiqueta}
+        %strong Qué dicta
+      %td{style: valor}
+        -# El nombre que usa un director, no el del enum: «secondary» no le dice
+        -# nada a quien va a llamar por teléfono.
+        = que_dicta
+
+  %p{style: "margin: 20px 0 0; padding: 12px 14px; background: #f4f6f8; border-radius: 6px; color: #444;"}
+    Está en el
+    %strong Plan Inicial (gratis):
+    puede cargar todo, pero no calificar, pasar lista ni emitir documentos
+    hasta que contrate un plan.

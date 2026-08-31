@@ -105,10 +105,21 @@ class ReglaDeColorTest < ActiveSupport::TestCase
   #     de VERDE. El nombre decía "pendiente" y el color decía "aprobado".
   #
   # `var(--token)` en línea se tolera: sigue adentro del sistema. Un hex, no.
+  #
+  # ⚠️ **Los CORREOS son la excepción, y no es pereza.** Gmail y Outlook
+  # descartan `<style>`, `<link>` y las variables CSS: un correo que use tokens
+  # llega como texto plano apilado. La única forma de que un correo se vea es
+  # con los colores escritos en línea, y el sistema de tokens no llega hasta
+  # ahí — no es que se lo salte, es que no existe del otro lado.
+  #
+  # La excepción es por CARPETA y no por archivo para que no haya que tocar este
+  # test cada vez que se agregue un correo; y es solo `*_mailer`, así que una
+  # vista de pantalla nunca cae acá por accidente.
+  CORREOS = %r{app/views/\w*_mailer/}
   test "ninguna vista escribe un color a mano" do
     literales = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/
 
-    culpables = Rails.root.glob("app/views/**/*.haml").flat_map do |ruta|
+    culpables = Rails.root.glob("app/views/**/*.haml").reject { |r| r.to_s.match?(CORREOS) }.flat_map do |ruta|
       ruta.read.lines.each_with_index.filter_map do |linea, n|
         next if linea.strip.start_with?("-#")
         next unless linea.match?(/style[:=]/)

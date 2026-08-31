@@ -1,4 +1,13 @@
 class School < ApplicationRecord
+  # ⚠️ Lo público va ACÁ ARRIBA. Este modelo tiene un `private` temprano —antes
+  # incluso de los `enum`— y cualquier método que caiga después queda privado sin
+  # que nada avise hasta que una vista lo llama. Pasó tres veces en un mismo día.
+
+  # La etiqueta del tipo, en una constante del modelo como el resto de los enums
+  # de dominio del proyecto: `secondary` no le dice nada a quien lee un correo.
+  TIPOS = { "primary" => "Primaria", "secondary" => "Bachillerato" }.freeze
+
+  def etiqueta_de_tipo = TIPOS.fetch(school_type, school_type)
   # Quién dio de alta este colegio (MOR-158).
   #
   # Es la semilla de `Account`: el día que la cuenta exista, este usuario es su

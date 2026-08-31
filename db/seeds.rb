@@ -79,9 +79,16 @@ puts ""
 # =============================================================================
 puts "📚 Creando escuelas..."
 
+# ⚠️ La dirección completa NO es decorado: `entidad_federal`, `municipio` y
+# `parroquia` salen IMPRESAS en los documentos del MPPE. Sin ellas, la demo
+# genera constancias con renglones en blanco — y es lo primero que mira un
+# director al que le estás mostrando el producto.
 school_bolivar = School.find_or_create_by!(dea_code: "BOL-001") do |s|
   s.name = "U.E. Simón Bolívar"; s.location = "Caracas, Distrito Capital"; s.school_type = :secondary
 end
+school_bolivar.update!(entidad_federal: "Distrito Capital", municipio: "Libertador",
+                       parroquia: "El Recreo", telefono: "0212-555-1234",
+                       direccion: "Av. Casanova con calle El Colegio, Sabana Grande")
 # Bello es de PRIMARIA a propósito (MOR-129): sin un colegio de primaria
 # sembrado, la escala literal A–E no se puede ver funcionando en ninguna
 # pantalla — y primaria es la mayoría de los ~3.900 colegios privados del país.
@@ -91,6 +98,9 @@ end
 school_bello = School.find_or_create_by!(dea_code: "AND-002") do |s|
   s.name = "U.E. Andrés Bello"; s.location = "Valencia, Carabobo"; s.school_type = :primary
 end
+school_bello.update!(entidad_federal: "Carabobo", municipio: "Valencia",
+                     parroquia: "San José", telefono: "0241-555-6677",
+                     direccion: "Calle Páez, entre avenidas Bolívar y Constitución")
 # El escudo del colegio: su identidad, y aparece en los documentos que la
 # familia se lleva en la mano. Sin él, el boletín parece de la empresa de
 # software y no del colegio.
