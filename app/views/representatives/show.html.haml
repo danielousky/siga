@@ -19,19 +19,23 @@
 
 -# ── Escribirle (MOR-181) ────────────────────────────────────────────────────
 -#
--# Daniel: «la comunicación con el representante es fundamental. Allí mismo
--# debemos poder componerle un correo y enviárselo o whatsapearlo con el número
--# telefónico».
+-# ⚠️ El compositor está CERRADO hasta que alguien lo pide.
+-#
+-# Primero salió abierto, con el asunto y el mensaje siempre a la vista, y Daniel
+-# lo cortó: «si no le voy a enviar correo o whatsapear, estorban. Si lo que voy a
+-# hacer es comunicarme, pues tenerlo a la mano». Tenía razón: esta pantalla se
+-# abre muchas veces para mirar un teléfono y pocas para escribir, así que el
+-# formulario ocupaba media pantalla la mayoría de las veces.
+-#
+-# Es un `<details>` nativo y no un panel con JavaScript: se abre sin script, el
+-# teclado lo alcanza solo, y el navegador ya sabe anunciarlo. El `summary` va
+-# pintado como botón.
 -#
 -# ⚠️ Los dos canales NO son dos versiones de lo mismo:
 -#
--#     WhatsApp   un enlace. Abre la app con el número puesto y la secretaria
--#                termina de escribir AFUERA. SIGA no se entera de si se envió.
--#     Correo     lo manda SIGA y queda en la auditoría: se puede contestar
--#                «¿le avisamos a la mamá de Eduardo?».
--#
--# Va ANTES del acceso al sistema porque es lo que se viene a hacer acá. El
--# código de acceso se genera una vez en la vida; escribirle, muchas.
+-#     WhatsApp   un enlace. Abre la app con el número puesto y quien escribe
+-#                termina AFUERA. SIGA no se entera de si se envió.
+-#     Correo     lo manda SIGA y queda en la auditoría.
 - correo = @representative.user.email
 - whatsapp = Contacto.whatsapp_url(@representative.phone, "Buenos días, le escribimos de #{Current.school.name}.")
 
@@ -40,32 +44,36 @@
     .card-academic-header
       %h2 Escribirle
 
-    - if whatsapp
-      .escribirle-canales
+    .contacto-acciones
+      - if whatsapp
         -# `target` y `rel` porque sale de la app: sin `noopener`, la pestaña que
         -# se abre puede reescribir la de SIGA.
         = link_to whatsapp, target: "_blank", rel: "noopener", class: "btn btn-accion" do
           = icono(:representantes, tamano: 16)
-          %span= "WhatsApp al #{@representative.phone}"
-        %span.nota-ayuda Se abre WhatsApp con el número puesto. El mensaje lo termina de escribir usted.
+          %span WhatsApp
 
-    - if correo.present?
-      -# ⚠️ El correo sale del dominio de SIGA —ElasticEmail solo despacha
-      -# dominios verificados— y la respuesta va a quien escribe. Ver
-      -# `ComunicacionMailer`.
-      = form_with url: mensaje_al_representative_path(@representative), method: :post, data: { turbo: false } do
-        .form-group
-          = label_tag :asunto, "Asunto", class: "form-label"
-          = text_field_tag :asunto, nil, class: "form-control", required: true, maxlength: 120, placeholder: "Reunión de representantes"
-        .form-group
-          = label_tag :cuerpo, "Mensaje", class: "form-label"
-          = text_area_tag :cuerpo, nil, class: "form-control", required: true, rows: 5
-        %p.nota-ayuda
-          = "Le llega a #{correo} de parte del colegio, y si responde le llega a usted."
-        .form-acciones
-          = submit_tag "Enviar el correo", class: "btn btn-documento"
+      - if correo.present?
+        %details.compositor
+          %summary.btn.btn-documento
+            = icono(:boletines, tamano: 16)
+            %span Enviar correo
 
-    - elsif whatsapp
+          -# ⚠️ El correo sale del dominio de SIGA —ElasticEmail solo despacha
+          -# dominios verificados— y la respuesta va a quien escribe. Ver
+          -# `ComunicacionMailer`.
+          = form_with url: mensaje_al_representative_path(@representative), method: :post, class: "compositor-cuerpo", data: { turbo: false } do
+            .form-group
+              = label_tag :asunto, "Asunto", class: "form-label"
+              = text_field_tag :asunto, nil, class: "form-control", required: true, maxlength: 120, placeholder: "Reunión de representantes"
+            .form-group
+              = label_tag :cuerpo, "Mensaje", class: "form-label"
+              = text_area_tag :cuerpo, nil, class: "form-control", required: true, rows: 6
+            %p.nota-ayuda
+              = "Le llega a #{correo} de parte del colegio, y si responde le llega a usted."
+            .form-acciones
+              = submit_tag "Enviar", class: "btn btn-documento"
+
+    - if correo.blank?
       %p.nota-ayuda
         No tiene correo cargado, así que por ahora solo se le puede escribir por
         WhatsApp. Con un correo además puede entrar a ver las notas.
@@ -90,5 +98,8 @@
       %tbody
         - @vinculos.each do |vinculo|
           %tr
-            %td= vinculo.student.user.apellidos_y_nombres
+            -# Al detalle del alumno: desde acá se llega a sus notas, su
+            -# asistencia y su constancia, que es lo que se viene a mirar después
+            -# de ver quién lo representa.
+            %td= link_to vinculo.student.user.apellidos_y_nombres, vinculo.student
             %td= vinculo.etiqueta

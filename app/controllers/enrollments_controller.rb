@@ -3,7 +3,7 @@ class EnrollmentsController < ApplicationController
   before_action :set_enrollment, only: [:edit, :update, :destroy]
 
   # Acá se busca al alumno, no a la inscripción: por eso son campos de `users`.
-  CAMPOS_DE_BUSQUEDA = %w[users.first_name users.last_name users.document].freeze
+  CAMPOS_DE_BUSQUEDA = %w[users.first_name users.last_name users.second_last_name users.document].freeze
 
   def index
     scope = Enrollment.del_anio_de_la_sesion

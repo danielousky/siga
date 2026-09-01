@@ -47,13 +47,39 @@ class BusquedaSinAcentos
   #     scope.where(*BusquedaSinAcentos.condicion(CAMPOS, params[:q]))
   #
   # El término va por bind, nunca interpolado.
+  # ⚠️ Se busca PALABRA POR PALABRA, y cada una puede caer en un campo distinto.
+  #
+  # Daniel, buscando a un alumno: *«busqué a López Guzmán en el buscador de
+  # estudiantes y no lo encontró. Un primer día con el sistema habría sido
+  # frustrante»*. Y tenía razón: la versión anterior mandaba el término ENTERO
+  # contra cada columna por separado, así que «López Guzmán» solo habría
+  # aparecido si esas dos palabras estuvieran juntas en UNA columna. Están en
+  # dos: `last_name` y `second_last_name`.
+  #
+  # Nadie escribe una columna. Se escribe «López Guzmán», «Álvaro López» o
+  # «lopez alvaro», y las tres tienen que encontrar a la misma persona.
+  #
+  #     cada PALABRA  →  tiene que aparecer en ALGÚN campo     (AND entre palabras)
+  #     cada CAMPO    →  cualquiera sirve para esa palabra     (OR entre campos)
+  #
+  # El AND entre palabras es lo que hace que escribir más ACOTE en vez de ampliar,
+  # que es lo que uno espera de un buscador.
   def self.condicion(campos, termino)
     campos = Array(campos)
     raise ArgumentError, "hacen falta campos donde buscar" if campos.empty?
 
-    sql = campos.map { |campo| "#{aplanar(campo)} LIKE #{aplanar(':termino')}" }.join(" OR ")
+    palabras = termino.to_s.split
+    return [ "1=1" ] if palabras.empty?
 
-    [sql, { termino: "%#{termino.to_s.strip}%" }]
+    valores = {}
+    sql = palabras.each_with_index.map do |palabra, i|
+      clave = :"termino_#{i}"
+      valores[clave] = "%#{palabra}%"
+
+      "(" + campos.map { |campo| "#{aplanar(campo)} LIKE #{aplanar(":#{clave}")}" }.join(" OR ") + ")"
+    end.join(" AND ")
+
+    [ sql, valores ]
   end
 
   # La misma expresión para los dos lados de la comparación. Aplicarla solo a la

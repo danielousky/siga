@@ -55,12 +55,21 @@ class EscribirleALaFamiliaTest < ActionDispatch::IntegrationTest
   # El correo: lo manda SIGA
   # ══════════════════════════════════════════════════════════════════════════
 
-  test "la ficha trae el formulario para escribirle" do
+  # ⚠️ CERRADO hasta que alguien lo pide. Daniel: «si no le voy a enviar correo o
+  # whatsapear, estorban. Si lo que voy a hacer es comunicarme, pues tenerlo a la
+  # mano». Esta pantalla se abre muchas veces para mirar un teléfono y pocas para
+  # escribir.
+  test "el compositor está cerrado, detrás de un botón" do
     get representative_path(@representante)
 
-    assert_select "form[action=?]", mensaje_al_representative_path(@representante)
-    assert_select "input[name=asunto]"
-    assert_select "textarea[name=cuerpo]"
+    assert_select "details.compositor" do
+      assert_select "summary", text: /Enviar correo/
+      assert_select "form[action=?]", mensaje_al_representative_path(@representante)
+      assert_select "input[name=asunto]"
+      assert_select "textarea[name=cuerpo]"
+    end
+    assert_select "details.compositor[open]", count: 0,
+                  message: "el formulario no puede venir abierto: ocupa media pantalla la mayoría de las veces"
   end
 
   test "se envía, y sale a nombre del colegio" do

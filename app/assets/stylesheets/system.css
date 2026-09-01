@@ -4809,20 +4809,41 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
    —o no— al ver la fila guardada. */
 .campo-mayuscula { text-transform: uppercase; }
 
-/* Los dos canales para escribirle a una familia (MOR-181). El de WhatsApp va
-   arriba y separado del formulario: son dos acciones distintas —una sale de la
-   app, la otra la manda SIGA— y pegarlas se leería como un solo bloque. */
-.escribirle-canales {
+/* Escribirle a una familia (MOR-181).
+   ──────────────────────────────────
+   Los dos botones juntos, y el compositor CERRADO hasta que alguien lo pide.
+   Daniel: «si no le voy a enviar correo o whatsapear, estorban». La pantalla se
+   abre muchas veces para mirar un teléfono y pocas para escribir. */
+.contacto-acciones {
   display: flex;
-  align-items: center;
-  gap: var(--space-md);
+  align-items: flex-start;
+  gap: var(--space-sm);
   flex-wrap: wrap;
-  margin-bottom: var(--space-lg);
-  padding-bottom: var(--space-lg);
-  border-bottom: 1px solid var(--border-subtle);
 }
 
-.escribirle-canales .nota-ayuda { margin: 0; }
+/* ⚠️ `<details>` nativo, sin JavaScript: se abre solo, el teclado lo alcanza y
+   el navegador ya sabe anunciarlo. Lo único que hay que hacer es quitarle el
+   triangulito y dejar que el `summary` se pinte como botón. */
+.compositor { flex: 1; min-width: 220px; }
+
+.compositor > summary {
+  list-style: none;
+  width: fit-content;
+}
+
+.compositor > summary::-webkit-details-marker { display: none; }
+
+.compositor[open] > summary {
+  background: var(--surface-elevated);
+  color: var(--documento-primary);
+  border-color: var(--documento-primary);
+}
+
+.compositor-cuerpo {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-subtle);
+}
 
 /* El atajo de «sin representante» en el listado de alumnos (MOR-180).
    ─────────────────────────────────────────────────────────────────

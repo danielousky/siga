@@ -5,8 +5,12 @@ class StudentsController < ApplicationController
   # Dónde busca el buscador. La cédula y el carnet no llevan acentos, pero pasan
   # por la misma expresión igual: un solo camino es más fácil de sostener que dos,
   # y `translate()` sobre un texto sin acentos no le cambia nada.
+  # ⚠️ El SEGUNDO apellido estaba fuera, y con él «López Guzmán» no encontraba a
+  # nadie: las dos palabras viven en dos columnas distintas. Ver
+  # `BusquedaSinAcentos.condicion`, que ahora busca palabra por palabra.
   CAMPOS_DE_BUSQUEDA = %w[
-    users.first_name users.last_name users.document students.school_card
+    users.first_name users.last_name users.second_last_name
+    users.document users.cedula_escolar students.school_card
   ].freeze
 
   def index

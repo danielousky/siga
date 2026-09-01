@@ -41,11 +41,32 @@ class BusquedaSinAcentosTest < ActiveSupport::TestCase
   # La condición
   # ══════════════════════════════════════════════════════════════════════════
 
+  # ⚠️ Hay UN bind POR PALABRA desde que la búsqueda es palabra por palabra
+  # (MOR-183): «López Guzmán» son dos condiciones unidas por AND, no un término
+  # entero contra cada columna. Lo que no cambió es lo que este test protege:
+  # nada del término llega al SQL interpolado.
   test "el término va por bind y nunca interpolado" do
     sql, binds = BusquedaSinAcentos.condicion(%w[users.last_name], "'; DROP TABLE users; --")
 
     assert_not_includes sql, "DROP"
-    assert_includes binds[:termino], "DROP"
+    assert_includes binds.values.join, "DROP"
+  end
+
+  # Cada palabra tiene que aparecer en ALGÚN campo, y todas a la vez: escribir
+  # más ACOTA, que es lo que uno espera de un buscador.
+  test "cada palabra es su propia condición, unidas por AND" do
+    sql, binds = BusquedaSinAcentos.condicion(%w[users.last_name users.second_last_name], "López Guzmán")
+
+    assert_equal 2, binds.size
+    assert_includes sql, " AND "
+    assert_equal [ "%López%", "%Guzmán%" ], binds.values
+  end
+
+  # Un término vacío no filtra nada, y sobre todo no revienta.
+  test "sin término, la condición no descarta a nadie" do
+    sql, = BusquedaSinAcentos.condicion(%w[users.last_name], "   ")
+
+    assert_equal "1=1", sql
   end
 
   # Los campos SÍ se interpolan, así que tienen que parecer nombres de columna.

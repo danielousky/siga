@@ -22,7 +22,7 @@ class RepresentativesController < ApplicationController
 
   # Buscar por los datos de la persona, no de la fila: quien busca tiene el
   # nombre o el teléfono, nunca el id.
-  CAMPOS_DE_BUSQUEDA = %w[first_name last_name email document cedula_escolar].freeze
+  CAMPOS_DE_BUSQUEDA = %w[first_name last_name second_last_name email document cedula_escolar].freeze
 
   def show
     @vinculos = @representative.student_representatives.includes(student: :user)

@@ -224,6 +224,11 @@ y ahí escribir la URL en español ES la comprobación.
   donde `enrollments.student_id` espera el del ALUMNO, y el conteo del panel
   comparaba igual: dos tablas, dos numeraciones, y ninguna coincidencia — en
   silencio. Aparecieron los dos el mismo día.
+- **Buscar es PALABRA POR PALABRA** (`MOR-183`), y cada una puede caer en un
+  campo distinto: «López Guzmán» son dos columnas —`last_name` y
+  `second_last_name`— y con el término entero contra cada columna no encontraba
+  a nadie. AND entre palabras (escribir más ACOTA), OR entre campos. ⚠️ Y
+  `second_last_name` faltaba en casi todos los buscadores de personas.
 - **Buscar ignora los acentos en las DOS capas** (`MOR-179`). La regla estaba en
   Ruby (`BusquedaSinAcentos`) y los filtros del navegador comparaban con
   `toLowerCase()` a secas, así que «sofia» no encontraba a Sofía — y en Venezuela

@@ -42,7 +42,22 @@
   -# El estado vacío sale de `PasosDeArranque`, o sea del MISMO lugar que el
   -# mapa del panel: dos redacciones del mismo paso se van separando, y quien
   -# las lee cree que son dos cosas distintas.
-  - if @students.empty?
+  -# ⚠️ Dos vacíos distintos. Buscar «López Guzmán» y leer «Todavía no hay
+  -# alumnos» con 200 cargados es lo que Daniel llamó «un primer día
+  -# frustrante»: el sistema decía que la matrícula no existe.
+  - if @students.empty? && (params[:q].present? || sin_representante?)
+    .card-academic
+      .empty-state
+        - if params[:q].present?
+          %h3= "Ningún alumno coincide con “#{params[:q].strip}”"
+          %p
+            Se busca por nombre, apellido, cédula o carnet, y cada palabra puede
+            caer en un campo distinto. La matrícula sigue completa.
+        - else
+          %h3 Todos los alumnos tienen representante
+          %p No queda ninguno sin alguien a quien llamar.
+
+  - elsif @students.empty?
     .card-academic
       = render "shared/lista_vacia", clave: :alumnos,
                acciones: [ { texto: "Subir la matrícula", ruta: importaciones_path, icono: :importar },
