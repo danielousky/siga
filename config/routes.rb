@@ -30,6 +30,16 @@ Rails.application.routes.draw do
   # check que necesita sesión o un `Host` correcto no sirve para nada.
   get "up", to: "rails/health#show", as: :rails_health_check
 
+  # ⚠️ `/salud` NO reemplaza a `/up`, y no se pueden intercambiar (MOR-167).
+  #
+  #   /up     ¿arrancó el proceso web?      → lo mira DOKKU para dejar entrar
+  #                                            una versión nueva
+  #   /salud  ¿la cola está avanzando?      → lo mira un MONITOR externo
+  #
+  # Si Dokku mirara `/salud`, un worker caído impediría desplegar la corrección
+  # que lo arregla.
+  get "salud", to: "salud#show", as: :salud
+
   # ⚠️ NO hay registro público. Ver MOR-101.
   #
   # `:registerable` viene puesto por `rails generate devise User` y no es una

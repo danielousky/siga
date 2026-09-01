@@ -377,7 +377,15 @@ y otra vez el 25):
 
 **Abiertos de verdad:**
 
-- **Sin monitoreo.** Nada avisa si el worker se cae o si la cola crece.
+- ~~**Sin monitoreo.** Nada avisa si el worker se cae o si la cola crece.~~ →
+  **medio resuelto** (`MOR-167`): existe `GET /salud`, que devuelve 503 cuando el
+  trabajo más viejo lleva esperando más de 5 minutos. **Falta enganchar un
+  monitor externo que lo mire** — hoy nadie lo consulta, así que el aviso existe
+  y no suena.
+  ⚠️ `/salud` y `/up` NO son intercambiables: `/up` dice que el proceso arrancó y
+  lo mira DOKKU; `/salud` dice que la cola avanza y lo mira un monitor. Si Dokku
+  mirara `/salud`, un worker caído impediría desplegar la corrección que lo
+  arregla.
 - **Producción corre con los datos de demo** (`MOR-146`). Es lo más urgente del backlog: hay
   usuarios con contraseña `123123` y 290 alumnos inventados en la base que ve el mundo.
 - **Colisión de nombres:** `Grade` es "grado escolar", pero `ActivityLog::LABELS` traduce

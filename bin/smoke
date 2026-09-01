@@ -113,6 +113,18 @@ check "recuperar contraseña"     "/users/password/new" 200
 check "verificar boletín"        "/verificar"          200
 check "código inexistente"       "/verificar/BOL-XXXX-YYYY" 404
 
+# ⚠️ Los dos, y no son intercambiables (MOR-167): `/up` dice que el proceso
+# arrancó —lo mira DOKKU para dejar entrar una versión nueva— y `/salud` dice
+# que la COLA avanza —lo mira un monitor externo—. Con el worker caído, `/salud`
+# devuelve 503 y `/up` sigue en 200, que es exactamente lo que se quiere: un
+# worker caído no puede impedir desplegar la corrección que lo arregla.
+check "up (lo mira Dokku)"       "/up"                      200
+check "salud de la cola"         "/salud"                   200
+
+echo "Sin sesión"
+check "salud de la cola"  "/salud"                     200
+check "up (Dokku)"        "/up"                        200
+echo
 echo
 echo "Administrador"
 JAR="${TMP}/admin.jar"

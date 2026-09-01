@@ -1,8 +1,8 @@
-# 🔖 Punto de retome — actualizado 1 de septiembre de 2026
+# 🔖 Punto de retome — actualizado 1 de septiembre de 2026 (madrugada)
 
 ## Sesión del 1 de septiembre — QA de Daniel y la clonación
 
-`bin/ci` en verde, **939 tests**. Todo desplegado.
+`bin/ci` en verde, **957 tests**. Todo desplegado.
 
 ### Del QA de Daniel
 
@@ -34,6 +34,57 @@ familia. Hoy no se notaba porque cada colegio tiene un año escolar.
 Arreglados los tres —alumno, profesor, representante— más las fichas de profesor
 y de materia. `Enrollment.recientes_primero` ordena por el año, no por la fecha
 del trámite.
+
+### Barrido sistemático de la noche
+
+Un test que recorre **todas** las pantallas de los cuatro roles, más el panel de
+SIGA y las páginas públicas, y exige que cada una traiga contenido, un
+formulario que llenar, o una explicación del vacío. Encontró tres callejones más
+—representantes, grados e inscripciones dejaban una tabla de encabezados y nada
+debajo— y **el carnet**: cargar 360 alumnos de un Excel funcionaba y agregar UNO
+a mano devolvía «Carnet no puede estar en blanco», pidiendo un número que el
+importador ya sabía inventar. Vive ahora en `Student`, de donde lo piden los tres.
+
+⚠️ **Dos aprendizajes al escribir ese test**, que valen para el próximo:
+
+1. La primera versión **no podía fallar**: contaba el `input name="q"` del
+   buscador de cada listado, que está en todas las pantallas de lista.
+2. La segunda listaba nombres de clase y se rompía con cada pantalla que usa los
+   suyos. Ahora mide **texto** dentro del `main`, que no hay que actualizar.
+
+⚠️ **Y un error mío que costó trabajo:** escribí `formularios_test.rb` y
+`puesta_en_marcha_test.rb` con `cat >` sin mirar si existían. Existían, con 31 y
+16 tests. Se recuperaron de git —estaban commiteados— y mis tests nuevos quedaron
+con nombres propios: `validacion_de_formularios_test.rb` (cómo se PORTA un
+formulario al guardar vacío) y `arranque_de_punta_a_punta_test.rb` (el camino
+completo creando datos). **Mirar el destino antes de escribir.**
+
+### Monitoreo: `/salud` (`MOR-167`)
+
+El pendiente decía «nada avisa si el worker se cae», y el modo de fallo es el
+peor que hay: **la app sigue respondiendo 200 en todas sus pantallas**. Nada se
+rompe; los promedios se quedan viejos y el colegio lo descubre en el boletín.
+
+`GET /salud` responde JSON sin sesión, con el largo de la cola, cuántos workers
+laten y **cuánto lleva esperando el trabajo más viejo**. Devuelve **503** cuando
+eso pasa de 5 minutos.
+
+Verificado a mano en desarrollo: con el worker apagado, 503 con siete trabajos y
+el más viejo de cuatro días; levantando `bin/jobs`, 200 con la cola en cero.
+
+⚠️ **Falta enganchar un monitor externo.** Hoy el aviso existe y no lo mira
+nadie. Es lo primero de la lista.
+
+⚠️ `/salud` NO reemplaza a `/up`: `/up` lo mira Dokku para dejar entrar una
+versión nueva. Si mirara `/salud`, un worker caído impediría desplegar la
+corrección que lo arregla.
+
+### El importador era la quinta manera de decidir el año
+
+Resolvía con `AcademicPeriod.vigente` en cada lectura, así que con «2024-2025»
+elegido arriba una planilla de 360 alumnos se iba a 2026-2027 en silencio. Ahora
+el año se **estampa al subir**, desde la sesión. Con eso **no queda ninguna
+manera suelta** de decidir el año escolar en la app.
 
 ### Copiar la estructura del año (`MOR-166`)
 
