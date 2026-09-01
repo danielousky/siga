@@ -55,7 +55,8 @@
                        data: { "filtro-local-target": "buscar", action: "input->filtro-local#filtrar" }
 
     .representante-alumnos
-      - vinculados = representative.persisted? ? representative.student_ids : []
+      -# Al editar, los suyos. Al crear, el que venía en el enlace —si vino—.
+      - vinculados = representative.persisted? ? representative.student_ids : Array(local_assigns[:alumno_elegido]&.id)
       - Student.includes(:user).order("users.last_name").each do |alumno|
         %label.representante-alumno{"data-filtro-local-target": "item"}
           = check_box_tag "student_ids[]", alumno.id, vinculados.include?(alumno.id)

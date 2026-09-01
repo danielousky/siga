@@ -28,9 +28,23 @@ class RepresentativesController < ApplicationController
     @vinculos = @representative.student_representatives.includes(student: :user)
   end
 
+  # ⚠️ Se puede llegar acá CON un alumno ya elegido (MOR-180).
+  #
+  # Daniel: «en el detalle del estudiante, si no tiene representante, debería
+  # poder emparejarlo rápidamente o un enlace a registrar representante que
+  # tenga como parámetro el id del estudiante y precargarlo... NO PREGUNTEMOS LO
+  # DEDUCIBLE».
+  #
+  # Quien viene de la ficha de Eduardo ya dijo de quién habla. Llegar a un
+  # formulario con doscientas casillas sin marcar y tener que buscarlo otra vez
+  # es preguntarle lo que acaba de responder.
+  #
+  # El id se busca con el `default_scope`: uno de otro colegio simplemente no
+  # aparece, y el formulario se abre vacío como si no lo hubieran mandado.
   def new
     @representative = Representative.new
     @usuario = User.new
+    @alumno_elegido = Student.find_by(id: params[:alumno_id])
   end
 
   # Crea la persona y su rol de una vez. Separarlo en dos pasos —"primero cree el

@@ -8,6 +8,28 @@
 = render "shared/buscador_de_lista", ruta: students_path, marco: "students-results",
          pista: "Nombre, apellido, cédula o carnet…"
 
+-# ⚠️ Un atajo, no un filtro más del buscador.
+-#
+-# «Sin representante» no es una manera de acotar una búsqueda: es UNA pregunta
+-# concreta que el colegio se hace en septiembre —¿a quién no puedo llamar?— y
+-# que el panel enlaza directo. Meterla como un desplegable más la escondería
+-# entre los otros controles.
+-#
+-# Solo aparece si hay alguno: un atajo a una lista vacía es ruido.
+- if @cuantos_sin_representante.positive? || sin_representante?
+  .card-academic.filtro-atajo
+    - if sin_representante?
+      %span.filtro-atajo-activo
+        = icono(:representantes, tamano: 15)
+        = contar(@cuantos_sin_representante, "alumno sin representante", "alumnos sin representante")
+      = link_to "Ver todos", students_path, class: "btn btn-secondary btn-sm"
+    - else
+      %span.filtro-atajo-texto
+        = icono(:representantes, tamano: 15)
+        = "#{contar(@cuantos_sin_representante, 'alumno', 'alumnos')} sin representante registrado: el colegio no tiene a quién llamar."
+      = link_to students_path(sin_representante: 1), class: "btn btn-secondary btn-sm" do
+        %span Ver quiénes son
+
 -# `target: "_top"` no es un detalle: sin él, TODO enlace de adentro del frame
 -# —Ver, Editar, Eliminar— navega DENTRO del frame. Y como ninguna de esas
 -# páginas contiene un frame con este id, Turbo pinta «Content missing» en vez

@@ -4809,6 +4809,35 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
    —o no— al ver la fila guardada. */
 .campo-mayuscula { text-transform: uppercase; }
 
+/* El atajo de «sin representante» en el listado de alumnos (MOR-180).
+   ─────────────────────────────────────────────────────────────────
+   No es un filtro más del buscador: es UNA pregunta que el colegio se hace en
+   septiembre —¿a quién no puedo llamar?— y que el panel enlaza directo. Metida
+   como un desplegable más quedaría escondida entre los otros controles. */
+.filtro-atajo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.filtro-atajo-texto,
+.filtro-atajo-activo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Cuando el filtro está PUESTO, el renglón dice qué se está mirando. Va en
+   negrita y no en color: es contexto, no una alerta. */
+.filtro-atajo-activo {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 /* Dos controles que son UN campo (MOR-178).
    ───────────────────────────────────────
    Una cédula venezolana es «V-12345678»: una sola cosa que se dice de un tirón.

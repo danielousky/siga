@@ -9,6 +9,22 @@ class Student < ApplicationRecord
   has_many :sections, through: :enrollments
   has_many :activity_grades, foreign_key: :student_id, dependent: :restrict_with_error
 
+  # Los alumnos que nadie representa (MOR-180).
+  #
+  # ⚠️ Se compara con `id`, NO con `user_id`, y ese era el bug: el panel decía
+  # «200 alumnos no tienen representante registrado» en un colegio de 200 con
+  # cuatro vínculos cargados. Comparaba `students.user_id` contra
+  # `student_representatives.student_id` —ids de dos tablas distintas— así que
+  # ninguno coincidía nunca y el aviso salía con la matrícula completa.
+  #
+  # Lo peor de ese modo de fallar es que **el número se ve creíble**: un colegio
+  # que acaba de importar su matrícula sin representantes esperaría justo eso, y
+  # nadie lo cuestiona hasta que carga uno y el número no baja.
+  #
+  # Vive como scope porque lo piden tres pantallas: el panel lo cuenta, el
+  # listado lo filtra y la ficha del alumno pregunta por uno solo.
+  scope :sin_representante, -> { where.not(id: StudentRepresentative.select(:student_id)) }
+
   # El carnet lo emite el colegio: dos colegios pueden numerar igual sin saberlo.
   validates :school_card, presence: true, uniqueness: { scope: :school_id }
 

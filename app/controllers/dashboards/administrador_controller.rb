@@ -94,12 +94,15 @@ class Dashboards::AdministradorController < ApplicationController
   # Sin representante, el colegio no tiene a quién llamar. Es el dato que la
   # secretaría termina buscando por fuera del sistema.
   def alumnos_sin_representante
-    cuantos = Student.where.not(user_id: StudentRepresentative.select(:student_id)).count
+    cuantos = Student.sin_representante.count
     return nil if cuantos.zero?
 
+    # ⚠️ Al listado de ALUMNOS filtrado, no a `/representantes`. El aviso habla
+    # de alumnos; mandarlo al padrón de representantes lo dejaba mirando una
+    # lista donde justamente no están los que faltan.
     { cuantas: cuantos, singular: "alumno no tiene representante registrado",
       plural: "alumnos no tienen representante registrado",
-      ruta: representatives_path }
+      ruta: students_path(sin_representante: 1) }
   end
 
   def require_admin!

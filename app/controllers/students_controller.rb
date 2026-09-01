@@ -14,8 +14,23 @@ class StudentsController < ApplicationController
     if params[:q].present?
       scope = scope.joins(:user).where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:q]))
     end
+    # ⚠️ El filtro que el panel necesita para poder ENLAZAR su aviso (MOR-180).
+    #
+    # «200 alumnos no tienen representante registrado» era un número sin destino,
+    # o sea una preocupación y no una tarea. Ahora el aviso lleva acá con el
+    # filtro puesto, y desde cada ficha se resuelve.
+    scope = scope.sin_representante if sin_representante?
+
+    @sin_representante = sin_representante?
+    @cuantos_sin_representante = Student.sin_representante.count
     @pagy, @students = pagy(scope.order("users.last_name, users.first_name"))
   end
+
+  # Se lee del request y no de un `params[]` suelto en la vista: el filtro decide
+  # qué se consulta Y cómo se pinta la pantalla, y las dos tienen que mirar lo
+  # mismo.
+  helper_method :sin_representante?
+  def sin_representante? = params[:sin_representante].present?
 
   # La ficha del alumno.
   #

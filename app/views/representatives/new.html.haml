@@ -2,4 +2,15 @@
   .card-academic-header
     %h1 Registrar representante
 
-  = render "form", representative: @representative, usuario: @usuario
+  -# ⚠️ Si se llegó desde la ficha de un alumno, se DICE cuál. Marcar su casilla
+  -# en silencio, entre doscientas, sería una decisión invisible: quien no la
+  -# vea puede guardar creyendo que no vinculó a nadie.
+  - if @alumno_elegido
+    %p.nota-ayuda
+      Va a quedar como representante de
+      %strong= @alumno_elegido.user.apellidos_y_nombres
+      = succeed "." do
+        %span (ya está marcado abajo)
+      Puede marcar más de uno.
+
+  = render "form", representative: @representative, usuario: @usuario, alumno_elegido: @alumno_elegido

@@ -53,11 +53,22 @@
                 %span.ficha-falta Sin teléfono
               %span.ficha-correo= persona.email
     - else
+      -# ⚠️ Con la salida al lado, no solo el diagnóstico (MOR-180).
+      -#
+      -# Decía qué faltaba y ahí terminaba: el director leía «nadie figura como
+      -# responsable» y tenía que irse a Representantes, crear uno y volver a
+      -# buscar a este alumno entre doscientas casillas. El enlace lleva el id
+      -# puesto, así que el formulario abre con su casilla ya marcada.
       .empty-state
         %h3 Sin representante registrado
         %p
           Nadie figura como responsable de #{alumno.first_name}. Si el colegio llama a
           la familia, hoy tiene que buscar el número por fuera del sistema.
+        .empty-state-acciones
+          - if can_manage_students?
+            = link_to new_representative_path(alumno_id: @student.id), class: "btn btn-primary" do
+              = icono(:agregar, tamano: 16)
+              %span= "Registrar a su representante"
 
   -# ── 2. Cómo va ───────────────────────────────────────────────────────────
   - if @inscripcion && @boletin
