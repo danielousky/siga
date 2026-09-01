@@ -190,6 +190,55 @@ class AnioEscolarDeLaSesionTest < ActionDispatch::IntegrationTest
   end
 
   # ══════════════════════════════════════════════════════════════════════════
+  # Los tres lapsos, de un clic
+  # ══════════════════════════════════════════════════════════════════════════
+  #
+  # `/lapsos` era una tabla con encabezados y nada debajo cuando el año escolar
+  # se había creado antes de que existiera el sembrado (MOR-163) — y eso es el
+  # paso 2 de 8 de la puesta en marcha, o sea un callejón en el peor lugar.
+
+  test "un año sin lapsos ofrece crear los tres, y los crea" do
+    sign_in @a.director
+    post cambiar_anio_escolar_path, params: { id: @viejo.id }
+
+    get evaluation_moments_path
+    assert_select ".empty-state h3", text: /2024-2025 todavía no tiene lapsos/
+
+    assert_difference "EvaluationMoment.unscoped.count", 3 do
+      post sembrar_lapsos_path
+    end
+
+    nombres = Current.sin_aislamiento do
+      EvaluationMoment.unscoped.where(academic_period_id: @viejo.id).order(:id).pluck(:name)
+    end
+    assert_equal [ "1er Lapso", "2do Lapso", "3er Lapso" ], nombres
+  end
+
+  # Sin esto, un doble clic deja seis lapsos y nadie se entera hasta el boletín.
+  test "sembrar dos veces no duplica nada" do
+    sign_in @a.director
+    post cambiar_anio_escolar_path, params: { id: @viejo.id }
+    post sembrar_lapsos_path
+
+    assert_no_difference "EvaluationMoment.unscoped.count" do
+      post sembrar_lapsos_path
+    end
+  end
+
+  test "con «todos los años» no hay nada que sembrar, y lo dice" do
+    sign_in @a.director
+    post cambiar_anio_escolar_path, params: { id: LlevaElAnioEscolar::TODOS }
+
+    assert_no_difference "EvaluationMoment.unscoped.count" do
+      post sembrar_lapsos_path
+    end
+    # No cae en el estado vacío: con «todos» la tabla SÍ trae los lapsos de los
+    # otros años. Lo que tiene que decir es por qué no hizo nada.
+    assert_equal "Elija un año escolar en la barra de arriba antes de crear sus lapsos.",
+                 flash[:alert]
+  end
+
+  # ══════════════════════════════════════════════════════════════════════════
   # El scope, sin pasar por HTTP
   # ══════════════════════════════════════════════════════════════════════════
   #

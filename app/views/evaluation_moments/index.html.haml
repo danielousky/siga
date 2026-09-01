@@ -3,23 +3,56 @@
     %h1 Lapsos
     = link_to new_evaluation_moment_path, class: "btn btn-primary" do
       = icono(:agregar, tamano: 16)
-      %span Nuevo momento
+      %span Nuevo lapso
 
-  %table.table-academic
-    %thead
-      %tr
-        %th Período
-        %th= EvaluationMoment.human_attribute_name(:name)
-        %th Desde
-        %th Hasta
-    %tbody
-      - @evaluation_moments.each do |moment|
+  - if @evaluation_moments.empty?
+    -# ⚠️ Acá había una tabla con encabezados y nada debajo: un callejón, y
+    -# justo en el paso 2 de 8 de la puesta en marcha.
+    -#
+    -# Y el estado vacío no ofrece «crear un lapso», ofrece **crear los tres**:
+    -# son tres, se llaman igual siempre y reparten el año en tercios (MOR-163).
+    -# Pedirle al director que los escriba uno por uno es pedirle que tipee lo
+    -# que el sistema ya sabe. Este botón es la reparación de los años escolares
+    -# creados ANTES de que el sembrado existiera.
+    .empty-state
+      - if Current.academic_period
+        %h3= "#{Current.academic_period.name} todavía no tiene lapsos"
+        %p
+          Son tres —1er, 2do y 3er Lapso— y reparten el año escolar en tercios.
+          Se crean de una vez y después se ajustan las fechas si un feriado corre alguna.
+        .empty-state-acciones
+          = button_to sembrar_lapsos_path, class: "btn btn-primary" do
+            = icono(:calendario, tamano: 16)
+            %span= "Crear los tres lapsos de #{Current.academic_period.name}"
+      - else
+        %h3 Elija un año escolar
+        %p
+          Está mirando todos los años a la vez. Los lapsos son de un año escolar:
+          elija uno en la barra de arriba para verlos o crearlos.
+
+  - else
+    %table.table-academic
+      %thead
         %tr
-          %td= link_to moment.academic_period.name, edit_evaluation_moment_path(moment)
-          %td= moment.name
-          -# ⚠️ Acá iba el «Peso (%)», que no significaba nada: el anual es el
-          -# PROMEDIO de los lapsos (Art. 111), no un promedio ponderado. Lo que
-          -# de verdad hace algo son las fechas: sin ellas el boletín cuenta las
-          -# inasistencias del año entero en vez de las del lapso.
-          %td= moment.starts_on ? l(moment.starts_on, format: :short) : "—"
-          %td= moment.ends_on ? l(moment.ends_on, format: :short) : "—"
+          -# Solo con «Todos los años»: con un año fijado repite el mismo texto
+          -# en las tres filas. La lección de MOR-90 con la columna «Escuela».
+          - if mirando_todos_los_anios?
+            %th= AcademicPeriod.model_name.human
+          %th= EvaluationMoment.human_attribute_name(:name)
+          %th Desde
+          %th Hasta
+      %tbody
+        - @evaluation_moments.each do |lapso|
+          %tr
+            - if mirando_todos_los_anios?
+              %td= lapso.academic_period.name
+            -# ⚠️ El enlace va en el NOMBRE del lapso, no en el del año.
+            -# Estaba al revés: las tres filas decían «2025-2026» y había que
+            -# adivinar cuál era el 1er Lapso.
+            %td= link_to lapso.name, edit_evaluation_moment_path(lapso)
+            -# ⚠️ Acá iba el «Peso (%)», que no significaba nada: el anual es el
+            -# PROMEDIO de los lapsos (Art. 111), no un promedio ponderado. Lo que
+            -# de verdad hace algo son las fechas: sin ellas el boletín cuenta las
+            -# inasistencias del año entero en vez de las del lapso.
+            %td= lapso.starts_on ? l(lapso.starts_on, format: :short) : "—"
+            %td= lapso.ends_on ? l(lapso.ends_on, format: :short) : "—"

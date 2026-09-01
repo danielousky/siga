@@ -17,6 +17,24 @@ class EvaluationMomentsController < ApplicationController
 
 
   # El año escolar NO se pregunta: es el de la sesión.
+  # Los tres lapsos de una vez, para el año de la sesión.
+  #
+  # ⚠️ `sembrar_lapsos` es idempotente —si ya hay lapsos no toca nada— así que
+  # este botón no puede duplicar nada por doble clic.
+  def sembrar
+    if Current.academic_period.nil?
+      return redirect_to evaluation_moments_path,
+                         alert: "Elija un año escolar en la barra de arriba antes de crear sus lapsos."
+    end
+
+    creados = Current.academic_period.sembrar_lapsos
+    registrar_cambio(:creado, Current.academic_period, "lapsos de #{Current.academic_period.name}")
+
+    redirect_to evaluation_moments_path,
+                notice: "Listo: #{Current.academic_period.name} ya tiene sus #{creados.size} lapsos. " \
+                        "Ajuste las fechas si su calendario es otro."
+  end
+
   def new
     @evaluation_moment = EvaluationMoment.new(academic_period: Current.academic_period)
   end

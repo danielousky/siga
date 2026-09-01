@@ -159,10 +159,16 @@ puts "📊 Creando momentos de evaluación..."
 # Las fechas son las de un año escolar venezolano real: arranca a mediados de
 # septiembre y cierra a mediados de julio. Sin ellas el boletín cuenta las
 # inasistencias del AÑO entero en vez de las del lapso, y lo aclara en el papel.
+#
+# ⚠️ Los NOMBRES salen de `AcademicPeriod::LAPSOS`, que es lo que la app crea
+# cuando siembra un año escolar. Estaban escritos a mano —«Primer Lapso»— y la
+# app produce «1er Lapso»: la demo mostraba algo que ningún colegio real
+# obtendría. Las FECHAS sí son propias, y esa es la gracia: el reparto en
+# tercios de `sembrar_lapsos` no conoce el receso de diciembre.
 LAPSOS_TRES = [
-  { name: "Primer Lapso", desde: [ 9, 15 ], hasta: [ 12, 20 ] },
-  { name: "Segundo Lapso", desde: [ 1,  8 ], hasta: [  3, 31 ] },
-  { name: "Tercer Lapso", desde: [ 4,  6 ], hasta: [  7, 15 ] }
+  { name: AcademicPeriod::LAPSOS[0], desde: [ 9, 15 ], hasta: [ 12, 20 ] },
+  { name: AcademicPeriod::LAPSOS[1], desde: [ 1,  8 ], hasta: [  3, 31 ] },
+  { name: AcademicPeriod::LAPSOS[2], desde: [ 4,  6 ], hasta: [  7, 15 ] }
 ].freeze
 
 # 2026-2027 estrena una estructura DISTINTA a propósito: dos lapsos en vez de tres.
