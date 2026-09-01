@@ -42,10 +42,21 @@
 
   .form-seccion
     %h2.form-seccion-titulo Datos del alumno
+    -# ⚠️ OPCIONAL desde que el modelo lo numera solo.
+    -#
+    -# El importador ya inventaba el carnet cuando la planilla no lo traía, pero
+    -# el alta a mano lo exigía: cargar 360 alumnos de un Excel funcionaba y
+    -# agregar UNO no, pidiendo un número que la secretaria no tiene. Ahora los
+    -# dos caminos hacen lo mismo, y la pantalla lo dice antes de que alguien se
+    -# quede pensando qué escribir.
     .form-group
       = con_pista "Lo numera el colegio. No es la cédula escolar, que la asigna el MPPE." do
         = f.label :school_card, "Carnet escolar", class: "form-label"
-      = f.text_field :school_card, class: "form-control", placeholder: "Número de carnet"
+      %span.solicitud-opcional opcional
+      = f.text_field :school_card, class: "form-control",
+                     placeholder: (Student.siguiente_carnet(Current.school) if Current.school)
+      %p.nota-ayuda
+        Si lo deja vacío, SIGA le pone el siguiente de la serie del colegio.
 
   .form-acciones
     = f.submit "Guardar registro", class: "btn btn-primary"

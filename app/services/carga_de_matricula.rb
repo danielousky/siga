@@ -157,23 +157,8 @@ class CargaDeMatricula
   # ⚠️ No es único en la plataforma y no debe serlo: `MOR-138` descubrió que 90
   # de 290 alumnos compartían carnet entre dos colegios, porque cada plantel
   # numera desde 1. Lo que identifica a la persona es la cédula.
-  def siguiente_carnet
-    @consecutivo ||= ultimo_consecutivo
-    @consecutivo += 1
-
-    "#{prefijo}-#{@consecutivo.to_s.rjust(3, '0')}"
-  end
-
-  def prefijo
-    @prefijo ||= (AcademicPeriod.vigente || AcademicPeriod.order(:start_date).last)
-                   &.start_date&.strftime("%y") || Date.current.strftime("%y")
-  end
-
-  def ultimo_consecutivo
-    Student.unscoped.where(school: @colegio)
-           .where("school_card LIKE ?", "#{prefijo}-%")
-           .pluck(:school_card)
-           .filter_map { |c| c.to_s.split("-").last.to_i }
-           .max.to_i
-  end
+  # El formato y el consecutivo viven en `Student`: lo mismo hace falta al
+  # importar historial y al dar de alta a mano, y estaban escritos tres veces
+  # (dos de ellas distintas).
+  def siguiente_carnet = Student.siguiente_carnet(@colegio)
 end

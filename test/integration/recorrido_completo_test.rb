@@ -170,6 +170,45 @@ class RecorridoCompletoTest < ActionDispatch::IntegrationTest
     assert_empty pantallas_mudas(pantallas_de_admin.merge(altas_de_admin))
   end
 
+  # ══════════════════════════════════════════════════════════════════════════
+  # El panel de SIGA — la otra app dentro de la app
+  # ══════════════════════════════════════════════════════════════════════════
+  #
+  # Daniel ya lo marcó una vez: «desde allí no puedo hacer nada, el enlace a
+  # colegios/new no hace nada». Vive en su propio namespace (MOR-133) y por eso
+  # es fácil que se quede atrás de los cambios del resto.
+
+  test "el equipo de SIGA recorre su panel" do
+    fundador = User.create!(first_name: "Fundador", last_name: "SIGA",
+                            email: "fundador.recorrido@siga.test", password: "123123",
+                            document: "V-11223344", document_type: :cedula_v)
+    SigaStaff.create!(user: fundador, role: :fundador)
+    sign_in fundador
+
+    assert_empty pantallas_mudas(
+      "panel de plataforma" => siga_root_path,
+      "colegios"            => siga_colegios_path,
+      "ficha de colegio"    => siga_colegio_path(@a.colegio),
+      "alta de colegio"     => new_siga_colegio_path,
+      "cartera"             => siga_cartera_index_path,
+      "solicitudes"         => siga_solicitudes_path
+    )
+  end
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Lo público: lo primero que ve alguien que llega por un enlace
+  # ══════════════════════════════════════════════════════════════════════════
+
+  test "las páginas públicas abren sin sesión" do
+    assert_empty pantallas_mudas(
+      "portada"          => root_path,
+      "entrar"           => new_user_session_path,
+      "registrar colegio" => registrarse_path,
+      "recuperar clave"  => new_user_password_path,
+      "verificar boletín" => verificar_path
+    )
+  end
+
   private
 
   # Una pantalla «habla» si trae contenido de verdad, un formulario que llenar, o
@@ -205,8 +244,14 @@ class RecorridoCompletoTest < ActionDispatch::IntegrationTest
   # El texto del `main`, sin el layout, es la definición honesta de «dice algo».
   MINIMO_DE_TEXTO = 80
 
+  # Los tres cascarones donde puede caer el contenido: el `main` de la sesión
+  # del colegio, el del panel de SIGA, y el `div` de las páginas públicas y de
+  # quien todavía no tiene rol. Sin el tercero, la portada y el registro
+  # aparecían como pantallas mudas.
+  CONTENIDO = "main.container-academic, main.siga-contenido, .container-academic".freeze
+
   def habla?
-    contenido = css_select("main.container-academic").first
+    contenido = css_select(CONTENIDO).first
     return false if contenido.nil?
 
     # Fuera la franja del recorrido y los botones de la cabecera: están en

@@ -172,19 +172,10 @@ class CargaDeHistorial
   # Un alumno que llega por el historial igual necesita carnet, y el año del que
   # viene es mejor prefijo que el de hoy: es cuando el colegio lo numeró.
   def siguiente_carnet(fila)
-    prefijo = fila.periodo.start_date&.strftime("%y") || Date.current.strftime("%y")
-    @consecutivos ||= Hash.new { |h, p| h[p] = ultimo_consecutivo(p) }
-    @consecutivos[prefijo] += 1
-
-    "#{prefijo}-#{@consecutivos[prefijo].to_s.rjust(3, '0')}"
-  end
-
-  def ultimo_consecutivo(prefijo)
-    Student.unscoped.where(school: @colegio)
-           .where("school_card LIKE ?", "#{prefijo}-%")
-           .pluck(:school_card)
-           .filter_map { |c| c.to_s.split("-").last.to_i }
-           .max.to_i
+    # ⚠️ El prefijo sale del año de la FILA, no del vigente: cada fila de un
+    # historial es de un año escolar distinto. El resto —formato y
+    # consecutivo— lo pone `Student`.
+    Student.siguiente_carnet(@colegio, prefijo: Student.prefijo_de_carnet(fila.periodo))
   end
 
   # Los conteos son de personas DISTINTAS: un alumno con diez materias es una
