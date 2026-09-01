@@ -77,13 +77,15 @@
       -# quien ya sabía que estaba ahí — y este es el atajo a lo primero que hace
       -# un colegio.
       -#
-      -# El texto va oculto en pantallas chicas (`.solo-ancho`): en el teléfono
-      -# la barra ya lleva el nombre del colegio y el selector, y el icono con su
-      -# tooltip alcanza.
+      -# Solo el icono: la barra ya dice «AÑO ESCOLAR» dos centímetros a la
+      -# izquierda, así que el texto lo repetía. Lo que hace que se vea es el
+      -# tono —índigo contra el azul grisáceo de la franja— y el tooltip explica.
+      -#
+      -# ⚠️ `aria-label` porque no tiene texto: sin él, un lector de pantalla
+      -# anuncia «enlace» y nada más. El tooltip es visual; esto es su nombre.
       - if can_manage_academic_config?
-        = link_to academic_periods_path, class: "btn btn-secondary btn-sm contexto-anio-gestionar", data: { tooltip: "Crear y editar los años escolares y sus lapsos" } do
-          = icono(:calendario, tamano: 14)
-          %span.solo-ancho Años escolares
+        = link_to academic_periods_path, class: "contexto-anio-gestionar", data: { tooltip: "Crear y editar los años escolares y sus lapsos" }, aria: { label: "Años escolares" } do
+          = icono(:calendario, tamano: 15)
 
       -# ⚠️ La situación se pinta CON selector y sin él, y son dos datos distintos:
       -# el nombre dice CUÁL año, la situación dice si está corriendo. Con el

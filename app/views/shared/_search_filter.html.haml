@@ -10,7 +10,7 @@
     .form-row
       - fields.each do |field|
         - flex_style = field[:flex] ? "flex: #{field[:flex]}; min-width: #{field[:min_width] || '220px'};" : nil
-        - align_style = field[:type] == :clear_button ? "display: flex; align-items: flex-end;" : nil
+        - align_style = field[:type] == :clear_button ? "display: flex; align-items: flex-end; align-self: flex-end;" : nil
         .form-group{style: [flex_style, align_style].compact.join("").presence}
 
           - case field[:type]

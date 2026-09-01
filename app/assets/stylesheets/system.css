@@ -1594,11 +1594,23 @@ nav.pagy a.gap {
 
 /* ---- Form Row (formulario en línea) ---- */
 
+/* ⚠️ `flex-start`, no `flex-end`.
+   Con `flex-end` las dos columnas se alinean por ABAJO, y basta que una lleve
+   una nota de ayuda debajo del campo para que su rótulo suba y el de al lado se
+   quede: los dos «Grado» e «Identificador» quedaban a distinta altura. Alineados
+   arriba se alinean los RÓTULOS, que es lo que el ojo usa para leer una fila.
+
+   El botón «Limpiar» del buscador de listas —que sí necesita ir abajo, porque no
+   tiene rótulo— se alinea solo, con su propio estilo en el parcial. */
 .form-row {
   display: flex;
   gap: var(--space-md);
   flex-wrap: wrap;
-  align-items: flex-end;
+  align-items: flex-start;
+  /* Sin esto, el campo que sigue a la fila se le pega encima: los
+     `.form-group` de adentro tienen el margen en cero. El mismo valor que un
+     `.form-group` normal, o la fila rompe el ritmo vertical del formulario. */
+  margin-bottom: var(--space-lg);
 }
 
 .form-row .form-group {
@@ -3707,9 +3719,19 @@ nav.pagy a.gap {
 
 /* Un `.form-group` cuyo contenido es un botón que debe alinearse con los
    campos de al lado, no con sus etiquetas. */
+/* ⚠️ `align-self`, no solo `align-items`.
+   El botón «Limpiar» no tiene rótulo, así que su columna es más baja que las
+   demás y tiene que caer al PIE de la fila para quedar a la altura de los
+   campos. `align-items` alinea a sus HIJOS; para bajar el grupo mismo hace falta
+   `align-self`.
+
+   Antes funcionaba de rebote: `.form-row` alineaba todo por abajo. Al pasar la
+   fila a `flex-start` —para que los RÓTULOS se alineen, que es lo que el ojo usa
+   para leerla— este botón se subía con los demás. */
 .form-group--boton {
   display: flex;
   align-items: flex-end;
+  align-self: flex-end;
 }
 
 /* Lo que hay que atender, en el panel del director (MOR-135).
@@ -5477,7 +5499,13 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 /* La nota que SÍ se queda visible: la que dice qué pasa si no se hace. Se
    afina para que no compita con el campo, pero se sigue leyendo. */
-.nota-ayuda { max-width: 62ch; }
+/* ⚠️ `pretty` evita la línea huérfana. Con 62ch de ancho, «tomar la dirección.»
+   caía sola al final y el párrafo se leía como si estuviera roto. El navegador
+   reparte las últimas líneas para que ninguna quede con dos palabras. */
+.nota-ayuda {
+  max-width: 62ch;
+  text-wrap: pretty;
+}
 
 /* Un dato secundario: el teléfono debajo de un nombre, «Sin asignar», el
    formato de una columna (MOR-161).
@@ -5591,20 +5619,34 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 .contexto-anio-select:hover { border-color: var(--border-standard); background: var(--surface-elevated); }
 
-/* El atajo a los años escolares, al lado del selector (MOR-171 · MOR-173).
-   Es un botón normal; solo se le quita el alto de más para que no estire la
-   barra de contexto, que es una franja fina. */
+/* El atajo a los años escolares, al lado del selector (MOR-171 · MOR-174).
+   ──────────────────────────────────────────────────────────────────────
+   Solo el icono, y en ÍNDIGO. Daniel: «quita Años escolares, está bien el icono
+   pero con otro color más llamativo».
+
+   El texto sobraba: la barra ya dice «AÑO ESCOLAR» dos centímetros a la
+   izquierda, así que el botón lo repetía. Lo que faltaba no era explicación —el
+   tooltip la da— sino que se VIERA, y eso lo resuelve el tono: contra el azul
+   grisáceo de la barra, el índigo salta. */
 .contexto-anio-gestionar {
-  padding: var(--space-micro) var(--space-xs);
-  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accion-primary);
+  color: white;
+  border: 1px solid var(--accion-primary);
+  flex-shrink: 0;
 }
 
-/* El texto del botón desaparece en pantallas chicas: en el teléfono la barra ya
-   lleva el nombre del colegio y el selector, y el icono con su tooltip alcanza. */
-.solo-ancho { display: none; }
-
-@media (min-width: 900px) {
-  .solo-ancho { display: inline; }
+.contexto-anio-gestionar:hover {
+  background: var(--accion-hover);
+  border-color: var(--accion-hover);
+  color: white;
+}
 }
 
 .contexto-anio-select:focus-visible {

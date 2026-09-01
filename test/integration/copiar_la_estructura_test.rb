@@ -235,7 +235,10 @@ class CopiarLaEstructuraTest < ActionDispatch::IntegrationTest
 
     # Un BOTÓN, no un icono suelto: el icono solo lo encontraba quien ya sabía
     # que estaba ahí, y este es el atajo a lo primero que hace un colegio.
-    assert_select "a.btn.contexto-anio-gestionar[href=?]", academic_periods_path
+    assert_select "a.contexto-anio-gestionar[href=?]", academic_periods_path
+    # ⚠️ Sin texto visible, así que el nombre accesible tiene que estar: sin él
+    # un lector de pantalla anuncia «enlace» y nada más.
+    assert_select ".contexto-anio-gestionar[aria-label=?]", "Años escolares"
     assert_select ".contexto-anio-gestionar[data-tooltip]",
                   message: "el tooltip tiene que ser el de la app, no el `title` del navegador"
   end
