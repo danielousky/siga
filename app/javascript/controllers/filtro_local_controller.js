@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { contieneSinAcentos } from "lib/sin_acentos"
 
 // Filtra en el navegador una lista que ya está en la página.
 //
@@ -14,12 +15,16 @@ export default class extends Controller {
   static targets = ["buscar", "item", "vacio"]
 
   filtrar() {
-    const q = this.buscarTarget.value.trim().toLowerCase()
+    const q = this.buscarTarget.value.trim()
     let visibles = 0
 
     this.itemTargets.forEach((item) => {
       const marcado = item.querySelector("input[type=checkbox]")?.checked
-      const coincide = q === "" || item.textContent.toLowerCase().includes(q)
+      // ⚠️ Ignorando acentos, como el buscador del servidor. Con
+      // `toLowerCase().includes()` a secas, escribir «sofia» no encontraba a
+      // Sofía — y en Venezuela eso deja afuera a López, Pérez, Guzmán,
+      // Rodríguez, Martínez, Hernández, Díaz y Gómez. Ver `lib/sin_acentos`.
+      const coincide = q === "" || contieneSinAcentos(item.textContent, q)
       const mostrar = marcado || coincide
 
       item.hidden = !mostrar

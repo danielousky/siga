@@ -203,6 +203,19 @@ y ahí escribir la URL en español ES la comprobación.
   ⚠️ El enum de `document_type` **no** se recortó: `User.tipos_de_documento_ofrecidos`
   agrega el suyo a quien ya tenga pasaporte, o editar su ficha se lo cambiaría en
   silencio.
+- **Buscar ignora los acentos en las DOS capas** (`MOR-179`). La regla estaba en
+  Ruby (`BusquedaSinAcentos`) y los filtros del navegador comparaban con
+  `toLowerCase()` a secas, así que «sofia» no encontraba a Sofía — y en Venezuela
+  eso deja afuera a López, Pérez, Guzmán, Rodríguez, Martínez, Hernández, Díaz y
+  Gómez. `app/javascript/lib/sin_acentos.js` es su mitad JavaScript; las dos
+  están anotadas la una en la otra. ⚠️ Va en `importmap.rb` con
+  `pin_all_from "app/javascript/lib"`: sin el pin, el `import` falla **en
+  silencio** y Stimulus deja de conectar el controlador.
+- **El teléfono lleva su guion puesto por el campo** (`campo-telefono`):
+  «0414-1234567», cuatro de código y siete de número. No valida que el número
+  exista —eso no se puede saber, y rechazar un teléfono correcto es peor— sino
+  que evita la letra, el espacio y el paréntesis que después rompen el enlace de
+  «llamar».
 - **Un campo con formato se filtra AL ESCRIBIR**, no solo al enviar: el controlador
   `campo-filtrado` (`data-campo-filtrado-permite-value="A-Za-z0-9"`) borra lo que no
   corresponde mientras se teclea. ⚠️ `pattern` **no** alcanza: es validación del

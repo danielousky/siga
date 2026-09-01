@@ -60,8 +60,10 @@
     .form-group
       = etiqueta_con_pista "school[telefono]", "Teléfono de contacto",
                            pista: "Es para que SIGA pueda comunicarse con el colegio. No sale en ningún documento."
-      = telephone_field_tag "school[telefono]", colegio.telefono, class: "form-control",
-                            placeholder: "0212-555-1234"
+      -# El mismo formato que el del representante: cuatro de código y siete de
+      -# número. ⚠️ El placeholder decía «0212-555-1234», con un guion de más:
+      -# el ejemplo enseñaba una forma que el campo no acepta.
+      = telephone_field_tag "school[telefono]", colegio.telefono, class: "form-control", inputmode: "numeric", placeholder: "0212-5551234", maxlength: 12, data: { controller: "campo-telefono", action: "input->campo-telefono#formatear" }
 
   .form-group
     = label_tag "school[direccion]", "Dirección exacta", class: "form-label"

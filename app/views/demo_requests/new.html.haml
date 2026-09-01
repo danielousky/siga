@@ -37,9 +37,7 @@
           = f.label :phone, "WhatsApp", class: "form-label"
           -# «Es por donde le vamos a escribir» sobraba: el campo se llama
           -# WhatsApp y el placeholder muestra el formato. Decirlo era ruido.
-          = f.telephone_field :phone, class: "form-control", required: true,
-                                      autocomplete: "tel", inputmode: "tel",
-                                      placeholder: "0424 123 4567"
+          = f.telephone_field :phone, class: "form-control", required: true, autocomplete: "tel", inputmode: "numeric", placeholder: "0424-1234567", maxlength: 12, data: { controller: "campo-telefono", action: "input->campo-telefono#formatear" }
 
 
         .form-group

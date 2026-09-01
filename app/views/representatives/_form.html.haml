@@ -36,7 +36,11 @@
         = email_field_tag "user[email]", usuario.email, class: "form-control"
       .form-group
         = label_tag "representative[phone]", "Teléfono", class: "form-label"
-        = telephone_field_tag "representative[phone]", representative.phone, class: "form-control", placeholder: "0414-1234567"
+        -# ⚠️ El guion lo pone el campo, no la persona: «0414-1234567». Es la forma
+        -# de un teléfono venezolano —cuatro de código, siete de número— y
+        -# escribirlo a mano es donde entran el espacio y el paréntesis que
+        -# después rompen el enlace de «llamar» en el teléfono de la secretaria.
+        = telephone_field_tag "representative[phone]", representative.phone, class: "form-control", inputmode: "numeric", placeholder: "0414-1234567", maxlength: 12, data: { controller: "campo-telefono", action: "input->campo-telefono#formatear" }
 
   .form-seccion{"data-controller": "filtro-local"}
     %h2.form-seccion-titulo Alumnos que representa
