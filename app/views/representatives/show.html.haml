@@ -5,78 +5,65 @@
       = icono(:editar, tamano: 16)
       %span Editar
 
+  -# ⚠️ Cada acción AL LADO de su dato, sin una sección aparte (QA de Daniel:
+  -# «los botones puedes colocarlos al lado de sus respectivos elementos, no hay
+  -# que agregar otra sección para ello»).
+  -#
+  -# Y tenía razón por una razón concreta: una sección «Escribirle» obliga a leer
+  -# el correo arriba, bajar, y volver a decidir a cuál de los dos canales
+  -# corresponde. Pegado al dato, el botón ES la acción de ese dato.
+  -#
+  -# El compositor sigue CERRADO: esta pantalla se abre muchas veces para mirar un
+  -# teléfono y pocas para escribir. Es un `<details>` nativo —se abre sin
+  -# JavaScript, el teclado lo alcanza y el navegador ya sabe anunciarlo— y su
+  -# `summary` va pintado como botón.
+  - correo = @representative.user.email
+  - whatsapp = Contacto.whatsapp_url(@representative.phone, "Buenos días, le escribimos de #{Current.school.name}.")
+  - puede_escribir = can_manage_students?
+
   %dl.detalle
     %dt Correo
     %dd
-      - if @representative.user.email.present?
-        = @representative.user.email
-      - else
-        %span.nota-pendiente Sin correo — hay que hacerle llegar el enlace de acceso
+      .dato-con-accion
+        - if correo.present?
+          %span= correo
+        - else
+          %span.nota-pendiente Sin correo — hay que hacerle llegar el enlace de acceso
+
+        - if correo.present? && puede_escribir
+          %details.compositor
+            %summary.btn.btn-documento.btn-sm
+              = icono(:boletines, tamano: 14)
+              %span Enviar correo
+
+            -# ⚠️ El correo sale del dominio de SIGA —ElasticEmail solo despacha
+            -# dominios verificados— y la respuesta va a quien escribe. Ver
+            -# `ComunicacionMailer`.
+            = form_with url: mensaje_al_representative_path(@representative), method: :post, class: "compositor-cuerpo", data: { turbo: false } do
+              .form-group
+                = label_tag :asunto, "Asunto", class: "form-label"
+                = text_field_tag :asunto, nil, class: "form-control", required: true, maxlength: 120, placeholder: "Reunión de representantes"
+              .form-group
+                = label_tag :cuerpo, "Mensaje", class: "form-label"
+                = text_area_tag :cuerpo, nil, class: "form-control", required: true, rows: 6
+              %p.nota-ayuda
+                = "Le llega a #{correo} de parte del colegio, y si responde le llega a usted."
+              .form-acciones
+                = submit_tag "Enviar", class: "btn btn-documento"
+
     %dt Teléfono
-    %dd= @representative.phone.presence || "—"
+    %dd
+      .dato-con-accion
+        %span= @representative.phone.presence || "—"
+        - if whatsapp && puede_escribir
+          -# `target` y `rel` porque sale de la app: sin `noopener`, la pestaña
+          -# que se abre puede reescribir la de SIGA.
+          = link_to whatsapp, target: "_blank", rel: "noopener", class: "btn btn-accion btn-sm" do
+            = icono(:representantes, tamano: 14)
+            %span WhatsApp
+
     %dt Cédula
     %dd= @representative.user.identificador.presence || "—"
-
--# ── Escribirle (MOR-181) ────────────────────────────────────────────────────
--#
--# ⚠️ El compositor está CERRADO hasta que alguien lo pide.
--#
--# Primero salió abierto, con el asunto y el mensaje siempre a la vista, y Daniel
--# lo cortó: «si no le voy a enviar correo o whatsapear, estorban. Si lo que voy a
--# hacer es comunicarme, pues tenerlo a la mano». Tenía razón: esta pantalla se
--# abre muchas veces para mirar un teléfono y pocas para escribir, así que el
--# formulario ocupaba media pantalla la mayoría de las veces.
--#
--# Es un `<details>` nativo y no un panel con JavaScript: se abre sin script, el
--# teclado lo alcanza solo, y el navegador ya sabe anunciarlo. El `summary` va
--# pintado como botón.
--#
--# ⚠️ Los dos canales NO son dos versiones de lo mismo:
--#
--#     WhatsApp   un enlace. Abre la app con el número puesto y quien escribe
--#                termina AFUERA. SIGA no se entera de si se envió.
--#     Correo     lo manda SIGA y queda en la auditoría.
-- correo = @representative.user.email
-- whatsapp = Contacto.whatsapp_url(@representative.phone, "Buenos días, le escribimos de #{Current.school.name}.")
-
-- if can_manage_students? && (correo.present? || whatsapp)
-  .card-academic
-    .card-academic-header
-      %h2 Escribirle
-
-    .contacto-acciones
-      - if whatsapp
-        -# `target` y `rel` porque sale de la app: sin `noopener`, la pestaña que
-        -# se abre puede reescribir la de SIGA.
-        = link_to whatsapp, target: "_blank", rel: "noopener", class: "btn btn-accion" do
-          = icono(:representantes, tamano: 16)
-          %span WhatsApp
-
-      - if correo.present?
-        %details.compositor
-          %summary.btn.btn-documento
-            = icono(:boletines, tamano: 16)
-            %span Enviar correo
-
-          -# ⚠️ El correo sale del dominio de SIGA —ElasticEmail solo despacha
-          -# dominios verificados— y la respuesta va a quien escribe. Ver
-          -# `ComunicacionMailer`.
-          = form_with url: mensaje_al_representative_path(@representative), method: :post, class: "compositor-cuerpo", data: { turbo: false } do
-            .form-group
-              = label_tag :asunto, "Asunto", class: "form-label"
-              = text_field_tag :asunto, nil, class: "form-control", required: true, maxlength: 120, placeholder: "Reunión de representantes"
-            .form-group
-              = label_tag :cuerpo, "Mensaje", class: "form-label"
-              = text_area_tag :cuerpo, nil, class: "form-control", required: true, rows: 6
-            %p.nota-ayuda
-              = "Le llega a #{correo} de parte del colegio, y si responde le llega a usted."
-            .form-acciones
-              = submit_tag "Enviar", class: "btn btn-documento"
-
-    - if correo.blank?
-      %p.nota-ayuda
-        No tiene correo cargado, así que por ahora solo se le puede escribir por
-        WhatsApp. Con un correo además puede entrar a ver las notas.
 
 = render "shared/acceso_al_sistema", usuario: @representative.user,
                                     url: codigo_representative_path(@representative)

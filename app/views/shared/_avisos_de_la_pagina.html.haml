@@ -1,0 +1,50 @@
+-# Los avisos que no van en la barra fija (MOR-184).
+-#
+-# ⚠️ Se leen UNA vez y se sigue de largo, así que fijos ocuparían para siempre
+-# el espacio de algo que ya se leyó. Van en el flujo, arriba del contenido.
+-# La suscripción, cuando hay algo que decir (MOR-108).
+-#
+-# Solo aparece si el colegio está en gracia o vencido. Un cartel permanente de
+-# "estás al día" es ruido que se deja de ver, y el día que dice otra cosa
+-# tampoco se ve.
+- if colegio_en_solo_lectura?
+  .aviso-suscripcion.aviso-suscripcion--vencida
+    .aviso-suscripcion-inner
+      %strong Suscripción vencida.
+      Puedes seguir consultando y descargando todo —boletines, constancias,
+      notas— pero no cargar información nueva hasta regularizar el pago.
+- elsif colegio_en_plan_gratis?
+  -# ⚠️ El aviso del plan gratuito NO es una alerta: no hay nada vencido ni
+  -# nada que corregir. Es información, y por eso va en el tono neutro y no en
+  -# el rojo del vencimiento.
+  -#
+  -# Dice lo que SÍ funciona antes de lo que no: un colegio que lee primero una
+  -# negativa cierra la pestaña.
+  .aviso-suscripcion
+    .aviso-suscripcion-inner
+      %strong Plan Inicial, gratis.
+      Cargar alumnos, profesores, materias y secciones es libre y no vence.
+      Calificar, pasar lista y emitir boletines y constancias se activan al
+      contratar un plan.
+- elsif suscripcion_del_colegio&.en_gracia?
+  .aviso-suscripcion
+    .aviso-suscripcion-inner
+      %strong La suscripción venció.
+      Quedan
+      = pluralize(suscripcion_del_colegio.dias_de_gracia + (suscripcion_del_colegio.dias_para_vencer || 0), "día")
+      de gracia antes de pasar a solo lectura.
+
+-# El colegio VE que hay alguien de SIGA adentro.
+-#
+-# Es lo que convierte un acceso amplio en algo defendible frente al cliente: no
+-# es que SIGA mire cuando quiera sin que nadie se entere — entró, el colegio lo
+-# ve en el momento, y queda en su historial.
+-#
+-# ⚠️ Es un paliativo, no la solución. La solución es MOR-92 (acceso con motivo
+-# declarado y vencimiento), que sigue abierto a propósito.
+- if visitando_un_colegio?
+  .aviso-visita
+    .aviso-visita-inner
+      %strong Soporte de SIGA adentro.
+      = "#{current_user.nombre_completo} está viendo el sistema de #{colegio_visitado.name}."
+      = button_to "Salir del colegio", siga_visita_path(colegio_visitado), method: :delete, class: "aviso-visita-salir"

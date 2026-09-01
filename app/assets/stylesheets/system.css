@@ -182,24 +182,66 @@ a:hover {
 
 /* ---- Navigation ---- */
 
-.nav-institutional {
+/* UNA barra, fina y FIJA (MOR-184).
+   ────────────────────────────────
+   Daniel: «esta barra la podemos hacer más fina o fusionarla en una, no veo
+   para qué 2. Y también convendría dejarla fija. En realidad el content debe
+   ser el que se mueva».
+
+   Eran dos franjas apiladas —la del producto y la del colegio— que juntas se
+   comían 120 px en cada pantalla, y al bajar por una lista de doscientos
+   alumnos se perdían las dos: con ellas se iban el selector de año escolar y el
+   buscador, que es justo lo que hace falta a mitad de esa lista.
+
+   ⚠️ El alto vive en UNA variable. La usa también el `sidebar`, que se posiciona
+   debajo; con el número escrito en los dos lados, cambiar el `padding` de la
+   barra descuadra el menú y nadie relaciona las dos cosas. Antes era un `120px`
+   literal en tres reglas distintas. */
+:root { --alto-barra: 52px; }
+
+.barra-superior {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--alto-barra);
   background: var(--surface-elevated);
   border-bottom: 1px solid var(--border-standard);
-  padding: 0;
 }
 
-.nav-institutional .container-fluid {
+.barra-superior-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  height: 100%;
+  padding: 0 var(--space-lg);
+}
+
+.barra-superior-espacio { flex: 1; }
+
+/* ⚠️ `.nav-institutional` ya no existe en el marcado (MOR-184): la barra del
+   producto y la del colegio se fusionaron en `.barra-superior`. Todo lo que
+   colgaba de aquella clase se movió acá — el logo, la sesión, el nombre — y
+   olvidarse de mover una sola regla es lo que hizo que el logo saliera a tamaño
+   natural, ocupando media pantalla. */
+
+.barra-superior .container-fluid {
   display: flex;
   align-items: center;
   padding: var(--space-md) var(--space-lg);
 }
 
-.nav-institutional .session-menu {
-  margin-left: auto;
+/* ⚠️ Sin `margin-left: auto`: el hueco lo empuja `.barra-superior-espacio`. Con
+   los dos, el buscador quedaba pegado al nombre del colegio en vez de repartido
+   (MOR-184). */
+.barra-superior .session-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
   font-family: var(--font-sans);
 }
 
-.nav-institutional .navbar-brand {
+.barra-superior .navbar-brand {
   display: inline-flex;
   align-items: center;
   gap: var(--space-sm);
@@ -212,21 +254,21 @@ a:hover {
   margin: 0;
 }
 
-.nav-institutional .navbar-brand:hover {
+.barra-superior .navbar-brand:hover {
   color: var(--brand-hover);
 }
 
-.nav-institutional .navbar-brand-logo {
-  width: 28px;
-  height: 28px;
+.barra-superior .navbar-brand-logo {
+  width: 24px;
+  height: 24px;
   display: block;
 }
 
-.nav-institutional .navbar-brand-text {
+.barra-superior .navbar-brand-text {
   line-height: 1;
 }
 
-.nav-institutional .nav-link {
+.barra-superior .nav-link {
   color: var(--text-secondary);
   font-size: 14px;
   padding: var(--space-xs) var(--space-md);
@@ -234,12 +276,12 @@ a:hover {
   transition: all var(--transition-fast);
 }
 
-.nav-institutional .nav-link:hover {
+.barra-superior .nav-link:hover {
   color: var(--text-primary);
   background: var(--surface-hover);
 }
 
-.nav-institutional .dropdown-menu {
+.barra-superior .dropdown-menu {
   border: 1px solid var(--border-standard);
   border-radius: var(--radius-md);
   box-shadow: none;
@@ -248,7 +290,7 @@ a:hover {
   background: var(--surface-elevated);
 }
 
-.nav-institutional .dropdown-item {
+.barra-superior .dropdown-item {
   color: var(--text-secondary);
   font-size: 14px;
   padding: var(--space-xs) var(--space-md);
@@ -256,12 +298,12 @@ a:hover {
   transition: all var(--transition-fast);
 }
 
-.nav-institutional .dropdown-item:hover {
+.barra-superior .dropdown-item:hover {
   background: var(--surface-hover);
   color: var(--text-primary);
 }
 
-.nav-institutional .user-info {
+.barra-superior .user-info {
   color: var(--text-secondary);
   font-size: 14px;
   margin-right: var(--space-md);
@@ -651,7 +693,7 @@ textarea.form-control {
 
 .app-layout {
   display: flex;
-  min-height: calc(100vh - 120px);
+  min-height: calc(100vh - var(--alto-barra));
 }
 
 .sidebar-index {
@@ -660,8 +702,10 @@ textarea.form-control {
   border-right: 1px solid var(--border-standard);
   padding: var(--space-lg) 0;
   position: sticky;
-  top: 0;
-  height: calc(100vh - 120px);
+  /* ⚠️ Debajo de la barra fija, no en el borde de la ventana: con `top: 0` el
+     menú se metería DETRÁS de la barra al bajar. */
+  top: var(--alto-barra);
+  height: calc(100vh - var(--alto-barra));
   overflow-y: auto;
   /* El ancho se anima porque el `main` de al lado se ensancha al mismo tiempo:
      sin transición el contenido salta 204 px de golpe y se pierde el hilo de
@@ -995,11 +1039,11 @@ textarea.form-control {
    los listados en MOR-90 — el dato iba una vez arriba, no en cada fila.
 */
 
-.academic-context {
-  background: var(--brand-subtle);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: var(--space-sm) 0;
-}
+/* ⚠️ `.academic-context` ya no existe como franja (MOR-184): el colegio y el
+   año escolar viven DENTRO de la barra superior. Las clases de adentro
+   —`.contexto-colegio`, `.contexto-periodo`— se conservan tal cual, que es lo
+   que hizo que la fusión no tocara ninguna vista más que el layout. */
+.academic-context { display: contents; }
 
 .academic-context-inner {
   max-width: 1200px;
@@ -1015,9 +1059,16 @@ textarea.form-control {
 
 .contexto-colegio {
   display: flex;
-  align-items: baseline;
+  /* ⚠️ `center` y no `baseline`: con un `<img>` adentro, `baseline` alinea el
+     borde inferior de la imagen con la línea del texto y empuja la fila hacia
+     abajo. En la franja propia que había antes no se notaba; en una barra de
+     52 px, descuadra todo. */
+  align-items: center;
   gap: var(--space-sm);
   min-width: 0;
+  /* El nombre de un colegio largo se recorta en vez de empujar al año escolar
+     fuera de la pantalla. */
+  max-width: 34ch;
 }
 
 /* El nombre del colegio es la identidad de la pantalla: va en la serif del
@@ -1039,9 +1090,9 @@ textarea.form-control {
 
 .contexto-periodo {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--space-xs);
-  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .contexto-periodo-nombre {
@@ -2746,12 +2797,15 @@ nav.pagy a.gap {
 
 /* El escudo del colegio (identidad). Chico y al lado del nombre: acompaña, no
    compite — el nombre es el que se lee. */
+/* ⚠️ Más chico desde que el colegio vive DENTRO de la barra fina (MOR-184):
+   antes tenía una franja propia de 44 px de alto y ahora comparte 52 px con
+   todo lo demás. */
 .contexto-escudo {
   width: 26px;
   height: 26px;
-  object-fit: contain;
-  flex: 0 0 auto;
-  align-self: center;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 /* ── Identidad del colegio ───────────────────────────────────────────────── */
@@ -4809,23 +4863,33 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
    —o no— al ver la fila guardada. */
 .campo-mayuscula { text-transform: uppercase; }
 
-/* Escribirle a una familia (MOR-181).
-   ──────────────────────────────────
-   Los dos botones juntos, y el compositor CERRADO hasta que alguien lo pide.
-   Daniel: «si no le voy a enviar correo o whatsapear, estorban». La pantalla se
-   abre muchas veces para mirar un teléfono y pocas para escribir. */
-.contacto-acciones {
+/* Escribirle a una familia (MOR-181 · MOR-184).
+   ────────────────────────────────────────────
+   Cada acción AL LADO de su dato: el botón de correo junto al correo, el de
+   WhatsApp junto al teléfono. Una sección «Escribirle» aparte obligaba a leer
+   el dato arriba, bajar, y volver a decidir a cuál de los dos canales
+   corresponde.
+
+   ⚠️ El compositor queda CERRADO. Esta pantalla se abre muchas veces para mirar
+   un teléfono y pocas para escribir; abierto, ocupaba media pantalla siempre. */
+.dato-con-accion {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   gap: var(--space-sm);
   flex-wrap: wrap;
 }
 
-/* ⚠️ `<details>` nativo, sin JavaScript: se abre solo, el teclado lo alcanza y
-   el navegador ya sabe anunciarlo. Lo único que hay que hacer es quitarle el
-   triangulito y dejar que el `summary` se pinte como botón. */
-.compositor { flex: 1; min-width: 220px; }
+/* El `<details>` ocupa el ancho de la celda para que el formulario, al abrirse,
+   no quede estrangulado al lado del correo. */
+.compositor { flex-basis: 100%; }
 
+.dato-con-accion > .compositor { flex-basis: auto; }
+
+.compositor[open] { flex-basis: 100%; }
+
+/* ⚠️ `<details>` nativo, sin JavaScript: se abre solo, el teclado lo alcanza y
+   el navegador ya sabe anunciarlo. Solo hay que quitarle el triangulito y dejar
+   que el `summary` se pinte como botón. */
 .compositor > summary {
   list-style: none;
   width: fit-content;
@@ -4840,8 +4904,8 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 }
 
 .compositor-cuerpo {
-  margin-top: var(--space-lg);
-  padding-top: var(--space-lg);
+  margin-top: var(--space-md);
+  padding: var(--space-lg) 0 0;
   border-top: 1px solid var(--border-subtle);
 }
 

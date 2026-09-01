@@ -45,28 +45,26 @@
     = javascript_importmap_tags
 
   %body
-    %nav.nav-institutional
-      .container-fluid
-        = link_to root_path, class: 'navbar-brand' do
-          = image_tag 'logo.svg', alt: '', class: 'navbar-brand-logo'
-          %span.navbar-brand-text SIGA
-        - if user_signed_in?
-          -# El buscador va en la barra superior porque tiene que estar en TODAS
-          -# las pantallas y no depender de qué menú de rol se esté mostrando.
-          -#
-          -# ⚠️ Salvo en el portal del representante (MOR-157). Una mamá ve a sus
-          -# dos hijos: no tiene a quién buscar. Un buscador que devuelve siempre
-          -# lo mismo que ya está en pantalla es ruido, y encima insinúa que hay
-          -# más gente adentro a la que podría llegar.
-          -#
-          -# Se saca por ROL, y `BusquedasController` cierra además la ruta:
-          -# esconder el disparador no cierra nada.
-          - unless representante?
-            = render "shared/buscador_global"
-
-          .session-menu.d-flex.align-items-center
-            = link_to current_user.first_name, edit_user_registration_path, class: "user-info"
-            = link_to "Cerrar sesión", destroy_user_session_path, data: { turbo_method: :delete }, class: "btn btn-outline-light btn-sm"
+    -# ⚠️ La barra del producto y la del colegio son UNA sola desde MOR-184, y
+    -# está FIJA. Antes eran dos franjas apiladas que se comían 120 px en cada
+    -# pantalla y desaparecían al bajar por una lista larga: con ellas se iban el
+    -# selector de año escolar y el buscador, que es justo lo que hace falta a
+    -# mitad de una lista de doscientos alumnos.
+    -#
+    -# Sin sesión no hay colegio ni año que mostrar, así que la barra reducida
+    -# —solo el logo— va aparte: la portada y el login la usan.
+    - if user_signed_in? && current_user_type.present?
+      = render "shared/barra_superior"
+    - else
+      %header.barra-superior
+        .barra-superior-inner
+          = link_to root_path, class: "navbar-brand" do
+            = image_tag "logo.svg", alt: "", class: "navbar-brand-logo"
+            %span.navbar-brand-text SIGA
+          - if user_signed_in?
+            .barra-superior-espacio
+            .session-menu
+              = link_to "Cerrar sesión", destroy_user_session_path, data: { turbo_method: :delete }, class: "btn btn-outline-light btn-sm"
 
     -# ⚠️ Quien acaba de registrarse TODAVÍA no tiene rol, y eso es correcto: su
     -# rol nace cuando crea su colegio. Sin esta excepción el layout le tapa el
@@ -90,7 +88,7 @@
             = link_to "Cerrar sesión", destroy_user_session_path, data: { turbo_method: :delete }, class: "btn btn-secondary"
 
     - elsif user_signed_in?
-      = render 'shared/barra_de_contexto'
+      = render 'shared/avisos_de_la_pagina'
 
       .app-layout{"data-controller": "sidebar"}
         -# El controlador `menu` va acá, en la barra entera, y no en cada grupo:
