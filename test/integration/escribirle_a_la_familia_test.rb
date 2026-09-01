@@ -116,6 +116,62 @@ class EscribirleALaFamiliaTest < ActionDispatch::IntegrationTest
   end
 
   # ══════════════════════════════════════════════════════════════════════════
+  # El seguimiento (MOR-186)
+  # ══════════════════════════════════════════════════════════════════════════
+  #
+  # Daniel: «debemos permitir darle seguimiento a los correos, ese es otro tema
+  # de Gestión importante. Simple, pero que al menos diga qué y cuándo se
+  # envió».
+  #
+  # ⚠️ El registro de actividad NO servía: es una bitácora de quién hizo qué,
+  # mezclada con altas, bajas y cambios de nota. Buscar ahí «qué le escribimos a
+  # la mamá de Eduardo» es leer trescientas filas.
+
+  test "cada correo queda guardado, con qué y cuándo" do
+    assert_difference "Mensaje.unscoped.count", 1 do
+      post mensaje_al_representative_path(@representante),
+           params: { asunto: "Reunión", cuerpo: "La reunión es el viernes." }
+    end
+
+    mensaje = Current.sin_aislamiento { Mensaje.unscoped.order(:id).last }
+    assert_equal "Reunión", mensaje.asunto
+    assert_equal "La reunión es el viernes.", mensaje.cuerpo
+    assert_equal @representante.user_id, mensaje.destinatario_id
+    assert_equal @a.director.id, mensaje.remitente_id
+  end
+
+  # ⚠️ La dirección va CONGELADA. Si después se corrige el correo de la persona,
+  # el registro tiene que seguir diciendo a dónde fue — que es justo lo que se
+  # pregunta cuando alguien dice que no le llegó.
+  test "guarda la dirección a la que se mandó, no la que tenga después" do
+    post mensaje_al_representative_path(@representante),
+         params: { asunto: "Reunión", cuerpo: "El viernes." }
+    con_el_colegio(@a.colegio) { @representante.user.update!(email: "otro@familia.test") }
+
+    mensaje = Current.sin_aislamiento { Mensaje.unscoped.order(:id).last }
+    assert_equal "carmen@familia.test", mensaje.correo
+  end
+
+  test "y se ven en su ficha, del más nuevo al más viejo" do
+    post mensaje_al_representative_path(@representante), params: { asunto: "El primero", cuerpo: "Uno" }
+    post mensaje_al_representative_path(@representante), params: { asunto: "El segundo", cuerpo: "Dos" }
+
+    get representative_path(@representante)
+
+    asuntos = css_select(".mensaje-asunto").map(&:text)
+    assert_equal [ "El segundo", "El primero" ], asuntos
+  end
+
+  # Los mensajes son del colegio: `SchoolScoped` los filtra y el RLS los sostiene.
+  test "los correos de un colegio no se ven desde otro" do
+    post mensaje_al_representative_path(@representante), params: { asunto: "Privado", cuerpo: "Algo" }
+
+    con_el_colegio(@b.colegio) do
+      assert_equal 0, Mensaje.count, "la correspondencia de un colegio se vio desde otro"
+    end
+  end
+
+  # ══════════════════════════════════════════════════════════════════════════
   # Queda constancia
   # ══════════════════════════════════════════════════════════════════════════
 

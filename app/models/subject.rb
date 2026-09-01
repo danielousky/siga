@@ -29,8 +29,37 @@ class Subject < ApplicationRecord
   # El código es la nomenclatura interna del colegio: único dentro de él, no en
   # toda la plataforma. Un colegio que viene de otro sistema trae sus códigos ya
   # impresos en carnets y planillas.
-  validates :code, presence: true, uniqueness: { scope: :school_id }
+  # ⚠️ El código es un CÓDIGO: alfanumérico y en mayúscula (MOR-185).
+  #
+  # Daniel: «el código solo debe aceptar alfanuméricos, nada de caracteres
+  # especiales; es un código, no un nombre ni nada de eso».
+  #
+  # Y sale impreso: en el boletín, en la certificación 31059 y en las planillas
+  # que el colegio exporta. Un «MAT-1 » con espacio al final es otro código
+  # distinto para el índice único, y el colegio termina con dos Matemáticas.
+  validates :code, presence: true,
+                   uniqueness: { scope: :school_id },
+                   format: { with: /\A[[:alnum:]]+\z/,
+                             message: "solo admite letras y números, sin espacios ni símbolos" },
+                   length: { maximum: 12 }
   validates :name, presence: true
+
+  # Las dos normalizaciones, en el MISMO lugar que las de una persona
+  # (`User#normalizar_el_nombre`): lo que llega del formulario y lo que llega de
+  # una planilla importada tienen que quedar igual, o el listado sale desparejo.
+  #
+  # `Normaliza.mayuscula` es la misma que usa el nombre de una persona: recorta,
+  # junta espacios dobles y sube a mayúscula.
+  before_validation :normalizar
+
+  private
+
+  def normalizar
+    self.code = code.to_s.gsub(/[^[:alnum:]]/, "").upcase.presence
+    self.name = Normaliza.mayuscula(name)
+  end
+
+  public
 
   # ⚠️ La escala de ESTA materia, cuando no es la de su grado (MOR-99).
   #

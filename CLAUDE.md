@@ -213,9 +213,12 @@ y ahí escribir la URL en español ES la comprobación.
   ⚠️ Solo un móvil (0412/0414/0416/0424/0426) ofrece WhatsApp, y se le quita el
   cero antes del `58`: «580414…» es un número que no existe y la app abre igual,
   con un chat hacia nadie.
-  ⚠️ De un mensaje queda el ASUNTO, no el cuerpo: la pregunta del colegio es «¿le
-  avisamos, y cuándo?». Volcar el texto convertiría la auditoría en un archivo de
-  correspondencia con la familia.
+  ⚠️ Cada envío queda como un `Mensaje` (`MOR-186`) —a quién, quién, qué, cuándo
+  y a qué dirección— y se ve en la ficha de la persona. En la AUDITORÍA queda
+  solo el asunto: son dos preguntas distintas y la bitácora no es un archivo de
+  correspondencia.
+  ⚠️ El correo va CONGELADO en el mensaje: si después se corrige el de la persona,
+  el registro tiene que seguir diciendo a dónde fue.
 - **De una inscripción solo se editan la SECCIÓN y el ESTADO** (`MOR-182`). El
   alumno no: una inscripción ES «este alumno en esta sección», y cambiárselo no
   la corrige — la convierte en otra, con las notas, la asistencia y los boletines

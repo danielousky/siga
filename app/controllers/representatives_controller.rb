@@ -26,6 +26,9 @@ class RepresentativesController < ApplicationController
 
   def show
     @vinculos = @representative.student_representatives.includes(student: :user)
+    # El seguimiento de lo que se le escribió (MOR-186). Del más nuevo al más
+    # viejo, que es como se lee: la pregunta suele ser «¿ya le avisamos?».
+    @mensajes = Mensaje.para(@representative.user).recientes.includes(:remitente)
   end
 
   # ⚠️ Se puede llegar acá CON un alumno ya elegido (MOR-180).

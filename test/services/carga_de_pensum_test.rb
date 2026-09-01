@@ -19,7 +19,7 @@ class CargaDePensumTest < ActiveSupport::TestCase
                   "PROFESOR", "CEDULA PROFESOR", "CORREO PROFESOR" ].freeze
 
   test "de una fila salen la materia, el pensum, el profesor y la asignación" do
-    r = cargar([ "1er Año A", "Biología", "BIO", "Ciencias",
+    r = cargar([ "1er Año A", "BIOLOGÍA", "BIO", "Ciencias",
                  "GARCÍA PÉREZ CARLOS", "V-31.222.333", "carlos@bolivar.edu" ])
 
     assert_equal 1, r.materias_creadas
@@ -30,7 +30,7 @@ class CargaDePensumTest < ActiveSupport::TestCase
 
     con_el_colegio(@colegio) do
       materia = Subject.find_by!(code: "BIO")
-      assert_equal "Biología", materia.name
+      assert_equal "BIOLOGÍA", materia.name
       assert_equal "Ciencias", materia.department.name
       assert GradeSubject.exists?(grade: @escenario.grado, subject: materia)
 
@@ -43,7 +43,7 @@ class CargaDePensumTest < ActiveSupport::TestCase
   # El caso NORMAL: el colegio ve el reporte, corrige cuatro filas y vuelve a
   # mandar la planilla entera.
   test "reimportar la misma planilla no duplica nada" do
-    fila = [ "1er Año A", "Biología", "BIO", "Ciencias", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ]
+    fila = [ "1er Año A", "BIOLOGÍA", "BIO", "Ciencias", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ]
 
     cargar(fila)
     r = cargar(fila)
@@ -65,8 +65,8 @@ class CargaDePensumTest < ActiveSupport::TestCase
   # un solo registro de pensum, porque las dos secciones son del mismo grado.
   test "la misma materia en dos secciones es una materia y dos asignaciones" do
     r = cargar(
-      [ "1er Año A", "Biología", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ],
-      [ "1er Año B", "Biología", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ]
+      [ "1er Año A", "BIOLOGÍA", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ],
+      [ "1er Año B", "BIOLOGÍA", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ]
     )
 
     assert_equal 1, r.materias_creadas
@@ -77,7 +77,7 @@ class CargaDePensumTest < ActiveSupport::TestCase
 
   test "un profesor con tres materias es una sola persona" do
     r = cargar(
-      [ "1er Año A", "Biología", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ],
+      [ "1er Año A", "BIOLOGÍA", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ],
       [ "1er Año A", "Física", "FIS", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ],
       [ "1er Año A", "Química", "QUI", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ]
     )
@@ -93,8 +93,8 @@ class CargaDePensumTest < ActiveSupport::TestCase
   # fila no puede guardarse, y el colegio tiene que ver POR QUÉ.
   test "dos profesores para la misma materia y sección se reporta, no revienta" do
     r = cargar(
-      [ "1er Año A", "Biología", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ],
-      [ "1er Año A", "Biología", "BIO", "", "SILVA LUIS", "V-84111222", "l@b.edu" ]
+      [ "1er Año A", "BIOLOGÍA", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ],
+      [ "1er Año A", "BIOLOGÍA", "BIO", "", "SILVA LUIS", "V-84111222", "l@b.edu" ]
     )
 
     assert_equal 1, r.asignaciones
@@ -116,7 +116,7 @@ class CargaDePensumTest < ActiveSupport::TestCase
       usuario
     end
 
-    r = cargar([ "1er Año A", "Biología", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ])
+    r = cargar([ "1er Año A", "BIOLOGÍA", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ])
 
     assert_equal 1, r.profesores_creados, "el ROL en este colegio sí es nuevo"
     assert_equal 1, Current.sin_aislamiento { User.where(document: "31222333").count }
@@ -136,7 +136,7 @@ class CargaDePensumTest < ActiveSupport::TestCase
       usuario
     end
 
-    cargar([ "1er Año A", "Biología", "BIO", "", "GARCÍA PÉREZ CARLOS", "V-31222333", "nuevo@bolivar.edu" ])
+    cargar([ "1er Año A", "BIOLOGÍA", "BIO", "", "GARCÍA PÉREZ CARLOS", "V-31222333", "nuevo@bolivar.edu" ])
 
     assert_equal "nuevo@bolivar.edu", persona.reload.email
     assert_equal "PÉREZ", persona.second_last_name
@@ -145,7 +145,7 @@ class CargaDePensumTest < ActiveSupport::TestCase
   # Solo se cargan las filas que la previsualización marcó como cargables.
   test "las filas rechazadas no se escriben" do
     r = cargar(
-      [ "1er Año A", "Biología", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ],
+      [ "1er Año A", "BIOLOGÍA", "BIO", "", "GARCÍA CARLOS", "V-31222333", "c@b.edu" ],
       [ "1er Año A", "Física", "FIS", "", "SILVA LUIS", "V-84111222", "" ]
     )
 

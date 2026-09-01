@@ -1,6 +1,11 @@
 .card-academic
   .card-academic-header
     %h1= @representative.nombre_completo
+    -# ⚠️ El acceso al sistema, AL LADO DEL NOMBRE (MOR-187). Era una tarjeta
+    -# entera —título, una fila de `dl` y un párrafo— para decir dos cosas: si
+    -# puede entrar y un botón. Daniel lo marcó en pantalla.
+    = render "shared/acceso_al_sistema", usuario: @representative.user,
+             url: codigo_representative_path(@representative)
     = link_to edit_representative_path(@representative), class: "btn btn-secondary" do
       = icono(:editar, tamano: 16)
       %span Editar
@@ -65,8 +70,31 @@
     %dt Cédula
     %dd= @representative.user.identificador.presence || "—"
 
-= render "shared/acceso_al_sistema", usuario: @representative.user,
-                                    url: codigo_representative_path(@representative)
+-# El código recién generado va acá, ancho y copiable: se ve UNA sola vez.
+= render "shared/codigo_generado"
+
+-# ── El seguimiento de lo que se le escribió (MOR-186) ───────────────────────
+-#
+-# Daniel: «debemos permitir darle seguimiento a los correos... simple, pero que
+-# al menos diga qué y cuándo se envió».
+-#
+-# ⚠️ El registro de actividad NO servía para esto: es una bitácora de quién hizo
+-# qué, ordenada por tiempo y mezclada con altas, bajas y cambios de nota. Buscar
+-# ahí «qué le escribimos a la mamá de Eduardo» es leer trescientas filas.
+- if can_manage_students? && @mensajes.present?
+  .card-academic
+    .card-academic-header
+      %h2 Correos enviados
+
+    %ul.mensajes
+      - @mensajes.each do |mensaje|
+        %li.mensaje
+          .mensaje-cabecera
+            %strong.mensaje-asunto= mensaje.asunto
+            %span.dato-secundario= l(mensaje.created_at, format: :long)
+          %p.mensaje-cuerpo= mensaje.cuerpo
+          %p.dato-secundario
+            = "Lo escribió #{mensaje.remitente.nombre_completo} · se envió a #{mensaje.correo}"
 
 .card-academic
   .card-academic-header

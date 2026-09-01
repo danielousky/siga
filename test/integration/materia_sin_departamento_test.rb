@@ -40,11 +40,11 @@ class MateriaSinDepartamentoTest < ActionDispatch::IntegrationTest
     post subjects_path, params: { subject: { code: "BIO", name: "Biología" } }
 
     get subjects_path
-    assert_select "td", text: "Biología"
+    assert_select "td", text: "BIOLOGÍA"
 
     sign_in @b.director
     get subjects_path
-    assert_select "td", text: "Biología", count: 0,
+    assert_select "td", text: "BIOLOGÍA", count: 0,
                   message: "una materia sin departamento se coló al otro colegio"
   end
 

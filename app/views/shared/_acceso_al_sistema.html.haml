@@ -1,27 +1,29 @@
--# El acceso al sistema de UNA PERSONA, sea cual sea su rol (MOR-143).
+-# El acceso al sistema de UNA PERSONA, sea cual sea su rol (MOR-143 · MOR-187).
 -#
--# La tarjeta es la misma para representantes, profesores y administradores —y
--# para un alumno el día que haga falta— porque entrar a SIGA es lo mismo para
--# todos. `url` es la ruta `codigo_*_path` del rol.
-.card-academic
-  .card-academic-header
-    %h2 Acceso al sistema
+-# La pieza es la misma para representantes, profesores y administradores —y para
+-# un alumno el día que haga falta— porque entrar a SIGA es lo mismo para todos.
+-# `url` es la ruta `codigo_*_path` del rol.
+-#
+-# ## ⚠️ Ya no es una tarjeta propia
+-#
+-# Era una sección entera con su título, su `dl` de una sola fila y su nota, para
+-# decir dos cosas: si la persona puede entrar y un botón. Daniel lo marcó en
+-# pantalla: eso va **al lado del nombre**.
+-#
+-# Es la misma regla que los botones de contacto: la acción vive junto a lo que
+-# describe, no en una sección aparte que obliga a bajar y volver a decidir a qué
+-# correspondía.
+-#
+-# La explicación —que el código se ve una sola vez, que generar uno nuevo
+-# invalida el anterior— pasa a un tooltip: es una consecuencia que hay que poder
+-# leer, no un párrafo que haya que leer siempre.
+.acceso-en-linea
+  - if usuario.puede_entrar?
+    %span.estado.estado--al-dia Activo
+  - else
+    %span.estado.estado--inactivo Sin activar
 
-  = render "shared/codigo_generado"
-
-  %dl.detalle
-    %dt Estado
-    %dd
-      - if usuario.puede_entrar?
-        %span.estado.estado--al-dia Activo
-      - else
-        %span.estado.estado--inactivo Sin activar
-
-  = button_to (usuario.puede_entrar? ? "Regenerar el código de acceso" : "Generar el código de acceso"),
-              url, class: "btn btn-primary"
-  %p.nota-ayuda
-    - if usuario.email.present?
-      Se le envía por correo y además queda visible acá una sola vez.
-    - else
-      Queda visible acá una sola vez: cópielo y hágaselo llegar como prefiera.
-    Generar uno nuevo invalida el anterior.
+  - ayuda = usuario.email.present? ? "Se le envía por correo y además queda visible acá una sola vez. Generar uno nuevo invalida el anterior." : "Queda visible acá una sola vez: cópielo y hágaselo llegar como prefiera. Generar uno nuevo invalida el anterior."
+  = button_to url, class: "btn btn-secondary btn-sm", form: { data: { tooltip: ayuda } } do
+    = icono(:llave, tamano: 14)
+    %span= usuario.puede_entrar? ? "Regenerar el código" : "Generar el código"

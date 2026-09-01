@@ -717,6 +717,44 @@ ALTER SEQUENCE public.importaciones_id_seq OWNED BY public.importaciones.id;
 
 
 --
+-- Name: mensajes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mensajes (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    destinatario_id bigint NOT NULL,
+    remitente_id bigint NOT NULL,
+    asunto character varying NOT NULL,
+    cuerpo text NOT NULL,
+    correo character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.mensajes FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: mensajes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mensajes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mensajes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mensajes_id_seq OWNED BY public.mensajes.id;
+
+
+--
 -- Name: moment_grades; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1762,6 +1800,13 @@ ALTER TABLE ONLY public.importaciones ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: mensajes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mensajes ALTER COLUMN id SET DEFAULT nextval('public.mensajes_id_seq'::regclass);
+
+
+--
 -- Name: moment_grades id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2093,6 +2138,14 @@ ALTER TABLE ONLY public.grades
 
 ALTER TABLE ONLY public.importaciones
     ADD CONSTRAINT importaciones_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mensajes mensajes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mensajes
+    ADD CONSTRAINT mensajes_pkey PRIMARY KEY (id);
 
 
 --
@@ -2681,6 +2734,34 @@ CREATE INDEX index_importaciones_on_subido_por_id ON public.importaciones USING 
 
 
 --
+-- Name: index_mensajes_on_destinatario_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mensajes_on_destinatario_id ON public.mensajes USING btree (destinatario_id);
+
+
+--
+-- Name: index_mensajes_on_destinatario_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mensajes_on_destinatario_id_and_created_at ON public.mensajes USING btree (destinatario_id, created_at);
+
+
+--
+-- Name: index_mensajes_on_remitente_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mensajes_on_remitente_id ON public.mensajes USING btree (remitente_id);
+
+
+--
+-- Name: index_mensajes_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mensajes_on_school_id ON public.mensajes USING btree (school_id);
+
+
+--
 -- Name: index_moment_grades_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3227,6 +3308,14 @@ ALTER TABLE ONLY public.representatives
 
 
 --
+-- Name: mensajes fk_rails_21e36c2460; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mensajes
+    ADD CONSTRAINT fk_rails_21e36c2460 FOREIGN KEY (remitente_id) REFERENCES public.users(id);
+
+
+--
 -- Name: student_representatives fk_rails_244edf660a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3403,6 +3492,14 @@ ALTER TABLE ONLY public.sections
 
 
 --
+-- Name: mensajes fk_rails_622a2754de; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mensajes
+    ADD CONSTRAINT fk_rails_622a2754de FOREIGN KEY (destinatario_id) REFERENCES public.users(id);
+
+
+--
 -- Name: activity_logs fk_rails_67d3da4464; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3456,6 +3553,14 @@ ALTER TABLE ONLY public.final_grade_books
 
 ALTER TABLE ONLY public.evaluation_activities
     ADD CONSTRAINT fk_rails_77d857f5b2 FOREIGN KEY (subject_id) REFERENCES public.subjects(id);
+
+
+--
+-- Name: mensajes fk_rails_7fb3bbfd50; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mensajes
+    ADD CONSTRAINT fk_rails_7fb3bbfd50 FOREIGN KEY (school_id) REFERENCES public.schools(id);
 
 
 --
@@ -3862,6 +3967,13 @@ CREATE POLICY aislamiento_por_colegio ON public.importaciones USING (((current_s
 
 
 --
+-- Name: mensajes aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.mensajes USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
 -- Name: moment_grades aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -3986,6 +4098,12 @@ ALTER TABLE public.grades ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.importaciones ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: mensajes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.mensajes ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: moment_grades; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -4052,6 +4170,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260901215555'),
 ('20260901164939'),
 ('20260901054732'),
 ('20260831210000'),

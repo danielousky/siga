@@ -57,7 +57,14 @@
         %span.detail-label Correo
         %p.detail-value= persona.email
 
+  -# ⚠️ Los DOS parciales, y en este orden (MOR-187).
+  -#
+  -# `acceso_al_sistema` se redujo a un chip y un botón para poder ir junto al
+  -# nombre; el código recién generado necesita ancho y va aparte. Al separarlos
+  -# olvidé este segundo render acá, y el código dejó de mostrarse en la ficha del
+  -# profesor —en silencio, hasta que un test lo dijo.
   = render "shared/acceso_al_sistema", usuario: persona, url: codigo_teacher_path(@teacher)
+  = render "shared/codigo_generado"
 
   %p.ficha-volver
     = link_to "← Volver a los profesores", teachers_path

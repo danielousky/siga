@@ -19,8 +19,14 @@ import { Controller } from "@hotwired/stimulus"
 // cada una tapa lo que la anterior no puede: esto es lo que se VE al escribir,
 // `pattern` ataja el envío, y el modelo ataja lo que llegue por otra puerta.
 export default class extends Controller {
+  // ⚠️ `permite` VACÍO significa «no filtres nada, solo normaliza».
+  //
+  // El nombre de una materia es texto libre —«Castellano y Literatura», con
+  // acentos y espacios— pero se guarda en mayúscula. Sin este caso habría que
+  // inventar una clase de caracteres que permita todo, que es una manera
+  // enredada de decir «ninguna».
   static values = {
-    permite: { type: String, default: "A-Za-z0-9" },
+    permite: { type: String, default: "" },
     mayuscula: { type: Boolean, default: false }
   }
 
@@ -51,7 +57,7 @@ export default class extends Controller {
     const antes = campo.value
     const sobra = new RegExp(`[^${this.permiteValue}]`, "g")
 
-    let despues = antes.replace(sobra, "")
+    let despues = this.permiteValue === "" ? antes : antes.replace(sobra, "")
     if (this.mayusculaValue) despues = despues.toUpperCase()
     if (despues === antes) return
 
@@ -62,7 +68,9 @@ export default class extends Controller {
     // que estaba arreglando. Se cuenta cuántos caracteres se quitaron ANTES del
     // cursor y se lo devuelve a su lugar.
     const cursor = campo.selectionStart ?? antes.length
-    const quitados = antes.slice(0, cursor).replace(sobra, "").length
+    const quitados = this.permiteValue === ""
+      ? cursor
+      : antes.slice(0, cursor).replace(sobra, "").length
     campo.value = despues
     campo.setSelectionRange(quitados, quitados)
   }

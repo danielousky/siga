@@ -3,15 +3,14 @@
 # Daniel: *«la comunicación con el representante es fundamental. Allí mismo
 # debemos poder componerle un correo y enviárselo»*.
 #
-# ## ⚠️ Lo que esto NO es
+# ## Lo que guarda, y lo que no
 #
-# No es una bandeja: no guarda un hilo, no recibe respuestas y no se puede
-# releer un mensaje viejo palabra por palabra. Manda un correo y deja constancia
-# de que se mandó, con su asunto, en el registro de actividad.
+# Cada envío queda como un `Mensaje`: a quién, quién, qué, cuándo y a qué
+# dirección. Eso es el seguimiento que pidió Daniel — *«simple, pero que al
+# menos diga qué y cuándo se envió»*— y se ve en la ficha de la persona.
 #
-# Decirlo importa porque el nombre invita a suponer lo otro. El día que haga
-# falta el hilo completo, eso es una tabla y una pantalla más — no un ajuste de
-# esto.
+# ⚠️ Sigue sin ser una bandeja: no recibe respuestas ni arma un hilo. La familia
+# responde al correo y eso llega al buzón de quien escribió, fuera de SIGA.
 #
 # ## Y por qué no `mailto:`
 #
@@ -53,6 +52,17 @@ class MensajesController < ApplicationController
     # `deliver_later`: el envío no puede hacer esperar a quien escribió, y si el
     # servidor de correo tarda o falla, el trabajo se reintenta solo. El worker
     # existe (`Procfile`), y `/salud` avisa si se cayó.
+    # ⚠️ Se GUARDA antes de encolar, y en ese orden.
+    #
+    # `deliver_later` mete el trabajo en la cola; si el registro fallara después,
+    # el correo ya estaría saliendo y no habría rastro de él. Al revés, un envío
+    # que no se pudo encolar deja una fila de más — que se ve, se explica y se
+    # puede reintentar. De los dos errores posibles, ese es el que se puede
+    # arreglar.
+    Mensaje.create!(school: Current.school, destinatario: @representante.user,
+                    remitente: current_user, asunto: asunto, cuerpo: cuerpo,
+                    correo: @representante.user.email)
+
     ComunicacionMailer.mensaje_del_colegio(
       destinatario: @representante.user, colegio: Current.school,
       remitente: current_user, asunto: asunto, cuerpo: cuerpo
