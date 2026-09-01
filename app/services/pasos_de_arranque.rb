@@ -80,15 +80,20 @@ class PasosDeArranque
   end
 
   def pasos
-    # ⚠️ `departamentos` va ANTES de `materias`, y es de Daniel: «primero deberían
-    # estar creados los departamentos (si los hubiera) y luego se agregan las
-    # materias».
+    # ⚠️ El orden es el de las DEPENDENCIAS REALES, y dos las descubrió el QA.
     #
-    # Es opcional y se puede omitir para siempre —un colegio chico no los tiene—
-    # pero el que SÍ los quiere necesita crearlos primero: una materia se agrupa
-    # en un departamento al crearla, y volver a editar cuarenta materias después
-    # es trabajo que el orden correcto evita.
-    [ niveles, identidad, ano_escolar, departamentos, materias, secciones, profesores, alumnos ]
+    # 1. `departamentos` antes de `materias` — Daniel: «primero deberían estar
+    #    creados los departamentos (si los hubiera) y luego se agregan las
+    #    materias». Es opcional y se puede omitir para siempre —un colegio chico
+    #    no los tiene— pero el que SÍ los quiere necesita crearlos primero: una
+    #    materia se agrupa al crearla, y volver a editar cuarenta después es
+    #    trabajo que el orden evita.
+    #
+    # 2. `secciones` antes de `materias` — y esta no es de gusto: `CargaDePensum`
+    #    necesita la SECCIÓN de cada fila (`fila.seccion`). Con las materias
+    #    primero, el director llegaba al importador de pensum sin secciones y
+    #    tenía que armarlas a mano antes de poder seguir.
+    [ niveles, identidad, ano_escolar, departamentos, secciones, materias, alumnos ]
   end
 
   private
@@ -150,19 +155,45 @@ class PasosDeArranque
     )
   end
 
+  # ⚠️ UN paso, no dos, y el QA de Daniel lo señaló: «en el plan separas en dos
+  # pasos la importación de materias y la de profesores, y en el importador
+  # están juntas. Allí hay un choque».
+  #
+  # El choque era real y el importador tiene razón: **una planilla de pensum es
+  # exactamente eso** —qué materias hay, y quién dicta cada una en cada
+  # sección—. `CargaDePensum` crea `Subject`, `GradeSubject`, `Teacher` y
+  # `TeacherSection` de una sola pasada. Con dos pasos en el plan, subir el
+  # pensum ponía dos en verde a la vez y el segundo mandaba a una pantalla que ya
+  # estaba hecha.
+  #
+  # Cargar a mano sigue siendo dos pantallas, y por eso el paso enlaza a las dos.
   def materias
-    cargadas = Subject.count
+    materias_cargadas = Subject.count
+    profesores_cargados = Teacher.count
 
     Paso.new(
       clave: :materias, vacio: "Todavía no hay materias cargadas", icono: :materias,
-      titulo: "Las materias del colegio",
-      explicacion: "Si ya tiene el pensum en un Excel, súbalo y salen todas de una vez. " \
-                   "El código (MAT, CAS, FIS) es suyo: si la planilla no lo trae, SIGA " \
-                   "propone uno y usted lo corrige.",
+      titulo: "Las materias y quién las dicta",
+      explicacion: "Si ya tiene el pensum en un Excel, súbalo: de una sola planilla salen " \
+                   "las materias, los profesores y quién dicta qué en cada sección. El " \
+                   "código (MAT, CAS, FIS) es suyo: si la planilla no lo trae, SIGA propone " \
+                   "uno y usted lo corrige.",
       verbo: "Cargar las materias", ruta: :subjects,
-      listo: cargadas.positive?,
-      resultado: cargadas.positive? ? contar(cargadas, "materia", "materias") : nil
+      # Las dos mitades: una materia sin nadie que la dicte no deja cargar una
+      # nota, así que el paso no está hecho hasta que hay quien la dé.
+      listo: materias_cargadas.positive? && profesores_cargados.positive?,
+      resultado: resultado_del_pensum(materias_cargadas, profesores_cargados)
     )
+  end
+
+  # «8 materias · 12 profesores», o solo la mitad que ya está — que es lo que
+  # dice qué falta sin tener que abrir la pantalla.
+  def resultado_del_pensum(materias, profesores)
+    partes = []
+    partes << contar(materias, "materia", "materias") if materias.positive?
+    partes << contar(profesores, "profesor", "profesores") if profesores.positive?
+
+    partes.join(" · ").presence
   end
 
   # ⚠️ El paso bloqueado NO lleva su botón apagado: lleva OTRO botón, que va a
@@ -183,20 +214,6 @@ class PasosDeArranque
       verbo: "Armar las secciones", ruta: :sections,
       listo: cargadas.positive?, necesita: falta,
       resultado: cargadas.positive? ? contar(cargadas, "sección", "secciones") : nil
-    )
-  end
-
-  def profesores
-    cargados = Teacher.count
-
-    Paso.new(
-      clave: :profesores, vacio: "Todavía no hay profesores cargados", icono: :profesores,
-      titulo: "Los profesores",
-      explicacion: "Cárguelos de una planilla o uno por uno. Cada profesor necesita " \
-                   "correo: es con lo que entra a cargar sus notas.",
-      verbo: "Cargar los profesores", ruta: :teachers,
-      listo: cargados.positive?,
-      resultado: cargados.positive? ? contar(cargados, "profesor", "profesores") : nil
     )
   end
 

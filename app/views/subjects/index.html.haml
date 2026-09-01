@@ -20,7 +20,8 @@
     .card-academic
       = render "shared/lista_vacia", clave: :materias,
                acciones: [ { texto: "Subir el pensum", ruta: importaciones_path, icono: :importar },
-                 { texto: "Agregar una materia", ruta: new_subject_path, icono: :agregar, clase: "btn-secondary" } ]
+                 { texto: "Agregar una materia", ruta: new_subject_path, icono: :agregar, clase: "btn-secondary" },
+                 { texto: "Cargar profesores", ruta: teachers_path, icono: :profesores, clase: "btn-secondary" } ]
   - else
     .card-academic
       = render "shared/escala", total: @pagy.count, singular: "materia",

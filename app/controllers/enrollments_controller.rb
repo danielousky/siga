@@ -14,7 +14,7 @@ class EnrollmentsController < ApplicationController
     end
     scope = scope.where(sections: { grade_id: params[:grade_id] }) if params[:grade_id].present?
     @pagy, @enrollments = pagy(scope.order("users.last_name, users.first_name"))
-    @grades_options = [["Todos los grados", ""]] + Grade.order(:name).pluck(:name, :id)
+    @grades_options = helpers.grados_por_nivel
   end
 
 

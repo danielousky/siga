@@ -28,6 +28,27 @@ module ApplicationHelper
     "#{cantidad} #{pluralizar(cantidad, singular, plural)}"
   end
 
+  # Los grados del colegio, agrupados por nivel, para un desplegable.
+  #
+  # ⚠️ `Grade.order(:name)` los revuelve, y en un colegio que dicta los tres
+  # niveles el resultado es ilegible:
+  #
+  #     1er Año · 1er Grado · 1er Nivel · 2do Año · 2do Grado · 2do Nivel · …
+  #
+  # Tres escaleras distintas intercaladas. `en_orden` arregla la secuencia
+  # —preescolar, primaria, bachillerato— pero sin los rótulos de nivel la lista
+  # sigue siendo veintiún renglones seguidos: hay que agrupar para poder leer.
+  #
+  #     Preescolar     1er Nivel · 2do Nivel · 3er Nivel
+  #     Primaria       1er Grado · … · 6to Grado
+  #     Bachillerato   1er Año · … · 6to Año
+  def grados_por_nivel(grados = Grade.en_orden)
+    grados.group_by(&:level).map do |nivel, del_nivel|
+      [ GradoOficial::ETIQUETAS.fetch(nivel.to_sym, nivel.to_s.humanize),
+        del_nivel.map { |g| [ g.name, g.id ] } ]
+    end
+  end
+
   # "15 de septiembre" — día y mes, sin el año.
   #
   # `l(fecha, format: :long)` agrega el año y `:short` abrevia el mes ("15 de

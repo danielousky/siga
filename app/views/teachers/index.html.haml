@@ -18,9 +18,13 @@
   -# las lee cree que son dos cosas distintas.
   - if @teachers.empty?
     .card-academic
-      = render "shared/lista_vacia", clave: :profesores,
-               acciones: [ { texto: "Subir una planilla", ruta: importaciones_path, icono: :importar },
-                 { texto: "Cargar un profesor", ruta: new_teacher_path, icono: :agregar, clase: "btn-secondary" } ]
+      -# ⚠️ Texto propio y ya no `clave: :profesores`: ese paso se fusionó con el
+      -# de materias (el pensum trae las dos cosas). La pantalla sigue existiendo
+      -# —cargar profesores a mano es su propio trabajo— así que el estado vacío
+      -# se escribe acá.
+      - explicacion = "Cada profesor necesita correo: es con lo que entra a cargar sus notas. Si sube el pensum, salen de ahí junto con las materias y con quién dicta qué."
+      - salidas = [ { texto: "Subir el pensum", ruta: importaciones_path, icono: :importar }, { texto: "Cargar un profesor", ruta: new_teacher_path, icono: :agregar, clase: "btn-secondary" } ]
+      = render "shared/lista_vacia", clave: :profesores, titulo: "Todavía no hay profesores cargados", texto: explicacion, acciones: salidas
   - else
     .card-academic
       = render "shared/escala", total: @pagy.count, singular: "profesor", plural: "profesores"

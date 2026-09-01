@@ -7,7 +7,7 @@
 
 = render "shared/buscador_de_lista", ruta: enrollments_path, marco: "enrollments-results",
          pista: "Nombre, apellido o cédula...",
-         extra: [ { type: :select, name: :grade_id, label: "Grado",      options: @grades_options } ]
+         extra: [ { type: :select_agrupado, name: :grade_id, label: "Grado", options: @grades_options, blanco: "Todos los grados" } ]
 
 -# `target: "_top"` no es un detalle: sin él, TODO enlace de adentro del frame
 -# —Ver, Editar, Eliminar— navega DENTRO del frame. Y como ninguna de esas

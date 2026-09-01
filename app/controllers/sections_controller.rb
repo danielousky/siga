@@ -19,7 +19,9 @@ class SectionsController < ApplicationController
     # «1er» y además acotar a un grado son dos preguntas distintas.
     scope = scope.where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:q])) if params[:q].present?
     @pagy, @sections = pagy(scope.order("grades.name, sections.name"))
-    @grades_options = [["Todos los grados", ""]] + Grade.order(:name).pluck(:name, :id)
+    # Agrupados por nivel: `order(:name)` intercala las tres escaleras
+    # («1er Año · 1er Grado · 1er Nivel · 2do Año…») y no hay quien lo lea.
+    @grades_options = helpers.grados_por_nivel
   end
 
   def show

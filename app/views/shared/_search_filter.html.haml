@@ -31,6 +31,22 @@
                 field[:options],
                 { selected: params[field[:name]] },
                 { class: "form-select", data: { action: "change->search-filter#search" } }
+          - when :select_agrupado
+            -# Un desplegable con encabezados de grupo (`optgroup`).
+            -#
+            -# ⚠️ No es lo mismo que `:select` con opciones anidadas: `f.select`
+            -# llama a `options_for_select`, que aplana el anidamiento y pinta el
+            -# nombre del grupo como una opción elegible. Los grupos necesitan
+            -# `grouped_options_for_select`, y por eso es otro tipo.
+            -#
+            -# ⚠️ Y el comentario va ACÁ ADENTRO: en Haml, una línea en blanco o
+            -# un comentario ENTRE dos `when` rompe el `case` con «Got "when"
+            -# with no preceding "if"».
+            = f.label field[:name], field[:label], class: "form-label"
+            = f.select field[:name],
+                grouped_options_for_select(field[:options], params[field[:name]]),
+                { include_blank: field[:blanco] },
+                { class: "form-select", data: { action: "change->search-filter#search" } }
 
           - when :date
             = f.label field[:name], field[:label], class: "form-label"

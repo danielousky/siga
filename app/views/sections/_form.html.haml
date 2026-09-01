@@ -7,7 +7,10 @@
 
   .form-group
     = f.label :grade_id, class: "form-label"
-    = f.select :grade_id, Grade.all.map { |g| [g.name, g.id] }, { include_blank: "Seleccione..." }, class: "form-select"
+    -# ⚠️ Agrupados por nivel y en el orden de la ley. `Grade.all` los devolvía
+    -# en el orden en que se crearon y sin separación: catorce renglones
+    -# seguidos donde «1er Nivel», «1er Grado» y «1er Año» se confunden.
+    = f.select :grade_id, grouped_options_for_select(grados_por_nivel, f.object.grade_id), { include_blank: "Seleccione…" }, class: "form-select"
 
   -# ⚠️ El año escolar de una sección NO se pregunta y NO se edita (MOR-165).
   -#
@@ -48,13 +51,16 @@
       Quien pasa lista de esta sección. Sin guía asignado, la asistencia solo la
       puede tomar la dirección.
 
-  .form-group
-    = f.label :capacity, class: "form-label"
-    = f.number_field :capacity, class: "form-control", min: 1
+  -# Los dos en una línea: son cortos y se llenan juntos. `.form-row` ya
+  -# envuelve solo en pantallas chicas (`flex-wrap`).
+  .form-row
+    .form-group
+      = f.label :capacity, class: "form-label"
+      = f.number_field :capacity, class: "form-control", min: 1
 
-  .form-group
-    = f.label :classroom, class: "form-label"
-    = f.text_field :classroom, class: "form-control"
+    .form-group
+      = f.label :classroom, class: "form-label"
+      = f.text_field :classroom, class: "form-control"
 
   .form-acciones
     = f.submit class: "btn btn-primary"

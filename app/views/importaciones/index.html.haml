@@ -1,13 +1,25 @@
 .card-academic
   .card-academic-header
     %h1 Importar datos
+    -# ⚠️ En ORDEN DE IMPORTACIÓN, y el primero es el pensum.
+    -#
+    -# Estaban al revés —matrícula primero— y no es una preferencia: `CargaDePensum`
+    -# necesita la SECCIÓN de cada fila (`fila.seccion`), y la previsualización del
+    -# pensum es la que ofrece crear las que falten de un clic. Subir la matrícula
+    -# primero obliga a armar las secciones a mano antes.
+    -#
+    -#     1 · pensum      materias, profesores y quién dicta qué  → crea secciones
+    -#     2 · matrícula   alumnos y representantes                → los inscribe ahí
+    -#     3 · historial   notas de años anteriores                → necesita las dos
+    -#
+    -# El primero va en `btn-primary` porque es por donde se empieza.
     .acciones-de-cabecera
-      = link_to new_importacion_path(tipo: :matricula), class: "btn btn-primary" do
-        = icono(:subir, tamano: 16)
-        %span Subir matrícula
-      = link_to new_importacion_path(tipo: :pensum), class: "btn btn-secondary" do
+      = link_to new_importacion_path(tipo: :pensum), class: "btn btn-primary" do
         = icono(:subir, tamano: 16)
         %span Subir materias y profesores
+      = link_to new_importacion_path(tipo: :matricula), class: "btn btn-secondary" do
+        = icono(:subir, tamano: 16)
+        %span Subir matrícula
       = link_to new_importacion_path(tipo: :historial), class: "btn btn-secondary" do
         = icono(:subir, tamano: 16)
         %span Subir notas anteriores
@@ -17,15 +29,16 @@
       %h3 Todavía no ha importado nada
       %p
         Traiga sus datos desde el sistema que usa hoy, en Excel o CSV, y en este
-        orden: la matrícula —alumnos y representantes—, después las materias con
-        sus profesores, y por último las notas de años anteriores.
+        orden: las materias con sus profesores —de ahí salen también las
+        secciones—, después la matrícula con alumnos y representantes, y por
+        último las notas de años anteriores.
       .acciones-de-cabecera
-        = link_to plantilla_importaciones_path(tipo: :matricula), class: "btn btn-secondary" do
-          = icono(:descargar, tamano: 16)
-          %span Plantilla de matrícula
         = link_to plantilla_importaciones_path(tipo: :pensum), class: "btn btn-secondary" do
           = icono(:descargar, tamano: 16)
           %span Plantilla de materias
+        = link_to plantilla_importaciones_path(tipo: :matricula), class: "btn btn-secondary" do
+          = icono(:descargar, tamano: 16)
+          %span Plantilla de matrícula
         = link_to plantilla_importaciones_path(tipo: :historial), class: "btn btn-secondary" do
           = icono(:descargar, tamano: 16)
           %span Plantilla de notas

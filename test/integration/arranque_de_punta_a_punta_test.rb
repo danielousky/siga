@@ -135,7 +135,15 @@ class ArranqueDePuntaAPuntaTest < ActionDispatch::IntegrationTest
     post academic_periods_path, params: { anio: 2026 }
     assert_includes listos.call, :ano_escolar
 
+    # ⚠️ El paso del pensum necesita las DOS mitades: una materia sin nadie que
+    # la dicte no deja cargar una nota.
     post subjects_path, params: { subject: { code: "MAT", name: "Matemática" } }
+    assert_not_includes listos.call, :materias, "con materias y sin profesores todavía falta"
+
+    post teachers_path, params: { teacher: { user_attributes: {
+      first_name: "Carlos", last_name: "García", document: "V-12345678",
+      document_type: "cedula_v", email: "carlos@delplan.test"
+    } } }
     assert_includes listos.call, :materias
   end
 end

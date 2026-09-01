@@ -68,7 +68,11 @@ class PuestaEnMarchaTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select ".puesta-en-marcha", 1
-    assert_select "li.paso", 8
+    # ⚠️ SIETE, no ocho: «las materias» y «los profesores» se fusionaron en un
+    # solo paso (QA del 1/9). Una planilla de pensum trae las dos cosas, así que
+    # con dos pasos separados subirla ponía dos en verde a la vez y el segundo
+    # mandaba a una pantalla ya hecha.
+    assert_select "li.paso", 7
 
     con_el_colegio(vacio) do
       claves = PasosDeArranque.para(vacio).map(&:clave)
@@ -221,14 +225,35 @@ class PuestaEnMarchaTest < ActionDispatch::IntegrationTest
 
   # El texto sale de `PasosDeArranque`: la pantalla y el mapa dicen lo mismo, y
   # renombrar el paso arrastra a los dos.
+  #
+  # ⚠️ Se prueba con MATERIAS y ya no con profesores: el paso de profesores se
+  # fusionó con el de materias, y la lista de profesores pasó a escribir su
+  # propio estado vacío —cargarlos a mano sigue siendo su propia pantalla—.
   test "el estado vacío y el mapa hablan del mismo paso" do
     vacio, director = colegio_vacio
     sign_in director
 
-    esperado = con_el_colegio(vacio) { paso(:profesores, vacio).vacio }
+    esperado = con_el_colegio(vacio) { paso(:materias, vacio).vacio }
 
-    get teachers_path
+    get subjects_path
     assert_match(/#{Regexp.escape(esperado)}/, response.body)
+  end
+
+  # Y el paso fusionado no se da por hecho con la mitad: una materia sin nadie
+  # que la dicte no deja cargar una nota.
+  test "el paso del pensum necesita materias Y profesores" do
+    vacio, director = colegio_vacio
+    sign_in director
+
+    con_el_colegio(vacio) do
+      departamento = Department.create!(school: vacio, name: "Ciencias")
+      Subject.create!(department: departamento, code: "MAT", name: "Matemática")
+
+      assert_not paso(:materias, vacio).listo,
+                 "con materias y sin profesores el paso no está hecho"
+      assert_equal "1 materia", paso(:materias, vacio).resultado,
+                   "el avance parcial tiene que decirse: es lo que dice qué falta"
+    end
   end
 
   # Con datos cargados no hay estado vacío: la tabla ocupa su lugar.
