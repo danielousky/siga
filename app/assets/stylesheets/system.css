@@ -4761,6 +4761,96 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
    —o no— al ver la fila guardada. */
 .campo-mayuscula { text-transform: uppercase; }
 
+/* Tooltip propio (MOR-173).
+   ───────────────────────
+   Daniel: «mira el tooltip, es de HTML puro. Revisalos todos». El `title` del
+   navegador no se puede estilar, tarda un segundo largo en aparecer, sale con
+   la tipografía del sistema y en el teléfono no existe.
+
+   Sin librería: la app no tiene Node ni Bootstrap, y esto son treinta líneas de
+   CSS. Se usa poniendo `data-tooltip` en cualquier elemento.
+
+   ⚠️ Aparece también con `:focus-visible`, no solo al pasar el ratón. Un
+   tooltip solo-hover deja sin la explicación a quien navega con teclado — y en
+   un control que es SOLO un icono, esa explicación es su nombre.
+
+   ⚠️ Va DEBAJO por defecto. Arriba se recorta cuando el elemento está pegado al
+   borde superior, que es justo donde viven los controles de la barra de
+   contexto. `--arriba` existe para las filas del final de una lista. */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+
+  background: var(--text-primary);
+  color: var(--surface-elevated);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: normal;
+  width: max-content;
+  max-width: 240px;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+  pointer-events: none;
+}
+
+/* La flechita, del mismo color que el globo. */
+[data-tooltip]::before {
+  content: "";
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 61;
+  border: 4px solid transparent;
+  border-bottom-color: var(--text-primary);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-fast), visibility var(--transition-fast);
+  pointer-events: none;
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:hover::before,
+[data-tooltip]:focus-visible::after,
+[data-tooltip]:focus-visible::before {
+  opacity: 1;
+  visibility: visible;
+}
+
+[data-tooltip][data-tooltip-arriba]::after {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+[data-tooltip][data-tooltip-arriba]::before {
+  top: auto;
+  bottom: calc(100% + 2px);
+  border-bottom-color: transparent;
+  border-top-color: var(--text-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-tooltip]::after,
+  [data-tooltip]::before { transition: none; }
+}
+
 /* La celda de acciones de un año escolar: el conteo y el botón en una línea,
    alineados, sin que el botón estire la fila. */
 .anio-acciones {
@@ -5501,23 +5591,20 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 .contexto-anio-select:hover { border-color: var(--border-standard); background: var(--surface-elevated); }
 
-/* El atajo a los años escolares, al lado del selector (MOR-171). Discreto en
-   reposo —la barra es contexto, no acciones— y evidente al pasar el ratón. */
+/* El atajo a los años escolares, al lado del selector (MOR-171 · MOR-173).
+   Es un botón normal; solo se le quita el alto de más para que no estire la
+   barra de contexto, que es una franja fina. */
 .contexto-anio-gestionar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-sm);
-  color: var(--text-tertiary);
-  border: 1px solid transparent;
+  padding: var(--space-micro) var(--space-xs);
+  white-space: nowrap;
 }
 
-.contexto-anio-gestionar:hover {
-  color: var(--brand-primary);
-  border-color: var(--border-standard);
-  background: var(--surface-elevated);
+/* El texto del botón desaparece en pantallas chicas: en el teléfono la barra ya
+   lleva el nombre del colegio y el selector, y el icono con su tooltip alcanza. */
+.solo-ancho { display: none; }
+
+@media (min-width: 900px) {
+  .solo-ancho { display: inline; }
 }
 
 .contexto-anio-select:focus-visible {

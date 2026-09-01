@@ -36,7 +36,7 @@
       -#
       -# La tercera no sobra: un POST que no pasa por el formulario mete lo que
       -# quiera, y ahí no hay JavaScript que valga.
-      = f.text_field :name, class: "form-control campo-mayuscula", list: "identificadores-usados", maxlength: 8, autocapitalize: "characters", pattern: "[A-Za-z0-9]+", title: "Solo letras y números, sin espacios ni símbolos", placeholder: (usados.first || "A"), data: { controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9", campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
+      = f.text_field :name, class: "form-control campo-mayuscula", list: "identificadores-usados", maxlength: 8, autocapitalize: "characters", pattern: "[A-Za-z0-9]+", placeholder: (usados.first || "A"), data: { tooltip: "Solo letras y números, sin espacios ni símbolos", controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9", campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
       - if usados.any?
         %datalist#identificadores-usados
           - usados.each do |identificador|

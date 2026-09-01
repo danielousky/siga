@@ -101,7 +101,12 @@ export default class extends Controller {
     const marca = fila.querySelector("[data-carga-notas-target='estado']")
     fila.dataset.estado = estado
     marca.textContent = { guardando: "…", guardado: "✓", vacio: "—", "sin-red": "⟳", rechazado: "!" }[estado] || ""
-    marca.title = mensaje || { guardando: "Guardando…", guardado: "Guardada", vacio: "Sin nota", "sin-red": "Sin conexión: queda pendiente", rechazado: mensaje }[estado] || ""
+    // `data-tooltip` y no `title`: el nativo no se puede estilar, tarda un
+    // segundo largo en salir y en el teléfono no existe. Ver la hoja de estilos.
+    // ⚠️ `--arriba`: estas marcas viven en filas de una lista larga, y abajo el
+    // globo se saldría de la pantalla en las últimas.
+    marca.dataset.tooltip = mensaje || { guardando: "Guardando…", guardado: "Guardada", vacio: "Sin nota", "sin-red": "Sin conexión: queda pendiente", rechazado: mensaje }[estado] || ""
+    marca.dataset.tooltipArriba = ""
 
     if (estado === "rechazado" && mensaje) {
       this.avisoTextoTarget.textContent = mensaje

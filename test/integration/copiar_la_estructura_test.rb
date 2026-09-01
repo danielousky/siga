@@ -233,7 +233,11 @@ class CopiarLaEstructuraTest < ActionDispatch::IntegrationTest
 
     get dashboards_administrador_url
 
-    assert_select ".contexto-anio-gestionar[href=?]", academic_periods_path
+    # Un BOTÓN, no un icono suelto: el icono solo lo encontraba quien ya sabía
+    # que estaba ahí, y este es el atajo a lo primero que hace un colegio.
+    assert_select "a.btn.contexto-anio-gestionar[href=?]", academic_periods_path
+    assert_select ".contexto-anio-gestionar[data-tooltip]",
+                  message: "el tooltip tiene que ser el de la app, no el `title` del navegador"
   end
 
   test "pero un profesor no ve ese atajo" do

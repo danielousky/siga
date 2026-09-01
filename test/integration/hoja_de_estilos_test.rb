@@ -61,4 +61,26 @@ class HojaDeEstilosTest < ActiveSupport::TestCase
     assert archivos.any?, "no se encontró ninguna hoja de estilos"
     archivos
   end
+
+  # ⚠️ El tooltip del navegador no se usa (MOR-173).
+  #
+  # Daniel: «mira el tooltip, es de HTML puro. Revisalos todos». El `title`
+  # nativo no se puede estilar, tarda un segundo largo en aparecer, sale con la
+  # tipografía del sistema y **en el teléfono no existe** — que es donde un
+  # profesor carga notas.
+  #
+  # `data-tooltip` lo reemplaza, con `:focus-visible` además del hover para que
+  # quien navega con teclado también lo lea.
+  test "ninguna vista usa el tooltip nativo del navegador" do
+    nativos = (Rails.root.glob("app/views/**/*.haml") + Rails.root.glob("app/javascript/**/*.js")).filter_map do |ruta|
+      texto = ruta.read
+      # `title:` de un `link_to`/`text_field`, o `.title =` desde JavaScript.
+      next unless texto.match?(/[^_a-z]title:\s*["']/) || texto.match?(/\.title\s*=/)
+
+      ruta.relative_path_from(Rails.root).to_s
+    end
+
+    assert_empty nativos,
+      "usan el `title` del navegador en vez de `data-tooltip`:\n  " + nativos.join("\n  ")
+  end
 end

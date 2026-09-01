@@ -72,10 +72,18 @@
       -# que en realidad era de ACCESO — y el acceso natural está donde ya se
       -# habla del año escolar, que es acá.
       -#
-      -# Un icono y no un botón: la barra es contexto, no una barra de acciones.
+      -# ⚠️ Un BOTÓN, no un icono suelto (QA de Daniel: «dale más presencia al
+      -# link a academic_periods, un btn tal vez»). El icono solo lo encontraba
+      -# quien ya sabía que estaba ahí — y este es el atajo a lo primero que hace
+      -# un colegio.
+      -#
+      -# El texto va oculto en pantallas chicas (`.solo-ancho`): en el teléfono
+      -# la barra ya lleva el nombre del colegio y el selector, y el icono con su
+      -# tooltip alcanza.
       - if can_manage_academic_config?
-        = link_to academic_periods_path, class: "contexto-anio-gestionar", title: "Crear y editar los años escolares y sus lapsos", aria: { label: "Gestionar los años escolares" } do
-          = icono(:calendario, tamano: 15)
+        = link_to academic_periods_path, class: "btn btn-secondary btn-sm contexto-anio-gestionar", data: { tooltip: "Crear y editar los años escolares y sus lapsos" } do
+          = icono(:calendario, tamano: 14)
+          %span.solo-ancho Años escolares
 
       -# ⚠️ La situación se pinta CON selector y sin él, y son dos datos distintos:
       -# el nombre dice CUÁL año, la situación dice si está corriendo. Con el

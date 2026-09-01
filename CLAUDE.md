@@ -174,6 +174,14 @@ y ahí escribir la URL en español ES la comprobación.
   descargar, emitir) · `btn-ver` azul suave · `btn-secondary` neutro ·
   `btn-danger` sin tono. ⚠️ La distinción que importa no es «primario vs
   secundario»: «Copiar de otro año» crea ochenta filas y «Guardar» actualiza una.
+- **El tooltip es `data-tooltip`, nunca `title`** (`MOR-173`). El nativo no se
+  puede estilar, tarda un segundo largo en aparecer, sale con la tipografía del
+  sistema y **en el teléfono no existe** — que es donde un profesor carga notas.
+  Sin librería: son treinta líneas de CSS, y aparece también con `:focus-visible`
+  porque en un control que es solo un icono el tooltip **es** su nombre. Va
+  DEBAJO por defecto (arriba se recorta contra el borde de la ventana);
+  `data-tooltip-arriba` para las filas del final de una lista. Lo cuida
+  `hoja_de_estilos_test`.
 - **Un campo con formato se filtra AL ESCRIBIR**, no solo al enviar: el controlador
   `campo-filtrado` (`data-campo-filtrado-permite-value="A-Za-z0-9"`) borra lo que no
   corresponde mientras se teclea. ⚠️ `pattern` **no** alcanza: es validación del
