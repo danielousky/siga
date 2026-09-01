@@ -104,6 +104,18 @@ class IdentificadorDeSeccionTest < ActionDispatch::IntegrationTest
     assert_select "select[name='section[name]']", count: 0
   end
 
+  # ⚠️ Las tres capas, y las tres hacen falta. Sin `pattern`, el error llega
+  # después de guardar; sin la clase, quien escribe «c» ve «c» y cree que se
+  # guardó así.
+  test "el campo impide escribir espacios y se ve en mayúscula" do
+    sign_in @a.director
+
+    get new_section_path
+
+    assert_select "input[name='section[name]'][pattern=?]", "[A-Za-z0-9]+"
+    assert_select "input[name='section[name]'].campo-mayuscula"
+  end
+
   test "el rótulo dice «Identificador», no «Nombre»" do
     sign_in @a.director
 

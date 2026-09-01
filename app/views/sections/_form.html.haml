@@ -24,7 +24,17 @@
     - usados = Section.identificadores_usados
     .form-group
       = f.label :name, class: "form-label"
-      = f.text_field :name, class: "form-control", list: "identificadores-usados", maxlength: 8, autocapitalize: "characters", placeholder: (usados.first || "A")
+      -# ⚠️ Tres capas, y las tres hacen falta.
+      -#
+      -#   `pattern`             el navegador no deja ENVIAR con un espacio
+      -#   `.campo-mayuscula`    se VE en mayúscula mientras se escribe
+      -#   el modelo             `strip.upcase` + la validación de formato
+      -#
+      -# Sin la primera, el error llega después de guardar; sin la segunda, quien
+      -# escribe «c» ve «c» y cree que se guardó así; y sin la tercera, un POST
+      -# que no pasa por el formulario mete lo que quiera. `autocapitalize` es
+      -# solo para el teclado del teléfono: en escritorio no hace nada.
+      = f.text_field :name, class: "form-control campo-mayuscula", list: "identificadores-usados", maxlength: 8, autocapitalize: "characters", pattern: "[A-Za-z0-9]+", title: "Solo letras y números, sin espacios ni símbolos", placeholder: (usados.first || "A")
       - if usados.any?
         %datalist#identificadores-usados
           - usados.each do |identificador|

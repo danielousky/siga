@@ -4681,6 +4681,20 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   margin-right: var(--space-micro);
 }
 
+/* Un campo que se guarda en mayúscula tiene que VERSE en mayúscula mientras se
+   escribe (MOR-170). Si no, quien escribe «c» cree que quedó «c» y se entera
+   —o no— al ver la fila guardada. */
+.campo-mayuscula { text-transform: uppercase; }
+
+/* La celda de acciones de un año escolar: el conteo y el botón en una línea,
+   alineados, sin que el botón estire la fila. */
+.anio-acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
 .promocion-cifra--repite strong    { color: var(--danger-text); }
 .promocion-cifra--sin_datos strong { color: var(--warning-text); }
 .carga-definitiva.bajo     { color: var(--danger-text); }
@@ -5411,6 +5425,25 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 }
 
 .contexto-anio-select:hover { border-color: var(--border-standard); background: var(--surface-elevated); }
+
+/* El atajo a los años escolares, al lado del selector (MOR-171). Discreto en
+   reposo —la barra es contexto, no acciones— y evidente al pasar el ratón. */
+.contexto-anio-gestionar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  border: 1px solid transparent;
+}
+
+.contexto-anio-gestionar:hover {
+  color: var(--brand-primary);
+  border-color: var(--border-standard);
+  background: var(--surface-elevated);
+}
 
 .contexto-anio-select:focus-visible {
   outline: 2px solid var(--brand-primary);

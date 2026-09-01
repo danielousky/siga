@@ -29,16 +29,27 @@
             -# que un colegio no renueve (MOR-166). El atajo va acá porque es
             -# donde el director está parado cuando acaba de crear el año.
             - cuantas = Section.where(academic_period_id: period.id).count
-            %td
+            -# ⚠️ Un BOTÓN, no un enlace de texto (QA de Daniel: «el botón de clonar
+            -# debemos resaltarlo más, hacerlo más evidente; de casualidad lo
+            -# vi»). Es la acción más valiosa de la pantalla —ahorra ochenta
+            -# asignaciones escritas a mano— y estaba pintada como el resto del
+            -# texto de la tabla.
+            -#
+            -# Y es el ÚNICO botón primario de la fila: el año que ya tiene
+            -# secciones muestra el conteo, no una acción.
+            %td.anio-acciones
               - if cuantas.zero?
-                = link_to "Copiar de otro año", copiar_al_academic_period_path(period)
+                = link_to copiar_al_academic_period_path(period), class: "btn btn-primary btn-sm" do
+                  = icono(:calendario, tamano: 14)
+                  %span Copiar de otro año
               - else
                 = contar(cuantas, "sección", "secciones")
                 -# Con secciones y sin alumnos, lo que falta es promover: es el
                 -# paso 3 de septiembre y el que deja el año listo para trabajar.
                 - inscritos = Enrollment.where(section: Section.where(academic_period_id: period.id)).count
                 - if inscritos.zero?
-                  %br
-                  = link_to "Promover alumnos", promover_al_academic_period_path(period)
+                  = link_to promover_al_academic_period_path(period), class: "btn btn-primary btn-sm" do
+                    = icono(:alumnos, tamano: 14)
+                    %span Promover alumnos
                 - else
                   %span.dato-secundario= "· #{contar(inscritos, 'alumno', 'alumnos')}"

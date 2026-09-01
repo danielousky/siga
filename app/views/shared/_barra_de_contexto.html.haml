@@ -60,6 +60,23 @@
         - else
           %span.contexto-periodo-vacio Sin año escolar cargado
 
+      -# ⚠️ El acceso a los años escolares, ACÁ y no solo en el menú (QA de Daniel).
+      -#
+      -# «Sigue sin convencerme el orden del sidebar, en particular que la
+      -# configuración del año escolar esté por allá abajo; es verdad que lo
+      -# hacemos una sola vez pero es lo primero que se hace».
+      -#
+      -# Tenía razón, y la salida no era reordenar el menú: el menú está agrupado
+      -# por QUÉ ES la cosa, y «Años escolares» es configuración académica lo mire
+      -# quien lo mire. Moverlo arriba rompería esa regla para tapar un problema
+      -# que en realidad era de ACCESO — y el acceso natural está donde ya se
+      -# habla del año escolar, que es acá.
+      -#
+      -# Un icono y no un botón: la barra es contexto, no una barra de acciones.
+      - if can_manage_academic_config?
+        = link_to academic_periods_path, class: "contexto-anio-gestionar", title: "Crear y editar los años escolares y sus lapsos", aria: { label: "Gestionar los años escolares" } do
+          = icono(:calendario, tamano: 15)
+
       -# ⚠️ La situación se pinta CON selector y sin él, y son dos datos distintos:
       -# el nombre dice CUÁL año, la situación dice si está corriendo. Con el
       -# selector puesto hace más falta todavía — quien acaba de elegir «2024-2025»

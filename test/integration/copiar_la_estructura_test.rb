@@ -198,13 +198,46 @@ class CopiarLaEstructuraTest < ActionDispatch::IntegrationTest
     assert_equal 0, Current.sin_aislamiento { Section.unscoped.where(academic_period_id: @nuevo.id).count }
   end
 
-  test "el atajo aparece en el listado solo para los años sin secciones" do
+  # ⚠️ Un BOTÓN, no un enlace de texto. Daniel: «el botón de clonar debemos
+  # resaltarlo más, hacerlo más evidente; de casualidad lo vi». Es la acción que
+  # ahorra ochenta asignaciones escritas a mano y estaba pintada como el resto
+  # del texto de la tabla.
+  test "el atajo aparece como botón, y solo para los años sin secciones" do
     sign_in @a.director
 
     get academic_periods_path
 
-    assert_select "a[href=?]", copiar_al_academic_period_path(@nuevo)
+    assert_select "a.btn.btn-primary[href=?]", copiar_al_academic_period_path(@nuevo)
     assert_select "a[href=?]", copiar_al_academic_period_path(@a.periodo), count: 0,
                   message: "el año que ya tiene secciones no necesita el atajo"
+  end
+
+  # Del más RECIENTE al más viejo: el año que se está armando es el que se viene
+  # a tocar, y sin orden quedaba al final de la lista.
+  test "los años escolares se listan del más nuevo al más viejo" do
+    sign_in @a.director
+
+    get academic_periods_path
+
+    nombres = css_select("tbody tr td:first-child").map { |td| td.text.strip }
+    assert_equal nombres.sort.reverse, nombres, "el más reciente va primero"
+  end
+
+  # El atajo a los años escolares, en la barra. Daniel: «sigue sin convencerme
+  # el orden del sidebar... es lo primero que se hace».
+  test "desde la barra de arriba se llega a los años escolares" do
+    sign_in @a.director
+
+    get dashboards_administrador_url
+
+    assert_select ".contexto-anio-gestionar[href=?]", academic_periods_path
+  end
+
+  test "pero un profesor no ve ese atajo" do
+    sign_in @a.profesor
+
+    get dashboards_profesor_url
+
+    assert_select ".contexto-anio-gestionar", count: 0
   end
 end

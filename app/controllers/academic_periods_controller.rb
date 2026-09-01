@@ -3,7 +3,10 @@ class AcademicPeriodsController < ApplicationController
   before_action :set_academic_period, only: [:edit, :update, :destroy]
 
   def index
-    @pagy, @academic_periods = pagy(AcademicPeriod.includes(:school))
+    # ⚠️ Del más RECIENTE al más viejo. Sin orden salían por id, o sea por el
+    # orden en que se crearon — y el año que se está armando, que es el que se
+    # viene a tocar, quedaba al final de la lista.
+    @pagy, @academic_periods = pagy(AcademicPeriod.includes(:school).order(start_date: :desc))
   end
 
 
