@@ -12,7 +12,11 @@ import { Controller } from "@hotwired/stimulus"
 // una cola visible con botón de reintento, y salir de la página con notas sin
 // guardar pide confirmación.
 export default class extends Controller {
-  static targets = ["fila", "input", "estado", "progresoBarra", "progresoTexto", "aviso", "avisoTexto"]
+  // `definitiva` solo existe en la planilla de REPARACIÓN: ahí el profesor tiene
+  // que ver en el momento con qué nota queda el alumno (Art. 112). La planilla
+  // de notas normal no lo declara, y `definitivaTargets` devuelve [] sin
+  // romperse — por eso el mismo controlador sirve para las dos.
+  static targets = ["fila", "input", "estado", "definitiva", "progresoBarra", "progresoTexto", "aviso", "avisoTexto"]
   static values  = { urlBase: String, cargadas: Number, total: Number }
 
   connect() {
@@ -81,6 +85,7 @@ export default class extends Controller {
         this.#estado(fila, valor === "" ? "vacio" : "guardado")
         this.pendientes.delete(input)
         this.#progreso(datos.cargadas, datos.total)
+        this.#definitiva(fila, datos)
       }
     } catch {
       // Sin red. El valor se queda en pantalla y en la cola.
@@ -102,6 +107,18 @@ export default class extends Controller {
       this.avisoTextoTarget.textContent = mensaje
       this.avisoTarget.hidden = false
     }
+  }
+
+  // La nota con la que queda el alumno, al lado del campo. Sin esto, quien carga
+  // 14 sobre un 8 no sabe si el sistema se quedó con el 8: el Art. 112 sería una
+  // promesa que no se comprueba hasta que salga el boletín.
+  #definitiva(fila, datos) {
+    const celda = fila.querySelector("[data-carga-notas-target='definitiva']")
+    if (!celda || datos.definitiva === undefined) return
+
+    celda.textContent = datos.definitiva ?? "—"
+    celda.classList.toggle("bajo", !datos.aprobado)
+    celda.classList.toggle("aprobada", !!datos.aprobado)
   }
 
   #progreso(cargadas, total) {

@@ -246,7 +246,7 @@ guardado incremental, los promedios se recalculan solos y el alumno los ve el mi
 |---|---|---|
 | **108** | La calificación es un **número entero del 1 al 20**; ≥ 0,50 sube | `GradeCalculator.redondear` + un `CHECK` por columna |
 | **111** | El anual es el **promedio** de los lapsos, **sin ponderar** | `calculate_final_grade` |
-| **112** | La nota de la segunda oportunidad es la definitiva | `final_score = max(anual, reparación)` |
+| **112** | La nota de la segunda oportunidad es la definitiva | `FinalGradeBook#calcular_definitiva` + la planilla de `/reparaciones` |
 
 ⚠️ **Un lapso NO tiene peso** (`MOR-164`). La columna `evaluation_moments.weight` existía,
 se validaba y **no entraba en ningún cálculo** — el 111 manda promedio simple, así que un
@@ -259,6 +259,32 @@ vive en `EvaluationActivity#weight_percentage`, que sí entra en el cálculo. SI
 esa estructura —los pesos son libres mientras cierren en 100— pero **propone el que falta**
 al crear una evaluación, en vez de pedirle al profesor una resta que el sistema ya tiene
 hecha.
+
+⚠️ **La reparación es UNA sola nota, y se carga en `/reparaciones`** (`MOR-168`).
+
+La Circular 0007 del MPPE fija cuatro momentos para presentar una materia
+—octubre, diciembre, enero y junio— pero lo que queda registrado es una nota:
+«el examen versará sobre el 100 % del contenido y la calificación obtenida será
+la definitiva». Los cuatro intentos son procedimiento interno del colegio, y
+SIGA no los modela. Decisión de Daniel: *«la reparación debe ir una sola nota;
+no importa los procesos que hagan»*.
+
+Hasta MOR-168 el Art. 112 estaba implementado **de la mitad para adelante**:
+`remedial_exam_score` se leía en el boletín, en la certificación 31059, en el
+panel del alumno y en el cálculo — y solo se escribía desde el importador de
+historial. Un colegio que usa SIGA en el año en curso no tenía dónde cargarla.
+
+⚠️ **`debe_reparar?` NO es `aplazado?`, y confundirlos rompe la planilla.**
+Quién tiene DERECHO a reparar lo decide el promedio **anual**; `aplazado?` mira
+la **definitiva**, que ya incluye la reparación. Con `aplazado?`, un alumno
+desaparecía de la planilla en el instante en que se le cargaba una reparación
+aprobatoria: escribir 74 en vez de 14 dejaba un error imposible de corregir.
+
+⚠️ **La regla del 112 vive en el MODELO**, no en `GradeCalculator`. Hay dos
+escritores —el cálculo y la planilla— y sobre todo: un libro **importado** no
+pasa por el calculador (`return libro if importada?`), así que su definitiva no
+se habría actualizado nunca al repararla. Es el caso normal de un colegio que
+trae su historial y después repara.
 
 ⚠️ **Una calificación IMPORTADA no la recalcula ni la borra nadie** (`origen` en
 `moment_grades` y `final_grade_books`). El historial de un colegio no tiene actividades debajo

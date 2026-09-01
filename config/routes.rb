@@ -155,6 +155,15 @@ Rails.application.routes.draw do
   # `/lapsos` — que hasta ahora era una tabla sin filas y sin salida.
   post "lapsos/sembrar", to: "evaluation_moments#sembrar", as: :sembrar_lapsos
 
+  # La planilla de reparación (MOR-168): la segunda oportunidad del Art. 112.
+  #
+  # Cuelga de la SECCIÓN y la MATERIA, que es como el profesor la piensa —«la
+  # reparación de Matemática de 1er Año A»— y no de un `FinalGradeBook`, que es
+  # una fila por alumno y no una pantalla.
+  get   "reparaciones",                                     to: "reparaciones#index",  as: :reparaciones
+  get   "reparaciones/:seccion_id/:materia_id",             to: "reparaciones#show",   as: :reparacion
+  patch "reparaciones/:seccion_id/:materia_id/:student_id", to: "reparaciones#update", as: :nota_de_reparacion
+
   # Qué niveles dicta el colegio (MOR-153). Una pantalla y no un `resources`
   # porque no se crea ni se borra nada: se declara qué dicta y de ahí salen los
   # grados oficiales.

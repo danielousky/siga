@@ -146,16 +146,10 @@ class GradeCalculator
     (libro || FinalGradeBook.new(enrollment_id: enrollment.id, subject_id: subject.id)).tap do |fgb|
       fgb.annual_average = annual_average
 
-      # La reparación solo se presenta estando aplazado, así que en la práctica
-      # `max` y "la nota de la segunda oportunidad es la definitiva" (Art. 112)
-      # dan el mismo resultado: si aprobó la reparación es la mayor, y si no,
-      # las dos están por debajo de 10. `max` además no puede bajar una nota ya
-      # obtenida.
-      fgb.final_score = if fgb.remedial_exam_score.present?
-                          [annual_average, redondear(fgb.remedial_exam_score)].max
-                        else
-                          annual_average
-                        end
+      # El Art. 112 lo aplica el MODELO: la planilla de reparación lo necesita
+      # igual, y un libro importado no pasa por acá. Ver
+      # `FinalGradeBook#calcular_definitiva`.
+      fgb.calcular_definitiva
       fgb.save!
     end
   end

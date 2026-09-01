@@ -229,7 +229,11 @@ module MenuHelper
 
     [
       Enlace.new(nombre: "Asistencia", icono: :asistencia, ruta: asistencias_path),
-      Enlace.new(nombre: "Evaluaciones", icono: :notas, ruta: evaluation_activities_path)
+      Enlace.new(nombre: "Evaluaciones", icono: :notas, ruta: evaluation_activities_path),
+      # La segunda oportunidad del Art. 112 (MOR-168). Va acá y no en Reportes
+      # porque se CARGA, no se consulta: es la misma tarea que Evaluaciones, en
+      # septiembre.
+      Enlace.new(nombre: "Reparaciones", icono: :notas, ruta: reparaciones_path)
     ]
   end
 

@@ -45,6 +45,11 @@ class ActivityLog < ApplicationRecord
     # un año escolar, es que trajo diez secciones y ochenta asignaciones de otro
     # (MOR-166). En la pantalla de auditoría son dos hechos muy distintos.
     "estructura_copiada"  => "Estructura del año escolar copiada",
+    # La segunda oportunidad del Art. 112 (MOR-168). Token propio y no
+    # `calificacion_registrada`: en la pantalla que contesta «¿quién le cambió
+    # la nota a mi hijo?», una reparación y una nota de lapso son dos hechos
+    # distintos —la reparación puede cambiar el año entero de un alumno—.
+    "reparacion_registrada" => "Reparación cargada",
     "certificacion_emitida" => "Certificación de calificaciones emitida",
     "documento_de_primaria_emitido" => "Documento de primaria emitido",
     "pensum_importada"     => "Materias y profesores importados",

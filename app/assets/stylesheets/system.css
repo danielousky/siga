@@ -4642,6 +4642,23 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   font-weight: 600;
 }
 
+/* La nota con la que queda el alumno, al lado del campo de reparación
+   (MOR-168). Va en la misma escala que el número que se escribe, porque es la
+   consecuencia directa de ese número — no una nota al pie. */
+.carga-definitiva {
+  min-width: 30px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+}
+
+/* ⚠️ Las dos son DATOS —con qué nota cierra un alumno— así que el color aplica
+   tal cual: verde el que aprobó, rojo el que sigue aplazado. */
+.carga-definitiva.aprobada { color: var(--success-text); }
+.carga-definitiva.bajo     { color: var(--danger-text); }
+
 /* ── la asistencia ────────────────────────────────────────────────────────
 
    ⚠️ `.asistencia-boton` es UNA DE LAS DOS EXCEPCIONES declaradas a la regla de

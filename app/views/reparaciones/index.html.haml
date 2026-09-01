@@ -1,0 +1,56 @@
+-# Dónde hay reparaciones pendientes (MOR-168).
+-#
+-# La pantalla existe porque «cargar la reparación» no es una acción sobre un
+-# alumno: es un recorrido por sección y materia, en septiembre, con la lista de
+-# aplazados en la mano. Sin esto, el profesor tendría que adivinar en cuáles de
+-# sus doce asignaciones quedó alguien.
+.card-academic
+  .card-academic-header
+    %h1 Reparaciones
+    - if anio_de_la_sesion
+      %span.dato-secundario= anio_de_la_sesion.name
+
+  - if @grupos.empty?
+    .empty-state
+      - if anio_de_la_sesion
+        %h3= "Nadie quedó aplazado en #{anio_de_la_sesion.name}"
+        %p
+          Acá aparecen las secciones y materias donde algún alumno cerró el año
+          por debajo de 10. La lista se arma sola con las notas definitivas.
+      - else
+        %h3 Elija un año escolar
+        %p
+          La reparación es de un año escolar: elija uno en la barra de arriba
+          para ver dónde quedaron aplazados.
+
+  - else
+    -# ⚠️ Se dice qué es una reparación ANTES de la tabla. Es la pantalla menos
+    -# usada del año —se abre en septiembre y no se toca más— así que quien
+    -# llega no la tiene fresca.
+    %p.nota-ayuda
+      La nota de reparación reemplaza a la del año si es mayor
+      = succeed "." do
+        %strong Art. 112
+      Va una sola, sin importar en cuál de los momentos la haya presentado.
+
+    %table.table-academic
+      %thead
+        %tr
+          %th= Grade.model_name.human
+          %th= Subject.model_name.human
+          %th Aplazados
+          %th Cargadas
+      %tbody
+        - @grupos.each do |grupo|
+          %tr
+            %td= link_to "#{grupo[:seccion].grade.name} #{grupo[:seccion].name}", reparacion_path(grupo[:seccion], grupo[:materia])
+            %td= grupo[:materia].name
+            -# ⚠️ El número de aplazados NO va en rojo: no es una alerta sobre el
+            -# colegio, es cuántas notas hay que cargar. El rojo lo usa el DATO
+            -# de un alumno aplazado, adentro de la planilla.
+            %td= contar(grupo[:aplazados], "alumno", "alumnos")
+            %td
+              - if grupo[:cargadas] == grupo[:aplazados]
+                %span.estado.estado--al-dia Completa
+              - else
+                = "#{grupo[:cargadas]} de #{grupo[:aplazados]}"

@@ -1,0 +1,74 @@
+-# La planilla de reparación. Reusa `carga-notas` entero —guardado incremental,
+-# barra de progreso, cola de reintentos, teclado— porque es la MISMA tarea:
+-# un profesor cargando notas de a una, probablemente desde el teléfono.
+-#
+-# Lo único que agrega es la columna de la definitiva, que se actualiza en vivo.
+.card-academic{data: { controller: "carga-notas",
+                       carga_notas_url_base_value: nota_de_reparacion_path(@seccion, @materia, "STUDENT_ID"),
+                       carga_notas_cargadas_value: @cargadas,
+                       carga_notas_total_value: @aplazados.size }}
+  .card-academic-header
+    %h1 Reparación
+    = link_to reparaciones_path, class: "btn btn-secondary" do
+      = icono(:volver, tamano: 16)
+      %span Volver
+
+  %p.carga-contexto
+    = "#{@seccion.grade.name} – #{@seccion.name}"
+    = "· #{@materia.name}"
+    = "· #{@seccion.academic_period.name}"
+
+  .carga-progreso
+    .carga-progreso-barra
+      .carga-progreso-fill{data: { carga_notas_target: "progresoBarra" },
+                           style: "width: #{@aplazados.any? ? (@cargadas * 100.0 / @aplazados.size).round : 0}%"}
+    .carga-progreso-texto{data: { carga_notas_target: "progresoTexto" }}
+      = "#{@cargadas} de #{@aplazados.size} cargadas"
+
+  .carga-aviso{data: { carga_notas_target: "aviso" }, hidden: true}
+    %span{data: { carga_notas_target: "avisoTexto" }}
+    %button.btn.btn-secondary.btn-sm{type: "button", data: { action: "carga-notas#reintentarTodo" }} Reintentar
+
+  - if @aplazados.any?
+    %ul.carga-lista
+      - @aplazados.each do |libro|
+        - alumno = libro.enrollment.student
+        %li.carga-fila{data: { carga_notas_target: "fila", alumno: alumno.id }}
+          = avatar(alumno.user, tamano: :chico)
+          .carga-alumno
+            .carga-alumno-nombre= alumno.user.apellidos_y_nombres
+            .carga-alumno-carnet
+              = alumno.school_card
+              -# El anual va en rojo porque es un dato de un alumno aplazado, que
+              -# es exactamente lo que la regla de color reserva para el rojo.
+              %span.carga-promedio.bajo= "· anual #{libro.annual_average&.to_i || '—'}"
+          .carga-campo
+            %input.carga-input{type: "number", inputmode: "numeric", min: 1, max: 20, step: 1,
+                               value: libro.remedial_exam_score&.to_i, placeholder: "—",
+                               aria: { label: "Reparación de #{alumno.user.nombre_completo}" },
+                               data: { carga_notas_target: "input",
+                                       action: "change->carga-notas#guardar keydown->carga-notas#navegar" }}
+            -# ⚠️ La definitiva, en vivo. Sin esto el Art. 112 es una promesa que
+            -# el profesor no puede comprobar hasta que salga el boletín: carga
+            -# 14 sobre un 8 y no sabe si el sistema se quedó con el 8.
+            %span.carga-definitiva{data: { carga_notas_target: "definitiva" },
+                                   class: (libro.aplazado? ? "bajo" : "aprobada")}
+              = libro.final_score&.to_i
+            %span.carga-estado{data: { carga_notas_target: "estado" }}
+
+    %p.carga-ayuda
+      La definitiva es la mayor entre el anual y la reparación
+      = succeed "." do
+        %strong Art. 112
+      Deje el campo
+      %strong vacío
+      para quitar la reparación: vuelve a valer el anual.
+      %br
+      Con
+      %kbd Enter
+      pasa al alumno siguiente.
+
+  - else
+    .empty-state
+      %h3 Nadie quedó aplazado
+      %p= "En #{@materia.name} todos los alumnos de #{@seccion.grade.name} #{@seccion.name} cerraron el año en 10 o más."
