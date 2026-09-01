@@ -766,7 +766,12 @@ textarea.form-control {
 .container-academic {
   flex: 1;
   max-width: 100%;
-  padding: 0 var(--space-2xl) var(--space-xl);
+  /* ⚠️ El relleno de ARRIBA no puede ser cero, y lo fue hasta MOR-192.
+     Daniel: «el padding del content está pegado con navbar». Y estaba: la
+     primera tarjeta nacía contra el borde inferior de la barra, sin nada que
+     las separara, así que el título de la pantalla se leía como parte de la
+     barra en vez de como el comienzo del contenido. */
+  padding: var(--space-lg) var(--space-2xl) var(--space-xl);
 }
 
 /* En un teléfono de 390 px, 48 px de relleno a cada lado son 96 px —casi un
@@ -777,7 +782,7 @@ textarea.form-control {
        390 px    │◄─48─►│ contenido 294 px │◄─48─►│     antes
        390 px  │◄16►│  contenido 358 px  │◄16►│       ahora   (+64 px, +22 %)  */
 @media (max-width: 640px) {
-  .container-academic { padding: 0 var(--space-md) var(--space-lg); }
+  .container-academic { padding: var(--space-md) var(--space-md) var(--space-lg); }
 }
 
 /*
@@ -4980,6 +4985,11 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   font-size: 14px;
 }
 
+/* ⚠️ Dentro de un `.alert` el texto hereda el color del aviso, no el gris de
+   siempre: si no, el renglón se pinta de ámbar por fuera y se lee en gris
+   apagado por dentro — que es peor que no teñirlo. */
+.alert .filtro-atajo-texto { color: inherit; }
+
 /* Cuando el filtro está PUESTO, el renglón dice qué se está mirando. Va en
    negrita y no en color: es contexto, no una alerta. */
 .filtro-atajo-activo {
@@ -5959,4 +5969,120 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 .contexto-anio-select:focus-visible {
   outline: 2px solid var(--brand-primary);
   outline-offset: 1px;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   La cabecera de un listado: título, buscador y alta en UNA línea (MOR-192)
+   ══════════════════════════════════════════════════════════════════════════
+
+   Daniel: «el sección filtro ocupa demasiado espacio, vamos a fusionarlo con
+   el título, cabe todo».
+
+   Eran dos tarjetas con borde, dos títulos y una etiqueta —unos 190 px— para
+   un campo de texto. En una laptop de 13" eso es media pantalla de cromo antes
+   de la primera fila de datos. */
+
+.cabecera-de-lista {
+  display: flex;
+  align-items: center;
+  /* `wrap` porque en un teléfono no cabe: el buscador cae a su propia línea y
+     ocupa el ancho, que es donde de verdad se usa. */
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.cabecera-de-lista-titulo {
+  margin: 0;
+  /* No se encoge: el título es lo que dice dónde está uno parado. Quien cede
+     ancho es el buscador. */
+  flex: 0 0 auto;
+}
+
+/* ⚠️ `margin-left: auto` y no `justify-content: space-between`.
+
+   Con `space-between`, una cabecera SIN botón [+] —un listado que no se puede
+   dar de alta— empujaría el buscador contra el borde derecho, y el mismo
+   elemento quedaría en dos sitios distintos según la pantalla. Con el margen
+   automático, el buscador se para siempre en el mismo lugar y el [+] es el que
+   se pega al final si existe. */
+.cabecera-de-lista-filtros {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+/* Menos ancho que antes, que es justo lo que pidió Daniel. `min()` para que en
+   un teléfono no desborde: manda el más chico de los dos. */
+.cabecera-de-lista .search-input-wrap { width: min(320px, 100%); }
+
+.cabecera-de-lista-select {
+  width: auto;
+  min-width: 150px;
+}
+
+/* «Desde» y «Hasta»: la única etiqueta que sobrevive en la cabecera, porque es
+   la única que no se deduce del propio control — dos campos de fecha vacíos son
+   idénticos entre sí. */
+.cabecera-de-lista-fecha {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.cabecera-de-lista-etiqueta {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  /* En un teléfono el buscador manda: ocupa la línea entera y deja de competir
+     con el título por el ancho. */
+  .cabecera-de-lista-filtros { width: 100%; margin-left: 0; }
+  .cabecera-de-lista .search-input-wrap { flex: 1; }
+}
+
+/* Un campo y su botón, pegados: son UN control (MOR-192).
+   ──────────────────────────────────────────────────────
+   Misma idea que `campo-compuesto` en la cédula: sin borde entre los dos y con
+   las esquinas redondeadas solo por fuera, se leen como una pieza. El borde
+   compartido es de 1 px —no dos pegados—, o queda una línea gruesa en el medio
+   que los vuelve a separar visualmente. */
+.campo-con-boton {
+  display: flex;
+  align-items: stretch;
+}
+
+.campo-con-boton > .search-input-wrap > .form-control,
+.campo-con-boton > .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.campo-con-boton-final {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  margin-left: -1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--space-md);
+}
+
+/* El botón que es SOLO un icono.
+   ─────────────────────────────
+   ⚠️ Cuadrado y de 36 px de lado, que es el alto de los demás botones: un [+]
+   más chico que el campo de al lado rompe la línea. Y 36 px es además el
+   mínimo cómodo para un dedo — más chico se falla al tocarlo en el teléfono,
+   que es donde un profesor usa esto. */
+.btn-solo-icono {
+  width: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
 }

@@ -1,0 +1,102 @@
+-# La cabecera de un listado: título, buscador y alta, en UNA línea (MOR-192).
+-#
+-# Daniel: *«el sección filtro ocupa demasiado espacio, vamos a fusionarlo con
+-# el título, cabe todo: un text-field menos ancho con el botón de limpiar
+-# pegado (group) y al final en la misma línea un botón [+] con un tooltip.
+-# Elimina "Filtros" y "Buscar", es evidente pienso»*.
+-#
+-# Y es evidente: un campo con la lupa y el texto «Nombre, apellido, cédula…»
+-# adentro no necesita que le digan «Buscar» encima, ni que una tarjeta aparte
+-# anuncie «Filtros». Eran DOS tarjetas con borde, dos títulos y una etiqueta
+-# —unos 190 px de alto— para un campo de texto. En una laptop de 13" eso es
+-# media pantalla de cromo antes de la primera fila de datos.
+-#
+-#     antes                              ahora
+-#     ┌───────────────────────┐          ┌──────────────────────────────┐
+-#     │ Representantes  [Registrar]      │ Representantes [buscar|✕] [+]│
+-#     └───────────────────────┘          └──────────────────────────────┘
+-#     ┌───────────────────────┐          ┌──────────────────────────────┐
+-#     │ Filtros               │          │ 3 representantes             │
+-#     │ Buscar                │          │ …                            │
+-#     │ [                ] [Limpiar]     
+-#     └───────────────────────┘
+-#
+-# ## ⚠️ El alta pasa a ser un icono, y por eso el tooltip NO es opcional
+-#
+-# Un control que es solo un icono no tiene nombre visible: el tooltip **es** su
+-# nombre. Por eso `data-tooltip` y `aria-label` con el mismo texto, y por eso
+-# aparece también con `:focus-visible` — quien navega con el teclado tiene que
+-# poder saber a dónde va (`MOR-173`).
+-#
+-# El texto lo pone quien llama y sigue la regla de `MOR-175`: «Registrar
+-# <cosa>», nunca «Nuevo/Nueva» —que además obliga a acordar el género.
+-#
+-# ## Qué recibe
+-#
+-#     titulo     "Representantes"
+-#     ruta       la del listado; sirve de destino del form Y de «Limpiar»
+-#     marco      el id del turbo_frame que se refresca
+-#     pista      el placeholder — es lo único que explica qué se puede buscar
+-#     alta       { ruta:, nombre: }  opcional: sin esto no se dibuja el [+]
+-#     extra      filtros adicionales: :select, :select_agrupado o :date
+-#     campo      el nombre del parámetro de búsqueda (por defecto `:q`)
+-#
+-# ⚠️ Los extras ENVUELVEN a la línea siguiente cuando no caben, y eso es a
+-# propósito. El registro de actividad tiene cuatro —usuario, tipo de acción y
+-# un rango de dos fechas— y en una laptop de 13" no entran en el mismo renglón
+-# que el título. Forzarlos apretaría los cuatro; dejarlos caer conserva el
+-# orden de lectura y no rompe las otras seis pantallas, donde sí caben.
+- alta   = local_assigns[:alta]
+- extras = Array(local_assigns[:extra])
+- campo  = local_assigns.fetch(:campo, :q)
+
+.card-academic.cabecera-de-lista
+  %h1.cabecera-de-lista-titulo= titulo
+
+  -# ⚠️ `local: false` y el `turbo_frame` explícito, igual que antes: el frame de
+  -# resultados declara `target: "_top"` para que los enlaces de las filas salgan
+  -# de él, y el destino explícito del formulario es lo que le gana a ese target.
+  = form_with url: ruta, method: :get, local: false, class: "cabecera-de-lista-filtros",
+      data: { controller: "search-filter", turbo_frame: marco,
+              action: "submit->search-filter#hideSpinner" } do |f|
+
+    -# El campo y «Limpiar» son UN control: se pegan sin borde entre ellos, como
+    -# la cédula con su V/E (`campo-compuesto`, MOR-178).
+    .campo-con-boton
+      .search-input-wrap
+        = f.text_field campo, value: params[campo], placeholder: pista, autocomplete: "off",
+            class: "form-control", "aria-label": "Buscar en #{titulo.downcase}",
+            data: { "search-filter-target": "input", action: "input->search-filter#search" }
+        %span.search-spinner.hidden{data: { "search-filter-target": "spinner" }}
+      = link_to ruta, class: "btn btn-secondary campo-con-boton-final",
+                data: { tooltip: "Limpiar la búsqueda" }, "aria-label": "Limpiar la búsqueda" do
+        = icono(:cerrar, tamano: 15)
+
+    - extras.each do |extra|
+      - case extra[:type]
+      - when :select_agrupado
+        -# ⚠️ `grouped_options_for_select` y no opciones anidadas en `f.select`:
+        -# ése aplana el anidamiento y pinta el nombre del grupo como una opción
+        -# elegible.
+        = f.select extra[:name], grouped_options_for_select(extra[:options], params[extra[:name]]),
+            { include_blank: extra[:blanco] },
+            { class: "form-select cabecera-de-lista-select", "aria-label": extra[:label],
+              data: { action: "change->search-filter#search" } }
+      - when :date
+        -# ⚠️ La fecha SÍ lleva su etiqueta visible: «Desde» y «Hasta» no se
+        -# deducen de nada. Un campo de fecha vacío se ve idéntico al otro, y
+        -# dos iguales al lado son una adivinanza — que es exactamente lo que la
+        -# etiqueta del buscador no hacía falta para evitar.
+        %span.cabecera-de-lista-fecha
+          = f.label extra[:name], extra[:label], class: "cabecera-de-lista-etiqueta"
+          = f.date_field extra[:name], value: params[extra[:name]], class: "form-select",
+              data: { action: "change->search-filter#search" }
+      - else
+        = f.select extra[:name], extra[:options], { selected: params[extra[:name]] },
+            { class: "form-select cabecera-de-lista-select", "aria-label": extra[:label],
+              data: { action: "change->search-filter#search" } }
+
+  - if alta
+    = link_to alta[:ruta], class: "btn btn-primary btn-solo-icono",
+              data: { tooltip: alta[:nombre] }, "aria-label": alta[:nombre] do
+      = icono(:agregar, tamano: 18)

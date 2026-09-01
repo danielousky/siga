@@ -1,14 +1,22 @@
-.card-academic
-  .card-academic-header
-    %h1 Registro de actividad
-    %p{style: "color: var(--text-secondary); font-size: 14px; margin: 0;"} Auditoría completa de acciones del sistema
+-# ⚠️ Ésta es la pantalla donde la cabecera fusionada ocupa DOS líneas, y está
+-# bien (MOR-192). Son cuatro filtros —usuario, tipo de acción y un rango de dos
+-# fechas—, así que envuelven; el componente es el mismo de las otras seis.
+-#
+-# Y acá se perdió el subtítulo «Auditoría completa de acciones del sistema»: la
+-# pantalla se llama «Registro de actividad» y la tabla que sigue tiene columnas
+-# de fecha, usuario y acción. La frase repetía lo que ya se ve.
+-# ⚠️ Un `<<` por filtro y no un literal de varias líneas: Haml lee la
+-# continuación como indentación y revienta con «Inconsistent indentation».
+- acciones = [ [ "Todas las acciones", "" ] ] + ActivityLog::LABELS.map { |k, v| [ v, k ] }
+- filtros = []
+- filtros << { type: :select, name: :activity_action, label: "Tipo de acción", options: acciones }
+- filtros << { type: :date, name: :from, label: "Desde" }
+- filtros << { type: :date, name: :to, label: "Hasta" }
 
-- activity_fields = []
-- activity_fields << { type: :text,   name: :usuario_q,      label: "Usuario",        placeholder: "Nombre, apellido, cédula o correo...", flex: 2 }
-- activity_fields << { type: :select, name: :activity_action, label: "Tipo de acción", options: [["Todas las acciones", ""]] + ActivityLog::LABELS.map { |k, v| [v, k] } }
-- activity_fields << { type: :date,   name: :from,            label: "Desde" }
-- activity_fields << { type: :date,   name: :to,              label: "Hasta" }
-= render "shared/search_filter", url: dashboards_activity_logs_path, frame_id: "activity-results", clear_url: dashboards_activity_logs_path, fields: activity_fields
+= render "shared/cabecera_de_lista", titulo: "Registro de actividad",
+         ruta: dashboards_activity_logs_path, marco: "activity-results",
+         campo: :usuario_q, pista: "Nombre, apellido, cédula o correo…",
+         extra: filtros
 
 - if params[:usuario_q].present? && @usuario_match&.any?
   .filter-pills
@@ -23,7 +31,7 @@
 -# del detalle del alumno. Un botón que no lleva a ningún lado.
 -#
 -# El buscador sigue actualizando el frame porque declara su destino explícito
--# (`data: { turbo_frame: … }` en shared/_search_filter), y eso le gana al
+-# (`data: { turbo_frame: … }` en shared/_cabecera_de_lista), y eso le gana al
 -# `target` del frame.
 = turbo_frame_tag "activity-results", target: "_top" do
   .card-academic

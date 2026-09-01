@@ -1,13 +1,6 @@
-.card-academic
-  .card-academic-header
-    %h1 Materias
-    = link_to new_subject_path, class: "btn btn-primary" do
-      = icono(:agregar, tamano: 16)
-      %span Registrar materia
-
-= render "shared/buscador_de_lista", ruta: subjects_path, marco: "subjects-results",
-         pista: "Nombre o código de la materia…"
-
+= render "shared/cabecera_de_lista", titulo: "Materias", ruta: subjects_path,
+         marco: "subjects-results", pista: "Nombre o código de la materia…",
+         alta: { ruta: new_subject_path, nombre: "Registrar materia" }
 -# ⚠️ `target: "_top"`: sin él, cada enlace de adentro navega DENTRO del frame
 -# y Turbo pinta «Content missing», porque la página de destino no tiene un
 -# frame con este id. El buscador sigue actualizando el frame porque declara

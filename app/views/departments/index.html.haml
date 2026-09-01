@@ -1,13 +1,6 @@
-.card-academic
-  .card-academic-header
-    %h1 Departamentos
-    = link_to new_department_path, class: "btn btn-primary" do
-      = icono(:agregar, tamano: 16)
-      %span Registrar departamento
-
-= render "shared/buscador_de_lista", ruta: departments_path, marco: "departments-results",
-         pista: "Nombre del departamento…"
-
+= render "shared/cabecera_de_lista", titulo: "Departamentos", ruta: departments_path,
+         marco: "departments-results", pista: "Nombre del departamento…",
+         alta: { ruta: new_department_path, nombre: "Registrar departamento" }
 -# ⚠️ `target: "_top"`: sin él, cada enlace de adentro navega DENTRO del frame
 -# y Turbo pinta «Content missing», porque la página de destino no tiene un
 -# frame con este id. El buscador sigue actualizando el frame porque declara

@@ -1,13 +1,6 @@
-.card-academic
-  .card-academic-header
-    %h1 Alumnos
-    = link_to new_student_path, class: "btn btn-primary" do
-      = icono(:agregar, tamano: 16)
-      %span Registrar alumno
-
-= render "shared/buscador_de_lista", ruta: students_path, marco: "students-results",
-         pista: "Nombre, apellido, cédula o carnet…"
-
+= render "shared/cabecera_de_lista", titulo: "Alumnos", ruta: students_path,
+         marco: "students-results", pista: "Nombre, apellido, cédula o carnet…",
+         alta: { ruta: new_student_path, nombre: "Registrar alumno" }
 -# ⚠️ Un atajo, no un filtro más del buscador.
 -#
 -# «Sin representante» no es una manera de acotar una búsqueda: es UNA pregunta
@@ -16,16 +9,35 @@
 -# entre los otros controles.
 -#
 -# Solo aparece si hay alguno: un atajo a una lista vacía es ruido.
+-#
+-# ⚠️ Va en ÁMBAR, y eso NO contradice la regla de color (MOR-192).
+-#
+-# Daniel: *«esto podría aparecer como un mensaje (alert), ya que es una
+-# anomalía que se debería corregir pero tampoco es limitativa para la
+-# gestión»*.
+-#
+-# La regla dice que el color semántico lo usa el DATO y nunca el control
+-# (`MOR-135`), y acá el ámbar tiñe exactamente un dato: que 196 alumnos no
+-# tengan a quién llamar es un hecho del padrón, no una decoración del botón.
+-# Por eso el aviso lleva el tono y «Ver quiénes son» se queda neutro.
+-#
+-# Y ámbar y no rojo: el colegio sigue funcionando —se puede inscribir,
+-# calificar y pasar lista sin representante—. Rojo es la nota de un niño
+-# aplazado, y gastarlo acá le quita fuerza donde de verdad hace falta.
+-#
+-# ⚠️ Cuando el filtro ESTÁ puesto, el tono se va. Ahí el renglón ya no avisa de
+-# nada: dice qué se está mirando, y eso es contexto, no una alerta.
 - if @cuantos_sin_representante.positive? || sin_representante?
-  .card-academic.filtro-atajo
-    - if sin_representante?
+  - if sin_representante?
+    .card-academic.filtro-atajo
       %span.filtro-atajo-activo
         = icono(:representantes, tamano: 15)
         = contar(@cuantos_sin_representante, "alumno sin representante", "alumnos sin representante")
       = link_to "Ver todos", students_path, class: "btn btn-secondary btn-sm"
-    - else
+  - else
+    .alert.alert-warning.filtro-atajo
       %span.filtro-atajo-texto
-        = icono(:representantes, tamano: 15)
+        = icono(:alerta, tamano: 15)
         = "#{contar(@cuantos_sin_representante, 'alumno', 'alumnos')} sin representante registrado: el colegio no tiene a quién llamar."
       = link_to students_path(sin_representante: 1), class: "btn btn-secondary btn-sm" do
         %span Ver quiénes son
@@ -36,7 +48,7 @@
 -# del detalle del alumno. Un botón que no lleva a ningún lado.
 -#
 -# El buscador sigue actualizando el frame porque declara su destino explícito
--# (`data: { turbo_frame: … }` en shared/_search_filter), y eso le gana al
+-# (`data: { turbo_frame: … }` en shared/_cabecera_de_lista), y eso le gana al
 -# `target` del frame.
 = turbo_frame_tag "students-results", target: "_top" do
   -# El estado vacío sale de `PasosDeArranque`, o sea del MISMO lugar que el

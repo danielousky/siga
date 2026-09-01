@@ -1,10 +1,7 @@
-.card-academic
-  .card-academic-header
-    %h1 Secciones
-    = link_to new_section_path, class: "btn btn-primary" do
-      = icono(:agregar, tamano: 16)
-      %span Registrar sección
-
+= render "shared/cabecera_de_lista", titulo: "Secciones", ruta: sections_path,
+         marco: "sections-results", pista: "Grado o sección…",
+         alta: { ruta: new_section_path, nombre: "Registrar sección" },
+         extra: [ { type: :select_agrupado, name: :grade_id, label: "Grado", options: @grades_options, blanco: "Todos los grados" } ]
 -# ⚠️ Acá había DOS selectores y ahora hay uno (MOR-165).
 -#
 -# El de año escolar se fue arriba, a la barra de contexto: es la misma pregunta
@@ -13,9 +10,6 @@
 -# barra decía «2025-2026»—.
 -#
 -# El de grado se queda: es una pregunta de ESTA pantalla.
-= render "shared/buscador_de_lista", ruta: sections_path, marco: "sections-results",
-         pista: "Grado o sección…",
-         extra: [ { type: :select_agrupado, name: :grade_id, label: "Grado", options: @grades_options, blanco: "Todos los grados" } ]
 
 -# `target: "_top"` no es un detalle: sin él, TODO enlace de adentro del frame
 -# —Ver, Editar, Eliminar— navega DENTRO del frame. Y como ninguna de esas
@@ -23,7 +17,7 @@
 -# del detalle del alumno. Un botón que no lleva a ningún lado.
 -#
 -# El buscador sigue actualizando el frame porque declara su destino explícito
--# (`data: { turbo_frame: … }` en shared/_search_filter), y eso le gana al
+-# (`data: { turbo_frame: … }` en shared/_cabecera_de_lista), y eso le gana al
 -# `target` del frame.
 = turbo_frame_tag "sections-results", target: "_top" do
   -# El estado vacío sale de `PasosDeArranque`, o sea del MISMO lugar que el
