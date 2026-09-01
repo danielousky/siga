@@ -9,9 +9,29 @@
     = f.label :name, class: "form-label"
     = f.text_field :name, class: "form-control"
 
+  -# ⚠️ OPCIONAL, y hay que decirlo ACÁ.
+  -#
+  -# Sin la marca, tres campos se ven iguales y el único modo de averiguar cuál
+  -# es obligatorio es guardar y leer el error. Daniel: «le di guardar y no
+  -# validó ningún campo de la materia».
   .form-group
     = f.label :department_id, class: "form-label"
-    = f.select :department_id, Department.order(:name).map { |d| [d.name, d.id] }, { include_blank: "Seleccione..." }, class: "form-select"
+    %span.solicitud-opcional opcional
+    - hay_departamentos = Department.exists?
+    = f.select :department_id, Department.order(:name).map { |d| [ d.name, d.id ] }, { include_blank: hay_departamentos ? "Sin departamento" : "Todavía no hay departamentos" }, class: "form-select", disabled: !hay_departamentos
+
+    -# Se queda VISIBLE: es la consecuencia de dejarlo vacío, no la explicación
+    -# del campo. Y sobre todo, desactiva la sospecha de que falta un paso.
+    %p.nota-ayuda
+      - if hay_departamentos
+        Agrupan las materias por área para ver el rendimiento por departamento.
+        Una materia sin departamento funciona igual.
+      - else
+        Un colegio chico no los necesita: agrupan las materias por área
+        —Ciencias, Letras— y sirven para ver el rendimiento por departamento.
+        = succeed "." do
+          = link_to "Se crean acá", departments_path
+        Puede seguir sin ellos.
 
   .form-acciones
     = f.submit class: "btn btn-primary"

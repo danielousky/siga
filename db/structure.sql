@@ -1419,7 +1419,7 @@ CREATE TABLE public.subjects (
     id bigint NOT NULL,
     code character varying NOT NULL,
     name character varying NOT NULL,
-    department_id bigint NOT NULL,
+    department_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     school_id bigint NOT NULL,
@@ -4051,6 +4051,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260901054732'),
 ('20260831210000'),
 ('20260831180000'),
 ('20260828140000'),

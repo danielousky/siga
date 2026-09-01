@@ -1,9 +1,23 @@
 class Subject < ApplicationRecord
   include SchoolScoped
 
-  belongs_to :department
+  # ⚠️ El departamento es OPCIONAL, y el plan de arranque ya lo decía.
+  #
+  # `PasosDeArranque#departamentos` está marcado `opcional: true` desde MOR-154,
+  # con el comentario «un colegio de 150 alumnos no tiene departamentos». El
+  # modelo decía lo contrario, y el resultado lo encontró Daniel en el QA: un
+  # colegio nuevo entra al paso 3 —las materias—, guarda, y recibe «Departamento
+  # debe existir». Para seguir tenía que irse al paso 8, que la app le acababa de
+  # presentar como omitible. La puesta en marcha se trababa en el tercer paso.
+  #
+  # Agrupar materias por área es una necesidad de un colegio de 800 alumnos, y
+  # ese ya sabe pedirla. El promedio del mercado es 360.
+  belongs_to :department, optional: true
 
-  derives_school_from :department
+  # Sin departamento no hay de dónde derivar el colegio, así que cae en la
+  # sesión. La columna sigue siendo `NOT NULL`: una materia sin colegio no la ve
+  # nadie, porque es por ahí que filtra el RLS.
+  derives_school_from :department, or_from_session: true
 
   has_many :grade_subjects, dependent: :destroy
   has_many :grades, through: :grade_subjects

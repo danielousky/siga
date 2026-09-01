@@ -2,4 +2,5 @@
   .card-academic-header
     %h1 Nueva sección
 
-  = render "form", section: @section, volver: sections_path
+  = render "shared/precondicion", clave: :secciones, titulo: "Todavía no se puede crear una sección" do
+    = render "form", section: @section, volver: sections_path

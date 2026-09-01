@@ -13,13 +13,17 @@ class Dashboards::ProfesorController < ApplicationController
   def index
     @teacher = current_user.teacher
 
+    # ⚠️ Solo el año que está cursando (MOR-165). Sin esto, un profesor con tres
+    # años en el colegio abre su panel y lee «12 secciones · 340 alumnos»
+    # sumando los tres — y entra a cargar notas de una sección que ya cerró.
     @teacher_sections = @teacher.teacher_sections
+                                .del_anio_de_la_sesion
                                 .includes(:subject, section: [ :grade, :academic_period, :enrollments ])
                                 .order("grades.name, sections.name")
 
     # Las secciones de las que es GUÍA — no los grados (MOR-150). El guía es de
     # la sección; el grado, si acaso, tiene un coordinador.
-    @led_sections = @teacher.led_sections.includes(:grade, :enrollments)
+    @led_sections = @teacher.led_sections.del_anio_de_la_sesion.includes(:grade, :enrollments)
 
     @total_sections = @teacher_sections.size
     @total_students = @teacher_sections.sum { |ts| ts.section.enrollments.size }

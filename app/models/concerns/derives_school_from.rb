@@ -17,12 +17,17 @@ module DerivesSchoolFrom
   extend ActiveSupport::Concern
 
   class_methods do
-    def derives_school_from(association)
+    # `or_from_session:` es para los padres OPCIONALES. Sin él, un modelo cuyo
+    # padre se puede omitir —`Subject`, desde que el departamento dejó de ser
+    # obligatorio— se queda sin `school_id` y no lo ve nadie: el RLS filtra por
+    # esa columna. La sesión es la única otra fuente honesta del inquilino.
+    def derives_school_from(association, or_from_session: false)
       belongs_to :school
 
       before_validation do
         padre = public_send(association)
         self.school_id = padre.school_id if padre.respond_to?(:school_id) && padre.school_id
+        self.school_id ||= Current.school_id if or_from_session
       end
     end
   end

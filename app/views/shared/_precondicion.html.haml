@@ -1,0 +1,44 @@
+-# Un formulario de alta al que todavía no se le puede llenar nada.
+-#
+-# ## El agujero que tapa
+-#
+-# `shared/lista_vacia` ya explicaba la precondición cuando la LISTA está vacía
+-# (MOR-154). Pero el botón «Nueva sección» sigue ahí arriba, y quien lo pulsa
+-# cae en un formulario con tres desplegables vacíos y ninguna explicación: el
+-# mismo callejón, un clic más adentro.
+-#
+-# Lo encontró Daniel probando `/materias/new` en un colegio recién registrado.
+-#
+-# ## Por qué NO se esconde el botón
+-#
+-# Es la misma decisión de `lista_vacia`: apagar controles según precondiciones
+-# se siente roto y aleatorio —«ayer estaba»—, y un botón deshabilitado no se
+-# puede enfocar con el teclado para averiguar por qué. El lugar donde el
+-# problema se ve es acá, con la persona parada adentro.
+-#
+-# ## El texto sale de `PasosDeArranque`
+-#
+-# El MISMO sitio que el mapa del panel y que el estado vacío de la lista. Tres
+-# redacciones del mismo paso se separan solas, y quien las lee cree que son
+-# tres cosas distintas.
+-#
+-#     = render "shared/precondicion", clave: :secciones do
+-#       = render "form", section: @section, volver: sections_path
+-#
+- paso = PasosDeArranque.paso(Current.school, clave)
+
+- if paso&.bloqueado?
+  - falta = PasosDeArranque.paso(Current.school, paso.necesita)
+  .empty-state
+    %h3= local_assigns[:titulo] || "Todavía no se puede"
+    %p
+      Antes hace falta
+      %strong= falta.titulo.downcase
+      \: sin eso, lo que se cargue acá no tiene de dónde colgar.
+    -# Nunca un botón apagado: el camino de salida, que es lo que la persona
+    -# necesita en este segundo.
+    = link_to "#{ruta_del_paso(falta)}?recorrido=#{falta.clave}", class: "btn btn-primary" do
+      = icono(falta.icono, tamano: 16)
+      %span= falta.verbo
+- else
+  = yield

@@ -68,9 +68,14 @@ class RepresentanteController < ApplicationController
 
   def hijos_con_datos
     @hijos_con_datos ||= @representante.students.includes(:user).map do |alumno|
+      # ⚠️ Por el AÑO ESCOLAR, no por `enrollment_date` (MOR-165).
+      #
+      # La fecha de inscripción es cuándo se hizo el trámite, y una inscripción
+      # tardía del año pasado tiene fecha posterior a una temprana de este.
+      # El representante no elige año: ve el más reciente de su hijo.
       inscripcion = Enrollment.includes(section: [:grade, :academic_period])
                               .where(student_id: alumno.id)
-                              .order(enrollment_date: :desc).first
+                              .recientes_primero.first
       { student: alumno, inscripcion: inscripcion }
     end.sort_by { |h| h[:student].user.first_name }
   end

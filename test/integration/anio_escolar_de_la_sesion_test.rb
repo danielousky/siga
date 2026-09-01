@@ -239,6 +239,82 @@ class AnioEscolarDeLaSesionTest < ActionDispatch::IntegrationTest
   end
 
   # ══════════════════════════════════════════════════════════════════════════
+  # Los portales SIN selector: profesor, alumno, representante
+  # ══════════════════════════════════════════════════════════════════════════
+  #
+  # Son los que más importan y los que menos se notan: nadie ahí puede elegir
+  # año, así que si la consulta no filtra, la persona no tiene manera de
+  # corregirlo. Y hoy no se ve porque cada colegio tiene UN año escolar — se
+  # rompe el día que haya dos.
+
+  # ⚠️ El bug que motivó todo esto: el panel ordenaba por `grades.name`, así que
+  # un muchacho de 5to Año veía las notas de 1er Año de hace tres. Es la
+  # pantalla que ve una familia.
+  test "un alumno con historia ve el año en curso, no el más viejo" do
+    grado_alto = con_el_colegio(@a.colegio) { Grade.create!(school: @a.colegio, name: "5to Año") }
+
+    # Hoy está en 5to Año; hace dos años estuvo en 1er Año.
+    hoy = con_el_colegio(@a.colegio) do
+      seccion = Section.create!(grade: grado_alto, academic_period: @a.periodo, name: "A", capacity: 30)
+      Enrollment.create!(student: @a.alumno, section: seccion,
+                         enrollment_date: Date.new(2025, 9, 20), status: :regular)
+      seccion
+    end
+    con_el_colegio(@a.colegio) do
+      Enrollment.create!(student: @a.alumno, section: @seccion_vieja,
+                         enrollment_date: Date.new(2024, 9, 20), status: :regular)
+    end
+
+    sign_in @a.estudiante
+    get dashboards_estudiante_url
+
+    assert_response :success
+    assert_match(/#{Regexp.escape(grado_alto.name)}/, response.body,
+                 "el alumno no está viendo el grado que cursa hoy")
+    assert_no_match(/2024-2025/, response.body,
+                    "el panel del alumno está mostrando un año escolar viejo")
+    assert_equal hoy.academic_period_id, @a.periodo.id
+  end
+
+  test "el profesor no cuenta secciones de años cerrados en sus totales" do
+    con_el_colegio(@a.colegio) do
+      TeacherSection.create!(teacher: @a.registro_de_profesor,
+                             section: @seccion_vieja, subject: @a.materia)
+    end
+
+    sign_in @a.profesor
+    get dashboards_profesor_url
+
+    assert_response :success
+    assert_no_match(/2024-2025/, response.body,
+                    "el panel del profesor mezcla asignaciones de un año cerrado")
+  end
+
+  # El representante tampoco elige, y acá el orden era por `enrollment_date`:
+  # una inscripción tardía del año pasado tiene fecha posterior a una temprana
+  # de este.
+  test "el representante ve la inscripción del año más nuevo, no la de fecha mayor" do
+    con_el_colegio(@a.colegio) do
+      # Se inscribió al año VIEJO en diciembre — fecha posterior a la de este año.
+      Enrollment.create!(student: @a.alumno, section: @seccion_vieja,
+                         enrollment_date: Date.new(2025, 12, 1), status: :regular)
+
+      reciente = Enrollment.find_by(student_id: @a.alumno.id, section_id: @a.seccion.id)
+      reciente.update!(enrollment_date: Date.new(2025, 9, 1))
+    end
+
+    # ⚠️ El `.section` se resuelve DENTRO del bloque a propósito: sin contexto de
+    # colegio el RLS devuelve cero filas, así que la asociación vendría nil y el
+    # test fallaría por una razón que no es la que está probando.
+    anio_visto = con_el_colegio(@a.colegio) do
+      Enrollment.where(student_id: @a.alumno.id).recientes_primero.first.section.academic_period_id
+    end
+
+    assert_equal @a.periodo.id, anio_visto,
+                 "ordenar por fecha de trámite devuelve la inscripción del año viejo"
+  end
+
+  # ══════════════════════════════════════════════════════════════════════════
   # El scope, sin pasar por HTTP
   # ══════════════════════════════════════════════════════════════════════════
   #

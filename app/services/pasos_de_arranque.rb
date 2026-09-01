@@ -80,7 +80,15 @@ class PasosDeArranque
   end
 
   def pasos
-    [ niveles, identidad, ano_escolar, materias, secciones, profesores, alumnos, departamentos ]
+    # ⚠️ `departamentos` va ANTES de `materias`, y es de Daniel: «primero deberían
+    # estar creados los departamentos (si los hubiera) y luego se agregan las
+    # materias».
+    #
+    # Es opcional y se puede omitir para siempre —un colegio chico no los tiene—
+    # pero el que SÍ los quiere necesita crearlos primero: una materia se agrupa
+    # en un departamento al crearla, y volver a editar cuarenta materias después
+    # es trabajo que el orden correcto evita.
+    [ niveles, identidad, ano_escolar, departamentos, materias, secciones, profesores, alumnos ]
   end
 
   private

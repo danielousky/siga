@@ -7,6 +7,19 @@ class Enrollment < ApplicationRecord
   belongs_to :student, foreign_key: :student_id
   llega_al_anio_por :section
 
+  # ⚠️ De la inscripción MÁS NUEVA a la más vieja, por el año escolar.
+  #
+  # El panel del alumno ordenaba por `grades.name`, y eso es correcto DENTRO de
+  # un año y desastroso entre varios: un muchacho de 5to Año abría SIGA y veía
+  # las notas de 1er Año de hace tres años, porque «1er» ordena antes que «5to».
+  # Es la pantalla que ve una familia.
+  #
+  # Hoy no se nota porque cada colegio tiene un año escolar. Se rompe el día que
+  # haya dos — o sea, en cuanto se pueda clonar el año.
+  scope :recientes_primero, -> {
+    joins(section: :academic_period).order("academic_periods.start_date DESC")
+  }
+
   derives_school_from :student
   validates_same_school :section
 

@@ -20,7 +20,7 @@ class SubjectsController < ApplicationController
   # exactamente las tres columnas del listado.
   def show
     @grados = @subject.grades.order(:name)
-    @quienes = TeacherSection.where(subject_id: @subject.id)
+    @quienes = TeacherSection.del_anio_de_la_sesion.where(subject_id: @subject.id)
                              .includes(:subject, teacher: :user, section: [ :grade, :academic_period ])
                              .to_a
                              .sort_by { |a| [ a.section.grade.name, a.section.name ] }

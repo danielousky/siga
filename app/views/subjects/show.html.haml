@@ -5,8 +5,9 @@
       %h1.ficha-nombre= @subject.name
       %p.ficha-situacion
         = @subject.code
-        %span.ficha-punto ·
-        = @subject.department.name
+        - if @subject.department
+          %span.ficha-punto ·
+          = @subject.department.name
 
     .ficha-acciones
       = link_to edit_subject_path(@subject), class: "btn btn-secondary" do

@@ -39,4 +39,6 @@
               %td
                 %code{style: "font-family: var(--font-sans); color: var(--text-primary); background: var(--surface-canvas); padding: 2px 6px; border-radius: 3px; font-size: 13px;"}= subject.code
               %td= link_to subject.name, subject
-              %td= subject.department.name
+              -# El guion, no el vacío: una celda en blanco se lee como un dato
+              -# que falta, y no falta nada — el departamento es opcional.
+              %td= subject.department&.name || "—"
