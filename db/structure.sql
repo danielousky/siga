@@ -717,6 +717,43 @@ ALTER SEQUENCE public.importaciones_id_seq OWNED BY public.importaciones.id;
 
 
 --
+-- Name: mensaje_eventos; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mensaje_eventos (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    mensaje_id bigint NOT NULL,
+    tipo character varying NOT NULL,
+    ocurrio_en timestamp(6) without time zone NOT NULL,
+    detalle jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.mensaje_eventos FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: mensaje_eventos_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mensaje_eventos_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mensaje_eventos_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mensaje_eventos_id_seq OWNED BY public.mensaje_eventos.id;
+
+
+--
 -- Name: mensajes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -729,10 +766,51 @@ CREATE TABLE public.mensajes (
     cuerpo text NOT NULL,
     correo character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    token character varying
 );
 
 ALTER TABLE ONLY public.mensajes FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: mensajes_entrantes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.mensajes_entrantes (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    mensaje_id bigint,
+    de character varying NOT NULL,
+    asunto character varying,
+    cuerpo text,
+    recibido_en timestamp(6) without time zone NOT NULL,
+    leido_en timestamp(6) without time zone,
+    crudo jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.mensajes_entrantes FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: mensajes_entrantes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.mensajes_entrantes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: mensajes_entrantes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.mensajes_entrantes_id_seq OWNED BY public.mensajes_entrantes.id;
 
 
 --
@@ -1800,10 +1878,24 @@ ALTER TABLE ONLY public.importaciones ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: mensaje_eventos id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mensaje_eventos ALTER COLUMN id SET DEFAULT nextval('public.mensaje_eventos_id_seq'::regclass);
+
+
+--
 -- Name: mensajes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.mensajes ALTER COLUMN id SET DEFAULT nextval('public.mensajes_id_seq'::regclass);
+
+
+--
+-- Name: mensajes_entrantes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mensajes_entrantes ALTER COLUMN id SET DEFAULT nextval('public.mensajes_entrantes_id_seq'::regclass);
 
 
 --
@@ -2138,6 +2230,22 @@ ALTER TABLE ONLY public.grades
 
 ALTER TABLE ONLY public.importaciones
     ADD CONSTRAINT importaciones_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mensaje_eventos mensaje_eventos_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mensaje_eventos
+    ADD CONSTRAINT mensaje_eventos_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: mensajes_entrantes mensajes_entrantes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mensajes_entrantes
+    ADD CONSTRAINT mensajes_entrantes_pkey PRIMARY KEY (id);
 
 
 --
@@ -2734,6 +2842,55 @@ CREATE INDEX index_importaciones_on_subido_por_id ON public.importaciones USING 
 
 
 --
+-- Name: index_mensaje_eventos_on_mensaje_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mensaje_eventos_on_mensaje_id ON public.mensaje_eventos USING btree (mensaje_id);
+
+
+--
+-- Name: index_mensaje_eventos_on_mensaje_id_and_ocurrio_en; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mensaje_eventos_on_mensaje_id_and_ocurrio_en ON public.mensaje_eventos USING btree (mensaje_id, ocurrio_en);
+
+
+--
+-- Name: index_mensaje_eventos_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mensaje_eventos_on_school_id ON public.mensaje_eventos USING btree (school_id);
+
+
+--
+-- Name: index_mensaje_eventos_sin_repetir; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_mensaje_eventos_sin_repetir ON public.mensaje_eventos USING btree (mensaje_id, tipo, ocurrio_en);
+
+
+--
+-- Name: index_mensajes_entrantes_on_mensaje_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mensajes_entrantes_on_mensaje_id ON public.mensajes_entrantes USING btree (mensaje_id);
+
+
+--
+-- Name: index_mensajes_entrantes_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mensajes_entrantes_on_school_id ON public.mensajes_entrantes USING btree (school_id);
+
+
+--
+-- Name: index_mensajes_entrantes_on_school_id_and_recibido_en; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_mensajes_entrantes_on_school_id_and_recibido_en ON public.mensajes_entrantes USING btree (school_id, recibido_en);
+
+
+--
 -- Name: index_mensajes_on_destinatario_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2759,6 +2916,13 @@ CREATE INDEX index_mensajes_on_remitente_id ON public.mensajes USING btree (remi
 --
 
 CREATE INDEX index_mensajes_on_school_id ON public.mensajes USING btree (school_id);
+
+
+--
+-- Name: index_mensajes_on_token; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_mensajes_on_token ON public.mensajes USING btree (token);
 
 
 --
@@ -3292,6 +3456,14 @@ ALTER TABLE ONLY public.sections
 
 
 --
+-- Name: mensaje_eventos fk_rails_13b967b02d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mensaje_eventos
+    ADD CONSTRAINT fk_rails_13b967b02d FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
 -- Name: students fk_rails_148c9e88f4; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3321,6 +3493,14 @@ ALTER TABLE ONLY public.mensajes
 
 ALTER TABLE ONLY public.student_representatives
     ADD CONSTRAINT fk_rails_244edf660a FOREIGN KEY (representative_id) REFERENCES public.representatives(id);
+
+
+--
+-- Name: mensaje_eventos fk_rails_27f008ccda; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mensaje_eventos
+    ADD CONSTRAINT fk_rails_27f008ccda FOREIGN KEY (mensaje_id) REFERENCES public.mensajes(id);
 
 
 --
@@ -3481,6 +3661,14 @@ ALTER TABLE ONLY public.enrollments
 
 ALTER TABLE ONLY public.importaciones
     ADD CONSTRAINT fk_rails_5e5599990c FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
+-- Name: mensajes_entrantes fk_rails_5fc63a8445; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mensajes_entrantes
+    ADD CONSTRAINT fk_rails_5fc63a8445 FOREIGN KEY (school_id) REFERENCES public.schools(id);
 
 
 --
@@ -3673,6 +3861,14 @@ ALTER TABLE ONLY public.teacher_sections
 
 ALTER TABLE ONLY public.teachers
     ADD CONSTRAINT fk_rails_a8c1458420 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: mensajes_entrantes fk_rails_aff705a7c6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.mensajes_entrantes
+    ADD CONSTRAINT fk_rails_aff705a7c6 FOREIGN KEY (mensaje_id) REFERENCES public.mensajes(id);
 
 
 --
@@ -3967,10 +4163,24 @@ CREATE POLICY aislamiento_por_colegio ON public.importaciones USING (((current_s
 
 
 --
+-- Name: mensaje_eventos aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.mensaje_eventos USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
 -- Name: mensajes aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
 --
 
 CREATE POLICY aislamiento_por_colegio ON public.mensajes USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
+-- Name: mensajes_entrantes aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.mensajes_entrantes USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
 
 
 --
@@ -4098,10 +4308,22 @@ ALTER TABLE public.grades ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.importaciones ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: mensaje_eventos; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.mensaje_eventos ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: mensajes; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.mensajes ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: mensajes_entrantes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.mensajes_entrantes ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: moment_grades; Type: ROW SECURITY; Schema: public; Owner: -
@@ -4170,6 +4392,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260902100000'),
 ('20260901215555'),
 ('20260901164939'),
 ('20260901054732'),
