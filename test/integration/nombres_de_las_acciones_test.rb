@@ -102,6 +102,41 @@ class NombresDeLasAccionesTest < ActiveSupport::TestCase
       "usan un texto propio en vez del de `es.yml`:\n  " + a_mano.join("\n  ")
   end
 
+  # ⚠️ El menú y la pantalla que abre dicen lo MISMO.
+  #
+  # Daniel, viendo `/alumnos`: «este debe decir "Alumnos" como sus hermanos
+  # users, en lugar de "Registro de alumnos"». Había cinco pantallas con un
+  # título distinto al del enlace que llevaba a ellas —«Catálogo de materias»,
+  # «Departamentos académicos», «Ponderación por lapso»— y el efecto es el mismo
+  # que con los botones: se pulsa una cosa y se llega a otra.
+  test "el menú y el título de la pantalla que abre dicen lo mismo" do
+    del_menu = Rails.root.join("app/helpers/menu_helper.rb").read
+                    .scan(/nombre: "([^"#]+)", icono: :\w+, ruta: (\w+)_path/)
+                    .to_h { |nombre, ruta| [ ruta, nombre ] }
+
+    # ⚠️ Los PORTALES quedan fuera. En el del representante, «Todos» es una
+    # pestaña dentro de su propia navegación —«todos mis representados»— y no el
+    # nombre de una sección; exigir que la pantalla se llame igual sería exigir
+    # que se llame «Todos». La regla es para el menú de la administración.
+    portales = %w[representante dashboards]
+
+    distintos = VISTAS.glob("*/index.html.haml").filter_map do |indice|
+      carpeta = indice.dirname.basename.to_s
+      next if portales.include?(carpeta)
+
+      nombre = del_menu[carpeta] || del_menu[carpeta.singularize]
+      next if nombre.nil?
+
+      titulo = indice.read[/^\s*%h1 (.+)$/, 1]&.strip
+      next if titulo.nil? || titulo == nombre
+
+      "#{carpeta}: el menú dice «#{nombre}» y la pantalla «#{titulo}»"
+    end
+
+    assert_empty distintos,
+      "el menú promete una cosa y la pantalla dice otra:\n  " + distintos.join("\n  ")
+  end
+
   private
 
   # ⚠️ El primer `%span` DESPUÉS de la cabecera, y solo dentro de ella.

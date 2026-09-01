@@ -24,6 +24,21 @@ export default class extends Controller {
     mayuscula: { type: Boolean, default: false }
   }
 
+  // Al SALIR del campo: quita los espacios de los bordes y junta los dobles.
+  //
+  // ⚠️ No se puede hacer mientras se escribe. Un nombre lleva espacios en el
+  // medio —«JOSÉ LUIS», «DE LA CRUZ»— así que recortar en cada tecla impediría
+  // escribir el segundo nombre: la barra desaparecería apenas pulsada.
+  //
+  // Hace lo mismo que `Normaliza.mayuscula` en el servidor: `strip`, juntar
+  // espacios, mayúscula. Que las dos capas coincidan es lo que evita que el
+  // campo muestre una cosa y se guarde otra.
+  recortar() {
+    const campo = this.element
+    const limpio = campo.value.trim().replace(/\s+/g, " ")
+    if (limpio !== campo.value) campo.value = limpio
+  }
+
   connect() {
     // Lo que ya venía escrito —un valor recuperado tras un error de
     // validación— también se limpia: si no, el campo arranca con lo que

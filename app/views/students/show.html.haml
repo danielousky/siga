@@ -136,7 +136,7 @@
       .acciones-de-cabecera
         = link_to "Certificación en PDF",
                   certificacion_de_calificaciones_path(student_id: @student, format: :pdf),
-                  class: "btn btn-primary"
+                  class: "btn btn-documento"
         = link_to "Certificación en Excel",
                   certificacion_de_calificaciones_path(student_id: @student, format: :xlsx),
                   class: "btn btn-secondary"

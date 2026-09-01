@@ -288,6 +288,20 @@ a:hover {
      no, y por eso convivían dos botones distintos en la misma columna. */
   justify-content: center;
   gap: var(--space-xs);
+
+  /* ⚠️ Alto FIJO, o un `<input type=submit>` y un `<a class="btn">` no miden
+     igual y quedan desparejos en la misma fila (QA de Daniel).
+
+     El `<a>` lleva un SVG de 16 px adentro, que estira su caja más allá de la
+     altura del texto; el `input` no puede contener nada, así que su alto sale
+     solo de la tipografía. Con el mismo `padding` daban dos alturas distintas.
+
+     `line-height: 1` los iguala en la base y `min-height` fija el resultado.
+     Y el `input` necesita además que se le quiten los estilos del sistema. */
+  line-height: 1;
+  min-height: 36px;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .btn-primary {
