@@ -239,6 +239,45 @@ class AnioEscolarDeLaSesionTest < ActionDispatch::IntegrationTest
   end
 
   # ══════════════════════════════════════════════════════════════════════════
+  # El importador
+  # ══════════════════════════════════════════════════════════════════════════
+  #
+  # Era la QUINTA manera de decidir el año escolar, y la más cara de equivocar:
+  # una planilla de 360 alumnos que entra al año que no es deja al colegio con
+  # la matrícula partida entre dos años. `§ 3.4` ya lo advertía.
+
+  test "una planilla nueva se estampa con el año escolar de la sesión" do
+    sign_in @a.director
+    post cambiar_anio_escolar_path, params: { id: @viejo.id }
+
+    post importaciones_path, params: {
+      tipo: "matricula",
+      importacion: { archivo: fixture_file_upload(planilla_minima, "text/csv") }
+    }
+
+    subida = Current.sin_aislamiento { Importacion.unscoped.order(:id).last }
+    assert subida, "no se registró la importación"
+    assert_equal @viejo.id, subida.academic_period_id,
+                 "la planilla se fue a un año escolar distinto del que estaba elegido arriba"
+  end
+
+  # ⚠️ Estampado, no calculado en cada lectura: si alguien mueve el selector a
+  # mitad de la previsualización, la importación no se muda de año sola.
+  test "y no se muda de año si después se cambia el selector" do
+    sign_in @a.director
+    post cambiar_anio_escolar_path, params: { id: @viejo.id }
+    post importaciones_path, params: {
+      tipo: "matricula",
+      importacion: { archivo: fixture_file_upload(planilla_minima, "text/csv") }
+    }
+    subida = Current.sin_aislamiento { Importacion.unscoped.order(:id).last }
+
+    post cambiar_anio_escolar_path, params: { id: @a.periodo.id }
+
+    assert_equal @viejo.id, Current.sin_aislamiento { subida.reload.academic_period_id }
+  end
+
+  # ══════════════════════════════════════════════════════════════════════════
   # Los portales SIN selector: profesor, alumno, representante
   # ══════════════════════════════════════════════════════════════════════════
   #
@@ -341,5 +380,15 @@ class AnioEscolarDeLaSesionTest < ActionDispatch::IntegrationTest
       assert_equal 2, Section.del_anio_de_la_sesion.count
       assert_equal 1, ActivityGrade.del_anio_de_la_sesion.count
     end
+  end
+
+  private
+
+  # Una planilla mínima que se pueda leer: lo que se prueba acá es a qué AÑO va,
+  # no qué trae adentro.
+  def planilla_minima
+    ruta = Rails.root.join("tmp", "planilla_minima_#{SecureRandom.hex(4)}.csv")
+    ruta.write("Cedula,Nombres,Apellidos\nV-11111111,Ana,Pérez\n")
+    ruta
   end
 end

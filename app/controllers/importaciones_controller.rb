@@ -72,8 +72,19 @@ class ImportacionesController < ApplicationController
 
     hoja = Planilla.new(archivo.tempfile.path, extension: File.extname(archivo.original_filename))
 
+    # ⚠️ El año escolar se ESTAMPA acá, desde la sesión (MOR-165).
+    #
+    # Antes se resolvía en cada lectura con `AcademicPeriod.vigente`, o sea la
+    # quinta manera de decidir el año que MOR-165 vino a unificar: alguien con
+    # 2024-2025 elegido arriba subía una planilla y se le iba a 2026-2027, en
+    # silencio. Y estampado, además, no cambia si alguien mueve el selector a
+    # mitad de la previsualización — el año de una importación es suyo.
+    #
+    # El selector de la previsualización SIGUE estando: ahí es donde el problema
+    # se ve (§ 3.4). Lo que cambia es de dónde sale el valor por defecto.
     @importacion = Importacion.new(
       school: Current.school, subido_por: current_user,
+      academic_period: Current.academic_period,
       nombre_del_archivo: archivo.original_filename,
       filas_leidas: hoja.filas.size,
       tipo: tipo_pedido

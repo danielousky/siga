@@ -42,7 +42,11 @@ module InterpretaLaPlanilla
     @planilla = planilla
     @mapeo = mapeo.to_h { |encabezado, clave| [ clave.to_s, encabezado ] }
     @colegio = colegio
-    @periodo = periodo || AcademicPeriod.vigente
+    # ⚠️ El respaldo mira la SESIÓN antes que `vigente` (MOR-165). Quien llama
+    # siempre pasa el año —lo estampa la `Importacion`— así que esto es la red
+    # para una consola o una tarea; y ahí también el año elegido es más
+    # confiable que «el que la app considera vigente».
+    @periodo = periodo || Current.academic_period || AcademicPeriod.vigente
     @grados = Grade.where(school: colegio).to_a
 
     # ⚠️ Las secciones se buscan DENTRO del año escolar, no en todos.

@@ -197,10 +197,13 @@ class Importacion < ApplicationRecord
 
   def lista_para_previsualizar? = obligatorias_sin_mapear.empty?
 
-  # El año escolar al que va la matrícula. Por defecto el que la app considera
-  # vigente —el que está en curso, o el que viene si estamos entre julio y
-  # septiembre— y quien importa lo puede cambiar.
+  # El año escolar al que va la matrícula.
+  #
+  # Normalmente viene estampado desde que se subió la planilla —con el año de la
+  # sesión (MOR-165)— y quien importa lo puede cambiar en la previsualización.
+  # El respaldo es para las importaciones viejas, de antes de que se estampara,
+  # y para cuando no hay sesión: primero el año elegido, después el vigente.
   def periodo
-    academic_period || AcademicPeriod.vigente
+    academic_period || Current.academic_period || AcademicPeriod.vigente
   end
 end

@@ -44,7 +44,7 @@ class Student < ApplicationRecord
   # El año escolar del que sale el prefijo. El historial pasa el suyo, porque
   # cada fila de una planilla vieja es de un año distinto.
   def self.prefijo_de_carnet(periodo = nil)
-    periodo ||= AcademicPeriod.vigente || AcademicPeriod.order(:start_date).last
+    periodo ||= Current.academic_period || AcademicPeriod.vigente || AcademicPeriod.order(:start_date).last
     periodo&.start_date&.strftime("%y") || Date.current.strftime("%y")
   end
 
