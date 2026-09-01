@@ -15,9 +15,22 @@
           %th= AcademicPeriod.human_attribute_name(:name)
           %th Fecha inicio
           %th Fecha fin
+          %th= Section.model_name.human(count: 2)
       %tbody
         - @academic_periods.each do |period|
           %tr
             %td= link_to period.name, edit_academic_period_path(period)
-            %td= period.start_date.strftime("%d/%m/%Y")
-            %td= period.end_date.strftime("%d/%m/%Y")
+            %td= l(period.start_date, format: :long)
+            %td= l(period.end_date, format: :long)
+            -# ⚠️ Cuántas secciones tiene, y el atajo para traerlas si no tiene.
+            -#
+            -# Un año escolar recién creado está vacío, y armar diez secciones
+            -# con ochenta asignaciones a mano es la clase de trabajo que hace
+            -# que un colegio no renueve (MOR-166). El atajo va acá porque es
+            -# donde el director está parado cuando acaba de crear el año.
+            - cuantas = Section.where(academic_period_id: period.id).count
+            %td
+              - if cuantas.positive?
+                = contar(cuantas, "sección", "secciones")
+              - else
+                = link_to "Copiar de otro año", copiar_al_academic_period_path(period)

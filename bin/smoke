@@ -144,6 +144,16 @@ if login "director.bolivar@siga.edu" "123123" "$JAR"; then
   # redirect: comprobarlo acá es comprobar que el pivote de TODA la app existe
   # en la ruta que ve una persona, no solo en un test de integración.
   check_post "cambiar de año"  "/anio-escolar"          302 "$JAR"
+
+  # Copiar la estructura de un año al siguiente (MOR-166). Solo la pantalla: el
+  # POST crea decenas de filas y el humo corre contra la base de desarrollo.
+  ANIO="$(curl -s -b "$JAR" "${BASE}/academic_periods" \
+    | grep -o '/academic_periods/[0-9]*/copiar' | head -1)"
+  if [ -n "$ANIO" ]; then
+    check "copiar estructura"  "$ANIO"                    200 "$JAR"
+  else
+    printf '  · %-42s (todos los años ya tienen secciones)\n' "copiar estructura"
+  fi
 fi
 
 echo

@@ -274,7 +274,15 @@ Rails.application.routes.draw do
   # El resto de los recursos se escriben perfecto sin muletas —alumnos,
   # profesores, secciones, materias, grados, inscripciones, lapsos— y por eso van
   # en español. La regla no es «todo en español»: es que la URL se lea bien.
-  resources :academic_periods, except: [ :show ]
+  resources :academic_periods, except: [ :show ] do
+    # Copiar la estructura del año anterior (MOR-166): las secciones y quién
+    # dicta qué. Cuelga del año DESTINO —es él quien recibe— y el origen viaja
+    # en el cuerpo. POST y no GET: crea decenas de filas.
+    member do
+      get  "copiar", to: "copias_del_anio#new",    as: :copiar_al
+      post "copiar", to: "copias_del_anio#create", as: :hacer_copia_al
+    end
+  end
   resources :sections, path: "secciones" do
     resources :teacher_sections, path: "profesores", only: [:create, :destroy]
   end

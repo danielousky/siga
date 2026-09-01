@@ -209,7 +209,7 @@ class ImportacionesController < ApplicationController
     creados = periodo.sembrar_lapsos(params[:lapsos].to_i.clamp(1, ColumnasDeHistorial::LAPSOS)).size
 
     redirect_to previsualizar_importacion_path(@importacion),
-                notice: "Se creó #{periodo.name} con #{helpers.pluralize(creados, 'lapso')}."
+                notice: "Se creó #{periodo.name} con #{helpers.contar(creados, 'lapso', 'lapsos')}."
   end
 
   # ⚠️ Crear el GRADO, no solo la sección — y es el caso que faltaba.
@@ -405,7 +405,7 @@ class ImportacionesController < ApplicationController
     when "historial"
       helpers.pluralize(resultado.total_cargado, "calificación", plural: "calificaciones")
     else
-      helpers.pluralize(resultado.total_cargado, "alumno")
+      helpers.contar(resultado.total_cargado, "alumno", "alumnos")
     end
   end
 

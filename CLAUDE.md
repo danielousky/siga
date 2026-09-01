@@ -649,5 +649,49 @@ en el año de la sesión, y al **editarla el año ni se muestra**: mover una sec
 arrastraría sus inscripciones, su asistencia y sus notas, que son de ese año y de ningún
 otro.
 
+### 9. Copiar la estructura de un año al siguiente (`MOR-166`)
+
+Un colegio de diez secciones con ocho materias son **ochenta** asignaciones de
+profesor escritas a mano cada septiembre, cuando el 90 % son las mismas del año
+anterior. Es la clase de trabajo que hace que un colegio no renueve.
+
+```
+   SE COPIA                          NO SE COPIA
+   ────────                          ───────────
+   las secciones (1er Año A, B, C)   los alumnos    ← promover es otra cosa
+   su cupo y su aula                 las notas      ← son del año que pasó
+   su profesor guía                  la asistencia  ← ídem
+   quién dicta qué en cada una       los boletines  ← ídem
+```
+
+Los **grados** y las **materias** no están en ninguna columna porque no son del
+año: cuelgan del colegio y ya están. Lo mismo el pensum (`GradeSubject`).
+
+⚠️ **Los alumnos NO se copian, a propósito.** Pasar un alumno de 1er a 2do Año
+depende de si aprobó —Artículo 112, con su segunda oportunidad— no de un botón.
+Copiar la matrícula repetiría a trescientos sesenta alumnos en el mismo grado, y
+eso es lo que un director teme al leer «copiar el año»: por eso la pantalla lo
+**dice antes de confirmar**, junto con la cuenta de lo que sí va a traer.
+
+⚠️ **ERROR vs AVISO otra vez** (la misma distinción del importador, `§ 3`). Una
+sección que no se puede crear es un **error** y deshace la copia entera: media
+estructura es peor que ninguna. Una asignación que no se puede recrear —el
+profesor renunció— es un **aviso**: se salta, se copia el resto, y se dice cuál
+faltó. Cada una en su `SAVEPOINT`, o un `create!` fallido aborta la transacción
+de PostgreSQL y las siguientes revientan con «current transaction is aborted».
+
+⚠️ **Es idempotente y respeta lo hecho a mano.** Copiar dos veces no duplica
+nada, y una sección que el colegio ya armó no se pisa —conserva su cupo y su
+aula— pero sí se le completan las asignaciones que le faltaban. El índice de
+secciones ya existentes se actualiza al crear, así que **hay que preguntar una
+sola vez** si existe: preguntar de nuevo encuentra la que se acaba de crear y la
+cuenta como «ya estaba» (pasó).
+
+⚠️ **El plural se escribe, no se deduce.** `"sección".pluralize` devuelve
+«sección» y `"estaba".pluralize(2)` devuelve «estabas»: el inflector de Rails es
+inglés y en español **acierta por casualidad** en las palabras terminadas en
+vocal. `ApplicationHelper#contar` y `#pluralizar` llevan las dos formas escritas,
+y `test/integration/plural_en_espanol_test.rb` impide que el atajo vuelva.
+
 Backlog completo en `BACKLOG.md`. Diagrama del modelo actual y objetivo:
 https://claude.ai/code/artifact/0e167ba9-8e21-4264-ac29-f7a2d9fe5523

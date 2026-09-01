@@ -1,4 +1,51 @@
-# 🔖 Punto de retome — actualizado 31 de agosto de 2026
+# 🔖 Punto de retome — actualizado 1 de septiembre de 2026
+
+## Sesión del 1 de septiembre — QA de Daniel y la clonación
+
+`bin/ci` en verde, **939 tests**. Todo desplegado.
+
+### Del QA de Daniel
+
+**«Nuevo Momento» debía decir «Nuevo Lapso»** — se me escapó en el renombre. Y al
+mirar esa pantalla había dos cosas más: estaba **vacía y sin salida** (los años
+escolares creados antes de MOR-163 no tienen lapsos sembrados) y el enlace de
+cada fila iba en el AÑO, no en el lapso. Ahora el estado vacío ofrece **crear los
+tres de un clic**.
+
+**El día 1 de un colegio nuevo tenía tres callejones.** El más grave: el
+departamento era obligatorio para crear una materia, pero el plan de arranque lo
+presenta como opcional desde MOR-154 («un colegio de 150 alumnos no tiene
+departamentos»). Un colegio recién registrado se trababa en el paso 3 de 8.
+Ahora es opcional de verdad y en el plan va antes de las materias. Los otros
+dos: `/secciones/new` e `/inscripciones/new` mostraban desplegables vacíos sin
+explicación — lo tapa `shared/_precondicion`, con el mismo texto de
+`PasosDeArranque`.
+
+`test/integration/colegio_vacio_test.rb` guarda el día 1 completo: **ningún
+formulario de alta puede quedarse sin formulario Y sin explicación.** Que
+responda 200 no alcanza — un callejón responde 200.
+
+### Los portales sin selector, que se rompían con dos años
+
+Encontrado al revisar qué quedó fuera de MOR-165, y **la clonación lo habría
+disparado**: el panel del alumno ordenaba por `grades.name`, así que un muchacho
+de 5to Año veía las notas de 1er Año de hace tres. Es la pantalla que ve una
+familia. Hoy no se notaba porque cada colegio tiene un año escolar.
+Arreglados los tres —alumno, profesor, representante— más las fichas de profesor
+y de materia. `Enrollment.recientes_primero` ordena por el año, no por la fecha
+del trámite.
+
+### Copiar la estructura del año (`MOR-166`)
+
+Diez secciones y **ochenta y dos** asignaciones de profesor en 329 ms, en vez de
+escribirlas a mano cada septiembre. Copia secciones (cupo, aula, guía) y quién
+dicta qué; **no** copia alumnos, notas, asistencia ni boletines — y lo dice antes
+de confirmar. Idempotente, respeta lo que el colegio ya armó a mano, y queda en
+la auditoría con su propio token (`estructura_copiada`), no como «alguien editó
+el año escolar».
+
+⚠️ **La promoción de alumnos NO está hecha y es lo que sigue** — ver abajo.
+
 
 ## Sesión del 31 de agosto — el año escolar de la sesión (`MOR-165`)
 

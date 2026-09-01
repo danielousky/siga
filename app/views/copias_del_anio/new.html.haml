@@ -1,0 +1,48 @@
+.card-academic
+  .card-academic-header
+    %h1= "Copiar la estructura a #{@destino.name}"
+
+  - if @origenes.empty?
+    .empty-state
+      %h3 No hay de dónde copiar
+      %p
+        #{@destino.name} es el único año escolar cargado. La copia sirve a partir
+        del segundo: trae las secciones y quién dicta qué del año anterior.
+
+  - else
+    -# ⚠️ Se DICE qué se copia y qué no, antes de confirmar.
+    -#
+    -# «Copiar el año» suena a copiar todo, y lo que un director teme —con razón—
+    -# es terminar con trescientos sesenta alumnos repetidos en el mismo grado.
+    -# Decirlo acá es lo que hace que se anime a apretar el botón.
+    %p.nota-ayuda
+      Se copian las <strong>secciones</strong> —con su cupo, su aula y su profesor
+      guía— y <strong>quién dicta cada materia</strong> en ellas. Los alumnos no:
+      pasar de grado depende de si aprobaron, y eso es otra cosa.
+
+    = form_with url: hacer_copia_al_academic_period_path(@destino), method: :post do
+      .form-group
+        = label_tag :origen_id, "Copiar desde", class: "form-label"
+        - opciones = @origenes.map { |a| [ a.name, a.id ] }
+        = select_tag :origen_id, options_for_select(opciones, @origen&.id), class: "form-select",
+                     data: { controller: "auto-envio", action: "change->auto-envio#enviar" }
+
+      -# La cuenta es la decisión: «10 secciones y 82 asignaciones» se puede
+      -# aceptar o rechazar; «¿Copiar?» a secas, no.
+      - if @cuanto
+        .empty-state
+          - if @cuanto[:secciones].zero?
+            %h3= "#{@origen.name} no tiene secciones que copiar"
+            %p Elija otro año escolar, o arme las secciones a mano.
+          - else
+            %h3= "Se van a traer #{contar(@cuanto[:secciones], 'sección', 'secciones')}"
+            %p
+              = "y #{contar(@cuanto[:asignaciones], 'asignación de profesor', 'asignaciones de profesor')}."
+              Las secciones que ya existan en #{@destino.name} se respetan: no se duplica nada.
+
+      .form-acciones
+        - if @cuanto && @cuanto[:secciones].positive?
+          = submit_tag "Copiar a #{@destino.name}", class: "btn btn-primary", data: { turbo: false }
+        = link_to academic_periods_path, class: "btn btn-secondary" do
+          = icono(:volver, tamano: 16)
+          %span Volver
