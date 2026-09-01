@@ -33,7 +33,15 @@ class CamposDePersonaTest < ActionDispatch::IntegrationTest
   # Lo que no se puede escribir
   # ══════════════════════════════════════════════════════════════════════════
 
-  test "nombres y apellidos solo aceptan letras, acentos y la Ñ" do
+  # ⚠️ Se compara contra `Normaliza::LETRAS_DE_NOMBRE`, no contra una lista
+  # escrita acá (MOR-191).
+  #
+  # Antes esta aserción exigía la cadena literal, y por eso se rompió el día que
+  # la lista creció para admitir Gonçalves y João: fallaba un test cuyo tema es
+  # «el campo tiene filtro», por un cambio que era exactamente lo que se quería.
+  # Un test que copia el valor esperado prueba que nadie lo cambió, no que esté
+  # bien.
+  test "nombres y apellidos solo aceptan letras de nombre" do
     sin_filtro = ALTAS.flat_map do |quien, ruta|
       get send(ruta)
       %w[first_name last_name second_last_name].filter_map do |campo|
@@ -41,14 +49,14 @@ class CamposDePersonaTest < ActionDispatch::IntegrationTest
         next "#{quien}/#{campo}: no está" if entrada.nil?
 
         permite = entrada["data-campo-filtrado-permite-value"]
-        next if permite&.include?("ÁÉÍÓÚ") && permite.include?("Ñ") && permite.end_with?(" ")
+        next if permite == Normaliza::LETRAS_DE_NOMBRE
 
         "#{quien}/#{campo}: permite «#{permite}»"
       end
     end
 
     assert_empty sin_filtro,
-      "campos de nombre sin el filtro de letras+acentos+Ñ+espacio:\n  " + sin_filtro.join("\n  ")
+      "campos de nombre que no usan Normaliza::LETRAS_DE_NOMBRE:\n  " + sin_filtro.join("\n  ")
   end
 
   # ⚠️ El espacio SÍ se permite —«JOSÉ LUIS», «DE LA CRUZ»— y se recorta al

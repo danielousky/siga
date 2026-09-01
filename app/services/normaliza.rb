@@ -79,17 +79,61 @@ module Normaliza
   # Y se muestra en Tipo Título porque «DE LA CRUZ MARÍN JOSÉ LUIS» en la
   # pantalla de una madre grita.
 
+  # Qué letras puede tener el nombre de una persona (MOR-191).
+  #
+  # ⚠️ Sale de `BusquedaSinAcentos::ACENTOS`, y esa dependencia es el punto.
+  #
+  # El invariante es: **si se puede escribir, el buscador tiene que saber
+  # aplanarlo.** Con dos listas escritas a mano se desparejan —ya lo estaban: el
+  # buscador aplanaba «ç» y «ã», y el formulario no dejaba teclearlas—, y el
+  # resultado es una persona que existe y no aparece al buscarla.
+  #
+  # Eso importa acá más que en otros países: en Venezuela hay apellidos
+  # italianos y portugueses de sobra —Gonçalves, D'Angelo, João— y el que no
+  # puede escribir el suyo no piensa «falta un carácter», piensa que el sistema
+  # está roto.
+  #
+  # El guion y el apóstrofo van por la misma razón, y uno de los dos ya estaba
+  # medio adentro: `capitalizar` parte por «-» para que «María-José» salga con
+  # las dos mitades en mayúscula — o sea que el código sabía mostrarlo y el
+  # formulario no dejaba escribirlo.
+  #
+  # Es el CUERPO de una clase de caracteres para el controlador `campo-filtrado`.
+  # ⚠️ El guion va AL FINAL, o «ñ-'» se leería como un rango.
+  LETRAS_DE_NOMBRE = "A-Za-z#{BusquedaSinAcentos::ACENTOS}#{BusquedaSinAcentos::ACENTOS.upcase} '-".freeze
+
   # Partículas que NO se capitalizan cuando van en medio: «De la Cruz», no «De
   # La Cruz». `san`, `santa` y `mc` sí se capitalizan —San Martín, McDonald— y
   # por eso esta lista no es la misma que la de `NombreDePersona`.
   MINUSCULAS = %w[de del la las los y e da das dos van von].freeze
 
+  # ⚠️ A NFC, y no es cosmético: un acento descompuesto es INVISIBLE al buscador.
+  #
+  # «Ó» se puede escribir de dos maneras que se ven idénticas: un carácter
+  # (U+00D3) o una O seguida de una tilde combinante (U+004F U+0301). macOS
+  # produce la segunda —al teclear, al pegar, y al exportar un CSV desde
+  # Numbers, que es justo por donde entra una matrícula al importador.
+  #
+  # `BusquedaSinAcentos` aplana con `translate()`, que mapea carácter por
+  # carácter los acentos PRECOMPUESTOS. La tilde suelta no está en ese mapa, así
+  # que un «LÓPEZ» descompuesto se guarda bien, se ve bien en pantalla y **no lo
+  # encuentra nadie**: el apellido más común del país, mudo en el buscador.
+  #
+  # Comprobado: aplanar el NFC da «lopez»; el NFD da «lópez».
+  #
+  # Se canoniza al ENTRAR, que es el único lugar donde alcanza con hacerlo una
+  # vez. Y no confundir con `limpiar`, que descompone A PROPÓSITO para comparar
+  # contra una lista y jamás toca lo que se guarda.
+  def canonico(texto)
+    texto.to_s.unicode_normalize(:nfc).strip.gsub(/\s+/, " ")
+  end
+
   def mayuscula(texto)
-    texto.to_s.strip.gsub(/\s+/, " ").upcase.presence
+    canonico(texto).upcase.presence
   end
 
   def titulo(texto)
-    palabras = texto.to_s.strip.gsub(/\s+/, " ").downcase.split(" ")
+    palabras = canonico(texto).downcase.split(" ")
 
     palabras.each_with_index.map do |palabra, i|
       i.positive? && MINUSCULAS.include?(limpiar(palabra)) ? palabra : capitalizar(palabra)

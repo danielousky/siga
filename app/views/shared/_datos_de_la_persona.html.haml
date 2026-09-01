@@ -22,7 +22,10 @@
 -#
 -# ⚠️ La cédula escolar NO se filtra como la de identidad: su formato lo define el
 -# MPPE y **los guiones son parte del dato** (ver `User.normalizar_cedula_escolar`).
-- letras = "A-Za-zÁÉÍÓÚÜÑáéíóúüñ "
+-# ⚠️ La lista de letras NO se escribe acá: sale de `Normaliza::LETRAS_DE_NOMBRE`,
+-# que la deriva de la del buscador. Si se pueden escribir, se tienen que poder
+-# encontrar.
+- letras = Normaliza::LETRAS_DE_NOMBRE
 - filtro_de_nombre = { controller: "campo-filtrado", campo_filtrado_permite_value: letras, campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar" }
 
 .form-group
