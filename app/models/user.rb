@@ -17,6 +17,24 @@ class User < ApplicationRecord
     "carne_diplomatico" => "Carné diplomático"
   }.freeze
 
+  # ⚠️ Qué tipos de documento se OFRECEN en un formulario (MOR-177).
+  #
+  # Daniel: «podemos ocultar pasaporte o carné diplomático; el día que aparezcan
+  # se los agregamos». En un colegio venezolano el 99,9 % es V o E, y cuatro
+  # opciones para eso es una lista que hay que leer cada vez.
+  #
+  # ⚠️ El enum NO se toca: los cuatro siguen siendo válidos, y una persona que ya
+  # tiene pasaporte cargado —por importación, o de antes— tiene que poder editar
+  # su ficha sin que el select le cambie el tipo en silencio. Por eso el suyo se
+  # agrega a la lista cuando es el caso.
+  def self.tipos_de_documento_ofrecidos(persona = nil)
+    ofrecidos = %w[cedula_v cedula_e]
+    actual = persona&.document_type
+    ofrecidos << actual if actual.present? && ofrecidos.exclude?(actual)
+
+    ofrecidos.map { |tipo| [ DOCUMENT_TYPE_LABELS[tipo], tipo ] }
+  end
+
   enum :sex, { female: 0, male: 1 }
 
   SEX_LABELS = { "female" => "Femenino", "male" => "Masculino" }.freeze

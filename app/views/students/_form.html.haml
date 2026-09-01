@@ -4,41 +4,14 @@
   .form-seccion
     %h2.form-seccion-titulo Datos de la persona
     = f.fields_for :user do |u|
-      .form-group
-        = u.label :first_name, class: "form-label"
-        = u.text_field :first_name, class: "form-control", placeholder: "Álvaro José"
-      .form-row
-        .form-group
-          = u.label :last_name, class: "form-label"
-          = u.text_field :last_name, class: "form-control", placeholder: "López"
-        .form-group
-          = u.label :second_last_name, class: "form-label"
-          = u.text_field :second_last_name, class: "form-control", placeholder: "Medina"
-      .form-group
-        = con_pista "La asigna el MPPE. Es la que se usa mientras el alumno no tenga cédula de identidad." do
-          = u.label :cedula_escolar, class: "form-label"
-        = u.text_field :cedula_escolar, class: "form-control", placeholder: "V20140000001"
-      .form-row
-        .form-group
-          = u.label :document, class: "form-label"
-          = u.text_field :document, class: "form-control", placeholder: "V-12345678"
-        .form-group
-          = u.label :document_type, class: "form-label"
-          = u.select :document_type, User::DOCUMENT_TYPE_LABELS.map { |v, t| [t, v] }, { include_blank: "—" }, class: "form-select"
-      .form-row
-        .form-group
-          = u.label :birth_date, class: "form-label"
-          = u.date_field :birth_date, class: "form-control"
-        .form-group
-          = u.label :sex, class: "form-label"
-          = u.select :sex, User::SEX_LABELS.map { |v, t| [t, v] }, { include_blank: "—" }, class: "form-select"
+      = render "shared/datos_de_la_persona", u: u, cedula_escolar: true, ejemplo_nombre: "Álvaro José"
       .form-group
         -# Un alumno de primaria no tiene correo y no lo necesita: quien consulta
         -# sus notas es su representante (MOR-142). El campo se queda para el
         -# bachiller que sí tenga, pero dejarlo vacío es lo normal.
         = con_pista "Quien consulta las notas del alumno es su representante, así que dejarlo vacío es lo normal. Un bachiller que sí tenga correo puede entrar a ver las suyas." do
           = u.label :email, "Correo electrónico (opcional)", class: "form-label"
-        = u.email_field :email, class: "form-control", placeholder: "ejemplo@dominio.com"
+        = u.email_field :email, class: "form-control", pattern: "[^@\s]+@[^@\s]+\.[^@\s]+", data: { tooltip: "Escriba una dirección completa, con punto en el dominio: nombre@colegio.edu" }, placeholder: "ejemplo@dominio.com"
 
   .form-seccion
     %h2.form-seccion-titulo Datos del alumno

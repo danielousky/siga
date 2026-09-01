@@ -60,7 +60,12 @@ class FormulariosTest < ActionDispatch::IntegrationTest
     test "el alta de #{nombre} no repite ningún campo" do
       get send(ruta)
 
+      # ⚠️ Los RADIO quedan fuera: un grupo de opciones comparte el `name` por
+      # definición —así es como el navegador sabe que son excluyentes— y contarlo
+      # como duplicado marcaría cada grupo de botones como un error.
+      # Los `hidden` de Rails para los checkbox, por la misma razón.
       nombres = css_select("input[name], select[name], textarea[name]")
+                  .reject { |e| %w[radio hidden].include?(e["type"]) }
                   .map { |e| e["name"] }
                   .reject { |n| n.end_with?("[]") || n == "authenticity_token" || n == "_method" }
 

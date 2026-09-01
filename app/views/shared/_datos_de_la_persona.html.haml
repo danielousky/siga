@@ -1,0 +1,74 @@
+-# Los campos de una persona, en UN solo lugar (MOR-177).
+-#
+-#     = render "shared/datos_de_la_persona", u: u, cedula_escolar: true
+-#
+-# ## Por qué existe
+-#
+-# Estaban escritos SEIS veces —alumno, profesor, administrador, representante,
+-# el registro público y el alta desde el panel de SIGA— y cada copia se fue
+-# separando: una pedía el tipo de documento después de la cédula, otra antes;
+-# una tenía `placeholder` y otra no. Arreglar el filtrado de un campo eran seis
+-# ediciones y la garantía de olvidar una.
+-#
+-# ## ⚠️ Lo que se filtra AL ESCRIBIR, y por qué cada uno
+-#
+-#     nombres y apellidos   letras, acentos, Ñ y espacios · en MAYÚSCULA
+-#     cédula                solo dígitos — la nacionalidad va en el select
+-#     cédula escolar        alfanumérico: el formato lo fija el MPPE
+-#
+-# El servidor normaliza igual (`Normaliza.mayuscula`, `User.normalizar_documento`),
+-# así que las dos capas coinciden. Que coincidan es lo que evita que el campo
+-# muestre una cosa y se guarde otra.
+-#
+-# ⚠️ La cédula escolar NO se filtra como la de identidad: su formato lo define el
+-# MPPE y **los guiones son parte del dato** (ver `User.normalizar_cedula_escolar`).
+- letras = "A-Za-zÁÉÍÓÚÜÑáéíóúüñ "
+- filtro_de_nombre = { controller: "campo-filtrado", campo_filtrado_permite_value: letras, campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar" }
+
+.form-group
+  = u.label :first_name, class: "form-label"
+  = u.text_field :first_name, class: "form-control", placeholder: local_assigns[:ejemplo_nombre], data: filtro_de_nombre
+
+.form-row
+  .form-group
+    = u.label :last_name, class: "form-label"
+    = u.text_field :last_name, class: "form-control", data: filtro_de_nombre
+  .form-group
+    = u.label :second_last_name, class: "form-label"
+    = u.text_field :second_last_name, class: "form-control", data: filtro_de_nombre
+
+-# ⚠️ El TIPO va antes que el número, y es de Daniel: «tipo de documento va antes
+-# de la cédula». Es el orden en que se dice y se escribe una cédula venezolana
+-# —V-12345678— y además el tipo decide cómo se normaliza el número.
+.form-row
+  .form-group
+    = u.label :document_type, class: "form-label"
+    = u.select :document_type, User.tipos_de_documento_ofrecidos(u.object), { include_blank: "—" }, class: "form-select"
+  .form-group
+    = u.label :document, class: "form-label"
+    -# Solo dígitos: la nacionalidad ya está en el select de al lado, así que
+    -# escribir «V-» acá la duplicaría. Menos tecleo y menos error.
+    = u.text_field :document, class: "form-control", inputmode: "numeric", placeholder: "12345678", data: { controller: "campo-filtrado", campo_filtrado_permite_value: "0-9", action: "input->campo-filtrado#filtrar" }
+
+- if local_assigns[:cedula_escolar]
+  .form-group
+    = con_pista "La asigna el MPPE. Es la que se usa mientras el alumno no tenga cédula de identidad." do
+      = u.label :cedula_escolar, class: "form-label"
+    = u.text_field :cedula_escolar, class: "form-control", placeholder: "V20140000001", data: { controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9-", campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
+
+.form-row
+  .form-group
+    = u.label :birth_date, class: "form-label"
+    = u.date_field :birth_date, class: "form-control"
+
+  -# ⚠️ Botones, no un desplegable (Daniel: «sexo puede ser un radio con label
+  -# tipo botones»). Son DOS opciones: un `select` obliga a abrir, leer y elegir
+  -# —tres gestos— donde dos botones se ven y se tocan de una. En un teléfono la
+  -# diferencia es mayor todavía.
+  .form-group
+    %span.form-label= User.human_attribute_name(:sex)
+    .opciones-en-botones
+      - User::SEX_LABELS.each do |valor, etiqueta|
+        %label.opcion-boton
+          = u.radio_button :sex, valor
+          %span= etiqueta

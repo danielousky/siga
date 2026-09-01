@@ -4809,6 +4809,64 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
    —o no— al ver la fila guardada. */
 .campo-mayuscula { text-transform: uppercase; }
 
+/* Dos o tres opciones, como botones (MOR-177).
+   ──────────────────────────────────────────
+   Daniel: «sexo puede ser un radio con label tipo botones». Un `select` de dos
+   opciones obliga a abrir, leer y elegir —tres gestos— donde dos botones se ven
+   y se tocan de una. En un teléfono la diferencia es mayor todavía.
+
+   ⚠️ El `input[type=radio]` sigue EXISTIENDO, solo que no se ve: es lo que hace
+   que funcione el teclado, que el formulario se envíe solo y que un lector de
+   pantalla anuncie «opción 1 de 2». Reemplazarlo por `div`s con JavaScript sería
+   más corto de escribir y peor para quien no usa el ratón. */
+.opciones-en-botones {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.opcion-boton {
+  flex: 1;
+  min-width: 110px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-height: 36px;
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-input);
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.opcion-boton:hover { border-color: var(--border-emphasis); }
+
+/* El radio queda accesible al teclado pero fuera de la vista: el botón entero
+   ES el control. */
+.opcion-boton input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.opcion-boton:has(input:checked) {
+  background: var(--brand-subtle);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  font-weight: 600;
+}
+
+/* ⚠️ El foco se ve en el BOTÓN, no en el radio escondido. Sin esto, quien
+   navega con teclado no sabe dónde está parado. */
+.opcion-boton:has(input:focus-visible) {
+  outline: 2px solid var(--control-focus-border);
+  outline-offset: 2px;
+}
+
 /* Tooltip propio (MOR-173).
    ───────────────────────
    Daniel: «mira el tooltip, es de HTML puro. Revisalos todos». El `title` del

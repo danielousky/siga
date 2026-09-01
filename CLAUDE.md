@@ -193,6 +193,16 @@ y ahí escribir la URL en español ES la comprobación.
   DEBAJO por defecto (arriba se recorta contra el borde de la ventana);
   `data-tooltip-arriba` para las filas del final de una lista. Lo cuida
   `hoja_de_estilos_test`.
+- **Los campos de una persona viven en `shared/_datos_de_la_persona`** (`MOR-177`),
+  no repetidos en cada formulario: estaban escritos SEIS veces y cada copia se
+  fue separando.
+  `nombres/apellidos` letras+acentos+Ñ+espacio, en mayúscula, recortados al salir ·
+  `cédula` solo dígitos, con el TIPO delante (solo V y E) ·
+  `cédula escolar` alfanumérico **con guiones** — su formato lo fija el MPPE ·
+  `sexo` botones, no desplegable · las contraseñas con el ojo.
+  ⚠️ El enum de `document_type` **no** se recortó: `User.tipos_de_documento_ofrecidos`
+  agrega el suyo a quien ya tenga pasaporte, o editar su ficha se lo cambiaría en
+  silencio.
 - **Un campo con formato se filtra AL ESCRIBIR**, no solo al enviar: el controlador
   `campo-filtrado` (`data-campo-filtrado-permite-value="A-Za-z0-9"`) borra lo que no
   corresponde mientras se teclea. ⚠️ `pattern` **no** alcanza: es validación del

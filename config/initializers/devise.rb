@@ -194,7 +194,16 @@ Devise.setup do |config|
   # Email regex used to validate email formats. It simply asserts that
   # one (and only one) @ exists in the given string. This is mainly
   # to give user feedback and not to assert the e-mail validity.
-  config.email_regexp = /\A[^@\s]+@[^@\s]+\z/
+  # ⚠️ El dominio necesita un PUNTO (MOR-177).
+  #
+  # El de Devise —`/\A[^@\s]+@[^@\s]+\z/`— acepta «maria@gmail», que no es una
+  # dirección: el correo de activación sale, rebota, y el colegio se entera
+  # cuando la mamá llama diciendo que no le llegó nada. Un punto en el dominio no
+  # garantiza que exista, pero descarta el error de tipeo más común.
+  #
+  # No se aprieta más: las reglas reales de un correo son barrocas y una
+  # expresión estricta rechaza direcciones válidas, que es peor.
+  config.email_regexp = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/
 
   # ==> Configuration for :timeoutable
   # The time you want to timeout the user session without activity. After this

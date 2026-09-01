@@ -4,30 +4,7 @@
   .form-seccion
     %h2.form-seccion-titulo Datos de la persona
     = f.fields_for :user do |u|
-      .form-group
-        = u.label :first_name, class: "form-label"
-        = u.text_field :first_name, class: "form-control"
-      .form-row
-        .form-group
-          = u.label :last_name, class: "form-label"
-          = u.text_field :last_name, class: "form-control"
-        .form-group
-          = u.label :second_last_name, class: "form-label"
-          = u.text_field :second_last_name, class: "form-control"
-      .form-row
-        .form-group
-          = u.label :document, class: "form-label"
-          = u.text_field :document, class: "form-control"
-        .form-group
-          = u.label :document_type, class: "form-label"
-          = u.select :document_type, User::DOCUMENT_TYPE_LABELS.map { |v, t| [t, v] }, { include_blank: "—" }, class: "form-select"
-      .form-row
-        .form-group
-          = u.label :birth_date, class: "form-label"
-          = u.date_field :birth_date, class: "form-control"
-        .form-group
-          = u.label :sex, class: "form-label"
-          = u.select :sex, User::SEX_LABELS.map { |v, t| [t, v] }, { include_blank: "—" }, class: "form-select"
+      = render "shared/datos_de_la_persona", u: u
 
   .form-seccion
     %h2.form-seccion-titulo Cómo entra al sistema
@@ -35,19 +12,19 @@
       .form-group
         = con_pista "Esta persona entra al sistema con este correo, y es por donde recupera su contraseña si la olvida." do
           = u.label :email, class: "form-label"
-        = u.email_field :email, class: "form-control", required: true
+        = u.email_field :email, class: "form-control", pattern: "[^@\s]+@[^@\s]+\.[^@\s]+", data: { tooltip: "Escriba una dirección completa, con punto en el dominio: nombre@colegio.edu" }, required: true
       - if admin.new_record?
         -# `required` porque desde `MOR-142` el modelo ya no la exige: una persona
         -# puede existir sin credenciales. Para el personal del colegio eso todavía
         -# no tiene salida —el código de activación existe para representantes y
         -# para el primer director de un colegio, no acá— así que dejarla en blanco
         -# crearía un profesor que no puede entrar y nadie se enteraría.
-        .form-group
-          = u.label :password, class: "form-label"
-          = u.password_field :password, class: "form-control", required: true
-        .form-group
-          = u.label :password_confirmation, class: "form-label"
-          = u.password_field :password_confirmation, class: "form-control", required: true
+        -# Con el ojo, y las dos. Quien carga la clave de un profesor no la va a
+        -# volver a ver: si se equivoca al tipear y la confirmación coincide con
+        -# el error, el profesor no entra y nadie sabe por qué.
+        = render "shared/campo_de_contrasena", f: u, campo: :password, required: true
+        = render "shared/campo_de_contrasena", f: u, campo: :password_confirmation,
+                 etiqueta: User.human_attribute_name(:password_confirmation), required: true
 
   .form-seccion
     %h2.form-seccion-titulo Su rol en el colegio
