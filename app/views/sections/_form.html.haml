@@ -1,16 +1,37 @@
 = form_with(model: section) do |f|
   = render "shared/errors", object: section
 
-  .form-group
-    = f.label :name, class: "form-label"
-    = f.text_field :name, class: "form-control"
+  -# Grado e identificador van juntos porque juntos NOMBRAN la sección: «1er Año
+  -# A» se lee de un tirón, y llenarlos en dos renglones separados obliga a
+  -# armar el nombre en la cabeza.
+  .form-row
+    .form-group
+      -# ⚠️ Agrupados por nivel y en el orden de la ley. `Grade.all` los devolvía
+      -# en el orden en que se crearon y sin separación: catorce renglones
+      -# seguidos donde «1er Nivel», «1er Grado» y «1er Año» se confunden.
+      = f.label :grade_id, class: "form-label"
+      = f.select :grade_id, grouped_options_for_select(grados_por_nivel, f.object.grade_id), { include_blank: "Seleccione…" }, class: "form-select"
 
-  .form-group
-    = f.label :grade_id, class: "form-label"
-    -# ⚠️ Agrupados por nivel y en el orden de la ley. `Grade.all` los devolvía
-    -# en el orden en que se crearon y sin separación: catorce renglones
-    -# seguidos donde «1er Nivel», «1er Grado» y «1er Año» se confunden.
-    = f.select :grade_id, grouped_options_for_select(grados_por_nivel, f.object.grade_id), { include_blank: "Seleccione…" }, class: "form-select"
+    -# ⚠️ Un `datalist`, no un `select` (MOR-170).
+    -#
+    -# Daniel: «si ya hay secciones debería hacerlas seleccionables… con el
+    -# tiempo es probable que haga su universo de 4 o 5 valores fijos. Además se
+    -# siente como que el sistema está autoaprendiendo».
+    -#
+    -# Un `select` cerrado sería más simple y estaría MAL: el colegio que abre su
+    -# primera sección «D» no podría. El `datalist` ofrece lo que ya usa y deja
+    -# escribir lo que no — que es exactamente «aprende sin encerrar».
+    - usados = Section.identificadores_usados
+    .form-group
+      = f.label :name, class: "form-label"
+      = f.text_field :name, class: "form-control", list: "identificadores-usados", maxlength: 8, autocapitalize: "characters", placeholder: (usados.first || "A")
+      - if usados.any?
+        %datalist#identificadores-usados
+          - usados.each do |identificador|
+            %option{ value: identificador }
+        %p.nota-ayuda
+          = "Este colegio ya usa #{usados.to_sentence}."
+          Escriba otro si abre una sección nueva.
 
   -# ⚠️ El año escolar de una sección NO se pregunta y NO se edita (MOR-165).
   -#

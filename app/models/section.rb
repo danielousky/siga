@@ -25,7 +25,40 @@ class Section < ApplicationRecord
   has_many :teacher_sections, dependent: :destroy
   has_many :teachers, through: :teacher_sections
 
-  validates :name, presence: true, uniqueness: { scope: [:grade_id, :academic_period_id] }
+  # ⚠️ El identificador es CORTO y alfanumérico: «A», «B», «U1» (MOR-170).
+  #
+  # Sin el formato, «A », « A» y «Sección A» son tres secciones distintas para el
+  # índice único, y el colegio termina con duplicados que solo se ven al mirar
+  # dos filas seguidas. Y peor: el identificador sale impreso en el boletín y en
+  # los documentos del MPPE, donde un espacio de más se nota.
+  #
+  # No es una lista cerrada a propósito: un colegio puede usar «U1» o «Rojo». Lo
+  # que se prohíbe es el texto libre con espacios y símbolos.
+  validates :name, presence: true,
+                   uniqueness: { scope: [ :grade_id, :academic_period_id ] },
+                   format: { with: /\A[[:alnum:]]+\z/,
+                             message: "solo admite letras y números, sin espacios ni símbolos" },
+                   length: { maximum: 8 }
+
+  # En MAYÚSCULA, y no es cosmético: «a» y «A» son dos filas distintas para el
+  # índice único, así que sin esto el mismo colegio puede crear la sección A dos
+  # veces y descubrirlo cuando la matrícula quede partida.
+  def name=(valor)
+    super(valor.is_a?(String) ? valor.strip.upcase : valor)
+  end
+
+  # Los identificadores que este colegio YA usa, del más usado al menos.
+  #
+  # Daniel: «con el tiempo es probable que haga su universo de 4 o 5 valores
+  # fijos. Además se siente para el usuario como que el sistema está
+  # autoaprendiendo». Se ofrecen como sugerencia —`datalist`— y no como lista
+  # cerrada: el colegio que abre una sección «D» por primera vez tiene que poder.
+  #
+  # ⚠️ Sin `del_anio_de_la_sesion`: el vocabulario es del COLEGIO, no del año.
+  # Un año nuevo empieza sin secciones y ahí es justamente cuando más sirve.
+  def self.identificadores_usados
+    group(:name).order(Arel.sql("count(*) DESC"), :name).pluck(:name)
+  end
   validates :capacity, presence: true, numericality: { greater_than: 0 }
 
   # La letra que le toca a la próxima sección de este grado (MOR-153).

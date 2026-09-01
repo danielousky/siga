@@ -103,6 +103,14 @@ no puede entrar hasta que el colegio se lo cargue.
   el MPPE) y `cedula_escolar` aparte — no es "otro tipo de documento", es lo que se usa
   **mientras no hay** documento, y NO se borra cuando llega. Nombre partido en `first_name` /
   `last_name` / `second_last_name`, porque el SAIME verifica el PRIMER apellido.
+- **El identificador de una sección** (`MOR-170`) es corto y alfanumérico —«A»,
+  «B», «U1»— y se guarda en MAYÚSCULA. No es una lista cerrada: un colegio puede
+  usar «U1» o «2». Lo que se prohíbe es el texto libre. ⚠️ La normalización es lo
+  que impide la sección duplicada: «a» y «A» pasan las dos el formato, pero para
+  el índice único son dos filas, y el colegio descubre que tiene dos secciones A
+  cuando la matrícula le queda partida. El formulario **sugiere los que el
+  colegio ya usa** (`Section.identificadores_usados`, un `datalist` y no un
+  `select`): el que abre su primera sección «D» tiene que poder escribirla.
 - **Paginación**: Pagy. **Auditoría**: concern `Auditable` + modelo `ActivityLog`.
 - **Multi-tenancy**: `Current.school` + concern `SchoolScoped` (app) + RLS con `FORCE` (base).
   La app se conecta como **`siga_app`**, un rol sin `SUPERUSER` ni `BYPASSRLS` — con cualquiera de

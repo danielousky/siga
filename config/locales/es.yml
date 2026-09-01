@@ -155,6 +155,12 @@ es:
       enrollment:
         enrollment_date: Fecha de inscripción
         status: Estado
+      # ⚠️ «Identificador» y no «Nombre» (MOR-170). Daniel: «lo natural es que
+      # siempre sean los mismos... esto además permite que se entienda como un
+      # campo no demasiado libre». Una sección se llama «A», no «Sección A de
+      # primer año en el turno de la mañana», y el rótulo es lo que lo dice.
+      section:
+        name: Identificador
 
   # Fallback global: atributos que significan lo mismo en todos los modelos.
   # Va DENTRO de `es:` y FUERA de `activerecord:` — Rails lo busca como
