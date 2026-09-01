@@ -28,7 +28,7 @@ class Dashboards::NotasControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "Examen", response.body
     assert_match "60 %", response.body
-    assert_match "MATEMÁTICA", response.body
+    assert_match "Matemática", response.body
   end
 
   # ══════════════════════════════════════════════════════════════════════════

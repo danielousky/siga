@@ -52,11 +52,41 @@ class Subject < ApplicationRecord
   # junta espacios dobles y sube a mayúscula.
   before_validation :normalizar
 
+  # ⚠️ Se GUARDA en mayúscula y se MUESTRA en Tipo Título (MOR-188).
+  #
+  # Es la misma regla que el nombre de una persona, y por la misma razón: la
+  # mayúscula es la forma canónica —así vienen las planillas del MPPE y así
+  # compara el índice único— pero «MATEMÁTICA» en la pantalla de una madre grita.
+  #
+  # Daniel, fijando la regla: *«Tipo Título en pantalla y docs, mayúscula en la
+  # base. Lo que quiero es evitar que se vuelva un arrozConMango y terminen unas
+  # en minúsculas, otras Mayúsculas y otras títulos. Creéme, pasa»*.
+  #
+  # ⚠️ Va en el GETTER y no en cuarenta y ocho vistas.
+  #
+  # Contar los sitios donde se muestra el nombre de una materia da 48: listados,
+  # planillas, el boletín, la certificación 31059, el panel del profesor, el del
+  # alumno. Editarlos uno por uno es precisamente cómo se produce el arroz con
+  # mango — basta olvidar dos y ya hay tres estilos conviviendo.
+  #
+  # Acá, el que consulte `subject.name` recibe la forma de leer. Quien necesite
+  # la canónica —comparar, normalizar, indexar— pide `name_canonico`.
+  def name
+    Normaliza.titulo(super)
+  end
+
+  # El valor tal como vive en la base: MAYÚSCULA. Lo usa la normalización y
+  # cualquier comparación que tenga que coincidir con el índice único.
+  def name_canonico = self[:name]
+
   private
 
   def normalizar
     self.code = code.to_s.gsub(/[^[:alnum:]]/, "").upcase.presence
-    self.name = Normaliza.mayuscula(name)
+    # ⚠️ `self[:name]` y no `name`: el getter ya devuelve Tipo Título, y pasarle
+    # eso a `mayuscula` funcionaría de casualidad. Lo que se normaliza es lo que
+    # llegó del formulario, no lo que el getter decide mostrar.
+    self[:name] = Normaliza.mayuscula(self[:name])
   end
 
   public

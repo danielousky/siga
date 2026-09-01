@@ -58,11 +58,11 @@ class ReportCardsControllerTest < ActionDispatch::IntegrationTest
     }
 
     boletin = Current.sin_aislamiento { ReportCard.unscoped.order(:id).last }
-    matematica = boletin.snapshot["materias"].find { |m| m["materia"] == "MATEMÁTICA" }
+    matematica = boletin.snapshot["materias"].find { |m| m["materia"] == "Matemática" }
 
     assert_equal 18, matematica["nota"]
     assert_equal 18, boletin.snapshot["promedio"]
-    assert_equal "MATEMÁTICA", matematica["materia"]
+    assert_equal "Matemática", matematica["materia"]
   end
 
   test "una materia sin nota se archiva como nil, NUNCA como cero" do
@@ -73,7 +73,7 @@ class ReportCardsControllerTest < ActionDispatch::IntegrationTest
     }
 
     boletin = Current.sin_aislamiento { ReportCard.unscoped.order(:id).last }
-    matematica = boletin.snapshot["materias"].find { |m| m["materia"] == "MATEMÁTICA" }
+    matematica = boletin.snapshot["materias"].find { |m| m["materia"] == "Matemática" }
 
     assert_nil matematica["nota"], "un cero acá es una reclamación en la dirección"
     assert_nil boletin.snapshot["promedio"]
@@ -109,7 +109,7 @@ class ReportCardsControllerTest < ActionDispatch::IntegrationTest
       ActivityGrade.find_by(evaluation_activity: @examen, student_id: @esc.alumno(1).id).update!(score: 5)
     end
 
-    matematica = Current.sin_aislamiento { boletin.reload }.snapshot["materias"].find { |m| m["materia"] == "MATEMÁTICA" }
+    matematica = Current.sin_aislamiento { boletin.reload }.snapshot["materias"].find { |m| m["materia"] == "Matemática" }
     assert_equal 18, matematica["nota"], "el papel que la familia se llevó decía 18"
   end
 

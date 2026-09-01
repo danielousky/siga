@@ -174,7 +174,12 @@ class ReportCardData
               .group(:subject_id)
               .pluck(Arel.sql("subject_id, AVG(final_moment_score), COUNT(*)"))
 
-    nombres = Subject.where(id: filas.map(&:first)).pluck(:id, :name).to_h
+    # ⚠️ `pluck(:name)` NO pasa por `Subject#name` — lee la columna, que está en
+    # MAYÚSCULA. Y acá el nombre no es adorno: es la CLAVE con la que se cruza
+    # contra el snapshot del boletín, que guarda la forma de mostrar. Con el
+    # pluck crudo, «MATEMÁTICA» no encuentra a «Matemática», la comparación con
+    # la sección sale vacía y el boletín pierde la columna entera **en silencio**.
+    nombres = Subject.where(id: filas.map(&:first)).select(:id, :name).to_h { |m| [ m.id, m.name ] }
 
     filas.each_with_object({}) do |(subject_id, media, cuantos), acc|
       next if cuantos < 2
