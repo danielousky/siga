@@ -1,4 +1,15 @@
 class School < ApplicationRecord
+  # ⚠️ Cuántas materias aplazadas puede arrastrar un alumno (MOR-169).
+  #
+  # La referencia venezolana son DOS, y en el último año ninguna —no se egresa
+  # debiendo—. Pero los mecanismos los fijan circulares del MPPE que cambian, y
+  # en primaria la norma es menos clara. Se propone 2 y el colegio lo corrige.
+  #
+  # Cero es válido y significa «aplazó una, repite». Seis es el tope de arriba
+  # porque más que eso no es arrastrar: es no evaluar.
+  validates :tope_de_arrastre,
+            numericality: { only_integer: true, greater_than_or_equal_to: 0, less_than_or_equal_to: 6 }
+
   # ⚠️ Lo público va ACÁ ARRIBA. Este modelo tiene un `private` temprano —antes
   # incluso de los `enum`— y cualquier método que caiga después queda privado sin
   # que nada avise hasta que una vista lo llama. Pasó tres veces en un mismo día.

@@ -4657,6 +4657,32 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 /* ⚠️ Las dos son DATOS —con qué nota cierra un alumno— así que el color aplica
    tal cual: verde el que aprobó, rojo el que sigue aplazado. */
 .carga-definitiva.aprobada { color: var(--success-text); }
+
+/* El resumen de la promoción (MOR-169): cuántos pasan, repiten y egresan.
+   ⚠️ Los números son DATOS —cuántos niños hay en cada situación— así que la
+   regla de color aplica: rojo el que repite, neutro el resto. «Egresa» no es
+   una alerta: es un muchacho que terminó. */
+.promocion-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+  margin: var(--space-lg) 0;
+}
+
+.promocion-cifra {
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
+.promocion-cifra strong {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  margin-right: var(--space-micro);
+}
+
+.promocion-cifra--repite strong    { color: var(--danger-text); }
+.promocion-cifra--sin_datos strong { color: var(--warning-text); }
 .carga-definitiva.bajo     { color: var(--danger-text); }
 
 /* ── la asistencia ────────────────────────────────────────────────────────

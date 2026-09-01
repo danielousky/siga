@@ -727,5 +727,56 @@ inglés y en español **acierta por casualidad** en las palabras terminadas en
 vocal. `ApplicationHelper#contar` y `#pluralizar` llevan las dos formas escritas,
 y `test/integration/plural_en_espanol_test.rb` impide que el atajo vuelva.
 
+### 10. Promover alumnos al año siguiente (`MOR-169`)
+
+Es la otra mitad de septiembre. `CopiarLaEstructura` arma el año nuevo y lo deja
+vacío; esto lo llena.
+
+```
+   1. Crear el año escolar     →  nace con sus tres lapsos       (MOR-163)
+   2. Copiar la estructura     →  secciones + quién dicta qué    (MOR-166)
+   3. Promover a los alumnos   →  los inscribe en esas secciones (MOR-169)
+```
+
+Las cinco situaciones, y **ninguna se guarda: se deducen de las notas**:
+
+```
+   PROMUEVE   aprobó todo, o arrastra dentro del tope    → el grado siguiente
+   REPITE     arrastra más que el tope                   → el mismo grado
+   EGRESA     el grado siguiente no lo dicta el colegio  → no se inscribe
+   SIN DATOS  no tiene notas definitivas cargadas        → lo decide el director
+   RETIRADO   su inscripción no es `regular`             → no se toca
+```
+
+⚠️ **SIN DATOS es el caso NORMAL de un cliente nuevo**, no un error. Un colegio
+en su primer año con SIGA tiene las notas del año anterior en su sistema viejo o
+en papel. Si la pantalla asumiera que siempre hay notas, no serviría en el único
+momento en que hace falta. Por eso existe «Pasar a todos al siguiente grado»: el
+director asume la decisión y queda registrada como suya.
+
+⚠️ **El tope de arrastre es del COLEGIO** (`schools.tope_de_arrastre`, por
+defecto **2**). La referencia venezolana son dos materias pendientes y en el
+último año ninguna, pero los mecanismos los fijan circulares del MPPE que
+cambian y en primaria la norma es menos clara. Decisión de Daniel: SIGA propone
+el número correcto y el colegio lo corrige sin esperar un despliegue. El valor
+por defecto es 2 y **no cero**: sin default, los colegios que ya existían habrían
+mandado a repetir a todo el que aplazó una materia.
+
+⚠️ **El grado siguiente sale del catálogo, sin casos especiales.**
+`GradoOficial::CATALOGO` tiene los quince en orden, así que «6to Grado» va a «1er
+Año» porque están uno detrás del otro. Y **egresar es simplemente que ese grado
+no está entre los del colegio**: uno de solo primaria egresa en 6to Grado sin
+configurar nada.
+
+⚠️ **Nada se escribe sin confirmar**, como en el importador: se muestra la cuenta
+—«181 pasan, 18 repiten, 1 egresa»— y el director acepta. Promover a trescientos
+sesenta alumnos al grado equivocado no se deshace con un botón. Y es idempotente:
+correrlo dos veces no duplica inscripciones.
+
+⚠️ **La auditoría guarda UN hecho, no trescientas inscripciones**
+(`alumnos_promovidos`). En la pantalla que contesta «¿por qué mi hijo quedó en
+2do Año B?», lo que hay que ver es quién corrió la promoción, desde qué año y con
+qué criterio.
+
 Backlog completo en `BACKLOG.md`. Diagrama del modelo actual y objetivo:
 https://claude.ai/code/artifact/0e167ba9-8e21-4264-ac29-f7a2d9fe5523

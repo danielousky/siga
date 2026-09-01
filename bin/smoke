@@ -164,6 +164,7 @@ if login "director.bolivar@siga.edu" "123123" "$JAR"; then
     | grep -o '/academic_periods/[0-9]*/copiar' | head -1)"
   if [ -n "$ANIO" ]; then
     check "copiar estructura"  "$ANIO"                    200 "$JAR"
+    check "promover alumnos"   "${ANIO%/copiar}/promover"  200 "$JAR"
   else
     printf '  · %-42s (todos los años ya tienen secciones)\n' "copiar estructura"
   fi

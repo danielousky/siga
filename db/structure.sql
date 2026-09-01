@@ -855,7 +855,8 @@ CREATE TABLE public.schools (
     cdcee character varying,
     parroquia character varying,
     pasos_omitidos jsonb DEFAULT '[]'::jsonb NOT NULL,
-    registrado_por_id bigint
+    registrado_por_id bigint,
+    tope_de_arrastre integer DEFAULT 2 NOT NULL
 );
 
 
@@ -4051,6 +4052,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260901164939'),
 ('20260901054732'),
 ('20260831210000'),
 ('20260831180000'),

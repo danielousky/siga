@@ -48,7 +48,10 @@ class CopiasDelAnioController < ApplicationController
                "#{resultado.asignaciones} asignaciones de profesor"
     )
 
-    redirect_to sections_path, notice: resumen(resultado, origen)
+    # ⚠️ Va a PROMOVER, no a las secciones. Copiar la estructura deja el año
+    # nuevo armado y VACÍO; el paso que sigue es llenarlo, y mandarlo al listado
+    # de secciones lo deja teniendo que buscar dónde continuar.
+    redirect_to promover_al_academic_period_path(@destino), notice: resumen(resultado, origen)
   end
 
   private

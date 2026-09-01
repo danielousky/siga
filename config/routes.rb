@@ -300,6 +300,11 @@ Rails.application.routes.draw do
     member do
       get  "copiar", to: "copias_del_anio#new",    as: :copiar_al
       post "copiar", to: "copias_del_anio#create", as: :hacer_copia_al
+
+      # Promover a los alumnos al año siguiente (MOR-169). Es la otra mitad de
+      # septiembre: `copiar` arma el año nuevo y `promover` lo llena.
+      get  "promover", to: "promociones#new",    as: :promover_al
+      post "promover", to: "promociones#create", as: :hacer_promocion_al
     end
   end
   resources :sections, path: "secciones" do

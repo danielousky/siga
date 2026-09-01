@@ -50,6 +50,10 @@ class ActivityLog < ApplicationRecord
     # la nota a mi hijo?», una reparación y una nota de lapso son dos hechos
     # distintos —la reparación puede cambiar el año entero de un alumno—.
     "reparacion_registrada" => "Reparación cargada",
+    # ⚠️ UN hecho, no trescientas inscripciones (MOR-169). En la pantalla que
+    # contesta «¿por qué mi hijo quedó en 2do Año B?», lo que hay que poder ver
+    # es quién corrió la promoción, desde qué año y con qué criterio.
+    "alumnos_promovidos"    => "Alumnos promovidos de año",
     "certificacion_emitida" => "Certificación de calificaciones emitida",
     "documento_de_primaria_emitido" => "Documento de primaria emitido",
     "pensum_importada"     => "Materias y profesores importados",

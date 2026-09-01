@@ -2,7 +2,7 @@
 
 ## Sesión del 1 de septiembre — QA de Daniel y la clonación
 
-`bin/ci` en verde, **957 tests**. Todo desplegado.
+`bin/ci` en verde, **992 tests**. Todo desplegado.
 
 ### Del QA de Daniel
 
@@ -34,6 +34,35 @@ familia. Hoy no se notaba porque cada colegio tiene un año escolar.
 Arreglados los tres —alumno, profesor, representante— más las fichas de profesor
 y de materia. `Enrollment.recientes_primero` ordena por el año, no por la fecha
 del trámite.
+
+### La reparación y la promoción (`MOR-168`, `MOR-169`)
+
+**El Art. 112 se podía leer pero no escribir.** Daniel: *«por ningún lado vi
+dónde el profesor coloca la reparación»*. No la vio porque no existía:
+`remedial_exam_score` se leía en el boletín, la certificación y el cálculo, y
+solo se escribía desde el importador de historial. Ahora está `/reparaciones`,
+que reusa entero el `carga-notas` y muestra la definitiva en vivo.
+
+**Y la promoción**, que es la otra mitad de septiembre. Verificado sobre los
+seeds: 200 alumnos evaluados en 55 ms, 1er Año A → 2do Año A.
+
+⚠️ **Lo que hay que recordar de estas dos:**
+
+- `debe_reparar?` (promedio ANUAL) **no** es `aplazado?` (la definitiva).
+  Confundirlos hacía desaparecer al alumno de la planilla apenas se le cargaba
+  una reparación aprobatoria: un tipeo quedaba imposible de corregir.
+- La regla del 112 vive en `FinalGradeBook`, no en `GradeCalculator`: un libro
+  **importado** no pasa por el calculador, y es el caso normal de un colegio que
+  trae su historial y después repara.
+- **SIN DATOS es lo normal en un cliente nuevo**, no un error. Las notas del año
+  anterior están en el sistema viejo.
+- En Haml, un comentario **entre** `if` y `elsif` —o entre dos `when`— rompe el
+  bloque. Va adentro de la rama. Costó dos veces la misma noche.
+
+**Abierto:** dónde se registra la nota de una materia pendiente cuando el alumno
+finalmente la aprueba. La Circular 0007 dice que se inscribe *«en el grado
+anterior con la asignatura pendiente»*, o sea que la nota va al año en que la
+aplazó — pero Daniel lo está investigando por su lado antes de cerrarlo.
 
 ### Barrido sistemático de la noche
 

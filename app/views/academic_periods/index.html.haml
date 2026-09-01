@@ -30,7 +30,15 @@
             -# donde el director está parado cuando acaba de crear el año.
             - cuantas = Section.where(academic_period_id: period.id).count
             %td
-              - if cuantas.positive?
-                = contar(cuantas, "sección", "secciones")
-              - else
+              - if cuantas.zero?
                 = link_to "Copiar de otro año", copiar_al_academic_period_path(period)
+              - else
+                = contar(cuantas, "sección", "secciones")
+                -# Con secciones y sin alumnos, lo que falta es promover: es el
+                -# paso 3 de septiembre y el que deja el año listo para trabajar.
+                - inscritos = Enrollment.where(section: Section.where(academic_period_id: period.id)).count
+                - if inscritos.zero?
+                  %br
+                  = link_to "Promover alumnos", promover_al_academic_period_path(period)
+                - else
+                  %span.dato-secundario= "· #{contar(inscritos, 'alumno', 'alumnos')}"

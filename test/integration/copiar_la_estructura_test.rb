@@ -166,7 +166,10 @@ class CopiarLaEstructuraTest < ActionDispatch::IntegrationTest
 
     post hacer_copia_al_academic_period_path(@nuevo), params: { origen_id: @a.periodo.id }
 
-    assert_redirected_to sections_path
+    # ⚠️ Al paso SIGUIENTE, no al listado de secciones (MOR-169): copiar deja el
+    # año nuevo armado y VACÍO, y lo que falta es llenarlo. Mandarlo a las
+    # secciones lo dejaba teniendo que buscar dónde continuar.
+    assert_redirected_to promover_al_academic_period_path(@nuevo)
     assert_match(/Copiado de #{@a.periodo.name}/, flash[:notice])
     assert_match(/1 sección nueva/, flash[:notice])
     assert_match(/1 asignación de profesor/, flash[:notice])
