@@ -4809,6 +4809,51 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
    —o no— al ver la fila guardada. */
 .campo-mayuscula { text-transform: uppercase; }
 
+/* Dos controles que son UN campo (MOR-178).
+   ───────────────────────────────────────
+   Una cédula venezolana es «V-12345678»: una sola cosa que se dice de un tirón.
+   Partirla en dos cajas separadas la presentaba como dos decisiones.
+
+   El select se pega al input —sin borde entre ellos, esquinas redondeadas solo
+   por fuera— y el conjunto se ilumina junto al recibir el foco. */
+.campo-compuesto {
+  display: flex;
+  align-items: stretch;
+}
+
+.campo-compuesto-sigla {
+  flex: 0 0 auto;
+  width: 4.5rem;
+  padding: var(--space-xs) var(--space-xs);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--surface-hover);
+  border: 1px solid var(--control-border);
+  border-right: 0;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  cursor: pointer;
+}
+
+.campo-compuesto .form-control {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  min-width: 0;
+}
+
+/* ⚠️ El foco se marca en TODO el grupo, no en la mitad que se tocó: si solo se
+   iluminara el input, el conjunto se leería otra vez como dos campos. */
+.campo-compuesto:focus-within {
+  outline: 2px solid var(--control-focus-border);
+  outline-offset: 1px;
+  border-radius: var(--radius-sm);
+}
+
+.campo-compuesto:focus-within .campo-compuesto-sigla,
+.campo-compuesto:focus-within .form-control {
+  outline: none;
+}
+
 /* Dos o tres opciones, como botones (MOR-177).
    ──────────────────────────────────────────
    Daniel: «sexo puede ser un radio con label tipo botones». Un `select` de dos

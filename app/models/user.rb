@@ -32,8 +32,16 @@ class User < ApplicationRecord
     actual = persona&.document_type
     ofrecidos << actual if actual.present? && ofrecidos.exclude?(actual)
 
-    ofrecidos.map { |tipo| [ DOCUMENT_TYPE_LABELS[tipo], tipo ] }
+    ofrecidos.map { |tipo| [ SIGLA_DE_DOCUMENTO.fetch(tipo, DOCUMENT_TYPE_LABELS[tipo]), tipo ] }
   end
+
+  # ⚠️ En el formulario el tipo va PEGADO al número, como una cédula escrita:
+  # «V | 12345678». Ahí «Cédula de identidad (V)» no cabe ni hace falta — Daniel:
+  # «con colocar la V y la E se entiende».
+  #
+  # Los raros conservan su nombre completo: aparecen una vez cada mil altas y
+  # ahí sí hay que poder leer cuál es.
+  SIGLA_DE_DOCUMENTO = { "cedula_v" => "V", "cedula_e" => "E" }.freeze
 
   enum :sex, { female: 0, male: 1 }
 

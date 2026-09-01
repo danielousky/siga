@@ -8,27 +8,18 @@
 
   .form-seccion
     %h2.form-seccion-titulo Quién es
-    .form-row
-      .form-group
-        = label_tag "user[first_name]", "Nombres", class: "form-label"
-        = text_field_tag "user[first_name]", usuario.first_name, class: "form-control"
-      .form-group
-        = label_tag "user[last_name]", "Primer apellido", class: "form-label"
-        = text_field_tag "user[last_name]", usuario.last_name, class: "form-control"
-      .form-group
-        = label_tag "user[second_last_name]", "Segundo apellido", class: "form-label"
-        = text_field_tag "user[second_last_name]", usuario.second_last_name, class: "form-control"
-
-    .form-row
-      .form-group
-        = label_tag "user[document]", "Cédula de identidad", class: "form-label"
-        = text_field_tag "user[document]", usuario.document, class: "form-control", placeholder: "V-12345678"
-      .form-group
-        = label_tag "user[document_type]", "Tipo de documento", class: "form-label"
-        = select_tag "user[document_type]", options_for_select(User::DOCUMENT_TYPE_LABELS.map { |v, t| [t, v] }, usuario.document_type), include_blank: "—", class: "form-select"
-      .form-group
-        = label_tag "user[cedula_escolar]", "Cédula escolar", class: "form-label"
-        = text_field_tag "user[cedula_escolar]", usuario.cedula_escolar, class: "form-control", placeholder: "V20140000001"
+    -# ⚠️ `fields_for :user` y no `*_tag` a mano (MOR-178).
+    -#
+    -# Este formulario se había quedado FUERA del parcial compartido —era el
+    -# único que armaba los campos con `text_field_tag`— y se notaba: pedía la
+    -# cédula antes que su tipo, ofrecía los cuatro tipos de documento y no
+    -# filtraba nada al escribir. Exactamente lo que MOR-177 vino a unificar.
+    -#
+    -# `form_with url:` no tiene modelo, así que el constructor no lleva prefijo
+    -# y `fields_for :user, usuario` emite `user[...]` — los mismos nombres que
+    -# esperaba `params.require(:user)`. Nada cambia del lado del controller.
+    = fields_for :user, usuario do |u|
+      = render "shared/datos_de_la_persona", u: u, cedula_escolar: true
 
     -# Se queda visible: no explica un campo, explica qué va a pasar al guardar.
     -# Quien no lo lea puede creer que está creando un duplicado.

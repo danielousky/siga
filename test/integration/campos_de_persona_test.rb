@@ -16,8 +16,13 @@ require "test_helper"
 # deja de usar el parcial, sus campos dejan de estar filtrados y nadie se entera
 # hasta que llegue una cédula con letras.
 class CamposDePersonaTest < ActionDispatch::IntegrationTest
+  # ⚠️ El representante está en la lista, y no estaba: era el único que armaba
+  # sus campos con `text_field_tag` a mano, así que se quedó fuera del parcial y
+  # se notó en pantalla —pedía la cédula antes que su tipo, ofrecía los cuatro
+  # tipos y no filtraba nada—. Lo vio Daniel.
   ALTAS = { "profesor" => :new_teacher_path, "alumno" => :new_student_path,
-            "administrador" => :new_admin_path }.freeze
+            "administrador" => :new_admin_path,
+            "representante" => :new_representative_path }.freeze
 
   setup do
     @a, _b = dos_colegios_completos
@@ -107,6 +112,28 @@ class CamposDePersonaTest < ActionDispatch::IntegrationTest
 
     opciones = css_select("select[name*='[document_type]'] option").map { |o| o["value"] }.compact_blank
     assert_equal %w[cedula_v cedula_e], opciones
+  end
+
+  # Daniel: «no hace falta colocarlo completo Cédula de Identidad; con colocar la
+  # V y la E se entiende». Pegado al número, «Cédula de identidad (V)» no cabe ni
+  # hace falta.
+  test "el select dice solo la sigla" do
+    get new_teacher_path
+
+    assert_equal %w[V E], css_select("select[name*='[document_type]'] option").map { |o| o.text.strip }
+  end
+
+  # ⚠️ UN campo, no dos: una cédula venezolana es «V-12345678», una sola cosa.
+  test "el tipo y el número son un solo campo, con un solo rótulo" do
+    sueltos = ALTAS.filter_map do |quien, ruta|
+      get send(ruta)
+      next "#{quien}: no están juntos" if css_select(".campo-compuesto select[name*='[document_type]']").empty?
+      next if css_select("label[for*='document_type']").empty?
+
+      "#{quien}: el tipo todavía tiene su propio rótulo"
+    end
+
+    assert_empty sueltos, "la cédula sigue partida en dos campos:\n  " + sueltos.join("\n  ")
   end
 
   # ⚠️ Pero el enum NO se tocó: quien ya tiene pasaporte cargado tiene que poder

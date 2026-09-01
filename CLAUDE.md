@@ -197,7 +197,7 @@ y ahí escribir la URL en español ES la comprobación.
   no repetidos en cada formulario: estaban escritos SEIS veces y cada copia se
   fue separando.
   `nombres/apellidos` letras+acentos+Ñ+espacio, en mayúscula, recortados al salir ·
-  `cédula` solo dígitos, con el TIPO delante (solo V y E) ·
+  `cédula` **un solo campo**: el select de V/E pegado al número, solo dígitos ·
   `cédula escolar` alfanumérico **con guiones** — su formato lo fija el MPPE ·
   `sexo` botones, no desplegable · las contraseñas con el ojo.
   ⚠️ El enum de `document_type` **no** se recortó: `User.tipos_de_documento_ofrecidos`

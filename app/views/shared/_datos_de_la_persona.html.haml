@@ -37,18 +37,26 @@
     = u.label :second_last_name, class: "form-label"
     = u.text_field :second_last_name, class: "form-control", data: filtro_de_nombre
 
--# ⚠️ El TIPO va antes que el número, y es de Daniel: «tipo de documento va antes
--# de la cédula». Es el orden en que se dice y se escribe una cédula venezolana
--# —V-12345678— y además el tipo decide cómo se normaliza el número.
+-# ⚠️ El tipo y el número son UN campo, no dos (MOR-178).
+-#
+-# Daniel: «Tipo de documento y Cédula de identidad deben fusionarse como si
+-# fueran un único campo: uno chiquitico que sea un select de V ó E y seguidito
+-# el complemento que es el número, algo así como los group de Bootstrap».
+-#
+-# Y es lo correcto: una cédula venezolana ES «V-12345678», una sola cosa que se
+-# dice de un tirón. Partirla en dos rótulos —«Tipo de documento» y «Cédula de
+-# identidad»— la presentaba como dos decisiones cuando es una.
+-#
+-# El select va PRIMERO porque es el orden en que se escribe, y además decide
+-# cómo se normaliza el número (`User.normalizar_documento`).
 .form-row
   .form-group
-    = u.label :document_type, class: "form-label"
-    = u.select :document_type, User.tipos_de_documento_ofrecidos(u.object), { include_blank: "—" }, class: "form-select"
-  .form-group
     = u.label :document, class: "form-label"
-    -# Solo dígitos: la nacionalidad ya está en el select de al lado, así que
-    -# escribir «V-» acá la duplicaría. Menos tecleo y menos error.
-    = u.text_field :document, class: "form-control", inputmode: "numeric", placeholder: "12345678", data: { controller: "campo-filtrado", campo_filtrado_permite_value: "0-9", action: "input->campo-filtrado#filtrar" }
+    .campo-compuesto
+      = u.select :document_type, User.tipos_de_documento_ofrecidos(u.object), {}, class: "campo-compuesto-sigla"
+      -# Solo dígitos: la nacionalidad ya está en el select pegado, así que
+      -# escribir «V-» acá la duplicaría. Menos tecleo y menos error.
+      = u.text_field :document, class: "form-control", inputmode: "numeric", placeholder: "12345678", data: { controller: "campo-filtrado", campo_filtrado_permite_value: "0-9", action: "input->campo-filtrado#filtrar" }
 
 - if local_assigns[:cedula_escolar]
   .form-group
