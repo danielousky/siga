@@ -8,15 +8,18 @@ class SectionsController < ApplicationController
   CAMPOS_DE_BUSQUEDA = %w[grades.name sections.name].freeze
 
   def index
-    scope = Section.includes(:grade, :academic_period, leader_teacher: :user).joins(:grade, :academic_period)
+    # ⚠️ El año escolar ya NO se elige acá (MOR-165): lo fija el selector de la
+    # barra de arriba, y vale para todas las pantallas a la vez. Este tenía su
+    # propio desplegable «Todos los períodos» que contradecía al de la barra —dos
+    # controles para lo mismo, en la misma pantalla.
+    scope = Section.del_anio_de_la_sesion
+                   .includes(:grade, :academic_period, leader_teacher: :user).joins(:grade, :academic_period)
     scope = scope.where(grade_id: params[:grade_id]) if params[:grade_id].present?
-    scope = scope.where(academic_period_id: params[:academic_period_id]) if params[:academic_period_id].present?
-    # El campo de texto se suma a los selectores, no los reemplaza: buscar «1er»
-    # y además acotar al año en curso son dos preguntas distintas.
+    # El campo de texto se suma al selector de grado, no lo reemplaza: buscar
+    # «1er» y además acotar a un grado son dos preguntas distintas.
     scope = scope.where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:q])) if params[:q].present?
     @pagy, @sections = pagy(scope.order("grades.name, sections.name"))
     @grades_options = [["Todos los grados", ""]] + Grade.order(:name).pluck(:name, :id)
-    @periods_options = [["Todos los períodos", ""]] + AcademicPeriod.order(start_date: :desc).pluck(:name, :id)
   end
 
   def show
@@ -75,8 +78,19 @@ class SectionsController < ApplicationController
     @section = Section.find(params[:id])
   end
 
+  # ⚠️ El año escolar NO viaja en el formulario cuando se puede deducir (MOR-165).
+  #
+  # Al crear sale de la sesión; al editar no se toca, porque mover una sección de
+  # año arrastraría inscripciones, asistencia y notas que son de ese año.
+  # El único caso en que se acepta del request es cuando la sesión mira «Todos
+  # los años» y no hay nada que deducir — y ahí lo valida el `belongs_to` contra
+  # el `default_scope`, no un `if`.
   def section_params
-    params.require(:section).permit(:name, :grade_id, :academic_period_id, :capacity, :classroom, :leader_teacher_id)
+    permitidos = params.require(:section).permit(:name, :grade_id, :capacity, :classroom, :leader_teacher_id)
+    return permitidos if @section&.persisted?
+
+    permitidos.merge(academic_period_id: Current.academic_period_id ||
+                                         params[:section][:academic_period_id])
   end
 
   def require_admin_access!

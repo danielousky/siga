@@ -175,9 +175,9 @@ class AsistenciasController < ApplicationController
   def secciones_a_cargo
     @secciones_a_cargo ||=
       if administrador?
-        Section.includes(:grade, :academic_period).order("grades.name", :name).to_a
+        Section.del_anio_de_la_sesion.includes(:grade, :academic_period).order("grades.name", :name).to_a
       else
-        Section.includes(:grade, :academic_period)
+        Section.del_anio_de_la_sesion.includes(:grade, :academic_period)
                .where(leader_teacher_id: current_user.teacher&.id)
                .order("grades.name", :name).to_a
       end

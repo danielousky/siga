@@ -3,4 +3,5 @@ class ApplicationRecord < ActiveRecord::Base
 
   include DerivesSchoolFrom
   include ValidatesSameSchool
+  include DelAnioEscolar
 end

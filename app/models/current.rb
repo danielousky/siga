@@ -13,6 +13,33 @@
 class Current < ActiveSupport::CurrentAttributes
   attribute :school
 
+  # El AÑO ESCOLAR de la sesión (MOR-165).
+  #
+  # ## Por qué esto hacía falta
+  #
+  # Había cuatro maneras distintas de decidir «qué año escolar estamos mirando»,
+  # cada una escrita a mano en su pantalla: `AcademicPeriod.vigente`,
+  # `.en_operacion`, el helper `periodo_vigente`, y el prefijo del importador.
+  # Se contradecían en agosto —cuando el año viejo terminó y el nuevo no empezó—
+  # y ninguna le preguntaba a la persona.
+  #
+  # Ahora se elige una vez, arriba, y filtra todo lo filtrable.
+  #
+  # ## ⚠️ Este SÍ puede venir del usuario, y el colegio NO
+  #
+  # `Current.school` sale del rol y jamás de un parámetro: si el inquilino
+  # pudiera elegirse, el aislamiento no serviría de nada.
+  #
+  # El año escolar es lo contrario: es una preferencia de quien mira, y elegir
+  # uno **no da acceso a nada nuevo** — los años escolares de otro colegio ya son
+  # invisibles por el RLS. Por eso puede vivir en la sesión y cambiarse con un
+  # clic. Lo que sí hace falta es comprobar que el año elegido sea de ESTE
+  # colegio; de eso se encarga `SchoolScoped` al buscarlo.
+  #
+  # `nil` significa «todos los años», y es una opción legítima: la secretaria que
+  # busca una constancia de un egresado necesita ver lo viejo.
+  attribute :academic_period
+
   # Marca los contextos donde mirar todos los colegios es legítimo y deliberado:
   # seeds, migraciones, tareas rake y la consola. Nunca una petición web.
   attribute :tenant_scope_disabled
@@ -20,6 +47,11 @@ class Current < ActiveSupport::CurrentAttributes
   def school_id
     school&.id
   end
+
+  def academic_period_id = academic_period&.id
+
+  # ¿Estamos mirando un año concreto, o todos?
+  def un_solo_anio? = academic_period.present?
 
   # Corre el bloque sin filtro de colegio, en la app Y en la base.
   #

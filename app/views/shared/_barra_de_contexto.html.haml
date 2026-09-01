@@ -22,19 +22,50 @@
       - if Current.school.location.present?
         %span.contexto-colegio-lugar= Current.school.location
 
-    - if periodo_vigente
-      .contexto-periodo
-        %span.contexto-periodo-nombre= periodo_vigente.name
-        %span.contexto-periodo-situacion= situacion_del_periodo(periodo_vigente)
-    - else
-      -# Un colegio recién dado de alta todavía no tiene año escolar. Decirlo es
-      -# más útil que dejar el espacio en blanco: es una tarea pendiente, no un
-      -# error, y desde acá se sabe adónde ir.
-      .contexto-periodo
+    -# ⚠️ El año escolar de la sesión, y se puede CAMBIAR (MOR-165).
+    -#
+    -# Antes decía cuál era «el vigente», calculado a mano y de cuatro maneras
+    -# distintas según la pantalla. Ahora se elige una vez, acá arriba, y filtra
+    -# todo lo filtrable.
+    -#
+    -# El selector es solo para quien dirige: un profesor ve el año que está
+    -# cursando y no lo cambia — darle la opción es darle una manera de cargar
+    -# notas en el año equivocado sin enterarse.
+    .contexto-periodo
+      - if puede_elegir_anio? && anios_para_elegir.many?
+        -# Un formulario normal que se envía solo al cambiar: el id viaja en el
+        -# cuerpo, así que no hace falta que JavaScript arme ninguna URL.
+        -#
+        -# ⚠️ Las opciones se arman ARRIBA y no dentro del `select_tag`: Haml lee
+        -# la continuación de una expresión partida como si fuera indentación, y
+        -# revienta con «indented 16 levels deeper than the previous line».
+        - opciones = anios_para_elegir.map { |a| [ a.name, a.id ] } + [ [ "Todos los años", LlevaElAnioEscolar::TODOS ] ]
+        - elegido = mirando_todos_los_anios? ? LlevaElAnioEscolar::TODOS : anio_de_la_sesion&.id
+        = form_with url: cambiar_anio_escolar_path, method: :post, class: "contexto-anio", data: { controller: "auto-envio", turbo: false } do
+          %label.contexto-anio-etiqueta{ for: "id" } Año escolar
+          = select_tag :id, options_for_select(opciones, elegido), class: "contexto-anio-select", data: { action: "change->auto-envio#enviar" }
+
+      - elsif anio_de_la_sesion
+        %span.contexto-periodo-nombre= anio_de_la_sesion.name
+
+      - elsif mirando_todos_los_anios?
+        %span.contexto-periodo-nombre Todos los años
+
+      - else
+        -# Un colegio recién dado de alta todavía no tiene año escolar. Decirlo es
+        -# más útil que dejar el espacio en blanco: es una tarea pendiente, no un
+        -# error, y desde acá se sabe adónde ir.
         - if can_manage_academic_config?
           = link_to "Sin año escolar cargado", academic_periods_path, class: "contexto-periodo-vacio"
         - else
           %span.contexto-periodo-vacio Sin año escolar cargado
+
+      -# ⚠️ La situación se pinta CON selector y sin él, y son dos datos distintos:
+      -# el nombre dice CUÁL año, la situación dice si está corriendo. Con el
+      -# selector puesto hace más falta todavía — quien acaba de elegir «2024-2025»
+      -# tiene que ver ahí mismo que ese año está cerrado.
+      - if anio_de_la_sesion
+        %span.contexto-periodo-situacion= situacion_del_periodo(anio_de_la_sesion)
 
 -# La suscripción, cuando hay algo que decir (MOR-108).
 -#

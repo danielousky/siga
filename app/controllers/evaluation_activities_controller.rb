@@ -127,7 +127,7 @@ class EvaluationActivitiesController < ApplicationController
     periodos = if profesor?
                  mis_asignaciones.map { |ts| ts.section.academic_period_id }.uniq
                else
-                 Section.distinct.pluck(:academic_period_id)
+                 Section.del_anio_de_la_sesion.distinct.pluck(:academic_period_id)
                end
 
     EvaluationMoment.where(academic_period_id: periodos).includes(:academic_period).order(:academic_period_id, :id)

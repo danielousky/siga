@@ -5334,3 +5334,42 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 .mas-detalle-cuerpo p { margin: 0 0 var(--space-sm); }
 .mas-detalle-cuerpo p:last-child { margin-bottom: 0; }
+
+/* El selector de año escolar en la barra de contexto (MOR-165).
+   Va donde antes se leía el año «vigente»: mismo lugar, ahora se puede cambiar. */
+.contexto-anio {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0;
+}
+
+.contexto-anio-etiqueta {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+/* Sin caja: es un dato de la barra que se puede tocar, no un campo de
+   formulario. La caja llega al pasar el ratón, que es cuando importa saber que
+   es un control. */
+.contexto-anio-select {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--brand-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  padding: var(--space-micro) var(--space-xs);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.contexto-anio-select:hover { border-color: var(--border-standard); background: var(--surface-elevated); }
+
+.contexto-anio-select:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 1px;
+}

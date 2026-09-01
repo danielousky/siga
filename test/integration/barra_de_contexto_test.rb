@@ -68,7 +68,11 @@ class BarraDeContextoTest < ActionDispatch::IntegrationTest
   # Entre julio y septiembre no hay ningún año escolar corriendo. La barra vieja
   # habría dicho "Período Académico Activo" igual: una afirmación falsa sobre el
   # colegio, en la franja más visible.
-  test "entre dos años escolares, anuncia el que viene y no inventa uno activo" do
+  #
+  # ⚠️ Con MOR-165 cambió CUÁL año se elige por defecto —el que tiene alumnos, no
+  # la fila más nueva— pero no cambió lo que este test protege: que la barra no
+  # invente un año en curso cuando no hay ninguno.
+  test "entre dos años escolares, no inventa uno activo" do
     con_el_colegio(@a.colegio) do
       AcademicPeriod.create!(name: "2026-2027",
                              start_date: Date.new(2026, 9, 15), end_date: Date.new(2027, 7, 31))
@@ -78,7 +82,31 @@ class BarraDeContextoTest < ActionDispatch::IntegrationTest
       sign_in @a.director
       get dashboards_administrador_url
 
-      assert_select ".contexto-periodo-nombre", text: "2026-2027"
+      # Arranca en el año con clases, no en el que empieza en dos semanas y está
+      # vacío: entrar ahí es abrir el panel de un colegio lleno y leer «0 alumnos».
+      # El de 2026-2027 está a un clic, en el mismo desplegable.
+      assert_select ".contexto-anio-select option[selected]", text: "2025-2026"
+      assert_select ".contexto-anio-select option", text: "2026-2027"
+      assert_select ".contexto-periodo-situacion", text: "finalizado el 31 de julio"
+      assert_no_match(/en curso/, response.body)
+    end
+  end
+
+  # La otra mitad de lo mismo: si el director SÍ quiere ver el año que viene,
+  # lo elige y la barra deja de hablar del anterior.
+  test "y si el director elige el que viene, la barra lo acompaña" do
+    con_el_colegio(@a.colegio) do
+      AcademicPeriod.create!(name: "2026-2027",
+                             start_date: Date.new(2026, 9, 15), end_date: Date.new(2027, 7, 31))
+    end
+
+    travel_to Date.new(2026, 8, 13) do
+      sign_in @a.director
+      que_viene = con_el_colegio(@a.colegio) { AcademicPeriod.find_by(name: "2026-2027") }
+      post cambiar_anio_escolar_path, params: { id: que_viene.id }
+      get dashboards_administrador_url
+
+      assert_select ".contexto-anio-select option[selected]", text: "2026-2027"
       assert_select ".contexto-periodo-situacion", text: "comienza el 15 de septiembre"
       assert_no_match(/en curso/, response.body)
     end

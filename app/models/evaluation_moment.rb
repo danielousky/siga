@@ -2,6 +2,7 @@ class EvaluationMoment < ApplicationRecord
   include SchoolScoped
 
   belongs_to :academic_period
+  llega_al_anio_por
 
   derives_school_from :academic_period
 

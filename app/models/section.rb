@@ -14,6 +14,7 @@ class Section < ApplicationRecord
   # colegio que importa su matrícula todavía no asignó guías. Sin guía, la
   # dirección igual puede pasar lista — ver `AsistenciasController`.
   belongs_to :leader_teacher, class_name: "Teacher", optional: true
+  llega_al_anio_por
 
   derives_school_from :grade
   validates_same_school :academic_period, :leader_teacher

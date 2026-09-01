@@ -9,9 +9,31 @@
     = f.label :grade_id, class: "form-label"
     = f.select :grade_id, Grade.all.map { |g| [g.name, g.id] }, { include_blank: "Seleccione..." }, class: "form-select"
 
-  .form-group
-    = f.label :academic_period_id, class: "form-label"
-    = f.select :academic_period_id, AcademicPeriod.all.map { |p| [p.name, p.id] }, { include_blank: "Seleccione..." }, class: "form-select"
+  -# ⚠️ El año escolar de una sección NO se pregunta y NO se edita (MOR-165).
+  -#
+  -# Al CREAR sale de la sesión: es el año que está eligido en la barra de arriba,
+  -# y volver a preguntarlo abría la puerta a crear «1er Año A» en el año pasado
+  -# sin darse cuenta.
+  -#
+  -# Al EDITAR ni siquiera se muestra como campo. Mover una sección de año se
+  -# llevaría consigo sus inscripciones, su asistencia y sus notas —que son de ese
+  -# año y de ningún otro—. Si de verdad hace falta, se crea la sección en el año
+  -# nuevo; el histórico se queda donde pasó.
+  - if section.persisted?
+    .form-group
+      %span.form-label= Section.human_attribute_name(:academic_period)
+      %p.dato-secundario= section.academic_period.name
+
+  - elsif Current.academic_period
+    .form-group
+      %span.form-label= Section.human_attribute_name(:academic_period)
+      %p.dato-secundario= Current.academic_period.name
+
+  - else
+    -# Mirando «Todos los años» no hay nada que deducir, así que se pregunta.
+    .form-group
+      = f.label :academic_period_id, class: "form-label"
+      = f.select :academic_period_id, AcademicPeriod.order(start_date: :desc).map { |p| [ p.name, p.id ] }, { include_blank: "Seleccione…" }, class: "form-select"
 
   -# El profesor guía (MOR-150). Va acá, en la SECCIÓN, y no en el grado: es
   -# quien pasa lista de ESTOS alumnos y responde por ellos. «1er Año A» tiene su

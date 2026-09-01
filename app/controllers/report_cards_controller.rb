@@ -28,14 +28,15 @@ class ReportCardsController < ApplicationController
   before_action :require_emisor!
 
   def index
-    @secciones = Section.includes(:grade, :academic_period).order("grades.name", :name)
+    @secciones = Section.del_anio_de_la_sesion.includes(:grade, :academic_period).order("grades.name", :name)
     @seccion   = @secciones.find { |s| s.id.to_s == params[:section_id] } || @secciones.first
     @lapsos    = @seccion ? EvaluationMoment.where(academic_period_id: @seccion.academic_period_id).order(:id) : []
     @alumnos   = @seccion ? inscripciones_de(@seccion) : []
-    @recientes = ReportCard.includes(:evaluation_moment, enrollment: { student: :user }).recientes.limit(15)
+    @recientes = ReportCard.del_anio_de_la_sesion
+                           .includes(:evaluation_moment, enrollment: { student: :user }).recientes.limit(15)
     # La tabla muestra 15. El total va aparte para poder DECIR que está topada:
     # un listado recortado en silencio se lee como "esto es todo lo que hay".
-    @total_emitidos = ReportCard.count
+    @total_emitidos = ReportCard.del_anio_de_la_sesion.count
   end
 
   def create

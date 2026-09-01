@@ -255,7 +255,7 @@ module MenuHelper
     enlaces = []
     if can_manage_academic_config?
       enlaces << Enlace.new(nombre: "Años escolares", icono: :calendario, ruta: academic_periods_path)
-      enlaces << Enlace.new(nombre: "Momentos de evaluación", icono: :lapsos, ruta: evaluation_moments_path)
+      enlaces << Enlace.new(nombre: "Lapsos", icono: :lapsos, ruta: evaluation_moments_path)
     end
     # Va en Configuración aunque se use una vez al año, porque esa vez es la
     # PRIMERA semana del colegio en SIGA — y para esa semana el camino no es el

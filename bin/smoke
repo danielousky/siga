@@ -70,6 +70,22 @@ check() { # check <descripción> <path> <código esperado> [cookiejar]
   fi
 }
 
+# Igual que `check`, pero con POST y su token CSRF. Sin `-L`: lo que se quiere
+# comprobar es el 302, no la página a la que lleva.
+check_post() { # check_post <descripción> <path> <código esperado> <cookiejar> [datos]
+  local desc="$1" path="$2" want="$3" jar="$4" datos="${5:-}" token got
+  token="$(curl -s -b "$jar" -c "$jar" "${BASE}/dashboards/administrador" \
+    | grep -o 'name="csrf-token" content="[^"]*"' | head -1 | sed 's/.*content="//; s/"$//')"
+  got="$(curl -s -b "$jar" -c "$jar" -o "${TMP}/body" -w '%{http_code}' \
+         -X POST -d "authenticity_token=${token}" ${datos:+-d "$datos"} "${BASE}${path}")"
+  if [ "$got" = "$want" ]; then
+    printf '  ✓ %-42s %s\n' "$desc" "$got"
+  else
+    printf '  ✗ %-42s %s (esperaba %s)\n' "$desc" "$got" "$want"
+    FAILED=1
+  fi
+}
+
 login() { # login <email> <password> <cookiejar>
   local email="$1" pass="$2" jar="$3" token
   token="$(curl -s -c "$jar" "${BASE}/users/sign_in" \
@@ -113,12 +129,21 @@ if login "director.bolivar@siga.edu" "123123" "$JAR"; then
   check "alta de grado"    "/grados/new"                200 "$JAR"
   check "materias"         "/materias"                  200 "$JAR"
   check "inscripciones"    "/inscripciones"               200 "$JAR"
-  check "períodos"         "/academic_periods"          200 "$JAR"
-  check "momentos eval."   "/lapsos"        200 "$JAR"
-  check "evaluaciones"     "/evaluaciones"     200 "$JAR"
+  check "años escolares"   "/academic_periods"          200 "$JAR"
+  check "lapsos"           "/lapsos"                    200 "$JAR"
+  check "alta de lapso"    "/lapsos/new"                200 "$JAR"
+  check "evaluaciones"     "/evaluaciones"              200 "$JAR"
   check "emitir boletines" "/boletines"                 200 "$JAR"
+  check "asistencia"       "/asistencia"                200 "$JAR"
+  check "quién no cargó"   "/carga-de-notas"            200 "$JAR"
   check "auditoría"        "/dashboards/actividad"  200 "$JAR"
   check "alta de alumno"   "/alumnos/new"              200 "$JAR"
+  check "alta de sección"  "/secciones/new"            200 "$JAR"
+
+  # El selector de año escolar de la barra (MOR-165). Es un POST y devuelve un
+  # redirect: comprobarlo acá es comprobar que el pivote de TODA la app existe
+  # en la ruta que ve una persona, no solo en un test de integración.
+  check_post "cambiar de año"  "/anio-escolar"          302 "$JAR"
 fi
 
 echo

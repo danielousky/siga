@@ -5,12 +5,17 @@
       = icono(:agregar, tamano: 16)
       %span Nueva sección
 
--# Los dos selectores se conservan: con 18 secciones, acotar por grado o por año
--# es más rápido que escribir. El campo de texto se SUMA, no los reemplaza.
+-# ⚠️ Acá había DOS selectores y ahora hay uno (MOR-165).
+-#
+-# El de año escolar se fue arriba, a la barra de contexto: es la misma pregunta
+-# para todas las pantallas, y tenerlo también acá dejaba dos controles que se
+-# contradecían en la misma vista —uno decía «Todos los períodos» mientras la
+-# barra decía «2025-2026»—.
+-#
+-# El de grado se queda: es una pregunta de ESTA pantalla.
 = render "shared/buscador_de_lista", ruta: sections_path, marco: "sections-results",
          pista: "Grado o sección…",
-         extra: [ { type: :select, name: :grade_id, label: "Grado", options: @grades_options },
-                  { type: :select, name: :academic_period_id, label: "Año escolar", options: @periods_options } ]
+         extra: [ { type: :select, name: :grade_id, label: "Grado", options: @grades_options } ]
 
 -# `target: "_top"` no es un detalle: sin él, TODO enlace de adentro del frame
 -# —Ver, Editar, Eliminar— navega DENTRO del frame. Y como ninguna de esas
@@ -35,7 +40,11 @@
           %tr
             %th= Section.human_attribute_name(:grade)
             %th= Section.model_name.human
-            %th Período
+            -# ⚠️ Solo con «Todos los años»: con un año fijado, esta columna
+            -# repite el mismo texto en las 18 filas. Es exactamente lo que se
+            -# quitó en MOR-90 con la columna «Escuela».
+            - if mirando_todos_los_anios?
+              %th Año escolar
             %th= Section.human_attribute_name(:leader_teacher)
             %th= Section.human_attribute_name(:capacity)
             %th= Section.human_attribute_name(:classroom)
@@ -44,7 +53,8 @@
             %tr
               %td= link_to section.grade.name, section
               %td= section.name
-              %td= section.academic_period.name
+              - if mirando_todos_los_anios?
+                %td= section.academic_period.name
               %td= section.leader_teacher&.user&.apellidos_y_nombres || "—"
               %td= "#{section.enrollments.size} / #{section.capacity}"
               %td= section.classroom || "—"

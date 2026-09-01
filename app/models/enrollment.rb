@@ -5,6 +5,7 @@ class Enrollment < ApplicationRecord
 
   belongs_to :section
   belongs_to :student, foreign_key: :student_id
+  llega_al_anio_por :section
 
   derives_school_from :student
   validates_same_school :section

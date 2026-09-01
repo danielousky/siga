@@ -16,6 +16,17 @@ class ApplicationController < ActionController::Base
   # uno filtra y el otro no.
   around_action :con_el_colegio_de_la_sesion
 
+  # ⚠️ TAMBIÉN después del `around_action`, y por la MISMA razón que lo de abajo
+  # (MOR-165). Estuvo arriba de todo y falló exactamente igual: sin
+  # `Current.school`, el RLS devuelve cero años escolares, así que
+  # `fijar_el_anio_escolar` salía por su `return` y `Current.academic_period`
+  # quedaba en nil.
+  #
+  # Y falló en silencio, como el otro: los listados no filtraban —se veían las
+  # secciones de todos los años— y crear un lapso decía «Período académico debe
+  # existir» sin ninguna pista de por qué. Lo encontró el test de MOR-165.
+  include LlevaElAnioEscolar
+
   # ⚠️ Va DESPUÉS del `around_action`, y el orden no es estético: es lo único que
   # hace que este control funcione.
   #

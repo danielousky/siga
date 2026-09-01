@@ -41,16 +41,15 @@ class Dashboards::AdministradorController < ApplicationController
 
   private
 
-  # El año escolar **con inscripciones**, no `AcademicPeriod.vigente`.
+  # El año que el director eligió arriba (MOR-165), y si eligió «Todos», el año
+  # con inscripciones — nunca `AcademicPeriod.vigente`.
   #
   # Es la misma trampa que ya mordió en `Subscription.matricula_de`: en agosto
-  # el período vigente es el año que arranca en septiembre, que todavía no
-  # tiene ni una sección. El panel diría "0 secciones" con el colegio lleno.
-  # El año donde hay clases, no el que viene. Ver `AcademicPeriod.en_operacion`:
-  # en agosto los dos son distintos y confundirlos hace que el panel diga «todo
-  # al día» con tres secciones sin profesor.
+  # el período vigente es el año que arranca en septiembre, que todavía no tiene
+  # ni una sección. El panel diría "0 secciones" con el colegio lleno. Ver
+  # `AcademicPeriod.en_operacion` y `anio_de_trabajo`.
   def periodo_en_curso
-    @periodo_en_curso ||= AcademicPeriod.en_operacion
+    anio_de_trabajo
   end
 
   # Lo que un director puede resolver hoy. Cada uno enlaza a donde se resuelve:

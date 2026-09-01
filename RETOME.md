@@ -1,4 +1,57 @@
-# 🔖 Punto de retome — actualizado 27 de agosto de 2026 (noche)
+# 🔖 Punto de retome — actualizado 31 de agosto de 2026
+
+## Sesión del 31 de agosto — el año escolar de la sesión (`MOR-165`)
+
+`bin/ci` en verde, **909 tests**. Salió del QA de Daniel: *«vamos a implementar la
+figura de año escolar de la sesión, arriba, donde está la sesión. Ese lo vamos a tomar
+como pivote para filtrar todo lo que sea filtrable»*.
+
+**Lo que había antes eran CUATRO maneras de decidir el año**, cada una escrita a mano
+en su pantalla: `AcademicPeriod.vigente`, `.en_operacion`, el helper `periodo_vigente`
+(que ya no lo llamaba nadie) y el prefijo del importador. Se contradecían en agosto.
+
+**Ahora hay un selector en la barra de arriba** y todo cuelga de él:
+
+```
+   U.E. Simón Bolívar   ·   Año escolar [2025-2026 ▾]   finalizado el 31 de julio
+```
+
+- `Current.academic_period` + el concern de controller `LlevaElAnioEscolar`
+- El concern de modelo `DelAnioEscolar` con `llega_al_anio_por` — declara CÓMO cada
+  tabla llega al año (columna propia, un join, o dos) y pone el scope
+  `del_anio_de_la_sesion`. Diez modelos.
+- **NO es un `default_scope`**, y ahí está la diferencia con `SchoolScoped`: el colegio
+  es un límite de seguridad, el año es una preferencia de quien mira. Un default_scope
+  por año rompería el histórico de un alumno y la constancia de un egresado.
+- **El profesor NO tiene selector.** Daniel: *«los docentes no deberían necesitar ni
+  siquiera ver algo anterior, solo lo que están calificando»*.
+- **«Todos los años»** es una opción explícita — la secretaria que busca la constancia
+  de un egresado la necesita.
+- El selector de año que tenía la pantalla de secciones **se borró**: eran dos controles
+  para lo mismo, en la misma vista, contradiciéndose.
+
+**El lapso dejó de preguntar lo que se puede deducir.** «Nuevo momento de evaluación»
+se llama **Nuevo lapso** —Daniel: *«¿nos estamos refiriendo al lapso? Si es así, nada de
+eso habría que preguntarlo»*—, el año sale de la sesión y el nombre se propone
+(«1er Lapso», «2do Lapso»…). Igual la sección: al crear toma el año de la sesión, y al
+editar **el año ni se muestra** — mover una sección de año arrastraría sus notas.
+
+### ⚠️ Tres cosas que se rompieron acá y no hay que volver a romper
+
+1. **`include LlevaElAnioEscolar` va DESPUÉS del `around_action`.** Estuvo arriba de
+   todo y falló exactamente como ya había fallado `RespetaLaSuscripcion`: sin
+   `Current.school`, el RLS devuelve cero años, el `return` temprano se dispara y
+   `Current.academic_period` queda en nil. **En silencio**: los listados no filtraban y
+   crear un lapso decía «Período académico debe existir» sin explicar nada.
+2. **El año por defecto es el que TIENE ALUMNOS (`en_operacion`), no la fila más
+   nueva.** En agosto son distintos: la fila más nueva es el año que empieza en
+   septiembre y no tiene ni una sección. Arrancar ahí es abrir el panel de un colegio
+   lleno y leer «0 alumnos». Es la tercera vez que aparece esta trampa —
+   `Subscription.matricula_de` y `periodo_en_curso` fueron las otras dos— y ahora vive
+   en un solo lugar: `anio_por_defecto`.
+3. **Una expresión partida en varias líneas dentro de un `select_tag` revienta Haml**
+   («indented 16 levels deeper than the previous line»). Las opciones se arman arriba,
+   en variables.
 
 ## Sesión del 27 de agosto — lo que quedó desplegado
 

@@ -3,6 +3,7 @@ class ActivityGrade < ApplicationRecord
 
   belongs_to :evaluation_activity
   belongs_to :student, foreign_key: :student_id
+  llega_al_anio_por evaluation_activity: :section
 
   derives_school_from :evaluation_activity
   validates_same_school :student

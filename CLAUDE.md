@@ -591,5 +591,63 @@ estados le quita a una familia el papel del pasaporte.
 sección y sus alumnos, y el aviso de qué la activa. Una pantalla escondida no
 vende nada; una que se ve y no se toca, sí.
 
+### 8. El año escolar de la sesión (`MOR-165`)
+
+Hay **un** selector arriba, en la barra de contexto, y de ahí cuelga todo lo filtrable:
+
+```
+   U.E. Simón Bolívar   ·   Año escolar [2025-2026 ▾]   finalizado el 31 de julio
+```
+
+Antes había **cuatro** maneras de decidir el año, cada una escrita a mano en su
+pantalla —`AcademicPeriod.vigente`, `.en_operacion`, el helper `periodo_vigente` y el
+prefijo del importador— y se contradecían en agosto.
+
+```
+   Current.school            del ROL, jamás de un parámetro   →  límite de SEGURIDAD
+   Current.academic_period   de la SESIÓN, se elige con un clic →  PREFERENCIA de quien mira
+```
+
+⚠️ **`DelAnioEscolar` NO es un `default_scope`, y `SchoolScoped` sí.** Que un colegio
+se cuele es un incidente; que un año se cuele no es nada —son datos del mismo colegio,
+de quien ya los puede ver—. Y al revés, un `default_scope` por año **rompería cosas que
+tienen que funcionar**: el histórico de un alumno cruza años por definición, la
+constancia de un egresado es de un año cerrado, y `AcademicPeriod.en_operacion` —que es
+quien DECIDE el año— tendría que consultar secciones sin filtrar por el año que todavía
+no eligió. Por eso el scope es explícito: `Enrollment.del_anio_de_la_sesion`.
+
+Cada modelo declara **cómo** llega al año, y son tres profundidades distintas:
+
+```ruby
+llega_al_anio_por                       # sections, evaluation_moments  (columna propia)
+llega_al_anio_por :section              # enrollments, teacher_sections (un join)
+llega_al_anio_por enrollment: :section  # attendances, moment_grades    (dos joins)
+```
+
+⚠️ **El profesor NO tiene selector.** Daniel: *«los docentes no deberían necesitar ni
+siquiera ver algo anterior, solo lo que están calificando»*. No es permisología: darle
+el control es darle una manera de cargar notas en el año equivocado sin enterarse.
+
+⚠️ **El año por defecto es el que TIENE ALUMNOS (`en_operacion`), no la fila más
+nueva.** En agosto son distintos: la fila más nueva es el año que empieza en septiembre
+y no tiene ni una sección, así que arrancar ahí es abrir el panel de un colegio lleno y
+leer «0 alumnos». Es la tercera vez que aparece la trampa —`Subscription.matricula_de` y
+`periodo_en_curso` fueron las otras dos— y ahora vive en un solo lugar,
+`anio_por_defecto`. `anio_de_trabajo` es su hermano para las pantallas que **no pueden**
+no tener año (el panel, «quién no cargó notas»): con «Todos» elegido, cae en el que
+tiene clases.
+
+⚠️ **`include LlevaElAnioEscolar` va DESPUÉS del `around_action` del colegio.** Estuvo
+arriba de todo y falló exactamente como ya había fallado `RespetaLaSuscripcion`: sin
+`Current.school` el RLS devuelve cero años, el `return` temprano se dispara y
+`Current.academic_period` queda en nil — **en silencio**, con los listados sin filtrar y
+un «Período académico debe existir» que no explica nada.
+
+**Y lo que se deduce ya no se pregunta.** Un lapso —que se llama **lapso**, no «momento
+de evaluación»— nace en el año de la sesión con su nombre propuesto. Una sección nace
+en el año de la sesión, y al **editarla el año ni se muestra**: mover una sección de año
+arrastraría sus inscripciones, su asistencia y sus notas, que son de ese año y de ningún
+otro.
+
 Backlog completo en `BACKLOG.md`. Diagrama del modelo actual y objetivo:
 https://claude.ai/code/artifact/0e167ba9-8e21-4264-ac29-f7a2d9fe5523

@@ -52,11 +52,14 @@ es:
         one: Grado
         other: Grados
       academic_period:
-        one: Período académico
-        other: Períodos académicos
+        one: Año escolar
+        other: Años escolares
+      # «Lapso» es como se llama en un colegio venezolano y como lo dice la
+      # ley: el año escolar tiene tres. «Momento de evaluación» fue un
+      # invento nuestro que nadie usa en un pasillo (MOR-165).
       evaluation_moment:
-        one: Momento de evaluación
-        other: Momentos de evaluación
+        one: Lapso
+        other: Lapsos
       subject:
         one: Materia
         other: Materias
@@ -166,8 +169,8 @@ es:
     teacher: Profesor
     department: Departamento
     enrollment: Inscripción
-    academic_period: Período académico
-    evaluation_moment: Momento de evaluación
+    academic_period: Año escolar
+    evaluation_moment: Lapso
     evaluation_activity: Actividad evaluativa
     leader_teacher: Profesor guía
     coordinator_teacher: Coordinador del grado
@@ -188,8 +191,8 @@ es:
     teacher_id: Profesor
     department_id: Departamento
     enrollment_id: Inscripción
-    academic_period_id: Período académico
-    evaluation_moment_id: Momento de evaluación
+    academic_period_id: Año escolar
+    evaluation_moment_id: Lapso
     evaluation_activity_id: Actividad evaluativa
     leader_teacher_id: Profesor guía
     coordinator_teacher_id: Coordinador del grado

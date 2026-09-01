@@ -49,14 +49,6 @@ module ApplicationHelper
     EscalaLiteral.mostrar(nota, escala: grado&.escala) || "—"
   end
 
-  # El año escolar que la barra de contexto muestra. Se memoiza porque la barra
-  # se pinta en cada petición y no vale una consulta por cada vista que lo pida.
-  def periodo_vigente
-    return @periodo_vigente if defined?(@periodo_vigente)
-
-    @periodo_vigente = AcademicPeriod.vigente
-  end
-
   # Cómo se escribe la relación del período con el día de hoy.
   #
   # Importa no mentir acá: en agosto no hay año escolar corriendo, y una barra

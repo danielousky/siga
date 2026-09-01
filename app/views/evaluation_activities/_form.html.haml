@@ -16,7 +16,7 @@
 
   .form-group
     = con_pista "Solo aparecen los lapsos del año escolar de la sección que elegiste arriba." do
-      = f.label :evaluation_moment_id, "Lapso", class: "form-label"
+      = f.label :evaluation_moment_id, class: "form-label"
     = f.select :evaluation_moment_id, [], { include_blank: "Elige el lapso..." },
       class: "form-select", data: { ponderacion_target: "lapso", action: "change->ponderacion#lapsoCambio" }
 

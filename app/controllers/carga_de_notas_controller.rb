@@ -15,10 +15,11 @@ class CargaDeNotasController < ApplicationController
   before_action :require_puede_ver!
 
   def index
-    # `en_operacion` y no `vigente`: en agosto `vigente` es el año que empieza,
-    # sin una sola evaluación, y esta pantalla diría «todos al día» mientras el
-    # panel de al lado dice que hay cuatro atrasados.
-    @periodo = AcademicPeriod.en_operacion
+    # El año de la sesión (MOR-165), y si es «Todos», el que tiene clases. Nunca
+    # `vigente`: en agosto `vigente` es el año que empieza, sin una sola
+    # evaluación, y esta pantalla diría «todos al día» mientras el panel de al
+    # lado dice que hay cuatro atrasados. Ver `anio_de_trabajo`.
+    @periodo = anio_de_trabajo
     @atrasados = CargaDeNotas.profesores_atrasados(@periodo)
     @lapso = lapso_en_curso
   end
