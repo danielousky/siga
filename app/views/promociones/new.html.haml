@@ -21,7 +21,7 @@
         primero hay que armarlas. Se pueden traer del año anterior de un clic:
         las mismas secciones, con su cupo, su aula y su profesor guía.
       .empty-state-acciones
-        = link_to copiar_al_academic_period_path(@destino), class: "btn btn-primary" do
+        = link_to copiar_al_academic_period_path(@destino), class: "btn btn-accion" do
           = icono(:calendario, tamano: 16)
           %span= "Copiar la estructura a #{@destino.name}"
 
@@ -46,7 +46,7 @@
           pasa, así que la decisión es suya.
         .empty-state-acciones
           = link_to promover_al_academic_period_path(@destino, origen_id: @origen.id, sin_datos: 1),
-                    class: "btn btn-primary" do
+                    class: "btn btn-accion" do
             = icono(:alumnos, tamano: 16)
             %span Pasar a todos al siguiente grado
           = link_to importaciones_path, class: "btn btn-secondary" do
@@ -98,7 +98,7 @@
         - if params[:sin_datos].present?
           = hidden_field_tag :sin_datos, "1"
         - if a_inscribir.positive?
-          = submit_tag "Promover a #{contar(a_inscribir, 'alumno', 'alumnos')}", class: "btn btn-primary", data: { turbo: false }
+          = submit_tag "Promover a #{contar(a_inscribir, 'alumno', 'alumnos')}", class: "btn btn-accion", data: { turbo: false }
         = link_to academic_periods_path, class: "btn btn-secondary" do
           = icono(:volver, tamano: 16)
           %span Volver

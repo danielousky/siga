@@ -26,15 +26,17 @@
       = f.label :name, class: "form-label"
       -# ⚠️ Tres capas, y las tres hacen falta.
       -#
-      -#   `pattern`             el navegador no deja ENVIAR con un espacio
-      -#   `.campo-mayuscula`    se VE en mayúscula mientras se escribe
-      -#   el modelo             `strip.upcase` + la validación de formato
+      -#   `campo-filtrado`   NO DEJA ESCRIBIR lo que no corresponde
+      -#   `pattern`          el navegador tampoco deja enviarlo
+      -#   el modelo          `strip.upcase` + la validación de formato
       -#
-      -# Sin la primera, el error llega después de guardar; sin la segunda, quien
-      -# escribe «c» ve «c» y cree que se guardó así; y sin la tercera, un POST
-      -# que no pasa por el formulario mete lo que quiera. `autocapitalize` es
-      -# solo para el teclado del teléfono: en escritorio no hace nada.
-      = f.text_field :name, class: "form-control campo-mayuscula", list: "identificadores-usados", maxlength: 8, autocapitalize: "characters", pattern: "[A-Za-z0-9]+", title: "Solo letras y números, sin espacios ni símbolos", placeholder: (usados.first || "A")
+      -# La primera es la que faltaba, y la encontró Daniel: `pattern` es
+      -# validación del navegador —impide ENVIAR, no escribir— así que se podía
+      -# teclear «A Ñ{*}¡» y descubrir el error recién al guardar.
+      -#
+      -# La tercera no sobra: un POST que no pasa por el formulario mete lo que
+      -# quiera, y ahí no hay JavaScript que valga.
+      = f.text_field :name, class: "form-control campo-mayuscula", list: "identificadores-usados", maxlength: 8, autocapitalize: "characters", pattern: "[A-Za-z0-9]+", title: "Solo letras y números, sin espacios ni símbolos", placeholder: (usados.first || "A"), data: { controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9", campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
       - if usados.any?
         %datalist#identificadores-usados
           - usados.each do |identificador|

@@ -166,6 +166,19 @@ y ahí escribir la URL en español ES la comprobación.
   `ArranqueController`); en inglés cuando sí (`StudentsController` ↔ `Student`)
 - Todas las rutas requieren autenticación por defecto; hay que saltarla explícitamente
 - Los enums de dominio llevan etiquetas en constantes del modelo (ver `DemoRequest`)
+- **Los botones se distinguen por QUÉ HACEN** (`MOR-172`), con tonos de la familia
+  fría — verde, rojo y ámbar están reservados para el dato (ver la regla de color,
+  `MOR-135`):
+  `btn-primary` azul (crear, guardar) · `btn-accion` índigo (lo que hace mucho de
+  una vez: copiar, promover, importar) · `btn-documento` petróleo (lo que sale:
+  descargar, emitir) · `btn-ver` azul suave · `btn-secondary` neutro ·
+  `btn-danger` sin tono. ⚠️ La distinción que importa no es «primario vs
+  secundario»: «Copiar de otro año» crea ochenta filas y «Guardar» actualiza una.
+- **Un campo con formato se filtra AL ESCRIBIR**, no solo al enviar: el controlador
+  `campo-filtrado` (`data-campo-filtrado-permite-value="A-Za-z0-9"`) borra lo que no
+  corresponde mientras se teclea. ⚠️ `pattern` **no** alcanza: es validación del
+  navegador e impide enviar, no escribir. Son tres capas —filtrar, `pattern`, y la
+  validación del modelo para lo que llegue por otra puerta— y ninguna sobra.
 - **La ayuda va bajo demanda** (`MOR-161`): `etiqueta_con_pista` para lo que
   explica QUÉ es un campo; `.nota-ayuda` visible solo para CONSECUENCIAS;
   `placeholder` para el formato

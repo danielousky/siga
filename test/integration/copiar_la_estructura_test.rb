@@ -207,7 +207,10 @@ class CopiarLaEstructuraTest < ActionDispatch::IntegrationTest
 
     get academic_periods_path
 
-    assert_select "a.btn.btn-primary[href=?]", copiar_al_academic_period_path(@nuevo)
+    # `btn-accion` y no `btn-primary`: es el tono de lo que hace mucho de una vez
+    # (MOR-172). Copiar crea diez secciones y ochenta asignaciones; guardar
+    # actualiza una fila. Que fueran el mismo azul era el problema.
+    assert_select "a.btn.btn-accion[href=?]", copiar_al_academic_period_path(@nuevo)
     assert_select "a[href=?]", copiar_al_academic_period_path(@a.periodo), count: 0,
                   message: "el año que ya tiene secciones no necesita el atajo"
   end

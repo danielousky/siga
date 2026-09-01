@@ -28,6 +28,26 @@
   --brand-active: #0f2538;           /* Azul active */
   --brand-subtle: #e8eef5;           /* Fondo azul muy suave */
 
+  /* ---- Tonos de acción (MOR-172) ----
+     ⚠️ TODOS en la familia fría, y no es capricho: verde, rojo y ámbar están
+     RESERVADOS para el dato (ver la regla de color, MOR-135). Un número en rojo
+     es un niño aplazado, y si un botón también fuera rojo el ojo dejaría de
+     saber cuál de los dos importa.
+
+     Lo que la regla sí deja libre es el azul institucional —«es la afordancia
+     del control, no un significado»— y de ahí salen estos tres. Se distinguen
+     por MATIZ dentro de esa familia, no por semántica:
+
+        #1e4a7a  azul      210°   crear, guardar, confirmar
+        #4a3f7a  índigo    255°   lo que hace mucho de una vez
+        #12596e  petróleo  193°   lo que SALE del sistema
+
+     Los tres llevan texto blanco encima con más de 7:1 de contraste. */
+  --accion-primary: #4a3f7a;         /* Índigo: copiar, promover, importar */
+  --accion-hover: #3a3160;
+  --documento-primary: #12596e;      /* Petróleo: descargar, emitir */
+  --documento-hover: #0d4353;
+
   /* ---- Semantic Colors ---- */
   --success-text: #2d5a3d;           /* Verde academia */
   --success-bg: #e8f4ec;
@@ -297,6 +317,61 @@ a:hover {
   background: var(--surface-hover);
   border-color: var(--border-emphasis);
   color: var(--text-primary);
+}
+
+/* Cuatro tonos, uno por lo que el botón HACE (MOR-172).
+   ───────────────────────────────────────────────────
+   Daniel: «veo todo del mismo color, más inductivo sería un tono de azul para
+   los create, otro para los show, otro para las descargas. Eso sería mejor
+   cognitivamente». Tenía razón: con 59 botones azules y 57 grises, el color
+   había dejado de decir nada.
+
+      btn-primary     azul sólido      la acción a la que vino: crear, guardar
+      btn-accion      índigo sólido    lo que hace MUCHO de una vez
+      btn-documento   petróleo sólido  lo que SALE: descargar, emitir
+      btn-ver         azul suave       ir al detalle de algo
+      btn-secondary   neutro           volver, cancelar
+      btn-danger      sin tono         destructivo, por peso y posición
+
+   ⚠️ La distinción que importa no es «primario vs secundario»: es **qué pasa
+   al tocarlo**. «Copiar de otro año» crea ochenta filas y «Guardar» actualiza
+   una; los dos eran el mismo azul. */
+.btn-accion {
+  background: var(--accion-primary);
+  color: white;
+  border-color: var(--accion-primary);
+}
+
+.btn-accion:hover {
+  background: var(--accion-hover);
+  border-color: var(--accion-hover);
+  color: white;
+}
+
+.btn-documento {
+  background: var(--documento-primary);
+  color: white;
+  border-color: var(--documento-primary);
+}
+
+.btn-documento:hover {
+  background: var(--documento-hover);
+  border-color: var(--documento-hover);
+  color: white;
+}
+
+/* Ir al detalle. Suave a propósito: aparece muchas veces por pantalla —una por
+   fila— y en sólido convertiría un listado en una pared de botones. */
+.btn-ver {
+  background: var(--brand-subtle);
+  color: var(--brand-primary);
+  border-color: transparent;
+}
+
+.btn-ver:hover {
+  background: var(--brand-subtle);
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
 }
 
 /* El botón destructivo NO lleva rojo (MOR-135 · la regla de color).

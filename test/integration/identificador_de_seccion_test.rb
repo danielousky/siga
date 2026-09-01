@@ -114,6 +114,10 @@ class IdentificadorDeSeccionTest < ActionDispatch::IntegrationTest
 
     assert_select "input[name='section[name]'][pattern=?]", "[A-Za-z0-9]+"
     assert_select "input[name='section[name]'].campo-mayuscula"
+    # ⚠️ La capa que faltaba: `pattern` impide ENVIAR, no escribir. Sin esto se
+    # podía teclear «A Ñ{*}¡» y descubrir el error recién al guardar.
+    assert_select "input[name='section[name]'][data-controller=?]", "campo-filtrado"
+    assert_select "input[name='section[name]'][data-campo-filtrado-permite-value=?]", "A-Za-z0-9"
   end
 
   test "el rótulo dice «Identificador», no «Nombre»" do

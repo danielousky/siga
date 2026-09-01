@@ -21,7 +21,7 @@
           Son tres —1er, 2do y 3er Lapso— y reparten el año escolar en tercios.
           Se crean de una vez y después se ajustan las fechas si un feriado corre alguna.
         .empty-state-acciones
-          = button_to sembrar_lapsos_path, class: "btn btn-primary" do
+          = button_to sembrar_lapsos_path, class: "btn btn-accion" do
             = icono(:calendario, tamano: 16)
             %span= "Crear los tres lapsos de #{Current.academic_period.name}"
       - else

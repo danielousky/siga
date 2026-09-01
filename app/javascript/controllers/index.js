@@ -12,6 +12,7 @@ import { application } from "controllers/application"
 
 import AsistenciaController from "controllers/asistencia_controller"
 import AutoEnvioController from "controllers/auto_envio_controller"
+import CampoFiltradoController from "controllers/campo_filtrado_controller"
 import BusquedaController from "controllers/busqueda_controller"
 import CargaNotasController from "controllers/carga_notas_controller"
 import CopiarController from "controllers/copiar_controller"
@@ -26,6 +27,7 @@ import SearchFilterController from "controllers/search_filter_controller"
 
 application.register("asistencia", AsistenciaController)
 application.register("auto-envio", AutoEnvioController)
+application.register("campo-filtrado", CampoFiltradoController)
 application.register("busqueda", BusquedaController)
 application.register("carga-notas", CargaNotasController)
 application.register("copiar", CopiarController)
