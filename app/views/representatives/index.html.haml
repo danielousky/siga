@@ -25,7 +25,7 @@
       -# ⚠️ El texto va en una variable: Haml lee una continuación con `\` como
       -# indentación y revienta con «indented 8 levels deeper».
       - explicacion = "Son quienes consultan las notas: el producto apunta a ellos, no al alumno. Entran con la matrícula cuando sube la planilla, y también se pueden cargar a mano."
-      - salidas = [ { texto: "Subir la matrícula", ruta: importaciones_path, icono: :importar }, { texto: "Registrar uno", ruta: new_representative_path, icono: :agregar, clase: "btn-secondary" } ]
+      - salidas = [ { texto: "Subir la matrícula", ruta: importaciones_path, icono: :importar }, { texto: "Registrar representante", ruta: new_representative_path, icono: :agregar, clase: "btn-secondary" } ]
       = render "shared/lista_vacia", clave: :representantes, titulo: "Todavía no hay representantes", texto: explicacion, acciones: salidas
 
   - elsif @representatives.empty?

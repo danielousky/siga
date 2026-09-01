@@ -3,7 +3,7 @@
     %h1 Grados
     = link_to new_grade_path, class: "btn btn-primary" do
       = icono(:agregar, tamano: 16)
-      %span Nuevo grado
+      %span Registrar grado
 
   - if @grades.empty?
     -# ⚠️ El botón NO es «Nuevo grado»: los grados los fija la ley y se siembran

@@ -59,7 +59,7 @@
         Si lo deja vacío, SIGA le pone el siguiente de la serie del colegio.
 
   .form-acciones
-    = f.submit "Guardar registro", class: "btn btn-primary"
+    = f.submit class: "btn btn-primary"
     - if local_assigns[:volver]
       = link_to volver, class: "btn btn-secondary" do
         = icono(:volver, tamano: 16)

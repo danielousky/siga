@@ -174,6 +174,17 @@ y ahí escribir la URL en español ES la comprobación.
   descargar, emitir) · `btn-ver` azul suave · `btn-secondary` neutro ·
   `btn-danger` sin tono. ⚠️ La distinción que importa no es «primario vs
   secundario»: «Copiar de otro año» crea ochenta filas y «Guardar» actualiza una.
+- **Dar de alta se dice «Registrar <cosa>»**, siempre (`MOR-175`). Había cinco
+  fórmulas para lo mismo —«Crear el año escolar», «Nuevo grado», «Registrar nueva
+  materia», «Cargar un alumno», «Agregar una materia»— y el botón ni siquiera
+  coincidía con el título de la pantalla a la que llevaba. ⚠️ «Registrar» y no
+  «Nuevo/Nueva» esquiva además la concordancia de género, que es justo lo que se
+  afloja cuando alguien agrega una pantalla apurado. El **submit** lo pone Rails
+  desde `es.yml` («Crear» / «Guardar cambios»), así que `f.submit` va **a secas**.
+  Lo cuida `nombres_de_las_acciones_test`.
+  ⚠️ Los verbos de `PasosDeArranque` («Armar las secciones», «Subir la matrícula»)
+  **no** entran en la regla: enseñan qué es el paso y apuntan al listado, no al
+  alta — otro destino, otro nombre.
 - **El tooltip es `data-tooltip`, nunca `title`** (`MOR-173`). El nativo no se
   puede estilar, tarda un segundo largo en aparecer, sale con la tipografía del
   sistema y **en el teléfono no existe** — que es donde un profesor carga notas.

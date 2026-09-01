@@ -958,6 +958,18 @@ textarea.form-control {
   font-size: 16px;
 }
 
+/* ⚠️ Los botones de un estado vacío no tenían NINGÚN estilo: el `div` existía en
+   las vistas y en la hoja no había regla, así que salían pegados uno contra
+   otro. `.acciones-de-cabecera` sí lo tenía — es el mismo problema resuelto en
+   un solo lado. */
+.empty-state-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: center;
+  margin-top: var(--space-lg);
+}
+
 /* ---- Barra de contexto: en qué colegio y en qué año escolar estás ---- */
 /*
    Antes esta franja decía "Período Académico Activo" —una etiqueta anunciando

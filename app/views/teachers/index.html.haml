@@ -3,7 +3,7 @@
     %h1 Registro de profesores
     = link_to new_teacher_path, class: "btn btn-primary" do
       = icono(:agregar, tamano: 16)
-      %span Registrar nuevo profesor
+      %span Registrar profesor
 
 = render "shared/buscador_de_lista", ruta: teachers_path, marco: "teachers-results",
          pista: "Nombre, apellido, cédula o correo…"
@@ -23,7 +23,7 @@
       -# —cargar profesores a mano es su propio trabajo— así que el estado vacío
       -# se escribe acá.
       - explicacion = "Cada profesor necesita correo: es con lo que entra a cargar sus notas. Si sube el pensum, salen de ahí junto con las materias y con quién dicta qué."
-      - salidas = [ { texto: "Subir el pensum", ruta: importaciones_path, icono: :importar }, { texto: "Cargar un profesor", ruta: new_teacher_path, icono: :agregar, clase: "btn-secondary" } ]
+      - salidas = [ { texto: "Subir el pensum", ruta: importaciones_path, icono: :importar }, { texto: "Registrar profesor", ruta: new_teacher_path, icono: :agregar, clase: "btn-secondary" } ]
       = render "shared/lista_vacia", clave: :profesores, titulo: "Todavía no hay profesores cargados", texto: explicacion, acciones: salidas
   - else
     .card-academic

@@ -3,7 +3,7 @@
     %h1 Departamentos académicos
     = link_to new_department_path, class: "btn btn-primary" do
       = icono(:agregar, tamano: 16)
-      %span Crear nuevo departamento
+      %span Registrar departamento
 
 = render "shared/buscador_de_lista", ruta: departments_path, marco: "departments-results",
          pista: "Nombre del departamento…"
@@ -19,7 +19,7 @@
   - if @departments.empty?
     .card-academic
       = render "shared/lista_vacia", clave: :departamentos,
-               acciones: [ { texto: "Crear un departamento", ruta: new_department_path, icono: :agregar } ]
+               acciones: [ { texto: "Registrar departamento", ruta: new_department_path, icono: :agregar } ]
   - else
     .card-academic
       = render "shared/escala", total: @pagy.count, singular: "departamento",

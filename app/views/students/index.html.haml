@@ -3,7 +3,7 @@
     %h1 Registro de alumnos
     = link_to new_student_path, class: "btn btn-primary" do
       = icono(:agregar, tamano: 16)
-      %span Registrar nuevo alumno
+      %span Registrar alumno
 
 = render "shared/buscador_de_lista", ruta: students_path, marco: "students-results",
          pista: "Nombre, apellido, cédula o carnet…"
@@ -24,7 +24,7 @@
     .card-academic
       = render "shared/lista_vacia", clave: :alumnos,
                acciones: [ { texto: "Subir la matrícula", ruta: importaciones_path, icono: :importar },
-                 { texto: "Cargar un alumno", ruta: new_student_path, icono: :agregar, clase: "btn-secondary" } ]
+                 { texto: "Registrar alumno", ruta: new_student_path, icono: :agregar, clase: "btn-secondary" } ]
   - else
     .card-academic
       -# La escala va DENTRO del frame a propósito: así el número lo actualiza el

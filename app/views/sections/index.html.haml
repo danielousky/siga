@@ -3,7 +3,7 @@
     %h1 Secciones
     = link_to new_section_path, class: "btn btn-primary" do
       = icono(:agregar, tamano: 16)
-      %span Nueva sección
+      %span Registrar sección
 
 -# ⚠️ Acá había DOS selectores y ahora hay uno (MOR-165).
 -#
@@ -32,7 +32,7 @@
   - if @sections.empty?
     .card-academic
       = render "shared/lista_vacia", clave: :secciones,
-               acciones: [ { texto: "Crear una sección", ruta: new_section_path, icono: :agregar } ]
+               acciones: [ { texto: "Registrar sección", ruta: new_section_path, icono: :agregar } ]
   - else
     .card-academic
       %table.table-academic

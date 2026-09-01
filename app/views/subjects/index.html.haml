@@ -3,7 +3,7 @@
     %h1 Catálogo de materias
     = link_to new_subject_path, class: "btn btn-primary" do
       = icono(:agregar, tamano: 16)
-      %span Registrar nueva materia
+      %span Registrar materia
 
 = render "shared/buscador_de_lista", ruta: subjects_path, marco: "subjects-results",
          pista: "Nombre o código de la materia…"
@@ -20,7 +20,7 @@
     .card-academic
       = render "shared/lista_vacia", clave: :materias,
                acciones: [ { texto: "Subir el pensum", ruta: importaciones_path, icono: :importar },
-                 { texto: "Agregar una materia", ruta: new_subject_path, icono: :agregar, clase: "btn-secondary" },
+                 { texto: "Registrar materia", ruta: new_subject_path, icono: :agregar, clase: "btn-secondary" },
                  { texto: "Cargar profesores", ruta: teachers_path, icono: :profesores, clase: "btn-secondary" } ]
   - else
     .card-academic
