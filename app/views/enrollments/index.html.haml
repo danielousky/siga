@@ -18,24 +18,44 @@
 -# (`data: { turbo_frame: … }` en shared/_search_filter), y eso le gana al
 -# `target` del frame.
 = turbo_frame_tag "enrollments-results", target: "_top" do
-  .card-academic
-    %table.table-academic
-      %thead
-        %tr
-          %th= Enrollment.human_attribute_name(:student)
-          %th= Enrollment.human_attribute_name(:section)
-          %th= Grade.model_name.human
-          %th= Enrollment.human_attribute_name(:enrollment_date)
-          %th= Enrollment.human_attribute_name(:status)
-      %tbody
-        - @enrollments.each do |enrollment|
+  -# ⚠️ Inscribir NO es un paso del plan de arranque —la matrícula entra por el
+  -# importador— pero la pantalla existe y se llegaba a ella con una tabla de
+  -# encabezados y nada debajo.
+  -#
+  -# Y hay dos vacíos distintos que no se pueden decir igual: «no hay ninguna» y
+  -# «la búsqueda no encontró». Confundirlos hace que quien filtró por un grado
+  -# crea que perdió la matrícula entera.
+  - if @enrollments.empty? && params[:q].blank? && params[:grade_id].blank?
+    .card-academic
+      - explicacion = "Una inscripción coloca a un alumno en una sección de este año escolar. Si ya tiene la matrícula en un Excel, súbala y quedan todas de una vez."
+      - salidas = [ { texto: "Subir la matrícula", ruta: importaciones_path, icono: :importar }, { texto: "Inscribir a uno", ruta: new_enrollment_path, icono: :agregar, clase: "btn-secondary" } ]
+      = render "shared/lista_vacia", clave: :inscripciones, titulo: "Todavía no hay nadie inscrito", texto: explicacion, acciones: salidas
+
+  - elsif @enrollments.empty?
+    .card-academic
+      .empty-state
+        %h3 Ningún alumno coincide con la búsqueda
+        %p Pruebe con otro nombre o quite el filtro de grado. La matrícula sigue completa.
+
+  - else
+    .card-academic
+      %table.table-academic
+        %thead
           %tr
-            %td= link_to enrollment.student.user.apellidos_y_nombres, edit_enrollment_path(enrollment)
-            %td= enrollment.section.name
-            %td= enrollment.section.grade.name
-            %td= enrollment.enrollment_date.strftime("%d/%m/%Y")
-            %td
-              -# `retirado` va en gris, no en ámbar: un alumno que se fue del
-                colegio es un hecho, no una alerta pendiente de atender.
-              %span{class: "estado #{enrollment.regular? ? 'estado--al-dia' : 'estado--inactivo'}"}
-                = enrollment.regular? ? "Regular" : enrollment.status.humanize
+            %th= Enrollment.human_attribute_name(:student)
+            %th= Enrollment.human_attribute_name(:section)
+            %th= Grade.model_name.human
+            %th= Enrollment.human_attribute_name(:enrollment_date)
+            %th= Enrollment.human_attribute_name(:status)
+        %tbody
+          - @enrollments.each do |enrollment|
+            %tr
+              %td= link_to enrollment.student.user.apellidos_y_nombres, edit_enrollment_path(enrollment)
+              %td= enrollment.section.name
+              %td= enrollment.section.grade.name
+              %td= l(enrollment.enrollment_date, format: :long)
+              %td
+                -# `retirado` va en gris, no en ámbar: un alumno que se fue del
+                  colegio es un hecho, no una alerta pendiente de atender.
+                %span{class: "estado #{enrollment.regular? ? 'estado--al-dia' : 'estado--inactivo'}"}
+                  = enrollment.regular? ? "Regular" : enrollment.status.humanize

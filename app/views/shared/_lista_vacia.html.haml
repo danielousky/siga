@@ -16,8 +16,21 @@
 - paso = PasosDeArranque.paso(Current.school, clave)
 
 .empty-state
+  -# ⚠️ No todo listado es un paso de la puesta en marcha —representantes,
+  -# inscripciones, la auditoría— y esos también se quedaban con una tabla de
+  -# encabezados y nada debajo. Acá se les da su texto y su acción a mano; el
+  -# resto los sigue tomando de `PasosDeArranque`, que es el único lugar donde
+  -# se escribe lo que ya es un paso.
   - if paso.nil?
     %h3= local_assigns[:titulo] || "Todavía no hay nada acá"
+    - if local_assigns[:texto]
+      %p= texto
+    - if Array(local_assigns[:acciones]).any?
+      .empty-state-acciones
+        - Array(acciones).each do |accion|
+          = link_to accion[:ruta], class: "btn #{accion[:clase] || 'btn-primary'}" do
+            = icono(accion[:icono], tamano: 16)
+            %span= accion[:texto]
 
   - elsif paso.bloqueado?
     - falta = PasosDeArranque.paso(Current.school, paso.necesita)

@@ -5,15 +5,22 @@
       = icono(:agregar, tamano: 16)
       %span Nuevo grado
 
-  %table.table-academic
-    %thead
-      %tr
-        %th= Grade.human_attribute_name(:name)
-        %th= Grade.human_attribute_name(:level)
-        %th Coordinador
-    %tbody
-      - @grades.each do |grade|
+  - if @grades.empty?
+    -# ⚠️ El botón NO es «Nuevo grado»: los grados los fija la ley y se siembran
+    -# marcando niveles (MOR-153). Mandar a crearlos de a uno es mandar a llenar
+    -# catorce formularios con información que no es del colegio.
+    = render "shared/lista_vacia", clave: :niveles
+
+  - else
+    %table.table-academic
+      %thead
         %tr
-          %td= link_to grade.name, grade
-          %td= grade.level.humanize
-          %td= grade.coordinator_teacher&.user&.nombre_completo || "—"
+          %th= Grade.human_attribute_name(:name)
+          %th= Grade.human_attribute_name(:level)
+          %th Coordinador
+      %tbody
+        - @grades.each do |grade|
+          %tr
+            %td= link_to grade.name, grade
+            %td= grade.level.humanize
+            %td= grade.coordinator_teacher&.user&.nombre_completo || "—"

@@ -13,35 +13,57 @@
 -# frame con este id. El buscador sigue actualizando el frame porque declara
 -# su destino explícito, y eso le gana al `target`.
 = turbo_frame_tag "representatives-results", target: "_top" do
-  .card-academic
-    = render "shared/escala", total: @pagy.count, singular: "representante", plural: "representantes",
-             detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
+  -# ⚠️ Dos vacíos distintos, que no se pueden decir igual: «todavía no hay
+  -# ninguno» y «la búsqueda no encontró». Confundirlos hace que quien buscó por
+  -# un apellido crea que perdió el padrón entero.
+  -#
+  -# Registrar representantes NO es un paso del plan de arranque —entran con la
+  -# matrícula, desde el importador— pero la pantalla existe y quedaba con una
+  -# tabla de encabezados y nada debajo.
+  - if @representatives.empty? && params[:q].blank?
+    .card-academic
+      -# ⚠️ El texto va en una variable: Haml lee una continuación con `\` como
+      -# indentación y revienta con «indented 8 levels deeper».
+      - explicacion = "Son quienes consultan las notas: el producto apunta a ellos, no al alumno. Entran con la matrícula cuando sube la planilla, y también se pueden cargar a mano."
+      - salidas = [ { texto: "Subir la matrícula", ruta: importaciones_path, icono: :importar }, { texto: "Registrar uno", ruta: new_representative_path, icono: :agregar, clase: "btn-secondary" } ]
+      = render "shared/lista_vacia", clave: :representantes, titulo: "Todavía no hay representantes", texto: explicacion, acciones: salidas
 
-    %table.table-academic
-      %thead
-        %tr
-          %th Nombre
-          %th Contacto
-          %th Representados
-      %tbody
-        - @representatives.each do |representante|
+  - elsif @representatives.empty?
+    .card-academic
+      .empty-state
+        %h3= "Ningún representante coincide con “#{params[:q].strip}”"
+        %p Pruebe con el apellido, la cédula o el teléfono. El padrón sigue completo.
+
+  - else
+    .card-academic
+      = render "shared/escala", total: @pagy.count, singular: "representante", plural: "representantes",
+               detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
+
+      %table.table-academic
+        %thead
           %tr
-            %td= link_to persona_con_avatar(representante.user), representante
-            %td
-              -# Sin correo el representante no puede consultar nada, así que la
-              -# celda vacía no sirve: hay que poder VER a quién falta llamar
-              -# antes de que la mamá pregunte por qué no entra (MOR-142).
-              - if representante.user.email.present?
-                = representante.user.email
-              - else
-                %span.nota-pendiente Sin correo
-              - if representante.phone.present?
-                %br
-                %span.dato-secundario= representante.phone
-            %td
-              - if representante.students.any?
-                = representante.students.map { |a| "#{a.user.nombre_completo}" }.join(" ·")
-              - else
-                %span.nota-pendiente Sin alumnos vinculados
-    .pagy-nav
-      != pagy_nav(@pagy)
+            %th Nombre
+            %th Contacto
+            %th Representados
+        %tbody
+          - @representatives.each do |representante|
+            %tr
+              %td= link_to persona_con_avatar(representante.user), representante
+              %td
+                -# Sin correo el representante no puede consultar nada, así que la
+                -# celda vacía no sirve: hay que poder VER a quién falta llamar
+                -# antes de que la mamá pregunte por qué no entra (MOR-142).
+                - if representante.user.email.present?
+                  = representante.user.email
+                - else
+                  %span.nota-pendiente Sin correo
+                - if representante.phone.present?
+                  %br
+                  %span.dato-secundario= representante.phone
+              %td
+                - if representante.students.any?
+                  = representante.students.map { |a| "#{a.user.nombre_completo}" }.join(" ·")
+                - else
+                  %span.nota-pendiente Sin alumnos vinculados
+      .pagy-nav
+        != pagy_nav(@pagy)
