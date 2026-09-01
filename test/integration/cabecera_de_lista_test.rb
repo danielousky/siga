@@ -66,14 +66,31 @@ class CabeceraDeListaTest < ActionDispatch::IntegrationTest
     assert_empty css_select(".cabecera-de-lista [title]")
   end
 
-  test "ya no se anuncian «Filtros» ni se etiqueta «Buscar»" do
+  test "ya no se anuncia «Filtros» en ninguna pantalla" do
     listados.each_key do |ruta|
       get ruta
 
       assert_no_match(/>\s*Filtros\s*</, response.body, "#{ruta} sigue anunciando «Filtros»")
-      assert_empty css_select(".cabecera-de-lista label[for$='_q']"),
-                   "#{ruta}: el campo de búsqueda no necesita etiqueta, tiene su placeholder"
     end
+  end
+
+  # ⚠️ «Buscar» está, pero PEGADO adelante y no encima (MOR-193): dentro del
+  # grupo no cuesta altura, que era todo el problema de la etiqueta anterior.
+  #
+  # Es un `label` de verdad —se toca para enfocar, y es el nombre accesible del
+  # campo—, así que el input ya no necesita `aria-label`.
+  test "«Buscar» va pegado adelante, dentro del grupo" do
+    fallan = listados.keys.filter_map do |ruta|
+      get ruta
+      rotulo = css_select(".campo-con-boton .campo-con-boton-inicio").first
+      next "#{ruta}: no tiene el rótulo" if rotulo.nil?
+      next "#{ruta}: dice #{rotulo.text.strip.inspect}" unless rotulo.text.strip == "Buscar"
+      next "#{ruta}: el rótulo no apunta al campo" if rotulo["for"].blank?
+
+      nil
+    end
+
+    assert_empty fallan
   end
 
   # El placeholder es lo ÚNICO que queda explicando qué se puede buscar, así que
@@ -95,6 +112,17 @@ class CabeceraDeListaTest < ActionDispatch::IntegrationTest
     assert css_select(".cabecera-de-lista").any?
     assert_equal 2, css_select(".cabecera-de-lista input[type=date]").size,
                  "el rango de fechas tiene que seguir estando"
+  end
+
+  # ⚠️ Daniel: «el mensaje de los estudiantes me parece mejor que va encima de
+  # la sección de título». Debajo quedaba entre la cabecera y la tabla,
+  # interrumpiendo a quien ya venía a mirar el listado.
+  test "el aviso de alumnos sin representante va ENCIMA del título" do
+    get students_path
+
+    cuerpo = response.body
+    assert cuerpo.index("alert-warning") < cuerpo.index("cabecera-de-lista"),
+           "el aviso quedó debajo de la cabecera"
   end
 
   test "los parciales viejos del filtro ya no existen" do

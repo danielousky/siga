@@ -1,6 +1,10 @@
-= render "shared/cabecera_de_lista", titulo: "Alumnos", ruta: students_path,
-         marco: "students-results", pista: "Nombre, apellido, cédula o carnet…",
-         alta: { ruta: new_student_path, nombre: "Registrar alumno" }
+-# ⚠️ El aviso va ENCIMA del título, no debajo (MOR-193).
+-#
+-# Daniel: *«el mensaje de los estudiantes me parece mejor que va encima de la
+-# sección de título»*. Y es lo correcto: se lee ANTES de la pantalla que
+-# describe. Debajo del título quedaba entre la cabecera y la tabla, o sea
+-# interrumpiendo el camino del que ya venía a mirar el listado; arriba es lo
+-# primero, se atiende o se ignora, y no se cruza con nada.
 -# ⚠️ Un atajo, no un filtro más del buscador.
 -#
 -# «Sin representante» no es una manera de acotar una búsqueda: es UNA pregunta
@@ -41,6 +45,10 @@
         = "#{contar(@cuantos_sin_representante, 'alumno', 'alumnos')} sin representante registrado: el colegio no tiene a quién llamar."
       = link_to students_path(sin_representante: 1), class: "btn btn-secondary btn-sm" do
         %span Ver quiénes son
+
+= render "shared/cabecera_de_lista", titulo: "Alumnos", ruta: students_path,
+         marco: "students-results", pista: "Nombre, apellido, cédula o carnet…",
+         alta: { ruta: new_student_path, nombre: "Registrar alumno" }
 
 -# `target: "_top"` no es un detalle: sin él, TODO enlace de adentro del frame
 -# —Ver, Editar, Eliminar— navega DENTRO del frame. Y como ninguna de esas

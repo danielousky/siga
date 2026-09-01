@@ -6014,9 +6014,12 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   flex-wrap: wrap;
 }
 
-/* Menos ancho que antes, que es justo lo que pidió Daniel. `min()` para que en
-   un teléfono no desborde: manda el más chico de los dos. */
-.cabecera-de-lista .search-input-wrap { width: min(320px, 100%); }
+/* Con la cabecera en una sola línea sobra sitio, así que el campo se alarga:
+   «Nombre, apellido, cédula o carnet…» entraba cortado en 320 px, y un
+   placeholder cortado no explica lo que vino a explicar.
+
+   `min()` para que en un teléfono no desborde: manda el más chico de los dos. */
+.cabecera-de-lista .search-input-wrap { width: min(420px, 100%); }
 
 .cabecera-de-lista-select {
   width: auto;
@@ -6055,6 +6058,46 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   display: flex;
   align-items: stretch;
 }
+
+/* El rótulo pegado ADELANTE (MOR-193).
+   ───────────────────────────────────
+   Primo de `.campo-compuesto-sigla` —la V/E de la cédula— y a propósito NO es
+   la misma clase: allá el prefijo es un `select` de ancho fijo que se abre, y
+   acá es un rótulo que solo enfoca. Comparten la idea, no el comportamiento.
+
+   ⚠️ `cursor: text` y no `pointer`: al tocarlo, lo que pasa es que el cursor
+   se mete en el campo. Una manito prometería un menú que no existe. */
+.campo-con-boton-inicio {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding-inline: var(--space-md);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text-secondary);
+  background: var(--surface-hover);
+  border: 1px solid var(--control-border);
+  border-right: 0;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  white-space: nowrap;
+  cursor: text;
+}
+
+/* Con rótulo adelante, el campo pierde el redondeo de los DOS lados: queda en
+   el medio del grupo. */
+.campo-con-boton-inicio + .search-input-wrap > .form-control { border-radius: 0; }
+
+/* ⚠️ El foco se marca en TODO el grupo, no en la mitad que se tocó — misma
+   razón que en la cédula: iluminar solo el input lo vuelve a leer como dos
+   campos sueltos. */
+.campo-con-boton:focus-within {
+  outline: 2px solid var(--control-focus-border);
+  outline-offset: 1px;
+  border-radius: var(--radius-sm);
+}
+
+.campo-con-boton:focus-within .form-control,
+.campo-con-boton:focus-within .btn { outline: none; }
 
 .campo-con-boton > .search-input-wrap > .form-control,
 .campo-con-boton > .form-control {

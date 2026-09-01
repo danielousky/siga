@@ -63,9 +63,20 @@
     -# El campo y «Limpiar» son UN control: se pegan sin borde entre ellos, como
     -# la cédula con su V/E (`campo-compuesto`, MOR-178).
     .campo-con-boton
+      -# ⚠️ «Buscar» vuelve, pero PEGADO adelante y no encima (MOR-193).
+      -#
+      -# Daniel: *«siendo así creo que podemos alargar un poco más el buscador y
+      -# colocarle Buscar como pre-group»*. Y es otra cosa que la etiqueta que se
+      -# quitó: aquélla vivía en su propio renglón y costaba altura; ésta va
+      -# dentro del grupo y no cuesta ninguna.
+      -#
+      -# Es un `label` de verdad y no un `span`: así se puede tocar para enfocar
+      -# el campo —un blanco de 70 px en un teléfono— y además ES el nombre
+      -# accesible del input, que por eso ya no necesita `aria-label`.
+      = f.label campo, "Buscar", class: "campo-con-boton-inicio"
       .search-input-wrap
         = f.text_field campo, value: params[campo], placeholder: pista, autocomplete: "off",
-            class: "form-control", "aria-label": "Buscar en #{titulo.downcase}",
+            class: "form-control",
             data: { "search-filter-target": "input", action: "input->search-filter#search" }
         %span.search-spinner.hidden{data: { "search-filter-target": "spinner" }}
       = link_to ruta, class: "btn btn-secondary campo-con-boton-final",
