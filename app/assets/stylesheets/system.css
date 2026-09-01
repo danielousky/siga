@@ -4809,6 +4809,21 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
    —o no— al ver la fila guardada. */
 .campo-mayuscula { text-transform: uppercase; }
 
+/* Los dos canales para escribirle a una familia (MOR-181). El de WhatsApp va
+   arriba y separado del formulario: son dos acciones distintas —una sale de la
+   app, la otra la manda SIGA— y pegarlas se leería como un solo bloque. */
+.escribirle-canales {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.escribirle-canales .nota-ayuda { margin: 0; }
+
 /* El atajo de «sin representante» en el listado de alumnos (MOR-180).
    ─────────────────────────────────────────────────────────────────
    No es un filtro más del buscador: es UNA pregunta que el colegio se hace en

@@ -71,8 +71,23 @@ class EnrollmentsController < ApplicationController
     @enrollment = Enrollment.find(params[:id])
   end
 
+  # ⚠️ Al EDITAR, el alumno no se acepta (MOR-182).
+  #
+  # Daniel: «¿encuentras sentido en editar una inscripción? Lo que veo es el
+  # cambio de estado o de sección. Nunca el cambio de estudiante».
+  #
+  # Tiene razón, y no es una preferencia: una inscripción ES «este alumno en esta
+  # sección». Cambiarle el alumno no la corrige, la convierte en otra —y se lleva
+  # consigo las notas, la asistencia y los boletines que colgaban de ella, que
+  # son de la persona anterior—.
+  #
+  # La fecha tampoco: es un hecho, cuándo se hizo el trámite. Si está mal, se
+  # anula la inscripción y se hace de nuevo.
   def enrollment_params
-    params.require(:enrollment).permit(:student_id, :section_id, :enrollment_date, :status)
+    permitidos = params.require(:enrollment).permit(:student_id, :section_id, :enrollment_date, :status)
+    return permitidos unless @enrollment&.persisted?
+
+    permitidos.slice(:section_id, :status)
   end
 
   def require_admin_access!

@@ -203,6 +203,27 @@ y ahí escribir la URL en español ES la comprobación.
   ⚠️ El enum de `document_type` **no** se recortó: `User.tipos_de_documento_ofrecidos`
   agrega el suyo a quien ya tenga pasaporte, o editar su ficha se lo cambiaría en
   silencio.
+- **El colegio le escribe a la familia desde la ficha del representante**
+  (`MOR-181`). Dos canales que NO son lo mismo: **WhatsApp** es un enlace
+  (`Contacto.whatsapp_url`) que abre la app con el número puesto y termina fuera
+  de SIGA; el **correo** lo manda SIGA y queda en la auditoría.
+  ⚠️ El remitente **no puede ser el colegio**: ElasticEmail solo despacha
+  dominios verificados. Sale de SIGA con `reply_to` a quien escribió — la mamá
+  responde y le llega a la secretaria.
+  ⚠️ Solo un móvil (0412/0414/0416/0424/0426) ofrece WhatsApp, y se le quita el
+  cero antes del `58`: «580414…» es un número que no existe y la app abre igual,
+  con un chat hacia nadie.
+  ⚠️ De un mensaje queda el ASUNTO, no el cuerpo: la pregunta del colegio es «¿le
+  avisamos, y cuándo?». Volcar el texto convertiría la auditoría en un archivo de
+  correspondencia con la familia.
+- **De una inscripción solo se editan la SECCIÓN y el ESTADO** (`MOR-182`). El
+  alumno no: una inscripción ES «este alumno en esta sección», y cambiárselo no
+  la corrige — la convierte en otra, con las notas, la asistencia y los boletines
+  de la persona anterior colgando. La fecha tampoco: es un hecho.
+  ⚠️ Cuidado con `user_id` vs `id`. El desplegable del alta mandaba `s.user_id`
+  donde `enrollments.student_id` espera el del ALUMNO, y el conteo del panel
+  comparaba igual: dos tablas, dos numeraciones, y ninguna coincidencia — en
+  silencio. Aparecieron los dos el mismo día.
 - **Buscar ignora los acentos en las DOS capas** (`MOR-179`). La regla estaba en
   Ruby (`BusquedaSinAcentos`) y los filtros del navegador comparaban con
   `toLowerCase()` a secas, así que «sofia» no encontraba a Sofía — y en Venezuela

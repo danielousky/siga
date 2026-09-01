@@ -54,6 +54,10 @@ class ActivityLog < ApplicationRecord
     # contesta «¿por qué mi hijo quedó en 2do Año B?», lo que hay que poder ver
     # es quién corrió la promoción, desde qué año y con qué criterio.
     "alumnos_promovidos"    => "Alumnos promovidos de año",
+    # ⚠️ Queda el ASUNTO, no el mensaje. La pregunta del colegio es «¿le
+    # avisamos, y cuándo?»; volcar el cuerpo entero convertiría la auditoría en
+    # un archivo de correspondencia con la familia (MOR-181).
+    "mensaje_enviado"       => "Mensaje enviado a la familia",
     "certificacion_emitida" => "Certificación de calificaciones emitida",
     "documento_de_primaria_emitido" => "Documento de primaria emitido",
     "pensum_importada"     => "Materias y profesores importados",

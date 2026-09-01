@@ -1,21 +1,56 @@
+-# El alta de una inscripción, y su edición — que son dos cosas distintas.
+-#
+-# Daniel: *«¿encuentras sentido en editar una inscripción? Lo que veo es el
+-# cambio de estado o de sección. Nunca el cambio de estudiante»*.
+-#
+-# Tiene razón, y no es una preferencia: una inscripción ES «este alumno en esta
+-# sección». Cambiarle el alumno no la corrige, la convierte en otra —y se lleva
+-# las notas, la asistencia y los boletines que colgaban de ella, que son de la
+-# persona anterior—. Lo mismo la fecha: es un hecho, cuándo se hizo el trámite.
+-#
+-# Al editar, entonces, solo dos campos: la sección y el estado.
+- nueva = enrollment.new_record?
+
 = form_with(model: enrollment) do |f|
   = render "shared/errors", object: enrollment
 
-  .form-group
-    = f.label :student_id, class: "form-label"
-    = f.select :student_id, Student.includes(:user).map { |s| ["#{s.user.nombre_completo} (#{s.user.document})", s.user_id] }, { include_blank: "Seleccione..." }, class: "form-select"
+  - if nueva
+    .form-group
+      = f.label :student_id, class: "form-label"
+      -# ⚠️ El valor es `s.id`, NO `s.user_id`.
+      -#
+      -# Estaba mandando el id del USUARIO donde `enrollments.student_id` espera
+      -# el del alumno: dos tablas distintas, dos numeraciones distintas. La
+      -# inscripción quedaba apuntando a otra persona —o a ninguna— sin que nada
+      -# avisara. Es el mismo error que tenía el conteo del panel (MOR-180).
+      = f.select :student_id, Student.includes(:user).order("users.last_name").map { |s| [ "#{s.user.apellidos_y_nombres} (#{s.user.identificador})", s.id ] }, { include_blank: "Seleccione…" }, class: "form-select"
 
-  .form-group
-    = f.label :section_id, class: "form-label"
-    = f.select :section_id, Section.includes(:grade, :academic_period).map { |s| ["#{s.grade.name} - #{s.name} (#{s.academic_period.name})", s.id] }, { include_blank: "Seleccione..." }, class: "form-select"
+  - else
+    -# Quién es, como DATO: no se elige, ya está decidido.
+    .form-group
+      %span.form-label= Enrollment.human_attribute_name(:student)
+      %p.dato-secundario= enrollment.student.user.apellidos_y_nombres
 
-  .form-group
-    = f.label :enrollment_date, class: "form-label"
-    = f.date_field :enrollment_date, class: "form-control"
+  .form-row
+    .form-group
+      = f.label :section_id, class: "form-label"
+      -# Solo las del año de la sesión: mover a un alumno a una sección de otro
+      -# año no es un cambio de sección, es otra inscripción.
+      = f.select :section_id, Section.del_anio_de_la_sesion.includes(:grade).order("grades.name, sections.name").map { |s| [ "#{s.grade.name} – #{s.name}", s.id ] }, { include_blank: "Seleccione…" }, class: "form-select"
 
-  .form-group
-    = f.label :status, class: "form-label"
-    = f.select :status, Enrollment.statuses.keys.map { |s| [s.humanize, s] }, {}, class: "form-select"
+    .form-group
+      = f.label :status, class: "form-label"
+      .opciones-en-botones
+        - Enrollment.statuses.keys.each do |estado|
+          %label.opcion-boton
+            = f.radio_button :status, estado
+            %span= estado.humanize
+
+  - if nueva
+    .form-group
+      = f.label :enrollment_date, class: "form-label"
+      = f.date_field :enrollment_date, class: "form-control"
+      %p.nota-ayuda Cuándo se hizo el trámite. Después no se edita: si está mal, se anula la inscripción y se hace de nuevo.
 
   .form-acciones
     = f.submit class: "btn btn-primary"

@@ -17,6 +17,59 @@
     %dt Cédula
     %dd= @representative.user.identificador.presence || "—"
 
+-# ── Escribirle (MOR-181) ────────────────────────────────────────────────────
+-#
+-# Daniel: «la comunicación con el representante es fundamental. Allí mismo
+-# debemos poder componerle un correo y enviárselo o whatsapearlo con el número
+-# telefónico».
+-#
+-# ⚠️ Los dos canales NO son dos versiones de lo mismo:
+-#
+-#     WhatsApp   un enlace. Abre la app con el número puesto y la secretaria
+-#                termina de escribir AFUERA. SIGA no se entera de si se envió.
+-#     Correo     lo manda SIGA y queda en la auditoría: se puede contestar
+-#                «¿le avisamos a la mamá de Eduardo?».
+-#
+-# Va ANTES del acceso al sistema porque es lo que se viene a hacer acá. El
+-# código de acceso se genera una vez en la vida; escribirle, muchas.
+- correo = @representative.user.email
+- whatsapp = Contacto.whatsapp_url(@representative.phone, "Buenos días, le escribimos de #{Current.school.name}.")
+
+- if can_manage_students? && (correo.present? || whatsapp)
+  .card-academic
+    .card-academic-header
+      %h2 Escribirle
+
+    - if whatsapp
+      .escribirle-canales
+        -# `target` y `rel` porque sale de la app: sin `noopener`, la pestaña que
+        -# se abre puede reescribir la de SIGA.
+        = link_to whatsapp, target: "_blank", rel: "noopener", class: "btn btn-accion" do
+          = icono(:representantes, tamano: 16)
+          %span= "WhatsApp al #{@representative.phone}"
+        %span.nota-ayuda Se abre WhatsApp con el número puesto. El mensaje lo termina de escribir usted.
+
+    - if correo.present?
+      -# ⚠️ El correo sale del dominio de SIGA —ElasticEmail solo despacha
+      -# dominios verificados— y la respuesta va a quien escribe. Ver
+      -# `ComunicacionMailer`.
+      = form_with url: mensaje_al_representative_path(@representative), method: :post, data: { turbo: false } do
+        .form-group
+          = label_tag :asunto, "Asunto", class: "form-label"
+          = text_field_tag :asunto, nil, class: "form-control", required: true, maxlength: 120, placeholder: "Reunión de representantes"
+        .form-group
+          = label_tag :cuerpo, "Mensaje", class: "form-label"
+          = text_area_tag :cuerpo, nil, class: "form-control", required: true, rows: 5
+        %p.nota-ayuda
+          = "Le llega a #{correo} de parte del colegio, y si responde le llega a usted."
+        .form-acciones
+          = submit_tag "Enviar el correo", class: "btn btn-documento"
+
+    - elsif whatsapp
+      %p.nota-ayuda
+        No tiene correo cargado, así que por ahora solo se le puede escribir por
+        WhatsApp. Con un correo además puede entrar a ver las notas.
+
 = render "shared/acceso_al_sistema", usuario: @representative.user,
                                     url: codigo_representative_path(@representative)
 

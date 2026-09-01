@@ -281,7 +281,15 @@ Rails.application.routes.draw do
     post :codigo, on: :member, action: :generar_codigo
   end
 
-  resources :representatives, path: "representantes", concerns: :con_codigo_de_acceso
+  # ⚠️ El mensaje cuelga del REPRESENTANTE (MOR-181). No es un recurso propio:
+  # no se lista, no se edita y no se borra — se manda una vez y queda en la
+  # auditoría. Un `resources :mensajes` habría prometido cuatro pantallas que no
+  # existen.
+  resources :representatives, path: "representantes", concerns: :con_codigo_de_acceso do
+    member do
+      post "mensaje", to: "mensajes#create", as: :mensaje_al
+    end
+  end
   resources :departments, path: "departamentos", except: [ :show ]
   resources :subjects, path: "materias"
   # ⚠️ Esta queda en INGLÉS, y es la excepción que confirma el criterio.
