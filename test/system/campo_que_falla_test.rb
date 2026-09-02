@@ -22,15 +22,26 @@ class CampoQueFallaTest < ApplicationSystemTestCase
   # enviar el formulario en blanco — que es exactamente lo que se quería y deja
   # a este test sin manera de llegar al servidor. La uniqueness sí es una
   # validación que solo el servidor puede comprobar.
+  # ⚠️ La materia se crea POR EL FORMULARIO y no en la base (MOR-208).
+  #
+  # Crearla con `Subject.create!` obliga a acertar en qué colegio está parada la
+  # sesión, y esa suposición se rompió al correr este archivo junto a otro de
+  # sistema: la materia quedaba en un colegio y el formulario guardaba en otro,
+  # así que no había choque y el test fallaba sin que nada estuviera mal.
+  #
+  # Pasando por el formulario las dos veces, el colegio es el mismo por
+  # construcción.
   def enviar_repetido(ruta)
-    # ⚠️ Se crea la materia acá y no se toma `Subject.first`: con dos archivos
-    # de sistema corriendo seguidos, «la primera» depende de qué dejó el otro.
-    existente = con_el_colegio(@a.escenario.colegio) do
-      Subject.create!(code: "RPT#{rand(1000)}", name: "Materia Repetida")
-    end
+    codigo = "RPT#{rand(10_000)}"
 
     visit ruta
-    fill_in "subject[code]", with: existente.code
+    fill_in "subject[code]", with: codigo
+    fill_in "subject[name]", with: "Materia Original"
+    find(".form-acciones input[type=submit]").click
+    assert_no_selector ".alert-danger", wait: 5
+
+    visit ruta
+    fill_in "subject[code]", with: codigo
     fill_in "subject[name]", with: "Otra Materia"
     find(".form-acciones input[type=submit]").click
     assert_selector ".alert-danger", wait: 5

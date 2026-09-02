@@ -290,8 +290,11 @@ module MenuHelper
     enlaces
   end
 
+  # ⚠️ La MISMA lista que los permisos, no una copia: dos listas de roles se
+  # desparejan, y el síntoma es un menú que ofrece una pantalla a la que el
+  # controller después no deja entrar (`ApplicationController::DIRECCION`).
   def puede_ver_administradores?
-    %w[desarrollador director].include?(rol_de_admin)
+    ApplicationController::DIRECCION.include?(rol_de_admin)
   end
 
   # Las secciones del profesor: son datos, no menú fijo, así que se arman aparte.

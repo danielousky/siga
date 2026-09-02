@@ -66,8 +66,13 @@ class AdminsController < ApplicationController
   end
 
   def require_admin_access!
-    unless administrador? && (current_user.admin.desarrollador? || current_user.admin.director?)
-      redirect_to dashboard_path_for_user, alert: "Acceso no autorizado. Esta función es solo para administradores con rol de desarrollador o director."
+    # ⚠️ La MISMA lista que el resto de la app (`ApplicationController
+    # ::DIRECCION`) y no una comprobación propia: acá había un `desarrollador? ||
+    # director?` escrito a mano, y al agregar `asistente` en `MOR-208` el menú
+    # ofrecía esta pantalla y este controller no dejaba entrar. Lo encontró
+    # `cargo_de_asistente_test`, que recorre el menú y prueba cada enlace.
+    unless can_manage_teachers?
+      redirect_to dashboard_path_for_user, alert: "Esta parte del colegio la administra la dirección."
     end
   end
 end

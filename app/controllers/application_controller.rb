@@ -218,16 +218,31 @@ class ApplicationController < ActionController::Base
     current_user.admin&.role
   end
 
+  # ⚠️ `asistente` puede lo mismo que `director`, y es una decisión (MOR-208).
+  #
+  # Daniel, definiendo quién abre la cuenta: *«puedes preguntarle el cargo para
+  # saber si es director o asistente»*. O sea que un asistente PUEDE ser el
+  # único usuario del colegio — y un colegio cuyo único usuario no puede
+  # configurarlo está roto antes de empezar.
+  #
+  # Además es quien de verdad opera el sistema en un colegio venezolano: el
+  # director firma, la asistencia de dirección carga. Darle menos sería modelar
+  # el organigrama y no el trabajo.
+  #
+  # El día que haga falta distinguirlos —que un asistente no pueda tocar la
+  # estructura académica, por ejemplo— este es el único lugar donde se cambia.
+  DIRECCION = %w[desarrollador director asistente].freeze
+
   def can_manage_students?
-    administrador? && %w[desarrollador director secretaria coordinador].include?(rol_de_admin)
+    administrador? && (DIRECCION + %w[secretaria coordinador]).include?(rol_de_admin)
   end
 
   def can_manage_teachers?
-    administrador? && %w[desarrollador director].include?(rol_de_admin)
+    administrador? && DIRECCION.include?(rol_de_admin)
   end
 
   def can_manage_sections?
-    administrador? && %w[desarrollador director coordinador].include?(rol_de_admin)
+    administrador? && (DIRECCION + %w[coordinador]).include?(rol_de_admin)
   end
 
   # La estructura del colegio —su identidad, sus niveles, sus grados— la
@@ -241,11 +256,11 @@ class ApplicationController < ActionController::Base
   end
 
   def can_manage_academic_config?
-    administrador? && %w[desarrollador director].include?(rol_de_admin)
+    administrador? && DIRECCION.include?(rol_de_admin)
   end
 
   def show_recent_activity?
-    administrador? && %w[desarrollador director].include?(rol_de_admin)
+    administrador? && DIRECCION.include?(rol_de_admin)
   end
 
   def dashboard_path_for_user

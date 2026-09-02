@@ -23,7 +23,14 @@
 # está el borrado explícito, que ya avisa qué se lleva por delante.
 class SembrarMaterias
   Resultado = Data.define(:materias, :ya_estaban, :asignaciones) do
-    def total = materias.size + ya_estaban.size
+    # ⚠️ `uniq`, y sin él el número miente.
+    #
+    # Tres materias del catálogo comparten código entre niveles —«Matemática» de
+    # primaria y «Matemáticas» de bachillerato son las dos `MAT`—, así que en un
+    # colegio completo la MISMA materia se procesa dos veces: se crea la primera
+    # vez y cae en `ya_estaban` la segunda. Sumando los dos tamaños salían 20
+    # materias donde la base tiene 17.
+    def total = (materias + ya_estaban).uniq.size
     def alguna_nueva? = materias.any?
   end
 
