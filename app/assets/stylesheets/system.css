@@ -6014,12 +6014,16 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   flex-wrap: wrap;
 }
 
-/* Con la cabecera en una sola línea sobra sitio, así que el campo se alarga:
-   «Nombre, apellido, cédula o carnet…» entraba cortado en 320 px, y un
-   placeholder cortado no explica lo que vino a explicar.
+/* Con la cabecera en una sola línea sobra sitio, así que el campo se alarga.
+   Daniel, midiéndolo a ojo: «alarga un poco más (20%) el campo para tipear la
+   búsqueda, ni tan calvo ni con dos pelucas».
+
+   El largo lo fija el placeholder más largo que hay —«Nombre, apellido, cédula
+   o carnet…»—: en 320 px entraba cortado, y un placeholder cortado no explica
+   lo que vino a explicar.
 
    `min()` para que en un teléfono no desborde: manda el más chico de los dos. */
-.cabecera-de-lista .search-input-wrap { width: min(420px, 100%); }
+.cabecera-de-lista .search-input-wrap { width: min(500px, 100%); }
 
 .cabecera-de-lista-select {
   width: auto;
