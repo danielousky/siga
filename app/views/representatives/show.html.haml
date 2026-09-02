@@ -1,3 +1,15 @@
+-# ⚠️ El código va ARRIBA DE TODO, y antes estaba al final (MOR-199).
+-#
+-# Daniel: *«tampoco sale el código generado»*. Salía —lo comprobé en un
+-# navegador— pero al pie de la página, debajo de la tabla de alumnos: en el
+-# único momento en que esa pantalla tiene una cosa urgente que decir, esa cosa
+-# estaba en el último renglón.
+-#
+-# Y no es un detalle de gusto: el código **se ve una sola vez**. Si se pierde de
+-# vista, la única salida es generar otro — que invalida el que se acaba de
+-# mandar por correo.
+= render "shared/codigo_generado"
+
 .card-academic
   .card-academic-header
     %h1= @representative.nombre_completo
@@ -69,9 +81,6 @@
 
     %dt Cédula
     %dd= @representative.user.identificador.presence || "—"
-
--# El código recién generado va acá, ancho y copiable: se ve UNA sola vez.
-= render "shared/codigo_generado"
 
 -# ── El seguimiento de lo que se le escribió (MOR-186) ───────────────────────
 -#

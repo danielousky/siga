@@ -2,6 +2,12 @@
 -# usuario, después asígnele el rol"— es pedirle a la secretaría que entienda el
 -# modelo de datos para hacer su trabajo, y eso termina en una llamada por
 -# teléfono.
+-# El parentesco que ya tienen sus vínculos, si todos coinciden. Al crear, o con
+-# vínculos mezclados, se propone «Representante legal», que es el que sirve
+-# siempre.
+- parentescos = representative.persisted? ? representative.student_representatives.pluck(:parentesco).uniq : []
+- parentesco_elegido = parentescos.one? ? parentescos.first : "representante"
+
 = form_with url: (representative.persisted? ? representative_path(representative) : representatives_path), method: (representative.persisted? ? :patch : :post) do
   = render "shared/errors", object: usuario
   = render "shared/errors", object: representative
@@ -19,7 +25,15 @@
     -# y `fields_for :user, usuario` emite `user[...]` — los mismos nombres que
     -# esperaba `params.require(:user)`. Nada cambia del lado del controller.
     = fields_for :user, usuario do |u|
-      = render "shared/datos_de_la_persona", u: u, cedula_escolar: true
+      -# ⚠️ Sin cédula escolar, sin fecha de nacimiento y sin sexo (MOR-199).
+      -#
+      -# El `cedula_escolar: true` era un copiado del formulario del alumno, y
+      -# Daniel lo cazó: *«el representante no tiene cédula escolar»*. La asigna
+      -# el MPPE para el alumno que todavía no tiene cédula de identidad.
+      -#
+      -# Lo que sí importa de la relación —quién es de quién— es el PARENTESCO, y
+      -# va más abajo, junto a los alumnos, que es donde se decide.
+      = render "shared/datos_de_la_persona", u: u, nacimiento: false, sexo: false
 
     -# Se queda visible: no explica un campo, explica qué va a pasar al guardar.
     -# Quien no lo lea puede creer que está creando un duplicado.
@@ -48,6 +62,27 @@
     -# El filtro corre en el NAVEGADOR, no en el servidor: las casillas ya están
     -# en la página, y recargarlas perdería lo que la persona lleva marcado.
     -# Con 200 alumnos, encontrar a uno scrolleando es el trabajo que nadie hace.
+    -# ⚠️ El parentesco va ACÁ y no arriba con el sexo (MOR-199).
+    -#
+    -# Daniel: *«en el lugar de masculino o femenino debería decir parentesco»*.
+    -# Y tiene razón en lo que sobra —el sexo de un representante no lo usa
+    -# nadie— pero el parentesco **no es un dato de la persona**: es de la
+    -# RELACIÓN. La misma señora es madre de uno y puede ser la representante
+    -# legal de un sobrino.
+    -#
+    -# Por eso vive en esta sección, que es la de los alumnos, y no en «Quién
+    -# es». Es una sola elección y no una por alumno porque el caso normal es
+    -# uno solo —una madre lo es de sus dos hijos—; el controller sigue
+    -# aceptando `parentesco[<id>]` por si un día hace falta afinarlo, y este
+    -# valor es el que se aplica cuando no viene ese detalle.
+    .form-group
+      %span.form-label= StudentRepresentative.human_attribute_name(:parentesco)
+      .opciones-en-botones
+        - StudentRepresentative::ETIQUETAS.each do |valor, etiqueta|
+          %label.opcion-boton
+            = radio_button_tag :parentesco_general, valor, parentesco_elegido == valor
+            %span= etiqueta
+
     .form-group.lista-filtrable-buscar
       = label_tag :filtro_alumnos, "Buscar", class: "form-label"
       = text_field_tag :filtro_alumnos, nil, class: "form-control", autocomplete: "off",

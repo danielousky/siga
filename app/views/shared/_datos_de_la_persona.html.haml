@@ -67,19 +67,34 @@
       = u.label :cedula_escolar, class: "form-label"
     = u.text_field :cedula_escolar, class: "form-control", placeholder: "V20140000001", data: { controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9-", campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
 
-.form-row
-  .form-group
-    = u.label :birth_date, class: "form-label"
-    = u.date_field :birth_date, class: "form-control"
+-# ⚠️ La fecha de nacimiento y el sexo se PIDEN, no vienen puestos (MOR-199).
+-#
+-# Daniel, mirando el alta de un representante: *«el representante no tiene
+-# cédula escolar»* y *«tampoco importa el año de nacimiento»*.
+-#
+-# Los dos son datos del ALUMNO. `birth_date` lo lee exactamente quien lo
+-# necesita —la certificación 31059 y el documento de primaria—, y de un adulto
+-# no lo lee nadie. La cédula escolar es todavía más clara: la asigna el MPPE
+-# para el alumno que aún no tiene cédula de identidad.
+-#
+-# Van por defecto en `true` para no cambiar en silencio las tres pantallas que
+-# ya los mostraban; el que no los quiere los apaga y se ve en la llamada.
+- if local_assigns.fetch(:nacimiento, true) || local_assigns.fetch(:sexo, true)
+  .form-row
+    - if local_assigns.fetch(:nacimiento, true)
+      .form-group
+        = u.label :birth_date, class: "form-label"
+        = u.date_field :birth_date, class: "form-control"
 
-  -# ⚠️ Botones, no un desplegable (Daniel: «sexo puede ser un radio con label
-  -# tipo botones»). Son DOS opciones: un `select` obliga a abrir, leer y elegir
-  -# —tres gestos— donde dos botones se ven y se tocan de una. En un teléfono la
-  -# diferencia es mayor todavía.
-  .form-group
-    %span.form-label= User.human_attribute_name(:sex)
-    .opciones-en-botones
-      - User::SEX_LABELS.each do |valor, etiqueta|
-        %label.opcion-boton
-          = u.radio_button :sex, valor
-          %span= etiqueta
+    -# ⚠️ Botones, no un desplegable (Daniel: «sexo puede ser un radio con label
+    -# tipo botones»). Son DOS opciones: un `select` obliga a abrir, leer y elegir
+    -# —tres gestos— donde dos botones se ven y se tocan de una. En un teléfono la
+    -# diferencia es mayor todavía.
+    - if local_assigns.fetch(:sexo, true)
+      .form-group
+        %span.form-label= User.human_attribute_name(:sex)
+        .opciones-en-botones
+          - User::SEX_LABELS.each do |valor, etiqueta|
+            %label.opcion-boton
+              = u.radio_button :sex, valor
+              %span= etiqueta

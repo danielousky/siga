@@ -17,10 +17,20 @@
 - autocomplete ||= "new-password"
 
 .form-group
-  = f.label campo, etiqueta, class: "form-label"
+  -# La etiqueta puede llevar su «?», como cualquier otra (MOR-161).
+  - if local_assigns[:pista].present?
+    = con_pista(pista) { f.label campo, etiqueta, class: "form-label" }
+  - else
+    = f.label campo, etiqueta, class: "form-label"
   .password-toggle-group{ data: { controller: "password-visibility" } }
+    -# ⚠️ `placeholder` y `autofocus` se aceptan acá (MOR-199), y no es adorno:
+    -# sin ellos, los cuatro formularios que faltaban no se podían pasar al
+    -# parcial sin perder el «Mínimo 6 caracteres» —que es cómo se dice el
+    -# formato— ni el foco de la pantalla de recuperar la contraseña.
     = f.password_field campo, class: "form-control", autocomplete: autocomplete,
                        required: local_assigns[:required],
+                       autofocus: local_assigns[:autofocus],
+                       placeholder: local_assigns[:placeholder],
                        data: { password_visibility_target: "input" }
     %button.password-toggle-btn{ type: "button", data: { action: "click->password-visibility#toggle", password_visibility_target: "button" }, aria: { label: "Mostrar contraseña", pressed: "false" } }
       %svg.password-toggle-icon{ data: { password_visibility_target: "iconoMostrar" }, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }

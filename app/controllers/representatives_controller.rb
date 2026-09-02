@@ -117,8 +117,29 @@ class RepresentativesController < ApplicationController
   # mamá, cargada para su segundo hijo sin correo, nacía como una persona nueva
   # — justo lo contrario de lo que construyó `MOR-138`.
   #
-  # El orden es el de confiabilidad: el documento identifica a la PERSONA, el
-  # correo identifica un buzón que puede cambiar de dueño.
+  # ⚠️ NUNCA por correo, y esto costó un incidente (MOR-200).
+  #
+  # Daniel: *«accidentalmente coloqué el mismo correo para un director y un
+  # representante. En primer lugar, nunca dio error y debió darlo; segundo, al
+  # cambiárselo al director también lo hizo con el representante»*.
+  #
+  # Las dos mitades son el MISMO hecho: buscar por correo encontró al director,
+  # así que el «representante nuevo» no fue una persona nueva — fue un rol más
+  # colgado de la fila del director. Una sola fila con dos roles: editar el
+  # correo de uno editaba el del otro, porque son el mismo `User`.
+  #
+  # `CLAUDE.md § 6.2` ya lo decía —*«buscar a una persona por correo DUPLICA o
+  # BLOQUEA»*— y el código hacía justo eso. Un correo identifica un BUZÓN, y un
+  # buzón cambia de dueño: la casilla de la familia, la del colegio, la que la
+  # secretaria escribió mal.
+  #
+  # Sin el respaldo por correo, el caso de Daniel termina donde tenía que
+  # terminar: se intenta crear una persona nueva, el índice único de
+  # `users.email` la rechaza y la pantalla dice que ese correo ya es de alguien.
+  # Un error visible en vez de dos registros fusionados en silencio.
+  #
+  # El orden es el de confiabilidad: el documento identifica a la PERSONA, y la
+  # cédula escolar la acompaña mientras no lo tenga.
   #
   # Los valores se normalizan antes de preguntar: en la base vive `12345678`, y
   # `WHERE document = 'V-12.345.678'` no devuelve nada.
@@ -130,8 +151,7 @@ class RepresentativesController < ApplicationController
 
     Current.sin_aislamiento do
       (documento && User.find_by(document: documento)) ||
-        (cedula && User.find_by(cedula_escolar: cedula)) ||
-        (correo && User.find_by(email: correo))
+        (cedula && User.find_by(cedula_escolar: cedula))
     end
   end
 
@@ -142,7 +162,13 @@ class RepresentativesController < ApplicationController
 
     ids.each do |student_id|
       vinculo = representante.student_representatives.find_or_initialize_by(student_id: student_id)
-      vinculo.parentesco = params.dig(:parentesco, student_id.to_s).presence || :representante
+      # ⚠️ Tres niveles, del más específico al más general (MOR-199): el
+      # parentesco de ESE alumno si vino, el que eligió el formulario para
+      # todos, y «representante legal» como último recurso —que es el que sirve
+      # siempre y no afirma un vínculo que nadie declaró.
+      vinculo.parentesco = params.dig(:parentesco, student_id.to_s).presence ||
+                           params[:parentesco_general].presence ||
+                           :representante
       vinculo.save
     end
   end

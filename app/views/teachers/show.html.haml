@@ -1,3 +1,15 @@
+-# ⚠️ El código va ARRIBA DE TODO, y antes estaba al final (MOR-199).
+-#
+-# Daniel: *«tampoco sale el código generado»*. Salía —lo comprobé en un
+-# navegador— pero al pie de la página, debajo de la tabla de alumnos: en el
+-# único momento en que esa pantalla tiene una cosa urgente que decir, esa cosa
+-# estaba en el último renglón.
+-#
+-# Y no es un detalle de gusto: el código **se ve una sola vez**. Si se pierde de
+-# vista, la única salida es generar otro — que invalida el que se acaba de
+-# mandar por correo.
+= render "shared/codigo_generado"
+
 -# La ficha del profesor (MOR-135). Ver `TeachersController#show`.
 - persona = @teacher.user
 
@@ -64,7 +76,6 @@
   -# olvidé este segundo render acá, y el código dejó de mostrarse en la ficha del
   -# profesor —en silencio, hasta que un test lo dijo.
   = render "shared/acceso_al_sistema", usuario: persona, url: codigo_teacher_path(@teacher)
-  = render "shared/codigo_generado"
 
   %p.ficha-volver
     = link_to "← Volver a los profesores", teachers_path

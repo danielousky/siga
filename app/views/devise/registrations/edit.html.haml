@@ -17,21 +17,20 @@
       .alert.alert-warning
         = "Esperando confirmación de #{resource.unconfirmed_email}"
 
-    .form-group
-      = f.label :password, "Contraseña nueva (déjala vacía si no la vas a cambiar)", class: "form-label"
-      -# «Déjala vacía» es una CONSECUENCIA —qué pasa si no la toco— y por eso
-      -# viaja en la etiqueta, donde se lee sin pedirla. El mínimo es formato y
-      -# va en el campo.
-      = f.password_field :password, autocomplete: "new-password", class: "form-control",
-                         placeholder: ("Mínimo #{@minimum_password_length} caracteres" if @minimum_password_length)
-
-    .form-group
-      = f.label :password_confirmation, "Repita la contraseña nueva", class: "form-label"
-      = f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control"
-
-    .form-group
-      = con_pista "Hace falta para confirmar que eres tú quien está haciendo el cambio." do
-        = f.label :current_password, "Contraseña actual", class: "form-label"
-      = f.password_field :current_password, autocomplete: "current-password", class: "form-control"
+    -# «Déjela vacía» es una CONSECUENCIA —qué pasa si no la toco— y por eso
+    -# viaja en la etiqueta, donde se lee sin pedirla. El mínimo es formato y
+    -# va en el campo.
+    -#
+    -# ⚠️ Y va en USTED, como el resto de la app. Acá decía «déjala vacía» y
+    -# «eres tú»: era la única pantalla que tuteaba, y la voz de SIGA le habla de
+    -# usted a la mamá que consulta las notas.
+    = render "shared/campo_de_contrasena", f: f, campo: :password,
+             etiqueta: "Contraseña nueva (déjela vacía si no la va a cambiar)",
+             placeholder: ("Mínimo #{@minimum_password_length} caracteres" if @minimum_password_length)
+    = render "shared/campo_de_contrasena", f: f, campo: :password_confirmation,
+             etiqueta: "Repita la contraseña nueva"
+    = render "shared/campo_de_contrasena", f: f, campo: :current_password,
+             etiqueta: "Contraseña actual", autocomplete: "current-password",
+             pista: "Hace falta para confirmar que es usted quien está haciendo el cambio."
 
     = f.submit "Guardar", class: "btn btn-primary"

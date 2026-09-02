@@ -37,15 +37,12 @@
           = f.label :email, "Su correo electrónico", class: "form-label"
         = f.email_field :email, autofocus: true, required: true, class: "form-control"
 
-    .form-group
-      = f.label :password, "Contraseña", class: "form-label"
-      = f.password_field :password, autocomplete: "new-password", required: true,
-                         autofocus: !@pide_correo, class: "form-control",
-                         placeholder: "Mínimo #{User.password_length.min} caracteres"
-
-    .form-group
-      = f.label :password_confirmation, "Repita la contraseña", class: "form-label"
-      = f.password_field :password_confirmation, autocomplete: "new-password",
-                         required: true, class: "form-control"
+    -# ⚠️ Ésta es LA pantalla donde el ojo más falta (MOR-199): es donde una mamá
+    -# elige su contraseña por primera vez, desde el teléfono, y no tiene a nadie
+    -# a quien preguntarle si la escribió bien.
+    = render "shared/campo_de_contrasena", f: f, campo: :password, required: true,
+             autofocus: !@pide_correo, placeholder: "Mínimo #{User.password_length.min} caracteres"
+    = render "shared/campo_de_contrasena", f: f, campo: :password_confirmation,
+             etiqueta: "Repita la contraseña", required: true
 
     = f.submit "Entrar a SIGA", class: "btn btn-primary acceso-enviar"

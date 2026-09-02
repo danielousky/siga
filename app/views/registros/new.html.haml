@@ -38,15 +38,12 @@
       = f.email_field :email, class: "form-control", autocomplete: "email"
 
     .form-row
-      .form-group
-        = f.label :password, class: "form-label"
-        = f.password_field :password, class: "form-control", autocomplete: "new-password",
-                           placeholder: "Mínimo #{Devise.password_length.min} caracteres"
-        -# El mínimo va en el campo, no en un párrafo: es una restricción de
-        -# formato y ese es el trabajo del `placeholder`.
-      .form-group
-        = f.label :password_confirmation, class: "form-label"
-        = f.password_field :password_confirmation, class: "form-control", autocomplete: "new-password"
+      -# El mínimo va en el campo, no en un párrafo: es una restricción de
+      -# formato y ese es el trabajo del `placeholder`.
+      = render "shared/campo_de_contrasena", f: f, campo: :password,
+               placeholder: "Mínimo #{Devise.password_length.min} caracteres"
+      = render "shared/campo_de_contrasena", f: f, campo: :password_confirmation,
+               etiqueta: "Repita la contraseña"
 
     .form-acciones
       = f.submit "Crear mi cuenta", class: "btn btn-primary"

@@ -86,22 +86,50 @@ class UnaPersonaUnaCuentaTest < ActionDispatch::IntegrationTest
     assert_reutiliza_la_persona { alta(**joven) }
   end
 
-  test "se la encuentra por correo cuando es lo único que tiene" do
-    solo_correo = { first_name: "Solo", last_name: "Correo",
-                    email: "solo.correo@familia.test", document: "98765432",
-                    document_type: "cedula_v" }
+  # ⚠️ Este test AFIRMABA LO CONTRARIO, y hubo que darlo vuelta (MOR-200).
+  #
+  # Decía «se la encuentra por correo cuando es lo único que tiene»: sin
+  # documento, un correo repetido reutilizaba la persona. Suena razonable y
+  # causó un incidente.
+  #
+  # Daniel: *«accidentalmente coloqué el mismo correo para un director y un
+  # representante. En primer lugar, nunca dio error y debió darlo; segundo, al
+  # cambiárselo al director también lo hizo con el representante»*. El
+  # «representante nuevo» no fue una persona nueva: fue un rol más colgado de la
+  # fila del director, y editar el correo de uno editaba el del otro porque son
+  # el mismo `User`. Daniel terminó sin poder entrar.
+  #
+  # El correo NO distingue los dos casos —la misma persona en su segundo
+  # colegio, y dos personas con el buzón mal escrito— porque identifica un
+  # BUZÓN, y un buzón cambia de dueño.
+  #
+  # Lo que sí es asimétrico es el costo de equivocarse:
+  #
+  #     no reutilizar y era la misma  →  «ese correo ya es de alguien»; la
+  #                                      secretaria escribe la cédula y anda
+  #     reutilizar y eran dos         →  dos personas fusionadas EN SILENCIO,
+  #                                      sin manera de deshacerlo desde la app
+  #
+  # Por eso ahora se rechaza. El camino para la persona de verdad repetida sigue
+  # abierto y es el correcto: su cédula (los tests de acá arriba).
+  test "sin documento, un correo repetido se RECHAZA en vez de fusionar" do
+    ocupado = { first_name: "Solo", last_name: "Correo",
+                email: "solo.correo@familia.test", document: "98765432",
+                document_type: "cedula_v" }
 
     sign_in @a.director
-    alta(**solo_correo)
+    alta(**ocupado)
 
     sign_out @a.director
     sign_in @b.director
 
-    # Sin documento esta vez, y con otra caja: lo único que la identifica es el
-    # buzón. `case_insensitive_keys` de Devise lo baja a minúscula al guardar.
-    assert_reutiliza_la_persona do
-      alta(first_name: "Solo", last_name: "Correo", email: "Solo.Correo@familia.test")
+    assert_no_difference [ "personas", "roles_de_representante" ] do
+      alta(first_name: "Otra", last_name: "Persona", email: "Solo.Correo@familia.test")
     end
+
+    assert_response :unprocessable_entity
+    assert_match(/correo/i, response.body,
+                 "tiene que decir que el problema es el correo, no fusionar en silencio")
   end
 
   test "la profesora del colegio que además representa a su hijo sigue siendo una persona" do

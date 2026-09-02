@@ -5,15 +5,11 @@
     = render "devise/shared/error_messages", resource: resource
     = f.hidden_field :reset_password_token
 
-    .form-group
-      = f.label :password, "Contraseña nueva", class: "form-label"
-      -# El mínimo va en el campo: es formato, y ese es el trabajo del placeholder.
-      = f.password_field :password, autofocus: true, autocomplete: "new-password", class: "form-control",
-                         placeholder: ("Mínimo #{@minimum_password_length} caracteres" if @minimum_password_length)
-
-    .form-group
-      = f.label :password_confirmation, "Repita la contraseña nueva", class: "form-label"
-      = f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control"
+    -# El mínimo va en el campo: es formato, y ese es el trabajo del placeholder.
+    = render "shared/campo_de_contrasena", f: f, campo: :password, etiqueta: "Contraseña nueva",
+             autofocus: true, placeholder: ("Mínimo #{@minimum_password_length} caracteres" if @minimum_password_length)
+    = render "shared/campo_de_contrasena", f: f, campo: :password_confirmation,
+             etiqueta: "Repita la contraseña nueva"
 
     = f.submit "Guardar la contraseña", class: "btn btn-primary acceso-enviar"
 
