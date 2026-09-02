@@ -1,7 +1,9 @@
 = render "shared/cabecera_de_lista", titulo: "Inscripciones", ruta: enrollments_path,
          marco: "enrollments-results", pista: "Nombre, apellido o cédula...",
          alta: { ruta: new_enrollment_path, nombre: "Registrar inscripción" },
-         extra: [ { type: :select_agrupado, name: :grade_id, label: "Grado", options: @grades_options, blanco: "Todos los grados" } ]
+         extra: [ { type: :select_agrupado, name: :grade_id, label: "Grado", options: @grades_options, blanco: "Todos los grados" } ],
+         importar: { tipo: :matricula, nombre: "Subir la matrícula" }
+
 -# `target: "_top"` no es un detalle: sin él, TODO enlace de adentro del frame
 -# —Ver, Editar, Eliminar— navega DENTRO del frame. Y como ninguna de esas
 -# páginas contiene un frame con este id, Turbo pinta «Content missing» en vez

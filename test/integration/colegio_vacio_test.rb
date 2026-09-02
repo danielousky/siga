@@ -77,6 +77,51 @@ class ColegioVacioTest < ActionDispatch::IntegrationTest
   end
 
   # El panel es lo primero que ve, y tiene que abrir aunque no haya NADA.
+  # ⚠️ NINGÚN listado puede quedar en blanco en un colegio recién creado
+  # (MOR-204).
+  #
+  # Daniel: *«Evaluaciones está en blanco; entiendo que es porque no hay año
+  # escolar ni nada, pero debería haber un mensaje indicativo como el resto de
+  # las vistas en la misma condición»*.
+  #
+  # Y se escapó de `recorrido_completo_test`, que cuida exactamente esto: ese
+  # test corre sobre un colegio CON datos, así que las pantallas hablan por sus
+  # filas. El vacío solo se ve acá.
+  LISTADOS = {
+    "/evaluaciones"   => "evaluaciones",
+    "/materias"       => "materias",
+    "/secciones"      => "secciones",
+    "/inscripciones"  => "inscripciones",
+    "/alumnos"        => "alumnos",
+    "/profesores"     => "profesores",
+    "/representantes" => "representantes",
+    "/grados"         => "grados",
+    "/lapsos"         => "lapsos",
+    "/departamentos"  => "departamentos",
+    "/reparaciones"   => "reparaciones"
+  }.freeze
+
+  test "ningún listado queda en blanco en un colegio vacío" do
+    sign_in @director
+
+    mudos = LISTADOS.filter_map do |ruta, que|
+      get ruta
+      2.times { response.redirect? ? follow_redirect! : break }
+      next "#{que}: responde #{response.status}" unless response.successful?
+
+      # ⚠️ Se exige el ESTADO VACÍO, no una cantidad de texto.
+      #
+      # El primer intento contaba caracteres del `main` y pedía 200: cuatro
+      # pantallas que sí explican —secciones, lapsos, reparaciones— quedaban
+      # marcadas por ser concisas, y el umbral se habría ido aflojando hasta no
+      # probar nada. Lo que importa no es cuánto se escribe: es que haya un
+      # bloque que diga por qué está vacío y adónde ir.
+      "#{que}: sin `.empty-state`" if css_select(".empty-state").empty?
+    end
+
+    assert_empty mudos, "listados que no explican por qué están vacíos:\n  " + mudos.join("\n  ")
+  end
+
   test "el panel abre y no explota sin datos" do
     sign_in @director
 

@@ -63,3 +63,42 @@
             %td
               - if profesor?
                 = boton "Cargar notas", evaluation_activity_notas_path(actividad), icono: :subir, sm: true
+
+  - else
+    -# ⚠️ Esta pantalla se quedaba EN BLANCO (MOR-204).
+    -#
+    -# Daniel: *«Evaluaciones está en blanco; entiendo que es porque no hay año
+    -# escolar ni nada, pero debería haber un mensaje indicativo como el resto de
+    -# las vistas en la misma condición»*.
+    -#
+    -# Y se escapó del test que cuida justamente eso —«ningún listado vacío deja
+    -# una tabla con encabezados y nada debajo»— porque acá no quedaba ni la
+    -# tabla: el `- if …any?` no tenía `- else`, así que la tarjeta salía sin una
+    -# sola palabra adentro. Un vacío con encabezados al menos se ve raro; uno
+    -# totalmente en blanco se lee como una pantalla rota.
+    -#
+    -# Las precondiciones se dicen EN ORDEN y una sola: decirle a alguien que le
+    -# faltan tres cosas a la vez no le dice cuál hacer primero.
+    -# ⚠️ Una línea por condición: Haml lee la continuación de un `if` de varias
+    -# líneas como indentación y revienta con «indented 5 levels deeper».
+    - falta = nil
+    - falta ||= :ano_escolar unless AcademicPeriod.exists? && EvaluationMoment.exists?
+    - falta ||= :secciones unless Section.exists?
+    - falta ||= :materias unless TeacherSection.exists?
+
+    - if falta
+      - paso = PasosDeArranque.paso(Current.school, falta)
+      .card-academic
+        .empty-state
+          %h3 Todavía no se puede evaluar
+          %p
+            Antes hace falta
+            %strong= paso.titulo.downcase
+            \: una evaluación cuelga de un lapso, de una sección y de quien la dicta.
+          = boton paso.verbo, "#{ruta_del_paso(paso)}?recorrido=#{paso.clave}", icono: paso.icono
+    - else
+      .card-academic
+        = render "shared/lista_vacia", clave: :evaluaciones,
+                 titulo: (profesor? ? "Todavía no ha creado ninguna evaluación" : "Todavía no hay evaluaciones cargadas"),
+                 texto: "Una evaluación es cada examen, taller o trabajo con su peso. Los pesos de un lapso tienen que cerrar en 100 %.",
+                 acciones: (profesor? ? [ { texto: "Registrar evaluación", ruta: new_evaluation_activity_path, icono: :agregar } ] : [])

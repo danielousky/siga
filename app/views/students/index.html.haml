@@ -48,7 +48,8 @@
 
 = render "shared/cabecera_de_lista", titulo: "Alumnos", ruta: students_path,
          marco: "students-results", pista: "Nombre, apellido, cédula o carnet…",
-         alta: { ruta: new_student_path, nombre: "Registrar alumno" }
+         alta: { ruta: new_student_path, nombre: "Registrar alumno" },
+         importar: { tipo: :matricula, nombre: "Subir la matrícula" }
 
 -# `target: "_top"` no es un detalle: sin él, TODO enlace de adentro del frame
 -# —Ver, Editar, Eliminar— navega DENTRO del frame. Y como ninguna de esas

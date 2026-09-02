@@ -140,6 +140,24 @@
                 { class: "form-select cabecera-de-lista-select", "aria-label": extra[:label],
                   data: { action: "change->search-filter#search" } }
 
+    -# ⚠️ El importador va DONDE ESTÁN LOS DATOS (MOR-204).
+    -#
+    -# Daniel: *«esos enlaces a importar directamente deberían estar en sus
+    -# respectivas listas: Materias / Profesores, Estudiantes e Inscripciones»*.
+    -#
+    -# Y es la misma idea que ya arregló el estado vacío: vivían solo en
+    -# Configuración → Importar datos, o sea que para subir la matrícula había
+    -# que salir de Alumnos, entrar a otra sección y elegir de cuál de las tres
+    -# planillas se trataba. La pantalla que ya sabe de qué datos se habla puede
+    -# decirlo por uno.
+    -#
+    -# ⚠️ Tono `accion` (índigo) y no `primary`: MOR-172 lo reserva para lo que
+    -# hace MUCHO de una vez, y una planilla carga trescientas filas mientras que
+    -# «Agregar» carga una. Que se distingan es el punto de esa regla.
+    - if local_assigns[:importar]
+      = boton importar[:nombre], new_importacion_path(tipo: importar[:tipo]),
+              icono: :importar, tono: :accion
+
     - if alta
       -# ⚠️ Dice «Agregar», no solo [+] (MOR-194).
       -#
