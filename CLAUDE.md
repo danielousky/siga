@@ -25,7 +25,11 @@ repite acá porque este es el proyecto donde más pesa.
 
 SIGA (Sistema Integrado de Gestión Académica) es un SaaS de gestión académica para
 instituciones educativas de Venezuela (preescolar, primaria, secundaria), vendido por
-suscripción mensual según matrícula: $25 (hasta 150 alumnos) / $50 (151–400) / $90 (401–800).
+suscripción mensual según matrícula: **$30** (hasta 150 alumnos) / **$60** (151–400) /
+**$90** (401–800). Los planes se llaman **Inicial · Estándar · Grande** — «Básico» y
+«Premium» se cayeron en septiembre de 2026 con la subida de precio: son nombres de SaaS
+gringo, y «Premium» insinuaba funciones aparte que NO existen (entre planes no se recorta
+nada, lo único que cambia es la matrícula). La fuente única es `Subscription::PLANES`.
 
 Documentación de referencia (PDF/PNG del proyecto, contrato y diagramas ER) en `references/`
 — ese directorio está en `.gitignore`, los originales `.pages` viven en el directorio padre
@@ -530,7 +534,7 @@ problema que Solid Queue resuelve solo aparecería en producción.
 Vive en la **misma base**, sin `connects_to`. El generador asume una base aparte porque está
 pensado para volumen; SIGA tiene *un* job que corre ~1 segundo cuando un profesor cambia una
 ponderación. Una segunda base sería otra cadena de conexión que configurar, respaldar y
-monitorear — y en el plan de 25 $ al mes, cada pieza que no hace falta es una que puede fallar.
+monitorear — y en el plan de 30 $ al mes, cada pieza que no hace falta es una que puede fallar.
 
 Sus once tablas **no llevan RLS, a propósito**: no son datos de ningún colegio, son la maquinaria
 de la plataforma, igual que `SigaStaff`. El colegio de un job viaja en su payload y lo restablece
@@ -670,7 +674,7 @@ hace vendible el producto barato.**
    mismo host                       host propio
    misma app                        subdominio propio dentro de SIGA
    mismo dominio                    —o incluso su propio dominio.com—
-   $25 · $50 · $90                  precio a convenir
+   $30 · $60 · $90                  precio a convenir
 ```
 
 **Quien decide el paso al plan dedicado es el cliente, no nosotros.** Un colegio

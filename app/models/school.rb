@@ -160,10 +160,19 @@ class School < ApplicationRecord
     self.dea_code = dea_code.to_s.gsub(/[^A-Za-z0-9]/, "").upcase.presence
   end
 
+  # ⚠️ Se deduce SIEMPRE, y antes solo si estaba en blanco (MOR-208).
+  #
+  # Mientras hubo un campo «Ubicación» tenía sentido respetar lo escrito a mano.
+  # Ese campo se fue —preguntaba lo mismo que el estado y el municipio, diez
+  # centímetros más arriba— así que ya no hay nada que respetar: si se deja el
+  # valor viejo, un colegio que corrige su municipio sigue mostrando el anterior
+  # en la barra de arriba, para siempre y sin manera de arreglarlo.
+  #
+  # Solo se pisa cuando hay de dónde deducir: un colegio sin ubicación cargada
+  # conserva la que traía.
   def deducir_la_ubicacion
-    return if location.present?
-
-    self.location = [ municipio, entidad_federal ].compact_blank.join(", ").presence
+    deducida = [ municipio, entidad_federal ].compact_blank.join(", ").presence
+    self.location = deducida if deducida
   end
 
   def imagen_para_pdf(adjunto)

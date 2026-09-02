@@ -63,9 +63,14 @@
             = f.label :name, "Nombre", class: "form-label"
           = f.text_field :name, class: "form-control"
 
-        .form-group
-          = f.label :location, "Ubicación", class: "form-label"
-          = f.text_field :location, class: "form-control", placeholder: "Caracas, Distrito Capital"
+        -# ⚠️ Acá había un campo «Ubicación» y se preguntaba lo mismo DOS VECES
+        -# (MOR-208). Daniel: «estoy preguntando lo mismo 2 veces; quita
+        -# Ubicación, pedimos la dirección completa abajo».
+        -#
+        -# `location` sigue existiendo —es el renglón corto que se lee en la
+        -# barra de arriba y en el panel de SIGA— pero se DEDUCE del municipio y
+        -# el estado, que están a diez centímetros más abajo. Ver
+        -# `School#deducir_la_ubicacion`.
 
         .form-group
           = con_pista "Lo asigna el MPPE y no se edita desde aquí. Si está mal, escríbanos y lo corregimos." do

@@ -7024,3 +7024,21 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 .campo-aviso--bien { color: var(--guardar-primary); }
 .campo-aviso--mal  { color: var(--eliminar-primary); }
+
+
+/* Lo que falta aunque el paso esté listo (MOR-208).
+   ────────────────────────────────────────────────
+   ⚠️ ÁMBAR y no rojo, y esta vez el ámbar es correcto por la regla de color, no
+   a pesar de ella: describe un DATO que le falta al colegio —no tiene escudo—
+   y no un control. Rojo diría que algo está roto, y no lo está: se puede
+   trabajar así y solo se nota al emitir el primer documento. */
+.paso-pendiente {
+  margin: var(--space-micro) 0 0;
+  padding-left: var(--space-sm);
+  border-left: 3px solid var(--warning-border);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--warning-text);
+  max-width: 92ch;
+  text-wrap: pretty;
+}

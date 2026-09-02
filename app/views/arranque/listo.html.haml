@@ -21,14 +21,22 @@
 .card-academic
   %table.table-academic
     %tbody
-      - @grados_por_nivel.each do |nivel, cuantos|
-        %tr
-          %td.arranque-listo-cifra= cuantos
-          %td
-            %strong= "Grados de #{GradoOficial::ETIQUETAS[nivel.to_sym] || nivel}"
-            %p.dato-secundario Los que fija el Reglamento de la LOE, con su nombre y su orden.
-          %td.columna-acciones
-            = boton "Ver los grados", grades_path, icono: :grados, tono: :secondary, sm: true
+      -# ⚠️ UNA fila para los grados, no una por nivel (MOR-208).
+      -#
+      -# Daniel, señalando los tres botones: *«redirigen a lo mismo»*. Y era
+      -# cierto: «Grados de Primaria», «de Bachillerato» y «de Preescolar» eran
+      -# tres renglones con el mismo enlace. Un botón que se repite deja de
+      -# leerse como una acción y pasa a leerse como decoración.
+      -#
+      -# El desglose por nivel sí es información, así que se queda — como texto.
+      %tr
+        %td.arranque-listo-cifra= @grados_por_nivel.values.sum
+        %td
+          %strong Grados
+          - desglose = @grados_por_nivel.map { |nivel, cuantos| "#{cuantos} de #{GradoOficial::ETIQUETAS[nivel.to_sym] || nivel}" }
+          %p.dato-secundario= "#{desglose.to_sentence}. Los que fija el Reglamento de la LOE, con su nombre y su orden."
+        %td.columna-acciones
+          = boton "Ver los grados", grades_path, icono: :grados, tono: :secondary, sm: true
 
       - if @materias.positive?
         %tr

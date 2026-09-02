@@ -27,11 +27,15 @@ class DepartamentosEnLineaTest < ApplicationSystemTestCase
   end
 
   test "se edita tocando el nombre, ahí mismo" do
-    fill_in "department[name]", with: "Letras"
-    find(".cabecera-de-lista button[type=submit]").click
-    assert_selector "td", text: "Letras", wait: 5
+    # ⚠️ Nombre único por corrida: con varios archivos de sistema seguidos,
+    # «Letras» podía existir de antes y `click_on` tomaba la fila equivocada.
+    nombre = "Letras #{rand(10_000)}"
 
-    click_on "Letras"
+    fill_in "department[name]", with: nombre
+    find(".cabecera-de-lista button[type=submit]").click
+    assert_selector "td", text: nombre, wait: 5
+
+    click_on nombre
     # ⚠️ DENTRO de la fila: hay dos campos `department[name]` en la pantalla —el
     # de agregar, arriba, y el de la fila en edición— y `match: :first` tomaba
     # el de arriba.

@@ -35,10 +35,21 @@ class PasosDeArranque
   # `vacio` es el titular del estado vacío de la pantalla correspondiente. Va
   # acá y no en cada vista para que la pantalla y el mapa digan lo MISMO: si el
   # paso se renombra, el estado vacío lo sigue.
+  # `pendiente` es lo que FALTA aunque el paso esté listo (MOR-208).
+  #
+  # Daniel: *«podemos indicarle en algún lugar del panel que deben completar la
+  # firma, el logo y la dirección de la escuela para que los documentos salgan
+  # con esa info, pero que lo pueden hacer luego»*.
+  #
+  # ⚠️ No es un paso aparte ni convierte el paso en pendiente, y eso es todo el
+  # punto: el colegio PUEDE trabajar sin logo y sin firma. Volverlo obligatorio
+  # sería mentirle; callarlo, dejar que se entere el día que emita su primera
+  # constancia y salga sin escudo.
   Paso = Data.define(:clave, :titulo, :explicacion, :verbo, :ruta, :icono, :vacio,
-                     :listo, :resultado, :necesita, :opcional, :omitido) do
+                     :listo, :resultado, :pendiente, :necesita, :opcional, :omitido) do
     def initialize(clave:, titulo:, explicacion:, verbo:, ruta:, icono:, vacio: nil,
-                   listo: false, resultado: nil, necesita: nil, opcional: false, omitido: false)
+                   listo: false, resultado: nil, pendiente: nil, necesita: nil,
+                   opcional: false, omitido: false)
       super
     end
 
@@ -145,8 +156,25 @@ class PasosDeArranque
                    "antes de que haga falta el primero.",
       verbo: "Completar la identidad", ruta: :colegio,
       listo: listo,
-      resultado: listo ? "DEA #{colegio.dea_code}" : nil
+      resultado: listo ? "DEA #{colegio.dea_code}" : nil,
+      pendiente: (lo_que_falta_para_los_documentos if listo)
     )
+  end
+
+  # Lo que un documento va a echar de menos si nadie lo carga.
+  #
+  # ⚠️ Se nombra POR SU CONSECUENCIA y no como una lista de campos vacíos: a un
+  # director no le importa que `firma` sea nil, le importa que la constancia
+  # salga sin firmar.
+  def lo_que_falta_para_los_documentos
+    falta = []
+    falta << "el escudo" unless colegio.logo.attached?
+    falta << "la firma del director" unless colegio.firma.attached?
+    falta << "la dirección" if colegio.direccion.blank?
+    return nil if falta.empty?
+
+    "Sus boletines y constancias van a salir sin #{falta.to_sentence}. " \
+    "Puede cargarlos cuando quiera."
   end
 
   # ⚠️ Los lapsos van JUNTO con el año, no aparte.
@@ -202,16 +230,43 @@ class PasosDeArranque
     Paso.new(
       clave: :materias, vacio: "Todavía no hay materias cargadas", icono: :materias,
       titulo: "Las materias y quién las dicta",
-      explicacion: "Si ya tiene el pensum en un Excel, súbalo: de una sola planilla salen " \
-                   "las materias, los profesores y quién dicta qué en cada sección. El " \
-                   "código (MAT, CAS, FIS) es suyo: si la planilla no lo trae, SIGA propone " \
-                   "uno y usted lo corrige.",
-      verbo: "Cargar las materias", ruta: :subjects,
+      # ⚠️ El paso CAMBIA DE TEXTO según lo que ya haya (MOR-208).
+      #
+      # Daniel: *«ya las materias están cargadas; en todo caso queda es
+      # cambiarlas»*. Y tenía razón: desde que el pensum se siembra al
+      # registrarse, un colegio abre el panel con diecisiete materias puestas y
+      # lee «Cargar las materias». El paso le pedía algo que el sistema ya hizo.
+      #
+      # Lo que de verdad falta en ese momento es la otra mitad —quién las
+      # dicta—, así que el paso lo dice y lleva a los profesores.
+      explicacion: explicacion_del_pensum(materias_cargadas, profesores_cargados),
+      verbo: materias_cargadas.positive? ? "Cargar los profesores" : "Cargar las materias",
+      ruta: materias_cargadas.positive? ? :teachers : :subjects,
       # Las dos mitades: una materia sin nadie que la dicte no deja cargar una
       # nota, así que el paso no está hecho hasta que hay quien la dé.
       listo: materias_cargadas.positive? && profesores_cargados.positive?,
       resultado: resultado_del_pensum(materias_cargadas, profesores_cargados)
     )
+  end
+
+  # Qué contarle a un colegio según lo que ya tiene.
+  #
+  # ⚠️ Son tres situaciones distintas y con dos textos no alcanzaba: el pensum
+  # sembrado, el pensum a medias y el colegio en blanco no necesitan que se les
+  # diga lo mismo.
+  def explicacion_del_pensum(materias, profesores)
+    if materias.positive? && profesores.zero?
+      "Sus materias ya están, con el plan de estudio del ministerio repartido por año. " \
+      "Falta la otra mitad: quién dicta cada una. Si tiene el pensum en un Excel, súbalo " \
+      "y salen los profesores y sus asignaciones de una vez."
+    elsif materias.positive?
+      "Las materias y los profesores ya están. Revise que cada sección tenga quién le dicte: " \
+      "una materia sin profesor no deja cargar una nota."
+    else
+      "Si ya tiene el pensum en un Excel, súbalo: de una sola planilla salen las materias, " \
+      "los profesores y quién dicta qué en cada sección. El código (MAT, CAS, FIS) es suyo: " \
+      "si la planilla no lo trae, SIGA propone uno y usted lo corrige."
+    end
   end
 
   # «8 materias · 12 profesores», o solo la mitad que ya está — que es lo que

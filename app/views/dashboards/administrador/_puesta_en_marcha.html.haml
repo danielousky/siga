@@ -52,6 +52,16 @@
             -# dato —«Bachillerato · 5 grados»— y por eso puede llevar color; el
             -# enlace de al lado no.
             %p.paso-resultado= paso.resultado
+
+            -# ⚠️ Lo que falta aunque el paso esté LISTO (MOR-208). Daniel:
+            -# «indicarle que deben completar la firma, el logo y la dirección
+            -# para que los documentos salgan con esa info, pero que lo pueden
+            -# hacer luego».
+            -#
+            -# En el tono de aviso —no en rojo— porque no hay nada roto: el
+            -# colegio puede trabajar así, y solo lo va a notar cuando emita.
+            - if paso.pendiente
+              %p.paso-pendiente= paso.pendiente
           - elsif estado == :omitido
             %p.paso-resultado.dato-secundario Este colegio no lo usa.
           - else
