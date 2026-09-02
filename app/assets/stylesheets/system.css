@@ -3,6 +3,69 @@
    Registro Académico Digital
    ============================================ */
 
+/* ---- Las dos fuentes de la PORTADA (auto-hospedadas) --------------------
+   ⚠️ Están en `public/fonts`, no en un CDN, y eso no es purismo: la nota de
+   `--font-serif` de más abajo explica por qué esta app no descarga letras de
+   un tercero —en un colegio con conexión mala, un servidor ajeno es la página
+   entera esperando—. Sirviéndolas desde el mismo dominio, la razón desaparece
+   y la maqueta del diseñador se puede calcar tal cual: son 80 KB, con
+   `swap` para que el texto se lea desde el primer instante.
+
+   Se usan ÚNICAMENTE dentro de `.portada`. El resto de la app sigue con el
+   stack del sistema, que no descarga nada. */
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 100 1000;
+  font-display: swap;
+  src: url('/fonts/dm-sans-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 100 1000;
+  font-display: swap;
+  src: url('/fonts/dm-sans-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'DM Serif Display';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/dm-serif-display-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* ⚠️ La itálica va como ARCHIVO y no sintetizada. Sin ella el navegador
+   inclina la redonda por su cuenta, y en una serif de display eso se ve
+   exactamente como lo que es: letras torcidas. La segunda línea de cada
+   título de la portada va en itálica, así que se nota en cada sección. */
+@font-face {
+  font-family: 'DM Serif Display';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/dm-serif-display-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'DM Serif Display';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/dm-serif-display-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'DM Serif Display';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/dm-serif-display-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
   /* ---- Foreground (Text Hierarchy) ---- */
   --text-primary: #2c2c2c;           /* Tinta carbón - texto principal */
@@ -3132,333 +3195,529 @@ nav.pagy a.gap {
 .solicitud-gracias p:last-of-type { margin-bottom: var(--space-sm); }
 
 /* ==========================================================================
-   PORTADA PÚBLICA (MOR-135)
+   PORTADA PÚBLICA (MOR-135 · rediseño sobre la maqueta del diseñador)
    ==========================================================================
-   El mundo visual es el del documento escolar —el acta, el boletín, la
-   constancia—, no el de la landing de SaaS. De ahí las decisiones:
+   La referencia es la maqueta aprobada (siga-pearl.vercel.app). Lo que se
+   calcó de ahí es CONCRETO y verificable, no una impresión:
 
-     · Serif para los titulares. Un boletín venezolano se imprime en serif;
-       una directora reconoce ese registro antes de leer la primera palabra.
-     · El fondo es el papel crema del sistema (`--surface-canvas`), no blanco
-       ni un degradado. La app y la portada son el mismo objeto.
-     · El oro del escudo (#D4AF37) aparece UNA vez, en el filete del hero.
-       Si se repite deja de significar.
-     · Nada de emoji como marcador de sección: el anterior tenía siete.
+     · La paleta ya era la del sistema —#faf8f5 papel, #1e4a7a azul, #e8eef5
+       azul suave, #2c2c2c tinta—. Lo único que faltaba era `--ink` (#07142f),
+       que ya vivía en el layout como `theme-color`, y el cielo #7cc0ff.
+     · La tipografía SÍ cambia: DM Serif Display para los titulares y DM Sans
+       para todo lo demás. Van AUTO-HOSPEDADAS en `public/fonts` (ver el
+       @font-face al principio de esta hoja) y solo se aplican acá, en la
+       portada. La app conserva el stack del sistema, que no descarga nada.
+     · Las secciones van numeradas (01 — La idea, 02 — Un solo lugar…) porque
+       en la maqueta el recorrido ES una secuencia: qué pasa, qué hace, en qué
+       se diferencia, cuánto cuesta, quién lo hace.
+
+   ⚠️ El hero es la única pieza que NO sale de la maqueta: la pidió Daniel.
+   Son tres capas apiladas sobre el azul profundo —rejilla en fuga, emblema
+   fundido, texto— y el orden importa. Ver `.portada-hero`.
    ========================================================================== */
 
-.portada { background: var(--surface-canvas); }
+.portada {
+  --ink: #07142f;
+  --cielo: #7cc0ff;
+  --portada-serif: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+  --portada-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-.portada-inner { max-width: 1000px; margin: 0 auto; padding: 0 var(--space-lg); }
+  background: var(--surface-canvas);
+  font-family: var(--portada-sans);
+  font-size: 16px;
+}
 
-/* ---- Hero: la tesis ---- */
+/* La portada es lo único de la app que va de borde a borde: el contenedor
+   general le mete 48 px a cada lado y el hero quedaba flotando en una isla. */
+.container-academic:has(> .portada) { padding: 0; }
 
-/* El hero va en oscuro porque el emblema de SIGA vive sobre azul profundo: es
-   su fondo, no un accesorio que se le pueda quitar. El resto de la portada
-   sigue en papel crema, así que este bloque es el único momento oscuro de la
-   página — y por eso es donde el ojo cae primero. */
-.portada-hero {
-  background: #07142f;
-  padding: clamp(32px, 6vw, 72px) var(--space-lg) clamp(40px, 7vw, 80px);
+/* Y por lo mismo se queda con su propio encabezado: la barra blanca del
+   layout, encima de un hero oscuro, partía el banner en dos y repetía el
+   logo. Acá el nav vive DENTRO del hero. */
+body:has(.portada) .barra-superior { display: none; }
+
+.portada-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 40px);
+}
+
+/* ---- Encabezado y acceso ------------------------------------------------
+   ⚠️ «Entrar» es un BOTÓN y no un enlace más de la lista. Daniel: «el ingreso
+   al sistema debe ser evidente». Quien llega a la portada de un sistema que
+   ya usa no viene a leer: viene a entrar, y hasta ahora tenía que bajar hasta
+   el pie para encontrar por dónde. Aparece dos veces —acá y en el hero— y esa
+   repetición es deliberada. */
+.portada-nav {
   position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 3vw, 32px);
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 20px clamp(20px, 5vw, 40px);
 }
 
-/* El emblema se recorta en círculo sobre su propio fondo: la imagen es un
-   cuadrado con azul en todo el borde, y un cuadrado dentro de una sección
-   oscura se nota como una lámina pegada encima. */
+.portada-nav-marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--portada-sans);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #fff;
+  text-decoration: none;
+}
+.portada-nav-marca:hover { color: #fff; }
+.portada-nav-logo { width: 30px; height: 30px; display: block; }
+
+.portada-nav-enlaces {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2.4vw, 28px);
+  margin-left: auto;
+  list-style: none;
+  padding: 0;
+  margin-block: 0;
+}
+.portada-nav-enlaces a {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.72);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+.portada-nav-enlaces a:hover { color: #fff; }
+
+.portada-nav-entrar {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border: 1px solid rgba(124, 192, 255, 0.55);
+  border-radius: 999px;
+  background: rgba(124, 192, 255, 0.12);
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.portada-nav-entrar:hover {
+  background: var(--cielo);
+  border-color: var(--cielo);
+  color: var(--ink);
+}
+
+@media (max-width: 820px) {
+  .portada-nav-enlaces li:not(.portada-nav-entrar-item) { display: none; }
+}
+
+/* ---- Hero ----------------------------------------------------------------
+   Tres capas, y el orden es lo que hace que funcione:
+
+     0 · la REJILLA — una hoja cuadriculada acostada en perspectiva, que se
+         desvanece con una máscara elíptica para que no muera en un borde duro.
+     1 · el EMBLEMA — `mix-blend-mode: screen` es la pieza clave, no adorno:
+         `siga_hero.jpg` es un JPG con azul opaco en todo el borde, y a media
+         opacidad se veía el rectángulo. Con `screen`, el azul del archivo se
+         funde con el azul del fondo y solo queda el brillo del engranaje.
+     2 · el TEXTO, que nunca compite con la imagen porque la imagen está al 55 %.
+
+   `isolation: isolate` evita que el `screen` se mezcle con lo que haya detrás
+   de la sección. */
+.portada-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--ink);
+  padding-bottom: clamp(56px, 8vw, 96px);
+}
+
+.portada-hero-rejilla {
+  position: absolute;
+  inset: -30% -60% -12%;
+  z-index: 0;
+  background-image:
+    linear-gradient(to right, rgba(124, 192, 255, 0.28) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(124, 192, 255, 0.28) 1px, transparent 1px);
+  background-size: 58px 58px;
+  transform: perspective(620px) rotateX(60deg);
+  transform-origin: 50% 100%;
+  -webkit-mask-image: radial-gradient(ellipse 72% 62% at 50% 46%, #000 12%, transparent 80%);
+  mask-image: radial-gradient(ellipse 72% 62% at 50% 46%, #000 12%, transparent 80%);
+  pointer-events: none;
+}
+
+/* ⚠️ La MÁSCARA es lo que borra el rectángulo, no el `screen` ni la opacidad.
+   Se intentó primero solo con `mix-blend-mode: screen`, y se veía un cuadrado
+   claro alrededor del engranaje: `screen` ACLARA, y el azul de fondo del JPG
+   (#0b2545) es más claro que el `--ink` del hero (#07142f), así que el recorte
+   quedaba dibujado con más nitidez, no con menos. `screen` solo desaparece
+   sobre negro puro.
+
+   Con la máscara radial el archivo se desvanece hacia sus bordes y el blend
+   pasa a hacer lo único que tiene que hacer: fundir el brillo. Los dos juntos,
+   no uno u otro. */
 .portada-emblema {
-  display: block;
-  width: clamp(150px, 22vw, 210px);
-  height: clamp(150px, 22vw, 210px);
-  margin: 0 auto var(--space-lg);
-  object-fit: cover;
-  border-radius: 50%;
-}
-
-.portada-hero::after {
-  content: "";
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
-  bottom: 0;
-  width: 84px;
-  height: 3px;
-  background: #4a9eff;
+  top: clamp(190px, 31vw, 320px);
+  z-index: 1;
+  width: clamp(340px, 52vw, 640px);
+  height: auto;
+  transform: translate(-50%, -50%);
+  opacity: 0.5;
+  mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(circle at 50% 47%, #000 24%, rgba(0, 0, 0, 0.45) 44%, transparent 66%);
+  mask-image: radial-gradient(circle at 50% 47%, #000 24%, rgba(0, 0, 0, 0.45) 44%, transparent 66%);
+  pointer-events: none;
+  user-select: none;
 }
 
-.portada-hero-inner { max-width: 780px; margin: 0 auto; text-align: center; }
+.portada-hero-inner {
+  position: relative;
+  z-index: 2;
+  max-width: 820px;
+  margin: 0 auto;
+  padding: clamp(48px, 9vw, 104px) clamp(20px, 5vw, 40px) 0;
+  text-align: center;
+}
 
 .portada-antetitulo {
-  margin: 0 0 var(--space-md);
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
+  display: inline-block;
+  margin: 0 0 var(--space-lg);
+  padding: 6px 15px;
+  border: 1px solid rgba(124, 192, 255, 0.35);
+  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--cielo);
 }
 
+/* El eslogan lo fijó Daniel y es lo único que tiene que quedar en la cabeza.
+   Va en dos líneas a propósito: el punto y aparte del medio es el ritmo. */
 .portada-tesis {
-  font-family: var(--font-serif);
-  font-size: clamp(30px, 5.4vw, 54px);
-  line-height: 1.12;
-  letter-spacing: -0.015em;
+  font-family: var(--portada-serif);
+  font-weight: 400;
+  font-size: clamp(38px, 7vw, 76px);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
   text-wrap: balance;
   margin: 0 0 var(--space-lg);
   color: #fff;
 }
-
-/* La segunda frase es el giro del argumento, así que se separa y se inclina.
-   Es la única cursiva de la página. */
-.portada-tesis em {
-  display: block;
-  margin-top: var(--space-sm);
-  font-style: italic;
-  color: #7cc0ff;
-}
+.portada-tesis em { font-style: normal; color: var(--cielo); }
 
 .portada-bajada {
-  max-width: 52ch;
+  max-width: 58ch;
   margin: 0 auto var(--space-xl);
-  font-size: clamp(16px, 2vw, 19px);
+  font-size: clamp(16px, 1.6vw, 19px);
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.78);
-  text-wrap: pretty;
-}
-.portada-bajada strong { color: #fff; }
-
-.portada-antetitulo { color: rgba(255, 255, 255, 0.5); }
-
-/* Sobre fondo oscuro, el secundario claro del sistema desaparece. */
-.portada-hero .btn-secondary {
-  background: transparent;
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.35);
-}
-.portada-hero .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: #fff;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.74);
 }
 
 .portada-acciones {
   display: flex;
-  gap: var(--space-md);
-  justify-content: center;
   flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-xl);
 }
 
-.portada-cta { min-height: 50px; font-size: 16px; padding: 0 var(--space-xl); }
+.portada-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 0 26px;
+  border-radius: 999px;
+  font-family: var(--portada-sans);
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.portada-cta--principal { background: var(--cielo); color: var(--ink); }
+.portada-cta--principal:hover { background: #a5d4ff; color: var(--ink); }
+.portada-cta--fantasma {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+.portada-cta--fantasma:hover { background: rgba(255, 255, 255, 0.10); color: #fff; }
 
-/* ---- Secciones ---- */
+/* El precio de entrada, arriba y sin hacer bajar: es la primera objeción. */
+.portada-sello {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.78);
+  text-align: left;
+}
+.portada-sello strong { color: #fff; font-weight: 600; }
+.portada-sello-marca {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(124, 192, 255, 0.18);
+  color: var(--cielo);
+  font-size: 12px;
+}
 
-.portada-hallazgo,
-.portada-que-hace,
-.portada-planes,
-.portada-quienes { padding: clamp(48px, 7vw, 80px) 0; }
+/* ---- Ritmo de las secciones --------------------------------------------- */
+.portada-seccion { padding: clamp(56px, 8vw, 104px) 0; }
+.portada-seccion--papel { background: var(--surface-elevated); }
 
-.portada-que-hace, .portada-quienes { background: var(--surface-elevated); }
+.portada-rotulo {
+  display: block;
+  margin: 0 0 var(--space-md);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brand-primary);
+}
 
 .portada-titulo {
-  font-family: var(--font-serif);
-  font-size: clamp(24px, 3.4vw, 34px);
-  line-height: 1.2;
+  font-family: var(--portada-serif);
+  font-weight: 400;
+  font-size: clamp(28px, 4.2vw, 46px);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
   text-wrap: balance;
-  margin: 0 0 var(--space-lg);
+  margin: 0 0 var(--space-md);
   color: var(--text-primary);
-}
-
-.portada-subtitulo {
-  max-width: 58ch;
-  margin: -8px 0 var(--space-xl);
-  color: var(--text-secondary);
-  font-size: 17px;
-  line-height: 1.6;
 }
 
 .portada-parrafo {
-  max-width: 66ch;
+  max-width: 62ch;
   margin: 0 0 var(--space-md);
-  color: var(--text-secondary);
   font-size: 17px;
   line-height: 1.7;
+  color: var(--text-secondary);
 }
+.portada-parrafo:last-child { margin-bottom: 0; }
 
 .portada-nota {
   max-width: 66ch;
-  margin: var(--space-xl) 0 0;
-  color: var(--text-tertiary);
-  font-size: 15px;
+  margin: var(--space-lg) 0 0;
+  font-size: 14px;
   line-height: 1.65;
+  color: var(--text-tertiary);
 }
 
-/* ---- Las cifras del hallazgo ---- */
-
+/* ---- Las tres cifras ---------------------------------------------------- */
 .portada-cifras {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
-  gap: var(--space-lg);
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1px;
+  background: var(--border-standard);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: clamp(40px, 6vw, 72px);
 }
-
 .portada-cifra {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: var(--space-lg);
   background: var(--surface-elevated);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  /* El filete a la izquierda, no arriba: alinea con el borde del texto y no
-     compite con el número. */
-  border-left: 3px solid var(--brand-primary);
+  padding: var(--space-xl) var(--space-lg);
 }
-
 .portada-cifra-numero {
-  font-family: var(--font-serif);
-  font-size: 38px;
+  display: block;
+  font-family: var(--portada-serif);
+  font-size: clamp(38px, 5vw, 54px);
   line-height: 1;
-  font-variant-numeric: tabular-nums;
   color: var(--brand-primary);
+  margin-bottom: 10px;
 }
-
-.portada-cifra-que { color: var(--text-secondary); font-size: 15px; line-height: 1.45; }
-
-/* La fuente al lado del dato. Una cifra sin procedencia en una página de venta
-   se lee como inventada — y las cuatro que había antes lo eran. */
+.portada-cifra-que {
+  display: block;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
 .portada-cifra-fuente {
-  margin-top: 4px;
+  display: block;
+  margin-top: 8px;
   font-size: 12px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--text-muted);
 }
 
-/* ---- Qué hace ---- */
-
+/* ---- Las cuatro funciones ----------------------------------------------- */
 .portada-piezas {
   display: grid;
-  /* 340 px y no 280: con 280 entran TRES columnas en los 1000 px del contenedor
-     y las cuatro piezas quedan 3 + 1, con la última sola en una fila vacía.
-     Con 340 entran dos, y son 2×2. */
-  grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
-  gap: var(--space-xl) var(--space-2xl);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
 }
-
+.portada-pieza {
+  background: var(--surface-canvas);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+.portada-seccion--papel .portada-pieza { background: var(--surface-canvas); }
+.portada-pieza-orden {
+  display: block;
+  margin-bottom: var(--space-md);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--brand-primary);
+}
 .portada-pieza h3 {
-  font-family: var(--font-serif);
-  font-size: 21px;
+  font-family: var(--portada-serif);
+  font-weight: 400;
+  font-size: 23px;
+  line-height: 1.2;
   margin: 0 0 var(--space-sm);
   color: var(--text-primary);
 }
-
-.portada-pieza p { margin: 0 0 var(--space-sm); color: var(--text-secondary); line-height: 1.65; }
-
-/* El renglón que separa a SIGA de un folleto: el detalle que solo sabe quien
-   hizo boletines de verdad. Va más chico porque es para quien ya se interesó. */
+.portada-pieza p {
+  margin: 0 0 var(--space-sm);
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
 .portada-pieza-detalle {
-  font-size: 14px;
+  margin: 0;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 13.5px;
+  line-height: 1.6;
   color: var(--text-tertiary);
-  padding-left: var(--space-md);
-  border-left: 2px solid var(--border-standard);
 }
 
-/* ---- Planes ---- */
+/* ---- La diferencia ------------------------------------------------------ */
+.portada-principios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+  list-style: none;
+  padding: 0;
+}
+.portada-principio { border-top: 2px solid var(--brand-primary); padding-top: var(--space-md); }
+.portada-principio h3 {
+  font-family: var(--portada-sans);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: var(--text-primary);
+}
+.portada-principio p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--text-secondary); }
 
+/* ---- Planes ------------------------------------------------------------- */
 .portada-lista-planes {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
-  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
 }
-
 .portada-plan {
   background: var(--surface-elevated);
   border: 1px solid var(--border-standard);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: var(--space-lg);
   text-align: center;
 }
-
+.portada-seccion--papel .portada-plan { background: var(--surface-canvas); }
 .portada-plan--convenir { background: var(--brand-subtle); border-color: transparent; }
-
-/* "+800" no puede ser el número más grande de la página: es la opción para la
-   MINORÍA de los colegios, y el ojo va al número mayor. Se achica para que los
-   tres precios manden. */
-.portada-plan--convenir .portada-plan-monto { font-size: 30px; }
+.portada-seccion--papel .portada-plan--convenir { background: var(--brand-subtle); }
 
 .portada-plan-nombre {
-  margin: 0 0 var(--space-sm);
+  font-family: var(--portada-sans);
   font-size: 13px;
+  font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-tertiary);
-  font-weight: 600;
+  margin: 0 0 var(--space-sm);
 }
-
-.portada-plan-precio { margin: 0 0 var(--space-xs); display: flex; align-items: baseline; justify-content: center; gap: 6px; }
-
+.portada-plan-precio {
+  margin: 0 0 6px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+}
 .portada-plan-monto {
-  font-family: var(--font-serif);
-  font-size: 44px;
+  font-family: var(--portada-serif);
+  font-size: 46px;
   line-height: 1;
-  font-variant-numeric: tabular-nums;
   color: var(--brand-primary);
 }
-
+.portada-plan--convenir .portada-plan-monto { font-size: 30px; }
 .portada-plan-moneda { font-size: 14px; color: var(--text-secondary); }
 .portada-plan-cupo { margin: 0; font-size: 14px; color: var(--text-secondary); }
 
-/* ---- Cierre ---- */
-
+/* ---- Cierre ------------------------------------------------------------- */
 .portada-cierre {
-  padding: clamp(48px, 7vw, 80px) 0;
+  background: var(--ink);
+  color: #fff;
+  padding: clamp(56px, 8vw, 104px) 0;
   text-align: center;
-  background: var(--brand-primary);
-  color: #fff;
 }
-
 .portada-cierre-titulo {
-  font-family: var(--font-serif);
-  font-size: clamp(24px, 3.6vw, 36px);
-  line-height: 1.2;
+  font-family: var(--portada-serif);
+  font-weight: 400;
+  font-size: clamp(28px, 4.4vw, 48px);
+  line-height: 1.1;
   text-wrap: balance;
-  margin: 0 0 var(--space-sm);
+  margin: 0 0 var(--space-md);
   color: #fff;
 }
-
 .portada-cierre-texto {
-  max-width: 46ch;
+  max-width: 54ch;
   margin: 0 auto var(--space-xl);
-  color: rgba(255, 255, 255, 0.82);
   font-size: 17px;
-  line-height: 1.6;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.72);
 }
 
-.portada-cierre .btn-primary {
-  background: #fff;
-  color: var(--brand-primary);
-  border-color: #fff;
-}
-.portada-cierre .btn-primary:hover { background: var(--brand-subtle); color: var(--brand-active); }
-
-/* ---- Pie ---- */
-
+/* ---- Pie ---------------------------------------------------------------- */
 .portada-pie {
-  padding: var(--space-2xl) 0 var(--space-xl);
   background: var(--surface-elevated);
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--border-standard);
+  padding: clamp(40px, 6vw, 64px) 0 var(--space-xl);
 }
-
 .portada-pie-columnas {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-xl);
   justify-content: space-between;
-  align-items: flex-start;
+  gap: var(--space-xl);
 }
-
-.portada-pie-logo { width: 44px; height: 44px; margin-bottom: var(--space-xs); }
-.portada-pie-nombre { margin: 0; font-family: var(--font-serif); font-size: 19px; color: var(--text-primary); }
-.portada-pie-que { margin: 0; font-size: 14px; color: var(--text-tertiary); }
-
-.portada-pie-enlaces ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--space-sm); }
-.portada-pie-enlaces a { color: var(--text-secondary); }
-
+.portada-pie-logo { width: 40px; height: 40px; margin-bottom: 10px; display: block; }
+.portada-pie-nombre {
+  margin: 0;
+  font-family: var(--portada-serif);
+  font-size: 21px;
+  color: var(--text-primary);
+}
+.portada-pie-que { margin: 4px 0 0; font-size: 14px; color: var(--text-tertiary); max-width: 34ch; }
+.portada-pie-enlaces ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.portada-pie-enlaces a { font-size: 15px; color: var(--text-secondary); text-decoration: none; }
+.portada-pie-enlaces a:hover { color: var(--brand-primary); }
 .portada-pie-legal {
   margin: var(--space-xl) 0 0;
   padding-top: var(--space-lg);
@@ -3468,9 +3727,16 @@ nav.pagy a.gap {
 }
 
 @media (max-width: 640px) {
-  .portada-inner { padding: 0 var(--space-md); }
-  .portada-acciones { flex-direction: column; }
-  .portada-cta { width: 100%; }
+  .portada-acciones { flex-direction: column; align-items: stretch; }
+  .portada-cta { justify-content: center; width: 100%; }
+  .portada-sello { text-align: left; }
+}
+
+/* La rejilla en fuga es decorativa: si alguien pidió menos movimiento, no hay
+   nada que apagar acá —no se anima—, pero el emblema sí baja su presencia para
+   que el contraste del texto no dependa de una imagen. */
+@media (prefers-reduced-motion: reduce) {
+  .portada-emblema { opacity: 0.4; }
 }
 
 /* ==========================================================================

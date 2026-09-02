@@ -25,18 +25,18 @@ module Siga
 
     private
 
-    # El plan que le toca a un colegio por su matrícula. Está acá y no en
-    # `School` a propósito: es una regla COMERCIAL de SIGA, no algo que el
-    # colegio sepa de sí mismo. Cuando exista `MOR-108` se muda a la suscripción.
-    PLANES = [
-      { hasta: 150, nombre: "Básico",   precio: 25 },
-      { hasta: 400, nombre: "Estándar", precio: 50 },
-      { hasta: 800, nombre: "Premium",  precio: 90 }
-    ].freeze
-
+    # El plan que le toca a un colegio por su matrícula.
+    #
+    # ⚠️ Acá vivía una SEGUNDA tabla de planes, escrita a mano, con los precios
+    # de antes de septiembre de 2026 —25/50/90—. Su propio comentario decía
+    # «cuando exista MOR-108 se muda a la suscripción», y MOR-108 se cerró: la
+    # mudanza es esta. Con dos tablas, subir un precio dejaba la cartera de SIGA
+    # cobrando el viejo, y nadie relacionaba las dos cosas.
     def plan_por_matricula(alumnos)
-      PLANES.find { |p| alumnos <= p[:hasta] } ||
-        { nombre: "Fuera de plan", precio: nil }
+      datos = Subscription::PLANES.values.find { |p| alumnos <= p[:hasta] }
+      return { nombre: "Fuera de plan", precio: nil } if datos.nil?
+
+      { nombre: datos[:etiqueta], precio: datos[:precio] }
     end
     helper_method :plan_por_matricula
   end

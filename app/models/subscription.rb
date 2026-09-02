@@ -42,10 +42,22 @@ class Subscription < ApplicationRecord
     portal: "El portal de los representantes"
   }.freeze
 
+  # ⚠️ Los precios subieron de 25/50/90 a 30/60/90 (septiembre de 2026), y las
+  # etiquetas dejaron de ser «Básico/Premium»: son nombres de SaaS gringo, y
+  # «Premium» además sugiere funciones que el plan NO trae aparte —entre planes
+  # no se recorta nada, lo único que cambia es la matrícula—.
+  #
+  # El colegio promedio venezolano tiene ~360 alumnos, así que el plan que
+  # define la economía del negocio es el ESTÁNDAR y no el de entrada: por
+  # debajo de 150 alumnos hay muy pocos colegios privados.
+  #
+  # Esta tabla es la ÚNICA fuente. La portada la lee, el panel de SIGA la lee
+  # (antes tenía su propia copia, con los precios viejos) y `portada_publica_test`
+  # comprueba que la pantalla no los escriba a mano.
   PLANES = {
-    basico:   { hasta: 150, precio: 25, etiqueta: "Básico" },
-    estandar: { hasta: 400, precio: 50, etiqueta: "Estándar" },
-    premium:  { hasta: 800, precio: 90, etiqueta: "Premium" }
+    basico:   { hasta: 150, precio: 30, etiqueta: "Inicial" },
+    estandar: { hasta: 400, precio: 60, etiqueta: "Estándar" },
+    premium:  { hasta: 800, precio: 90, etiqueta: "Grande" }
   }.freeze
 
   ETIQUETAS_ESTADO = {
