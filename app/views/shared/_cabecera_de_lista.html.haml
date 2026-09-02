@@ -83,7 +83,28 @@
 
   .cabecera-de-lista-controles
 
-    - if busca || extras.any?
+    -# ⚠️ Una lista corta no se filtra: se escribe en ella (MOR-205).
+    -#
+    -# Daniel, mirando Departamentos: *«la creación de los dptos es solo el campo
+    -# nombre; en ese caso podemos sustituir el filtro por un campo del new para
+    -# agregar directamente allí… El filtro no hace falta, a lo sumo serán 10
+    -# departamentos»*.
+    -#
+    -# Y es el mismo lugar de la pantalla haciendo el trabajo que corresponde:
+    -# con diez filas a la vista, un buscador es un control que nadie toca y un
+    -# campo de alta es el que se usa. Cuando la entidad tiene UN campo, ir a
+    -# otra pantalla para escribirlo es todo el trámite.
+    - if local_assigns[:alta_en_linea]
+      = form_with url: alta_en_linea[:ruta], class: "cabecera-de-lista-filtros" do |f|
+        .campo-con-boton
+          = f.label alta_en_linea[:campo], alta_en_linea[:etiqueta], class: "campo-con-boton-inicio"
+          .search-input-wrap
+            = f.text_field alta_en_linea[:campo], class: "form-control", autocomplete: "off",
+                required: true, placeholder: alta_en_linea[:placeholder],
+                value: nil, name: alta_en_linea[:nombre_del_campo]
+          = f.submit "Agregar", class: "btn btn-primary campo-con-boton-final"
+
+    - elsif busca || extras.any?
       -# ⚠️ `local: false` y el `turbo_frame` explícito, igual que antes: el frame de
       -# resultados declara `target: "_top"` para que los enlaces de las filas salgan
       -# de él, y el destino explícito del formulario es lo que le gana a ese target.

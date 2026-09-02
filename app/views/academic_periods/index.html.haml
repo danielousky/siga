@@ -4,7 +4,7 @@
 .card-academic
   - if @academic_periods.empty?
     = render "shared/lista_vacia", clave: :ano_escolar,
-             acciones: [ { texto: "Registrar año escolar", ruta: new_academic_period_path, icono: :agregar } ]
+             acciones: [ { texto: "Agregar", ruta: new_academic_period_path, icono: :agregar } ]
   - else
     %table.table-academic
       %thead

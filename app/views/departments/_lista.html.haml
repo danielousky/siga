@@ -1,0 +1,15 @@
+-# La lista de departamentos, que se reemplaza entera con Turbo (MOR-205).
+- if departments.empty?
+  = render "shared/lista_vacia", clave: :departamentos
+- else
+  = render "shared/escala", total: departments.size, singular: "departamento",
+           plural: "departamentos"
+
+  %table.table-academic
+    %thead
+      %tr
+        %th Nombre del departamento
+        %th.columna-acciones
+    %tbody
+      - departments.each do |department|
+        = render "departments/fila", department: department

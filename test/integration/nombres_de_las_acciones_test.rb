@@ -40,7 +40,9 @@ class NombresDeLasAccionesTest < ActiveSupport::TestCase
   # anteriores»— y cada una carga una planilla distinta. «Registrar
   # importación» no significaría nada para un director; lo que él elige es QUÉ
   # sube. Es la misma excepción que los verbos de `PasosDeArranque`.
-  SIN_ALTA_UNICA = %w[importaciones].freeze
+  # Y `departments`, que desde MOR-205 no tiene botón de cabecera: su alta es un
+  # campo dentro de la propia lista, así que no hay nombre que comparar.
+  SIN_ALTA_UNICA = %w[importaciones departments].freeze
 
   # Cada carpeta con `index` + `new`: el botón de la cabecera y el título.
   def altas
@@ -94,19 +96,31 @@ class NombresDeLasAccionesTest < ActiveSupport::TestCase
       "el botón lleva a una pantalla que se llama distinto:\n  " + distintos.join("\n  ")
   end
 
-  # Y el botón del estado vacío que va al MISMO sitio se llama igual que el de
-  # la cabecera: es el mismo destino visto desde otro lado de la pantalla.
-  test "el estado vacío llama al alta con el mismo nombre" do
+  # ⚠️ La regla tiene DOS capas, y confundirlas fue el bug (MOR-205).
+  #
+  # Daniel: *«en los index sin registros dice arriba [+ Agregar] y abajo el
+  # mismo link pero con otro nombre [+ Registrar Nuevo …]. Confunde»*. Y era
+  # exactamente eso: el mismo destino, en la misma pantalla, con dos nombres.
+  #
+  #     VISIBLE en el botón   «Agregar»       cabecera y estado vacío
+  #     TOOLTIP / nombre      «Registrar X»   qué se agrega
+  #
+  # El verbo se repite y el sustantivo lo pone el contexto: quien está en
+  # Departamentos no necesita que un botón le diga que agrega departamentos.
+  test "el estado vacío dice lo mismo que la cabecera" do
     distintos = VISTAS.glob("*/index.html.haml").filter_map do |indice|
       texto = indice.read
-      cabecera = boton_de_cabecera(indice)
-      next if cabecera.nil?
+      next unless texto.include?("cabecera_de_lista")
 
-      # `{ texto: "…", ruta: new_algo_path` — la acción que va al alta.
-      vacio = texto[/texto: "([^"]+)", ruta: new_[a-z_]+_path/, 1]
-      next if vacio.nil? || vacio == cabecera
+      # ⚠️ `(?!importacion)`: el estado vacío tiene DOS acciones —subir la
+      # planilla y agregar a mano—, y la de importar también va a un `new_…`.
+      # Sin excluirla, el test comparaba «Subir la matrícula» contra «Agregar» y
+      # marcaba como inconsistente justo lo que sí es consistente: ese botón se
+      # llama igual arriba y abajo.
+      vacio = texto[/texto: "([^"]+)", ruta: new_(?!importacion)[a-z_]+_path/, 1]
+      next if vacio.nil? || vacio == "Agregar"
 
-      "#{indice.dirname.basename}: cabecera «#{cabecera}» vs estado vacío «#{vacio}»"
+      "#{indice.dirname.basename}: el estado vacío dice «#{vacio}» y la cabecera «Agregar»"
     end
 
     assert_empty distintos,

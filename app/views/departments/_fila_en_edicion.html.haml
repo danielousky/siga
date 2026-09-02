@@ -1,0 +1,22 @@
+-# La misma fila, convertida en un campo (MOR-205).
+-#
+-# ⚠️ El formulario va DENTRO de un `<td>`, no entre `<tr>` y `<td>`.
+-#
+-# Es el mismo tropiezo que el `<turbo-frame>`: el parser del navegador no
+-# admite un `<form>` como hijo directo de `<tr>` y lo SACA de la tabla. No
+-# falla, no avisa — los campos quedan huérfanos del formulario y el envío no
+-# manda nada. Se veía como «Guardar no hace nada».
+-#
+-# ⚠️ Mismo `id` que la fila normal: es lo que permite que el Turbo Stream
+-# cambie una por la otra en los dos sentidos.
+%tr{id: dom_id(department)}
+  %td{colspan: 2}
+    = form_with model: department, class: "fila-en-edicion" do |f|
+      = f.text_field :name, class: clase_de_campo(department, :name),
+                     autofocus: true, required: true
+      = f.submit "Guardar", class: "btn btn-primary btn-sm"
+      = link_to "Cancelar", departments_path, class: "btn btn-secondary btn-sm"
+
+    -# El error va DENTRO de la fila: es lo único que se reemplaza, así que un
+    -# aviso de arriba no llegaría en la respuesta.
+    = render "shared/errors", object: department

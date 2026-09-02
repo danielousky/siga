@@ -1,0 +1,34 @@
+-# Una fila de la tabla (MOR-205).
+-#
+-# ⚠️ NO lleva `turbo_frame_tag` adentro, y esto costó encontrarlo.
+-#
+-# Un `<turbo-frame>` entre `<tr>` y `<td>` es HTML inválido: el parser del
+-# navegador lo SACA de la tabla al construir el DOM —no falla, no avisa, y la
+-# fila queda vacía—. La edición en línea de una tabla se hace con Turbo
+-# **Streams**, que reemplazan la fila entera por su id, y no con frames.
+%tr{id: dom_id(department)}
+  %td
+    -# `data-turbo-stream` es lo que hace que un GET pida un Turbo Stream. Sin
+    -# eso el enlace navegaría a la pantalla de edición, que es justamente lo
+    -# que este trabajo vino a evitar.
+    = link_to department.name, edit_department_path(department), data: { turbo_stream: true }
+  %td.columna-acciones
+    -# ⚠️ El atajo a una materia DE ESTE departamento.
+    -#
+    -# Daniel: *«en cada línea, en opciones, debe haber un enlace a new materia
+    -# con el parámetro departamento_id, que permita crearla rápidamente para ese
+    -# departamento»*. Es el orden real del trabajo: los departamentos se crean
+    -# para colgarles materias, y sin esto había que salir a Materias y volver a
+    -# elegir en un desplegable el departamento del que uno acababa de venir.
+    = link_to new_subject_path(department_id: department.id),
+              class: "btn btn-secondary btn-sm btn-solo-icono",
+              data: { tooltip: "Agregar una materia de #{department.name}" },
+              aria: { label: "Agregar una materia de #{department.name}" } do
+      = icono(:materias, tamano: 15)
+
+    = button_to department_path(department), method: :delete,
+                class: "btn btn-danger btn-sm btn-solo-icono",
+                form: { data: { turbo_confirm: "¿Eliminar #{department.name}? Las materias que lo usan quedan sin departamento." } },
+                data: { tooltip: "Eliminar #{department.name}" },
+                aria: { label: "Eliminar #{department.name}" } do
+      = icono(:borrar, tamano: 15)

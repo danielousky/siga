@@ -51,8 +51,14 @@ class SubjectsController < ApplicationController
     @profesores = Teacher.includes(:user).to_a.sort_by { |p| p.user.apellidos_y_nombres }
   end
 
+  # ⚠️ `department_id` se toma de la URL, y es seguro (MOR-205).
+  #
+  # Viene del atajo de cada fila de Departamentos. No hay IDOR posible: es un
+  # valor por defecto del FORMULARIO, no algo que se guarde —lo que se guarda
+  # pasa igual por `subject_params`— y `Department` es `SchoolScoped`, así que
+  # el id de otro colegio simplemente no encuentra nada y el campo queda vacío.
   def new
-    @subject = Subject.new
+    @subject = Subject.new(department: Department.find_by(id: params[:department_id]))
   end
 
   def edit; end

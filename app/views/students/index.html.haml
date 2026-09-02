@@ -81,8 +81,8 @@
   - elsif @students.empty?
     .card-academic
       = render "shared/lista_vacia", clave: :alumnos,
-               acciones: [ { texto: "Subir la matrícula", ruta: importaciones_path, icono: :importar },
-                 { texto: "Registrar alumno", ruta: new_student_path, icono: :agregar, clase: "btn-secondary" } ]
+               acciones: [ { texto: "Subir la matrícula", ruta: new_importacion_path(tipo: :matricula), icono: :importar, clase: "btn-accion" },
+                 { texto: "Agregar", ruta: new_student_path, icono: :agregar } ]
   - else
     .card-academic
       -# La escala va DENTRO del frame a propósito: así el número lo actualiza el

@@ -1,0 +1,14 @@
+-# El aviso de lo que acaba de pasar (MOR-205).
+-#
+-# ⚠️ Va en un contenedor CON ID, y esa es toda la razón de que sea un parcial.
+-#
+-# Estaba escrito suelto en el layout, y DOS veces —una por cada rama, con y sin
+-# menú—, así que ya se podían despegar. Pero lo que lo volvió necesario es
+-# Turbo: una respuesta de Turbo Stream reemplaza elementos por id, y el flash
+-# de una acción hecha sin recargar la página no tiene dónde aterrizar si no
+-# existe ese id. Sin esto, agregar un departamento funcionaba y no decía nada.
+#flash
+  - if notice.present?
+    .alert.alert-success= notice
+  - if alert.present?
+    .alert.alert-danger= alert

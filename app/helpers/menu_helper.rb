@@ -167,6 +167,10 @@ module MenuHelper
     when :teachers            then teachers_path
     when :importaciones       then importaciones_path
     when :departments         then departments_path
+    # ⚠️ Directo al ALTA (MOR-205): mandar al listado de un colegio que no tiene
+    # ninguno es mandar a un estado vacío para que desde ahí toque otro botón.
+    when :academic_period_nuevo then new_academic_period_path
+    when :academic_period_nuevo then new_academic_period_path
     else raise ArgumentError, "paso sin ruta conocida: #{paso.ruta.inspect}"
     end
   end

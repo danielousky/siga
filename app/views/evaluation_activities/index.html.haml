@@ -101,4 +101,4 @@
         = render "shared/lista_vacia", clave: :evaluaciones,
                  titulo: (profesor? ? "Todavía no ha creado ninguna evaluación" : "Todavía no hay evaluaciones cargadas"),
                  texto: "Una evaluación es cada examen, taller o trabajo con su peso. Los pesos de un lapso tienen que cerrar en 100 %.",
-                 acciones: (profesor? ? [ { texto: "Registrar evaluación", ruta: new_evaluation_activity_path, icono: :agregar } ] : [])
+                 acciones: (profesor? ? [ { texto: "Agregar", ruta: new_evaluation_activity_path, icono: :agregar } ] : [])

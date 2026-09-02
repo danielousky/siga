@@ -26,7 +26,7 @@
   - if @sections.empty?
     .card-academic
       = render "shared/lista_vacia", clave: :secciones,
-               acciones: [ { texto: "Registrar sección", ruta: new_section_path, icono: :agregar } ]
+               acciones: [ { texto: "Agregar", ruta: new_section_path, icono: :agregar } ]
   - else
     .card-academic
       %table.table-academic

@@ -6194,7 +6194,35 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
   /* Con los controles apilados, el botón ya no va «al final de la fila»: es
      una fila más. */
-  .cabecera-de-lista .btn-agregar {
+  .cabecera-de-lista /* Un botón que es SOLO un icono, dentro de una fila (MOR-205).
+   ───────────────────────────────────────────────────────────
+   La papelera y el atajo a «agregar una materia» de cada departamento. En una
+   tabla el nombre de la acción se repetiría en cada fila y competiría con el
+   dato; acá el nombre lo lleva el tooltip y el `aria-label`.
+
+   ⚠️ Cuadrado y del alto del botón chico. Un control de menos de 32 px se falla
+   al tocarlo en un teléfono, y una papelera que se falla borra la fila de al
+   lado. */
+.btn-solo-icono {
+  width: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+/* La columna de acciones de una tabla: al final, sin estirarse. */
+.columna-acciones {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.columna-acciones form { display: inline-block; margin: 0; }
+.columna-acciones > * + * { margin-left: var(--space-xs); }
+
+.btn-agregar {
     margin-left: 0;
     width: 100%;
   }
@@ -6282,6 +6310,34 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
    ⚠️ El tooltip NO se quita: dice «Registrar inscripción», o sea QUÉ se agrega.
    Es lo que sostiene la regla de MOR-175 —una acción, un nombre— ahora que lo
    visible es el verbo a secas. */
+/* Un botón que es SOLO un icono, dentro de una fila (MOR-205).
+   ───────────────────────────────────────────────────────────
+   La papelera y el atajo a «agregar una materia» de cada departamento. En una
+   tabla el nombre de la acción se repetiría en cada fila y competiría con el
+   dato; acá el nombre lo lleva el tooltip y el `aria-label`.
+
+   ⚠️ Cuadrado y del alto del botón chico. Un control de menos de 32 px se falla
+   al tocarlo en un teléfono, y una papelera que se falla borra la fila de al
+   lado. */
+.btn-solo-icono {
+  width: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+/* La columna de acciones de una tabla: al final, sin estirarse. */
+.columna-acciones {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.columna-acciones form { display: inline-block; margin: 0; }
+.columna-acciones > * + * { margin-left: var(--space-xs); }
+
 .btn-agregar {
   margin-left: auto;
   display: inline-flex;
@@ -6311,3 +6367,15 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 .campo-con-error:focus-visible {
   outline-color: var(--danger-border);
 }
+
+
+/* La fila que se está editando (MOR-205). El campo se lleva el ancho y los dos
+   botones se le pegan al lado, en una sola línea. */
+.fila-en-edicion {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0;
+}
+
+.fila-en-edicion .form-control { flex: 1; min-width: 0; }

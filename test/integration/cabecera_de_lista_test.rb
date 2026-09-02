@@ -20,10 +20,13 @@ class CabeceraDeListaTest < ActionDispatch::IntegrationTest
     representatives_path: "Registrar representante",
     teachers_path:        "Registrar profesor",
     subjects_path:        "Registrar materia",
-    departments_path:     "Registrar departamento",
     sections_path:        "Registrar sección",
     enrollments_path:     "Registrar inscripción"
   }.freeze
+
+  # ⚠️ Departamentos usa la MISMA cabecera con otra variante (MOR-205): en vez
+  # de buscador y [+], lleva el campo de alta en línea. Con diez filas a la
+  # vista, un buscador es un control que nadie toca.
 
   setup do
     @a, _b = dos_colegios_completos
@@ -32,8 +35,18 @@ class CabeceraDeListaTest < ActionDispatch::IntegrationTest
 
   def listados = LISTADOS.transform_keys { |helper| send(helper) }
 
+  test "departamentos usa la cabecera con alta en línea, sin buscador" do
+    get departments_path
+
+    assert css_select(".cabecera-de-lista").any?
+    assert css_select(".cabecera-de-lista input[name='department[name]']").any?,
+           "el campo de alta tiene que estar en la cabecera"
+    assert_empty css_select(".cabecera-de-lista input[name='q']"),
+                 "una lista de diez filas no necesita buscador"
+  end
+
   test "todos los listados llevan la cabecera fusionada" do
-    sin_cabecera = listados.keys.reject do |ruta|
+    sin_cabecera = (listados.keys + [ departments_path ]).reject do |ruta|
       get ruta
       css_select(".cabecera-de-lista").any?
     end

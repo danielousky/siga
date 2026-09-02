@@ -23,7 +23,7 @@
   - if @enrollments.empty? && params[:q].blank? && params[:grade_id].blank?
     .card-academic
       - explicacion = "Una inscripción coloca a un alumno en una sección de este año escolar. Si ya tiene la matrícula en un Excel, súbala y quedan todas de una vez."
-      - salidas = [ { texto: "Subir la matrícula", ruta: importaciones_path, icono: :importar }, { texto: "Registrar inscripción", ruta: new_enrollment_path, icono: :agregar, clase: "btn-secondary" } ]
+      - salidas = [ { texto: "Subir la matrícula", ruta: new_importacion_path(tipo: :matricula), icono: :importar, clase: "btn-accion" }, { texto: "Agregar", ruta: new_enrollment_path, icono: :agregar } ]
       = render "shared/lista_vacia", clave: :inscripciones, titulo: "Todavía no hay nadie inscrito", texto: explicacion, acciones: salidas
 
   - elsif @enrollments.empty?

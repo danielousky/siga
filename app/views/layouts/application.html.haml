@@ -131,19 +131,9 @@
           - if recorrido_activo?
             = render "shared/franja_de_recorrido"
 
-          - if notice.present?
-            .alert.alert-success
-              = notice
-          - if alert.present?
-            .alert.alert-danger
-              = alert
+          = render "shared/flash"
           = yield
     - else
       .container-academic
-        - if notice.present?
-          .alert.alert-success
-            = notice
-        - if alert.present?
-          .alert.alert-danger
-            = alert
+        = render "shared/flash"
         = yield

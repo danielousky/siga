@@ -166,8 +166,18 @@ class PasosDeArranque
       # ⚠️ El destino cambia con el estado, y el botón lo decía sin cumplirlo:
       # «Revisar los lapsos» llevaba al listado de AÑOS ESCOLARES. Si el año ya
       # existe, lo que falta mirar son sus lapsos.
-      verbo: periodo ? "Revisar los lapsos" : "Crear el año escolar",
-      ruta: periodo ? :evaluation_moments : :academic_periods,
+      # ⚠️ «Agregar» y directo al ALTA cuando no existe (MOR-205).
+      #
+      # Daniel: *«en el caso de las entidades que no tengan import, como
+      # departamento, el botón debería redirigir directo a new, no a index. Igual
+      # año escolar»*. Mandar al listado de un colegio que no tiene ninguno es
+      # mandar a un estado vacío para que desde ahí toque otro botón.
+      #
+      # Y el verbo es «Agregar», el mismo que en la cabecera de todos los
+      # listados: *«en esos casos debería ser Agregar en lugar de Crear, para
+      # mantener consistencia»*.
+      verbo: periodo ? "Revisar los lapsos" : "Agregar el año escolar",
+      ruta: periodo ? :evaluation_moments : :academic_period_nuevo,
       listo: periodo.present? && lapsos.positive?,
       resultado: periodo && lapsos.positive? ? "#{periodo.name} · #{contar(lapsos, 'lapso', 'lapsos')}" : nil
     )
@@ -309,7 +319,7 @@ class PasosDeArranque
       titulo: "Departamentos",
       explicacion: "Agrupan las materias por área —Ciencias, Letras— y sirven para ver " \
                    "el rendimiento por departamento. Un colegio chico puede vivir sin ellos.",
-      verbo: "Crear los departamentos", ruta: :departments,
+      verbo: "Agregar un departamento", ruta: :departments,
       listo: cargados.positive?,
       omitido: colegio.omitio_paso?(:departamentos),
       resultado: cargados.positive? ? contar(cargados, "departamento", "departamentos") : nil

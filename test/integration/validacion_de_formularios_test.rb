@@ -116,13 +116,17 @@ class ValidacionDeFormulariosTest < ActionDispatch::IntegrationTest
     assert_empty fugas, "ediciones que fallan en silencio:\n  " + fugas.join("\n  ")
   end
 
+  # ⚠️ `departamento` NO está en esta lista desde MOR-205: no tiene pantalla de
+  # edición. Se edita en la propia fila del listado, con un Turbo Stream, y por
+  # eso `GET /departamentos/:id/edit` en HTML manda al listado —que es donde se
+  # edita— en vez de abrir un formulario que ya no existe. Lo cuida
+  # `departamentos_en_linea_test`, que lo prueba en un navegador.
   test "las pantallas de edición se abren todas" do
     rotas = { "alumno" => edit_student_path(@a.alumno),
               "profesor" => edit_teacher_path(@a.registro_de_profesor),
               "grado" => edit_grade_path(@a.grado),
               "sección" => edit_section_path(@a.seccion),
               "materia" => edit_subject_path(@a.materia),
-              "departamento" => edit_department_path(@a.departamento),
               "año escolar" => edit_academic_period_path(@a.periodo),
               "lapso" => edit_evaluation_moment_path(@a.lapso(1)),
               "inscripción" => edit_enrollment_path(@a.inscripcion) }.filter_map do |que, ruta|

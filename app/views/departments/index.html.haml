@@ -1,29 +1,29 @@
-= render "shared/cabecera_de_lista", titulo: "Departamentos", ruta: departments_path,
-         marco: "departments-results", pista: "Nombre del departamento…",
-         alta: { ruta: new_department_path, nombre: "Registrar departamento" }
--# ⚠️ `target: "_top"`: sin él, cada enlace de adentro navega DENTRO del frame
--# y Turbo pinta «Content missing», porque la página de destino no tiene un
--# frame con este id. El buscador sigue actualizando el frame porque declara
--# su destino explícito, y eso le gana al `target`.
-= turbo_frame_tag "departments-results", target: "_top" do
-  -# El estado vacío sale de `PasosDeArranque`, o sea del MISMO lugar que el
-  -# mapa del panel: dos redacciones del mismo paso se van separando, y quien
-  -# las lee cree que son dos cosas distintas.
-  - if @departments.empty?
-    .card-academic
-      = render "shared/lista_vacia", clave: :departamentos,
-               acciones: [ { texto: "Registrar departamento", ruta: new_department_path, icono: :agregar } ]
-  - else
-    .card-academic
-      = render "shared/escala", total: @pagy.count, singular: "departamento",
-               plural: "departamentos",
-               detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
+-# Los departamentos se gestionan EN LA MISMA PANTALLA (MOR-205).
+-#
+-# Daniel: *«la creación de los dptos es solo el campo nombre; en ese caso
+-# podemos sustituir el filtro por un campo del new para agregar directamente
+-# allí y aparezca abajo, con posibilidad de editarlo al hacer clic en el nombre
+-# y la papelera al final de la fila. Todo con Turbo. Eso le da mucho dinamismo a
+-# la gestión. El filtro no hace falta: a lo sumo serán 10 departamentos»*.
+-#
+-# ⚠️ Y por eso NO hay buscador ni paginación acá. Las dos existen para listas
+-# que no caben en una pantalla; con diez filas son controles que nadie toca y
+-# que además esconden el que sí se usa.
+= render "shared/cabecera_de_lista", titulo: "Departamentos",
+         alta_en_linea: { ruta: departments_path, campo: :nombre,
+                          nombre_del_campo: "department[name]", etiqueta: "Agregar",
+                          placeholder: "Ciencias" }
 
-      %table.table-academic
-        %thead
-          %tr
-            %th Nombre del departamento
-        %tbody
-          - @departments.each do |department|
-            %tr
-              %td= link_to department.name, edit_department_path(department)
+.card-academic
+  -# ⚠️ El `turbo_frame` envuelve la LISTA ENTERA y no cada fila: al agregar hay
+  -# que insertar una fila nueva y actualizar el conteo de arriba, o sea dos
+  -# lugares. Con un frame por fila haría falta un Turbo Stream por cada uno.
+  -# ⚠️ `target: "_top"`, la misma trampa que en los otros listados: sin él, el
+  -# atajo «agregar una materia de este departamento» intenta cargar
+  -# `/materias/new` DENTRO del frame, y como esa página no tiene un frame con
+  -# este id, Turbo pinta «Content missing». Un botón que no lleva a ningún lado.
+  -#
+  -# El enlace del nombre sigue editando en línea porque pide un Turbo Stream
+  -# (`data-turbo-stream`), y un stream no es navegación de frame.
+  = turbo_frame_tag "departamentos", target: "_top" do
+    = render "departments/lista", departments: @departments
