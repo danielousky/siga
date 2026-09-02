@@ -51,63 +51,95 @@
 - campo  = local_assigns.fetch(:campo, :q)
 
 .card-academic.cabecera-de-lista
-  %h1.cabecera-de-lista-titulo= titulo
+  -# ⚠️ DOS renglones, y una sola sección (MOR-194).
+  -#
+  -# Daniel: *«van a terminar siendo 2 líneas de la misma sección: arriba el
+  -# título con sus características y abajo el buscador, otros filtros, agregar
+  -# nuevo y exportar filtrados»*.
+  -#
+  -# La primera versión metía todo en un renglón y funcionaba mientras hubiera
+  -# un buscador y un [+]. No escala: en cuanto entran los filtros —el registro
+  -# de actividad ya tiene cuatro— y después «Exportar», el renglón se rompe
+  -# igual, pero de una manera que depende de la pantalla. Partirlo a propósito
+  -# hace que las ocho se vean iguales tengan dos controles o seis.
+  -#
+  -# Y separa dos cosas que no son la misma: arriba QUÉ estoy viendo, abajo qué
+  -# le hago. El título deja de competir por el ancho con los controles.
+  .cabecera-de-lista-titular
+    %h1.cabecera-de-lista-titulo= titulo
+    - if local_assigns[:detalle].present?
+      %p.cabecera-de-lista-detalle= detalle
 
-  -# ⚠️ `local: false` y el `turbo_frame` explícito, igual que antes: el frame de
-  -# resultados declara `target: "_top"` para que los enlaces de las filas salgan
-  -# de él, y el destino explícito del formulario es lo que le gana a ese target.
-  = form_with url: ruta, method: :get, local: false, class: "cabecera-de-lista-filtros",
-      data: { controller: "search-filter", turbo_frame: marco,
-              action: "submit->search-filter#hideSpinner" } do |f|
+  .cabecera-de-lista-controles
 
-    -# El campo y «Limpiar» son UN control: se pegan sin borde entre ellos, como
-    -# la cédula con su V/E (`campo-compuesto`, MOR-178).
-    .campo-con-boton
-      -# ⚠️ «Buscar» vuelve, pero PEGADO adelante y no encima (MOR-193).
+    -# ⚠️ `local: false` y el `turbo_frame` explícito, igual que antes: el frame de
+    -# resultados declara `target: "_top"` para que los enlaces de las filas salgan
+    -# de él, y el destino explícito del formulario es lo que le gana a ese target.
+    = form_with url: ruta, method: :get, local: false, class: "cabecera-de-lista-filtros",
+        data: { controller: "search-filter", turbo_frame: marco,
+                action: "submit->search-filter#hideSpinner" } do |f|
+
+      -# El campo y «Limpiar» son UN control: se pegan sin borde entre ellos, como
+      -# la cédula con su V/E (`campo-compuesto`, MOR-178).
+      .campo-con-boton
+        -# ⚠️ «Buscar» vuelve, pero PEGADO adelante y no encima (MOR-193).
+        -#
+        -# Daniel: *«siendo así creo que podemos alargar un poco más el buscador y
+        -# colocarle Buscar como pre-group»*. Y es otra cosa que la etiqueta que se
+        -# quitó: aquélla vivía en su propio renglón y costaba altura; ésta va
+        -# dentro del grupo y no cuesta ninguna.
+        -#
+        -# Es un `label` de verdad y no un `span`: así se puede tocar para enfocar
+        -# el campo —un blanco de 70 px en un teléfono— y además ES el nombre
+        -# accesible del input, que por eso ya no necesita `aria-label`.
+        = f.label campo, "Buscar", class: "campo-con-boton-inicio"
+        .search-input-wrap
+          = f.text_field campo, value: params[campo], placeholder: pista, autocomplete: "off",
+              class: "form-control",
+              data: { "search-filter-target": "input", action: "input->search-filter#search" }
+          %span.search-spinner.hidden{data: { "search-filter-target": "spinner" }}
+        = link_to ruta, class: "btn btn-secondary campo-con-boton-final",
+                  data: { tooltip: "Limpiar la búsqueda" }, "aria-label": "Limpiar la búsqueda" do
+          = icono(:cerrar, tamano: 15)
+
+      - extras.each do |extra|
+        - case extra[:type]
+        - when :select_agrupado
+          -# ⚠️ `grouped_options_for_select` y no opciones anidadas en `f.select`:
+          -# ése aplana el anidamiento y pinta el nombre del grupo como una opción
+          -# elegible.
+          = f.select extra[:name], grouped_options_for_select(extra[:options], params[extra[:name]]),
+              { include_blank: extra[:blanco] },
+              { class: "form-select cabecera-de-lista-select", "aria-label": extra[:label],
+                data: { action: "change->search-filter#search" } }
+        - when :date
+          -# ⚠️ La fecha SÍ lleva su etiqueta visible: «Desde» y «Hasta» no se
+          -# deducen de nada. Un campo de fecha vacío se ve idéntico al otro, y
+          -# dos iguales al lado son una adivinanza — que es exactamente lo que la
+          -# etiqueta del buscador no hacía falta para evitar.
+          %span.cabecera-de-lista-fecha
+            = f.label extra[:name], extra[:label], class: "cabecera-de-lista-etiqueta"
+            = f.date_field extra[:name], value: params[extra[:name]], class: "form-select",
+                data: { action: "change->search-filter#search" }
+        - else
+          = f.select extra[:name], extra[:options], { selected: params[extra[:name]] },
+              { class: "form-select cabecera-de-lista-select", "aria-label": extra[:label],
+                data: { action: "change->search-filter#search" } }
+
+    - if alta
+      -# ⚠️ En el teléfono el botón muestra «Agregar»; en el escritorio, solo el
+      -# [+] (MOR-194).
       -#
-      -# Daniel: *«siendo así creo que podemos alargar un poco más el buscador y
-      -# colocarle Buscar como pre-group»*. Y es otra cosa que la etiqueta que se
-      -# quitó: aquélla vivía en su propio renglón y costaba altura; ésta va
-      -# dentro del grupo y no cuesta ninguna.
+      -# Daniel: *«el [+] puede cambiar a [+ Agregar]»*. Suena al revés —el
+      -# teléfono es donde falta espacio— pero es al derecho: en el escritorio el
+      -# tooltip aparece al pasar el mouse y explica; **en el teléfono no hay
+      -# hover**, así que un icono solo es un botón mudo, y encima está a un dedo
+      -# de distancia de tocarlo sin saber qué hace.
       -#
-      -# Es un `label` de verdad y no un `span`: así se puede tocar para enfocar
-      -# el campo —un blanco de 70 px en un teléfono— y además ES el nombre
-      -# accesible del input, que por eso ya no necesita `aria-label`.
-      = f.label campo, "Buscar", class: "campo-con-boton-inicio"
-      .search-input-wrap
-        = f.text_field campo, value: params[campo], placeholder: pista, autocomplete: "off",
-            class: "form-control",
-            data: { "search-filter-target": "input", action: "input->search-filter#search" }
-        %span.search-spinner.hidden{data: { "search-filter-target": "spinner" }}
-      = link_to ruta, class: "btn btn-secondary campo-con-boton-final",
-                data: { tooltip: "Limpiar la búsqueda" }, "aria-label": "Limpiar la búsqueda" do
-        = icono(:cerrar, tamano: 15)
-
-    - extras.each do |extra|
-      - case extra[:type]
-      - when :select_agrupado
-        -# ⚠️ `grouped_options_for_select` y no opciones anidadas en `f.select`:
-        -# ése aplana el anidamiento y pinta el nombre del grupo como una opción
-        -# elegible.
-        = f.select extra[:name], grouped_options_for_select(extra[:options], params[extra[:name]]),
-            { include_blank: extra[:blanco] },
-            { class: "form-select cabecera-de-lista-select", "aria-label": extra[:label],
-              data: { action: "change->search-filter#search" } }
-      - when :date
-        -# ⚠️ La fecha SÍ lleva su etiqueta visible: «Desde» y «Hasta» no se
-        -# deducen de nada. Un campo de fecha vacío se ve idéntico al otro, y
-        -# dos iguales al lado son una adivinanza — que es exactamente lo que la
-        -# etiqueta del buscador no hacía falta para evitar.
-        %span.cabecera-de-lista-fecha
-          = f.label extra[:name], extra[:label], class: "cabecera-de-lista-etiqueta"
-          = f.date_field extra[:name], value: params[extra[:name]], class: "form-select",
-              data: { action: "change->search-filter#search" }
-      - else
-        = f.select extra[:name], extra[:options], { selected: params[extra[:name]] },
-            { class: "form-select cabecera-de-lista-select", "aria-label": extra[:label],
-              data: { action: "change->search-filter#search" } }
-
-  - if alta
-    = link_to alta[:ruta], class: "btn btn-primary btn-solo-icono",
-              data: { tooltip: alta[:nombre] }, "aria-label": alta[:nombre] do
-      = icono(:agregar, tamano: 18)
+      -# El texto va en un `span` que el CSS esconde arriba de 700 px, y no en
+      -# dos botones distintos: un solo control, una sola ruta, una sola cosa que
+      -# mantener.
+      = link_to alta[:ruta], class: "btn btn-primary btn-solo-icono",
+                data: { tooltip: alta[:nombre] }, "aria-label": alta[:nombre] do
+        = icono(:agregar, tamano: 18)
+        %span.btn-solo-icono-texto Agregar

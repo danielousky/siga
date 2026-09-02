@@ -31,6 +31,20 @@ CI.run do
 
   step "Tests", "bin/rails test"
 
+  # ⚠️ Los de sistema van APARTE porque `bin/rails test` NO los corre, y un test
+  # que nadie corre no protege nada.
+  #
+  # Es el único paso que abre un navegador de verdad, y por eso es el único que
+  # puede ver un problema de LAYOUT. El desborde de MOR-194 —la página entera
+  # corrida 189 px de lado en un teléfono, en las dieciocho pantallas— vivió
+  # desde MOR-184 sin que nada lo notara: el HTML era correcto, todos los tests
+  # estaban en verde, y lo que fallaba era una regla de CSS apuntando a una
+  # clase que había dejado de existir.
+  #
+  # Cuesta unos segundos y necesita Chrome. Vale la pena: la mitad de los
+  # usuarios de SIGA —los profesores cargando notas— entran desde el teléfono.
+  step "Teléfono: ninguna pantalla se corre de lado", "bin/rails test:system"
+
   # Los seeds no son datos de adorno: son los casos de QA que hacen visible cada
   # regla del Reglamento (MOR-93). Si dejan de correr, se pierde la única forma
   # de VER lo que se construyó.

@@ -1044,23 +1044,12 @@ textarea.form-control {
    los listados en MOR-90 — el dato iba una vez arriba, no en cada fila.
 */
 
-/* ⚠️ `.academic-context` ya no existe como franja (MOR-184): el colegio y el
-   año escolar viven DENTRO de la barra superior. Las clases de adentro
-   —`.contexto-colegio`, `.contexto-periodo`— se conservan tal cual, que es lo
-   que hizo que la fusión no tocara ninguna vista más que el layout. */
-.academic-context { display: contents; }
-
-.academic-context-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 var(--space-lg);
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-md);
-  font-size: 13px;
-  color: var(--text-secondary);
-}
+/* ⚠️ `.academic-context` y `.academic-context-inner` SE BORRARON (MOR-194).
+   Eran de la franja que MOR-184 fusionó dentro de la barra: su parcial dejó de
+   rendirse y nadie borró ni el parcial ni sus reglas. La de teléfono seguía
+   ahí, apuntando a una clase que ya no existía, así que la barra nueva se
+   quedó sin reglas de teléfono — ver el `@media` de más abajo. Las clases de
+   adentro —`.contexto-colegio`, `.contexto-periodo`— sí siguen vivas. */
 
 .contexto-colegio {
   display: flex;
@@ -1115,19 +1104,90 @@ textarea.form-control {
   border-bottom: 1px dotted currentColor;
 }
 
-/* En un teléfono la franja se apila: el colegio arriba, el año debajo. Nunca
-   se corta el nombre del colegio para que quepa el año en la misma línea. */
+/* La barra en un teléfono (MOR-194).
+   ─────────────────────────────────
+   Daniel, abriendo /secciones a 493 px: «mira cómo se ve desde el teléfono:
+   BOOM, EXPLOTÓ TODO». Y explotaba: la página entera se corría 189 px de lado,
+   IDÉNTICOS en todas las pantallas y a cualquier ancho — la pista de que el
+   culpable no era el contenido sino la barra, que es lo único común.
+
+   ⚠️ Es la MISMA falla de `.nav-institutional` que está documentada treinta
+   líneas más arriba, y por eso duele: al fusionar las dos barras (MOR-184), la
+   única regla de teléfono que existía quedó apuntando a
+   `.academic-context-inner` —clase del parcial que dejó de rendirse—, así que
+   la barra nueva se quedó SIN reglas de teléfono y nadie se enteró. Una regla
+   huérfana no falla: simplemente deja de aplicar.
+
+   Lo que se cae a este ancho, en orden de qué se puede perder primero:
+
+       el lugar del colegio      Caracas, Distrito Capital  ← ya estaba
+       la palabra «SIGA»         el logo alcanza
+       la etiqueta «Año escolar» el selector se explica solo
+       el nombre del colegio     se recorta, no se envuelve
+       «Cerrar sesión»           queda el nombre, que enlaza al perfil
+
+   El nombre del colegio se RECORTA en vez de desaparecer: es lo que dice en
+   cuál de los dos colegios está parada la secretaria que tiene los dos. */
 @media (max-width: 640px) {
-  .academic-context-inner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
+  .barra-superior-inner {
+    gap: var(--space-sm);
     padding: 0 var(--space-md);
+    /* ⚠️ `min-width: 0` en el contenedor Y en el hijo que se encoge: un ítem
+       flex no baja de su tamaño de contenido si no se le dice, y ES esa
+       negativa la que empuja la fila entera más allá del viewport. */
+    min-width: 0;
   }
 
-  .contexto-colegio-lugar {
+  .contexto-colegio {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .contexto-colegio-nombre {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .contexto-colegio-lugar,
+  .navbar-brand-text,
+  .contexto-anio-etiqueta {
     display: none;
   }
+
+  /* El botón se va y queda el nombre, que ya enlaza al perfil — y ahí adentro
+     está «Cerrar sesión». Un botón de texto entero es lo más caro de la barra
+     y lo que menos se usa. */
+  .barra-superior .session-menu .btn { display: none; }
+
+  /* ⚠️ El buscador global se encoge a su icono, y su `min-width: 220px` TIENE
+     que levantarse explícitamente: es un mínimo, así que ningún `flex-shrink`
+     lo baja. Eran 220 px de los 390 que hay — más de la mitad de la pantalla
+     para un control que en el teléfono se toca, no se lee. */
+  .buscador-disparador {
+    min-width: 0;
+    margin-right: var(--space-xs);
+  }
+
+  /* El texto de adentro («Buscar…», el atajo ⌘K) se va: en un teléfono no hay
+     teclado que muestre un atajo, y el icono de lupa ya dice qué hace. */
+  .buscador-disparador > :not(svg) { display: none; }
+
+  /* ⚠️ EL culpable de los 90 px, y el que costó encontrar: `.contexto-periodo`
+     medía 283 de los 390 px de la pantalla y tiene `flex-shrink: 0`, así que no
+     cedía ni uno. Son el selector de año MÁS la frase de situación
+     —«finalizado el 15 de julio»— una al lado de la otra.
+
+     La situación se va: en el teléfono importa CUÁL año se está mirando, y si
+     está cerrado se ve al entrar a cualquier listado. El selector se queda,
+     porque es lo que decide todo lo demás. */
+  .contexto-periodo {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  .contexto-periodo-situacion { display: none; }
+  .contexto-anio-select { max-width: 130px; }
 }
 
 /* ---- Pagination ---- */
@@ -5983,47 +6043,69 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
    un campo de texto. En una laptop de 13" eso es media pantalla de cromo antes
    de la primera fila de datos. */
 
+/* ⚠️ DOS renglones: arriba QUÉ estoy viendo, abajo qué le hago (MOR-194).
+
+   La primera versión metía todo en una línea y andaba mientras hubiera un
+   buscador y un [+]. No escala: con los filtros del registro de actividad —que
+   ya son cuatro— y con «Exportar» todavía por venir, el renglón se rompe igual,
+   pero de una manera distinta en cada pantalla. Partirlo a propósito hace que
+   las ocho se vean iguales tengan dos controles o seis. */
 .cabecera-de-lista {
   display: flex;
-  align-items: center;
-  /* `wrap` porque en un teléfono no cabe: el buscador cae a su propia línea y
-     ocupa el ancho, que es donde de verdad se usa. */
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: var(--space-md);
 }
 
-.cabecera-de-lista-titulo {
-  margin: 0;
-  /* No se encoge: el título es lo que dice dónde está uno parado. Quien cede
-     ancho es el buscador. */
-  flex: 0 0 auto;
+.cabecera-de-lista-titular {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-md);
 }
 
-/* ⚠️ `margin-left: auto` y no `justify-content: space-between`.
+.cabecera-de-lista-titulo { margin: 0; }
 
-   Con `space-between`, una cabecera SIN botón [+] —un listado que no se puede
-   dar de alta— empujaría el buscador contra el borde derecho, y el mismo
-   elemento quedaría en dos sitios distintos según la pantalla. Con el margen
-   automático, el buscador se para siempre en el mismo lugar y el [+] es el que
-   se pega al final si existe. */
+.cabecera-de-lista-detalle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* El renglón de abajo. Los controles arrancan a la IZQUIERDA, alineados con el
+   título: es el orden en que se leen. El [+] se va al final con su propio
+   `margin-left: auto`. */
+.cabecera-de-lista-controles {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
 .cabecera-de-lista-filtros {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  margin-left: auto;
   flex-wrap: wrap;
+  /* Se queda con el sobrante para que los filtros que envuelvan lo hagan
+     DENTRO del formulario y no empujen al [+] a una tercera línea. */
+  flex: 1;
 }
 
-/* Con la cabecera en una sola línea sobra sitio, así que el campo se alarga.
-   Daniel, midiéndolo a ojo: «alarga un poco más (20%) el campo para tipear la
-   búsqueda, ni tan calvo ni con dos pelucas».
+/* El buscador: 40 % del ancho de la pantalla (MOR-194).
+   ────────────────────────────────────────────────────
+   Daniel, cuando la cabecera pasó a dos renglones: «ahora sí puedes estirar con
+   libertad el input, dame más, yo diría que un 40 % del ancho total del display,
+   por ahí».
 
-   El largo lo fija el placeholder más largo que hay —«Nombre, apellido, cédula
-   o carnet…»—: en 320 px entraba cortado, y un placeholder cortado no explica
-   lo que vino a explicar.
+   Se mide en `vw` y no en píxeles a propósito: en el monitor grande donde
+   trabaja un director el campo crece con la pantalla, y 500 px fijos se veían
+   cada vez más chicos. El tope de 720 px existe para que en un monitor
+   ultra-ancho no termine siendo una franja de mil píxeles para escribir un
+   apellido.
 
-   `min()` para que en un teléfono no desborde: manda el más chico de los dos. */
-.cabecera-de-lista .search-input-wrap { width: min(500px, 100%); }
+   `min()` con el 100 % es lo que impide el desborde en el teléfono: manda el
+   más chico de los tres. */
+.cabecera-de-lista .search-input-wrap { width: min(40vw, 720px, 100%); }
 
 .cabecera-de-lista-select {
   width: auto;
@@ -6046,10 +6128,47 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 }
 
 @media (max-width: 700px) {
-  /* En un teléfono el buscador manda: ocupa la línea entera y deja de competir
-     con el título por el ancho. */
-  .cabecera-de-lista-filtros { width: 100%; margin-left: 0; }
-  .cabecera-de-lista .search-input-wrap { flex: 1; }
+  /* UN control por línea (MOR-194).
+     ─────────────────────────────
+     Daniel: «en el caso del móvil, un elemento del filtro por línea queda
+     mejor. El [+] puede cambiar a [+ Agregar]».
+
+     Y queda mejor porque a 390 px los controles apretados en una fila se
+     reparten un ancho que no alcanza: el buscador queda de 120 px —donde no
+     entra ni un apellido— y el desplegable de grados, cortado. Apilados, cada
+     uno tiene la pantalla entera.
+
+     ⚠️ `min-width: 0` en TODA la cadena, no solo en el input. Un ítem flex se
+     niega por defecto a encogerse por debajo de su contenido, y esa negativa se
+     propaga hacia arriba: basta que un eslabón no la levante para que la fila
+     empuje la página de lado. */
+  .cabecera-de-lista-controles,
+  .cabecera-de-lista-filtros {
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .cabecera-de-lista .campo-con-boton,
+  .cabecera-de-lista .search-input-wrap {
+    min-width: 0;
+  }
+
+  .cabecera-de-lista .campo-con-boton { width: 100%; }
+  .cabecera-de-lista .search-input-wrap { flex: 1; width: auto; }
+  .cabecera-de-lista-select { width: 100%; }
+
+  /* Con los controles apilados, el [+] ya no va «al final de la fila»: es una
+     fila más, y con su nombre puesto — en el teléfono no hay hover que muestre
+     el tooltip. */
+  .cabecera-de-lista .btn-solo-icono {
+    margin-left: 0;
+    width: 100%;
+    gap: var(--space-xs);
+  }
+
+  .btn-solo-icono-texto { display: inline; }
 }
 
 /* Un campo y su botón, pegados: son UN control (MOR-192).
@@ -6126,10 +6245,17 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
    mínimo cómodo para un dedo — más chico se falla al tocarlo en el teléfono,
    que es donde un profesor usa esto. */
 .btn-solo-icono {
+  /* Al final del renglón, separado de los filtros. */
+  margin-left: auto;
   width: 36px;
+  /* En el escritorio el nombre lo dice el tooltip: el texto sobra. Se esconde
+     con `display: none` y no se omite del HTML, para que exista un solo botón y
+     no dos que haya que mantener parejos. */
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
 }
+
+.btn-solo-icono-texto { display: none; }
