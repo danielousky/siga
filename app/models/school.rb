@@ -214,7 +214,17 @@ class School < ApplicationRecord
   validates :dea_code, presence: true, uniqueness: true,
                        format: { with: /\A[A-Za-z0-9]+\z/,
                                  message: "solo admite letras y números, sin espacios ni símbolos" }
-  validates :name, :location, presence: true
+  # ⚠️ `location` dejó de ser obligatorio (MOR-208).
+  #
+  # El registro pide lo mínimo —nombre, código DEA y qué dicta— y la ubicación
+  # se completa después, en la identidad del colegio. Exigirla acá haría fallar
+  # el alta con un error sobre un campo que la persona no vio nunca; y eso ya
+  # pasó una vez, cuando la ciudad salió del formulario en `MOR-196` y el error
+  # decía «Ubicación no puede estar en blanco».
+  #
+  # Se sigue DEDUCIENDO del municipio y el estado en cuanto los haya, y las
+  # vistas ya la tratan como opcional (`if Current.school&.location.present?`).
+  validates :name, presence: true
   validates :name, format: { with: /\A[#{Normaliza::LETRAS_DE_INSTITUCION}]+\z/,
                              message: "solo admite letras, números y los signos . , & \u2019 -" },
                    allow_blank: true

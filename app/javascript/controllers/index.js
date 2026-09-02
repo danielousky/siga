@@ -13,6 +13,9 @@ import { application } from "controllers/application"
 import AccionDelFormularioController from "controllers/accion_del_formulario_controller"
 application.register("accion-del-formulario", AccionDelFormularioController)
 
+import CorreoLibreController from "controllers/correo_libre_controller"
+application.register("correo-libre", CorreoLibreController)
+
 import AsistenciaController from "controllers/asistencia_controller"
 import AutoEnvioController from "controllers/auto_envio_controller"
 import CampoFiltradoController from "controllers/campo_filtrado_controller"

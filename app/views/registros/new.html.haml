@@ -1,12 +1,15 @@
--# El registro abierto (MOR-158).
+-# El registro: la persona Y su colegio, en un solo formulario (MOR-208).
 -#
--# ⚠️ Pide LO MÍNIMO: nombre, apellido, correo y contraseña. Quien llega acá
--# quiere ver el producto, no llenar una ficha.
+-# Daniel, después de que su esposa hiciera de directora: *«los 8 pasos son
+-# engorrosos incluso para mí, que tengo todo el contexto»*. Y sobre esta
+-# pantalla: *«el registro inicial de un usuario debe ser el registro del usuario
+-# principal junto con los datos iniciales de la escuela… Ese es el primer paso,
+-# sencillo y directo»*.
 -#
--# La cédula estaba y se fue (`MOR-196`). Daniel: *«no debería pedirse la CI en
--# este momento; además, al director (o asistente) ese dato es irrelevante»*. Y
--# el comentario que había acá ya prometía justamente eso —«se piden cuando
--# hagan falta para un documento»— mientras el formulario las pedía igual.
+-# ⚠️ Lo que NO se pide es una decisión, no un olvido: cédula, ubicación,
+-# teléfono, dirección, logo y sello. Todo eso el colegio lo completa cuando
+-# quiera; pedirlo en el primer minuto es la diferencia entre registrarse y
+-# abandonar.
 - content_for :titulo, "Crear una cuenta"
 
 .card-academic.registro
@@ -14,37 +17,97 @@
     %h1 Cree su cuenta
 
   %p.nota-ayuda
-    Después le pedimos los datos de su colegio y ya puede empezar a cargar
-    alumnos, profesores y materias, sin pagar nada.
+    En un solo paso queda su cuenta y su colegio, con sus grados, sus materias y
+    sus años escolares ya cargados.
 
-  = form_with model: resource, url: registrarse_path, class: "registro-form" do |f|
+  = form_with url: registrarse_path, class: "registro-form" do |f|
     = render "shared/errors", object: resource
+    = render "shared/errors", object: @colegio
 
     -# ⚠️ El MISMO filtro que `shared/_datos_de_la_persona`, no uno escrito acá:
-    -# letras, acentos, Ñ, el guion y el apóstrofo, en mayúscula y recortado al
-    -# salir (`MOR-191`). Escribir la lista de nuevo es cómo se desparejan.
+    -# letras, acentos, Ñ, guion y apóstrofo, en mayúscula (`MOR-191`).
     - filtro = { controller: "campo-filtrado", campo_filtrado_permite_value: Normaliza::LETRAS_DE_NOMBRE, campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar" }
 
-    .form-row
-      .form-group
-        = f.label :first_name, class: "form-label"
-        = f.text_field :first_name, class: "form-control", autofocus: true, autocomplete: "given-name", data: filtro
-      .form-group
-        = f.label :last_name, class: "form-label"
-        = f.text_field :last_name, class: "form-control", autocomplete: "family-name", data: filtro
+    .form-seccion
+      %h2.form-seccion-titulo Sus datos
 
-    .form-group
-      = f.label :email, class: "form-label"
-      = f.email_field :email, class: "form-control", autocomplete: "email"
+      = fields_for :user, resource do |u|
+        .form-row
+          .form-group
+            = u.label :first_name, class: "form-label"
+            = u.text_field :first_name, class: "form-control", autofocus: true,
+                           autocomplete: "given-name", required: requerido?(User, :first_name), data: filtro
+          .form-group
+            = u.label :last_name, class: "form-label"
+            = u.text_field :last_name, class: "form-control", autocomplete: "family-name",
+                           required: requerido?(User, :last_name), data: filtro
 
-    .form-row
-      -# El mínimo va en el campo, no en un párrafo: es una restricción de
-      -# formato y ese es el trabajo del `placeholder`.
-      = render "shared/campo_de_contrasena", f: f, campo: :password,
-               placeholder: "Mínimo #{Devise.password_length.min} caracteres"
-      = render "shared/campo_de_contrasena", f: f, campo: :password_confirmation,
-               etiqueta: "Repita la contraseña"
+        -# ⚠️ El correo se comprueba al SALIR del campo, no al enviar. Daniel:
+        -# «tiene que ser una validación muy rápida… validamos de una vez allí si
+        -# el correo está correcto y no existe».
+        -#
+        -# ⚠️ El controlador va en el `.form-group` y NO en el `<input>`: un
+        -# target de Stimulus tiene que ser DESCENDIENTE del elemento que declara
+        -# el controlador, y un `<input>` no tiene hijos. Con el controlador en el
+        -# campo, `hasAvisoTarget` era false y el aviso nunca se mostraba — sin
+        -# error de consola, porque para Stimulus «no hay target» es una
+        -# situación normal.
+        .form-group{ data: { controller: "correo-libre", correo_libre_url_value: correo_disponible_path } }
+          = u.label :email, class: "form-label"
+          = u.email_field :email, class: "form-control", autocomplete: "email", required: true,
+                          data: { correo_libre_target: "campo", action: "blur->correo-libre#comprobar" }
+          %p.campo-aviso{ data: { correo_libre_target: "aviso" }, hidden: true }
+
+        .form-row
+          = render "shared/campo_de_contrasena", f: u, campo: :password, required: true,
+                   placeholder: "Mínimo #{Devise.password_length.min} caracteres"
+          = render "shared/campo_de_contrasena", f: u, campo: :password_confirmation,
+                   etiqueta: "Repita la contraseña", required: true
+
+      .form-group
+        %span.form-label Su cargo
+        .opciones-en-botones
+          - Admin::CARGOS_AL_REGISTRARSE.each do |valor, etiqueta|
+            %label.opcion-boton
+              = radio_button_tag :cargo, valor, (params[:cargo] || "director") == valor
+              %span= etiqueta
+
+    .form-seccion
+      %h2.form-seccion-titulo Su colegio
+
+      = fields_for :school, @colegio do |c|
+        .form-row
+          .form-group
+            = c.label :name, "Nombre del colegio", class: "form-label"
+            = c.text_field :name, class: "#{clase_de_campo(@colegio, :name)} campo-mayuscula",
+                           placeholder: "U.E. Colegio San José", required: requerido?(School, :name),
+                           data: { controller: "campo-filtrado",
+                                   campo_filtrado_permite_value: Normaliza::LETRAS_DE_INSTITUCION,
+                                   campo_filtrado_mayuscula_value: true,
+                                   action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar" }
+          .form-group
+            = con_pista("Lo asigna el ministerio. Si no lo tiene a mano, escriba algo provisional y corríjalo después: se puede cambiar.") { c.label :dea_code, "Código DEA", class: "form-label" }
+            = c.text_field :dea_code, class: "#{clase_de_campo(@colegio, :dea_code)} campo-mayuscula",
+                           placeholder: "PD01234567", required: requerido?(School, :dea_code),
+                           pattern: "[A-Za-z0-9]+",
+                           data: { tooltip: "Solo letras y números, sin espacios ni símbolos",
+                                   controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9",
+                                   campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
+
+      -# ⚠️ Marcar es MÚLTIPLE, no un desplegable: la mitad del mercado dicta
+      -# varias cosas, y esa es justamente la razón por la que `school_type` se
+      -# borró en `MOR-160`. De acá salen los grados y las materias.
+      .form-group
+        %span.form-label Qué dicta el colegio
+        .opciones-en-botones
+          - GradoOficial::NIVELES.each do |nivel|
+            %label.opcion-boton
+              = check_box_tag "niveles[]", nivel, @niveles.include?(nivel), id: "nivel_#{nivel}"
+              %span= GradoOficial::ETIQUETAS[nivel]
+        %p.nota-ayuda
+          Marque todo lo que dicte. Media Técnica agrega el 6to Año y trae
+          consigo el bachillerato: no hay sexto año sin los cinco anteriores.
 
     .form-acciones
-      = f.submit "Crear mi cuenta", class: "btn btn-guardar"
+      = f.submit "Crear mi colegio", class: "btn btn-guardar"
       = link_to "Ya tengo cuenta", new_user_session_path, class: "btn btn-secondary"

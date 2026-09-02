@@ -1,220 +1,239 @@
 require "test_helper"
 
-# Cualquiera se registra y crea su colegio, sin depender de nadie (MOR-158).
+# Cualquiera se registra y su colegio queda armado, en UN paso (MOR-158 · MOR-208).
 #
 # ## Esto REVIERTE `MOR-101`, y conviene que se lea como decisión
 #
 # El registro se cerró porque `users.email` es único en toda la plataforma:
 # cualquiera puede quemar el correo de un profesor real registrándolo antes que
-# su colegio. Eso **sigue siendo cierto** y se acepta a propósito — la decisión
-# de producto es facilidad y velocidad por encima de la seguridad, mientras el
-# acceso sea compartir el enlace a mano y no haya publicidad.
+# su colegio. Eso **sigue siendo cierto** y se acepta a propósito — facilidad y
+# velocidad por encima de la seguridad, mientras el acceso sea compartir el
+# enlace a mano.
 #
 # ⚠️ Lo que hace tolerable el riesgo es el AISLAMIENTO, no la confianza:
 # registrarse crea siempre un colegio nuevo y nunca se une a uno existente, así
 # que el daño máximo de un abuso es una fila que no ve nada de nadie. Ese
 # invariante es lo primero que prueba este archivo.
+#
+# ## Y desde `MOR-208` son DOS pantallas menos
+#
+#     ANTES                          AHORA
+#     ─────                          ─────
+#     /registrarse   la persona      /registrarse   la persona Y el colegio
+#     /mi-colegio    el colegio             ↓
+#     8 pasos a mano                 el andamiaje, sembrado
 class RegistroAbiertoTest < ActionDispatch::IntegrationTest
   setup { @a, _b = dos_colegios_completos }
 
-  # ⚠️ Sin cédula, a propósito (`MOR-196`): el formulario dejó de pedirla y el
-  # modelo la deja de exigir a quien abre su propia cuenta.
-  DATOS = {
+  # ⚠️ Sin cédula, a propósito (`MOR-196`): un director no aparece todavía en
+  # ninguna planilla del MPPE, así que no hay a quién identificar.
+  PERSONA = {
     first_name: "Rosa", last_name: "Mendoza", email: "rosa@nuevo.test",
     password: "clave-larga-123", password_confirmation: "clave-larga-123"
   }.freeze
 
-  COLEGIO = {
-    name: "U.E. Nuevo Amanecer", dea_code: "PD00555", location: "Barquisimeto", entidad_federal: "Lara", municipio: "Iribarren",
-    parroquia: "Catedral", direccion: "Av. Vargas", telefono: "0251-444-7788"
-  }.freeze
+  # ⚠️ Solo nombre y DEA. Ubicación, teléfono, dirección, logo y sello salieron
+  # del formulario: el colegio los completa cuando quiera.
+  COLEGIO = { name: "U.E. Nuevo Amanecer", dea_code: "PD00555" }.freeze
 
-  test "la puerta está abierta y lleva a crear el colegio" do
+  def registrarse(persona: PERSONA, colegio: COLEGIO, niveles: %w[primaria], cargo: "director")
+    post registrarse_path, params: { user: persona, school: colegio,
+                                     niveles: niveles, cargo: cargo }
+  end
+
+  def nuevo_colegio = Current.sin_aislamiento { School.find_by(dea_code: COLEGIO[:dea_code]) }
+
+  test "un solo envío crea la persona y su colegio" do
     get new_user_registration_path
     assert_response :success
 
-    assert_difference -> { User.count }, 1 do
-      post registrarse_path, params: { user: DATOS }
+    assert_difference [ -> { User.count }, -> { Current.sin_aislamiento { School.count } } ], 1 do
+      registrarse
     end
 
-    assert_redirected_to nuevo_mi_colegio_path
+    assert_redirected_to arranque_listo_path
   end
 
   # ⚠️ El invariante que sostiene todo esto.
   test "registrarse crea un colegio NUEVO, nunca se une a uno existente" do
     registrarse
 
-    assert_difference -> { Current.sin_aislamiento { School.count } }, 1 do
-      post mi_colegio_path, params: { school: COLEGIO }
-    end
-
-    nuevo = Current.sin_aislamiento { School.find_by!(dea_code: "PD00555") }
-    assert_not_equal @a.colegio.id, nuevo.id
-    assert_empty Current.sin_aislamiento { Admin.where(user_id: User.find_by(email: DATOS[:email]).id, school_id: @a.colegio.id) },
+    assert_not_equal @a.colegio.id, nuevo_colegio.id
+    persona = User.find_by(email: PERSONA[:email])
+    assert_empty Current.sin_aislamiento { Admin.where(user_id: persona.id, school_id: @a.colegio.id) },
                  "el que se registró quedó con acceso a un colegio que ya existía"
   end
 
-  test "queda como director, con su suscripción gratis y su ubicación" do
-    registrarse
-    post mi_colegio_path, params: { school: COLEGIO }
+  test "queda con su cargo y su plan Inicial" do
+    registrarse(cargo: "asistente")
 
-    assert_redirected_to dashboards_administrador_path
-
-    Current.sin_aislamiento do
-      colegio = School.find_by!(dea_code: "PD00555")
-      persona = User.find_by!(email: DATOS[:email])
-
-      assert_equal persona.id, colegio.registrado_por_id,
-                   "no quedó registrado quién lo creó: es la semilla de Account " \
-                   "y después no se puede reconstruir"
-      assert Admin.exists?(user_id: persona.id, school_id: colegio.id, role: "director")
-      assert_equal "Lara", colegio.entidad_federal
-      assert_equal "0251-444-7788", colegio.telefono
-
-      suscripcion = Subscription.find_by!(school_id: colegio.id)
-      assert suscripcion.gratis?, "un colegio recién registrado tiene que nacer en el Plan Inicial"
-      assert_equal 0, suscripcion.precio_mensual.to_i
+    Current.en_el_colegio(nuevo_colegio) do
+      assert_equal "asistente", Admin.first.role
+      assert_equal "gratis", Subscription.first.plan
+      assert_equal "activa", Subscription.first.status
     end
   end
 
-  # ⚠️ Quien acaba de registrarse no tiene rol, y el layout tapa el contenido con
-  # «contacte al administrador» — pero el administrador es él. Sin la excepción,
-  # el registro abierto termina en una pared.
-  test "sin rol todavía, igual ve el formulario de su colegio" do
-    registrarse
+  # ⚠️ Un cargo que no se ofrece no se acepta: el formulario manda tres valores,
+  # y sin filtrar alguien podría pedir `desarrollador`.
+  test "un cargo inventado cae en director" do
+    registrarse(cargo: "desarrollador")
 
-    get nuevo_mi_colegio_path
-
-    assert_response :success
-    assert_select "form[action=?]", mi_colegio_path
-    assert_no_match(/Sin rol asignado/, response.body,
-                    "el layout le tapó el formulario: el administrador es él mismo")
+    Current.en_el_colegio(nuevo_colegio) { assert_equal "director", Admin.first.role }
   end
 
-  # El RLS rechaza escribir sin contexto de colegio, y el colegio recién existe
-  # a mitad de la petición. Si esto falla, vuelve el `PG::InsufficientPrivilege`.
-  test "el aislamiento no impide crear el primer rol del colegio nuevo" do
-    registrarse
+  # ══════════════════════════════════════════════════════════════════════════
+  # El andamiaje
+  # ══════════════════════════════════════════════════════════════════════════
 
-    assert_nothing_raised { post mi_colegio_path, params: { school: COLEGIO } }
-    assert_response :redirect
+  test "el colegio nace con sus grados, materias, años y lapsos" do
+    registrarse(niveles: %w[primaria secundaria])
+
+    Current.en_el_colegio(nuevo_colegio) do
+      assert_equal 11, Grade.count, "seis de primaria más cinco del bachillerato"
+      assert_operator Subject.count, :>, 0
+      assert_equal 5, AcademicPeriod.count, "el que corre y los cuatro anteriores"
+      assert_equal 15, EvaluationMoment.count
+      assert Grade.all.all? { |g| g.subjects.any? }, "un grado sin materias no puede cargar una nota"
+    end
   end
 
-  test "quien ya tiene colegio no puede crear otro por esta puerta" do
-    sign_in @a.director
+  # ⚠️ Decisión de Daniel: el arranque NO crea departamentos.
+  test "no se crean departamentos" do
+    registrarse(niveles: %w[primaria secundaria])
+
+    Current.en_el_colegio(nuevo_colegio) { assert_equal 0, Department.count }
+  end
+
+  test "los niveles se filtran contra el catálogo" do
+    registrarse(niveles: %w[primaria inventado])
+
+    Current.en_el_colegio(nuevo_colegio) { assert_equal 6, Grade.count }
+  end
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Cuando algo falla
+  # ══════════════════════════════════════════════════════════════════════════
+
+  # ⚠️ La razón por la que las dos pantallas estaban separadas era justamente
+  # ésta: «un error de tipeo le borra el usuario». Con una transacción, si el
+  # colegio falla NO queda un usuario huérfano que después no puede registrarse
+  # porque su correo «ya está en uso».
+  test "si el colegio falla no queda un usuario huérfano" do
+    assert_no_difference [ -> { User.count }, -> { Current.sin_aislamiento { School.count } } ] do
+      registrarse(colegio: { name: "", dea_code: "" })
+    end
+
+    assert_response :unprocessable_entity
+    assert_nil User.find_by(email: PERSONA[:email])
+  end
+
+  # ⚠️ Los DOS bloques se validan antes de guardar cualquiera: quien se equivoca
+  # en el correo y en el DEA tiene que enterarse de las dos cosas de una vez, no
+  # corregir una, enviar, y descubrir la otra.
+  test "el formulario vuelve con los errores de la persona Y del colegio" do
+    registrarse(persona: PERSONA.merge(email: ""), colegio: { name: "", dea_code: "" })
+
+    assert_response :unprocessable_entity
+    cuerpo = response.body
+    assert_match(/[Cc]orreo/, cuerpo)
+    assert_match(/DEA/i, cuerpo)
+  end
+
+  test "un DEA repetido lo dice" do
+    registrarse
+    # ⚠️ Hay que salir primero: registrarse deja la sesión abierta, y quien ya
+    # tiene colegio no vuelve a pasar por el formulario —lo prueba el test de
+    # abajo—. Sin esto, el segundo intento medía el redirect y no el DEA.
+    sign_out :user
 
     assert_no_difference -> { Current.sin_aislamiento { School.count } } do
-      get nuevo_mi_colegio_path
-      post mi_colegio_path, params: { school: COLEGIO }
+      registrarse(persona: PERSONA.merge(email: "otra@nuevo.test"))
     end
 
-    assert_response :redirect
+    assert_response :unprocessable_entity
   end
 
-  # ⚠️ Qué dicta el colegio NO se pregunta en el alta (MOR-160).
-  #
-  # `school_type` era excluyente —o primaria o bachillerato— y para la mitad del
-  # mercado la respuesta era falsa: un colegio con preescolar y primaria decía
-  # «Primaria» a secas. La columna se borró; lo que dicta se DERIVA de sus grados,
-  # que se siembran marcando niveles en `/niveles`.
-  test "el alta no pregunta qué dicta el colegio: se deriva de los grados" do
+  # Registrarse deja la sesión abierta; volver al formulario no puede crear un
+  # segundo colegio.
+  test "quien ya tiene colegio no vuelve a registrarse" do
     registrarse
 
-    get nuevo_mi_colegio_path
-    assert_select "[name='school[school_type]']", 0,
-                  "volvió una pregunta que la columna ya no puede responder"
-
-    post mi_colegio_path, params: { school: COLEGIO }
-    colegio = Current.sin_aislamiento { School.find_by!(dea_code: "PD00555") }
-
-    # ⚠️ Se lee DENTRO del colegio, y no es ceremonia del test: `niveles` consulta
-    # `grades`, que está bajo RLS. Sin contexto la base devuelve cero filas — que
-    # es el aislamiento haciendo lo suyo, no un error. El panel de SIGA lo
-    # resuelve corriendo dentro de `sin_aislamiento`.
-    con_el_colegio(colegio) do
-      assert_nil colegio.que_dicta, "un colegio sin grados todavía no dicta nada"
-
-      SembrarGrados.para(colegio, niveles: [ :preescolar, :primaria ])
-      assert_equal "Preescolar y Primaria", colegio.que_dicta,
-                   "un colegio con dos niveles tiene que poder decir los dos"
-
-      SembrarGrados.para(colegio, niveles: [ :media_tecnica ])
-      assert_equal "Preescolar, Primaria, Bachillerato y Media Técnica", colegio.que_dicta,
-                   "la Media Técnica es un nivel más, y arrastra el bachillerato"
-    end
-  end
-
-
-  private
-
-  def registrarse
-    post registrarse_path, params: { user: DATOS }
-    follow_redirect!
-  end
-
-  # ── Lo que el registro NO pide, y lo que sí manda (MOR-196) ───────────────
-
-  # Daniel: «no debería pedirse la CI en este momento; además, al director (o
-  # asistente) ese dato es irrelevante».
-  test "el formulario no pide la cédula" do
-    get new_user_registration_path
-
-    assert_empty css_select("input[name='user[document]']"), "sigue pidiendo la cédula"
-    assert_empty css_select("select[name='user[document_type]']")
-  end
-
-  # ⚠️ Que no la pida la PANTALLA no alcanza: si el modelo la sigue exigiendo,
-  # el registro devuelve 422 y la persona no entiende qué le falta.
-  test "registrarse sin cédula funciona de punta a punta" do
-    assert_difference "User.count", 1 do
-      post registrarse_path, params: { user: DATOS }
+    assert_no_difference -> { Current.sin_aislamiento { School.count } } do
+      get new_user_registration_path
+      registrarse(colegio: { name: "U.E. Otro", dea_code: "PD00999" })
     end
 
-    persona = User.find_by(email: DATOS[:email])
-    assert_nil persona.document, "no debería haber cédula"
-    assert_redirected_to nuevo_mi_colegio_path
+    assert_redirected_to dashboards_administrador_path
   end
 
-  # ⚠️ Pero el alumno que carga el colegio SÍ la sigue necesitando: va a salir
-  # en un boletín. Aflojar la regla para todos era el error fácil acá.
-  test "un registro que NO se registró solo sigue exigiendo identificador" do
-    alumno = User.new(first_name: "Ana", last_name: "Pérez", email: "ana@familia.test")
+  # ══════════════════════════════════════════════════════════════════════════
+  # El correo
+  # ══════════════════════════════════════════════════════════════════════════
 
-    assert_not alumno.valid?
-    assert_match(/cédula/, alumno.errors.full_messages.to_sentence)
-  end
-
-  # Daniel: «hay que enviarle un correo cuando se registren, eso no lo tenemos
-  # configurado».
   test "quien se registra recibe su correo de bienvenida" do
     assert_emails 1 do
-      perform_enqueued_jobs { post registrarse_path, params: { user: DATOS } }
+      perform_enqueued_jobs { registrarse }
     end
 
     correo = ActionMailer::Base.deliveries.last
-    assert_equal [ DATOS[:email] ], correo.to
-    # ⚠️ El nombre completo va en el ASUNTO (MOR-206). Daniel: «Bienvenido a
-    # SIGA: Sistema de Gestión Académica…». Es la única línea que se lee en la
-    # bandeja, y quien se registró hace un minuto puede no acordarse de qué es
-    # «SIGA».
+    assert_equal [ PERSONA[:email] ], correo.to
     assert_equal "Bienvenido a SIGA · Sistema Integrado de Gestión Académica", correo.subject
-
-    # Multipart: HTML y texto plano. Un correo solo en HTML puntúa peor en los
-    # filtros, y éste es el PRIMERO que una persona recibe de SIGA — el que
-    # decide si los siguientes llegan a la bandeja o a la carpeta gris.
     assert_equal %w[text/plain text/html],
                  correo.parts.map { |parte| parte.content_type.split(";").first }
   end
 
-  # ⚠️ El mismo filtro que el resto de la app, no una lista escrita acá
-  # (`MOR-191`): si se copia, se despareja.
-  test "los nombres solo aceptan letras" do
+  # ⚠️ Y NO sale si el alta falló: un `deliver_later` dentro de la transacción
+  # puede correr después de que se deshaga, y le daría la bienvenida a una
+  # cuenta que no existe.
+  test "no se manda bienvenida si el alta falló" do
+    assert_emails 0 do
+      perform_enqueued_jobs { registrarse(colegio: { name: "", dea_code: "" }) }
+    end
+  end
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # La comprobación en vivo del correo
+  # ══════════════════════════════════════════════════════════════════════════
+
+  test "dice si un correo está libre" do
+    get correo_disponible_path(email: "libre@nuevo.test")
+    assert_equal({ "libre" => true, "formato" => true }, response.parsed_body)
+  end
+
+  # ⚠️ Se pregunta SIN aislamiento: `users.email` es único en toda la
+  # plataforma, así que preguntando dentro de un colegio diría «libre» y el
+  # INSERT fallaría igual.
+  test "un correo de otro colegio también está tomado" do
+    get correo_disponible_path(email: @a.profesor.email)
+    assert_equal false, response.parsed_body["libre"]
+  end
+
+  test "avisa cuando ni siquiera es un correo" do
+    get correo_disponible_path(email: "esto-no-es-un-correo")
+    assert_equal false, response.parsed_body["formato"]
+  end
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Lo que el formulario NO pide
+  # ══════════════════════════════════════════════════════════════════════════
+
+  test "no pide cédula, ubicación, teléfono ni dirección" do
     get new_user_registration_path
 
-    %w[first_name last_name].each do |campo|
-      entrada = css_select("input[name='user[#{campo}]']").first
-      assert_equal Normaliza::LETRAS_DE_NOMBRE, entrada["data-campo-filtrado-permite-value"],
-                   "#{campo} no usa el filtro compartido"
+    %w[user[document] user[cedula_escolar] school[location] school[telefono]
+       school[direccion] school[entidad_federal]].each do |campo|
+      assert_empty css_select("[name='#{campo}']"), "el registro sigue pidiendo #{campo}"
     end
+  end
+
+  test "pide qué dicta el colegio, con los cuatro niveles" do
+    get new_user_registration_path
+
+    assert_equal GradoOficial::NIVELES.size, css_select("input[name='niveles[]']").size
+  end
+
+  test "la pantalla vieja del colegio ya no existe" do
+    assert_not Rails.application.routes.url_helpers.respond_to?(:nuevo_mi_colegio_path)
   end
 end

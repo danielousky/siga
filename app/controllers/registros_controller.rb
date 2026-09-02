@@ -15,37 +15,113 @@
 # invariante vive en `MiColegioController` y no se puede aflojar sin volver a
 # discutir esto.
 class RegistrosController < Devise::RegistrationsController
-  # Lo mínimo para que una persona EXISTA en este sistema.
+  # Lo que se pide para abrir una cuenta (MOR-208).
   #
-  # ⚠️ La cédula ya NO se pide acá (`MOR-196`). `User` exige documento o cédula
-  # escolar (`MOR-138`) porque una persona sin identificador no puede aparecer
-  # en una planilla del MPPE — pero quien acaba de registrarse no aparece en
-  # ninguna: no tiene colegio, ni alumnos, ni documentos que firmar. Se le pide
-  # el día que haga falta. Ver `User#se_registro_solo?`.
+  # Daniel: *«el registro de usuario no debe incluir la cédula, solo lo más
+  # sencillo: nombre y correo del usuario que va a manejar la cuenta»*, y en el
+  # MISMO formulario el nombre del colegio, su código DEA y qué dicta.
+  #
+  #     LA PERSONA    nombre · apellido · correo · contraseña · cargo
+  #     EL COLEGIO    nombre · código DEA · qué dicta (4 casillas)
+  #
+  # ⚠️ Lo que NO está acá también es una decisión: cédula, ubicación, teléfono,
+  # dirección, logo y sello. Todo eso el colegio lo completa cuando quiera, y
+  # pedirlo en el primer minuto es la diferencia entre registrarse y abandonar.
   PERMITIDOS = %i[first_name last_name email password password_confirmation].freeze
 
   before_action :configure_permitted_parameters
 
-  # Después de registrarse hay UNA sola cosa que hacer: crear su colegio.
-  def after_sign_up_path_for(_recurso) = nuevo_mi_colegio_path
+  # ⚠️ Quien YA tiene colegio no vuelve a pasar por acá.
+  before_action :redirigir_si_ya_entro, only: [ :new, :create ]
 
-  # ⚠️ El correo de bienvenida sale ACÁ y no en un `after_create` del modelo
-  # (`MOR-196`): `User` se crea también desde el importador —360 de una vez— y
-  # desde el alta que hace el colegio, y ninguno de esos casos manda esto. Lo
-  # que dispara el correo es HABERSE REGISTRADO, no haber nacido una fila.
-  #
-  # `deliver_later` y no `deliver_now`: si ElasticEmail está lento o caído, lo
-  # que no puede pasar es que la persona se quede mirando el formulario. Se
-  # registró; el correo llega cuando llegue.
+  def new
+    build_resource({})
+    @colegio = School.new
+    @niveles = []
+    yield resource if block_given?
+    respond_with resource
+  end
+
+  # Un envío crea la persona, su colegio, su rol, su plan y el andamiaje.
+  # Todo el trabajo vive en `AltaDeUnColegio`; acá solo se traduce el
+  # formulario y se decide a dónde se va después.
   def create
-    super
+    alta = AltaDeUnColegio.crear(datos_de_la_persona: datos_de_la_persona,
+                                 datos_del_colegio: datos_del_colegio,
+                                 niveles: niveles_elegidos,
+                                 cargo: cargo_elegido)
 
-    BienvenidaMailer.cuenta_creada(resource).deliver_later if resource.persisted?
+    # ⚠️ El correo va DESPUÉS del commit, nunca dentro de la transacción: un job
+    # encolado adentro puede correr antes de que termine —o después de que se
+    # deshaga— y darle la bienvenida a una cuenta que no existe.
+    BienvenidaMailer.cuenta_creada(alta.usuario).deliver_later
+
+    sign_in(resource_name, alta.usuario)
+    redirect_to arranque_listo_path, notice: "Listo, #{alta.colegio.name} ya existe."
+  rescue AltaDeUnColegio::NoSePudo => e
+    # Los dos objetos vuelven CON sus errores, así que el formulario los muestra
+    # todos de una vez en vez de uno por envío.
+    self.resource = e.usuario
+    @colegio = e.colegio
+    @niveles = niveles_elegidos
+    render :new, status: :unprocessable_entity
+  end
+
+  # ¿Ese correo está libre? (MOR-208)
+  #
+  # Daniel: *«tiene que ser una validación muy rápida. Cuando él lo transcriba,
+  # validamos de una vez allí si el correo está correcto y no existe»*.
+  #
+  # ⚠️ Esto NO agrega exposición, aunque lo parezca. Un endpoint que contesta
+  # «ese correo ya existe» es un oráculo de enumeración… y el formulario ya lo
+  # era: enviarlo con un correo tomado devuelve «Correo ya está en uso». Lo
+  # único que cambia es que la respuesta llega antes de llenar el resto.
+  #
+  # ⚠️ Se busca SIN aislamiento y a propósito: `users.email` es único en toda la
+  # plataforma, así que la pregunta «¿está libre?» solo tiene sentido global.
+  # Preguntando dentro de un colegio diría «libre» y el INSERT fallaría igual.
+  def correo_disponible
+    correo = Normaliza.correo(params[:email])
+
+    libre = correo.present? && Current.sin_aislamiento { !User.exists?(email: correo) }
+
+    render json: { libre: libre, formato: correo.present? }
   end
 
   protected
 
   def configure_permitted_parameters
     devise_parameter_sanitizer.permit(:sign_up, keys: PERMITIDOS)
+  end
+
+  private
+
+  def datos_de_la_persona
+    params.require(:user).permit(*PERMITIDOS).to_h.symbolize_keys
+  end
+
+  def datos_del_colegio
+    params.require(:school).permit(:name, :dea_code).to_h.symbolize_keys
+  end
+
+  # ⚠️ Se filtra contra `GradoOficial::NIVELES` y no se confía en el formulario:
+  # es lo que decide qué grados y qué materias se siembran, o sea la forma del
+  # colegio entero.
+  def niveles_elegidos
+    Array(params[:niveles]).map(&:to_sym) & GradoOficial::NIVELES
+  end
+
+  # ⚠️ Igual con el cargo: solo los tres que se ofrecen. Un `role` cualquiera
+  # llegado por el formulario podría pedir `desarrollador`.
+  def cargo_elegido
+    cargo = params[:cargo].to_s
+    Admin::CARGOS_AL_REGISTRARSE.key?(cargo) ? cargo : "director"
+  end
+
+  def redirigir_si_ya_entro
+    return unless user_signed_in? && current_user.admins.any?
+
+    redirect_to dashboard_path_for_user,
+                alert: "Ya tienes un colegio. Para dar de alta otro, escríbenos."
   end
 end

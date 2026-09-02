@@ -13,6 +13,24 @@ class ArranqueController < ApplicationController
 
   OPCIONALES = %w[departamentos].freeze
 
+  # La pantalla que dice QUÉ SE CREÓ, y no pide nada (MOR-208).
+  #
+  # Daniel: *«el paso 2, que no lo ven, pero sí se debería decir: se ha
+  # construido un andamiaje para su escuela… de modo que él sepa qué se creó, o
+  # se le dé un resumen»*.
+  #
+  # ⚠️ Los números se cuentan ACÁ y no se pasan desde el registro. Con el
+  # resumen en el flash, recargar la pantalla lo dejaría en blanco y volver a
+  # ella más tarde mostraría cifras viejas. Contando en el momento, esta página
+  # sigue siendo verdad el mes que viene.
+  def listo
+    @colegio = Current.school
+    @grados_por_nivel = Grade.group(:level).count.transform_keys(&:to_sym)
+    @materias = Subject.count
+    @anios = AcademicPeriod.order(:start_date).to_a
+    @lapsos = EvaluationMoment.count
+  end
+
   def omitir
     Current.school.omitir_paso!(clave)
     redirect_to dashboards_administrador_path,

@@ -90,15 +90,21 @@ Rails.application.routes.draw do
   devise_scope :user do
     get   "registrarse",   to: "registros#new",    as: :new_user_registration
     post  "registrarse",   to: "registros#create"
+    # ⚠️ La comprobación del correo MIENTRAS se escribe (MOR-208). Daniel:
+    # «tiene que ser una validación muy rápida… validamos de una vez allí si el
+    # correo está correcto y no existe».
+    get   "correo-disponible", to: "registros#correo_disponible", as: :correo_disponible
     get   "cuenta",        to: "devise/registrations#edit",   as: :edit_user_registration
     patch "cuenta",        to: "devise/registrations#update", as: :user_registration
     put   "cuenta",        to: "devise/registrations#update"
   end
 
-  # El colegio que crea quien acaba de registrarse. No es `resources` porque no
-  # se lista ni se borra: es un paso del camino de entrada.
-  get  "mi-colegio/nuevo", to: "mi_colegio#new",    as: :nuevo_mi_colegio
-  post "mi-colegio",       to: "mi_colegio#create", as: :mi_colegio
+  # ⚠️ `/mi-colegio/nuevo` YA NO EXISTE (MOR-208): el colegio se crea en el mismo
+  # formulario del registro. Lo que queda es la pantalla que dice qué se creó.
+  #
+  # Daniel: *«el paso 2, que no lo ven, pero sí se debería decir: se ha
+  # construido un andamiaje para su escuela… de modo que él sepa qué se creó»*.
+  get "arranque/listo", to: "arranque#listo", as: :arranque_listo
   get "inicio/index"
 
   # Solicitudes de demo — SOLO lo público. Ver, listar y responder se mudó a

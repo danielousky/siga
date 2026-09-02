@@ -1,0 +1,60 @@
+-# La pantalla que dice qué se creó, y no pide nada (MOR-208).
+-#
+-# Daniel: *«el paso 2, que no lo ven, pero sí se debería decir: se ha
+-# construido un andamiaje para su escuela»*.
+-#
+-# ⚠️ Es una pantalla que NO PIDE NADA, y ese es su valor. El plan de ocho pasos
+-# era una lista de tareas pendientes; esto es lo contrario: la prueba de que el
+-# sistema ya hizo el trabajo.
+-#
+-# ⚠️ Y cada línea lleva a editarla. Sin los enlaces, «se creó esto por usted» se
+-# lee como «alguien decidió esto por usted»; con ellos, es un regalo que se
+-# puede devolver.
+- content_for :titulo, "Su colegio quedó en orden"
+
+.card-academic.arranque-listo
+  %h1.arranque-listo-titulo= "#{@colegio.name} quedó en orden"
+  %p.paso-explicacion
+    Mientras usted llenaba el formulario, SIGA armó lo que su colegio necesita
+    para empezar. Todo esto se puede cambiar.
+
+.card-academic
+  %table.table-academic
+    %tbody
+      - @grados_por_nivel.each do |nivel, cuantos|
+        %tr
+          %td.arranque-listo-cifra= cuantos
+          %td
+            %strong= "Grados de #{GradoOficial::ETIQUETAS[nivel.to_sym] || nivel}"
+            %p.dato-secundario Los que fija el Reglamento de la LOE, con su nombre y su orden.
+          %td.columna-acciones
+            = boton "Ver los grados", grades_path, icono: :grados, tono: :secondary, sm: true
+
+      - if @materias.positive?
+        %tr
+          %td.arranque-listo-cifra= @materias
+          %td
+            %strong Materias
+            %p.dato-secundario El plan de estudio del ministerio, repartido por año: Física empieza en 3er Año, no antes.
+          %td.columna-acciones
+            = boton "Ver las materias", subjects_path, icono: :materias, tono: :secondary, sm: true
+
+      %tr
+        %td.arranque-listo-cifra= @anios.size
+        %td
+          %strong Años escolares
+          - nombres = "#{@anios.first&.name} a #{@anios.last&.name}"
+          %p.dato-secundario= "#{nombres}, con sus #{contar(@lapsos, 'lapso', 'lapsos')}. Los anteriores están para que pueda subir las notas de años pasados."
+        %td.columna-acciones
+          = boton "Ver los años", academic_periods_path, icono: :calendario, tono: :secondary, sm: true
+
+.card-academic
+  .card-academic-header
+    %h2 Lo que sigue
+  %p.paso-explicacion
+    Lo que falta es lo que solo usted sabe: sus alumnos, sus secciones y quién
+    dicta qué. Si ya lo tiene en un Excel, súbalo y queda todo de una vez.
+
+  .paso-acciones
+    = boton "Subir la matrícula", new_importacion_path(tipo: :matricula), icono: :importar, tono: :accion
+    = boton "Ir al panel", dashboards_administrador_path, icono: :panel, tono: :secondary

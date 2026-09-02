@@ -961,7 +961,7 @@ CREATE TABLE public.schools (
     id bigint NOT NULL,
     dea_code character varying NOT NULL,
     name character varying NOT NULL,
-    location character varying NOT NULL,
+    location character varying,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     entidad_federal character varying,
@@ -4392,6 +4392,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260902120000'),
 ('20260902100000'),
 ('20260901215555'),
 ('20260901164939'),

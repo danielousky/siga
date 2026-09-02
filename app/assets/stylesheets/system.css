@@ -6990,3 +6990,37 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 /* Y el campo se queda con un ancho cómodo en vez de estirarse: el nombre de un
    departamento son dos palabras. */
 .cabecera-de-lista-alta .search-input-wrap { width: min(320px, 100%); }
+
+
+/* «Su colegio quedó en orden» (MOR-208).
+   ─────────────────────────────────────
+   La pantalla que no pide nada. La cifra manda: es la prueba de que el sistema
+   hizo el trabajo, así que se lee antes que el texto que la explica. */
+.arranque-listo-titulo {
+  font-family: var(--font-serif);
+  margin: 0 0 var(--space-sm);
+}
+
+.arranque-listo-cifra {
+  font-family: var(--font-serif);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--brand-primary);
+  font-variant-numeric: tabular-nums;
+  width: 1%;
+  white-space: nowrap;
+  padding-right: var(--space-md);
+  vertical-align: middle;
+}
+
+
+/* El aviso de un campo comprobado en vivo (MOR-208). Va debajo del campo, chico,
+   y NO desplaza el formulario: aparece en el hueco que el `.form-group` ya deja. */
+.campo-aviso {
+  margin: var(--space-micro) 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.campo-aviso--bien { color: var(--guardar-primary); }
+.campo-aviso--mal  { color: var(--eliminar-primary); }

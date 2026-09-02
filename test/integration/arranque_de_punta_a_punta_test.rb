@@ -19,57 +19,73 @@ require "test_helper"
 # sembrar, el departamento obligatorio, los listados sin estado vacío— y las tres
 # eran de encaje entre pasos, no de una pantalla sola.
 class ArranqueDePuntaAPuntaTest < ActionDispatch::IntegrationTest
-  # El director llega sin nada: ni colegio, ni rol. Es el estado exacto en el
-  # que `/registrarse` deja a una persona (MOR-158).
-  setup do
-    @director = User.create!(first_name: "Rosa", last_name: "Directora",
-                             email: "rosa@colegionuevo.test", password: "123123",
-                             document: "V-19283746", document_type: :cedula_v)
-    sign_in @director
+  # ⚠️ El colegio se crea REGISTRÁNDOSE, que desde `MOR-208` es un solo paso.
+  # Antes había un usuario suelto y después `/mi-colegio`; esa pantalla ya no
+  # existe, y el andamiaje viene sembrado con el alta.
+  def registrar(nombre, dea, niveles: %w[primaria])
+    post registrarse_path, params: {
+      user: { first_name: "Rosa", last_name: "Directora",
+              email: "rosa#{dea}@colegionuevo.test",
+              password: "clave-larga-1", password_confirmation: "clave-larga-1" },
+      school: { name: nombre, dea_code: dea }, niveles: niveles, cargo: "director"
+    }
+    # ⚠️ El correo se guarda en MINÚSCULA (`case_insensitive_keys` de Devise),
+    # así que buscarlo tal como se escribió no lo encuentra.
+    @director = User.find_by(email: "rosa#{dea}@colegionuevo.test".downcase)
+    Current.sin_aislamiento { School.find_by(dea_code: dea) }
   end
 
   test "un colegio nuevo llega hasta poder calificar, sin trabarse" do
-    # ── 1. El colegio ────────────────────────────────────────────────────────
-    post mi_colegio_path, params: { school: {
-      name: "U.E. Colegio Nuevo", dea_code: "PD00000001", location: "Caracas",
-      entidad_federal: "Distrito Capital", municipio_libre: "Libertador",
-      parroquia_libre: "El Recreo", direccion: "Av. Principal", telefono: "0212-5551234"
-    } }
-    colegio = Current.sin_aislamiento { School.find_by(dea_code: "PD00000001") }
+    # ── 1. El colegio, con su andamiaje ──────────────────────────────────────
+    colegio = registrar("U.E. Colegio Nuevo", "PD00000001")
     assert colegio, "no se pudo registrar el colegio"
     assert_equal @director.id, Current.sin_aislamiento { Admin.unscoped.find_by(school_id: colegio.id) }&.user_id,
                  "quien registra tiene que quedar como director de su colegio"
 
-    # ── 2. Los niveles → los grados ──────────────────────────────────────────
+    # ── 2. Los grados ya vienen puestos ──────────────────────────────────────
     #
-    # Tres casillas en vez de catorce formularios. Es el corazón del arranque.
+    # Se marcaron al registrarse, así que acá no hay nada que hacer. La pantalla
+    # sigue existiendo para el colegio que agrega un nivel después.
     get niveles_del_colegio_path
     assert_response :success
-
-    patch niveles_del_colegio_path, params: { niveles: [ "primaria" ] }
     grados = con_el_colegio(colegio) { Grade.count }
     assert_equal 6, grados, "marcar «primaria» tiene que sembrar los seis grados"
 
-    # ── 3. El año escolar → sus tres lapsos ──────────────────────────────────
+    # ── 3. Los años escolares tampoco se crean ───────────────────────────────
     #
-    # Un número, y de ahí sale todo: el nombre, las dos fechas y los lapsos.
-    post academic_periods_path, params: { anio: 2026 }
+    # Se sembraron al registrarse: el que corre y los cuatro anteriores, cada uno
+    # con sus tres lapsos. Los anteriores están para poder subir el historial.
+    # ⚠️ El año de la SESIÓN, no el más nuevo. Desde `MOR-208` se siembran cinco
+    # años —el que corre y los cuatro anteriores— y la sesión elige el que está
+    # en operación, no la fila más reciente. Comparar contra «el último creado»
+    # es exactamente la trampa que `anio_por_defecto` existe para evitar.
     periodo, lapsos = con_el_colegio(colegio) do
-      p = AcademicPeriod.order(:id).last
+      p = AcademicPeriod.en_operacion || AcademicPeriod.vigente
       [ p, p&.evaluation_moments&.pluck(:name) ]
     end
-    assert_equal "2026-2027", periodo.name
+    assert periodo, "el año escolar tiene que venir sembrado"
     assert_equal [ "1er Lapso", "2do Lapso", "3er Lapso" ], lapsos,
                  "el año escolar tiene que nacer con sus tres lapsos (MOR-163)"
 
-    # ── 4. Las materias, SIN departamento ────────────────────────────────────
+    assert_equal 5, con_el_colegio(colegio) { AcademicPeriod.count },
+                 "el que corre y los cuatro anteriores, para poder subir el historial"
+
+    # ── 4. Las materias ──────────────────────────────────────────────────────
     #
-    # ⚠️ Acá se trababa: el departamento era obligatorio y el plan lo presenta
-    # como opcional. Un colegio de 150 alumnos no tiene departamentos.
-    post subjects_path, params: { subject: { code: "MAT", name: "Matemática" } }
-    post subjects_path, params: { subject: { code: "LEN", name: "Castellano y Literatura" } }
-    assert_equal 2, con_el_colegio(colegio) { Subject.count },
-                 "no se pudieron cargar las materias sin crear departamentos primero"
+    # ⚠️ Las del pensum YA están: se sembraron al registrarse (`MOR-208`). Lo
+    # que se prueba acá es que el colegio pueda agregar LA SUYA —la que ningún
+    # ministerio propone— sin crear un departamento primero.
+    #
+    # Acá se trababa antes: el departamento era obligatorio y el plan lo
+    # presenta como opcional. Un colegio de 150 alumnos no tiene departamentos.
+    sembradas = con_el_colegio(colegio) { Subject.count }
+    assert_operator sembradas, :>, 0, "el pensum tiene que venir sembrado"
+
+    post subjects_path, params: { subject: { code: "COMP", name: "Computación" } }
+
+    propia = con_el_colegio(colegio) { Subject.find_by(code: "COMP") }
+    assert propia, "no se pudo cargar una materia sin crear departamentos primero"
+    assert_nil propia.department_id
 
     # ── 5. La sección ────────────────────────────────────────────────────────
     #
@@ -119,15 +135,15 @@ class ArranqueDePuntaAPuntaTest < ActionDispatch::IntegrationTest
   # datos, no lo guarda. Si la deducción se rompe, el director ve su colegio
   # cargado y un plan que dice que no empezó.
   test "el plan refleja lo que se va cargando, sin guardar ninguna bandera" do
-    post mi_colegio_path, params: { school: {
-      name: "U.E. Del Plan", dea_code: "PD00000002", location: "Caracas",
-      entidad_federal: "Miranda", municipio_libre: "Sucre", parroquia_libre: "Petare"
-    } }
-    colegio = Current.sin_aislamiento { School.find_by(dea_code: "PD00000002") }
+    colegio = registrar("U.E. Del Plan", "PD00000002")
 
     listos = ->(*) { con_el_colegio(colegio) { PasosDeArranque.new(colegio).pasos.select(&:listo).map(&:clave) } }
 
-    assert_empty listos.call - [ :identidad ], "un colegio recién creado no tiene ningún paso hecho"
+    # ⚠️ Desde `MOR-208` un colegio recién registrado YA tiene pasos hechos, y
+    # ese es el punto del cambio: los niveles y el año escolar se sembraron al
+    # registrarse. Lo que sigue sin estar es lo que solo el colegio sabe.
+    assert_equal [ :niveles, :identidad, :ano_escolar ].to_set, listos.call.to_set,
+                 "el andamiaje se siembra al registrarse"
 
     patch niveles_del_colegio_path, params: { niveles: [ "primaria" ] }
     assert_includes listos.call, :niveles
