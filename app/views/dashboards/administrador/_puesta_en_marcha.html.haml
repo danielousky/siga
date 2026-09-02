@@ -67,7 +67,15 @@
               %p.paso-bloqueo
                 Antes hace falta
                 %strong= falta.titulo.downcase
-              = link_to "#{ruta_del_paso(falta)}?recorrido=#{falta.clave}", class: "btn btn-secondary btn-sm" do
+              -# ⚠️ AZUL, no neutro (MOR-198). Daniel: «debería ser azul».
+              -#
+              -# Es el mismo argumento que el de arriba llevado hasta el final:
+              -# si el paso bloqueado lleva OTRO botón porque uno apagado no
+              -# sirve, ese otro botón es la acción a la que la persona vino —lo
+              -# único que puede hacer en ese renglón—. Pintarlo de gris lo
+              -# vuelve a presentar como una alternativa secundaria de algo que
+              -# no existe.
+              = link_to "#{ruta_del_paso(falta)}?recorrido=#{falta.clave}", class: "btn btn-primary btn-sm" do
                 = icono(falta.icono, tamano: 15)
                 %span= falta.verbo
             - else

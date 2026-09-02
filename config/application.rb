@@ -34,6 +34,46 @@ module Siga
     # ApplicationJob y por lo tanto no lleva contexto de inquilino.
     config.action_mailer.delivery_job = "MailerDeliveryJob"
 
+    # El campo que falló se MARCA, en todos los formularios (MOR-196).
+    #
+    # ## Qué estaba pasando
+    #
+    # Daniel, dos veces el mismo día: *«me faltó el Código DEA y no me arrojó
+    # error, sino que me volvió a cargar la página»* y *«intenté crear una
+    # materia vacía y no me arrojó ningún error»*.
+    #
+    # El error SÍ salía: los controllers responden 422, el resumen rojo se
+    # pinta arriba del formulario y dice exactamente qué falta. Lo que no
+    # pasaba es que el CAMPO culpable se distinguiera de los otros ocho. En un
+    # formulario largo eso se ve igual que una recarga.
+    #
+    # ## Por qué el default de Rails no alcanzaba
+    #
+    # Rails ya envuelve el campo inválido en `<div class="field_with_errors">`
+    # — y esta app **nunca le dio estilo a esa clase**, así que la envoltura no
+    # se veía. Peor: es un `div` extra dentro del `.form-group`, o sea que
+    # además desacomoda la fila.
+    #
+    # Cambiar el `field_error_proc` resuelve las dos cosas de una: en vez de
+    # envolver, le agrega una clase AL CONTROL. Sin `div` de más, y con el
+    # borde rojo que ya existe en la hoja de estilos.
+    #
+    # ⚠️ La etiqueta se deja intacta a propósito: Rails llama a esto también
+    # para el `<label>`, y marcar los dos pinta de rojo el nombre del campo
+    # además del campo. Con uno alcanza.
+    #
+    # ⚠️ Esto NO alcanza a los formularios escritos con `text_field_tag` —el
+    # del colegio, el de la ubicación—, porque ésos no están atados a un
+    # objeto y Rails no sabe que fallaron. Para ésos está
+    # `ApplicationHelper#clase_de_campo`, que hace lo mismo a mano.
+    config.action_view.field_error_proc = proc do |etiqueta_html, _|
+      fragmento = Nokogiri::HTML::DocumentFragment.parse(etiqueta_html)
+      control = fragmento.at_css("input, select, textarea")
+      control["class"] = [ control["class"], "campo-con-error" ].compact_blank.join(" ") if control
+
+      fragmento.to_html.html_safe
+    end
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

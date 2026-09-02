@@ -17,12 +17,12 @@
       .form-row
         .form-group
           = label_tag "school[name]", "Nombre del colegio", class: "form-label"
-          = text_field_tag "school[name]", @colegio.name, class: "form-control",
+          = text_field_tag "school[name]", @colegio.name, class: clase_de_campo(@colegio, :name),
                            autofocus: true, placeholder: "U.E. Colegio San José"
         .form-group
           = etiqueta_con_pista "school[dea_code]", "Código DEA",
                                pista: "Lo asigna el ministerio. Si no lo tiene a mano, escriba algo provisional y corríjalo después: se puede cambiar."
-          = text_field_tag "school[dea_code]", @colegio.dea_code, class: "form-control",
+          = text_field_tag "school[dea_code]", @colegio.dea_code, class: clase_de_campo(@colegio, :dea_code),
                            placeholder: "PD01234567"
 
       -# ⚠️ Acá NO se pregunta qué dicta el colegio (MOR-159).
@@ -34,10 +34,12 @@
       -#
       -# `school_type` se deduce de los grados en `SembrarGrados`.
 
-      .form-group
-        = label_tag "school[location]", "Ciudad", class: "form-label"
-        = text_field_tag "school[location]", @colegio.location, class: "form-control",
-                         placeholder: "Caracas, Distrito Capital"
+      -# ⚠️ Acá NO se pregunta la ciudad (MOR-196), por la misma razón que no se
+      -# pregunta qué dicta el colegio: se pregunta más abajo.
+      -#
+      -# Daniel: «no pidas Ciudad si ya estás pidiendo el resto de los datos». El
+      -# campo `location` sigue existiendo —es lo que se lee en la barra de
+      -# arriba— pero lo deduce el modelo del municipio y el estado.
 
     = render "shared/ubicacion_del_colegio", colegio: @colegio
 

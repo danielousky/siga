@@ -98,4 +98,28 @@ module ApplicationHelper
       hasta: Date.new(inicio + 1, 7, 31)
     }
   end
+
+  # Marca el campo que falló, en los formularios escritos con `*_tag` (MOR-196).
+  #
+  # ## Por qué hace falta un helper y no lo pone Rails
+  #
+  # Rails envuelve en `.field_with_errors` los campos de un `form_for` atado a
+  # un modelo. Los formularios que crean DOS cosas a la vez —el colegio y su
+  # ubicación, el usuario y su rol— se escriben con `text_field_tag`, que no
+  # sabe de ningún objeto: ahí Rails no marca nada.
+  #
+  # ⚠️ Y eso es lo que hizo invisible un error de verdad. Daniel: *«me faltó el
+  # Código DEA y no me arrojó error, sino que me volvió a cargar la página»*. El
+  # error SÍ estaba —el resumen rojo arriba del formulario, con «Código DEA no
+  # puede estar en blanco»— pero el campo culpable se veía exactamente igual que
+  # los otros ocho. En un formulario largo, un resumen sin campos marcados se
+  # lee como si la página se hubiera recargado sola.
+  #
+  #     = text_field_tag "school[dea_code]", @colegio.dea_code,
+  #                      class: clase_de_campo(@colegio, :dea_code)
+  def clase_de_campo(objeto, campo, base: "form-control")
+    return base if objeto.nil? || objeto.errors[campo].empty?
+
+    "#{base} campo-con-error"
+  end
 end

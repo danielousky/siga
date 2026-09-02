@@ -144,6 +144,12 @@ class School < ApplicationRecord
 
   private
 
+  def deducir_la_ubicacion
+    return if location.present?
+
+    self.location = [ municipio, entidad_federal ].compact_blank.join(", ").presence
+  end
+
   def imagen_para_pdf(adjunto)
     return nil unless adjunto.attached?
     return nil unless FORMATOS_DE_IMAGEN.include?(adjunto.blob.content_type)
@@ -179,4 +185,18 @@ class School < ApplicationRecord
 
   validates :dea_code, presence: true, uniqueness: true
   validates :name, :location, presence: true
+
+  # ⚠️ La ciudad NO se pregunta si ya se preguntó dónde queda (MOR-196).
+  #
+  # Daniel: *«no pidas Ciudad si ya estás pidiendo el resto de los datos»*. Y
+  # tenía razón: el formulario pedía «Ciudad», y tres campos más abajo el
+  # estado, el municipio y la parroquia. Es la misma pregunta hecha dos veces,
+  # que es justo lo que `MOR-159` ya había sacado de esta pantalla con «qué
+  # dicta el colegio».
+  #
+  # `location` no se borra porque no es redundante para MOSTRAR: es lo que sale
+  # en la barra de arriba y en el panel de SIGA, donde «Libertador, Distrito
+  # Capital» se lee de un vistazo y tres columnas no. Se deduce, y sigue siendo
+  # editable en la ficha del colegio para el que prefiera decir «Caracas».
+  before_validation :deducir_la_ubicacion
 end

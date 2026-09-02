@@ -26,7 +26,7 @@
     .form-group
       -# La explicación de por qué estos tres importan va bajo demanda: quien ya
       -# sabe qué es una parroquia no necesita leerlo cada vez que abre esto.
-      = etiqueta_con_pista "school[entidad_federal]", "Entidad federal",
+      = etiqueta_con_pista "school[entidad_federal]", "Estado",
                            pista: "La entidad, el municipio y la parroquia salen impresos en los documentos del ministerio. Conviene dejarlos bien desde ahora."
       = select_tag "school[entidad_federal]",
                    options_for_select(EntidadFederal::TODAS, colegio.entidad_federal),

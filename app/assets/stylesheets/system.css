@@ -5825,7 +5825,10 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 .form-etiqueta .form-label { margin-bottom: 0; }
 
-.pista { display: inline-flex; anchor-name: --pista; }
+/* ⚠️ El ancla es de CADA pista y viene del marcado (`--ancla`, MOR-196).
+   Con `anchor-name: --pista` para todas, el navegador resolvía al ÚLTIMO
+   «?» del documento y cada popover salía junto a ése. */
+.pista { display: inline-flex; anchor-name: var(--ancla); }
 
 .pista-boton {
   display: inline-flex;
@@ -5867,7 +5870,7 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
    el popover se centra solo en la pantalla: se lee igual y se cierra igual. */
 @supports (position-anchor: --pista) {
   .pista-texto {
-    position-anchor: --pista;
+    position-anchor: var(--ancla);
     position-area: bottom span-right;
     margin-top: var(--space-micro);
     position-try-fallbacks: flip-block, flip-inline;
@@ -6267,4 +6270,24 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   gap: var(--space-xs);
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+
+/* El campo que falló (MOR-196).
+   ────────────────────────────
+   ⚠️ El borde NO es el único aviso: el resumen rojo de arriba sigue diciendo
+   QUÉ pasó con cada campo. Esto contesta la otra pregunta —CUÁL de los nueve—,
+   que en un formulario largo es la que hace falta y la que faltaba.
+
+   Es una de las excepciones legítimas a la regla de color (MOR-135): el rojo
+   acá no adorna un control, señala un dato que está mal. */
+.campo-con-error,
+.campo-con-error:hover {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+}
+
+.campo-con-error:focus,
+.campo-con-error:focus-visible {
+  outline-color: var(--danger-border);
 }

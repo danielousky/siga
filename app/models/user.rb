@@ -293,9 +293,33 @@ class User < ApplicationRecord
   #     que nunca tuvo uno               → permitido, para poder arreglarla
   def tiene_algun_identificador
     return if document.present? || cedula_escolar.present?
+    return if se_registro_solo?
     return if fila_vieja_sin_identificador?
 
     errors.add(:base, "Hace falta la cédula de identidad o la cédula escolar")
+  end
+
+  # ⚠️ Quien abre su propia cuenta se identifica con su CORREO (MOR-196).
+  #
+  # Daniel, mirando el formulario de registro: *«no debería pedirse la CI en
+  # este momento; además, al director (o asistente) ese dato es irrelevante»*.
+  #
+  # Y es coherente con el porqué de la regla, que está escrito arriba: hace
+  # falta un identificador porque *«una persona sin ninguno no puede aparecer en
+  # una planilla del MPPE»*. Quien acaba de registrarse para PROBAR el producto
+  # no aparece todavía en ninguna planilla — no tiene colegio, ni alumnos, ni
+  # documentos que firmar. Se le pide la cédula el día que haga falta, que es
+  # justo lo que la propia pantalla de registro ya prometía.
+  #
+  # Y no queda sin identificar: `users.email` es único en toda la plataforma y
+  # es con lo que entra.
+  #
+  # ⚠️ La condición es tener CONTRASEÑA, no tener correo, y la diferencia es
+  # todo el punto. Un alumno puede tener correo y ser un registro que cargó el
+  # colegio (`MOR-142`); ése sí necesita su cédula escolar, porque va a salir en
+  # un boletín. Contraseña propia = cuenta propia = alguien que se registró.
+  def se_registro_solo?
+    new_record? && encrypted_password.present?
   end
 
   # La foto tiene que ser una foto, y de un tamaño que una conexión de colegio

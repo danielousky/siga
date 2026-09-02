@@ -1,9 +1,12 @@
 -# El registro abierto (MOR-158).
 -#
--# ⚠️ Pide LO MÍNIMO. Quien llega acá quiere ver el producto, no llenar una
--# ficha: nombre, apellido, correo y contraseña. La cédula y todo lo demás se
--# piden cuando hagan falta para un documento — pedirlas ahora es la diferencia
--# entre registrarse y abandonar.
+-# ⚠️ Pide LO MÍNIMO: nombre, apellido, correo y contraseña. Quien llega acá
+-# quiere ver el producto, no llenar una ficha.
+-#
+-# La cédula estaba y se fue (`MOR-196`). Daniel: *«no debería pedirse la CI en
+-# este momento; además, al director (o asistente) ese dato es irrelevante»*. Y
+-# el comentario que había acá ya prometía justamente eso —«se piden cuando
+-# hagan falta para un documento»— mientras el formulario las pedía igual.
 - content_for :titulo, "Crear una cuenta"
 
 .card-academic.registro
@@ -17,25 +20,18 @@
   = form_with model: resource, url: registrarse_path, class: "registro-form" do |f|
     = render "shared/errors", object: resource
 
-    .form-row
-      .form-group
-        = f.label :first_name, class: "form-label"
-        = f.text_field :first_name, class: "form-control", autofocus: true, autocomplete: "given-name"
-      .form-group
-        = f.label :last_name, class: "form-label"
-        = f.text_field :last_name, class: "form-control", autocomplete: "family-name"
+    -# ⚠️ El MISMO filtro que `shared/_datos_de_la_persona`, no uno escrito acá:
+    -# letras, acentos, Ñ, el guion y el apóstrofo, en mayúscula y recortado al
+    -# salir (`MOR-191`). Escribir la lista de nuevo es cómo se desparejan.
+    - filtro = { controller: "campo-filtrado", campo_filtrado_permite_value: Normaliza::LETRAS_DE_NOMBRE, campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar" }
 
     .form-row
       .form-group
-        = f.label :document_type, class: "form-label"
-        -# La misma constante que usan los formularios de profesor y
-        -# representante: los cuatro documentos que acepta el MPPE.
-        = f.select :document_type, User::DOCUMENT_TYPE_LABELS.map { |v, t| [ t, v ] },
-                   {}, class: "form-select"
+        = f.label :first_name, class: "form-label"
+        = f.text_field :first_name, class: "form-control", autofocus: true, autocomplete: "given-name", data: filtro
       .form-group
-        = etiqueta_con_pista "user[document]", "Cédula de identidad",
-                             pista: "Identifica a la persona en todo el sistema, y sale en los documentos que usted firme como director."
-        = f.text_field :document, class: "form-control", placeholder: "V-12345678"
+        = f.label :last_name, class: "form-label"
+        = f.text_field :last_name, class: "form-control", autocomplete: "family-name", data: filtro
 
     .form-group
       = f.label :email, class: "form-label"

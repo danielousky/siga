@@ -17,9 +17,10 @@ require "test_helper"
 class RegistroAbiertoTest < ActionDispatch::IntegrationTest
   setup { @a, _b = dos_colegios_completos }
 
+  # ⚠️ Sin cédula, a propósito (`MOR-196`): el formulario dejó de pedirla y el
+  # modelo la deja de exigir a quien abre su propia cuenta.
   DATOS = {
-    first_name: "Rosa", last_name: "Mendoza", document: "V-19876543",
-    document_type: "cedula_v", email: "rosa@nuevo.test",
+    first_name: "Rosa", last_name: "Mendoza", email: "rosa@nuevo.test",
     password: "clave-larga-123", password_confirmation: "clave-larga-123"
   }.freeze
 
@@ -149,5 +150,61 @@ class RegistroAbiertoTest < ActionDispatch::IntegrationTest
   def registrarse
     post registrarse_path, params: { user: DATOS }
     follow_redirect!
+  end
+
+  # ── Lo que el registro NO pide, y lo que sí manda (MOR-196) ───────────────
+
+  # Daniel: «no debería pedirse la CI en este momento; además, al director (o
+  # asistente) ese dato es irrelevante».
+  test "el formulario no pide la cédula" do
+    get new_user_registration_path
+
+    assert_empty css_select("input[name='user[document]']"), "sigue pidiendo la cédula"
+    assert_empty css_select("select[name='user[document_type]']")
+  end
+
+  # ⚠️ Que no la pida la PANTALLA no alcanza: si el modelo la sigue exigiendo,
+  # el registro devuelve 422 y la persona no entiende qué le falta.
+  test "registrarse sin cédula funciona de punta a punta" do
+    assert_difference "User.count", 1 do
+      post registrarse_path, params: { user: DATOS }
+    end
+
+    persona = User.find_by(email: DATOS[:email])
+    assert_nil persona.document, "no debería haber cédula"
+    assert_redirected_to nuevo_mi_colegio_path
+  end
+
+  # ⚠️ Pero el alumno que carga el colegio SÍ la sigue necesitando: va a salir
+  # en un boletín. Aflojar la regla para todos era el error fácil acá.
+  test "un registro que NO se registró solo sigue exigiendo identificador" do
+    alumno = User.new(first_name: "Ana", last_name: "Pérez", email: "ana@familia.test")
+
+    assert_not alumno.valid?
+    assert_match(/cédula/, alumno.errors.full_messages.to_sentence)
+  end
+
+  # Daniel: «hay que enviarle un correo cuando se registren, eso no lo tenemos
+  # configurado».
+  test "quien se registra recibe su correo de bienvenida" do
+    assert_emails 1 do
+      perform_enqueued_jobs { post registrarse_path, params: { user: DATOS } }
+    end
+
+    correo = ActionMailer::Base.deliveries.last
+    assert_equal [ DATOS[:email] ], correo.to
+    assert_equal "Bienvenido a SIGA", correo.subject
+  end
+
+  # ⚠️ El mismo filtro que el resto de la app, no una lista escrita acá
+  # (`MOR-191`): si se copia, se despareja.
+  test "los nombres solo aceptan letras" do
+    get new_user_registration_path
+
+    %w[first_name last_name].each do |campo|
+      entrada = css_select("input[name='user[#{campo}]']").first
+      assert_equal Normaliza::LETRAS_DE_NOMBRE, entrada["data-campo-filtrado-permite-value"],
+                   "#{campo} no usa el filtro compartido"
+    end
   end
 end

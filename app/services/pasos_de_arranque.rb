@@ -80,20 +80,38 @@ class PasosDeArranque
   end
 
   def pasos
-    # ⚠️ El orden es el de las DEPENDENCIAS REALES, y dos las descubrió el QA.
+    # ⚠️ El orden separa lo que es DEL COLEGIO de lo que es DEL AÑO (MOR-197).
     #
-    # 1. `departamentos` antes de `materias` — Daniel: «primero deberían estar
-    #    creados los departamentos (si los hubiera) y luego se agregan las
-    #    materias». Es opcional y se puede omitir para siempre —un colegio chico
-    #    no los tiene— pero el que SÍ los quiere necesita crearlos primero: una
-    #    materia se agrupa al crearla, y volver a editar cuarenta después es
-    #    trabajo que el orden evita.
+    # Daniel, sobre el orden: *«el año escolar debe ir después de materias. El
+    # orden es: después de los grados, departamentos, materias y profesores, año
+    # escolar, secciones y matrícula»*.
     #
-    # 2. `secciones` antes de `materias` — y esta no es de gusto: `CargaDePensum`
-    #    necesita la SECCIÓN de cada fila (`fila.seccion`). Con las materias
-    #    primero, el director llegaba al importador de pensum sin secciones y
-    #    tenía que armarlas a mano antes de poder seguir.
-    [ niveles, identidad, ano_escolar, departamentos, secciones, materias, alumnos ]
+    #     DEL COLEGIO — se cargan una vez        DEL AÑO — se rehacen cada año
+    #     ───────────────────────────────        ────────────────────────────
+    #     los grados que dicta                   el año escolar y sus lapsos
+    #     su identidad (DEA, dirección)          las secciones de cada grado
+    #     los departamentos                      la matrícula
+    #     las materias y los profesores
+    #
+    # El año escolar estaba tercero y arrastraba la confusión: hacía parecer que
+    # las materias y los profesores eran de ese año, cuando cuelgan del colegio
+    # y sobreviven a todos. Lo que sí es del año son las secciones —por eso van
+    # después— y la matrícula.
+    #
+    # Lo que se conserva de la versión anterior:
+    #
+    # - `departamentos` antes de `materias`. Daniel: «primero deberían estar
+    #   creados los departamentos (si los hubiera) y luego se agregan las
+    #   materias». Es opcional —un colegio chico no los tiene— pero el que SÍ
+    #   los quiere necesita crearlos antes: una materia se agrupa al crearla, y
+    #   volver a editar cuarenta después es trabajo que el orden evita.
+    #
+    # ⚠️ Lo que se PIERDE, y hay que tenerlo presente: `secciones` estaba antes
+    # de `materias` porque `CargaDePensum` usa la sección de cada fila. Ya no lo
+    # está, así que quien suba el pensum antes de armar las secciones va a verlas
+    # listadas como faltantes. No es un callejón —la previsualización ofrece
+    # crearlas de un clic, con su conteo— pero es un paso más que antes no había.
+    [ niveles, identidad, departamentos, materias, ano_escolar, secciones, alumnos ]
   end
 
   private
@@ -227,7 +245,22 @@ class PasosDeArranque
                    "ya tiene —el Excel, la nómina, lo que use— y antes de escribir nada " \
                    "le mostramos qué entendió.",
       verbo: "Subir la matrícula", ruta: :importaciones,
-      listo: cargados.positive?, necesita: (:secciones if !Section.exists?),
+      # ⚠️ NO se bloquea por las secciones, y antes sí (MOR-198).
+      #
+      # Daniel: *«en matrícula no me está dando la opción de importar»*. Y no se
+      # la daba: sin secciones, el paso mostraba «Antes hace falta las secciones
+      # de cada grado» y cambiaba su botón por «Armar las secciones».
+      #
+      # Está mal porque el importador ES la manera de resolverlo: la
+      # previsualización LISTA las secciones que faltan, con cuántas filas
+      # esperan cada una, y las crea de un clic (`ImportacionesController
+      # #crear_seccion`). Bloquear acá escondía exactamente la herramienta que
+      # soluciona el bloqueo, y mandaba a armar a mano diez secciones que la
+      # planilla ya nombra.
+      #
+      # El resto de los pasos sí se bloquean, y está bien: no hay ninguna
+      # pantalla que arme un año escolar desde el alta de una sección.
+      listo: cargados.positive?,
       resultado: cargados.positive? ? contar(cargados, "alumno", "alumnos") : nil
     )
   end

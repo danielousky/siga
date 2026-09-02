@@ -29,7 +29,27 @@
         %h3 En ningún grado
         %p
           Esta materia existe en el catálogo pero no está asignada a ningún
-          grado, así que nadie puede cargarle notas. Se asigna desde el grado.
+          grado, así que nadie puede cargarle notas.
+
+    -# ⚠️ El alta va ACÁ y no en un enlace al grado (MOR-198).
+    -#
+    -# Daniel: «¿por qué no puedo asignar desde allí los grados y los profes?».
+    -# Antes el texto decía «se asigna desde el grado» y no llevaba a ninguno:
+    -# describía el problema, nombraba la solución y dejaba a la persona
+    -# buscándola en el menú.
+    -#
+    -# Es el MISMO endpoint que usa la ficha del grado, visto desde el otro lado.
+    - if @grados_libres.any?
+      = form_with url: grade_grade_subjects_path(@grados_libres.first), method: :post, class: "ficha-agregar" do |f|
+        = f.label :grade_id, "Agregar a un grado", class: "form-label"
+        .ficha-agregar-fila
+          -# El `select` cambia la URL del formulario porque el grado es parte de
+          -# la ruta: sin esto, elegir «3er Grado» mandaría al primero de la lista.
+          = select_tag :grade_id,
+                       options_for_select(@grados_libres.map { |g| [ g.name, grade_grade_subjects_path(g) ] }),
+                       class: "form-select", data: { accion_del_formulario_target: "select", action: "change->accion-del-formulario#cambiar" }
+          = hidden_field_tag :subject_id, @subject.id
+          = f.submit "Agregar", class: "btn btn-primary"
 
   .card-academic
     .card-academic-header
@@ -52,6 +72,30 @@
       .empty-state
         %h3 Sin profesor asignado
         %p Ninguna sección tiene un profesor asignado para esta materia.
+
+    -# ⚠️ Tres precondiciones, y cada una se dice distinto: sin grado, sin año
+    -# escolar y sin profesores cargados no son el mismo problema, y «no se puede
+    -# asignar» a secas obliga a adivinar cuál de los tres es.
+    - if @grados.empty?
+      %p.nota-ayuda Primero asigne la materia a un grado: el profesor se asigna por sección, y las secciones cuelgan de un grado.
+    - elsif @profesores.empty?
+      %p.nota-ayuda
+        Todavía no hay profesores cargados.
+        = link_to "Registrar profesor", new_teacher_path
+    - elsif @secciones_libres.empty?
+      %p.nota-ayuda Todas las secciones de este año ya tienen profesor para esta materia, o el grado todavía no tiene secciones armadas.
+    - else
+      = form_with url: section_teacher_sections_path(@secciones_libres.first), method: :post, class: "ficha-agregar" do |f|
+        = f.label :teacher_id, "Asignar un profesor", class: "form-label"
+        .ficha-agregar-fila
+          = select_tag :section_id,
+                       options_for_select(@secciones_libres.map { |s| [ "#{s.grade.name} – #{s.name}", section_teacher_sections_path(s) ] }),
+                       class: "form-select", data: { accion_del_formulario_target: "select", action: "change->accion-del-formulario#cambiar" }
+          = select_tag :teacher_id,
+                       options_for_select(@profesores.map { |p| [ p.user.apellidos_y_nombres, p.id ] }),
+                       class: "form-select"
+          = hidden_field_tag :subject_id, @subject.id
+          = f.submit "Asignar", class: "btn btn-primary"
 
   %p.ficha-volver
     = link_to "← Volver a las materias", subjects_path

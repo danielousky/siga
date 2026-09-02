@@ -12,9 +12,9 @@ class TeacherSectionsController < ApplicationController
                  "#{@section.grade.name} – Sección #{@section.name}",
         subject: @teacher_section
       )
-      redirect_to @section, notice: "Profesor asignado exitosamente."
+      volver notice: "Profesor asignado exitosamente."
     else
-      redirect_to @section, alert: @teacher_section.errors.full_messages.join(", ")
+      volver alert: @teacher_section.errors.full_messages.join(", ")
     end
   end
 
@@ -29,10 +29,24 @@ class TeacherSectionsController < ApplicationController
       message: "#{current_user.nombre_completo} removió al profesor " \
                "#{teacher_name} de #{subject_name} en #{section_label}"
     )
-    redirect_to @section, notice: "Profesor removido exitosamente."
+    volver notice: "Profesor removido exitosamente."
   end
 
   private
+
+  # ⚠️ Vuelve a DONDE SE VINO, no siempre a la ficha de section (MOR-198).
+  #
+  # Esta acción se dispara ahora desde dos lados —la ficha de section y la de
+  # la materia—, porque Daniel preguntó lo obvio mirando una materia sin grados:
+  # *«¿por qué no puedo asignar desde allí los grados y los profes?»*. Mandar
+  # siempre a la misma pantalla deja a quien asignó desde la materia parado en
+  # un sitio que no pidió.
+  #
+  # `allow_other_host: false` —el default— es lo que impide que un `Referer`
+  # armado a mano convierta esto en un redirector abierto.
+  def volver(**mensaje)
+    redirect_back fallback_location: @section, allow_other_host: false, **mensaje
+  end
 
   def set_section
     @section = Section.find(params[:section_id])

@@ -77,12 +77,23 @@ class FormulariosTest < ActionDispatch::IntegrationTest
 
   # El estilo vive en `system.css`; una vista que escribe colores o márgenes a
   # mano se sale del sistema sin que nadie lo note.
+  #
+  # ⚠️ La excepción es `--ancla` (MOR-196), y no es un agujero en la regla.
+  #
+  # Lo que se prohíbe es escribir APARIENCIA a mano: un color, un margen, un
+  # ancho. `--ancla` no pinta nada — le da a cada pista un nombre propio para
+  # que su popover se ancle a SU botón y no al último de la página, que es el
+  # bug que tenía. Es un valor POR INSTANCIA, que es exactamente para lo que
+  # existe el atributo `style`; las reglas siguen en la hoja de estilos.
+  SOLO_LA_ANCLA = /\Astyle="--ancla: --pista-[0-9a-f]+"\z/
+
   test "ningún formulario escribe estilo en línea" do
     ALTAS.each_value do |ruta|
       get send(ruta)
       formulario = response.body[%r{<form.*</form>}m].to_s
+      estilos = formulario.scan(/style="[^"]*"/).reject { |e| "style=#{e[6..]}" =~ SOLO_LA_ANCLA }
 
-      assert_no_match(/style=/, formulario, "#{ruta} tiene `style=` dentro del formulario")
+      assert_empty estilos, "#{ruta} tiene `style=` dentro del formulario: #{estilos.join(' ')}"
     end
   end
 end

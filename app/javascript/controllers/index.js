@@ -10,6 +10,9 @@
 // mismo archivo. Es el precio correcto.
 import { application } from "controllers/application"
 
+import AccionDelFormularioController from "controllers/accion_del_formulario_controller"
+application.register("accion-del-formulario", AccionDelFormularioController)
+
 import AsistenciaController from "controllers/asistencia_controller"
 import AutoEnvioController from "controllers/auto_envio_controller"
 import CampoFiltradoController from "controllers/campo_filtrado_controller"

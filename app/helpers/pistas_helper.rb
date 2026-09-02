@@ -39,10 +39,26 @@ module PistasHelper
   # El id sale del texto y no de un aleatorio: así una misma pista renderizada
   # dos veces no cambia de id entre peticiones, que rompería cualquier test que
   # la busque por selector.
+  # ⚠️ Cada pista lleva su PROPIA ancla, y esto fue un bug (MOR-196).
+  #
+  # Daniel, tocando el «?» del código DEA: *«le di a info y salió la del
+  # teléfono»* — *«o en el lugar del teléfono»*.
+  #
+  # El CSS tenía `anchor-name: --pista` para TODAS. Con varios elementos
+  # compartiendo el mismo nombre de ancla, el navegador resuelve al ÚLTIMO del
+  # documento: cada popover de la página se anclaba al último «?», que en el
+  # formulario del colegio es el del teléfono. Con una sola pista por pantalla
+  # se veía bien, y por eso pasó.
+  #
+  # El nombre sale del mismo hash que el id, así que es estable entre
+  # peticiones y no hay que inventar un contador.
   def pista(texto, etiqueta: "Qué es esto")
     id = "pista-#{Digest::SHA256.hexdigest(texto.to_s)[0, 10]}"
 
-    tag.span class: "pista" do
+    # Va por variable CSS y no escribiendo `anchor-name` a mano: así el popover
+    # —que es hijo del `span`— la hereda, y las reglas siguen viviendo en la
+    # hoja de estilos.
+    tag.span class: "pista", style: "--ancla: --#{id}" do
       safe_join([
         tag.button(icono(:info, tamano: 14), type: "button", class: "pista-boton",
                                              popovertarget: id, "aria-label": etiqueta),
