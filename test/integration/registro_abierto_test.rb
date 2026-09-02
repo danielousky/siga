@@ -193,7 +193,17 @@ class RegistroAbiertoTest < ActionDispatch::IntegrationTest
 
     correo = ActionMailer::Base.deliveries.last
     assert_equal [ DATOS[:email] ], correo.to
-    assert_equal "Bienvenido a SIGA", correo.subject
+    # ⚠️ El nombre completo va en el ASUNTO (MOR-206). Daniel: «Bienvenido a
+    # SIGA: Sistema de Gestión Académica…». Es la única línea que se lee en la
+    # bandeja, y quien se registró hace un minuto puede no acordarse de qué es
+    # «SIGA».
+    assert_equal "Bienvenido a SIGA · Sistema Integrado de Gestión Académica", correo.subject
+
+    # Multipart: HTML y texto plano. Un correo solo en HTML puntúa peor en los
+    # filtros, y éste es el PRIMERO que una persona recibe de SIGA — el que
+    # decide si los siguientes llegan a la bandeja o a la carpeta gris.
+    assert_equal %w[text/plain text/html],
+                 correo.parts.map { |parte| parte.content_type.split(";").first }
   end
 
   # ⚠️ El mismo filtro que el resto de la app, no una lista escrita acá

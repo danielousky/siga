@@ -1,0 +1,23 @@
+<%# ⚠️ ERB y no Haml. Haml no admite líneas INDENTADAS debajo de texto plano
+    —«Illegal nesting: nesting within plain text is illegal»— y un correo en
+    texto se escribe con sangrías: la lista de viñetas es sangría. Para una
+    plantilla que es texto y nada más, el motor de plantillas de texto es el
+    correcto. %>
+Bienvenido a SIGA, <%= Normaliza.titulo(@usuario.first_name) %>
+
+Su cuenta ya está creada. El próximo paso son los datos de su colegio, y de ahí
+en adelante puede empezar a cargar.
+
+PLAN INICIAL · GRATIS Y SIN VENCIMIENTO
+
+  - Alumnos, representantes y profesores, sin límite de cantidad
+  - Materias, grados, secciones e inscripciones
+  - El importador: si ya tiene la matrícula en un Excel, la sube y quedan
+    todas de una vez
+
+Entrar a SIGA: <%= @url %>
+
+Entra con este mismo correo y la contraseña que acaba de elegir.
+
+Si usted no creó esta cuenta, ignore este mensaje: sin la contraseña nadie
+puede entrar. Y si necesita algo, responda este correo — lo lee una persona.

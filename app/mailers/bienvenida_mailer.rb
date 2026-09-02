@@ -19,10 +19,19 @@
 # con la sesión abierta. Un correo con credenciales adentro es exactamente lo
 # que no hay que mandar.
 class BienvenidaMailer < ApplicationMailer
+  # ⚠️ Su propia plantilla, y no la de todos los mailers: `layouts/mailer` la
+  # comparte `ComunicacionMailer`, que es el correo que el COLEGIO le escribe a
+  # una familia. Un banner de SIGA ahí mentiría sobre quién escribe.
+  layout "mailer_siga"
+
   def cuenta_creada(usuario)
     @usuario = usuario
     @url     = root_url
 
-    mail to: usuario.email, subject: "Bienvenido a SIGA"
+    # Daniel: *«Bienvenido a SIGA: Sistema de Gestión Académica…»*. El nombre
+    # completo va en el asunto y no en el cuerpo porque es la única línea que se
+    # lee en la bandeja: quien se registró hace un minuto puede no acordarse de
+    # qué es «SIGA».
+    mail to: usuario.email, subject: "Bienvenido a SIGA · Sistema Integrado de Gestión Académica"
   end
 end

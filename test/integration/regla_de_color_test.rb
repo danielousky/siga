@@ -115,7 +115,12 @@ class ReglaDeColorTest < ActiveSupport::TestCase
   # La excepción es por CARPETA y no por archivo para que no haya que tocar este
   # test cada vez que se agregue un correo; y es solo `*_mailer`, así que una
   # vista de pantalla nunca cae acá por accidente.
-  CORREOS = %r{app/views/\w*_mailer/}
+  #
+  # ⚠️ Y el LAYOUT del correo también (MOR-206). La excepción cubría
+  # `app/views/*_mailer/` pero el banner —que es donde están casi todos los
+  # colores de un correo— vive en `layouts/mailer_siga`, o sea del otro lado del
+  # patrón. El nombre lo delata: `mailer` en un layout es un correo.
+  CORREOS = %r{app/views/(\w*_mailer/|layouts/mailer)}
   test "ninguna vista escribe un color a mano" do
     literales = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(/
 
