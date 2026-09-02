@@ -12,6 +12,15 @@ viajaría en cada petición al modelo además de invalidar el caché del prompt 
 
 ---
 
+## 🧠 Cómo se explica un cambio
+
+Daniel necesita **conocer** el proyecto, no solo recibirlo. Cada cambio se
+cuenta sintetizado y **con wireframes ASCII** —«a veces una imagen dice más que
+mil palabras»— antes de cualquier prosa. Está en el `CLAUDE.md` global; se
+repite acá porque este es el proyecto donde más pesa.
+
+---
+
 ## Project Overview
 
 SIGA (Sistema Integrado de Gestión Académica) es un SaaS de gestión académica para
