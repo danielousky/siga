@@ -1,10 +1,7 @@
-.card-academic
-  .card-academic-header
-    %h1 Grados
-    = link_to new_grade_path, class: "btn btn-primary" do
-      = icono(:agregar, tamano: 16)
-      %span Registrar grado
+= render "shared/cabecera_de_lista", titulo: "Grados",
+         alta: { ruta: new_grade_path, nombre: "Registrar grado" }
 
+.card-academic
   - if @grades.empty?
     -# ⚠️ El botón NO es «Nuevo grado»: los grados los fija la ley y se siembran
     -# marcando niveles (MOR-153). Mandar a crearlos de a uno es mandar a llenar

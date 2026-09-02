@@ -1,10 +1,7 @@
-.card-academic
-  .card-academic-header
-    %h1 Lapsos
-    = link_to new_evaluation_moment_path, class: "btn btn-primary" do
-      = icono(:agregar, tamano: 16)
-      %span Registrar lapso
+= render "shared/cabecera_de_lista", titulo: "Lapsos",
+         alta: { ruta: new_evaluation_moment_path, nombre: "Registrar lapso" }
 
+.card-academic
   - if @evaluation_moments.empty?
     -# ⚠️ Acá había una tabla con encabezados y nada debajo: un callejón, y
     -# justo en el paso 2 de 8 de la puesta en marcha.

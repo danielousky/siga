@@ -20,14 +20,14 @@
           - if usado < 100
             %span.weight-meter-falta= "· Faltan #{number_with_precision(100 - usado, precision: (100 - usado).to_d.frac.zero? ? 0 : 2)} %"
 
-.card-academic
-  .card-academic-header
-    %h1= profesor? ? "Mis Evaluaciones" : "Evaluaciones del Colegio"
-    - if profesor?
-      = link_to new_evaluation_activity_path, class: "btn btn-primary" do
-        = icono(:agregar, tamano: 16)
-        %span Registrar evaluación
+-# ⚠️ El alta la ve SOLO el profesor: una evaluación la crea quien la va a
+-# calificar. La cabecera acepta que no haya `alta:` y no dibuja el botón.
+- alta = ({ ruta: new_evaluation_activity_path, nombre: "Registrar evaluación" } if profesor?)
+= render "shared/cabecera_de_lista",
+         titulo: (profesor? ? "Mis Evaluaciones" : "Evaluaciones del Colegio"),
+         alta: alta
 
+.card-academic
   - if @lapsos_disponibles.many?
     .filter-pills
       = link_to "Todos los lapsos", evaluation_activities_path, class: "filter-pill #{'active' unless @lapso_filtrado}"
