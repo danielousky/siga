@@ -54,7 +54,7 @@ module EscenarioAcademico
     n = EscenarioAcademico.siguiente
 
     colegio = Current.sin_aislamiento do
-      School.create!(name: "#{nombre} #{n}", dea_code: "TEST-#{n}", location: "Caracas")
+      School.create!(name: "#{nombre} #{n}", dea_code: "TEST#{n}", location: "Caracas")
     end
 
     con_el_colegio(colegio) do

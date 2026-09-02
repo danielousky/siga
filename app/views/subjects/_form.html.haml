@@ -9,14 +9,14 @@
       = f.label :code, class: "form-label"
       -# ⚠️ Es un CÓDIGO: alfanumérico, sin espacios ni símbolos, en mayúscula.
       -# Sale impreso en el boletín y en la certificación 31059.
-      = f.text_field :code, class: "form-control campo-mayuscula", maxlength: 12, pattern: "[A-Za-z0-9]+", placeholder: "MAT", data: { tooltip: "Solo letras y números, sin espacios ni símbolos", controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9", campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
+      = f.text_field :code, class: "form-control campo-mayuscula", required: requerido?(Subject, :code), maxlength: 12, pattern: "[A-Za-z0-9]+", placeholder: "MAT", data: { tooltip: "Solo letras y números, sin espacios ni símbolos", controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9", campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
 
     .form-group
       = f.label :name, class: "form-label"
       -# El nombre es libre —acentos, espacios— pero se guarda en mayúscula, como
       -# el de una persona: lo cargado a mano y lo importado tienen que quedar
       -# igual, o el listado sale desparejo. `permite` vacío = no filtra nada.
-      = f.text_field :name, class: "form-control campo-mayuscula", placeholder: "Castellano y Literatura", data: { controller: "campo-filtrado", campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar" }
+      = f.text_field :name, class: "form-control campo-mayuscula", required: requerido?(Subject, :name), placeholder: "Castellano y Literatura", data: { controller: "campo-filtrado", campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar" }
 
   -# ⚠️ OPCIONAL, y hay que decirlo ACÁ.
   -#

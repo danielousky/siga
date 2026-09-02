@@ -9,7 +9,7 @@ class SembrarGradosTest < ActiveSupport::TestCase
   # Acá lo que se prueba es el arranque desde cero, que es el caso real: un
   # colegio recién dado de alta.
   setup do
-    @colegio = School.create!(name: "Colegio del Catálogo", dea_code: "CAT-#{Process.pid}",
+    @colegio = School.create!(name: "Colegio del Catálogo", dea_code: "CAT#{Process.pid}",
                               location: "Caracas")
   end
 
@@ -152,7 +152,7 @@ end
 # La Educación Media Técnica son SEIS años (MOR-153).
 class MediaTecnicaTest < ActiveSupport::TestCase
   setup do
-    @colegio = School.create!(name: "Técnico Industrial", dea_code: "TEC-#{Process.pid}",
+    @colegio = School.create!(name: "Técnico Industrial", dea_code: "TEC#{Process.pid}",
                               location: "Valencia")
   end
 

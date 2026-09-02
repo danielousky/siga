@@ -127,7 +127,7 @@ class BarraDeContextoTest < ActionDispatch::IntegrationTest
   # si lo hubiera.
   test "un colegio sin año escolar cargado lo dice, en vez de dejar el hueco" do
     recien_creado = Current.sin_aislamiento do
-      School.create!(name: "Colegio Recién Dado de Alta", dea_code: "TEST-NUEVO",
+      School.create!(name: "Colegio Recién Dado de Alta", dea_code: "TESTNUEVO",
                      location: "Caracas")
     end
     director = User.create!(first_name: "Directora", last_name: "Nueva",
@@ -141,7 +141,7 @@ class BarraDeContextoTest < ActionDispatch::IntegrationTest
     get dashboards_administrador_url
 
     assert_response :success
-    assert_select ".contexto-colegio-nombre", text: "Colegio Recién Dado de Alta"
+    assert_select ".contexto-colegio-nombre", text: "COLEGIO RECIÉN DADO DE ALTA"
     assert_select ".contexto-periodo-vacio", text: "Sin año escolar cargado"
   end
 

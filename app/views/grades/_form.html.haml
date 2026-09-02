@@ -9,7 +9,7 @@
   -# Teacher es SchoolScoped, así que ya solo trae los del colegio de la sesión.
   .form-group
     = f.label :name, class: "form-label"
-    = f.text_field :name, class: "form-control"
+    = f.text_field :name, class: "form-control", required: requerido?(Grade, :name)
 
   .form-group
     = f.label :level, class: "form-label"

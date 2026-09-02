@@ -29,8 +29,8 @@ class CarriesSchoolTest < ActiveJob::TestCase
     JobSinColegio.vistos = []
 
     Current.sin_aislamiento do
-      @bolivar = School.create!(name: "Bolívar QA", dea_code: "QA-BOL", location: "Caracas")
-      @bello   = School.create!(name: "Bello QA",   dea_code: "QA-BEL", location: "Valencia")
+      @bolivar = School.create!(name: "Bolívar QA", dea_code: "QABOL", location: "Caracas")
+      @bello   = School.create!(name: "Bello QA",   dea_code: "QABEL", location: "Valencia")
 
       # Mismo nombre en los dos: si el aislamiento fallara, el job los contaría juntos.
       Grade.create!(school: @bolivar, name: "1er Año", level: :secundaria)
@@ -51,7 +51,7 @@ class CarriesSchoolTest < ActiveJob::TestCase
     encolar_desde(@bolivar) { JobDeColegio.perform_later }
     perform_enqueued_jobs
 
-    assert_equal [["Bolívar QA", 2]], JobDeColegio.vistos
+    assert_equal [["BOLÍVAR QA", 2]], JobDeColegio.vistos
   end
 
   test "dos jobs de colegios distintos en el mismo worker no se contaminan" do
@@ -60,7 +60,7 @@ class CarriesSchoolTest < ActiveJob::TestCase
     perform_enqueued_jobs
 
     # Si el contexto sobreviviera al primer job, el segundo vería 2 y no 1.
-    assert_equal [["Bolívar QA", 2], ["Bello QA", 1]], JobDeColegio.vistos
+    assert_equal [["BOLÍVAR QA", 2], ["BELLO QA", 1]], JobDeColegio.vistos
   end
 
   test "el contexto no sobrevive al job" do

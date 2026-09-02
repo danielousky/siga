@@ -13,7 +13,7 @@ require "test_helper"
 class ColegioVacioTest < ActionDispatch::IntegrationTest
   setup do
     @colegio = Current.sin_aislamiento do
-      School.create!(name: "Colegio Recién Registrado", dea_code: "TEST-VACIO", location: "Caracas")
+      School.create!(name: "Colegio Recién Registrado", dea_code: "TESTVACIO", location: "Caracas")
     end
     @director = User.create!(first_name: "Directora", last_name: "Nueva",
                              email: "dir.colegio.vacio@test.test", password: "123123",

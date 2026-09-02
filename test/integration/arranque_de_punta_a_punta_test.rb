@@ -108,7 +108,7 @@ class ArranqueDePuntaAPuntaTest < ActionDispatch::IntegrationTest
     # ── 9. Y el colegio ya puede trabajar ────────────────────────────────────
     get dashboards_administrador_path
     assert_response :success
-    assert_select ".contexto-colegio-nombre", text: "U.E. Colegio Nuevo"
+    assert_select ".contexto-colegio-nombre", text: "U.E. COLEGIO NUEVO"
 
     get report_cards_path
     assert_response :success, "con la matrícula cargada, la emisión de boletines tiene que abrir"

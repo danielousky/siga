@@ -18,7 +18,7 @@ class AltaDeColegioTest < ActionDispatch::IntegrationTest
     sign_in @fundador
   end
 
-  COLEGIO = { name: "U.E. Nueva Esperanza", dea_code: "S-0001",
+  COLEGIO = { name: "U.E. Nueva Esperanza", dea_code: "S0001",
               location: "Guanare" }.freeze
   DIRECTORA = { first_name: "Rosa", last_name: "Peña", second_last_name: "Guillén",
                 email: "rosa.pena@nuevaesperanza.edu", document: "V-14.222.333",
@@ -84,7 +84,9 @@ class AltaDeColegioTest < ActionDispatch::IntegrationTest
     follow_redirect!
 
     assert_response :success
-    assert_match(/#{Regexp.escape(COLEGIO[:name])}/, response.body,
+    # ⚠️ En MAYÚSCULA (MOR-201): así se guarda y así se muestra el nombre de un
+    # colegio, porque el Tipo Título rompería la sigla inicial («U.e.»).
+    assert_match(/#{Regexp.escape(COLEGIO[:name].upcase)}/, response.body,
                  "tiene que caer en el panel de su propio colegio")
   end
 

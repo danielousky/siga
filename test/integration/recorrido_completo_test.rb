@@ -120,7 +120,7 @@ class RecorridoCompletoTest < ActionDispatch::IntegrationTest
   # dieciocho de una pasada. Y es el día 1 de cada cliente nuevo.
   test "ningún listado vacío deja una tabla con encabezados y nada debajo" do
     vacio = Current.sin_aislamiento do
-      School.create!(name: "Colegio Sin Nada", dea_code: "TEST-SINNADA", location: "Caracas")
+      School.create!(name: "Colegio Sin Nada", dea_code: "TESTSINNADA", location: "Caracas")
     end
     directora = User.create!(first_name: "Directora", last_name: "SinNada",
                              email: "dir.sinnada@test.test", password: "123123",

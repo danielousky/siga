@@ -28,9 +28,13 @@
       -# sabe qué es una parroquia no necesita leerlo cada vez que abre esto.
       = etiqueta_con_pista "school[entidad_federal]", "Estado",
                            pista: "La entidad, el municipio y la parroquia salen impresos en los documentos del ministerio. Conviene dejarlos bien desde ahora."
+      -# ⚠️ Obligatorio desde MOR-196: `location` se DEDUCE del municipio y el
+      -# estado, así que dejarlos vacíos hace fallar una validación sobre un
+      -# campo que ya no está en pantalla —el error decía «Ubicación», que la
+      -# persona no ve por ningún lado.
       = select_tag "school[entidad_federal]",
                    options_for_select(EntidadFederal::TODAS, colegio.entidad_federal),
-                   include_blank: "Seleccione el estado…", class: "form-select",
+                   include_blank: "Seleccione el estado…", class: "form-select", required: true,
                    data: { ubicacion_target: "entidad", action: "change->ubicacion#alCambiarEntidad" }
 
     .form-group
@@ -38,7 +42,7 @@
       -# El desplegable lo llena el controlador desde el catálogo. `data-actual`
       -# es lo que ya estaba guardado: si el formulario vuelve con errores, no se
       -# puede perder lo que la persona ya eligió.
-      = select_tag "school[municipio]", nil, class: "form-select",
+      = select_tag "school[municipio]", nil, class: "form-select", required: true,
                    data: { ubicacion_target: "municipio", actual: colegio.municipio,
                            action: "change->ubicacion#alCambiarMunicipio" }
       -# ⚠️ La salida a mano. El catálogo está incompleto y NO puede impedirle a

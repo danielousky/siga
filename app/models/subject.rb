@@ -39,7 +39,7 @@ class Subject < ApplicationRecord
   # distinto para el índice único, y el colegio termina con dos Matemáticas.
   validates :code, presence: true,
                    uniqueness: { scope: :school_id },
-                   format: { with: /\A[[:alnum:]]+\z/,
+                   format: { with: /\A[A-Za-z0-9]+\z/,
                              message: "solo admite letras y números, sin espacios ni símbolos" },
                    length: { maximum: 12 }
   validates :name, presence: true
@@ -82,7 +82,11 @@ class Subject < ApplicationRecord
   private
 
   def normalizar
-    self.code = code.to_s.gsub(/[^[:alnum:]]/, "").upcase.presence
+    # ⚠️ ASCII, no `[[:alnum:]]` (MOR-201). En Ruby esa clase incluye la Ñ y las
+    # vocales acentuadas, así que «ÑPPD01» pasaba como código válido. Un código se
+    # compara y se imprime en una planilla del MPPE: si admite acentos, dos
+    # códigos que se leen igual son distintos para el índice único.
+    self.code = code.to_s.gsub(/[^A-Za-z0-9]/, "").upcase.presence
     # ⚠️ `self[:name]` y no `name`: el getter ya devuelve Tipo Título, y pasarle
     # eso a `mayuscula` funcionaría de casualidad. Lo que se normaliza es lo que
     # llegó del formulario, no lo que el getter decide mostrar.

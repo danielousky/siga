@@ -271,7 +271,7 @@ class PuestaEnMarchaTest < ActionDispatch::IntegrationTest
   end
 
   def colegio_vacio
-    colegio = School.create!(name: "Colegio Recién Nacido", dea_code: "NUEVO-#{Process.pid}",
+    colegio = School.create!(name: "Colegio Recién Nacido", dea_code: "NUEVO#{Process.pid}",
                              location: "Caracas")
     persona = User.create!(first_name: "Nueva", last_name: "Directora",
                            email: "nueva.directora@aislamiento.test", password: "123123",

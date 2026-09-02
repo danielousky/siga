@@ -17,13 +17,26 @@
       .form-row
         .form-group
           = label_tag "school[name]", "Nombre del colegio", class: "form-label"
-          = text_field_tag "school[name]", @colegio.name, class: clase_de_campo(@colegio, :name),
-                           autofocus: true, placeholder: "U.E. Colegio San José"
+          -# ⚠️ En MAYÚSCULA y sin lista de letras (MOR-201). Daniel: «mayúscula
+          -# para los nombres». No lleva `permite` porque el nombre de un colegio
+          -# venezolano trae puntos y números —«U.E. Colegio San José», «E.B.N.
+          -# 24 de Julio»— y una lista de letras se los comería.
+          = text_field_tag "school[name]", @colegio.name, class: "#{clase_de_campo(@colegio, :name)} campo-mayuscula",
+                           autofocus: true, placeholder: "U.E. Colegio San José",
+                           required: requerido?(School, :name),
+                           data: { controller: "campo-filtrado", campo_filtrado_mayuscula_value: true,
+                                   action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar" }
         .form-group
           = etiqueta_con_pista "school[dea_code]", "Código DEA",
                                pista: "Lo asigna el ministerio. Si no lo tiene a mano, escriba algo provisional y corríjalo después: se puede cambiar."
-          = text_field_tag "school[dea_code]", @colegio.dea_code, class: clase_de_campo(@colegio, :dea_code),
-                           placeholder: "PD01234567"
+          -# ⚠️ Es un CÓDIGO: letras y números, nada más (MOR-201). Daniel, tras
+          -# escribir «--ñp´^`«+»: «no creo que incluya caracteres especiales».
+          = text_field_tag "school[dea_code]", @colegio.dea_code, class: "#{clase_de_campo(@colegio, :dea_code)} campo-mayuscula",
+                           placeholder: "PD01234567", required: requerido?(School, :dea_code),
+                           pattern: "[A-Za-z0-9]+",
+                           data: { tooltip: "Solo letras y números, sin espacios ni símbolos",
+                                   controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9",
+                                   campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
 
       -# ⚠️ Acá NO se pregunta qué dicta el colegio (MOR-159).
       -#

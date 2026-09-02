@@ -7,7 +7,7 @@ require "test_helper"
 class FirmaDelColegioTest < ActiveSupport::TestCase
   setup do
     @colegio = Current.sin_aislamiento do
-      School.create!(name: "U.E. Firma", dea_code: "FIR-001", location: "Caracas")
+      School.create!(name: "U.E. Firma", dea_code: "FIR001", location: "Caracas")
     end
   end
 
@@ -73,7 +73,7 @@ class FirmaDelColegioTest < ActiveSupport::TestCase
   test "escudo, firma y sello comparten validación" do
     %i[logo firma sello].each do |campo|
       colegio = Current.sin_aislamiento do
-        School.create!(name: "U.E. #{campo}", dea_code: "V-#{campo}", location: "Caracas")
+        School.create!(name: "U.E. #{campo}", dea_code: "V#{campo}", location: "Caracas")
       end
       colegio.public_send(campo).attach(io: StringIO.new("x" * (School::PESO_MAXIMO + 1)),
                                         filename: "x.png", content_type: "image/png")

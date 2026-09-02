@@ -83,7 +83,7 @@ puts "📚 Creando escuelas..."
 # `parroquia` salen IMPRESAS en los documentos del MPPE. Sin ellas, la demo
 # genera constancias con renglones en blanco — y es lo primero que mira un
 # director al que le estás mostrando el producto.
-school_bolivar = School.find_or_create_by!(dea_code: "BOL-001") do |s|
+school_bolivar = School.find_or_create_by!(dea_code: "BOL001") do |s|
   s.name = "U.E. Simón Bolívar"; s.location = "Caracas, Distrito Capital"
 end
 school_bolivar.update!(entidad_federal: "Distrito Capital", municipio: "Libertador",
@@ -95,7 +95,7 @@ school_bolivar.update!(entidad_federal: "Distrito Capital", municipio: "Libertad
 #
 # El contraste entre los dos colegios es además el mejor material de la demo:
 # mismo sistema, mismas pantallas, y cada uno calificando como le corresponde.
-school_bello = School.find_or_create_by!(dea_code: "AND-002") do |s|
+school_bello = School.find_or_create_by!(dea_code: "AND002") do |s|
   s.name = "U.E. Andrés Bello"; s.location = "Valencia, Carabobo"
 end
 school_bello.update!(entidad_federal: "Carabobo", municipio: "Valencia",

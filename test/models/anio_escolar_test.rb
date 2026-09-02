@@ -16,7 +16,7 @@ class AnioEscolarTest < ActiveSupport::TestCase
   # prueba es el arranque desde cero, que es el caso real.
   setup do
     @colegio = School.create!(name: "Colegio del Calendario",
-                              dea_code: "CAL-#{Process.pid}", location: "Caracas")
+                              dea_code: "CAL#{Process.pid}", location: "Caracas")
   end
 
   test "de un número salen el nombre y las dos fechas" do

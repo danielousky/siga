@@ -122,4 +122,35 @@ module ApplicationHelper
 
     "#{base} campo-con-error"
   end
+
+  # ¿El modelo EXIGE este campo? (MOR-201)
+  #
+  # ## Por qué se deduce y no se escribe
+  #
+  # Daniel, creando un colegio con todo vacío: *«el form no validó los campos,
+  # me permitió guardar sin decir los campos requeridos (todos)»*. Y era cierto:
+  # **ni un solo formulario de la app declaraba `required`**. El servidor
+  # rechazaba y pintaba el error, pero el navegador dejaba enviar — un viaje de
+  # ida y vuelta para enterarse de algo que se sabía antes de salir.
+  #
+  # Escribir `required: true` a mano funciona el primer día y se despareja el
+  # segundo: alguien afloja una validación del modelo y el asterisco se queda, o
+  # agrega una y el campo sigue dejando pasar. Preguntándole al modelo, las dos
+  # capas no pueden discrepar.
+  #
+  # ⚠️ Una presencia CONDICIONAL no cuenta. `validates :x, presence: true, if:
+  # ...` significa «a veces», y marcar el campo como obligatorio siempre
+  # impediría enviar el formulario justo en el caso en que no lo es. Igual con
+  # `on: :create` en un formulario de edición.
+  #
+  # ⚠️ Y `required` NO reemplaza la validación del modelo: es la capa que evita
+  # el viaje. Lo que llega por la API, por el importador o con el JavaScript
+  # apagado lo sigue atajando el modelo. Son las mismas tres capas que
+  # `campo-filtrado`.
+  def requerido?(clase, atributo)
+    clase.validators_on(atributo).any? do |validador|
+      validador.is_a?(ActiveModel::Validations::PresenceValidator) &&
+        validador.options.values_at(:if, :unless, :on, :allow_nil, :allow_blank).all?(&:blank?)
+    end
+  end
 end

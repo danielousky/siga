@@ -30,12 +30,12 @@
 
 .form-group
   = u.label :first_name, class: "form-label"
-  = u.text_field :first_name, class: "form-control", placeholder: local_assigns[:ejemplo_nombre], data: filtro_de_nombre
+  = u.text_field :first_name, class: "form-control", placeholder: local_assigns[:ejemplo_nombre], required: requerido?(User, :first_name), data: filtro_de_nombre
 
 .form-row
   .form-group
     = u.label :last_name, class: "form-label"
-    = u.text_field :last_name, class: "form-control", data: filtro_de_nombre
+    = u.text_field :last_name, class: "form-control", required: requerido?(User, :last_name), data: filtro_de_nombre
   .form-group
     = u.label :second_last_name, class: "form-label"
     = u.text_field :second_last_name, class: "form-control", data: filtro_de_nombre

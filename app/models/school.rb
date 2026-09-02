@@ -144,6 +144,22 @@ class School < ApplicationRecord
 
   private
 
+  # El nombre en MAYÚSCULA y el código sin lo que no es letra ni número.
+  #
+  # ⚠️ El nombre NO se muestra en Tipo Título como el de una persona o una
+  # materia (`MOR-188`), y es a propósito: los nombres de colegio venezolanos
+  # empiezan por una sigla —«U.E.», «E.B.N.», «C.E.I.»— y `titulo` la
+  # destrozaría («U.e.»). Acá la mayúscula es la forma de mostrar Y la de
+  # guardar.
+  def normalizar_el_nombre
+    self.name     = Normaliza.mayuscula(name)
+    # ⚠️ ASCII, no `[[:alnum:]]` (MOR-201). En Ruby esa clase incluye la Ñ y las
+    # vocales acentuadas, así que «ÑPPD01» pasaba como código válido. Un código se
+    # compara y se imprime en una planilla del MPPE: si admite acentos, dos
+    # códigos que se leen igual son distintos para el índice único.
+    self.dea_code = dea_code.to_s.gsub(/[^A-Za-z0-9]/, "").upcase.presence
+  end
+
   def deducir_la_ubicacion
     return if location.present?
 
@@ -183,7 +199,21 @@ class School < ApplicationRecord
   has_many :grades, dependent: :restrict_with_error
   has_many :subjects, dependent: :restrict_with_error
 
-  validates :dea_code, presence: true, uniqueness: true
+  # ⚠️ El código DEA es un CÓDIGO (MOR-201).
+  #
+  # Daniel, después de escribir «--ñp´^`«+» en el campo: *«para el código DEA no
+  # creo que incluya caracteres especiales»*. No los incluye: lo asigna el MPPE
+  # y tiene la forma «PD01234567» —letras y dígitos—. Es la misma regla que el
+  # código de una materia (`MOR-185`), y por la misma razón: un código se
+  # compara, se busca y se imprime en una planilla; un acento o un guion bajo lo
+  # vuelven otro código.
+  #
+  # No se valida el LARGO ni el prefijo: el MPPE los ha cambiado, y rechazar un
+  # código correcto porque nuestro patrón envejeció deja al colegio sin poder
+  # registrarse.
+  validates :dea_code, presence: true, uniqueness: true,
+                       format: { with: /\A[A-Za-z0-9]+\z/,
+                                 message: "solo admite letras y números, sin espacios ni símbolos" }
   validates :name, :location, presence: true
 
   # ⚠️ La ciudad NO se pregunta si ya se preguntó dónde queda (MOR-196).
@@ -198,5 +228,6 @@ class School < ApplicationRecord
   # en la barra de arriba y en el panel de SIGA, donde «Libertador, Distrito
   # Capital» se lee de un vistazo y tres columnas no. Se deduce, y sigue siendo
   # editable en la ficha del colegio para el que prefiera decir «Caracas».
+  before_validation :normalizar_el_nombre
   before_validation :deducir_la_ubicacion
 end

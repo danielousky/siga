@@ -26,7 +26,7 @@ class ImportarMatriculaTest < ActionDispatch::IntegrationTest
     sign_out @a.director
 
     @nuevo = Current.sin_aislamiento do
-      School.create!(name: "U.E. Recién Abierta", dea_code: "S-9100",
+      School.create!(name: "U.E. Recién Abierta", dea_code: "S9100",
                      location: "Caracas")
     end
     directora = User.create!(first_name: "Rosa", last_name: "Peña",
