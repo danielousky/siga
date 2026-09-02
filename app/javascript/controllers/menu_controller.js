@@ -23,7 +23,7 @@ import { Controller } from "@hotwired/stimulus"
 // abierto taparía la primera fila de datos, así que al llegar se cierran todos.
 export default class extends Controller {
   static targets = ["grupo"]
-  static CLAVE = "menu_plegado"
+  static CLAVE = "menu_abierto"
   static ANGOSTO = 768
 
   connect() {
@@ -90,15 +90,21 @@ export default class extends Controller {
 
   // ── lo que se recuerda ────────────────────────────────────────────────
 
+  // ⚠️ Se anota lo ABIERTO, no lo plegado (MOR-203).
+  //
+  // Desde que los grupos nacen cerrados, una lista de «los que cerré» no sirve:
+  // abrir uno lo sacaba de la lista y en la página siguiente volvía a su
+  // default —cerrado—, o sea que el menú se olvidaba de lo que la persona
+  // acababa de hacer. La lista tiene que ser de lo que se apartó del default.
   recordar(grupo) {
-    const plegados = new Set(this.leer())
+    const abiertos = new Set(this.leer())
 
-    if (grupo.open) plegados.delete(grupo.id)
-    else plegados.add(grupo.id)
+    if (grupo.open) abiertos.add(grupo.id)
+    else abiertos.delete(grupo.id)
 
     const anio = 60 * 60 * 24 * 365
     document.cookie =
-      `${this.constructor.CLAVE}=${encodeURIComponent([...plegados].join(","))}` +
+      `${this.constructor.CLAVE}=${encodeURIComponent([...abiertos].join(","))}` +
       `; path=/; max-age=${anio}; samesite=lax`
   }
 

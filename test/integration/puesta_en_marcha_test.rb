@@ -68,15 +68,18 @@ class PuestaEnMarchaTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select ".puesta-en-marcha", 1
-    # ⚠️ SIETE, no ocho: «las materias» y «los profesores» se fusionaron en un
-    # solo paso (QA del 1/9). Una planilla de pensum trae las dos cosas, así que
-    # con dos pasos separados subirla ponía dos en verde a la vez y el segundo
-    # mandaba a una pantalla ya hecha.
-    assert_select "li.paso", 7
+    # ⚠️ «Las materias» y «los profesores» son UN paso (QA del 1/9): una planilla
+    # de pensum trae las dos cosas, así que separados subirla ponía dos en verde
+    # a la vez y el segundo mandaba a una pantalla ya hecha.
+    #
+    # El octavo es el historial (MOR-203), que va último y es opcional.
+    assert_select "li.paso", 8
 
     con_el_colegio(vacio) do
       claves = PasosDeArranque.para(vacio).map(&:clave)
       assert_equal :niveles, claves.first, "lo primero es elegir los niveles"
+      assert_equal :historial, claves.last,
+                   "el historial va último: cuelga de alumnos que tienen que existir"
     end
   end
 

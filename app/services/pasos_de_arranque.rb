@@ -111,7 +111,7 @@ class PasosDeArranque
     # está, así que quien suba el pensum antes de armar las secciones va a verlas
     # listadas como faltantes. No es un callejón —la previsualización ofrece
     # crearlas de un clic, con su conteo— pero es un paso más que antes no había.
-    [ niveles, identidad, departamentos, materias, ano_escolar, secciones, alumnos ]
+    [ niveles, identidad, departamentos, materias, ano_escolar, secciones, alumnos, historial ]
   end
 
   private
@@ -262,6 +262,40 @@ class PasosDeArranque
       # pantalla que arme un año escolar desde el alta de una sección.
       listo: cargados.positive?,
       resultado: cargados.positive? ? contar(cargados, "alumno", "alumnos") : nil
+    )
+  end
+
+  # Las notas de los años anteriores (MOR-203).
+  #
+  # Daniel: *«en la puesta en marcha falta el paso de cargar las notas
+  # históricas la primera vez; el enlace está muy oculto»*. Y estaba: el
+  # importador de historial existe desde `MOR-126` y se llegaba a él por
+  # Configuración → Importar datos → elegir el tipo. Tres clics para el paso que
+  # decide si un colegio puede emitir una constancia el primer día.
+  #
+  # ⚠️ Va ÚLTIMO y es OPCIONAL, las dos cosas a propósito:
+  #
+  #   - último, porque el historial cuelga de alumnos que tienen que existir;
+  #   - opcional, porque un colegio que abre este año no tiene historial que
+  #     cargar, y un paso que no puede completar nunca deja la lista en «7 de 8»
+  #     para siempre.
+  #
+  # ⚠️ Y se marca listo con `FinalGradeBook` importado, no con cualquier nota:
+  # las notas del año en curso las carga el profesor y no dicen nada sobre si el
+  # colegio trajo su historia.
+  def historial
+    importadas = FinalGradeBook.unscoped.where(school_id: Current.school_id, origen: :importada).count
+
+    Paso.new(
+      clave: :historial, vacio: "Todavía no hay historial cargado", icono: :importar, opcional: true,
+      titulo: "Las notas de los años anteriores",
+      explicacion: "Solo la primera vez. Si el colegio ya venía funcionando, suba las notas " \
+                   "de los años pasados: son las que hacen falta para emitir una constancia " \
+                   "o la certificación de un egresado. Cada fila trae su propio año.",
+      verbo: "Subir el historial", ruta: :importaciones,
+      listo: importadas.positive?,
+      omitido: colegio.omitio_paso?(:historial),
+      resultado: importadas.positive? ? contar(importadas, "nota importada", "notas importadas") : nil
     )
   end
 

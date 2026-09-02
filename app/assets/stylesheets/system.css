@@ -5529,24 +5529,31 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   color: var(--text-primary);
 }
 
-/* ⚠️ 92ch y no 62 (MOR-202). Daniel: «no entiendo cuál es la razón por la que
-   los textos de ayuda están recortados y no ocupan el ancho», y «esos textos
-   deberían ser más llamativos».
+/* La explicación del paso, como un aviso (MOR-203).
+   ────────────────────────────────────────────────
+   Daniel, en dos vueltas: «esos textos deberían ser más llamativos» y «aún las
+   descripciones están más cortas que el ancho total; deberían ser mensajes tipo
+   warning o info».
 
-   La razón ERA buena —62ch es la medida cómoda de lectura— pero está pensada
-   para un párrafo largo, y acá son dos renglones dentro de una tarjeta de 1.400
-   px: cortados a la mitad se leen como si estuvieran truncados, no como una
-   columna. 92ch sigue siendo una medida y usa el ancho que hay.
+   ⚠️ El tono es AZUL y no ámbar, y eso no contradice el pedido: la regla de
+   color (MOR-135) reserva el ámbar, el verde y el rojo para el DATO —un ámbar
+   acá compite con «196 alumnos sin representante», que sí es una anomalía—. La
+   familia fría queda libre para el cromo, y un aviso informativo es cromo: no
+   dice que algo esté mal, dice qué es este paso.
 
-   Y el tono sube a `--text-primary`: esto no es una nota al pie, es lo que
-   explica el paso que la persona está por hacer. En gris secundario competía
-   —y perdía— contra el título. */
+   ⚠️ Y sin `max-width`. Lo tuvo en 62ch y después en 92ch, y las dos veces
+   Daniel vio el texto cortado antes del borde. La medida cómoda de lectura está
+   pensada para un párrafo largo; acá son dos renglones dentro de una caja que
+   YA los acota con su propio relleno. */
 .paso-explicacion {
   margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  border-left: 3px solid var(--brand-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
   font-size: 15px;
   line-height: 1.6;
   color: var(--text-primary);
-  max-width: 92ch;
   text-wrap: pretty;
 }
 

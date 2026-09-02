@@ -35,14 +35,26 @@ module MenuHelper
     def initialize(nombre:, icono:, ruta:, tambien_en: []) = super
   end
 
-  # Un grupo plegable. `abierto_por_defecto` es para los que se usan todos los
-  # días: nadie quiere abrir un acordeón para llegar a Alumnos.
+  # Un grupo plegable, que nace PLEGADO (MOR-203).
+  #
+  # Daniel: *«el enlace está muy oculto; creo que por defecto los grupos del
+  # sidebar deberían estar contraídos y solo desplegar el grupo que el usuario
+  # requiera»*.
+  #
+  # Suena contradictorio —esconder para encontrar— y no lo es: con los cinco
+  # grupos abiertos el menú son veintitantos renglones que no caben en una
+  # pantalla, así que la mitad vive debajo del pliegue y hay que scrollear el
+  # menú para leerlo. Plegados, los cinco títulos se ven de una y la persona abre
+  # uno.
+  #
+  # ⚠️ El grupo de la pantalla actual se abre solo (`grupo_abierto?`), así que
+  # nadie aterriza sin saber dónde está parado.
   #
   # Un grupo SIN título no se pliega: es el «Panel» suelto de arriba. Se
   # representa así, y no con un caso aparte en la plantilla, para que el menú
   # tenga UNA forma y el renderizador un solo camino.
   Grupo = Data.define(:titulo, :enlaces, :abierto_por_defecto) do
-    def initialize(titulo: nil, enlaces:, abierto_por_defecto: true) = super
+    def initialize(titulo: nil, enlaces:, abierto_por_defecto: false) = super
 
     def plegable? = titulo.present?
 
@@ -76,8 +88,7 @@ module MenuHelper
       Grupo.new(titulo: "Académico", enlaces: enlaces_academicos),
       Grupo.new(titulo: "Día a día", enlaces: enlaces_del_dia),
       Grupo.new(titulo: "Reportes", enlaces: enlaces_de_reportes),
-      Grupo.new(titulo: "Configuración", enlaces: enlaces_de_configuracion,
-                abierto_por_defecto: false)
+      Grupo.new(titulo: "Configuración", enlaces: enlaces_de_configuracion)
     ].reject { |grupo| grupo.enlaces.empty? }
   end
 
@@ -182,14 +193,18 @@ module MenuHelper
   end
 
   # Un grupo se dibuja abierto si estás adentro —esconder dónde estás parado es
-  # peor que un menú largo—, si la persona lo dejó abierto, o si es de los que
-  # nacen abiertos.
+  # peor que un menú largo— o si la persona lo dejó abierto.
+  #
+  # ⚠️ La cookie anota lo ABIERTO y ya no lo plegado (MOR-203). Con los grupos
+  # naciendo cerrados, una lista de «los que cerré» no alcanza: abrir uno lo
+  # sacaba de esa lista y en la página siguiente volvía a su default, que ahora
+  # es cerrado. O sea que el menú se olvidaba de lo que la persona acababa de
+  # hacer. La lista tiene que ser de lo que se APARTÓ del default, y el default
+  # cambió de lado.
   def grupo_abierto?(grupo)
     return true unless grupo.plegable?
     return true if grupo_activo?(grupo)
-
-    plegados = cookies[:menu_plegado].to_s.split(",")
-    return false if plegados.include?(grupo.id)
+    return true if cookies[:menu_abierto].to_s.split(",").include?(grupo.id)
 
     grupo.abierto_por_defecto
   end
