@@ -6091,21 +6091,31 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   flex: 1;
 }
 
-/* El buscador: 40 % del ancho de la pantalla (MOR-194).
-   ────────────────────────────────────────────────────
-   Daniel, cuando la cabecera pasó a dos renglones: «ahora sí puedes estirar con
-   libertad el input, dame más, yo diría que un 40 % del ancho total del display,
-   por ahí».
+/* El buscador se COME el espacio que sobra (MOR-194).
+   ──────────────────────────────────────────────────
+   Daniel: «tenemos todo ese espacio muerto, podemos estirar más el input de
+   buscar».
 
-   Se mide en `vw` y no en píxeles a propósito: en el monitor grande donde
-   trabaja un director el campo crece con la pantalla, y 500 px fijos se veían
-   cada vez más chicos. El tope de 720 px existe para que en un monitor
-   ultra-ancho no termine siendo una franja de mil píxeles para escribir un
-   apellido.
+   ⚠️ Y por eso ya no lleva un ancho fijo. Tuvo `width: min(40vw, 720px, 100%)`
+   y NO funcionaba: el `100%` se resuelve contra `.campo-con-boton`, cuyo ancho
+   lo decide su contenido —o sea el propio campo—. La referencia era circular,
+   ganaba el contenido, y el campo quedaba en 230 px por más `vw` que se le
+   escribiera al lado.
 
-   `min()` con el 100 % es lo que impide el desborde en el teléfono: manda el
-   más chico de los tres. */
-.cabecera-de-lista .search-input-wrap { width: min(40vw, 720px, 100%); }
+   Lo que sí funciona es dejar que el grupo CREZCA: el formulario se lleva el
+   sobrante de la fila y el grupo se lleva el sobrante del formulario. El tope
+   existe para que en un monitor ultra-ancho no sea una franja de mil píxeles
+   para escribir un apellido. */
+.cabecera-de-lista .campo-con-boton {
+  flex: 1;
+  min-width: 0;
+  max-width: 720px;
+}
+
+.cabecera-de-lista .search-input-wrap {
+  flex: 1;
+  min-width: 0;
+}
 
 .cabecera-de-lista-select {
   width: auto;
@@ -6159,16 +6169,12 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   .cabecera-de-lista .search-input-wrap { flex: 1; width: auto; }
   .cabecera-de-lista-select { width: 100%; }
 
-  /* Con los controles apilados, el [+] ya no va «al final de la fila»: es una
-     fila más, y con su nombre puesto — en el teléfono no hay hover que muestre
-     el tooltip. */
-  .cabecera-de-lista .btn-solo-icono {
+  /* Con los controles apilados, el botón ya no va «al final de la fila»: es
+     una fila más. */
+  .cabecera-de-lista .btn-agregar {
     margin-left: 0;
     width: 100%;
-    gap: var(--space-xs);
   }
-
-  .btn-solo-icono-texto { display: inline; }
 }
 
 /* Un campo y su botón, pegados: son UN control (MOR-192).
@@ -6244,18 +6250,21 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
    más chico que el campo de al lado rompe la línea. Y 36 px es además el
    mínimo cómodo para un dedo — más chico se falla al tocarlo en el teléfono,
    que es donde un profesor usa esto. */
-.btn-solo-icono {
-  /* Al final del renglón, separado de los filtros. */
+/* El botón de alta, con su nombre puesto (MOR-194).
+   ────────────────────────────────────────────────
+   Daniel: «colocarle el nombre [+ Agregar] al botón de new». Nació como un [+]
+   pelado porque la cabecera era un solo renglón y no había sitio; con dos
+   renglones sobra, y un botón que se lee no necesita que nadie lo descubra.
+
+   ⚠️ El tooltip NO se quita: dice «Registrar inscripción», o sea QUÉ se agrega.
+   Es lo que sostiene la regla de MOR-175 —una acción, un nombre— ahora que lo
+   visible es el verbo a secas. */
+.btn-agregar {
   margin-left: auto;
-  width: 36px;
-  /* En el escritorio el nombre lo dice el tooltip: el texto sobra. Se esconde
-     con `display: none` y no se omite del HTML, para que exista un solo botón y
-     no dos que haya que mantener parejos. */
-  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--space-xs);
   flex: 0 0 auto;
+  white-space: nowrap;
 }
-
-.btn-solo-icono-texto { display: none; }

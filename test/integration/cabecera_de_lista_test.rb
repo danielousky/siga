@@ -41,13 +41,13 @@ class CabeceraDeListaTest < ActionDispatch::IntegrationTest
     assert_empty sin_cabecera, "listados que no usan shared/_cabecera_de_lista"
   end
 
-  # ⚠️ El [+] es un control que es SOLO un icono, así que el tooltip **es** su
-  # nombre: sin él no hay manera de saber a dónde lleva. Y el `aria-label` no es
-  # decorativo — un lector de pantalla anuncia «enlace» y nada más.
+  # ⚠️ El botón se lee («Agregar») pero el tooltip dice QUÉ se agrega. Los dos
+  # hacen falta: sin el tooltip, ocho pantallas tienen un botón idéntico que
+  # lleva a ocho sitios distintos.
   test "el boton de alta dice qué registra, y lo dice dos veces" do
     fallan = listados.filter_map do |ruta, nombre|
       get ruta
-      boton = css_select(".cabecera-de-lista .btn-solo-icono").first
+      boton = css_select(".cabecera-de-lista .btn-agregar").first
       next "#{ruta}: no tiene [+]" if boton.nil?
       next if boton["data-tooltip"] == nombre && boton["aria-label"] == nombre
 

@@ -35,6 +35,13 @@ require "test_helper"
 class NombresDeLasAccionesTest < ActiveSupport::TestCase
   VISTAS = Rails.root.join("app/views").freeze
 
+  # ⚠️ `importaciones` no tiene UN alta: tiene tres puertas al mismo `new` —
+  # «Subir la matrícula», «Subir materias y profesores», «Subir notas
+  # anteriores»— y cada una carga una planilla distinta. «Registrar
+  # importación» no significaría nada para un director; lo que él elige es QUÉ
+  # sube. Es la misma excepción que los verbos de `PasosDeArranque`.
+  SIN_ALTA_UNICA = %w[importaciones].freeze
+
   # Cada carpeta con `index` + `new`: el botón de la cabecera y el título.
   def altas
     VISTAS.glob("*/new.html.haml").filter_map do |nueva|
@@ -47,6 +54,25 @@ class NombresDeLasAccionesTest < ActiveSupport::TestCase
 
       [ nueva.dirname.basename.to_s, boton, titulo ]
     end
+  end
+
+  # ⚠️ Lo primero: comprobar que se está COMPROBANDO algo.
+  #
+  # Los tres tests de abajo recorren `altas` y saltan lo que no puedan leer. Con
+  # `boton_de_cabecera` devolviendo `nil` —lo que pasó desde MOR-192— la lista
+  # quedaba vacía y los tres pasaban sin mirar una sola vista. Verde por no
+  # haber hecho nada, que es la peor manera de estar verde.
+  test "la lista de altas no está vacía: si no, los demás tests no prueban nada" do
+    faltan = Dir[Rails.root.join("app/views/*/new.html.haml")].filter_map do |nueva|
+      carpeta = File.basename(File.dirname(nueva))
+      next unless File.exist?(File.join(File.dirname(nueva), "index.html.haml"))
+      next if SIN_ALTA_UNICA.include?(carpeta)
+
+      carpeta unless altas.any? { |c, _, _| c == carpeta }
+    end
+
+    assert_empty faltan, "listados con alta que este test NO está mirando: #{faltan.join(', ')}"
+    assert_operator altas.size, :>=, 8, "se esperaban al menos los ocho listados"
   end
 
   test "todos los botones de alta empiezan por «Registrar»" do
@@ -144,11 +170,41 @@ class NombresDeLasAccionesTest < ActiveSupport::TestCase
   # La primera versión usaba `/card-academic-header.*?%span (.+)$/m` y con `/m`
   # el punto también casa saltos de línea: se comía media vista y devolvía como
   # «botón» un bloque de veinte renglones.
+  # ⚠️ Se lee del `alta:` de `shared/_cabecera_de_lista`, y esto es un ARREGLO.
+  #
+  # Buscaba `card-academic-header` —la cabecera vieja— y MOR-192 se la llevó de
+  # las ocho vistas de listado. Desde entonces devolvía `nil` en todas, así que
+  # los tres tests de este archivo pasaban por no examinar nada: el `next` los
+  # saltaba en silencio. Es la misma clase de falla que la regla de CSS
+  # huérfana de MOR-194 — algo deja de aplicar y no hay error que lo diga.
+  #
+  # Ahora el nombre vive en un solo lugar del marcado, así que se lee de ahí. El
+  # botón MUESTRA «Agregar»; el nombre completo —«Registrar inscripción»— es el
+  # del tooltip, que es lo que esta regla cuida.
   def boton_de_cabecera(indice)
-    lineas = indice.read.lines
-    desde = lineas.index { |l| l.include?("card-academic-header") }
-    return nil if desde.nil?
+    texto = indice.read
 
-    lineas[desde + 1, 6].to_a.filter_map { |l| l[/^\s*%span ([A-ZÁÉÍÓÚ].+)$/, 1]&.strip }.first
+    # La cabecera nueva: el nombre viaja en el `alta:` del parcial.
+    nombre = texto[/nombre: "([^"]+)"/, 1]
+    return nombre if nombre
+
+    # ⚠️ Y la vieja, que sigue viva en los seis listados SIN buscador —grados,
+    # lapsos, años escolares, administradores, evaluaciones, importaciones—.
+    # Leer solo una de las dos formas es lo que dejó este test ciego.
+    # ⚠️ La cabecera que TIENE el enlace al alta, no la primera del archivo.
+    # En Evaluaciones hay dos `card-academic-header` y el botón está en la
+    # segunda: quedarse con la primera devolvía `nil` y salteaba la vista.
+    lineas = texto.lines
+    lineas.each_index do |i|
+      next unless lineas[i].include?("card-academic-header")
+
+      bloque = lineas[i + 1, 8].to_a
+      next unless bloque.any? { |l| l.include?("new_") && l.include?("_path") }
+
+      nombre = bloque.filter_map { |l| l[/^\s*%span ([A-ZÁÉÍÓÚ].+)$/, 1]&.strip }.first
+      return nombre if nombre
+    end
+
+    nil
   end
 end
