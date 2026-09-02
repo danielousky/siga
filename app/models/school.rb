@@ -215,6 +215,9 @@ class School < ApplicationRecord
                        format: { with: /\A[A-Za-z0-9]+\z/,
                                  message: "solo admite letras y números, sin espacios ni símbolos" }
   validates :name, :location, presence: true
+  validates :name, format: { with: /\A[#{Normaliza::LETRAS_DE_INSTITUCION}]+\z/,
+                             message: "solo admite letras, números y los signos . , & \u2019 -" },
+                   allow_blank: true
 
   # ⚠️ La ciudad NO se pregunta si ya se preguntó dónde queda (MOR-196).
   #

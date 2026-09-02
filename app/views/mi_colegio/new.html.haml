@@ -17,14 +17,20 @@
       .form-row
         .form-group
           = label_tag "school[name]", "Nombre del colegio", class: "form-label"
-          -# ⚠️ En MAYÚSCULA y sin lista de letras (MOR-201). Daniel: «mayúscula
-          -# para los nombres». No lleva `permite` porque el nombre de un colegio
-          -# venezolano trae puntos y números —«U.E. Colegio San José», «E.B.N.
-          -# 24 de Julio»— y una lista de letras se los comería.
+          -# ⚠️ En MAYÚSCULA y con SU lista de caracteres (MOR-201).
+          -#
+          -# Daniel: «mayúscula para los nombres», y después «caracteres
+          -# especiales en el nombre» tras escribir «La ^}´+ Escuelita^`[]».
+          -#
+          -# No sirve la lista de una persona: un plantel venezolano lleva puntos
+          -# y números —«U.E. Colegio San José», «E.B.N. 24 de Julio»— y las
+          -# letras a secas dejarían «UE Colegio San José».
           = text_field_tag "school[name]", @colegio.name, class: "#{clase_de_campo(@colegio, :name)} campo-mayuscula",
                            autofocus: true, placeholder: "U.E. Colegio San José",
                            required: requerido?(School, :name),
-                           data: { controller: "campo-filtrado", campo_filtrado_mayuscula_value: true,
+                           data: { controller: "campo-filtrado",
+                                   campo_filtrado_permite_value: Normaliza::LETRAS_DE_INSTITUCION,
+                                   campo_filtrado_mayuscula_value: true,
                                    action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar" }
         .form-group
           = etiqueta_con_pista "school[dea_code]", "Código DEA",

@@ -102,6 +102,33 @@ module Normaliza
   # ⚠️ El guion va AL FINAL, o «ñ-'» se leería como un rango.
   LETRAS_DE_NOMBRE = "A-Za-z#{BusquedaSinAcentos::ACENTOS}#{BusquedaSinAcentos::ACENTOS.upcase} '-".freeze
 
+  # Qué puede tener el nombre de un COLEGIO (MOR-201).
+  #
+  # Daniel, después de escribir «La ^}´+ Escuelita^`[]»: *«caracteres especiales
+  # en el nombre»*.
+  #
+  # No sirve la lista de una persona: los nombres venezolanos de plantel llevan
+  # puntos y números —«U.E. Colegio San José», «E.B.N. 24 de Julio», «U.E.P.
+  # Nuestra Señora de Fátima»— y filtrarlos con las letras a secas dejaría
+  # «UE Colegio San José», que no es como se firma un documento.
+  #
+  # Lo que se agrega es lo que aparece de verdad en la fachada de un colegio:
+  # dígitos, el punto de las siglas, la coma, el guion, el apóstrofo y el `&` de
+  # «U.E. Andrés Bello & Cía.» —que existe, y que ya tenía un test propio porque
+  # es el carácter que rompe el escapado del PDF—. Fuera queda lo que Daniel
+  # tecleó, que no aparece en ningún plantel del país.
+  #
+  # ⚠️ Es una lista de lo PERMITIDO y no de lo prohibido, como el resto de los
+  # filtros: la lista de lo que no se quiere es infinita y siempre falta un
+  # símbolo.
+  #
+  # ⚠️ El guion va AL FINAL de la clase de caracteres, o `'-0` se lee como un
+  # RANGO —del apóstrofo al cero— y deja pasar medio ASCII sin que nadie lo
+  # note. Por eso no se concatena con `LETRAS_DE_NOMBRE`, que ya termina en
+  # guion: se arma aparte.
+  LETRAS_DE_INSTITUCION =
+    "A-Za-z0-9#{BusquedaSinAcentos::ACENTOS}#{BusquedaSinAcentos::ACENTOS.upcase} .,&'-".freeze
+
   # Partículas que NO se capitalizan cuando van en medio: «De la Cruz», no «De
   # La Cruz». `san`, `santa` y `mc` sí se capitalizan —San Martín, McDonald— y
   # por eso esta lista no es la misma que la de `NombreDePersona`.
