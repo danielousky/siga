@@ -181,7 +181,83 @@ Secciones, quién dicta qué, matrícula e historial. ⚠️ Casi todo eso lo tr
 importador, así que la lista tiene que reaccionar a lo importado y no pedir dos
 veces lo mismo.
 
-### Lo que hay que decidir antes de escribir código
+### Decidido (Daniel, 2 de septiembre de 2026)
+
+1. **El cargo:** *«podemos agregar el rol de asistente»*. Se suma `asistente` al
+   enum de `Admin#role`.
+2. **Los departamentos:** *«no es un drama crearle departamentos a un colegio
+   pequeño, puede servirle. La idea es que igual ellos pueden luego cambiar el
+   nombre del dpto y reasignar FÁCILMENTE las materias que lo componen»*. Se
+   crean siempre. ⚠️ Y eso agrega trabajo: **reasignar materias entre
+   departamentos tiene que ser fácil**, cosa que hoy solo se puede haciendo
+   `Editar` en cada materia, una por una.
+3. **El correo:** se valida al escribir, como se pidió. La objeción que levanté
+   no aplicaba: el formulario **ya** dice «Correo ya está en uso» al enviar, así
+   que hacerlo en vivo no expone nada nuevo — solo llega antes.
+4. **Cuatro años atrás**, y las fechas son una AYUDA, no una ley. Daniel: *«al
+   final lo que hace falta es el año; las fechas de inicio y culminación son un
+   estimado, no una regla inquebrantable»*. ⚠️ Vale para el código: se proponen
+   fechas razonables y el colegio las corrige; nada debe romperse si no
+   coinciden con el calendario real.
+
+### El pensum oficial (investigado, 2 de septiembre de 2026)
+
+⚠️ **Hay una diferencia entre lo que dice el currículo y lo que un colegio
+escribe en un boletín, y no se puede ignorar.** El Currículo Bolivariano agrupa
+en pocas «áreas de aprendizaje» amplias; un colegio privado califica materias
+más finas. Sembrar las áreas oficiales daría un boletín que ningún
+representante reconoce.
+
+**Media General — las 14 áreas de formación (MPPE, 2017), con su año exacto.**
+Esta parte es oficial y está completa, así que se puede sembrar tal cual, con
+sus `GradeSubject` por año:
+
+| Área de formación | Años |
+| -- | -- |
+| Castellano | 1.º a 5.º |
+| Matemáticas | 1.º a 5.º |
+| Educación Física | 1.º a 5.º |
+| Inglés y otras lenguas extranjeras | 1.º a 5.º |
+| Orientación y Convivencia | 1.º a 5.º |
+| Participación en Grupos de Creación, Recreación y Producción | 1.º a 5.º |
+| Geografía, Historia y Ciudadanía | 1.º a 5.º |
+| Ciencias Naturales | 1.º y 2.º |
+| Arte y Patrimonio | 1.º y 2.º |
+| Física · Química · Biología | 3.º a 5.º |
+| Formación para la Soberanía Nacional | 4.º y 5.º |
+| Ciencias de la Tierra | 5.º |
+
+⚠️ **Esto explica algo del modelo que ya está**: Física, Química y Biología
+empiezan en 3.º y Ciencias Naturales termina en 2.º. Sembrarlas en todos los
+años llenaría el boletín de un primer año con materias que no cursa.
+
+**Primaria — las cuatro áreas oficiales son demasiado gruesas.** El currículo
+de 2007 define «Lenguaje, Comunicación y Cultura», «Matemática, Ciencias
+Naturales y Sociedad», «Ciencias Sociales, Ciudadanía e Identidad» y «Educación
+Física, Deportes y Recreación». Lo que un colegio califica, y lo que Daniel
+nombró, es más fino: **Lengua, Matemática, Ciencias Naturales, Ciencias
+Sociales, Educación Física y Deporte**, más lo que cada colegio agregue —Inglés,
+Educación Estética, Computación—.
+
+⚠️ **Propuesta: sembrar lo que se califica, no lo que se legisla**, y decirlo en
+la pantalla del resumen. Es la misma lógica de `GradoOficial`: se propone lo
+correcto y el colegio ajusta.
+
+**Preescolar — no se califica por materias.** El currículo de Educación Inicial
+tiene DOS áreas de aprendizaje: «Formación Personal, Social y Comunicación» y
+«Relación entre los Componentes del Ambiente». ⚠️ Eso encaja con que SIGA ya
+califique preescolar en escala LITERAL y no numérica; sembrar «Matemática» en
+preescolar sería un error de dominio.
+
+**Fuentes:** [las 14 áreas de Media General](https://lanacionweb.com/reportajes-y-especiales/14-areas-conforman-el-plan-de-estudio-de-media-general/) ·
+[Currículo Nacional Bolivariano](https://ve.scielo.org/scielo.php?script=sci_arttext&pid=S1316-49102007000400020) ·
+[Educación Inicial Bolivariana](http://www.cerpe.org.ve/tl_files/Cerpe/contenido/documentos/Actualidad%20Educativa/Curriculo%20Educacion%20Inicial%20Bolivariana.%202007.pdf)
+
+⚠️ **Dónde vive esto:** es el mismo tipo de dato que `GradoOficial` —lo fija la
+ley, es igual en los 3.900 colegios— así que va como constante, no en la base:
+`MateriaOficial`, con su nivel, su código propuesto y los años en que se cursa.
+
+### Lo que queda por decidir
 
 1. **El cargo.** `Admin#role` es `desarrollador · director · finanzas ·
    coordinador · secretaria`. «Asistente» y «otro» no están. ¿Se agregan al

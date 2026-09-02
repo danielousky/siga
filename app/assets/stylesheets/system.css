@@ -3197,23 +3197,30 @@ nav.pagy a.gap {
 /* ==========================================================================
    PORTADA PÚBLICA (MOR-135 · rediseño sobre la maqueta del diseñador)
    ==========================================================================
-   La referencia es la maqueta aprobada (siga-pearl.vercel.app). Lo que se
-   calcó de ahí es CONCRETO y verificable, no una impresión:
+   La referencia es la maqueta aprobada (siga-pearl.vercel.app), y lo que se
+   calcó de ahí es concreto y verificable:
 
-     · La paleta ya era la del sistema —#faf8f5 papel, #1e4a7a azul, #e8eef5
-       azul suave, #2c2c2c tinta—. Lo único que faltaba era `--ink` (#07142f),
-       que ya vivía en el layout como `theme-color`, y el cielo #7cc0ff.
-     · La tipografía SÍ cambia: DM Serif Display para los titulares y DM Sans
-       para todo lo demás. Van AUTO-HOSPEDADAS en `public/fonts` (ver el
-       @font-face al principio de esta hoja) y solo se aplican acá, en la
-       portada. La app conserva el stack del sistema, que no descarga nada.
-     · Las secciones van numeradas (01 — La idea, 02 — Un solo lugar…) porque
-       en la maqueta el recorrido ES una secuencia: qué pasa, qué hace, en qué
-       se diferencia, cuánto cuesta, quién lo hace.
+     · La PALETA ya era la del sistema —#faf8f5 papel, #1e4a7a azul, #e8eef5
+       azul suave, #2c2c2c tinta—. Faltaba nombrar `--ink` (#07142f), que ya
+       vivía en el layout como `theme-color`, y el cielo #7cc0ff.
+     · La TIPOGRAFÍA sí cambia: DM Serif Display (con su itálica de verdad,
+       no sintetizada) para titulares y DM Sans para el resto. Auto-hospedadas
+       en `public/fonts`; se usan ÚNICAMENTE dentro de `.portada`.
+     · El RECORRIDO son las cinco secciones numeradas de la maqueta.
+     · La sección de las cuatro funciones se calcó tal cual —Daniel: «esta
+       vista tal cual me encanta, sus colores, formas, todo»—: encabezado a
+       dos columnas, cuatro tarjetas de colores distintos con filo superior y
+       esquinas RECTAS. Los iconos son propios; los de la maqueta eran signos
+       tipográficos sueltos (∿ ▤ ◇ ◷).
 
-   ⚠️ El hero es la única pieza que NO sale de la maqueta: la pidió Daniel.
-   Son tres capas apiladas sobre el azul profundo —rejilla en fuga, emblema
-   fundido, texto— y el orden importa. Ver `.portada-hero`.
+   ⚠️ Dos piezas NO salen de la maqueta y las pidió Daniel: el fondo del hero
+   —rejilla en fuga + emblema fundido— y que la maqueta del panel vaya
+   LADEADA, «que tenga movimiento».
+
+   ⚠️ Los colores cálidos de las tarjetas (ámbar, durazno) son de la PORTADA y
+   no contradicen la regla de color del sistema (MOR-135): adentro, el ámbar y
+   el rojo significan un dato —un alumno aplazado, una nota pendiente— y por eso
+   no se gastan en cromo. Acá no hay datos de nadie: es una tapa.
    ========================================================================== */
 
 .portada {
@@ -3232,41 +3239,37 @@ nav.pagy a.gap {
 .container-academic:has(> .portada) { padding: 0; }
 
 /* Y por lo mismo se queda con su propio encabezado: la barra blanca del
-   layout, encima de un hero oscuro, partía el banner en dos y repetía el
-   logo. Acá el nav vive DENTRO del hero. */
+   layout, encima de un hero oscuro, partía el banner en dos y repetía el logo. */
 body:has(.portada) .barra-superior { display: none; }
 
 .portada-inner {
-  max-width: 1080px;
+  max-width: 1140px;
   margin: 0 auto;
-  padding: 0 clamp(20px, 5vw, 40px);
+  padding: 0 clamp(20px, 5vw, 44px);
 }
 
 /* ---- Encabezado y acceso ------------------------------------------------
    ⚠️ «Entrar» es un BOTÓN y no un enlace más de la lista. Daniel: «el ingreso
-   al sistema debe ser evidente». Quien llega a la portada de un sistema que
-   ya usa no viene a leer: viene a entrar, y hasta ahora tenía que bajar hasta
-   el pie para encontrar por dónde. Aparece dos veces —acá y en el hero— y esa
-   repetición es deliberada. */
+   al sistema debe ser evidente». Quien llega a la portada de un sistema que ya
+   usa no viene a leer: viene a entrar. Aparece tres veces —acá, en el hero y
+   en el cierre— y esa repetición es deliberada. */
 .portada-nav {
   position: relative;
   z-index: 3;
   display: flex;
   align-items: center;
   gap: clamp(16px, 3vw, 32px);
-  max-width: 1080px;
+  max-width: 1140px;
   margin: 0 auto;
-  padding: 20px clamp(20px, 5vw, 40px);
+  padding: 20px clamp(20px, 5vw, 44px);
 }
 
 .portada-nav-marca {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--portada-sans);
   font-size: 19px;
   font-weight: 700;
-  letter-spacing: 0.01em;
   color: #fff;
   text-decoration: none;
 }
@@ -3276,11 +3279,11 @@ body:has(.portada) .barra-superior { display: none; }
 .portada-nav-enlaces {
   display: flex;
   align-items: center;
-  gap: clamp(14px, 2.4vw, 28px);
+  gap: clamp(14px, 2.4vw, 30px);
   margin-left: auto;
-  list-style: none;
-  padding: 0;
   margin-block: 0;
+  padding: 0;
+  list-style: none;
 }
 .portada-nav-enlaces a {
   font-size: 15px;
@@ -3305,35 +3308,24 @@ body:has(.portada) .barra-superior { display: none; }
   white-space: nowrap;
   transition: background var(--transition-fast), border-color var(--transition-fast);
 }
-.portada-nav-entrar:hover {
-  background: var(--cielo);
-  border-color: var(--cielo);
-  color: var(--ink);
-}
+.portada-nav-entrar:hover { background: var(--cielo); border-color: var(--cielo); color: var(--ink); }
 
-@media (max-width: 820px) {
+@media (max-width: 860px) {
   .portada-nav-enlaces li:not(.portada-nav-entrar-item) { display: none; }
 }
 
 /* ---- Hero ----------------------------------------------------------------
-   Tres capas, y el orden es lo que hace que funcione:
-
-     0 · la REJILLA — una hoja cuadriculada acostada en perspectiva, que se
-         desvanece con una máscara elíptica para que no muera en un borde duro.
-     1 · el EMBLEMA — `mix-blend-mode: screen` es la pieza clave, no adorno:
-         `siga_hero.jpg` es un JPG con azul opaco en todo el borde, y a media
-         opacidad se veía el rectángulo. Con `screen`, el azul del archivo se
-         funde con el azul del fondo y solo queda el brillo del engranaje.
-     2 · el TEXTO, que nunca compite con la imagen porque la imagen está al 55 %.
-
-   `isolation: isolate` evita que el `screen` se mezcle con lo que haya detrás
-   de la sección. */
+   Cuatro capas, y el orden es lo que hace que funcione:
+     0 · REJILLA — hoja cuadriculada acostada en perspectiva, desvanecida.
+     1 · EMBLEMA — ver la nota de la máscara más abajo.
+     2 · TEXTO
+     3 · MAQUETA del panel, ladeada. */
 .portada-hero {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   background: var(--ink);
-  padding-bottom: clamp(56px, 8vw, 96px);
+  padding-bottom: clamp(40px, 6vw, 72px);
 }
 
 .portada-hero-rejilla {
@@ -3352,15 +3344,12 @@ body:has(.portada) .barra-superior { display: none; }
 }
 
 /* ⚠️ La MÁSCARA es lo que borra el rectángulo, no el `screen` ni la opacidad.
-   Se intentó primero solo con `mix-blend-mode: screen`, y se veía un cuadrado
+   Se intentó primero solo con `mix-blend-mode: screen` y se veía un cuadrado
    claro alrededor del engranaje: `screen` ACLARA, y el azul de fondo del JPG
    (#0b2545) es más claro que el `--ink` del hero (#07142f), así que el recorte
-   quedaba dibujado con más nitidez, no con menos. `screen` solo desaparece
-   sobre negro puro.
-
-   Con la máscara radial el archivo se desvanece hacia sus bordes y el blend
-   pasa a hacer lo único que tiene que hacer: fundir el brillo. Los dos juntos,
-   no uno u otro. */
+   quedaba dibujado con MÁS nitidez, no con menos. `screen` solo desaparece
+   sobre negro puro. Con la máscara radial el archivo se desvanece hacia sus
+   bordes y el blend hace lo único que tiene que hacer: fundir el brillo. */
 .portada-emblema {
   position: absolute;
   left: 50%;
@@ -3382,7 +3371,7 @@ body:has(.portada) .barra-superior { display: none; }
   z-index: 2;
   max-width: 820px;
   margin: 0 auto;
-  padding: clamp(48px, 9vw, 104px) clamp(20px, 5vw, 40px) 0;
+  padding: clamp(40px, 7vw, 88px) clamp(20px, 5vw, 44px) 0;
   text-align: center;
 }
 
@@ -3397,19 +3386,18 @@ body:has(.portada) .barra-superior { display: none; }
   color: var(--cielo);
 }
 
-/* El eslogan lo fijó Daniel y es lo único que tiene que quedar en la cabeza.
-   Va en dos líneas a propósito: el punto y aparte del medio es el ritmo. */
+/* El eslogan lo fijó Daniel y es lo único que tiene que quedar en la cabeza. */
 .portada-tesis {
   font-family: var(--portada-serif);
   font-weight: 400;
-  font-size: clamp(38px, 7vw, 76px);
+  font-size: clamp(38px, 6.6vw, 74px);
   line-height: 1.06;
   letter-spacing: -0.02em;
   text-wrap: balance;
   margin: 0 0 var(--space-lg);
   color: #fff;
 }
-.portada-tesis em { font-style: normal; color: var(--cielo); }
+.portada-tesis em { font-style: italic; color: var(--cielo); }
 
 .portada-bajada {
   max-width: 58ch;
@@ -3424,7 +3412,7 @@ body:has(.portada) .barra-superior { display: none; }
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--space-sm) var(--space-md);
-  margin-bottom: var(--space-xl);
+  margin-bottom: var(--space-lg);
 }
 
 .portada-cta {
@@ -3433,24 +3421,19 @@ body:has(.portada) .barra-superior { display: none; }
   gap: 8px;
   min-height: 50px;
   padding: 0 26px;
+  border: 1px solid transparent;
   border-radius: 999px;
-  font-family: var(--portada-sans);
   font-size: 16px;
   font-weight: 500;
   text-decoration: none;
-  border: 1px solid transparent;
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 .portada-cta--principal { background: var(--cielo); color: var(--ink); }
 .portada-cta--principal:hover { background: #a5d4ff; color: var(--ink); }
-.portada-cta--fantasma {
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.28);
-  color: #fff;
-}
+.portada-cta--fantasma { background: transparent; border-color: rgba(255, 255, 255, 0.28); color: #fff; }
 .portada-cta--fantasma:hover { background: rgba(255, 255, 255, 0.10); color: #fff; }
 
-/* El precio de entrada, arriba y sin hacer bajar: es la primera objeción. */
+/* El precio de entrada, arriba y sin hacer bajar: es la primera pregunta. */
 .portada-sello {
   display: inline-flex;
   align-items: center;
@@ -3476,16 +3459,271 @@ body:has(.portada) .barra-superior { display: none; }
   font-size: 12px;
 }
 
+/* ---- La maqueta del panel, ladeada --------------------------------------
+   Daniel: «eso me encanta, incluso ladeado, que tenga movimiento». La
+   inclinación es 3D de verdad —`rotateY` con perspectiva— y no un `rotate`
+   plano: lo que se busca es que la pantalla parezca un objeto puesto sobre la
+   mesa, no una imagen torcida.
+
+   ⚠️ Todo lo que se ve dentro es un EJEMPLO. Va `aria-hidden` y con su propio
+   texto para quien no la ve: son cifras inventadas para mostrar la forma de la
+   pantalla, y presentarlas como datos de un colegio real sería mentir. */
+/* Texto que solo leen los lectores de pantalla. Hace falta porque la maqueta
+   del panel va `aria-hidden`: son cifras de ejemplo, y sin este párrafo quien
+   navega con lector se encuentra un hueco mudo en mitad del hero.
+
+   ⚠️ `clip-path` y no `display:none`: lo oculto de verdad tampoco se lee. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.portada-maqueta {
+  position: relative;
+  z-index: 2;
+  max-width: 900px;
+  margin: clamp(36px, 6vw, 64px) auto 0;
+  padding: 0 clamp(20px, 5vw, 44px);
+  perspective: 1600px;
+}
+
+.portada-maqueta-marco {
+  position: relative;
+  background: #fff;
+  border-radius: 18px;
+  padding: clamp(16px, 2.4vw, 26px);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: rotateX(4deg) rotateY(-9deg) rotate(-1.4deg);
+  transform-origin: 50% 100%;
+  font-size: 13px;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.portada-maqueta-barra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: clamp(14px, 2vw, 22px);
+}
+.portada-maqueta-logo {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--brand-primary);
+  color: #fff;
+  font-family: var(--portada-serif);
+  font-size: 17px;
+  line-height: 1;
+}
+.portada-maqueta-marca { font-weight: 700; font-size: 15px; letter-spacing: 0.01em; }
+.portada-maqueta-avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: #8db4e8;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.portada-maqueta-cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-sm);
+  margin-bottom: clamp(12px, 2vw, 18px);
+}
+.portada-maqueta-eyebrow { margin: 0 0 2px; font-size: 12.5px; color: var(--text-tertiary); }
+.portada-maqueta-saludo {
+  margin: 0;
+  font-family: var(--portada-serif);
+  font-weight: 400;
+  font-size: clamp(21px, 2.6vw, 28px);
+  line-height: 1.1;
+  color: var(--ink);
+}
+.portada-maqueta-anio {
+  margin-left: auto;
+  padding: 7px 13px;
+  border: 1px solid var(--border-standard);
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.portada-maqueta-tarjetas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(10px, 1.6vw, 16px);
+  margin-bottom: clamp(10px, 1.6vw, 16px);
+}
+.portada-maqueta-tarjeta {
+  background: #f1f2f0;
+  border-radius: 10px;
+  padding: clamp(12px, 1.8vw, 18px);
+}
+.portada-maqueta-tarjeta dt { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 4px; }
+.portada-maqueta-tarjeta dd { margin: 0; }
+.portada-maqueta-dato {
+  display: block;
+  font-size: clamp(26px, 3.4vw, 38px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.portada-maqueta-pie { display: block; margin-top: 8px; font-size: 12px; color: #3f7a52; }
+
+.portada-maqueta-grafico {
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: clamp(12px, 1.8vw, 18px);
+}
+.portada-maqueta-grafico-cab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: clamp(10px, 1.6vw, 16px);
+}
+.portada-maqueta-grafico-titulo { margin: 0; font-size: 14px; font-weight: 700; color: var(--ink); }
+.portada-maqueta-leyenda {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.portada-maqueta-leyenda::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+/* Las barras son `div` con altura en porcentaje: un gráfico de siete valores
+   no justifica una librería, y una imagen no se adapta al ancho. */
+.portada-maqueta-barras {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  align-items: end;
+  gap: clamp(6px, 1.4vw, 14px);
+  height: clamp(90px, 13vw, 130px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 2px;
+}
+.portada-maqueta-barra {
+  border-radius: 5px 5px 0 0;
+  background: #3f5f8a;
+}
+.portada-maqueta-barra--claro { background: #8db4e8; }
+.portada-maqueta-dias {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: clamp(6px, 1.4vw, 14px);
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.portada-maqueta-cierre {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: clamp(10px, 1.6vw, 16px);
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+.portada-maqueta-cierre .portada-maqueta-ver {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--brand-primary);
+}
+
+/* Las dos notas que se salen del marco: son las que dan la sensación de que la
+   pantalla está viva. Se ocultan en pantallas chicas, donde solo estorban. */
+.portada-maqueta-nota {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 15px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+  font-size: 12.5px;
+  line-height: 1.35;
+  text-align: left;
+}
+.portada-maqueta-nota strong { display: block; font-size: 13.5px; color: var(--ink); }
+.portada-maqueta-nota span { color: var(--text-tertiary); }
+.portada-maqueta-nota-marca {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-size: 14px;
+}
+.portada-maqueta-nota--arriba { top: 6%; right: -2%; transform: rotate(-1deg); }
+.portada-maqueta-nota--arriba .portada-maqueta-nota-marca { background: #e4efe7; color: #3f7a52; }
+.portada-maqueta-nota--abajo { bottom: 14%; left: -3%; transform: rotate(-1deg); }
+.portada-maqueta-nota--abajo .portada-maqueta-nota-marca { background: #fbf0d4; color: #a8791d; }
+
+@media (max-width: 860px) {
+  .portada-maqueta-marco { transform: none; }
+  .portada-maqueta-nota { display: none; }
+  .portada-maqueta-tarjetas { grid-template-columns: 1fr; }
+}
+
 /* ---- Ritmo de las secciones --------------------------------------------- */
-.portada-seccion { padding: clamp(56px, 8vw, 104px) 0; }
+.portada-seccion { padding: clamp(56px, 8vw, 108px) 0; }
 .portada-seccion--papel { background: var(--surface-elevated); }
+
+/* ⚠️ El encabezado va a DOS COLUMNAS, y es la respuesta a por qué los párrafos
+   «se acortan siempre»: un párrafo se lee bien hasta unos 65 caracteres por
+   línea, así que un `max-width` es obligatorio. Puesto debajo de un título que
+   sí ocupa el ancho completo, ese límite deja media página vacía y parece un
+   error. Al lado del título, el mismo párrafo llena la fila. */
+.portada-encabezado {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: clamp(20px, 4vw, 64px);
+  align-items: end;
+  margin-bottom: clamp(32px, 5vw, 56px);
+}
+.portada-encabezado--solo { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 860px) {
+  .portada-encabezado { grid-template-columns: 1fr; align-items: start; }
+}
 
 .portada-rotulo {
   display: block;
   margin: 0 0 var(--space-md);
   font-size: 13px;
   font-weight: 500;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--brand-primary);
 }
@@ -3493,60 +3731,62 @@ body:has(.portada) .barra-superior { display: none; }
 .portada-titulo {
   font-family: var(--portada-serif);
   font-weight: 400;
-  font-size: clamp(28px, 4.2vw, 46px);
-  line-height: 1.12;
+  font-size: clamp(30px, 4.4vw, 52px);
+  line-height: 1.08;
   letter-spacing: -0.015em;
   text-wrap: balance;
-  margin: 0 0 var(--space-md);
-  color: var(--text-primary);
+  margin: 0;
+  color: var(--ink);
+}
+/* La segunda línea en itálica azul es la firma tipográfica de la maqueta. */
+.portada-titulo em {
+  display: block;
+  font-style: italic;
+  color: var(--brand-primary);
 }
 
 .portada-parrafo {
   max-width: 62ch;
   margin: 0 0 var(--space-md);
-  font-size: 17px;
-  line-height: 1.7;
+  font-size: 16.5px;
+  line-height: 1.72;
   color: var(--text-secondary);
 }
 .portada-parrafo:last-child { margin-bottom: 0; }
 
 .portada-nota {
-  max-width: 66ch;
+  max-width: 72ch;
   margin: var(--space-lg) 0 0;
   font-size: 14px;
-  line-height: 1.65;
+  line-height: 1.7;
   color: var(--text-tertiary);
 }
 
-/* ---- Las tres cifras ---------------------------------------------------- */
+/* ---- Las tres cifras ----------------------------------------------------
+   ⚠️ Antes acá vivían las del MERCADO —3.900 colegios, 9 % con portal—, y
+   Daniel las sacó con la razón exacta: «ese dato es relevante para mí, que
+   quiero vender SIGA; para mi cliente, el director, no». Un director ya sabe
+   cómo está su colegio; lo que no sabe es cuánto le cuesta esto. Las tres de
+   ahora son del PRODUCTO y se calculan solas desde `Subscription::PLANES`. */
 .portada-cifras {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1px;
   background: var(--border-standard);
   border: 1px solid var(--border-standard);
-  border-radius: var(--radius-lg);
   overflow: hidden;
-  margin-bottom: clamp(40px, 6vw, 72px);
 }
-.portada-cifra {
-  background: var(--surface-elevated);
-  padding: var(--space-xl) var(--space-lg);
-}
+.portada-cifra { background: var(--surface-elevated); padding: var(--space-xl) var(--space-lg); }
+.portada-seccion--papel .portada-cifra { background: var(--surface-canvas); }
 .portada-cifra-numero {
   display: block;
   font-family: var(--portada-serif);
-  font-size: clamp(38px, 5vw, 54px);
+  font-size: clamp(40px, 5vw, 56px);
   line-height: 1;
   color: var(--brand-primary);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
-.portada-cifra-que {
-  display: block;
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--text-secondary);
-}
+.portada-cifra-que { display: block; font-size: 15px; line-height: 1.55; color: var(--text-secondary); }
 .portada-cifra-fuente {
   display: block;
   margin-top: 8px;
@@ -3556,113 +3796,134 @@ body:has(.portada) .barra-superior { display: none; }
   color: var(--text-muted);
 }
 
-/* ---- Las cuatro funciones ----------------------------------------------- */
+/* ---- Las cuatro funciones -----------------------------------------------
+   Calcado de la maqueta: cuatro colores, filo superior, esquinas RECTAS. El
+   radio cero es parte del gesto —son fichas de papel, no tarjetas de app—. */
 .portada-piezas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: var(--space-lg);
-  margin-top: var(--space-xl);
+  grid-template-columns: repeat(auto-fit, minmax(238px, 1fr));
+  gap: clamp(14px, 2vw, 24px);
 }
 .portada-pieza {
-  background: var(--surface-canvas);
-  border: 1px solid var(--border-standard);
-  border-radius: var(--radius-lg);
-  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  border-top: 3px solid var(--pieza-filo);
+  border-radius: 0;
+  background: var(--pieza-fondo);
+  padding: clamp(16px, 2vw, 22px) clamp(16px, 2vw, 22px) clamp(18px, 2.2vw, 24px);
 }
-.portada-seccion--papel .portada-pieza { background: var(--surface-canvas); }
-.portada-pieza-orden {
+.portada-pieza--1 { --pieza-fondo: #ffffff; --pieza-filo: #0f1b33; }
+.portada-pieza--2 { --pieza-fondo: #e5eaf0; --pieza-filo: #7f9d8e; }
+.portada-pieza--3 { --pieza-fondo: #fcf1d6; --pieza-filo: #e0a93a; }
+.portada-pieza--4 { --pieza-fondo: #f4e5df; --pieza-filo: #2d5a8a; }
+
+.portada-pieza-cab {
+  display: flex;
+  align-items: center;
+  margin-bottom: clamp(22px, 3vw, 38px);
+}
+.portada-pieza-orden { font-size: 13px; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
+.portada-pieza-icono { margin-left: auto; color: var(--pieza-filo); display: block; }
+
+.portada-pieza-tipo {
   display: block;
-  margin-bottom: var(--space-md);
-  font-size: 13px;
+  margin-bottom: 6px;
+  font-size: 11.5px;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  color: var(--brand-primary);
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
 }
 .portada-pieza h3 {
   font-family: var(--portada-serif);
   font-weight: 400;
-  font-size: 23px;
-  line-height: 1.2;
+  font-size: 24px;
+  line-height: 1.18;
   margin: 0 0 var(--space-sm);
-  color: var(--text-primary);
+  color: var(--ink);
 }
 .portada-pieza p {
   margin: 0 0 var(--space-sm);
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: 14.5px;
+  line-height: 1.62;
   color: var(--text-secondary);
 }
 .portada-pieza-detalle {
   margin: 0;
   padding-top: var(--space-sm);
-  border-top: 1px solid var(--border-subtle);
-  font-size: 13.5px;
-  line-height: 1.6;
+  border-top: 1px solid rgba(15, 27, 51, 0.12);
+  font-size: 13px;
+  line-height: 1.55;
   color: var(--text-tertiary);
 }
+.portada-pieza-mas {
+  margin-top: auto;
+  padding-top: clamp(18px, 2.4vw, 28px);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.portada-pieza-mas:hover { color: var(--brand-primary); }
 
 /* ---- La diferencia ------------------------------------------------------ */
 .portada-principios {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: var(--space-lg);
-  margin-top: var(--space-xl);
+  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+  gap: clamp(18px, 3vw, 32px);
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 .portada-principio { border-top: 2px solid var(--brand-primary); padding-top: var(--space-md); }
-.portada-principio h3 {
-  font-family: var(--portada-sans);
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 6px;
-  color: var(--text-primary);
-}
-.portada-principio p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--text-secondary); }
+.portada-principio h3 { font-size: 16px; font-weight: 600; margin: 0 0 6px; color: var(--ink); }
+.portada-principio p { margin: 0; font-size: 14.5px; line-height: 1.62; color: var(--text-secondary); }
 
 /* ---- Planes ------------------------------------------------------------- */
 .portada-lista-planes {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
-  gap: var(--space-lg);
-  margin-top: var(--space-xl);
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: clamp(14px, 2vw, 22px);
 }
 .portada-plan {
   background: var(--surface-elevated);
   border: 1px solid var(--border-standard);
-  border-radius: var(--radius-lg);
   padding: var(--space-lg);
   text-align: center;
 }
 .portada-seccion--papel .portada-plan { background: var(--surface-canvas); }
 .portada-plan--convenir { background: var(--brand-subtle); border-color: transparent; }
 .portada-seccion--papel .portada-plan--convenir { background: var(--brand-subtle); }
-
 .portada-plan-nombre {
-  font-family: var(--portada-sans);
-  font-size: 13px;
+  margin: 0 0 var(--space-sm);
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-tertiary);
-  margin: 0 0 var(--space-sm);
 }
-.portada-plan-precio {
-  margin: 0 0 6px;
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 6px;
-}
-.portada-plan-monto {
-  font-family: var(--portada-serif);
-  font-size: 46px;
-  line-height: 1;
-  color: var(--brand-primary);
-}
+.portada-plan-precio { margin: 0 0 6px; display: flex; align-items: baseline; justify-content: center; gap: 6px; }
+.portada-plan-monto { font-family: var(--portada-serif); font-size: 48px; line-height: 1; color: var(--brand-primary); }
 .portada-plan--convenir .portada-plan-monto { font-size: 30px; }
 .portada-plan-moneda { font-size: 14px; color: var(--text-secondary); }
 .portada-plan-cupo { margin: 0; font-size: 14px; color: var(--text-secondary); }
+
+/* La regla del vencimiento va DESTACADA y no en letra chica, a pedido de
+   Daniel: «es una suscripción en la que si no pagas, se suspende». Decirlo
+   antes de cobrar es lo que evita la discusión después. */
+.portada-condicion {
+  margin-top: clamp(24px, 4vw, 40px);
+  border-left: 3px solid var(--brand-primary);
+  background: var(--brand-subtle);
+  padding: var(--space-lg);
+}
+.portada-condicion h3 { font-size: 16px; font-weight: 600; margin: 0 0 var(--space-xs); color: var(--ink); }
+.portada-condicion p { margin: 0 0 var(--space-sm); font-size: 14.5px; line-height: 1.65; color: var(--text-secondary); max-width: 74ch; }
+.portada-condicion p:last-child { margin-bottom: 0; }
 
 /* ---- Cierre ------------------------------------------------------------- */
 .portada-cierre {
@@ -3674,14 +3935,15 @@ body:has(.portada) .barra-superior { display: none; }
 .portada-cierre-titulo {
   font-family: var(--portada-serif);
   font-weight: 400;
-  font-size: clamp(28px, 4.4vw, 48px);
+  font-size: clamp(30px, 4.4vw, 50px);
   line-height: 1.1;
   text-wrap: balance;
   margin: 0 0 var(--space-md);
   color: #fff;
 }
+.portada-cierre-titulo em { font-style: italic; color: var(--cielo); }
 .portada-cierre-texto {
-  max-width: 54ch;
+  max-width: 56ch;
   margin: 0 auto var(--space-xl);
   font-size: 17px;
   line-height: 1.65;
@@ -3694,28 +3956,11 @@ body:has(.portada) .barra-superior { display: none; }
   border-top: 1px solid var(--border-standard);
   padding: clamp(40px, 6vw, 64px) 0 var(--space-xl);
 }
-.portada-pie-columnas {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: var(--space-xl);
-}
+.portada-pie-columnas { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-xl); }
 .portada-pie-logo { width: 40px; height: 40px; margin-bottom: 10px; display: block; }
-.portada-pie-nombre {
-  margin: 0;
-  font-family: var(--portada-serif);
-  font-size: 21px;
-  color: var(--text-primary);
-}
-.portada-pie-que { margin: 4px 0 0; font-size: 14px; color: var(--text-tertiary); max-width: 34ch; }
-.portada-pie-enlaces ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
+.portada-pie-nombre { margin: 0; font-family: var(--portada-serif); font-size: 22px; color: var(--ink); }
+.portada-pie-que { margin: 4px 0 0; font-size: 14px; color: var(--text-tertiary); max-width: 36ch; line-height: 1.6; }
+.portada-pie-enlaces ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: var(--space-sm); }
 .portada-pie-enlaces a { font-size: 15px; color: var(--text-secondary); text-decoration: none; }
 .portada-pie-enlaces a:hover { color: var(--brand-primary); }
 .portada-pie-legal {
@@ -3729,12 +3974,8 @@ body:has(.portada) .barra-superior { display: none; }
 @media (max-width: 640px) {
   .portada-acciones { flex-direction: column; align-items: stretch; }
   .portada-cta { justify-content: center; width: 100%; }
-  .portada-sello { text-align: left; }
 }
 
-/* La rejilla en fuga es decorativa: si alguien pidió menos movimiento, no hay
-   nada que apagar acá —no se anima—, pero el emblema sí baja su presencia para
-   que el contraste del texto no dependa de una imagen. */
 @media (prefers-reduced-motion: reduce) {
   .portada-emblema { opacity: 0.4; }
 }

@@ -1,28 +1,33 @@
 -# La portada pública (MOR-135, rediseñada sobre la maqueta del diseñador).
 -#
--# Qué se calcó y qué no:
+-# Qué se calcó y qué no está en `system.css`, arriba del bloque `.portada`.
+-# Acá van las decisiones de CONTENIDO, que son las que se discutieron:
 -#
--#   COLORES     ya eran los del sistema. La maqueta usa #faf8f5, #1e4a7a,
--#               #e8eef5 y #2c2c2c — los mismos de `system.css`. Lo que faltaba
--#               era el azul profundo #07142f, que ya vivía en el layout como
--#               `theme-color` sin nombre propio.
--#   TIPOGRAFÍA  sí cambia: DM Serif Display + DM Sans, auto-hospedadas.
--#   RECORRIDO   las cinco secciones numeradas de la maqueta, en su orden.
+-# ⚠️ 1 · Se cayó la tesis anterior —«Su colegio no es demasiado pequeño para
+-#        tener un sistema. Los sistemas eran demasiado caros.»—. Vender contra
+-#        el precio de otro encasilla a SIGA como la opción barata, y lo que se
+-#        ofrece no es un descuento: es orden. De ahí el eslogan de Daniel.
 -#
--# ⚠️ Lo que NO se conservó de la versión anterior es su tesis: «Su colegio no
--# es demasiado pequeño para tener un sistema. Los sistemas eran demasiado
--# caros.» Decisión de Daniel: no vamos por ahí. Vender contra el precio de
--# otro encasilla a SIGA como la opción barata, y lo que se ofrece no es un
--# descuento — es orden. De ahí el eslogan que él fijó y que abre la página.
+-# ⚠️ 2 · Se cayeron las cifras de MERCADO (3.900 colegios, 9 % con portal).
+-#        Daniel: «ese dato es relevante para mí, que quiero vender SIGA a otros
+-#        colegios; para mi cliente, el director, no». Un director ya sabe cómo
+-#        está su colegio. Las tres de ahora salen de `Subscription::PLANES` y
+-#        dicen lo que le cuesta y lo que se ahorra.
 -#
--# ⚠️ La portada trata de USTED y el resto del sistema tutea; lo cuida
--# `portada_publica_test`. El eslogan es la única excepción, porque es marca.
+-# ⚠️ 3 · La palabra SUSCRIPCIÓN aparece en el hero, en los planes y en el pie.
+-#        Daniel: «esto es un SaaS, no que piensen luego que son dueños de SIGA.
+-#        Además es una suscripción en la que si no pagas, se suspende». Por eso
+-#        la sección de planes se llama «La suscripción» y la condición del
+-#        vencimiento va en un recuadro visible, no en letra chica.
+-#        (Pendiente aparte: el Acuerdo de Servicio dentro de la suscripción.)
+-#
+-# ⚠️ 4 · La portada trata de USTED y el resto del sistema tutea; lo cuida
+-#        `portada_publica_test`. El eslogan es la única excepción: es marca.
 
 .portada
   %header.portada-hero
-    -# Las tres capas del banner, en orden de profundidad. Ver el CSS: el
-    -# emblema va con `mix-blend-mode: screen` y sin eso se ve el rectángulo
-    -# del JPG recortado sobre el azul.
+    -# Las capas del banner, en orden de profundidad. Ver el CSS: sin la
+    -# máscara radial el emblema se ve como un rectángulo claro recortado.
     .portada-hero-rejilla{"aria-hidden": "true"}
     = image_tag "siga_hero.jpg", alt: "", class: "portada-emblema", "aria-hidden": "true"
 
@@ -33,7 +38,7 @@
       %ul.portada-nav-enlaces
         %li= link_to "El sistema", "#el-sistema"
         %li= link_to "Funciones", "#funciones"
-        %li= link_to "Planes", "#planes"
+        %li= link_to "La suscripción", "#planes"
         %li= link_to "Quiénes somos", "#quienes-somos"
         %li.portada-nav-entrar-item
           = link_to new_user_session_path, class: "portada-nav-entrar" do
@@ -57,126 +62,252 @@
           Entrar al sistema
           %span{"aria-hidden": "true"} →
 
-      -# El precio de entrada, arriba: es la primera pregunta de un director y
-      -# hacerlo bajar a buscarla es perderlo. Sale de `Subscription::PLANES`,
-      -# nunca escrito a mano.
+      -# El precio de entrada, arriba y sin hacer bajar: es la primera pregunta
+      -# de un director. Sale de `Subscription::PLANES`, nunca escrito a mano.
       %p.portada-sello
         %span.portada-sello-marca{"aria-hidden": "true"} ✓
         %span
-          Desde
-          %strong= "#{Subscription::PLANES.dig(:basico, :precio)} $ al mes"
+          Suscripción mensual desde
+          %strong= "#{Subscription::PLANES.dig(:basico, :precio)} $"
           para colegios de hasta #{number_with_delimiter(Subscription::PLANES.dig(:basico, :hasta))} alumnos.
 
-  -# Las cifras son de la investigación de mercado y cada una lleva su fuente
-  -# al lado. Las de la portada original —"∞ Usuarios", "24/7"— no decían nada.
+    -# ⚠️ TODO lo que se ve dentro de esta maqueta es un EJEMPLO: cifras
+    -# inventadas para mostrar la forma de la pantalla. Va `aria-hidden` con su
+    -# propio texto al lado, porque presentarlas como datos de un colegio real
+    -# sería exactamente la clase de afirmación falsa que se sacó de la portada
+    -# anterior.
+    .portada-maqueta
+      %p.sr-only Ejemplo del panel de un colegio: matrícula, asistencia del día y actividad de la semana.
+      .portada-maqueta-marco{"aria-hidden": "true"}
+        .portada-maqueta-barra
+          %span.portada-maqueta-logo S
+          %span.portada-maqueta-marca SIGA
+          %span.portada-maqueta-avatar AC
+
+        .portada-maqueta-cab
+          %div
+            %p.portada-maqueta-eyebrow Resumen del colegio
+            %p.portada-maqueta-saludo Buenos días, Ana
+          %span.portada-maqueta-anio Año escolar 2026–2027 ⌄
+
+        %dl.portada-maqueta-tarjetas
+          .portada-maqueta-tarjeta
+            %dt Alumnos inscritos
+            %dd
+              %span.portada-maqueta-dato 248
+              %span.portada-maqueta-pie ↑ 12 este año
+          .portada-maqueta-tarjeta
+            %dt Asistencia hoy
+            %dd
+              %span.portada-maqueta-dato 94 %
+              %span.portada-maqueta-pie Todo en orden
+
+        .portada-maqueta-grafico
+          .portada-maqueta-grafico-cab
+            %p.portada-maqueta-grafico-titulo Actividad académica
+            %span.portada-maqueta-leyenda Notas cargadas
+          .portada-maqueta-barras
+            - [42, 64, 52, 82, 70, 92, 76].each_with_index do |alto, i|
+              %div.portada-maqueta-barra{class: ("portada-maqueta-barra--claro" if i.odd?),
+                                         style: "height: #{alto}%"}
+          %ul.portada-maqueta-dias
+            - %w[Lun Mar Mié Jue Vie Sáb Dom].each do |dia|
+              %li= dia
+          .portada-maqueta-cierre
+            %span 18 documentos listos
+            %span.portada-maqueta-ver Ver actividad ↗
+
+      .portada-maqueta-nota.portada-maqueta-nota--arriba{"aria-hidden": "true"}
+        %span.portada-maqueta-nota-marca ✓
+        %span
+          %strong Boletín generado
+          %span 2do Año · 12:48 pm
+      .portada-maqueta-nota.portada-maqueta-nota--abajo{"aria-hidden": "true"}
+        %span.portada-maqueta-nota-marca ↗
+        %span
+          %strong Todo bajo control
+          %span Sin pendientes críticos
+
   %section.portada-seccion{id: "el-sistema"}
     .portada-inner
+      .portada-encabezado
+        %div
+          %span.portada-rotulo 01 — La idea
+          %h2.portada-titulo
+            La gestión académica no debería
+            %em sentirse como otra materia.
+        %div
+          %p.portada-parrafo
+            La mayoría de los colegios del país lleva su año escolar entre un
+            programa instalado en la computadora de la oficina, cuadernos de
+            notas y planillas que viajan en un pendrive. Funciona, hasta que
+            alguien se enferma en diciembre o cambia la persona encargada.
+          %p.portada-parrafo
+            Sin módulos que sobran. Sin planillas que se pierden. Sin datos que
+            desaparecen cuando cambia quien los llevaba.
+
+      -# Las tres cifras salen de la tabla de planes, no escritas a mano. El
+      -# colegio de referencia son 360 alumnos: la matrícula privada del país
+      -# dividida entre las instituciones que quedan.
+      - alumnos_referencia = 360
+      - precio_estandar = Subscription::PLANES.dig(:estandar, :precio)
       .portada-cifras
         %div.portada-cifra
-          %span.portada-cifra-numero ~3.900
-          %span.portada-cifra-que colegios privados en el país
-          %span.portada-cifra-fuente ANDIEP
+          %span.portada-cifra-numero= "#{(precio_estandar * 100.0 / alumnos_referencia).round} ¢"
+          %span.portada-cifra-que por alumno al mes, con el colegio completo adentro
+          %span.portada-cifra-fuente #{precio_estandar} $ ÷ #{alumnos_referencia} alumnos
         %div.portada-cifra
-          %span.portada-cifra-numero ~9 %
-          %span.portada-cifra-que tiene portal web para las familias
-          %span.portada-cifra-fuente Censo de dominios · agosto 2026
+          %span.portada-cifra-numero 1 clic
+          %span.portada-cifra-que los boletines de una sección entera, listos para imprimir
+          %span.portada-cifra-fuente Tres veces al año
         %div.portada-cifra
-          %span.portada-cifra-numero ~360
-          %span.portada-cifra-que alumnos tiene el colegio promedio
-          %span.portada-cifra-fuente Matrícula privada ÷ instituciones
-
-      %span.portada-rotulo 01 — La idea
-      %h2.portada-titulo La gestión académica no debería sentirse como otra materia.
-      %p.portada-parrafo
-        La mayoría de los colegios del país lleva su año escolar entre un programa
-        instalado en la computadora de la oficina, cuadernos de notas y planillas
-        que viajan en un pendrive. Funciona, hasta que alguien se enferma en
-        diciembre o cambia la persona encargada.
-      %p.portada-parrafo
-        Sin módulos que sobran. Sin planillas que se pierden. Sin datos que
-        desaparecen cuando cambia quien los llevaba.
+          %span.portada-cifra-numero 1 minuto
+          %span.portada-cifra-que pasar lista a treinta alumnos, de pie, desde el teléfono
+          %span.portada-cifra-fuente Todos los días
 
   %section.portada-seccion.portada-seccion--papel{id: "funciones"}
     .portada-inner
-      %span.portada-rotulo 02 — Un solo lugar
-      %h2.portada-titulo
-        Todo lo necesario.
-        Nada de lo que no.
-      %p.portada-parrafo
-        Cuatro funciones esenciales para que el equipo del colegio trabaje con
-        tranquilidad y las familias reciban información confiable.
+      .portada-encabezado
+        %div
+          %span.portada-rotulo 02 — Un solo lugar
+          %h2.portada-titulo
+            Todo lo necesario.
+            %em Nada de lo que no.
+        %div
+          %p.portada-parrafo
+            Cuatro funciones esenciales para que el equipo del colegio trabaje
+            con tranquilidad y las familias reciban información confiable.
 
       .portada-piezas
-        %article.portada-pieza
-          %span.portada-pieza-orden 01
+        %article.portada-pieza.portada-pieza--1
+          .portada-pieza-cab
+            %span.portada-pieza-orden 01
+            %svg.portada-pieza-icono{width: 26, height: 26, viewBox: "0 0 26 26", fill: "none",
+                                     stroke: "currentColor", "stroke-width": "1.5",
+                                     "stroke-linecap": "round", "stroke-linejoin": "round"}
+              %path{d: "M3 3v19h20"}
+              %polyline{points: "7,16 11,11 15,14 21,6"}
+              %circle{cx: 11, cy: 11, r: 1.6, fill: "currentColor", stroke: "none"}
+              %circle{cx: 15, cy: 14, r: 1.6, fill: "currentColor", stroke: "none"}
+          %span.portada-pieza-tipo Control académico
           %h3 Notas y promedios
           %p
             El profesor carga desde el teléfono y se guarda nota por nota. Los
-            promedios se recalculan solos y el alumno los ve el mismo día.
+            promedios se recalculan solos y la familia los ve el mismo día.
           %p.portada-pieza-detalle
             Entero del 1 al 20, anual sin ponderar, la reparación manda sobre el
-            anual: como lo pide el Reglamento General de la LOE, no como salga.
+            anual: como lo pide el Reglamento General de la LOE.
+          = link_to new_demo_request_path, class: "portada-pieza-mas" do
+            Verlo en la demostración
+            %span{"aria-hidden": "true"} ↗
 
-        %article.portada-pieza
-          %span.portada-pieza-orden 02
+        %article.portada-pieza.portada-pieza--2
+          .portada-pieza-cab
+            %span.portada-pieza-orden 02
+            %svg.portada-pieza-icono{width: 26, height: 26, viewBox: "0 0 26 26", fill: "none",
+                                     stroke: "currentColor", "stroke-width": "1.5",
+                                     "stroke-linecap": "round", "stroke-linejoin": "round"}
+              %path{d: "M6 2h9l5 5v17H6z"}
+              %polyline{points: "15,2 15,7 20,7"}
+              %line{x1: 10, y1: 13, x2: 17, y2: 13}
+              %line{x1: 10, y1: 17, x2: 17, y2: 17}
+              %line{x1: 10, y1: 21, x2: 14, y2: 21}
+          %span.portada-pieza-tipo Documentos claros
           %h3 Boletines
           %p
-            Un PDF por sección, con una página por alumno, listo para imprimir.
+            Un PDF por sección, con una página por alumno, listo para imprimir
+            y para entregar.
           %p.portada-pieza-detalle
-            Cada emisión guarda las notas tal como se imprimieron y lleva un
-            código: reemitir en marzo no cambia lo que decía el papel de
-            diciembre.
+            Cada emisión guarda las notas tal como se imprimieron: reemitir en
+            marzo no cambia lo que decía el papel de diciembre.
+          = link_to new_demo_request_path, class: "portada-pieza-mas" do
+            Verlo en la demostración
+            %span{"aria-hidden": "true"} ↗
 
-        %article.portada-pieza
-          %span.portada-pieza-orden 03
+        %article.portada-pieza.portada-pieza--3
+          .portada-pieza-cab
+            %span.portada-pieza-orden 03
+            %svg.portada-pieza-icono{width: 26, height: 26, viewBox: "0 0 26 26", fill: "none",
+                                     stroke: "currentColor", "stroke-width": "1.5",
+                                     "stroke-linecap": "round", "stroke-linejoin": "round"}
+              %circle{cx: 13, cy: 11, r: 8}
+              %circle{cx: 13, cy: 11, r: 5, "stroke-dasharray": "2 2.4"}
+              %polyline{points: "10.6,11 12.4,12.8 15.6,9.4"}
+              %path{d: "M9 18.4V25l4-2.2 4 2.2v-6.6"}
+          %span.portada-pieza-tipo Cero dudas
           %h3 Constancias de estudio
           %p
             El documento que más pide una familia y que hoy la secretaría
             escribe en Word, uno por uno, siempre para mañana.
           %p.portada-pieza-detalle
             Se emite en el momento, para un alumno o para la sección entera, con
-            un código que cualquiera puede verificar sin llamar al colegio.
+            un código que cualquiera verifica sin llamar al colegio.
+          = link_to verificar_path, class: "portada-pieza-mas" do
+            Verificar un documento
+            %span{"aria-hidden": "true"} ↗
 
-        %article.portada-pieza
-          %span.portada-pieza-orden 04
+        %article.portada-pieza.portada-pieza--4
+          .portada-pieza-cab
+            %span.portada-pieza-orden 04
+            %svg.portada-pieza-icono{width: 26, height: 26, viewBox: "0 0 26 26", fill: "none",
+                                     stroke: "currentColor", "stroke-width": "1.5",
+                                     "stroke-linecap": "round", "stroke-linejoin": "round"}
+              %polyline{points: "2,7 4,9 7.5,5"}
+              %polyline{points: "2,14 4,16 7.5,12"}
+              %polyline{points: "2,21 4,23 7.5,19"}
+              %line{x1: 11.5, y1: 7, x2: 24, y2: 7}
+              %line{x1: 11.5, y1: 14, x2: 24, y2: 14}
+              %line{x1: 11.5, y1: 21, x2: 19, y2: 21}
+          %span.portada-pieza-tipo Seguimiento diario
           %h3 Asistencia
           %p
-            Un minuto para treinta alumnos, de pie, con la clase entrando.
+            Un minuto para treinta alumnos, de pie, con la clase entrando por
+            la puerta.
           %p.portada-pieza-detalle
             Todos empiezan presentes y se tocan las excepciones, que casi
             siempre son dos o tres.
+          = link_to new_demo_request_path, class: "portada-pieza-mas" do
+            Verlo en la demostración
+            %span{"aria-hidden": "true"} ↗
 
   %section.portada-seccion
     .portada-inner
-      %span.portada-rotulo 03 — La diferencia
-      %h2.portada-titulo
-        Un solo SIGA.
-        Sin letra pequeña.
-      %p.portada-parrafo
-        No hay funciones recortadas para empujar al plan siguiente: todos los
-        colegios usan el sistema completo. Lo único que cambia es el número de
-        alumnos inscritos en el año en curso.
+      .portada-encabezado
+        %div
+          %span.portada-rotulo 03 — La diferencia
+          %h2.portada-titulo
+            Un solo SIGA.
+            %em Sin letra pequeña.
+        %div
+          %p.portada-parrafo
+            No hay funciones recortadas para empujar al plan siguiente: todos
+            los colegios suscritos usan el sistema completo. Lo único que cambia
+            es el número de alumnos inscritos en el año en curso.
 
       %ul.portada-principios
         %li.portada-principio
           %h3 La información es del colegio
-          %p Sus datos, sus documentos y su historial, exportables cuando quiera.
+          %p Sus datos, sus documentos y su historial, exportables cuando lo pida.
         %li.portada-principio
           %h3 Lo pendiente se ve
-          %p El sistema avisa qué falta antes del cierre, no después.
+          %p El sistema avisa qué falta antes del cierre del lapso, no después.
         %li.portada-principio
           %h3 Cada colegio, aislado
-          %p Ningún colegio ve los datos de otro. Está garantizado en la base, no solo en la pantalla.
+          %p Ningún colegio ve los datos de otro. Garantizado en la base, no solo en la pantalla.
 
   %section.portada-seccion.portada-seccion--papel{id: "planes"}
     .portada-inner
-      %span.portada-rotulo 04 — Precios claros
-      %h2.portada-titulo
-        Empiece pequeño.
-        Crezca con calma.
-      %p.portada-parrafo
-        El plan se calcula por los alumnos inscritos en el año en curso, no por
-        el histórico: un colegio de veinte años no paga por sus egresados.
+      .portada-encabezado
+        %div
+          %span.portada-rotulo 04 — La suscripción
+          %h2.portada-titulo
+            Empiece pequeño.
+            %em Crezca con calma.
+        %div
+          %p.portada-parrafo
+            SIGA es un servicio por suscripción mensual. El plan se calcula por
+            los alumnos inscritos en el año en curso, no por el histórico: un
+            colegio de veinte años no paga por sus egresados.
 
       .portada-lista-planes
         - Subscription::PLANES.each_value do |datos|
@@ -196,34 +327,53 @@
           %p.portada-plan-cupo
             Red de colegios o institución grande: conversemos.
 
+      .portada-condicion
+        %h3 Qué pasa si una mensualidad no se paga
+        %p
+          La suscripción entra en gracia unos días y después queda en
+          %strong solo lectura:
+          el colegio sigue viendo y descargando todo lo suyo —y sigue emitiendo
+          constancias, porque la deuda es del colegio y el perjuicio no puede
+          ser del alumno—, pero deja de cargar notas y de pasar lista hasta
+          ponerse al día.
+        %p
+          Nunca se le quita el acceso a sus datos a mitad de año escolar.
+
       -# El plan gratuito no es «todavía no facturamos»: es un plan que se
-      -# elige, y el corte va por FUNCIÓN y no por número de alumnos. Con tope
-      -# de registros, la importación de una matrícula de 360 se rompe a mitad
-      -# de camino y el colegio queda con medio año cargado.
+      -# elige, y el corte va por FUNCIÓN y no por número de registros. Con tope
+      -# de registros, importar una matrícula de 360 se rompe a mitad de camino.
       %p.portada-nota
-        Cargar alumnos, representantes, profesores, materias y secciones —y también
-        importar la matrícula desde una planilla— no tiene tope ni costo. El plan
-        activa calificar, pasar lista y emitir los documentos del MPPE.
+        Antes de suscribirse: cargar alumnos, representantes, profesores,
+        materias y secciones —y también importar la matrícula desde una
+        planilla— no tiene tope ni costo. La suscripción activa calificar,
+        pasar lista y emitir los documentos del MPPE.
 
   %section.portada-seccion{id: "quienes-somos"}
     .portada-inner
-      %span.portada-rotulo 05 — Quién lo hace
-      %h2.portada-titulo Con educación en el centro.
-      %p.portada-parrafo
-        SIGA lo escribe gente que lleva años montando gestión académica de
-        verdad: la Facultad de Odontología, la Facultad de Arquitectura y la
-        Facultad de Humanidades y Educación de la Universidad Central de
-        Venezuela, además de fundaciones educativas.
-      %p.portada-parrafo
-        Eso es lo que hay detrás de decisiones que no se ven desde afuera, como
-        que un boletín reemitido no pueda contradecir al que ya se entregó, o
-        que un alumno sin nota aparezca como
-        %em pendiente
-        y nunca como cero.
+      .portada-encabezado
+        %div
+          %span.portada-rotulo 05 — Quién lo hace
+          %h2.portada-titulo
+            Con educación
+            %em en el centro.
+        %div
+          %p.portada-parrafo
+            SIGA lo escribe gente que lleva años montando gestión académica de
+            verdad: las facultades de Odontología, de Arquitectura y de
+            Humanidades y Educación de la Universidad Central de Venezuela,
+            además de fundaciones educativas.
+          %p.portada-parrafo
+            Eso es lo que hay detrás de decisiones que no se ven desde afuera,
+            como que un boletín reemitido no pueda contradecir al que ya se
+            entregó, o que un alumno sin nota aparezca como
+            %em pendiente
+            y nunca como cero.
 
   %section.portada-cierre
     .portada-inner
-      %h2.portada-cierre-titulo ¿Le mostramos cómo se vería su colegio?
+      %h2.portada-cierre-titulo
+        ¿Le mostramos cómo se vería
+        %em su colegio?
       %p.portada-cierre-texto
         Veinte minutos, por WhatsApp o por llamada. Cuéntenos cómo trabajan hoy
         y le mostramos exactamente en qué cambia. Si no le sirve, quedamos como
@@ -244,15 +394,14 @@
           %p.portada-pie-nombre SIGA
           %p.portada-pie-que
             Sistema Integrado de Gestión Académica.
-            Gestión académica clara para colegios que educan.
+            Un servicio por suscripción para colegios que educan.
 
         %nav.portada-pie-enlaces{"aria-label": "Enlaces del pie"}
-          -# Solo destinos que existen. Los cuatro anteriores —#features,
-          -# #benefits, "Documentación", "Ayuda"— apuntaban a anclas
-          -# inexistentes o a `#`. Un enlace que no lleva a ninguna parte le
+          -# Solo destinos que existen. Los del pie anterior apuntaban a anclas
+          -# inexistentes o a `#`, y un enlace que no lleva a ninguna parte le
           -# enseña a la visitante a no confiar en los demás.
           %ul
-            %li= link_to "Planes", "#planes"
+            %li= link_to "La suscripción", "#planes"
             %li= link_to "Pedir una demostración", new_demo_request_path
             %li= link_to "Entrar al sistema", new_user_session_path
             %li= link_to "Verificar un documento", verificar_path
