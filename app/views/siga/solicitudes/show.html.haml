@@ -27,4 +27,4 @@
     %h2 Estado
   = form_with url: siga_solicitud_path(@solicitud), method: :patch, class: "siga-form-inline" do
     = select_tag "demo_request[status]", options_for_select(DemoRequest.statuses.keys.map { |s| [s.humanize, s] }, @solicitud.status), class: "form-select"
-    = submit_tag "Guardar", class: "btn btn-primary"
+    = submit_tag "Guardar", class: "btn btn-guardar"

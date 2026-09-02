@@ -60,6 +60,6 @@
         = f.date_field :end_date, class: "form-control"
 
   .form-acciones
-    = f.submit (nuevo ? "Crear el año escolar" : "Guardar"), class: "btn btn-primary"
+    = f.submit (nuevo ? "Crear el año escolar" : "Guardar"), class: "btn btn-guardar"
     - if local_assigns[:volver]
       = boton "Volver", volver, icono: :volver, tono: :secondary

@@ -11,19 +11,16 @@
 -# que además esconden el que sí se usa.
 = render "shared/cabecera_de_lista", titulo: "Departamentos",
          alta_en_linea: { ruta: departments_path, campo: :nombre,
-                          nombre_del_campo: "department[name]", etiqueta: "Agregar",
+                          nombre_del_campo: "department[name]", etiqueta: "Agregar nuevo departamento",
                           placeholder: "Ciencias" }
 
 .card-academic
   -# ⚠️ El `turbo_frame` envuelve la LISTA ENTERA y no cada fila: al agregar hay
   -# que insertar una fila nueva y actualizar el conteo de arriba, o sea dos
   -# lugares. Con un frame por fila haría falta un Turbo Stream por cada uno.
-  -# ⚠️ `target: "_top"`, la misma trampa que en los otros listados: sin él, el
-  -# atajo «agregar una materia de este departamento» intenta cargar
-  -# `/materias/new` DENTRO del frame, y como esa página no tiene un frame con
-  -# este id, Turbo pinta «Content missing». Un botón que no lleva a ningún lado.
-  -#
-  -# El enlace del nombre sigue editando en línea porque pide un Turbo Stream
-  -# (`data-turbo-stream`), y un stream no es navegación de frame.
-  = turbo_frame_tag "departamentos", target: "_top" do
+  -# ⚠️ SIN `target: "_top"` (MOR-207): con él, todo lo de adentro navegaba la
+  -# página entera, incluida la papelera —que responde con un Turbo Stream y
+  -# quedaba descartado—. Daniel: «sí lo hizo, recargó la página». El único que
+  -# necesita salir es el atajo a `/materias/new`, y lo declara él mismo.
+  = turbo_frame_tag "departamentos" do
     = render "departments/lista", departments: @departments

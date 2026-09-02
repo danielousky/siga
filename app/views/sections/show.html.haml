@@ -119,7 +119,7 @@
             = f.label :teacher_id, class: "form-label"
             = f.select :teacher_id, options_for_select(@available_teachers.map { |t| ["#{t.user.apellidos_y_nombres} (#{t.user.identificador})", t.user_id] }), {}, class: "form-select"
           .form-group.form-group--boton
-            = f.submit "Asignar", class: "btn btn-primary"
+            = f.submit "Asignar", class: "btn btn-guardar"
 
   .card-academic
     %h2 Alumnos inscritos

@@ -50,4 +50,38 @@ namespace :soporte do
       end
     end
   end
+
+  # Quitarle a una persona un rol que no debería tener.
+  #
+  # ⚠️ Existe por el incidente de `MOR-200`: buscar personas por correo fusionó
+  # al director con un «representante nuevo», y esa fila de más queda ahí
+  # después de arreglar la causa. Un rol sobrante no es cosmético — le da a esa
+  # persona una entrada al portal de representantes que nadie le quiso dar.
+  #
+  # ⚠️ Pide los TRES datos explícitos y no adivina ninguno. Una tarea de soporte
+  # que borra por nombre o por «el último» es la que un día borra el que no era:
+  #
+  #     bin/rails soporte:quitar_rol ROL=representative USUARIO=630 COLEGIO=5
+  #
+  # Y no borra la persona ni sus datos: solo la fila del rol.
+  desc "Quita UN rol de UNA persona en UN colegio (ROL, USUARIO, COLEGIO)"
+  task quitar_rol: :environment do
+    clases = { "representative" => Representative, "teacher" => Teacher,
+               "admin" => Admin, "student" => Student }
+    clase = clases[ENV["ROL"].to_s.downcase]
+    abort "ROL debe ser uno de: #{clases.keys.join(', ')}" if clase.nil?
+    abort "Faltan USUARIO y COLEGIO" if ENV["USUARIO"].blank? || ENV["COLEGIO"].blank?
+
+    Current.sin_aislamiento do
+      filas = clase.unscoped.where(user_id: ENV["USUARIO"], school_id: ENV["COLEGIO"])
+      abort "No hay ningún #{clase.name} de user##{ENV['USUARIO']} en el colegio #{ENV['COLEGIO']}" if filas.empty?
+
+      filas.each do |fila|
+        puts "  quitando #{clase.name}##{fila.id} — #{fila.user.apellidos_y_nombres} en #{fila.school.name}"
+        fila.destroy!
+      end
+
+      puts "  ✓ listo. La persona y sus otros roles quedan intactos."
+    end
+  end
 end

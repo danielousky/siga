@@ -41,7 +41,7 @@
     = f.date_field :date_scheduled, class: "form-control"
 
   .form-acciones
-    = f.submit class: "btn btn-primary"
+    = f.submit class: "btn btn-guardar"
     - if local_assigns[:volver]
       = boton "Volver", volver, icono: :volver, tono: :secondary
   = link_to "Cancelar", evaluation_activities_path, class: "btn btn-secondary"

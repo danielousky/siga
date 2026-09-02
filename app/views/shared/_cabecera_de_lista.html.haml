@@ -95,14 +95,28 @@
     -# campo de alta es el que se usa. Cuando la entidad tiene UN campo, ir a
     -# otra pantalla para escribirlo es todo el trámite.
     - if local_assigns[:alta_en_linea]
-      = form_with url: alta_en_linea[:ruta], class: "cabecera-de-lista-filtros" do |f|
+      -# ⚠️ El rótulo NOMBRA lo que se agrega y el botón solo dice el verbo
+      -# (MOR-207). Daniel: *«el primer "Agregar" lo vas a reemplazar por
+      -# "Agregar Nueva <cosa>" y el del botón submit va a ser un [+ Agregar]»*.
+      -#
+      -# Antes los dos decían «Agregar» y quedaban uno a cada lado del mismo
+      -# campo, diciendo lo mismo dos veces sin decir de qué.
+      -#
+      -# ⚠️ Acá sí se escribe «Nuevo/Nueva» —que `MOR-175` evita— y no rompe esa
+      -# regla: lo que ella esquiva es la concordancia DEDUCIDA, y este texto lo
+      -# escribe la vista, una vez, con el género a la vista.
+      = form_with url: alta_en_linea[:ruta], class: "cabecera-de-lista-filtros cabecera-de-lista-alta" do |f|
         .campo-con-boton
           = f.label alta_en_linea[:campo], alta_en_linea[:etiqueta], class: "campo-con-boton-inicio"
           .search-input-wrap
             = f.text_field alta_en_linea[:campo], class: "form-control", autocomplete: "off",
                 required: true, placeholder: alta_en_linea[:placeholder],
                 value: nil, name: alta_en_linea[:nombre_del_campo]
-          = f.submit "Agregar", class: "btn btn-primary campo-con-boton-final"
+          -# ⚠️ `button_tag` y no `f.submit`: un `<input type=submit>` no admite
+          -# hijos, así que no puede llevar el icono adentro.
+          = button_tag type: :submit, class: "btn btn-guardar campo-con-boton-final" do
+            = icono(:agregar, tamano: 16)
+            %span Agregar
 
     - elsif busca || extras.any?
       -# ⚠️ `local: false` y el `turbo_frame` explícito, igual que antes: el frame de

@@ -100,5 +100,5 @@
         Ningún alumno de este colegio coincide con lo que escribió.
 
   .form-acciones
-    = submit_tag(representative.persisted? ? "Guardar cambios" : "Registrar", class: "btn btn-primary")
+    = submit_tag(representative.persisted? ? "Guardar cambios" : "Registrar", class: "btn btn-guardar")
     = boton "Volver", representatives_path, icono: :volver, tono: :secondary

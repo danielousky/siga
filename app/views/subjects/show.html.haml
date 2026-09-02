@@ -47,7 +47,7 @@
                        options_for_select(@grados_libres.map { |g| [ g.name, grade_grade_subjects_path(g) ] }),
                        class: "form-select", data: { accion_del_formulario_target: "select", action: "change->accion-del-formulario#cambiar" }
           = hidden_field_tag :subject_id, @subject.id
-          = f.submit "Agregar", class: "btn btn-primary"
+          = f.submit "Agregar", class: "btn btn-guardar"
 
   .card-academic
     .card-academic-header
@@ -93,7 +93,7 @@
                        options_for_select(@profesores.map { |p| [ p.user.apellidos_y_nombres, p.id ] }),
                        class: "form-select"
           = hidden_field_tag :subject_id, @subject.id
-          = f.submit "Asignar", class: "btn btn-primary"
+          = f.submit "Asignar", class: "btn btn-guardar"
 
   %p.ficha-volver
     = link_to "← Volver a las materias", subjects_path

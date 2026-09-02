@@ -6379,3 +6379,114 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 }
 
 .fila-en-edicion .form-control { flex: 1; min-width: 0; }
+
+
+/* GUARDAR es verde, y BORRAR es rojo (MOR-207).
+   ═════════════════════════════════════════════
+   Daniel: «el tono de ese botón debe tender a verde, al igual que todos todos
+   los submit, actuales y de ahora en más», y «el botón de eliminar debe tener
+   un tono rojo».
+
+   ⚠️ Esto MODIFICA la regla de color (MOR-135), que reservaba verde, rojo y
+   ámbar para el DATO y dejaba los controles en la familia fría. La regla no se
+   cae: lo que cambia es su alcance, y conviene que quede escrito.
+
+       SIGUE SIENDO DEL DATO          PASA A SER DEL CONTROL
+       ─────────────────────          ──────────────────────
+       la nota en rojo del aplazado   el verde de GUARDAR
+       el ámbar de una anomalía       el rojo de ELIMINAR
+       los chips de estado
+
+   Lo que hace que convivan es que no comparten pantalla ni forma: una nota en
+   rojo es un NÚMERO dentro de una tabla, y el rojo de borrar es el fondo de un
+   botón con un icono de papelera. Y son las dos acciones que TODO el mundo
+   espera de ese color — pelear contra esa expectativa cuesta más de lo que la
+   regla protegía.
+
+   ⚠️ El verde es oscuro y desaturado a propósito (#1f6b47, no #22c55e): tiene
+   que convivir con el azul institucional sin gritar, y sostener texto blanco
+   con contraste suficiente. */
+:root {
+  --guardar-primary: #1f6b47;
+  --guardar-hover: #175136;
+  --guardar-active: #103a26;
+  --eliminar-primary: #a3282a;
+  --eliminar-hover: #86201f;
+}
+
+.btn-guardar {
+  background: var(--guardar-primary);
+  border-color: var(--guardar-primary);
+  color: #fff;
+}
+
+.btn-guardar:hover {
+  background: var(--guardar-hover);
+  border-color: var(--guardar-hover);
+  color: #fff;
+}
+
+.btn-guardar:active { background: var(--guardar-active); border-color: var(--guardar-active); }
+
+/* ⚠️ `btn-danger` era «sin tono, y en hover tinta sólida». Ahora lleva su rojo
+   desde el principio: una papelera que solo se pinta al pasar el mouse no
+   existe en un teléfono, que es donde tocarla por error cuesta más caro. */
+.btn-danger {
+  background: var(--eliminar-primary);
+  border-color: var(--eliminar-primary);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: var(--eliminar-hover);
+  border-color: var(--eliminar-hover);
+  color: #fff;
+}
+
+/* ⚠️ El tooltip de la ÚLTIMA fila de una tabla se recortaba (MOR-207).
+   Daniel: «los tooltips de abajo no se leen, salen cortados».
+
+   `.table-academic` lleva `overflow: hidden` para que el borde redondeado
+   recorte las esquinas de la primera y la última fila. Eso también recorta
+   cualquier cosa que se salga de la tabla — y un tooltip que sale POR DEBAJO de
+   la última fila se sale siempre.
+
+   La salida no es quitar el `overflow` —se perderían las esquinas— sino que en
+   una tabla el tooltip vaya ARRIBA, dentro de la caja. */
+.table-academic [data-tooltip]::after {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+.table-academic [data-tooltip]::before {
+  top: auto;
+  bottom: calc(100% + 2px);
+  border-bottom-color: transparent;
+  border-top-color: var(--text-primary);
+}
+
+/* Y el de la última columna se sale por la DERECHA: se ancla a su borde en vez
+   de centrarse. */
+.columna-acciones [data-tooltip]::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.columna-acciones [data-tooltip]::before { left: auto; right: 12px; transform: none; }
+
+/* El alta en línea, alineada a la derecha (MOR-207). Daniel: «alinéalo todo a
+   la derecha».
+
+   ⚠️ Hay que APAGAR el `flex: 1` que trae `.cabecera-de-lista-filtros`, y sin
+   eso el `margin-left: auto` no hace nada: un ítem que crece ya ocupa todo el
+   sobrante, así que no queda margen que repartir. Se veía como «el cambio no se
+   aplicó». */
+.cabecera-de-lista-alta {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+/* Y el campo se queda con un ancho cómodo en vez de estirarse: el nombre de un
+   departamento son dos palabras. */
+.cabecera-de-lista-alta .search-input-wrap { width: min(320px, 100%); }

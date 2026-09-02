@@ -19,7 +19,7 @@ class DepartamentosEnLineaTest < ApplicationSystemTestCase
 
   test "se agrega desde la misma lista" do
     fill_in "department[name]", with: "Ciencias Naturales"
-    find(".cabecera-de-lista input[type=submit]").click
+    find(".cabecera-de-lista button[type=submit]").click
 
     assert_selector "td", text: "Ciencias Naturales", wait: 5
     assert_text "Departamento agregado"
@@ -28,7 +28,7 @@ class DepartamentosEnLineaTest < ApplicationSystemTestCase
 
   test "se edita tocando el nombre, ahí mismo" do
     fill_in "department[name]", with: "Letras"
-    find(".cabecera-de-lista input[type=submit]").click
+    find(".cabecera-de-lista button[type=submit]").click
     assert_selector "td", text: "Letras", wait: 5
 
     click_on "Letras"
@@ -45,7 +45,7 @@ class DepartamentosEnLineaTest < ApplicationSystemTestCase
 
   test "se borra con la papelera" do
     fill_in "department[name]", with: "Para Borrar"
-    find(".cabecera-de-lista input[type=submit]").click
+    find(".cabecera-de-lista button[type=submit]").click
     assert_selector "td", text: "Para Borrar", wait: 5
 
     accept_confirm { find("button[aria-label='Eliminar Para Borrar']").click }
@@ -57,7 +57,7 @@ class DepartamentosEnLineaTest < ApplicationSystemTestCase
   # el parámetro departamento_id».
   test "cada fila lleva a crear una materia de ESE departamento" do
     fill_in "department[name]", with: "Deportes"
-    find(".cabecera-de-lista input[type=submit]").click
+    find(".cabecera-de-lista button[type=submit]").click
     assert_selector "td", text: "Deportes", wait: 5
 
     find("a[aria-label='Agregar una materia de Deportes']").click

@@ -20,15 +20,36 @@
     -# departamento»*. Es el orden real del trabajo: los departamentos se crean
     -# para colgarles materias, y sin esto había que salir a Materias y volver a
     -# elegir en un desplegable el departamento del que uno acababa de venir.
+    -# ⚠️ `turbo_frame: "_top"` acá y NO en el frame entero (MOR-207).
+    -#
+    -# Estaba en el `turbo_frame_tag`, y eso hacía que TODO lo de adentro
+    -# navegara la página entera — incluida la papelera, que responde con un
+    -# Turbo Stream. Daniel: *«sí lo hizo, recargó la página»*. El único que
+    -# necesita salir del frame es este enlace, porque `/materias/new` es otra
+    -# pantalla.
     = link_to new_subject_path(department_id: department.id),
               class: "btn btn-secondary btn-sm btn-solo-icono",
-              data: { tooltip: "Agregar una materia de #{department.name}" },
+              data: { turbo_frame: "_top", tooltip: "Agregar una materia de #{department.name}" },
               aria: { label: "Agregar una materia de #{department.name}" } do
       = icono(:materias, tamano: 15)
 
-    = button_to department_path(department), method: :delete,
-                class: "btn btn-danger btn-sm btn-solo-icono",
-                form: { data: { turbo_confirm: "¿Eliminar #{department.name}? Las materias que lo usan quedan sin departamento." } },
-                data: { tooltip: "Eliminar #{department.name}" },
-                aria: { label: "Eliminar #{department.name}" } do
-      = icono(:borrar, tamano: 15)
+    -# ⚠️ La papelera SOLO si se puede borrar de verdad (MOR-207).
+    -#
+    -# Daniel: *«si tiene materias asociadas no debe poder eliminarse»*. Y ya no
+    -# se podía —`has_many :subjects, dependent: :restrict_with_error`— pero se
+    -# ofrecía igual: se tocaba, se confirmaba, y llegaba un error. Es
+    -# exactamente el botón que `BorradoHelper` vino a terminar en `MOR-135`,
+    -# vuelto a aparecer en una pantalla nueva.
+    -#
+    -# En su lugar queda el motivo, que es lo que la persona necesita para hacer
+    -# lo correcto: mover esas materias primero.
+    - if borrable?(department)
+      = button_to department_path(department), method: :delete,
+                  class: "btn btn-danger btn-sm btn-solo-icono",
+                  form: { data: { turbo_confirm: "¿Eliminar #{department.name}?" } },
+                  data: { tooltip: "Eliminar #{department.name}" },
+                  aria: { label: "Eliminar #{department.name}" } do
+        = icono(:borrar, tamano: 15)
+    - else
+      %span.dato-secundario{ data: { tooltip: motivo_para_no_borrar(department) } }
+        = contar(department.subjects.size, "materia", "materias")

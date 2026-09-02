@@ -96,7 +96,7 @@
                              include_blank: "— No importar —", class: "form-select"
 
     .form-acciones
-      = submit_tag "Guardar y continuar", class: "btn btn-primary"
+      = submit_tag "Guardar y continuar", class: "btn btn-guardar"
       = boton "Volver", importaciones_path, icono: :volver, tono: :secondary
 
 - if @importacion.planilla.descartadas.any?

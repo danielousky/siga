@@ -56,7 +56,7 @@
           pregunta: por reglamento siempre es del 1 al 20.
 
     .form-acciones
-      = submit_tag "Crear los grados", class: "btn btn-primary"
+      = submit_tag "Crear los grados", class: "btn btn-guardar"
       = boton "Volver al panel", dashboards_administrador_path, icono: :volver, tono: :secondary
 
   - if @grados.any?

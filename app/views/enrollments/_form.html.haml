@@ -53,6 +53,6 @@
       %p.nota-ayuda Cuándo se hizo el trámite. Después no se edita: si está mal, se anula la inscripción y se hace de nuevo.
 
   .form-acciones
-    = f.submit class: "btn btn-primary"
+    = f.submit class: "btn btn-guardar"
     - if local_assigns[:volver]
       = boton "Volver", volver, icono: :volver, tono: :secondary

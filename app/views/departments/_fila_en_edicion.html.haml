@@ -14,7 +14,7 @@
     = form_with model: department, class: "fila-en-edicion" do |f|
       = f.text_field :name, class: clase_de_campo(department, :name),
                      autofocus: true, required: true
-      = f.submit "Guardar", class: "btn btn-primary btn-sm"
+      = f.submit "Guardar", class: "btn btn-guardar btn-sm"
       = link_to "Cancelar", departments_path, class: "btn btn-secondary btn-sm"
 
     -# El error va DENTRO de la fila: es lo único que se reemplaza, así que un

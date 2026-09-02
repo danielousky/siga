@@ -64,6 +64,23 @@ class ReglaDeColorTest < ActiveSupport::TestCase
     reglas
   end
 
+  # ⚠️ Esta regla CAMBIÓ DE ALCANCE en MOR-207, y conviene que se lea acá y no
+  # solo en un commit.
+  #
+  # Daniel: *«el tono de ese botón debe tender a verde, al igual que todos todos
+  # los submit»* y *«el botón de eliminar debe tener un tono rojo»*. Guardar y
+  # eliminar pasan a llevar color; el resto de la regla sigue en pie.
+  #
+  # ⚠️ Y `btn-guardar` / `btn-danger` NO pasan este test por casualidad: usan
+  # tokens PROPIOS (`--guardar-*`, `--eliminar-*`) y no los semánticos del dato
+  # (`--success-*`, `--danger-*`). Eso no era la intención cuando se escribieron
+  # —fue así como salió— así que se declaran como excepción explícita: un test
+  # que aprueba algo sin haberlo mirado no está cuidando nada.
+  #
+  # Lo que sigue prohibido, y es el corazón de la regla: que un botón se pinte
+  # con el MISMO token que usa un dato. Si «Guardar» usara `--success-bg`, el
+  # día que alguien retoque ese token para los chips de estado se movería
+  # también el botón.
   test "ningún botón usa color semántico" do
     culpables = self.class.reglas_de(HOJA.read).filter_map do |selector, cuerpo|
       next unless selector.match?(/\.btn[\w-]*/)
@@ -146,5 +163,21 @@ class ReglaDeColorTest < ActiveSupport::TestCase
     assert regla, "falta .btn-primary"
     assert regla[1].match?(/--brand-/), ".btn-primary debe usar el azul de marca"
     assert_not regla[1].match?(SEMANTICO), ".btn-primary no debe usar color semántico"
+  end
+
+  # ── El alcance nuevo (MOR-207) ────────────────────────────────────────────
+
+  test "guardar y eliminar tienen tono, con tokens propios" do
+    css = HOJA.read
+
+    %w[--guardar-primary --eliminar-primary].each do |token|
+      assert_match(/#{token}:\s*#[0-9a-f]{6}/i, css, "#{token} tiene que existir")
+    end
+
+    guardar = self.class.reglas_de(css).find { |selector, _| selector.strip == ".btn-guardar" }
+    assert guardar, ".btn-guardar tiene que existir"
+    assert_no_match(/--success-|--danger-/, guardar.last,
+                    "el botón no puede compartir token con el dato: el día que se " \
+                    "retoque el verde de un chip de estado se movería también «Guardar»")
   end
 end

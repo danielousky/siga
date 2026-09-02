@@ -11,7 +11,7 @@
       = f.label :email, "Correo electrónico", class: "form-label"
       = f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control", placeholder: "usuario@ejemplo.com"
 
-    = f.submit "Enviarme el enlace", class: "btn btn-primary acceso-enviar"
+    = f.submit "Enviarme el enlace", class: "btn btn-guardar acceso-enviar"
 
   .acceso-pie
     = render "devise/shared/links"
