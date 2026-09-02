@@ -6,13 +6,9 @@
         qué se pierde y solo aparece si va a funcionar (`shared/_borrar`). Una
         sección con alumnos inscritos no se puede borrar, y ofrecerlo acá era
         un botón que confirmaba y después fallaba.
-      = link_to edit_section_path(@section), class: "btn btn-secondary" do
-        = icono(:editar, tamano: 16)
-        %span Editar
+      = boton "Editar", edit_section_path(@section), icono: :editar, tono: :secondary
     - else
-      = link_to dashboards_profesor_path, class: "btn btn-secondary" do
-        = icono(:volver, tamano: 16)
-        %span ← Volver
+      = boton "← Volver", dashboards_profesor_path, icono: :volver, tono: :secondary
 
   .detail-row
     .detail-item
@@ -106,9 +102,7 @@
               %td= ts.teacher.user.document || "—"
               %td= "#{ts.subject.code} - #{ts.subject.name}"
               %td
-                = link_to section_teacher_section_path(@section, ts), data: { turbo_method: :delete, turbo_confirm: "¿Quitar este profesor de esta materia?" }, class: "btn btn-danger btn-sm" do
-                  = icono(:borrar, tamano: 16)
-                  %span Quitar
+                = boton "Quitar", section_teacher_section_path(@section, ts), data: { turbo_method: :delete, turbo_confirm: "¿Quitar este profesor de esta materia?" }, icono: :borrar, tono: :danger, sm: true
     - else
       .empty-state
         %p No hay profesores asignados.

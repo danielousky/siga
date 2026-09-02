@@ -42,7 +42,22 @@
       -# El desplegable lo llena el controlador desde el catálogo. `data-actual`
       -# es lo que ya estaba guardado: si el formulario vuelve con errores, no se
       -# puede perder lo que la persona ya eligió.
-      = select_tag "school[municipio]", nil, class: "form-select", required: true,
+      -# ⚠️ El municipio NO lleva `required`, y el estado SÍ (MOR-202).
+      -#
+      -# Este desplegable lo LLENA JavaScript al elegir el estado. Un `required`
+      -# sobre un control que empieza vacío y que puede quedarse vacío —si el
+      -# importmap falla, si la conexión del colegio corta el archivo— hace que
+      -# el formulario **no se pueda enviar nunca**, y sin decir por qué: el
+      -# navegador bloquea en silencio y la persona ve que «no pasa nada».
+      -#
+      -# Es exactamente lo que Daniel describió: *«no lo invalidó, sencillamente
+      -# me devolvió a back sin mensaje»*. Con el municipio sin elegir, el envío
+      -# se bloqueaba antes de salir y el error del servidor —que existía— nunca
+      -# llegaba a pedirse.
+      -#
+      -# Y no hace falta: `location` se deduce de lo que HAYA (`School
+      -# #deducir_la_ubicacion`), así que con el estado solo ya es válido.
+      = select_tag "school[municipio]", nil, class: "form-select",
                    data: { ubicacion_target: "municipio", actual: colegio.municipio,
                            action: "change->ubicacion#alCambiarMunicipio" }
       -# ⚠️ La salida a mano. El catálogo está incompleto y NO puede impedirle a

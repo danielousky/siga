@@ -5529,12 +5529,25 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   color: var(--text-primary);
 }
 
+/* ⚠️ 92ch y no 62 (MOR-202). Daniel: «no entiendo cuál es la razón por la que
+   los textos de ayuda están recortados y no ocupan el ancho», y «esos textos
+   deberían ser más llamativos».
+
+   La razón ERA buena —62ch es la medida cómoda de lectura— pero está pensada
+   para un párrafo largo, y acá son dos renglones dentro de una tarjeta de 1.400
+   px: cortados a la mitad se leen como si estuvieran truncados, no como una
+   columna. 92ch sigue siendo una medida y usa el ancho que hay.
+
+   Y el tono sube a `--text-primary`: esto no es una nota al pie, es lo que
+   explica el paso que la persona está por hacer. En gris secundario competía
+   —y perdía— contra el título. */
 .paso-explicacion {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.55;
-  color: var(--text-secondary);
-  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  max-width: 92ch;
+  text-wrap: pretty;
 }
 
 /* El bloqueo se DICE, con el nombre de lo que falta, y el botón de al lado

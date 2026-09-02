@@ -10,9 +10,7 @@
           = @subject.department.name
 
     .ficha-acciones
-      = link_to edit_subject_path(@subject), class: "btn btn-secondary" do
-        = icono(:editar, tamano: 16)
-        %span Editar
+      = boton "Editar", edit_subject_path(@subject), icono: :editar, tono: :secondary
 
   .card-academic
     .card-academic-header

@@ -36,17 +36,13 @@
             -# secciones muestra el conteo, no una acción.
             %td.anio-acciones
               - if cuantas.zero?
-                = link_to copiar_al_academic_period_path(period), class: "btn btn-accion btn-sm" do
-                  = icono(:calendario, tamano: 14)
-                  %span Copiar de otro año
+                = boton "Copiar de otro año", copiar_al_academic_period_path(period), icono: :calendario, tono: :accion, sm: true
               - else
                 = contar(cuantas, "sección", "secciones")
                 -# Con secciones y sin alumnos, lo que falta es promover: es el
                 -# paso 3 de septiembre y el que deja el año listo para trabajar.
                 - inscritos = Enrollment.where(section: Section.where(academic_period_id: period.id)).count
                 - if inscritos.zero?
-                  = link_to promover_al_academic_period_path(period), class: "btn btn-accion btn-sm" do
-                    = icono(:alumnos, tamano: 14)
-                    %span Promover alumnos
+                  = boton "Promover alumnos", promover_al_academic_period_path(period), icono: :alumnos, tono: :accion, sm: true
                 - else
                   %span.dato-secundario= "· #{contar(inscritos, 'alumno', 'alumnos')}"

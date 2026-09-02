@@ -29,9 +29,7 @@
           = "coordina #{@coordina.map(&:name).to_sentence}"
 
     .ficha-acciones
-      = link_to edit_teacher_path(@teacher), class: "btn btn-secondary" do
-        = icono(:editar, tamano: 16)
-        %span Editar
+      = boton "Editar", edit_teacher_path(@teacher), icono: :editar, tono: :secondary
 
   .card-academic
     .card-academic-header

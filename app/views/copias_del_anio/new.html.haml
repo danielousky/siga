@@ -43,6 +43,4 @@
       .form-acciones
         - if @cuanto && @cuanto[:secciones].positive?
           = submit_tag "Copiar a #{@destino.name}", class: "btn btn-accion", data: { turbo: false }
-        = link_to academic_periods_path, class: "btn btn-secondary" do
-          = icono(:volver, tamano: 16)
-          %span Volver
+        = boton "Volver", academic_periods_path, icono: :volver, tono: :secondary

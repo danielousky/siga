@@ -18,9 +18,7 @@
     -# puede entrar y un botón. Daniel lo marcó en pantalla.
     = render "shared/acceso_al_sistema", usuario: @representative.user,
              url: codigo_representative_path(@representative)
-    = link_to edit_representative_path(@representative), class: "btn btn-secondary" do
-      = icono(:editar, tamano: 16)
-      %span Editar
+    = boton "Editar", edit_representative_path(@representative), icono: :editar, tono: :secondary
 
   -# ⚠️ Cada acción AL LADO de su dato, sin una sección aparte (QA de Daniel:
   -# «los botones puedes colocarlos al lado de sus respectivos elementos, no hay
@@ -75,9 +73,7 @@
         - if whatsapp && puede_escribir
           -# `target` y `rel` porque sale de la app: sin `noopener`, la pestaña
           -# que se abre puede reescribir la de SIGA.
-          = link_to whatsapp, target: "_blank", rel: "noopener", class: "btn btn-accion btn-sm" do
-            = icono(:representantes, tamano: 14)
-            %span WhatsApp
+          = boton "WhatsApp", whatsapp, target: "_blank", rel: "noopener", icono: :representantes, tono: :accion, sm: true
 
     %dt Cédula
     %dd= @representative.user.identificador.presence || "—"

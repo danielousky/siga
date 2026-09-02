@@ -97,9 +97,7 @@
 
     .form-acciones
       = submit_tag "Guardar y continuar", class: "btn btn-primary"
-      = link_to importaciones_path, class: "btn btn-secondary" do
-        = icono(:volver, tamano: 16)
-        %span Volver
+      = boton "Volver", importaciones_path, icono: :volver, tono: :secondary
 
 - if @importacion.planilla.descartadas.any?
   .card-academic

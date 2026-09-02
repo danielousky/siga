@@ -9,9 +9,7 @@
                        carga_notas_total_value: @aplazados.size }}
   .card-academic-header
     %h1 Reparación
-    = link_to reparaciones_path, class: "btn btn-secondary" do
-      = icono(:volver, tamano: 16)
-      %span Volver
+    = boton "Volver", reparaciones_path, icono: :volver, tono: :secondary
 
   %p.carga-contexto
     = "#{@seccion.grade.name} – #{@seccion.name}"

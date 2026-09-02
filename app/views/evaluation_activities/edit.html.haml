@@ -1,9 +1,7 @@
 .card-academic
   .card-academic-header
     %h1 Editar evaluación
-    = link_to @evaluation_activity, class: "btn btn-secondary" do
-      = icono(:volver, tamano: 16)
-      %span Volver
+    = boton "Volver", @evaluation_activity, icono: :volver, tono: :secondary
 
   = render "form", evaluation_activity: @evaluation_activity
 

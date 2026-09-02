@@ -20,9 +20,7 @@
           %span.ficha-sin-cupo Sin inscripción activa
 
     .ficha-acciones
-      = link_to edit_student_path(@student), class: "btn btn-secondary" do
-        = icono(:editar, tamano: 16)
-        %span Editar
+      = boton "Editar", edit_student_path(@student), icono: :editar, tono: :secondary
       - if @inscripcion && can_manage_students?
         = link_to "Constancia", constancias_path(section_id: @inscripcion.section_id), class: "btn btn-secondary"
 

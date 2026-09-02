@@ -1,9 +1,7 @@
 .card-academic
   .card-academic-header
     %h1= @evaluation_activity.description
-    = link_to evaluation_activities_path, class: "btn btn-secondary" do
-      = icono(:volver, tamano: 16)
-      %span Volver
+    = boton "Volver", evaluation_activities_path, icono: :volver, tono: :secondary
 
   .detail-row
     .detail-item
@@ -32,9 +30,5 @@
 
   - if profesor?
     .section-actions
-      = link_to evaluation_activity_notas_path(@evaluation_activity), class: "btn btn-primary" do
-        = icono(:subir, tamano: 16)
-        %span Cargar notas
-      = link_to edit_evaluation_activity_path(@evaluation_activity), class: "btn btn-secondary" do
-        = icono(:editar, tamano: 16)
-        %span Editar
+      = boton "Cargar notas", evaluation_activity_notas_path(@evaluation_activity), icono: :subir
+      = boton "Editar", edit_evaluation_activity_path(@evaluation_activity), icono: :editar, tono: :secondary

@@ -57,6 +57,18 @@ class MiColegioController < ApplicationController
                 notice: "Listo, #{@colegio.name} ya existe. Empiece por elegir qué niveles dicta."
   rescue ActiveRecord::RecordInvalid
     render :new, status: :unprocessable_entity
+  rescue ActiveRecord::RecordNotUnique
+    # ⚠️ El índice único de la base, no la validación (MOR-202).
+    #
+    # `validates :dea_code, uniqueness:` hace un SELECT y después el INSERT: dos
+    # colegios que se registran en el mismo segundo pasan los dos el SELECT y el
+    # segundo revienta contra el índice. Es raro y es exactamente el día del
+    # lanzamiento.
+    #
+    # Sin esto era un 500, o sea una pantalla de error genérica sobre un
+    # problema que se explica en una línea.
+    @colegio.errors.add(:dea_code, "ya está registrado por otro colegio")
+    render :new, status: :unprocessable_entity
   end
 
   private

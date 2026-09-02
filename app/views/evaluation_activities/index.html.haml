@@ -62,6 +62,4 @@
               no se llega a ella desde ningún otro lado en un paso.
             %td
               - if profesor?
-                = link_to evaluation_activity_notas_path(actividad), class: "btn btn-primary btn-sm" do
-                  = icono(:subir, tamano: 16)
-                  %span Cargar notas
+                = boton "Cargar notas", evaluation_activity_notas_path(actividad), icono: :subir, sm: true

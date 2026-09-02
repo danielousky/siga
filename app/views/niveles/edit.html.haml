@@ -57,9 +57,7 @@
 
     .form-acciones
       = submit_tag "Crear los grados", class: "btn btn-primary"
-      = link_to dashboards_administrador_path, class: "btn btn-secondary" do
-        = icono(:volver, tamano: 16)
-        %span Volver al panel
+      = boton "Volver al panel", dashboards_administrador_path, icono: :volver, tono: :secondary
 
   - if @grados.any?
     %h2.niveles-titulo-grados Los grados que ya tiene

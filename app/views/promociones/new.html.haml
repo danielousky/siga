@@ -49,9 +49,7 @@
                     class: "btn btn-accion" do
             = icono(:alumnos, tamano: 16)
             %span Pasar a todos al siguiente grado
-          = link_to importaciones_path, class: "btn btn-secondary" do
-            = icono(:importar, tamano: 16)
-            %span Subir primero las notas anteriores
+          = boton "Subir primero las notas anteriores", importaciones_path, icono: :importar, tono: :secondary
 
     - if @conteo.any?
       .promocion-resumen
@@ -99,9 +97,7 @@
           = hidden_field_tag :sin_datos, "1"
         - if a_inscribir.positive?
           = submit_tag "Promover a #{contar(a_inscribir, 'alumno', 'alumnos')}", class: "btn btn-accion", data: { turbo: false }
-        = link_to academic_periods_path, class: "btn btn-secondary" do
-          = icono(:volver, tamano: 16)
-          %span Volver
+        = boton "Volver", academic_periods_path, icono: :volver, tono: :secondary
 
     - elsif @hay_notas
       .empty-state

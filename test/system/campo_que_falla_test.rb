@@ -23,7 +23,11 @@ class CampoQueFallaTest < ApplicationSystemTestCase
   # a este test sin manera de llegar al servidor. La uniqueness sí es una
   # validación que solo el servidor puede comprobar.
   def enviar_repetido(ruta)
-    existente = con_el_colegio(@a.escenario.colegio) { Subject.first }
+    # ⚠️ Se crea la materia acá y no se toma `Subject.first`: con dos archivos
+    # de sistema corriendo seguidos, «la primera» depende de qué dejó el otro.
+    existente = con_el_colegio(@a.escenario.colegio) do
+      Subject.create!(code: "RPT#{rand(1000)}", name: "Materia Repetida")
+    end
 
     visit ruta
     fill_in "subject[code]", with: existente.code

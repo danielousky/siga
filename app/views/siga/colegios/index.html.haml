@@ -9,9 +9,7 @@
   -# convertida en query string. O sea: no explota, se ve mal y no lleva a ningún
   -# lado. Dejó a Daniel sin poder dar de alta un colegio.
   - if siga_staff.puede_dar_de_alta_colegios?
-    = link_to new_siga_colegio_path, class: "btn btn-primary" do
-      = icono(:agregar, tamano: 16)
-      %span Dar de alta
+    = boton "Dar de alta", new_siga_colegio_path, icono: :agregar
 
 - if @colegios.empty?
   %p.siga-vacio

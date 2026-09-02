@@ -153,4 +153,36 @@ module ApplicationHelper
         validador.options.values_at(:if, :unless, :on, :allow_nil, :allow_blank).all?(&:blank?)
     end
   end
+
+  # Un botón con su icono, en una línea (MOR-202).
+  #
+  # Daniel: *«debería haber un helper para los botones de primary que le pases
+  # solo el ícono, name y title (opcional) y pinte los botones»*.
+  #
+  # Estaba escrito a mano en cada vista, siempre igual y siempre con la
+  # posibilidad de escribirlo distinto:
+  #
+  #     = link_to ruta, class: "btn btn-primary" do
+  #       = icono(:agregar, tamano: 16)
+  #       %span Registrar alumno
+  #
+  # ⚠️ El `%span` alrededor del texto NO es decorativo y es lo que más se
+  # olvidaba: sin él, el `gap` del botón no separa el icono de la palabra
+  # —un nodo de texto suelto no es un ítem flex— y quedan pegados.
+  #
+  # El tamaño del icono tampoco se pasa: 16 px es el de un botón y 15 el de uno
+  # `btn-sm`, y tenerlo acá evita el botón con el icono de otro tamaño.
+  #
+  #     = boton "Registrar alumno", new_student_path, icono: :agregar
+  #     = boton "Copiar de otro año", ruta, icono: :copiar, tono: :accion, sm: true
+  #     = boton "Años escolares", ruta, icono: :calendario, tooltip: "Crear y editar"
+  def boton(nombre, ruta, icono:, tono: :primary, sm: false, tooltip: nil, **opciones)
+    clases = [ "btn", "btn-#{tono}", ("btn-sm" if sm) ].compact.join(" ")
+    datos = opciones.delete(:data) || {}
+    datos = datos.merge(tooltip: tooltip) if tooltip
+
+    link_to ruta, class: clases, data: datos, **opciones do
+      safe_join([ icono(icono, tamano: sm ? 15 : 16), tag.span(nombre) ])
+    end
+  end
 end

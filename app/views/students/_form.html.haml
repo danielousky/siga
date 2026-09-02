@@ -34,6 +34,4 @@
   .form-acciones
     = f.submit class: "btn btn-primary"
     - if local_assigns[:volver]
-      = link_to volver, class: "btn btn-secondary" do
-        = icono(:volver, tamano: 16)
-        %span Volver
+      = boton "Volver", volver, icono: :volver, tono: :secondary

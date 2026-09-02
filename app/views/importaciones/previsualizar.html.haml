@@ -266,6 +266,4 @@
       = button_to "Cargar #{contar(@planilla.cargables.size, *que_es)}",
                   importacion_path(@importacion), method: :patch,
                   params: { confirmar: "1" }, class: "btn btn-primary"
-    = link_to importacion_path(@importacion), class: "btn btn-secondary" do
-      = icono(:volver, tamano: 16)
-      %span Volver al mapeo
+    = boton "Volver al mapeo", importacion_path(@importacion), icono: :volver, tono: :secondary

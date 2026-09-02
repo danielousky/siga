@@ -75,14 +75,17 @@
               -# único que puede hacer en ese renglón—. Pintarlo de gris lo
               -# vuelve a presentar como una alternativa secundaria de algo que
               -# no existe.
-              = link_to "#{ruta_del_paso(falta)}?recorrido=#{falta.clave}", class: "btn btn-primary btn-sm" do
-                = icono(falta.icono, tamano: 15)
-                %span= falta.verbo
+              -# ⚠️ Envuelto en `.paso-acciones`, como el botón del paso normal
+              -# (MOR-202). Suelto era hijo directo del contenedor y se estiraba
+              -# a todo el ancho de la tarjeta: Daniel, señalándolo, «el bloque
+              -# de año escolar es más grande».
+              .paso-acciones
+                = boton falta.verbo, "#{ruta_del_paso(falta)}?recorrido=#{falta.clave}",
+                        icono: falta.icono, sm: true
             - else
               .paso-acciones
-                = link_to "#{ruta_del_paso(paso)}?recorrido=#{paso.clave}", class: "btn btn-primary btn-sm" do
-                  = icono(paso.icono, tamano: 15)
-                  %span= paso.verbo
+                = boton paso.verbo, "#{ruta_del_paso(paso)}?recorrido=#{paso.clave}",
+                        icono: paso.icono, sm: true
                 - if paso.opcional?
                   = button_to "Este colegio no lo usa", omitir_paso_path(paso.clave),
                               method: :post, class: "btn btn-secondary btn-sm"

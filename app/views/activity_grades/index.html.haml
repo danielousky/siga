@@ -7,9 +7,7 @@
                        carga_notas_total_value: @inscripciones.size }}
   .card-academic-header
     %h1= @evaluation_activity.description
-    = link_to @evaluation_activity, class: "btn btn-secondary" do
-      = icono(:volver, tamano: 16)
-      %span Volver
+    = boton "Volver", @evaluation_activity, icono: :volver, tono: :secondary
 
   %p.carga-contexto
     = "#{@evaluation_activity.section.grade.name} – #{@evaluation_activity.section.name}"

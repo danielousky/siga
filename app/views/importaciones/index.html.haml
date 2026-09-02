@@ -14,15 +14,9 @@
     -#
     -# El primero va en `btn-primary` porque es por donde se empieza.
     .acciones-de-cabecera
-      = link_to new_importacion_path(tipo: :pensum), class: "btn btn-accion" do
-        = icono(:subir, tamano: 16)
-        %span Subir materias y profesores
-      = link_to new_importacion_path(tipo: :matricula), class: "btn btn-accion" do
-        = icono(:subir, tamano: 16)
-        %span Subir matrícula
-      = link_to new_importacion_path(tipo: :historial), class: "btn btn-accion" do
-        = icono(:subir, tamano: 16)
-        %span Subir notas anteriores
+      = boton "Subir materias y profesores", new_importacion_path(tipo: :pensum), icono: :subir, tono: :accion
+      = boton "Subir matrícula", new_importacion_path(tipo: :matricula), icono: :subir, tono: :accion
+      = boton "Subir notas anteriores", new_importacion_path(tipo: :historial), icono: :subir, tono: :accion
 
   - if @importaciones.empty?
     .empty-state
@@ -33,15 +27,9 @@
         secciones—, después la matrícula con alumnos y representantes, y por
         último las notas de años anteriores.
       .acciones-de-cabecera
-        = link_to plantilla_importaciones_path(tipo: :pensum), class: "btn btn-documento" do
-          = icono(:descargar, tamano: 16)
-          %span Plantilla de materias
-        = link_to plantilla_importaciones_path(tipo: :matricula), class: "btn btn-documento" do
-          = icono(:descargar, tamano: 16)
-          %span Plantilla de matrícula
-        = link_to plantilla_importaciones_path(tipo: :historial), class: "btn btn-documento" do
-          = icono(:descargar, tamano: 16)
-          %span Plantilla de notas
+        = boton "Plantilla de materias", plantilla_importaciones_path(tipo: :pensum), icono: :descargar, tono: :documento
+        = boton "Plantilla de matrícula", plantilla_importaciones_path(tipo: :matricula), icono: :descargar, tono: :documento
+        = boton "Plantilla de notas", plantilla_importaciones_path(tipo: :historial), icono: :descargar, tono: :documento
   - else
     = render "shared/escala", total: @pagy.count, singular: "importación", plural: "importaciones"
 
