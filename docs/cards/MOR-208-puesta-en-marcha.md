@@ -137,7 +137,7 @@ Encadena lo que ya existe y agrega lo único que falta:
    los AÑOS escolares    ← nuevo                el que viene + 4 anteriores
    los LAPSOS            AcademicPeriod         ✓ nacen con el año (MOR-163)
    las MATERIAS          ← nuevo, hay que investigar el pensum del MPPE
-   los DEPARTAMENTOS     ← nuevo, ver decisión abierta
+   los DEPARTAMENTOS     ✗ NO se siembran (decisión de Daniel)
 ```
 
 ⚠️ **Idempotente y en una transacción**, como `SembrarGrados` y
@@ -155,7 +155,6 @@ No pide nada. Dice qué se creó, **con números**, y cada línea lleva a editar
 ```
    ✓  14 grados          Preescolar · Primaria · Bachillerato   → Ver los grados
    ✓  38 materias        del pensum del MPPE                    → Ver las materias
-   ✓   4 departamentos                                          → Ver
    ✓   5 años escolares  2022-2023 … 2026-2027, con sus lapsos  → Ver
 ```
 
@@ -185,12 +184,20 @@ veces lo mismo.
 
 1. **El cargo:** *«podemos agregar el rol de asistente»*. Se suma `asistente` al
    enum de `Admin#role`.
-2. **Los departamentos:** *«no es un drama crearle departamentos a un colegio
-   pequeño, puede servirle. La idea es que igual ellos pueden luego cambiar el
-   nombre del dpto y reasignar FÁCILMENTE las materias que lo componen»*. Se
-   crean siempre. ⚠️ Y eso agrega trabajo: **reasignar materias entre
-   departamentos tiene que ser fácil**, cosa que hoy solo se puede haciendo
-   `Editar` en cada materia, una por una.
+2. **Los departamentos NO se crean en el arranque.** Daniel lo revisó al ver la
+   consecuencia: *«saltémonos la creación de los departamentos… Simplemente
+   creemos las asignaturas, las materias directamente, y dejemos a un lado el
+   departamento. Luego, si la escuela quiere un departamento, entonces los
+   creará aparte y le asignará las asignaturas que vivan en cada uno»*.
+
+   ⚠️ Y esto SIMPLIFICA el trabajo, no lo mueve de lugar: sin departamentos
+   sembrados no hace falta la pantalla para reasignar materias en masa, y el
+   paso opcional de `PasosDeArranque` se queda exactamente como está hoy.
+
+   ⚠️ **Pero aparece un requisito nuevo, para cuando toque:** *«les asignará las
+   asignaturas… y su coordinador»*. Hoy `Department` tiene nombre, colegio y
+   materias — **no tiene coordinador**. Anotado para su propia card, no para
+   ésta.
 3. **El correo:** se valida al escribir, como se pidió. La objeción que levanté
    no aplicaba: el formulario **ya** dice «Correo ya está en uso» al enviar, así
    que hacerlo en vivo no expone nada nuevo — solo llega antes.
@@ -239,9 +246,16 @@ nombró, es más fino: **Lengua, Matemática, Ciencias Naturales, Ciencias
 Sociales, Educación Física y Deporte**, más lo que cada colegio agregue —Inglés,
 Educación Estética, Computación—.
 
-⚠️ **Propuesta: sembrar lo que se califica, no lo que se legisla**, y decirlo en
-la pantalla del resumen. Es la misma lógica de `GradoOficial`: se propone lo
-correcto y el colegio ajusta.
+**Confirmado por Daniel:** *«en el caso de primaria, sí: las materias que se
+califican, no las cuatro áreas»*. Es la misma lógica de `GradoOficial`: se
+propone lo correcto y el colegio ajusta.
+
+⚠️ **Y una observación suya que vale guardar para cuando vuelvan los
+departamentos:** *«las áreas podrían ser los departamentos»*. Las cuatro áreas
+del currículo de primaria son exactamente eso —agrupaciones de materias por
+afinidad— así que el día que un colegio quiera departamentos, ya existe la
+agrupación oficial que se le puede proponer. No es una idea nueva: es la que el
+MPPE ya tomó.
 
 **Preescolar — no se califica por materias.** El currículo de Educación Inicial
 tiene DOS áreas de aprendizaje: «Formación Personal, Social y Comunicación» y
@@ -417,11 +431,8 @@ bachillerato, se pierde justo la confianza que vino a construir.
 veces: *«luego lo puede ajustar»*, *«que ellos los modifiquen»*. Un resumen sin
 enlaces convierte «se creó esto por usted» en «alguien decidió esto por usted».
 
-⚠️ **Cuidado con los departamentos.** Hoy son OPCIONALES y se pueden omitir
-para siempre —*«un colegio de 150 alumnos no tiene departamentos»*—. Crearlos
-solos contradice eso: hay que decidir si se crean siempre, si dependen del nivel
-(un colegio de solo preescolar no los necesita), o si el resumen ofrece
-quitarlos de un clic.
+⚠️ **Los departamentos NO entran acá** (decidido): el resumen no los menciona y
+el paso opcional sigue donde está. Un colegio los crea cuando los quiere.
 
 ### 8 · Y entonces, ¿qué queda del plan de ocho pasos?
 

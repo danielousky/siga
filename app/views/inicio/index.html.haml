@@ -146,16 +146,18 @@
             Sin módulos que sobran. Sin planillas que se pierden. Sin datos que
             desaparecen cuando cambia quien los llevaba.
 
-      -# Las tres cifras salen de la tabla de planes, no escritas a mano. El
-      -# colegio de referencia son 360 alumnos: la matrícula privada del país
-      -# dividida entre las instituciones que quedan.
-      - alumnos_referencia = 360
-      - precio_estandar = Subscription::PLANES.dig(:estandar, :precio)
+      -# ⚠️ La primera cifra fue «17 ¢ por alumno al mes» y Daniel la tachó. La
+      -# razón es la misma por la que se cayó la tesis del colegio pequeño: un
+      -# número que presume de barato vende barato, y acá lo que se ofrece es
+      -# orden. En su lugar va la promesa que ningún sistema de escritorio del
+      -# país puede hacer —el profesor califica desde su casa y el representante
+      -# lo ve al momento—, que además es la razón de existir de SIGA.
       .portada-cifras
         %div.portada-cifra
-          %span.portada-cifra-numero= "#{(precio_estandar * 100.0 / alumnos_referencia).round} ¢"
-          %span.portada-cifra-que por alumno al mes, con el colegio completo adentro
-          %span.portada-cifra-fuente #{precio_estandar} $ ÷ #{alumnos_referencia} alumnos
+          %span.portada-cifra-numero Hoy
+          %span.portada-cifra-que
+            el profesor califica desde su casa y el representante lo ve en su teléfono
+          %span.portada-cifra-fuente Sin esperar a la entrega del boletín
         %div.portada-cifra
           %span.portada-cifra-numero 1 clic
           %span.portada-cifra-que los boletines de una sección entera, listos para imprimir
@@ -327,26 +329,14 @@
           %p.portada-plan-cupo
             Red de colegios o institución grande: conversemos.
 
-      .portada-condicion
-        %h3 Qué pasa si una mensualidad no se paga
-        %p
-          La suscripción entra en gracia unos días y después queda en
-          %strong solo lectura:
-          el colegio sigue viendo y descargando todo lo suyo —y sigue emitiendo
-          constancias, porque la deuda es del colegio y el perjuicio no puede
-          ser del alumno—, pero deja de cargar notas y de pasar lista hasta
-          ponerse al día.
-        %p
-          Nunca se le quita el acceso a sus datos a mitad de año escolar.
-
-      -# El plan gratuito no es «todavía no facturamos»: es un plan que se
-      -# elige, y el corte va por FUNCIÓN y no por número de registros. Con tope
-      -# de registros, importar una matrícula de 360 se rompe a mitad de camino.
-      %p.portada-nota
-        Antes de suscribirse: cargar alumnos, representantes, profesores,
-        materias y secciones —y también importar la matrícula desde una
-        planilla— no tiene tope ni costo. La suscripción activa calificar,
-        pasar lista y emitir los documentos del MPPE.
+      -# ⚠️ Acá vivían dos bloques que Daniel sacó: un recuadro «Qué pasa si una
+      -# mensualidad no se paga» y una nota sobre lo que se puede hacer antes de
+      -# suscribirse. El primero explicaba la degradación a solo lectura con
+      -# todo detalle —en la página donde se está vendiendo—. Esas condiciones
+      -# son ciertas y están implementadas (`Subscription#permite_escribir?`),
+      -# pero su sitio es el ACUERDO DE SERVICIO de la suscripción, no la tapa:
+      -# hablar de la mora antes de que alguien se interese enfría la venta y no
+      -# protege nada que el acuerdo no proteja mejor.
 
   %section.portada-seccion{id: "quienes-somos"}
     .portada-inner

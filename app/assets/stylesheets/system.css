@@ -3328,18 +3328,30 @@ body:has(.portada) .barra-superior { display: none; }
   padding-bottom: clamp(40px, 6vw, 72px);
 }
 
+/* ⚠️ La ALTURA es propia y no un porcentaje del hero, y esa es la diferencia
+   entre que la rejilla se vea y que desaparezca.
+
+   Estuvo escrita como `inset: -30% -60% -12%`, y funcionó hasta que el hero
+   creció ~700 px al recibir la maqueta del panel. Los porcentajes crecieron con
+   él: el `transform-origin: 50% 100%` —que es el HORIZONTE de la fuga— se fue
+   muy por debajo del borde inferior de la pantalla, y las líneas quedaron
+   apretadas contra el infinito hasta borrarse. Con una altura fija, el horizonte
+   cae siempre bajo el bloque de texto, mida lo que mida el resto del hero. */
 .portada-hero-rejilla {
   position: absolute;
-  inset: -30% -60% -12%;
+  top: -16%;
+  left: -60%;
+  right: -60%;
+  height: clamp(820px, 106vh, 1180px);
   z-index: 0;
   background-image:
-    linear-gradient(to right, rgba(124, 192, 255, 0.28) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(124, 192, 255, 0.28) 1px, transparent 1px);
-  background-size: 58px 58px;
-  transform: perspective(620px) rotateX(60deg);
+    linear-gradient(to right, rgba(124, 192, 255, 0.30) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(124, 192, 255, 0.30) 1px, transparent 1px);
+  background-size: 54px 54px;
+  transform: perspective(700px) rotateX(56deg);
   transform-origin: 50% 100%;
-  -webkit-mask-image: radial-gradient(ellipse 72% 62% at 50% 46%, #000 12%, transparent 80%);
-  mask-image: radial-gradient(ellipse 72% 62% at 50% 46%, #000 12%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 62% 58% at 50% 42%, #000 20%, transparent 76%);
+  mask-image: radial-gradient(ellipse 62% 58% at 50% 42%, #000 20%, transparent 76%);
   pointer-events: none;
 }
 
@@ -3754,13 +3766,6 @@ body:has(.portada) .barra-superior { display: none; }
 }
 .portada-parrafo:last-child { margin-bottom: 0; }
 
-.portada-nota {
-  max-width: 72ch;
-  margin: var(--space-lg) 0 0;
-  font-size: 14px;
-  line-height: 1.7;
-  color: var(--text-tertiary);
-}
 
 /* ---- Las tres cifras ----------------------------------------------------
    ⚠️ Antes acá vivían las del MERCADO —3.900 colegios, 9 % con portal—, y
@@ -3912,18 +3917,6 @@ body:has(.portada) .barra-superior { display: none; }
 .portada-plan-moneda { font-size: 14px; color: var(--text-secondary); }
 .portada-plan-cupo { margin: 0; font-size: 14px; color: var(--text-secondary); }
 
-/* La regla del vencimiento va DESTACADA y no en letra chica, a pedido de
-   Daniel: «es una suscripción en la que si no pagas, se suspende». Decirlo
-   antes de cobrar es lo que evita la discusión después. */
-.portada-condicion {
-  margin-top: clamp(24px, 4vw, 40px);
-  border-left: 3px solid var(--brand-primary);
-  background: var(--brand-subtle);
-  padding: var(--space-lg);
-}
-.portada-condicion h3 { font-size: 16px; font-weight: 600; margin: 0 0 var(--space-xs); color: var(--ink); }
-.portada-condicion p { margin: 0 0 var(--space-sm); font-size: 14.5px; line-height: 1.65; color: var(--text-secondary); max-width: 74ch; }
-.portada-condicion p:last-child { margin-bottom: 0; }
 
 /* ---- Cierre ------------------------------------------------------------- */
 .portada-cierre {
