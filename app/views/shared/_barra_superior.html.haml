@@ -104,6 +104,55 @@
       - if anio_de_la_sesion
         %span.contexto-periodo-situacion= situacion_del_periodo(anio_de_la_sesion)
 
+    -# ⚠️ El NIVEL de la sesión, el segundo pivote.
+    -#
+    -# Daniel: *«además de dividirse en Año Escolar, el otro gran elemento
+    -# divisor son los tipos que maneja la institución… seteas un Año Escolar y
+    -# luego un tipo: vamos a trabajar Primaria»*.
+    -#
+    -# Va PEGADO al año y no en otra parte de la barra: son los dos ejes de lo
+    -# mismo —sobre qué estoy trabajando— y separarlos haría que uno se lea como
+    -# un filtro más de la pantalla.
+    -#
+    -# ⚠️ Solo si hay más de uno que elegir. Un colegio de pura primaria no
+    -# necesita un desplegable de una opción, igual que uno con un solo año
+    -# escolar no ve el selector de año.
+    - if hay_nivel_que_elegir?
+      - opciones = [ [ "Todos los niveles", LlevaElNivel::TODOS ] ] + niveles_para_elegir.map { |n| [ GradoOficial::ETIQUETAS[n], n ] }
+      - elegido = nivel_de_la_sesion || LlevaElNivel::TODOS
+      -# ⚠️ Cuando hay un nivel elegido el control se PINTA, no se queda gris.
+      -# Un filtro puesto que no se ve es la manera de que alguien cargue veinte
+      -# alumnos en el lugar equivocado y culpe al sistema.
+      = form_with url: cambiar_nivel_path, method: :post, class: "contexto-nivel", data: { controller: "auto-envio", turbo: false } do
+        %label.contexto-nivel-etiqueta{ for: "nivel" } Nivel
+        - clases = [ "contexto-nivel-select" ]
+        - clases << "contexto-nivel-select--puesto" unless mirando_todos_los_niveles? || nivel_no_aplica?
+        - clases << "contexto-nivel-select--inerte" if nivel_no_aplica?
+        = select_tag :nivel, options_for_select(opciones, elegido),
+            class: clases.join(" "), data: { action: "change->auto-envio#enviar" }
+
+        -# ⚠️ Se APAGA pero sigue funcionando, y las dos mitades importan.
+        -#
+        -# Apagado, porque un filtro que aparece puesto y no filtra hace que
+        -# quien vea ocho departamentos concluya que primaria tiene ocho.
+        -#
+        -# Y funcionando, porque deshabilitarlo dejaría a la persona sin poder
+        -# cambiar de nivel desde esta pantalla: tendría que salir a otra para
+        -# volver. Un control muerto no explica nada; el motivo, sí.
+        -# ⚠️ El texto visible es FIJO y corto; la razón va en el tooltip.
+        -#
+        -# La razón completa —«los departamentos son de todo el colegio»— son 39
+        -# caracteres y en una barra de 1440 px se recortaba a «los departamen»,
+        -# que es peor que no decir nada. Se vio en pantalla.
+        -#
+        -# «Acá no aplica» entra siempre, contesta la pregunta que la persona se
+        -# está haciendo —¿por qué veo ocho si puse primaria?— y el porqué está a
+        -# un hover. El tooltip aparece también con `:focus-visible` (MOR-173).
+        - if nivel_no_aplica?
+          %span.contexto-nivel-inerte-motivo{ data: { tooltip: motivo_sin_nivel.upcase_first } }
+            = icono(:info, tamano: 13)
+            %span Acá no aplica
+
     - unless representante?
       = render "shared/buscador_global"
 

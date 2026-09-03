@@ -14,7 +14,7 @@ class StudentsController < ApplicationController
   ].freeze
 
   def index
-    scope = Student.includes(:user, :school)
+    scope = Student.del_nivel_de_la_sesion.includes(:user, :school)
     if params[:q].present?
       scope = scope.joins(:user).where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:q]))
     end
@@ -26,7 +26,7 @@ class StudentsController < ApplicationController
     scope = scope.sin_representante if sin_representante?
 
     @sin_representante = sin_representante?
-    @cuantos_sin_representante = Student.sin_representante.count
+    @cuantos_sin_representante = Student.del_nivel_de_la_sesion.sin_representante.count
     @pagy, @students = pagy(scope.order("users.last_name, users.first_name"))
   end
 

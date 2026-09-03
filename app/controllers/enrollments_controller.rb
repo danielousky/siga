@@ -6,7 +6,7 @@ class EnrollmentsController < ApplicationController
   CAMPOS_DE_BUSQUEDA = %w[users.first_name users.last_name users.second_last_name users.document].freeze
 
   def index
-    scope = Enrollment.del_anio_de_la_sesion
+    scope = Enrollment.del_anio_de_la_sesion.del_nivel_de_la_sesion
                       .includes(student: :user, section: [:grade, :academic_period])
                       .joins(student: :user, section: :grade)
     if params[:q].present?

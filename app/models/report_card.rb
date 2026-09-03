@@ -12,7 +12,7 @@ class ReportCard < ApplicationRecord
   belongs_to :evaluation_moment, optional: true   # nil = boletín anual
   belongs_to :issued_by, class_name: "User", optional: true
   llega_al_anio_por enrollment: :section
-
+  llega_al_nivel_por enrollment: { section: :grade }
   derives_school_from :enrollment
 
   validates :code, presence: true, uniqueness: true

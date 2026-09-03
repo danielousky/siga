@@ -9,15 +9,24 @@
     = render "shared/lista_vacia", clave: :niveles
 
   - else
+    = render "shared/escala", total: @pagy.count, singular: "grado", plural: "grados"
+
     %table.table-academic
       %thead
         %tr
           %th= Grade.human_attribute_name(:name)
-          %th= Grade.human_attribute_name(:level)
+          -# ⚠️ La columna «Nivel» solo aparece con «Todos» elegido.
+          -#
+          -# Daniel la tachó en el mockup, y tiene razón: con un nivel puesto
+          -# arriba, repetirlo en catorce filas es decir lo mismo catorce veces.
+          -# Con «Todos» sí distingue, y por eso vuelve.
+          - if mirando_todos_los_niveles?
+            %th= Grade.human_attribute_name(:level)
           %th Coordinador
       %tbody
         - @grades.each do |grade|
           %tr
             %td= link_to grade.name, grade
-            %td= grade.level.humanize
+            - if mirando_todos_los_niveles?
+              %td= GradoOficial::ETIQUETAS.fetch(grade.level.to_sym, grade.level.humanize)
             %td= grade.coordinator_teacher&.user&.nombre_completo || "—"

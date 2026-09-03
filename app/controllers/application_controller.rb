@@ -27,6 +27,12 @@ class ApplicationController < ActionController::Base
   # existir» sin ninguna pista de por qué. Lo encontró el test de MOR-165.
   include LlevaElAnioEscolar
 
+  # ⚠️ Y el nivel, DESPUÉS del año y por la MISMA razón. Ver arriba: sin
+  # `Current.school`, el RLS devuelve cero grados y `niveles_para_elegir` sale
+  # vacío — el selector no aparecería nunca y el filtro no filtraría, en
+  # silencio. Es el tercer concern que depende de este orden.
+  include LlevaElNivel
+
   # ⚠️ Va DESPUÉS del `around_action`, y el orden no es estético: es lo único que
   # hace que este control funcione.
   #

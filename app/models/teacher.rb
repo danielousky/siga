@@ -1,5 +1,8 @@
 class Teacher < ApplicationRecord
   include SchoolScoped
+  # ⚠️ Por SUBCONSULTA y no por `joins`: son muchas secciones por profesor
+  # y un join los duplicaría. Ver `DelNivel#llega_al_nivel_por_los`.
+  llega_al_nivel_por_los TeacherSection, :teacher_id
   include EntraAlSistema
 
   belongs_to :user

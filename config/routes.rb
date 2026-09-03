@@ -156,6 +156,7 @@ Rails.application.routes.draw do
   # El año escolar que se está mirando (MOR-165). POST porque cambia el estado
   # de la sesión: un enlace se puede prefetchear o disparar desde otra pestaña.
   post "anio-escolar", to: "anio_escolar#update", as: :cambiar_anio_escolar
+  post "nivel", to: "nivel_escolar#update", as: :cambiar_nivel
   # Los tres lapsos del año escolar, de un clic (MOR-163). Es la reparación de
   # los años creados ANTES de que el sembrado existiera, y el estado vacío de
   # `/lapsos` — que hasta ahora era una tabla sin filas y sin salida.

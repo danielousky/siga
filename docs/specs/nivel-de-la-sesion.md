@@ -2,7 +2,7 @@
 
 > **Estado:** **congelado** — 3 de septiembre de 2026
 > **Issue:** por crear en Linear
-> **PR:** —
+> **PR:** #3
 
 ---
 
@@ -258,3 +258,33 @@ todavía no eligió. Eso último es una recursión.
 - A mano: entrar como director de un colegio con los tres niveles, elegir
   primaria, y recorrer secciones → inscripciones → notas → boletines
   comprobando que el conteo dice «de Primaria» en todas.
+
+---
+
+## 9 · Lo que se aprendió construyendo
+
+Lo que el spec **no** previó y apareció al mirar la pantalla. Va acá porque la
+próxima vez hay que preverlo.
+
+**Tres cosas solo se vieron en una captura, no en un test:**
+
+1. **El conteo mentía donde el nivel no aplica.** `/departamentos` con primaria
+   elegida decía «1 departamento **de Primaria**» — la misma mentira que el
+   aviso de la barra existe para evitar, dicha dos centímetros más abajo. La
+   escala ahora consulta `nivel_no_aplica?`.
+2. **El aviso le comía el nombre del colegio.** «COLEGIO A 7328013» se recortaba
+   a «C». El nombre era el único elemento encogible de la barra —`.contexto-periodo`
+   y `.contexto-nivel` traen `flex-shrink: 0`— así que cualquier cosa nueva salía
+   de su ancho. El orden de encogimiento hay que **escribirlo**.
+3. **La razón completa no entra.** «Los departamentos son de todo el colegio» son
+   39 caracteres y se recortaban a «los departamen», que es peor que nada. Lo
+   visible pasó a ser fijo y corto —«Acá no aplica»— con la razón en el tooltip.
+
+**Y una que estaba rota desde antes y este cambio destapó:** `/grados` no
+ordenaba. Con la columna «Nivel» a la vista, «1er Año · 6to Grado · 1er Nivel»
+—las tres escaleras revueltas— se volvió imposible de ignorar. `Grade.en_orden`
+existía y no se usaba.
+
+**Lo que sí se cumplió como estaba escrito:** con «Todos» por defecto, los 644
+tests de integración existentes pasaron sin tocar ninguno. Era el segundo
+argumento para ese valor por defecto y funcionó exactamente así.

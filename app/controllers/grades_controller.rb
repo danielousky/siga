@@ -3,7 +3,11 @@ class GradesController < ApplicationController
   before_action :set_grade, only: [:show, :edit, :update, :destroy]
 
   def index
-    @pagy, @grades = pagy(Grade.includes(:coordinator_teacher))
+    # ⚠️ `en_orden` y no el orden de inserción. Se veía en pantalla: «1er Año ·
+    # 6to Grado · 1er Nivel», o sea las tres escaleras revueltas. `en_orden` los
+    # ordena como los cursa un niño —preescolar, primaria, bachillerato— y es el
+    # mismo scope que ya usan los desplegables.
+    @pagy, @grades = pagy(Grade.del_nivel_de_la_sesion.en_orden.includes(:coordinator_teacher))
   end
 
   def show

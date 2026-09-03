@@ -19,6 +19,7 @@
 # hay que acordarse de mantener juntas; reemplazar el bloque es una sola y no
 # puede quedar a medias. Con diez filas el costo es cero.
 class DepartmentsController < ApplicationController
+  el_nivel_no_aplica "los departamentos son de todo el colegio"
   before_action :set_department, only: [ :edit, :update, :destroy ]
 
   def index

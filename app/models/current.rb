@@ -40,6 +40,45 @@ class Current < ActiveSupport::CurrentAttributes
   # busca una constancia de un egresado necesita ver lo viejo.
   attribute :academic_period
 
+  # El NIVEL de la sesión: preescolar, primaria o bachillerato.
+  #
+  # ## Por qué existe
+  #
+  # Un colegio venezolano de tamaño medio dicta los tres a la vez, y el trabajo
+  # está partido por nivel en la realidad: la coordinadora de primaria no toca
+  # bachillerato, el boletín de preescolar no se parece al de quinto año, y la
+  # reunión de septiembre para armar secciones se hace un nivel por vez.
+  #
+  # Daniel: *«puede ser confuso crear una sección y que me aparezcan preescolar,
+  # primaria y bachillerato juntos… seteas un Año Escolar y luego un tipo: vamos
+  # a trabajar Primaria»*.
+  #
+  # ## Es lo MISMO que el año escolar, y por eso se parece tanto
+  #
+  #     Current.school            del ROL       →  límite de SEGURIDAD
+  #     Current.academic_period   de la SESIÓN  →  preferencia de quien mira
+  #     Current.nivel             de la SESIÓN  →  preferencia de quien mira
+  #
+  # Elegir un nivel **no da acceso a nada nuevo**: los grados de otro colegio ya
+  # son invisibles por el RLS. Por eso vive en la sesión y se cambia con un clic.
+  #
+  # ⚠️ Y por eso NO es permisología. El día que un colegio pida «la coordinadora
+  # de primaria no puede ver bachillerato», eso vive en el ROL —como
+  # `Current.school`— y no acá. Un límite de seguridad que se apaga desde un
+  # desplegable no es un límite.
+  #
+  # ## ⚠️ Guarda una LISTA de valores del enum, no uno solo
+  #
+  # «Bachillerato» son DOS: `secundaria` y `media_tecnica`. Un colegio técnico
+  # dicta 1er a 5to Año como cualquier bachillerato y agrega un 6to que gradúa
+  # Técnico Medio — no hay un sexto año suelto. Guardar un solo símbolo haría
+  # que elegir «Bachillerato» **escondiera el 6to Año**, que es exactamente la
+  # trampa que `Grade#media?` existe para evitar.
+  #
+  # `nil` significa «todos los niveles», y es el valor por defecto: un colegio
+  # de 360 alumnos tiene que abrir su panel y leer 360.
+  attribute :nivel
+
   # Marca los contextos donde mirar todos los colegios es legítimo y deliberado:
   # seeds, migraciones, tareas rake y la consola. Nunca una petición web.
   attribute :tenant_scope_disabled
@@ -52,6 +91,13 @@ class Current < ActiveSupport::CurrentAttributes
 
   # ¿Estamos mirando un año concreto, o todos?
   def un_solo_anio? = academic_period.present?
+
+  # ¿Estamos mirando un nivel concreto, o todos?
+  def un_solo_nivel? = nivel.present?
+
+  # Los valores del enum `grades.level` que corresponden al nivel elegido.
+  # Siempre una lista: ver el comentario de `nivel`.
+  def niveles_del_enum = Array(nivel)
 
   # Corre el bloque sin filtro de colegio, en la app Y en la base.
   #

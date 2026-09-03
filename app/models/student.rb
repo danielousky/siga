@@ -1,5 +1,8 @@
 class Student < ApplicationRecord
   include SchoolScoped
+  # ⚠️ Por SUBCONSULTA y no por `joins`: son muchas inscripciones por alumno
+  # y un join los duplicaría. Ver `DelNivel#llega_al_nivel_por_los`.
+  llega_al_nivel_por_los Enrollment, :student_id
 
   belongs_to :user
   belongs_to :school

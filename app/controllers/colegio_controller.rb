@@ -7,6 +7,7 @@
 # Lo administra la dirección del propio colegio y no SIGA: nadie de afuera sabe
 # cuál es el escudo correcto, ni tiene por qué decidirlo.
 class ColegioController < ApplicationController
+  el_nivel_no_aplica "la identidad es de todo el colegio"
   include NormalizaLaUbicacion
   before_action :require_direccion!
 

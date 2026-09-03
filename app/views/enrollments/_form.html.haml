@@ -36,7 +36,13 @@
       = f.label :section_id, class: "form-label"
       -# Solo las del año de la sesión: mover a un alumno a una sección de otro
       -# año no es un cambio de sección, es otra inscripción.
-      = f.select :section_id, Section.del_anio_de_la_sesion.includes(:grade).order("grades.name, sections.name").map { |s| [ "#{s.grade.name} – #{s.name}", s.id ] }, { include_blank: "Seleccione…" }, class: "form-select"
+      -# ⚠️ Del año Y del nivel de la sesión. Y `#{...}` con la de esta
+      -# inscripción agregada, por lo mismo que el grado en el alta de sección:
+      -# editar una inscripción de bachillerato desde una sesión de primaria no
+      -# puede dejarla sin sección.
+      - secciones = Section.del_anio_de_la_sesion.del_nivel_de_la_sesion.includes(:grade).order("grades.name, sections.name").to_a
+      - secciones = (secciones + [ f.object.section ]).uniq if f.object.section && secciones.exclude?(f.object.section)
+      = f.select :section_id, secciones.map { |s| [ "#{s.grade.name} – #{s.name}", s.id ] }, { include_blank: "Seleccione…" }, class: "form-select"
 
     .form-group
       = f.label :status, class: "form-label"

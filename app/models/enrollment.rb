@@ -6,7 +6,7 @@ class Enrollment < ApplicationRecord
   belongs_to :section
   belongs_to :student, foreign_key: :student_id
   llega_al_anio_por :section
-
+  llega_al_nivel_por section: :grade
   # ⚠️ De la inscripción MÁS NUEVA a la más vieja, por el año escolar.
   #
   # El panel del alumno ordenaba por `grades.name`, y eso es correcto DENTRO de
