@@ -12,6 +12,23 @@ viajaría en cada petición al modelo además de invalidar el caché del prompt 
 
 ---
 
+## 📐 Cómo se trabaja un issue
+
+**Antes de la primera línea de código va un SPEC**, discutido y congelado. Ver
+[`docs/specs/README.md`](docs/specs/README.md) y su plantilla.
+
+```
+   ISSUE  ──►  SPEC  ──►  RAMA + PR  ──►  MERGE + DESPLIEGUE
+   problema    contrato    el código      lo que ve el colegio
+```
+
+⚠️ **Una funcionalidad, una rama, un PR.** Nada va directo a `main`.
+
+⚠️ **Si hay una DECISIÓN que tomar, hay spec.** Si solo hay algo que arreglar,
+hay PR: un spec para cada corrección de texto es burocracia y se deja de leer.
+
+---
+
 ## 🧠 Cómo se explica un cambio
 
 Daniel necesita **conocer** el proyecto, no solo recibirlo. Cada cambio se
