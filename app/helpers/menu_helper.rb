@@ -156,7 +156,25 @@ module MenuHelper
   # Va acá, con el resto de la navegación, y como un `case` explícito en vez de
   # `send("#{paso.ruta}_path")`: una clave mal escrita tiene que fallar al
   # renderizar y no producir un enlace a ninguna parte.
-  def ruta_del_paso(paso)
+  # ⚠️ `recorrido:` lo pega ACÁ, y no cada vista con `"#{ruta}?recorrido=..."`.
+  #
+  # Estaba escrito así en cinco lugares y era una bomba con la mecha puesta: el
+  # día que un paso apunte a una ruta que YA lleva parámetros —el importador con
+  # su `?tipo=matricula`, que es justo lo que acaba de pasar— la concatenación
+  # produce `?tipo=matricula?recorrido=alumnos`. Dos signos de interrogación:
+  # Rails lee el segundo como parte del valor del primero, el tipo llega como
+  # «matricula?recorrido=alumnos» y el importador no reconoce ninguno de los dos.
+  #
+  # Falla en silencio y solo en los pasos que llevan parámetros, que son los
+  # nuevos. Por eso el separador se decide acá una vez.
+  def ruta_del_paso(paso, recorrido: false)
+    destino = destino_del_paso(paso)
+    return destino unless recorrido
+
+    "#{destino}#{destino.include?('?') ? '&' : '?'}recorrido=#{paso.clave}"
+  end
+
+  def destino_del_paso(paso)
     case paso.ruta
     when :niveles_del_colegio then niveles_del_colegio_path
     when :colegio             then colegio_path
@@ -170,7 +188,10 @@ module MenuHelper
     # ⚠️ Directo al ALTA (MOR-205): mandar al listado de un colegio que no tiene
     # ninguno es mandar a un estado vacío para que desde ahí toque otro botón.
     when :academic_period_nuevo then new_academic_period_path
-    when :academic_period_nuevo then new_academic_period_path
+    # ⚠️ Al ALTA de la planilla, con su tipo puesto. `/importaciones` es la
+    # bitácora: mandar ahí es volver a preguntar lo que el paso ya dijo.
+    when :importar_matricula  then new_importacion_path(tipo: :matricula)
+    when :importar_historial  then new_importacion_path(tipo: :historial)
     else raise ArgumentError, "paso sin ruta conocida: #{paso.ruta.inspect}"
     end
   end
@@ -283,7 +304,7 @@ module MenuHelper
     # Va en Configuración aunque se use una vez al año, porque esa vez es la
     # PRIMERA semana del colegio en SIGA — y para esa semana el camino no es el
     # menú: es el estado vacío de Alumnos, que lo ofrece cuando hace falta.
-    enlaces << Enlace.new(nombre: "Importar datos", icono: :importar, ruta: importaciones_path)
+    enlaces << Enlace.new(nombre: "Importar datos", icono: :subir, ruta: importaciones_path)
     if can_manage_academic_config?
       enlaces << Enlace.new(nombre: "Identidad del colegio", icono: :configuracion, ruta: colegio_path)
     end

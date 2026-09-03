@@ -14,9 +14,8 @@
     -#
     -# El primero va en `btn-primary` porque es por donde se empieza.
     .acciones-de-cabecera
-      = boton "Subir materias y profesores", new_importacion_path(tipo: :pensum), icono: :subir, tono: :accion
-      = boton "Subir matrícula", new_importacion_path(tipo: :matricula), icono: :subir, tono: :accion
-      = boton "Subir notas anteriores", new_importacion_path(tipo: :historial), icono: :subir, tono: :accion
+      - Importacion::ACCIONES.each_key do |tipo|
+        = boton_de_importar tipo
 
   - if @importaciones.empty?
     .empty-state

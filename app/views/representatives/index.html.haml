@@ -1,7 +1,7 @@
 = render "shared/cabecera_de_lista", titulo: "Representantes", ruta: representatives_path,
          marco: "representatives-results", pista: "Nombre, apellido, cédula o teléfono…",
          alta: { ruta: new_representative_path, nombre: "Registrar representante" },
-         importar: { tipo: :matricula, nombre: "Subir la matrícula" }
+         importar: :matricula
 -# ⚠️ `target: "_top"`: sin él, cada enlace de adentro navega DENTRO del frame
 -# y Turbo pinta «Content missing», porque la página de destino no tiene un
 -# frame con este id. El buscador sigue actualizando el frame porque declara
@@ -19,7 +19,7 @@
       -# ⚠️ El texto va en una variable: Haml lee una continuación con `\` como
       -# indentación y revienta con «indented 8 levels deeper».
       - explicacion = "Son quienes consultan las notas: el producto apunta a ellos, no al alumno. Entran con la matrícula cuando sube la planilla, y también se pueden cargar a mano."
-      - salidas = [ { texto: "Subir la matrícula", ruta: new_importacion_path(tipo: :matricula), icono: :importar, clase: "btn-accion" }, { texto: "Agregar", ruta: new_representative_path, icono: :agregar } ]
+      - salidas = [ { tipo: :matricula }, { texto: "Agregar", ruta: new_representative_path, icono: :agregar } ]
       = render "shared/lista_vacia", clave: :representantes, titulo: "Todavía no hay representantes", texto: explicacion, acciones: salidas
 
   - elsif @representatives.empty?

@@ -26,11 +26,7 @@
     - if local_assigns[:texto]
       %p= texto
     - if Array(local_assigns[:acciones]).any?
-      .empty-state-acciones
-        - Array(acciones).each do |accion|
-          = link_to accion[:ruta], class: "btn #{accion[:clase] || 'btn-primary'}" do
-            = icono(accion[:icono], tamano: 16)
-            %span= accion[:texto]
+      = render "shared/acciones_de_lista_vacia", acciones: acciones
 
   - elsif paso.bloqueado?
     - falta = PasosDeArranque.paso(Current.school, paso.necesita)
@@ -41,15 +37,11 @@
       \: sin eso, lo que se cargue acá no tiene de dónde colgar.
     -# Nunca un botón apagado: el camino de salida, que es lo que la persona
     -# necesita en este segundo.
-    = link_to "#{ruta_del_paso(falta)}?recorrido=#{falta.clave}", class: "btn btn-primary" do
+    = link_to ruta_del_paso(falta, recorrido: true), class: "btn btn-primary" do
       = icono(falta.icono, tamano: 16)
       %span= falta.verbo
 
   - else
     %h3= paso.vacio
     %p= paso.explicacion
-    .empty-state-acciones
-      - Array(local_assigns[:acciones]).each do |accion|
-        = link_to accion[:ruta], class: "btn #{accion[:clase] || 'btn-primary'}" do
-          = icono(accion[:icono], tamano: 16)
-          %span= accion[:texto]
+    = render "shared/acciones_de_lista_vacia", acciones: Array(local_assigns[:acciones])

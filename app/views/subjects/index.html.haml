@@ -1,7 +1,7 @@
 = render "shared/cabecera_de_lista", titulo: "Materias", ruta: subjects_path,
          marco: "subjects-results", pista: "Nombre o código de la materia…",
          alta: { ruta: new_subject_path, nombre: "Registrar materia" },
-         importar: { tipo: :pensum, nombre: "Subir materias y profesores" }
+         importar: :pensum
 -# ⚠️ `target: "_top"`: sin él, cada enlace de adentro navega DENTRO del frame
 -# y Turbo pinta «Content missing», porque la página de destino no tiene un
 -# frame con este id. El buscador sigue actualizando el frame porque declara
@@ -13,7 +13,7 @@
   - if @subjects.empty?
     .card-academic
       = render "shared/lista_vacia", clave: :materias,
-               acciones: [ { texto: "Subir el pensum", ruta: new_importacion_path(tipo: :pensum), icono: :importar, clase: "btn-accion" },
+               acciones: [ { tipo: :pensum },
                  { texto: "Agregar", ruta: new_subject_path, icono: :agregar },
                  { texto: "Cargar profesores", ruta: teachers_path, icono: :profesores, clase: "btn-secondary" } ]
   - else
