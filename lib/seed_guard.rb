@@ -74,7 +74,7 @@ class SeedGuard
         Crean cuentas con contraseña conocida, una de ellas con rol `desarrollador`.
         En la base de un colegio real eso es acceso total.
 
-        Si esto ES una demo pública y sabés lo que estás haciendo:
+        Si esto ES una demo pública y sabes lo que estás haciendo:
 
           SIGA_ENTORNO_DEMO=1 SIGA_SEED_PASSWORD=<una-clave-de-verdad> bin/rails db:seed
     MSG
