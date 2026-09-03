@@ -1,6 +1,6 @@
 # El nivel de la sesión
 
-> **Estado:** en discusión — faltan las decisiones 1, 4 y 6
+> **Estado:** **congelado** — 3 de septiembre de 2026
 > **Issue:** por crear en Linear
 > **PR:** —
 
@@ -64,12 +64,12 @@ un desplegable.
 
 | # | Pregunta | Decisión | Quién |
 |---|----------|----------|-------|
-| 1 | ¿Cuál es el nivel por defecto? | **Propuesta: «Todos».** Ver § 4 | ⬜ Daniel |
+| 1 | ¿Cuál es el nivel por defecto? | **«Todos».** Ver § 4 | ✅ Daniel |
 | 2 | ¿Quién ve el selector? | Solo dirección, igual que el año. El profesor ya ve solo sus secciones | ✅ deducido de MOR-165 |
 | 3 | ¿Aparece si el colegio dicta un solo nivel? | No. Igual que el selector de año con un solo año | ✅ deducido de MOR-165 |
-| 4 | ¿El panel del director respeta el nivel? | **Propuesta: sí, salvo los conteos de facturación.** Ver § 7 | ⬜ Daniel |
+| 4 | ¿El panel del director respeta el nivel? | **Sí**, salvo la matrícula que factura. Ver § 7 | ✅ Daniel |
 | 5 | ¿Media Técnica es una opción del selector? | **No.** Cae dentro de «Bachillerato». Ver § 4 | ✅ dominio |
-| 6 | ¿Qué pasa en las pantallas donde el nivel no aplica? | **Propuesta: el selector se apaga y dice por qué.** Ver § 5 | ⬜ Daniel |
+| 6 | ¿Qué pasa donde el nivel no aplica? | **El selector se apaga y dice por qué.** Ver § 5 | ✅ Daniel |
 | 7 | ¿Es `default_scope`? | **No**, explícito, igual que `DelAnioEscolar`. Ver § 7 | ✅ deducido |
 | 8 | ¿Cómo se llama en pantalla? | «Nivel». No «tipo»: `school_type` se borró en MOR-160 por excluyente | ✅ dominio |
 
@@ -93,7 +93,7 @@ existe para evitar, y la que dejó ciega a la certificación 31059 en su momento
    Bachillerato                level: [secundaria, media_tecnica]   ← las dos
 ```
 
-**Y por eso el nivel por defecto propuesto es «Todos».** Es la misma trampa que
+**Y por eso el nivel por defecto es «Todos».** Es la misma trampa que
 `AcademicPeriod.en_operacion` resolvió y que ya apareció tres veces en este
 proyecto: un valor por defecto «razonable» que hace que el colegio abra su panel
 y lea un número que no es el suyo.
