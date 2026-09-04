@@ -192,12 +192,12 @@ plegable con memoria en cookie. En el teléfono es un **navbar**: cinco chips y 
 desplegables, sin scroll horizontal. Buscador global de ⌘K arreglado (era un
 `<turbo-frame>` que se comía el Enter).
 
-**El profesor guía es de la SECCIÓN (`MOR-150`).** No era un nombre mal puesto: la
+**El profesor guía es de la SECCIÓN (`MOR-209`).** No era un nombre mal puesto: la
 asistencia se filtraba por el grado, así que el guía de «1er Año» pasaba lista de A, B
 y C —alumnos que no son suyos— y los guías de B y C no veían su sección.
 `grades.leader_teacher_id` → `coordinator_teacher_id`.
 
-**Rótulos desde `es.yml` (`MOR-151`).** 55 etiquetas y 47 encabezados centralizados.
+**Rótulos desde `es.yml` (`MOR-210`).** 55 etiquetas y 47 encabezados centralizados.
 Destapó que `User` no estaba traducido: los errores decían **«First name no puede estar
 en blanco»**. Y el término del colegio es **ALUMNO**, no estudiante.
 
@@ -206,7 +206,7 @@ Venezuela. **El nivel se DEDUCE del nombre** —«4to Grado» es primaria, «4to
 secundaria—. Preescolar faltaba entero. `School#niveles` se deriva de los grados: cero
 columnas nuevas.
 
-**Las materias son del período (`MOR-152`).** Sin agregar columna: se derivan de quién
+**Las materias son del período (`MOR-211`).** Sin agregar columna: se derivan de quién
 dicta qué en esa sección. ⚠️ Es una UNIÓN con las materias que tienen nota, porque el
 importador de historial no crea `teacher_sections` y si no, diez años de boletines
 salen en blanco.

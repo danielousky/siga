@@ -21,7 +21,7 @@ class Dashboards::ProfesorController < ApplicationController
                                 .includes(:subject, section: [ :grade, :academic_period, :enrollments ])
                                 .order("grades.name, sections.name")
 
-    # Las secciones de las que es GUÍA — no los grados (MOR-150). El guía es de
+    # Las secciones de las que es GUÍA — no los grados (MOR-209). El guía es de
     # la sección; el grado, si acaso, tiene un coordinador.
     @led_sections = @teacher.led_sections.del_anio_de_la_sesion.includes(:grade, :enrollments)
 

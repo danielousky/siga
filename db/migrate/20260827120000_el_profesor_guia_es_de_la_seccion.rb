@@ -1,4 +1,4 @@
-# El profesor guía es de la SECCIÓN, no del grado (MOR-150).
+# El profesor guía es de la SECCIÓN, no del grado (MOR-209).
 #
 # ## La confusión, y por qué importa
 #

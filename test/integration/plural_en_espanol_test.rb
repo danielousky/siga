@@ -15,7 +15,7 @@ require "test_helper"
 #     "estaba".pluralize(2)    # => "estabas"    ✗ un verbo, además
 #
 # `ApplicationHelper#pluralizar` y `#contar` llevan las dos formas escritas, y
-# existen desde MOR-151. Este test es lo que impide que el atajo inglés vuelva a
+# existen desde MOR-210. Este test es lo que impide que el atajo inglés vuelva a
 # entrar de a poco — el último caso lo escribí yo mismo en MOR-166, teniendo el
 # helper a la vista.
 #

@@ -2,7 +2,7 @@ require "test_helper"
 
 # Los rótulos de los campos salen de `es.yml`, no de las vistas.
 #
-# Sale de MOR-150: es la red que ese renombre demostró que faltaba.
+# Sale de MOR-209: es la red que ese renombre demostró que faltaba.
 #
 # ## Por qué
 #

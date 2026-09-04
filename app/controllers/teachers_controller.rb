@@ -34,7 +34,7 @@ class TeachersController < ApplicationController
                                   .to_a
                                   .sort_by { |a| [ a.section.grade.name, a.section.name, a.subject.name ] }
 
-    # Los dos cargos, que son distintos (MOR-150): guía de una SECCIÓN —pasa
+    # Los dos cargos, que son distintos (MOR-209): guía de una SECCIÓN —pasa
     # lista— y coordinador de un GRADO, que es opcional y casi nadie tiene.
     @guia_de = @teacher.led_sections.del_anio_de_la_sesion.includes(:grade).order("grades.name", :name).to_a
     @coordina = @teacher.coordinated_grades.order(:name).to_a

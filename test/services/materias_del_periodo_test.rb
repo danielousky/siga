@@ -1,6 +1,6 @@
 require "test_helper"
 
-# Qué materias vio un alumno ESE año, y no las de hoy (MOR-152).
+# Qué materias vio un alumno ESE año, y no las de hoy (MOR-211).
 #
 # ## El error, en una frase
 #

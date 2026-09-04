@@ -74,7 +74,7 @@
       = f.label :academic_period_id, class: "form-label"
       = f.select :academic_period_id, AcademicPeriod.order(start_date: :desc).map { |p| [ p.name, p.id ] }, { include_blank: "Seleccione…" }, class: "form-select"
 
-  -# El profesor guía (MOR-150). Va acá, en la SECCIÓN, y no en el grado: es
+  -# El profesor guía (MOR-209). Va acá, en la SECCIÓN, y no en el grado: es
   -# quien pasa lista de ESTOS alumnos y responde por ellos. «1er Año A» tiene su
   -# guía y «1er Año B» el suyo.
   .form-group

@@ -43,7 +43,7 @@ class Grade < ApplicationRecord
   enum :escala, { numerica: 0, literal: 1 }, prefix: :escala
 
   belongs_to :school
-  # El COORDINADOR del grado, no su profesor guía (MOR-150).
+  # El COORDINADOR del grado, no su profesor guía (MOR-209).
   #
   # ⚠️ Esta columna se llamaba `leader_teacher` y eso era un error con
   # consecuencia: el guía es de la SECCIÓN —«1er Año A» tiene el suyo y «1er Año
