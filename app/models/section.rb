@@ -4,7 +4,7 @@ class Section < ApplicationRecord
   belongs_to :grade
   belongs_to :academic_period
 
-  # El profesor guía de esta sección (MOR-150).
+  # El profesor guía de esta sección (MOR-209).
   #
   # Es quien pasa lista y quien responde por estos alumnos. Va acá y no en el
   # grado porque en un colegio venezolano el guía es de la sección: «1er Año A»
@@ -89,7 +89,7 @@ class Section < ApplicationRecord
     siguiente.length == 1 ? siguiente : nil
   end
 
-  # Las materias que se dictan DE VERDAD en esta sección (MOR-152).
+  # Las materias que se dictan DE VERDAD en esta sección (MOR-211).
   #
   # ## ⚠️ Esto NO es `grade.subjects`, y la diferencia es un año escolar entero
   #

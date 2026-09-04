@@ -164,7 +164,7 @@ class AsistenciasController < ApplicationController
   # tomarla de cualquiera: el día que el guía falta, alguien tiene que poder
   # hacerlo.
   #
-  # ⚠️ Acá estaba el costo real de haber puesto el guía en el grado (MOR-150).
+  # ⚠️ Acá estaba el costo real de haber puesto el guía en el grado (MOR-209).
   # La consulta era:
   #
   #     Section.where(grade: Grade.where(leader_teacher_id: ...))

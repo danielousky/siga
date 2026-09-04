@@ -29,7 +29,7 @@ class Enrollment < ApplicationRecord
   validates :enrollment_date, presence: true
   validates :student_id, uniqueness: { scope: :section_id }
 
-  # Las materias que van en el boletín de este alumno (MOR-152).
+  # Las materias que van en el boletín de este alumno (MOR-211).
   #
   # ## ⚠️ Es una UNIÓN, y la segunda mitad NO es opcional
   #

@@ -125,7 +125,7 @@ no puede entrar hasta que el colegio se lo cargue.
   devolvía cero filas en silencio —y eso lo hace el panel de SIGA en cada fila—. Quien
   decide qué se lee es el RLS, no el `default_scope`.
 - **Profesor guía**: cuelga de la **sección** (`Section#leader_teacher`), no del grado
-  (`MOR-150`). «1er Año A» tiene su guía y «1er Año B» el suyo; es quien pasa lista de
+  (`MOR-209`). «1er Año A» tiene su guía y «1er Año B» el suyo; es quien pasa lista de
   ESOS alumnos. Del grado cuelga un `coordinator_teacher` **opcional**, que coordina a los
   guías y NO toma asistencia. Los dos son opcionales: sin guía, la asistencia solo la toma
   la dirección.
