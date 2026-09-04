@@ -95,7 +95,7 @@
             Antes hace falta
             %strong= paso.titulo.downcase
             \: una evaluación cuelga de un lapso, de una sección y de quien la dicta.
-          = boton paso.verbo, "#{ruta_del_paso(paso)}?recorrido=#{paso.clave}", icono: paso.icono
+          = boton paso.verbo, ruta_del_paso(paso, recorrido: true), icono: paso.icono
     - else
       .card-academic
         = render "shared/lista_vacia", clave: :evaluaciones,

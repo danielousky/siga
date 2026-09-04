@@ -37,7 +37,7 @@
     - elsif siguiente
       -# ⚠️ «Listo, seguir» NO marca nada: es navegación. Si alguien lo presiona
       -# sin haber hecho el trabajo, el paso queda pendiente y el panel lo dice.
-      = link_to "#{ruta_del_paso(siguiente)}?recorrido=#{siguiente.clave}", class: "franja-seguir" do
+      = link_to ruta_del_paso(siguiente, recorrido: true), class: "franja-seguir" do
         %span Listo, seguir
         = icono(:siguiente, tamano: 15)
 

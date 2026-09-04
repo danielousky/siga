@@ -49,7 +49,7 @@
 = render "shared/cabecera_de_lista", titulo: "Alumnos", ruta: students_path,
          marco: "students-results", pista: "Nombre, apellido, cédula o carnet…",
          alta: { ruta: new_student_path, nombre: "Registrar alumno" },
-         importar: { tipo: :matricula, nombre: "Subir la matrícula" }
+         importar: :matricula
 
 -# `target: "_top"` no es un detalle: sin él, TODO enlace de adentro del frame
 -# —Ver, Editar, Eliminar— navega DENTRO del frame. Y como ninguna de esas
@@ -81,7 +81,7 @@
   - elsif @students.empty?
     .card-academic
       = render "shared/lista_vacia", clave: :alumnos,
-               acciones: [ { texto: "Subir la matrícula", ruta: new_importacion_path(tipo: :matricula), icono: :importar, clase: "btn-accion" },
+               acciones: [ { tipo: :matricula },
                  { texto: "Agregar", ruta: new_student_path, icono: :agregar } ]
   - else
     .card-academic

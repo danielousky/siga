@@ -153,4 +153,32 @@ class CabeceraDeListaTest < ActionDispatch::IntegrationTest
 
     assert_no_match(/padding:\s*0\s/, regla, "el relleno de arriba volvió a cero")
   end
+
+  # ── Sin controles, la cabecera es UNA línea ──────────────────────────────
+  #
+  # Daniel, sobre Grados: *«alto mínimo, espacio desaprovechado en este caso
+  # particular de los grados»*. Los dos renglones existen para las pantallas con
+  # buscador, filtros e importador; Grados, Lapsos, Años escolares y
+  # Administradores no tienen ninguno y el segundo renglón lleva un botón solo.
+  #
+  # ⚠️ Se DEDUCE de lo que la vista pasa. Un `compacta: true` a mano se queda
+  # viejo el día que la pantalla gane un buscador.
+  SIN_CONTROLES = %i[grades_path evaluation_moments_path academic_periods_path admins_path].freeze
+  CON_CONTROLES = %i[students_path teachers_path subjects_path].freeze
+
+  test "un listado sin buscador ni importador va en una sola línea" do
+    SIN_CONTROLES.each do |ruta|
+      get send(ruta)
+      assert_select ".cabecera-de-lista--compacta", 1,
+                    "#{ruta} no tiene controles: su cabecera sobra de alto"
+    end
+  end
+
+  test "un listado con buscador conserva sus dos líneas" do
+    CON_CONTROLES.each do |ruta|
+      get send(ruta)
+      assert_select ".cabecera-de-lista--compacta", 0,
+                    "#{ruta} tiene controles: colapsarla los apretaría contra el título"
+    end
+  end
 end

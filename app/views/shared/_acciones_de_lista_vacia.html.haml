@@ -1,0 +1,20 @@
+-# Las salidas de un estado vacío.
+-#
+-# ⚠️ Una acción puede venir de DOS formas, y la primera es la que evita que los
+-# nombres se separen:
+-#
+-#     { tipo: :pensum }                          →  lo nombra `Importacion`
+-#     { texto:, ruta:, icono:, clase: }          →  lo nombra la vista
+-#
+-# La de subir una planilla se pide por su TIPO y nada más. Escrita a mano en
+-# cada vista fue como el mismo enlace terminó llamándose «Subir materias y
+-# profesores» arriba y «Subir el pensum» dos centímetros más abajo (QA de
+-# Daniel: *«mismo link, nombres distintos»*).
+.empty-state-acciones
+  - Array(acciones).each do |accion|
+    - if accion[:tipo]
+      = boton_de_importar accion[:tipo]
+    - else
+      = link_to accion[:ruta], class: "btn #{accion[:clase] || 'btn-primary'}" do
+        = icono(accion[:icono], tamano: 16)
+        %span= accion[:texto]

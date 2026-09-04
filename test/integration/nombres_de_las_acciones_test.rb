@@ -177,6 +177,53 @@ class NombresDeLasAccionesTest < ActiveSupport::TestCase
       "el menú promete una cosa y la pantalla dice otra:\n  " + distintos.join("\n  ")
   end
 
+  # ── Subir una planilla se llama IGUAL en las nueve vistas ────────────────
+  #
+  # Daniel, señalando la pantalla de profesores con una flecha a cada botón:
+  # *«mismo link, nombres distintos»*. Arriba decía «Subir materias y
+  # profesores» y el del estado vacío, dos centímetros abajo, «Subir el
+  # pensum». Los dos van a `/importaciones/new?tipo=pensum`.
+  #
+  # ⚠️ El test mira el MARCADO, no el texto renderizado, y es a propósito: lo
+  # que hay que impedir es que una vista vuelva a escribir el nombre a mano. Un
+  # test sobre el HTML pasaría igual el día que alguien copie el texto correcto
+  # en una vista nueva, y esa copia es exactamente de donde salió la divergencia.
+  test "ninguna vista escribe a mano el nombre de una planilla" do
+    escritos = VISTAS.glob("**/*.haml").filter_map do |vista|
+      texto = vista.read
+      usados = Importacion::ACCIONES.values.select { |nombre| texto.include?(%("#{nombre}")) }
+      [ vista.relative_path_from(VISTAS).to_s, usados ] if usados.any?
+    end
+
+    assert_empty escritos,
+                 "El nombre de una planilla lo pone `Importacion::ACCIONES`; " \
+                 "estas vistas lo escriben a mano: #{escritos.to_h}"
+  end
+
+  # Y el destino también: `boton_de_importar` lo arma con el tipo.
+  test "ninguna vista arma a mano el botón de subir una planilla" do
+    a_mano = VISTAS.glob("**/*.haml").select do |vista|
+      vista.read.match?(/boton\s+"[^"]*[Ss]ubir[^"]*",/)
+    end
+
+    assert_empty a_mano.map { |v| v.relative_path_from(VISTAS).to_s },
+                 "Se usa `boton_de_importar <tipo>`: nombre, destino, icono y tono en un solo lugar."
+  end
+
+  # ⚠️ Y hay UN glifo para la flecha que sube.
+  #
+  # Había dos claves —`subir` e `importar`— y la de `importar` apuntaba la
+  # flecha hacia ABAJO: era `descargar` con otro nombre, o sea que la misma
+  # acción se dibujaba de dos maneras y una era idéntica a la contraria.
+  test "importar y descargar no comparten glifo" do
+    glifos = IconosHelper::CAMINOS
+
+    assert glifos.key?(:subir), "falta el icono `subir`"
+    refute glifos.key?(:importar), "`importar` era `subir` con otro nombre: se usa `subir`"
+    refute_equal glifos[:subir], glifos[:descargar],
+                 "subir y descargar son acciones opuestas y no pueden verse igual"
+  end
+
   private
 
   # ⚠️ El primer `%span` DESPUÉS de la cabecera, y solo dentro de ella.

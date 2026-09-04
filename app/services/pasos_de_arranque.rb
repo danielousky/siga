@@ -309,7 +309,15 @@ class PasosDeArranque
       explicacion: "Nadie va a tipear trescientos sesenta alumnos. Suba la planilla que " \
                    "ya tiene —el Excel, la nómina, lo que use— y antes de escribir nada " \
                    "le mostramos qué entendió.",
-      verbo: "Subir la matrícula", ruta: :importaciones,
+      # ⚠️ Directo al ALTA de la planilla que corresponde, no al importador
+      # general (QA de Daniel: *«enlace directo a importar matrícula, no al
+      # import general, confunde»*).
+      #
+      # Llevaba a `/importaciones`, que es la BITÁCORA de lo importado más tres
+      # botones. O sea que el paso «La matrícula» desembocaba en una pantalla
+      # que vuelve a preguntar cuál de las tres planillas es, cuando el paso ya
+      # lo dijo. El nombre lo pone `Importacion::ACCIONES`, como el resto.
+      verbo: Importacion.accion_de(:matricula), ruta: :importar_matricula,
       # ⚠️ NO se bloquea por las secciones, y antes sí (MOR-198).
       #
       # Daniel: *«en matrícula no me está dando la opción de importar»*. Y no se
@@ -352,12 +360,12 @@ class PasosDeArranque
     importadas = FinalGradeBook.unscoped.where(school_id: Current.school_id, origen: :importada).count
 
     Paso.new(
-      clave: :historial, vacio: "Todavía no hay historial cargado", icono: :importar, opcional: true,
+      clave: :historial, vacio: "Todavía no hay historial cargado", icono: :subir, opcional: true,
       titulo: "Las notas de los años anteriores",
       explicacion: "Solo la primera vez. Si el colegio ya venía funcionando, suba las notas " \
                    "de los años pasados: son las que hacen falta para emitir una constancia " \
                    "o la certificación de un egresado. Cada fila trae su propio año.",
-      verbo: "Subir el historial", ruta: :importaciones,
+      verbo: Importacion.accion_de(:historial), ruta: :importar_historial,
       listo: importadas.positive?,
       omitido: colegio.omitio_paso?(:historial),
       resultado: importadas.positive? ? contar(importadas, "nota importada", "notas importadas") : nil

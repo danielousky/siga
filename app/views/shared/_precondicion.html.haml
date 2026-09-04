@@ -37,7 +37,7 @@
       \: sin eso, lo que se cargue acá no tiene de dónde colgar.
     -# Nunca un botón apagado: el camino de salida, que es lo que la persona
     -# necesita en este segundo.
-    = link_to "#{ruta_del_paso(falta)}?recorrido=#{falta.clave}", class: "btn btn-primary" do
+    = link_to ruta_del_paso(falta, recorrido: true), class: "btn btn-primary" do
       = icono(falta.icono, tamano: 16)
       %span= falta.verbo
 - else

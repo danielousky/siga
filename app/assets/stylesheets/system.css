@@ -6579,6 +6579,33 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   gap: var(--space-md);
 }
 
+/* Una sola línea cuando no hay controles que poner abajo (QA de Daniel).
+   ─────────────────────────────────────────────────────────────────────
+   Grados, Lapsos, Años escolares y Administradores no buscan ni importan: su
+   renglón de abajo tiene un botón solo y cuesta ~60 px de alto que empujan la
+   primera fila de datos fuera de la vista. Daniel, sobre Grados: «alto mínimo,
+   espacio desaprovechado en este caso particular».
+
+   ⚠️ Solo de 701 px para arriba. Debajo de eso manda el @media de más abajo,
+   que apila TODO a propósito: en un teléfono el título y el botón compartiendo
+   renglón dejan al botón de 90 px, que es donde se falla al tocarlo. */
+@media (min-width: 701px) {
+  .cabecera-de-lista--compacta {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+  }
+
+  /* Se come el sobrante para que el botón quede pegado a la derecha aunque el
+     título sea corto. */
+  .cabecera-de-lista--compacta .cabecera-de-lista-titular { flex: 1; min-width: 0; }
+  .cabecera-de-lista--compacta .cabecera-de-lista-controles { flex: 0 0 auto; }
+
+  /* Con una sola línea, el aire de arriba y abajo también sobra. */
+  .cabecera-de-lista--compacta { padding-block: var(--space-md); }
+}
+
 .cabecera-de-lista-titular {
   display: flex;
   align-items: baseline;
@@ -6693,36 +6720,14 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   .cabecera-de-lista-select { width: 100%; }
 
   /* Con los controles apilados, el botón ya no va «al final de la fila»: es
-     una fila más. */
-  .cabecera-de-lista /* Un botón que es SOLO un icono, dentro de una fila (MOR-205).
-   ───────────────────────────────────────────────────────────
-   La papelera y el atajo a «agregar una materia» de cada departamento. En una
-   tabla el nombre de la acción se repetiría en cada fila y competiría con el
-   dato; acá el nombre lo lleva el tooltip y el `aria-label`.
+     una fila más.
 
-   ⚠️ Cuadrado y del alto del botón chico. Un control de menos de 32 px se falla
-   al tocarlo en un teléfono, y una papelera que se falla borra la fila de al
-   lado. */
-.btn-solo-icono {
-  width: 32px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-}
-
-/* La columna de acciones de una tabla: al final, sin estirarse. */
-.columna-acciones {
-  width: 1%;
-  white-space: nowrap;
-  text-align: right;
-}
-
-.columna-acciones form { display: inline-block; margin: 0; }
-.columna-acciones > * + * { margin-left: var(--space-xs); }
-
-.btn-agregar {
+     ⚠️ Acá vivía una copia entera de `.btn-solo-icono` y `.columna-acciones`
+     pegada por accidente, y el comentario que la abría se comió este selector:
+     quedaba `.cabecera-de-lista .btn-solo-icono` y las tres reglas encerradas
+     en el @media. No se veía —las buenas están más abajo y ganan por orden—
+     pero era la clase de duplicado que un día se edita del lado muerto. */
+  .cabecera-de-lista .btn-agregar {
     margin-left: 0;
     width: 100%;
   }
@@ -7042,3 +7047,16 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   max-width: 92ch;
   text-wrap: pretty;
 }
+
+/* El enlace que arregla lo que el aviso acaba de nombrar.
+   ⚠️ En AZUL de enlace y no en el ámbar del aviso: el ámbar es del dato que
+   falta (regla de color), y este es un control. Pintarlo del color del aviso lo
+   escondería justo dentro del párrafo que lo hace falta. */
+.paso-pendiente-enlace {
+  margin-left: var(--space-xs);
+  color: var(--brand-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.paso-pendiente-enlace::after { content: " →"; }
