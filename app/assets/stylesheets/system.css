@@ -1063,6 +1063,14 @@ textarea.form-control {
   font-size: 13px;
 }
 
+/* «142 alumnos DE PRIMARIA»: el nivel sobre el que se está contando.
+   En índigo, el mismo tono del selector de la barra — es la misma información
+   dicha dos veces en la pantalla, y que se reconozcan es el punto. */
+.listado-escala-nivel {
+  color: var(--accion-primary);
+  font-weight: 600;
+}
+
 /* ---- Action Buttons Group ---- */
 
 .actions-group {
@@ -1115,6 +1123,14 @@ textarea.form-control {
    adentro —`.contexto-colegio`, `.contexto-periodo`— sí siguen vivas. */
 
 .contexto-colegio {
+  /* ⚠️ NO cede el ancho, y hubo que decírselo. Es la identidad de lo que se
+     está mirando: con el aviso de «acá el nivel no aplica» puesto, «COLEGIO A
+     7328013» se recortaba a «C».
+     Era el único elemento encogible de la barra —`.contexto-periodo` y
+     `.contexto-nivel` traen `flex-shrink: 0`— así que cualquier cosa nueva
+     salía de su ancho. El `max-width: 34ch` de abajo ya lo acota; no hace falta
+     además que se achique. */
+  flex: 0 0 auto;
   display: flex;
   /* ⚠️ `center` y no `baseline`: con un `<img>` adentro, `baseline` alinea el
      borde inferior de la imagen con la línea del texto y empuja la fila hacia
@@ -1251,6 +1267,16 @@ textarea.form-control {
 
   .contexto-periodo-situacion { display: none; }
   .contexto-anio-select { max-width: 130px; }
+
+  /* ⚠️ El tercer control de la barra, y el que la puede volver a desbordar.
+     La etiqueta «NIVEL» se va —como se fue «AÑO ESCOLAR»— y el desplegable se
+     queda: es lo que decide qué se ve, y en un teléfono se toca.
+     `min-width: 0` en el contenedor Y en el select: un ítem flex se niega por
+     defecto a encogerse por debajo de su contenido, y basta un eslabón que no
+     levante esa negativa para que la página se corra de lado. */
+  .contexto-nivel-etiqueta { display: none; }
+  .contexto-nivel { flex-shrink: 1; min-width: 0; }
+  .contexto-nivel-select { max-width: 120px; min-width: 0; }
 }
 
 /* ---- Pagination ---- */
@@ -6519,6 +6545,112 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 .contexto-anio-select:hover { border-color: var(--border-standard); background: var(--surface-elevated); }
 
+/* El NIVEL de la sesión, el segundo pivote.
+   ─────────────────────────────────────────
+   Hereda la forma del selector de año —sin caja, la caja llega al hover— porque
+   son los dos ejes de lo mismo y tienen que leerse como una pareja.
+
+   ⚠️ Lo que NO hereda es el estado «puesto». Con un año elegido siempre hay uno
+   y el nombre lo dice; con el nivel, «Todos» es lo normal y elegir uno es un
+   MODO DE TRABAJO. Un filtro puesto que no se ve es la manera de que alguien
+   cargue veinte alumnos en el nivel equivocado y culpe al sistema. */
+.contexto-nivel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0;
+  /* ⚠️ SÍ se encoge, y su hijo el aviso es el que da el ancho. Con
+     `flex-shrink: 0` acá, el `flex: 0 100 auto` del motivo solo competía contra
+     el propio desplegable y nunca contra el resto de la barra. */
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.contexto-nivel-etiqueta {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.contexto-nivel-select {
+  flex: 0 0 auto;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--brand-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  padding: var(--space-micro) var(--space-xs);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.contexto-nivel-select:hover {
+  border-color: var(--border-standard);
+  background: var(--surface-elevated);
+}
+
+.contexto-nivel-select:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 1px;
+}
+
+/* Con un nivel elegido, el control se PINTA.
+   ⚠️ En índigo —la familia fría de `btn-accion`— y no en verde ni ámbar: la
+   regla de color reserva esos para el dato (MOR-135). Acá lo que hay que decir
+   es «hay un modo puesto», que es información sobre un CONTROL. */
+.contexto-nivel-select--puesto {
+  background: var(--accion-primary);
+  border-color: var(--accion-primary);
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 13px;
+}
+
+.contexto-nivel-select--puesto:hover {
+  background: var(--accion-hover);
+  border-color: var(--accion-hover);
+  color: white;
+}
+
+/* Donde el nivel NO aplica: apagado, pero vivo.
+   ⚠️ No es `disabled`. Deshabilitarlo dejaría a la persona sin poder cambiar de
+   nivel desde esta pantalla —tendría que salir a otra para volver— y un control
+   que no se puede enfocar tampoco se puede preguntar con el teclado. Lo que
+   contesta la pregunta es el motivo de al lado, no la muerte del control. */
+.contexto-nivel-select--inerte {
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+/* ⚠️ Este es el que CEDE el ancho, y hubo que decírselo.
+   Se vio en pantalla: con el aviso puesto, «COLEGIO A 7328013» se recortaba a
+   «C». El nombre del colegio ya tiene `overflow: hidden` para no empujar al año
+   escolar fuera de la barra, así que al aparecer un elemento nuevo era él quien
+   se encogía — y es el último que debería. Un `flex-shrink` alto y su propio
+   recorte ponen el orden al derecho. */
+.contexto-nivel-inerte-motivo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-micro);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  line-height: 1.3;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  cursor: help;
+}
+
+/* El icono no se encoge con el texto: medio ⓘ no dice nada. */
+.contexto-nivel-inerte-motivo svg { flex: 0 0 auto; }
+
+@media (max-width: 900px) {
+  .contexto-nivel-inerte-motivo { display: none; }
+}
+
 /* El atajo a los años escolares, al lado del selector (MOR-171 · MOR-174).
    ──────────────────────────────────────────────────────────────────────
    Solo el icono, y en ÍNDIGO. Daniel: «quita Años escolares, está bien el icono
@@ -6577,6 +6709,33 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+}
+
+/* Una sola línea cuando no hay controles que poner abajo (QA de Daniel).
+   ─────────────────────────────────────────────────────────────────────
+   Grados, Lapsos, Años escolares y Administradores no buscan ni importan: su
+   renglón de abajo tiene un botón solo y cuesta ~60 px de alto que empujan la
+   primera fila de datos fuera de la vista. Daniel, sobre Grados: «alto mínimo,
+   espacio desaprovechado en este caso particular».
+
+   ⚠️ Solo de 701 px para arriba. Debajo de eso manda el @media de más abajo,
+   que apila TODO a propósito: en un teléfono el título y el botón compartiendo
+   renglón dejan al botón de 90 px, que es donde se falla al tocarlo. */
+@media (min-width: 701px) {
+  .cabecera-de-lista--compacta {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+  }
+
+  /* Se come el sobrante para que el botón quede pegado a la derecha aunque el
+     título sea corto. */
+  .cabecera-de-lista--compacta .cabecera-de-lista-titular { flex: 1; min-width: 0; }
+  .cabecera-de-lista--compacta .cabecera-de-lista-controles { flex: 0 0 auto; }
+
+  /* Con una sola línea, el aire de arriba y abajo también sobra. */
+  .cabecera-de-lista--compacta { padding-block: var(--space-md); }
 }
 
 .cabecera-de-lista-titular {
@@ -6693,36 +6852,14 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   .cabecera-de-lista-select { width: 100%; }
 
   /* Con los controles apilados, el botón ya no va «al final de la fila»: es
-     una fila más. */
-  .cabecera-de-lista /* Un botón que es SOLO un icono, dentro de una fila (MOR-205).
-   ───────────────────────────────────────────────────────────
-   La papelera y el atajo a «agregar una materia» de cada departamento. En una
-   tabla el nombre de la acción se repetiría en cada fila y competiría con el
-   dato; acá el nombre lo lleva el tooltip y el `aria-label`.
+     una fila más.
 
-   ⚠️ Cuadrado y del alto del botón chico. Un control de menos de 32 px se falla
-   al tocarlo en un teléfono, y una papelera que se falla borra la fila de al
-   lado. */
-.btn-solo-icono {
-  width: 32px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-}
-
-/* La columna de acciones de una tabla: al final, sin estirarse. */
-.columna-acciones {
-  width: 1%;
-  white-space: nowrap;
-  text-align: right;
-}
-
-.columna-acciones form { display: inline-block; margin: 0; }
-.columna-acciones > * + * { margin-left: var(--space-xs); }
-
-.btn-agregar {
+     ⚠️ Acá vivía una copia entera de `.btn-solo-icono` y `.columna-acciones`
+     pegada por accidente, y el comentario que la abría se comió este selector:
+     quedaba `.cabecera-de-lista .btn-solo-icono` y las tres reglas encerradas
+     en el @media. No se veía —las buenas están más abajo y ganan por orden—
+     pero era la clase de duplicado que un día se edita del lado muerto. */
+  .cabecera-de-lista .btn-agregar {
     margin-left: 0;
     width: 100%;
   }
@@ -7042,3 +7179,16 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   max-width: 92ch;
   text-wrap: pretty;
 }
+
+/* El enlace que arregla lo que el aviso acaba de nombrar.
+   ⚠️ En AZUL de enlace y no en el ámbar del aviso: el ámbar es del dato que
+   falta (regla de color), y este es un control. Pintarlo del color del aviso lo
+   escondería justo dentro del párrafo que lo hace falta. */
+.paso-pendiente-enlace {
+  margin-left: var(--space-xs);
+  color: var(--brand-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.paso-pendiente-enlace::after { content: " →"; }

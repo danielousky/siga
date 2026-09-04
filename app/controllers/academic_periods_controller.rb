@@ -1,4 +1,5 @@
 class AcademicPeriodsController < ApplicationController
+  el_nivel_no_aplica "el año escolar es de todo el colegio"
   before_action :require_admin_access!
   before_action :set_academic_period, only: [:edit, :update, :destroy]
 

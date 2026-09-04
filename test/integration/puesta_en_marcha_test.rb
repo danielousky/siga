@@ -267,6 +267,64 @@ class PuestaEnMarchaTest < ActionDispatch::IntegrationTest
     assert_select "table.table-academic", minimum: 1
   end
 
+  # ── Los pasos que llevan al importador van al ALTA, con su tipo ──────────
+  #
+  # Daniel, con una flecha al botón «Subir la matrícula» del panel: *«enlace
+  # directo a importar matrícula (/importaciones/new?tipo=matricula), no al
+  # import general, confunde»*.
+  #
+  # Llevaba a `/importaciones`, que es la BITÁCORA de lo importado más tres
+  # botones — o sea que el paso «La matrícula» desembocaba en una pantalla que
+  # vuelve a preguntar cuál de las tres planillas es.
+  test "el paso de la matrícula lleva al alta de esa planilla, no a la bitácora" do
+    vacio, director = colegio_vacio
+    sign_in director
+
+    get dashboards_administrador_path
+
+    # `^=` y no `=`: el `?recorrido=` viaja pegado detrás y su orden lo decide
+    # quien arma la URL. Lo que se prueba es el DESTINO.
+    assert_select "a[href^=?]", new_importacion_path(tipo: :matricula), minimum: 1
+
+    # Y no queda ningún botón del mapa apuntando a la bitácora.
+    assert_select ".puesta-en-marcha a[href=?]", importaciones_path, 0,
+                  "el paso mandaba a la bitácora, que vuelve a preguntar qué planilla es"
+  end
+
+  # ⚠️ Y el `?recorrido=` se PEGA bien cuando la ruta ya lleva parámetros.
+  #
+  # Las vistas lo concatenaban a mano —`"#{ruta}?recorrido=..."`— y con una ruta
+  # que ya trae `?tipo=matricula` eso produce dos signos de interrogación: Rails
+  # lee el segundo como parte del valor del primero, el tipo llega como
+  # «matricula?recorrido=alumnos» y no se reconoce ninguno de los dos.
+  test "el recorrido se pega con & cuando la ruta ya tiene parámetros" do
+    vacio, director = colegio_vacio
+    sign_in director
+
+    get dashboards_administrador_path
+
+    assert_no_match(/\?tipo=matricula\?recorrido/, response.body,
+                    "dos «?» en la misma URL: el tipo llega con el recorrido pegado adentro")
+  end
+
+  # El aviso de «va a salir sin escudo» LLEVA a arreglarlo.
+  #
+  # Daniel, con una flecha al aviso ámbar: *«Link a Identidad del Colegio»*.
+  # Decía la consecuencia y ahí terminaba.
+  test "lo que falta para los documentos enlaza a la identidad del colegio" do
+    vacio, director = colegio_vacio
+    sign_in director
+
+    con_el_colegio(vacio) do
+      assert paso(:identidad, vacio).pendiente.present?,
+             "el colegio de prueba tiene que estar sin escudo ni firma"
+    end
+
+    get dashboards_administrador_path
+
+    assert_select ".paso-pendiente a[href=?]", colegio_path, 1
+  end
+
   private
 
   def paso(clave, colegio = @a.colegio)

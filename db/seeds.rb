@@ -408,7 +408,7 @@ tbel = {
 }
 puts "   ✓ 7 profesores (U.E. Andrés Bello)"
 
-# Coordinadores de grado — el cargo OPCIONAL que coordina a los guías (MOR-150).
+# Coordinadores de grado — el cargo OPCIONAL que coordina a los guías (MOR-209).
 #
 # ⚠️ Esto NO es el profesor guía. El guía es de la SECCIÓN y se asigna más
 # abajo, cuando las secciones existen. Se dejan solo tres cargados a propósito:
@@ -450,7 +450,7 @@ gbel.each_with_index do |(key, grade), i|
   end
 end
 
-# Profesores guía, uno POR SECCIÓN (MOR-150).
+# Profesores guía, uno POR SECCIÓN (MOR-209).
 #
 # ⚠️ Que «A» y «B» tengan guías DISTINTOS es el punto de la demo: es exactamente
 # lo que el modelo anterior no podía representar. Con el guía colgando del
@@ -901,7 +901,7 @@ puts "     Bello · 4to Grado A: #{alumnos_bel.size} alumnos con nota anual, rec
 # evaluar si sirve. Con dos semanas se ve lo que el colegio necesita ver: quién
 # acumula faltas, quién llega tarde seguido, y quién ya trajo el justificativo.
 #
-# El profesor guía es quien la toma (MOR-111), y desde MOR-150 es guía de la
+# El profesor guía es quien la toma (MOR-111), y desde MOR-209 es guía de la
 # SECCIÓN. Se fuerza a García en «1er Año A» porque es la credencial que sale en
 # el README: quien entre con ella tiene que ver la pantalla con datos, no un
 # «sin secciones a cargo».

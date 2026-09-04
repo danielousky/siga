@@ -71,6 +71,17 @@ class School < ApplicationRecord
 
   def dicta?(nivel) = niveles.include?(nivel.to_sym)
 
+  # Los niveles que este colegio puede ELEGIR en la barra de contexto.
+  #
+  # ⚠️ No es lo mismo que `niveles`, y la diferencia es el colegio técnico: sus
+  # grados son `secundaria` y `media_tecnica`, pero el selector ofrece una sola
+  # opción —«Bachillerato»— que abarca las dos. Ver `GradoOficial::ABARCA`.
+  #
+  # Con una sola opción el selector no se dibuja: no hay nada que elegir.
+  def niveles_para_elegir
+    niveles.filter_map { |n| GradoOficial.se_elige_como(n) }.uniq
+  end
+
   # Los pasos de la puesta en marcha que este colegio decidió no hacer.
   #
   # ⚠️ Es lo ÚNICO que el arranque guarda. Todo lo demás se deduce de los datos

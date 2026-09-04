@@ -61,7 +61,28 @@
 - campo  = local_assigns.fetch(:campo, :q)
 - busca  = local_assigns[:pista].present?
 
-.card-academic.cabecera-de-lista
+-# ⚠️ UNA línea cuando no hay nada que poner en la de abajo (QA de Daniel,
+-# señalando Grados: *«alto mínimo, espacio desaprovechado en este caso
+-# particular de los grados»*).
+-#
+-# Los dos renglones existen para las pantallas que tienen buscador, filtros,
+-# importador y alta —el registro de actividad tiene seis controles—. Grados,
+-# Lapsos, Años escolares y Administradores no buscan ni importan: son listas
+-# cortas y cerradas. Ahí el segundo renglón contiene UN botón y cuesta 60 px
+-# de alto que empujan la primera fila de datos fuera de la vista.
+-#
+-#     con controles                     sin ellos
+-#     ┌─────────────────────────┐       ┌─────────────────────────────┐
+-#     │ Grados                  │       │ Grados          [+ Agregar] │
+-#     │ [buscar|✕] [▾] [+ Agr.] │       └─────────────────────────────┘
+-#     └─────────────────────────┘
+-#
+-# Se DEDUCE de lo que la vista pasa, no se pide: una pantalla que mañana gane
+-# un buscador vuelve a dos renglones sin tocar nada. Preguntarlo sería un
+-# `compacta: true` que se queda viejo.
+- compacta = !busca && extras.empty? && local_assigns[:alta_en_linea].nil? && local_assigns[:importar].nil?
+
+.card-academic.cabecera-de-lista{ class: ("cabecera-de-lista--compacta" if compacta) }
   -# ⚠️ DOS renglones, y una sola sección (MOR-194).
   -#
   -# Daniel: *«van a terminar siendo 2 líneas de la misma sección: arriba el
@@ -189,9 +210,11 @@
     -# ⚠️ Tono `accion` (índigo) y no `primary`: MOR-172 lo reserva para lo que
     -# hace MUCHO de una vez, y una planilla carga trescientas filas mientras que
     -# «Agregar» carga una. Que se distingan es el punto de esa regla.
+    -# ⚠️ Recibe el TIPO y nada más: el nombre, el destino y el icono los pone
+    -# `boton_de_importar`. Antes recibía `{ tipo:, nombre: }` y cada vista
+    -# escribía su propio nombre — así fue como el pensum terminó con tres.
     - if local_assigns[:importar]
-      = boton importar[:nombre], new_importacion_path(tipo: importar[:tipo]),
-              icono: :importar, tono: :accion
+      = boton_de_importar importar
 
     - if alta
       -# ⚠️ Dice «Agregar», no solo [+] (MOR-194).

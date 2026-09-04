@@ -44,6 +44,35 @@ class Importacion < ApplicationRecord
 
   def etiqueta_de_tipo = TIPOS.fetch(tipo, tipo)
 
+  # Cómo se llama SUBIR cada planilla, en el botón que lleva a hacerlo.
+  #
+  # ## ⚠️ Por qué esto es una constante y no un texto por vista
+  #
+  # Lo estaba, y el mismo enlace terminó con tres nombres distintos. Daniel,
+  # señalando la pantalla de profesores: *«mismo link, nombres distintos»* — el
+  # botón de arriba decía «Subir materias y profesores» y el del estado vacío,
+  # dos centímetros abajo, «Subir el pensum». Los dos van a
+  # `/importaciones/new?tipo=pensum`.
+  #
+  #     pensum      "Subir materias y profesores" · "Subir el pensum"
+  #     matricula   "Subir la matrícula"          · "Subir matrícula"
+  #     historial   "Subir el historial"          · "Subir notas anteriores"
+  #
+  # No es una molestia estética: quien ve dos nombres busca la diferencia, y
+  # cuando la busca en un importador se pregunta cuál de las dos planillas es la
+  # suya. `TIPOS` nombra el SUSTANTIVO —qué trae la planilla— y esto nombra la
+  # ACCIÓN. Son dos textos y hacen falta los dos: «Materias y profesores» es el
+  # encabezado de una columna, no un botón.
+  ACCIONES = {
+    "matricula" => "Subir la matrícula",
+    "pensum" => "Subir materias y profesores",
+    "historial" => "Subir las notas anteriores"
+  }.freeze
+
+  # `fetch` sin default a propósito: un tipo mal escrito tiene que reventar acá
+  # y no pintar un botón sin nombre.
+  def self.accion_de(tipo) = ACCIONES.fetch(tipo.to_s)
+
   # El título del reporte. Va aparte de `TIPOS` porque la concordancia cambia con
   # cada uno —«importada», «importados», «importadas»— y armarlo pegando palabras
   # da «Materias y profesores: importada».

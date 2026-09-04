@@ -6,7 +6,7 @@ class Enrollment < ApplicationRecord
   belongs_to :section
   belongs_to :student, foreign_key: :student_id
   llega_al_anio_por :section
-
+  llega_al_nivel_por section: :grade
   # ⚠️ De la inscripción MÁS NUEVA a la más vieja, por el año escolar.
   #
   # El panel del alumno ordenaba por `grades.name`, y eso es correcto DENTRO de
@@ -29,7 +29,7 @@ class Enrollment < ApplicationRecord
   validates :enrollment_date, presence: true
   validates :student_id, uniqueness: { scope: :section_id }
 
-  # Las materias que van en el boletín de este alumno (MOR-152).
+  # Las materias que van en el boletín de este alumno (MOR-211).
   #
   # ## ⚠️ Es una UNIÓN, y la segunda mitad NO es opcional
   #

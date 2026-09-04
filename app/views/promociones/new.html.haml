@@ -49,7 +49,7 @@
                     class: "btn btn-accion" do
             = icono(:alumnos, tamano: 16)
             %span Pasar a todos al siguiente grado
-          = boton "Subir primero las notas anteriores", importaciones_path, icono: :importar, tono: :secondary
+          = boton_de_importar :historial, tono: :secondary
 
     - if @conteo.any?
       .promocion-resumen

@@ -10,7 +10,10 @@
       -# en el orden en que se crearon y sin separación: catorce renglones
       -# seguidos donde «1er Nivel», «1er Grado» y «1er Año» se confunden.
       = f.label :grade_id, class: "form-label"
-      = f.select :grade_id, grouped_options_for_select(grados_por_nivel, f.object.grade_id), { include_blank: "Seleccione…" }, class: "form-select"
+      -# ⚠️ `incluyendo:` para que EDITAR una sección de otro nivel no le borre el
+      -# grado. Ver el helper: el nivel de la sesión filtra lo que se ofrece, no
+      -# lo que ya está guardado.
+      = f.select :grade_id, grouped_options_for_select(grados_por_nivel(incluyendo: f.object.grade), f.object.grade_id), { include_blank: "Seleccione…" }, class: "form-select"
 
     -# ⚠️ Un `datalist`, no un `select` (MOR-170).
     -#
@@ -71,7 +74,7 @@
       = f.label :academic_period_id, class: "form-label"
       = f.select :academic_period_id, AcademicPeriod.order(start_date: :desc).map { |p| [ p.name, p.id ] }, { include_blank: "Seleccione…" }, class: "form-select"
 
-  -# El profesor guía (MOR-150). Va acá, en la SECCIÓN, y no en el grado: es
+  -# El profesor guía (MOR-209). Va acá, en la SECCIÓN, y no en el grado: es
   -# quien pasa lista de ESTOS alumnos y responde por ellos. «1er Año A» tiene su
   -# guía y «1er Año B» el suyo.
   .form-group

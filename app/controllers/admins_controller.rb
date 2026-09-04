@@ -1,4 +1,5 @@
 class AdminsController < ApplicationController
+  el_nivel_no_aplica "el equipo de dirección es de todo el colegio"
   include GeneraCodigosDeAcceso
 
   genera_codigos_de_acceso_para :admin, volver_a: :index

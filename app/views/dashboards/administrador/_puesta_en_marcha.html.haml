@@ -60,8 +60,17 @@
             -#
             -# En el tono de aviso —no en rojo— porque no hay nada roto: el
             -# colegio puede trabajar así, y solo lo va a notar cuando emita.
+            -# ⚠️ Y LLEVA A ARREGLARLO (QA de Daniel, con una flecha al aviso:
+            -# *«Link a Identidad del Colegio»*).
+            -#
+            -# El aviso decía la consecuencia —«van a salir sin el escudo»— y
+            -# ahí terminaba. El «Cambiar» de la derecha va al mismo sitio,
+            -# pero está a dos palmos, en gris y nombrado por lo que hace con
+            -# el PASO, no con lo que el aviso acaba de nombrar.
             - if paso.pendiente
-              %p.paso-pendiente= paso.pendiente
+              %p.paso-pendiente
+                = paso.pendiente
+                = link_to "Completar la identidad", destino_del_paso(paso), class: "paso-pendiente-enlace"
           - elsif estado == :omitido
             %p.paso-resultado.dato-secundario Este colegio no lo usa.
           - else
@@ -90,11 +99,11 @@
               -# a todo el ancho de la tarjeta: Daniel, señalándolo, «el bloque
               -# de año escolar es más grande».
               .paso-acciones
-                = boton falta.verbo, "#{ruta_del_paso(falta)}?recorrido=#{falta.clave}",
+                = boton falta.verbo, ruta_del_paso(falta, recorrido: true),
                         icono: falta.icono, sm: true
             - else
               .paso-acciones
-                = boton paso.verbo, "#{ruta_del_paso(paso)}?recorrido=#{paso.clave}",
+                = boton paso.verbo, ruta_del_paso(paso, recorrido: true),
                         icono: paso.icono, sm: true
                 - if paso.opcional?
                   = button_to "Este colegio no lo usa", omitir_paso_path(paso.clave),

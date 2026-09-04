@@ -1,6 +1,6 @@
 require "test_helper"
 
-# El guía es de la sección; el coordinador, del grado (MOR-150).
+# El guía es de la sección; el coordinador, del grado (MOR-209).
 #
 # ## Por qué este test mira PALABRAS y no solo comportamiento
 #
@@ -43,7 +43,7 @@ class ProfesorGuiaTest < ActionDispatch::IntegrationTest
     assert_includes encabezados, "Coordinador"
     assert_not_includes encabezados, "Profesor guía",
                         "el listado de grados volvió a llamar «profesor guía» al " \
-                        "coordinador: es la confusión que MOR-150 vino a deshacer"
+                        "coordinador: es la confusión que MOR-209 vino a deshacer"
   end
 
   test "las pantallas de la sección sí hablan de profesor guía" do

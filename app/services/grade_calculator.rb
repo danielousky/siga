@@ -156,7 +156,7 @@ class GradeCalculator
 
   # Calcula todas las notas para una inscripción (todas las materias del grado).
   def self.calculate_all_for_enrollment(enrollment)
-    # Solo lo que se dicta en ESTA sección (MOR-152), no el pensum histórico del
+    # Solo lo que se dicta en ESTA sección (MOR-211), no el pensum histórico del
     # grado: calcular una materia que nadie dicta no produce nada y de paso toca
     # notas de años que no son este.
     subjects = enrollment.section.materias_dictadas

@@ -14,7 +14,7 @@ class Attendance < ApplicationRecord
   belongs_to :recorded_by,     class_name: "User", optional: true
   belongs_to :justificada_por, class_name: "User", optional: true
   llega_al_anio_por enrollment: :section
-
+  llega_al_nivel_por enrollment: { section: :grade }
   has_one :student, through: :enrollment
   has_one :section, through: :enrollment
 

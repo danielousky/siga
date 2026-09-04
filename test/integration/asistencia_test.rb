@@ -167,7 +167,7 @@ class AsistenciaTest < ActionDispatch::IntegrationTest
     assert_redirected_to seccion_asistencia_path(@a.seccion, dia: Date.current)
   end
 
-  # ⚠️ El test que faltaba, y por eso el error vivió meses (MOR-150).
+  # ⚠️ El test que faltaba, y por eso el error vivió meses (MOR-209).
   #
   # Con UNA sección por grado, «guía del grado» y «guía de la sección» se
   # comportan igual: ningún test los distingue y el escenario de prueba tenía

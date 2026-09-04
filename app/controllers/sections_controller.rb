@@ -12,7 +12,7 @@ class SectionsController < ApplicationController
     # barra de arriba, y vale para todas las pantallas a la vez. Este tenía su
     # propio desplegable «Todos los períodos» que contradecía al de la barra —dos
     # controles para lo mismo, en la misma pantalla.
-    scope = Section.del_anio_de_la_sesion
+    scope = Section.del_anio_de_la_sesion.del_nivel_de_la_sesion
                    .includes(:grade, :academic_period, leader_teacher: :user).joins(:grade, :academic_period)
     scope = scope.where(grade_id: params[:grade_id]) if params[:grade_id].present?
     # El campo de texto se suma al selector de grado, no lo reemplaza: buscar

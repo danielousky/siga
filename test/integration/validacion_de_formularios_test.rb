@@ -69,7 +69,7 @@ class ValidacionDeFormulariosTest < ActionDispatch::IntegrationTest
       next "#{que}: 422 sin ningún error escrito" if errores.empty?
 
       # Que estén en español: `User` sin traducir decía «First name no puede
-      # estar en blanco» y así estuvo hasta MOR-151.
+      # estar en blanco» y así estuvo hasta MOR-210.
       en_ingles = errores.grep(/\b(First|Last|Name|Code|Blank|must exist|can't be)\b/)
       "#{que}: errores en inglés → #{en_ingles.join(', ')}" if en_ingles.any?
     end

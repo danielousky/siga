@@ -59,7 +59,16 @@ module IconosHelper
                    '<rect x="9" y="2" width="6" height="4" rx="1"/><path d="m9 14 2 2 4-4"/>',
     profesores: '<circle cx="12" cy="7" r="3.2"/><path d="M5 21c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5"/>',
     representantes: '<path d="M12 21s-7-4.5-7-10a7 7 0 0 1 14 0c0 5.5-7 10-7 10Z"/><circle cx="12" cy="11" r="2.4"/>',
-    importar: '<path d="M12 3v13M7 11l5 5 5-5"/><path d="M4 20h16"/>',
+    # ⚠️ UN solo glifo para la flecha que sube, y va HACIA ARRIBA.
+    #
+    # Había DOS claves para esto —`subir` e `importar`— y la de `importar`
+    # apuntaba la flecha hacia ABAJO: era `descargar` con otro nombre. Daniel,
+    # señalando el importador: *«el ícono de flecha es hacia arriba»*.
+    #
+    # Importar es SUBIR un archivo. Con las dos claves conviviendo, la misma
+    # acción se dibujaba de dos maneras según qué vista la pintara, y una de
+    # las dos era idéntica a la acción contraria.
+    subir: '<path d="M12 21V9M7 14l5-5 5 5"/><path d="M4 3h16"/>',
     notas: '<path d="M4 4h16v16H4z"/><path d="M4 9h16M9 4v16"/>',
     materias: '<path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3z"/><path d="M18 7h2v13H8"/>',
     grados: '<path d="M4 20V9l8-5 8 5v11"/><path d="M9 20v-6h6v6"/>',
@@ -81,7 +90,6 @@ module IconosHelper
     buscar: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
     guardar: '<path d="M5 13l4 4L19 7"/>',
     descargar: '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 21h16"/>',
-    subir: '<path d="M12 21V9M7 14l5-5 5 5"/><path d="M4 3h16"/>',
     imprimir: '<path d="M7 8V3h10v5"/><rect x="3" y="8" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>',
     ver: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
     siguiente: '<path d="M5 12h14M13 6l6 6-6 6"/>',
