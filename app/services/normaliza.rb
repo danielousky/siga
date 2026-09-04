@@ -159,6 +159,26 @@ module Normaliza
     canonico(texto).upcase.presence
   end
 
+  # La forma con que se COMPARAN dos textos largos para saber si son el mismo
+  # (MOR-136): sin acentos, en minúscula y con los espacios colapsados.
+  #
+  # ⚠️ No es `canonico` y no es `mayuscula`. Las dos primeras conservan los
+  # acentos porque lo que devuelven **se guarda y se muestra**; ésta produce una
+  # llave que solo sirve para un índice único y para buscar.
+  #
+  # La usa el plan de evaluación: «Resuelve problemas de adición» y «resuelve
+  # problemas de adicion» pasan las dos cualquier validación de presencia, y
+  # para el índice único son dos filas — el plan de la sección termina con la
+  # misma competencia dos veces.
+  #
+  # ⚠️ `canonico` PRIMERO, y no es adorno: `I18n.transliterate` mapea los
+  # acentos precompuestos, así que un texto en NFD —lo que produce macOS al
+  # teclear y al exportar desde Numbers— se le escapa entero. Es el mismo bug
+  # que dejaba mudo a «LÓPEZ» en el buscador, documentado arriba.
+  def para_comparar(texto)
+    I18n.transliterate(canonico(texto)).downcase.presence
+  end
+
   def titulo(texto)
     palabras = canonico(texto).downcase.split(" ")
 

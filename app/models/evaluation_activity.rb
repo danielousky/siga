@@ -13,6 +13,15 @@ class EvaluationActivity < ApplicationRecord
   # por delante el trabajo de carga de un lapso entero, y en silencio.
   has_many :activity_grades, dependent: :restrict_with_error
 
+  # Qué competencias del plan evalúa esta actividad (MOR-136).
+  #
+  # ⚠️ `dependent: :destroy` y no `restrict`: la etiqueta no es un dato de nadie
+  # —es una relación—, así que borrar la evaluación se la lleva. Lo que NO se
+  # puede borrar es la evaluación con notas, y de eso se encarga la línea de
+  # arriba.
+  has_many :activity_competencies, dependent: :destroy
+  has_many :competencies, through: :activity_competencies
+
   validates :description, presence: true
   validates :weight_percentage, presence: true, numericality: { greater_than: 0, less_than_or_equal_to: 100 }
   validates :date_scheduled, presence: true

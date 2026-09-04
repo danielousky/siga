@@ -38,6 +38,10 @@ class School < ApplicationRecord
   # a nadie que se haya registrado.
   belongs_to :registrado_por, class_name: "User", optional: true
 
+  # La rúbrica con que este colegio traduce una nota a un nivel (MOR-136).
+  # Sin filas, la boleta muestra el número — que es lo que hace hoy.
+  has_many :rubrics, -> { en_orden }, dependent: :destroy, inverse_of: :school
+
   # Qué niveles dicta este colegio, deducido de los grados que tiene cargados.
   #
   # ## Por qué no es una columna
