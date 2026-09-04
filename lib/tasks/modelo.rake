@@ -149,8 +149,9 @@ namespace :modelo do
     schools subscriptions
     academic_periods grades sections departments subjects grade_subjects
     enrollments teacher_sections
-    evaluation_moments evaluation_activities activity_grades
-    moment_grades final_grade_books
+    evaluation_moments competencies indicators
+    evaluation_activities activity_competencies activity_grades
+    moment_grades final_grade_books rubrics
     attendances report_cards
     importaciones mensajes mensaje_eventos mensajes_entrantes
     activity_logs demo_requests
@@ -204,7 +205,12 @@ namespace :modelo do
     # ⚠️ NO es una FK a `subjects`: es la mitad de una asociación POLIMÓRFICA
     # (`subject_type` + `subject_id`), y el diagrama la marca FK porque termina
     # en `_id`. Decirlo acá es más barato que enseñarle polimorfismo al parser.
-    "activity_logs.subject_id"       => "polimórfico: NO apunta a subjects"
+    "activity_logs.subject_id"       => "polimórfico: NO apunta a subjects",
+    "rubrics.code"                   => "PC · PA · PI · PD · NP — lo que se imprime",
+    "rubrics.valor"                  => "el PISO de la banda, no el tope",
+    "competencies.descripcion"       => "prosa del docente, tal cual la escribió",
+    "competencies.descripcion_canonica" => "sin acentos y en minúscula, SOLO para el índice único",
+    "indicators.descripcion"         => "describe la competencia; NO se califica"
   }.freeze
 
   def self.en_orden(tablas)

@@ -150,6 +150,41 @@ ALTER SEQUENCE public.active_storage_variant_records_id_seq OWNED BY public.acti
 
 
 --
+-- Name: activity_competencies; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.activity_competencies (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    competency_id bigint NOT NULL,
+    evaluation_activity_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.activity_competencies FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: activity_competencies_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.activity_competencies_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: activity_competencies_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.activity_competencies_id_seq OWNED BY public.activity_competencies.id;
+
+
+--
 -- Name: activity_grades; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -367,6 +402,45 @@ CREATE SEQUENCE public.attendances_id_seq
 --
 
 ALTER SEQUENCE public.attendances_id_seq OWNED BY public.attendances.id;
+
+
+--
+-- Name: competencies; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.competencies (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    section_id bigint NOT NULL,
+    subject_id bigint NOT NULL,
+    evaluation_moment_id bigint NOT NULL,
+    descripcion text NOT NULL,
+    descripcion_canonica text NOT NULL,
+    orden integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.competencies FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: competencies_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.competencies_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: competencies_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.competencies_id_seq OWNED BY public.competencies.id;
 
 
 --
@@ -717,6 +791,43 @@ ALTER SEQUENCE public.importaciones_id_seq OWNED BY public.importaciones.id;
 
 
 --
+-- Name: indicators; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.indicators (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    competency_id bigint NOT NULL,
+    descripcion text NOT NULL,
+    descripcion_canonica text NOT NULL,
+    orden integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.indicators FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: indicators_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.indicators_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: indicators_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.indicators_id_seq OWNED BY public.indicators.id;
+
+
+--
 -- Name: mensaje_eventos; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -942,6 +1053,44 @@ CREATE SEQUENCE public.representatives_id_seq
 --
 
 ALTER SEQUENCE public.representatives_id_seq OWNED BY public.representatives.id;
+
+
+--
+-- Name: rubrics; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.rubrics (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    code character varying NOT NULL,
+    name character varying NOT NULL,
+    description text,
+    valor integer NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    CONSTRAINT rubrics_valor_del_1_al_20 CHECK (((valor >= 1) AND (valor <= 20)))
+);
+
+ALTER TABLE ONLY public.rubrics FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: rubrics_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.rubrics_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: rubrics_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.rubrics_id_seq OWNED BY public.rubrics.id;
 
 
 --
@@ -1773,6 +1922,13 @@ ALTER TABLE ONLY public.active_storage_variant_records ALTER COLUMN id SET DEFAU
 
 
 --
+-- Name: activity_competencies id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.activity_competencies ALTER COLUMN id SET DEFAULT nextval('public.activity_competencies_id_seq'::regclass);
+
+
+--
 -- Name: activity_grades id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1812,6 +1968,13 @@ ALTER TABLE ONLY public.admins ALTER COLUMN id SET DEFAULT nextval('public.admin
 --
 
 ALTER TABLE ONLY public.attendances ALTER COLUMN id SET DEFAULT nextval('public.attendances_id_seq'::regclass);
+
+
+--
+-- Name: competencies id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.competencies ALTER COLUMN id SET DEFAULT nextval('public.competencies_id_seq'::regclass);
 
 
 --
@@ -1878,6 +2041,13 @@ ALTER TABLE ONLY public.importaciones ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: indicators id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.indicators ALTER COLUMN id SET DEFAULT nextval('public.indicators_id_seq'::regclass);
+
+
+--
 -- Name: mensaje_eventos id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -1917,6 +2087,13 @@ ALTER TABLE ONLY public.report_cards ALTER COLUMN id SET DEFAULT nextval('public
 --
 
 ALTER TABLE ONLY public.representatives ALTER COLUMN id SET DEFAULT nextval('public.representatives_id_seq'::regclass);
+
+
+--
+-- Name: rubrics id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rubrics ALTER COLUMN id SET DEFAULT nextval('public.rubrics_id_seq'::regclass);
 
 
 --
@@ -2113,6 +2290,14 @@ ALTER TABLE ONLY public.active_storage_variant_records
 
 
 --
+-- Name: activity_competencies activity_competencies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.activity_competencies
+    ADD CONSTRAINT activity_competencies_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: activity_grades activity_grades_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2158,6 +2343,14 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 ALTER TABLE ONLY public.attendances
     ADD CONSTRAINT attendances_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: competencies competencies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.competencies
+    ADD CONSTRAINT competencies_pkey PRIMARY KEY (id);
 
 
 --
@@ -2233,6 +2426,14 @@ ALTER TABLE ONLY public.importaciones
 
 
 --
+-- Name: indicators indicators_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.indicators
+    ADD CONSTRAINT indicators_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: mensaje_eventos mensaje_eventos_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2278,6 +2479,14 @@ ALTER TABLE ONLY public.report_cards
 
 ALTER TABLE ONLY public.representatives
     ADD CONSTRAINT representatives_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: rubrics rubrics_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rubrics
+    ADD CONSTRAINT rubrics_pkey PRIMARY KEY (id);
 
 
 --
@@ -2492,6 +2701,34 @@ CREATE UNIQUE INDEX index_active_storage_variant_records_uniqueness ON public.ac
 
 
 --
+-- Name: index_activity_competencies_on_competency_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_activity_competencies_on_competency_id ON public.activity_competencies USING btree (competency_id);
+
+
+--
+-- Name: index_activity_competencies_on_evaluation_activity_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_activity_competencies_on_evaluation_activity_id ON public.activity_competencies USING btree (evaluation_activity_id);
+
+
+--
+-- Name: index_activity_competencies_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_activity_competencies_on_school_id ON public.activity_competencies USING btree (school_id);
+
+
+--
+-- Name: index_activity_competencies_sin_repetir; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_activity_competencies_sin_repetir ON public.activity_competencies USING btree (evaluation_activity_id, competency_id);
+
+
+--
 -- Name: index_activity_grades_on_activity_and_student; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2608,6 +2845,48 @@ CREATE INDEX index_attendances_on_school_id ON public.attendances USING btree (s
 --
 
 CREATE INDEX index_attendances_on_school_id_and_date ON public.attendances USING btree (school_id, date);
+
+
+--
+-- Name: index_competencies_on_evaluation_moment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_competencies_on_evaluation_moment_id ON public.competencies USING btree (evaluation_moment_id);
+
+
+--
+-- Name: index_competencies_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_competencies_on_school_id ON public.competencies USING btree (school_id);
+
+
+--
+-- Name: index_competencies_on_school_id_and_subject_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_competencies_on_school_id_and_subject_id ON public.competencies USING btree (school_id, subject_id);
+
+
+--
+-- Name: index_competencies_on_section_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_competencies_on_section_id ON public.competencies USING btree (section_id);
+
+
+--
+-- Name: index_competencies_on_subject_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_competencies_on_subject_id ON public.competencies USING btree (subject_id);
+
+
+--
+-- Name: index_competencies_sin_repetir_en_el_plan; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_competencies_sin_repetir_en_el_plan ON public.competencies USING btree (section_id, subject_id, evaluation_moment_id, descripcion_canonica);
 
 
 --
@@ -2842,6 +3121,27 @@ CREATE INDEX index_importaciones_on_subido_por_id ON public.importaciones USING 
 
 
 --
+-- Name: index_indicators_on_competency_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_indicators_on_competency_id ON public.indicators USING btree (competency_id);
+
+
+--
+-- Name: index_indicators_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_indicators_on_school_id ON public.indicators USING btree (school_id);
+
+
+--
+-- Name: index_indicators_sin_repetir_en_la_competencia; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_indicators_sin_repetir_en_la_competencia ON public.indicators USING btree (competency_id, descripcion_canonica);
+
+
+--
 -- Name: index_mensaje_eventos_on_mensaje_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3021,6 +3321,27 @@ CREATE INDEX index_representatives_on_user_id ON public.representatives USING bt
 --
 
 CREATE UNIQUE INDEX index_representatives_on_user_id_and_school_id ON public.representatives USING btree (user_id, school_id);
+
+
+--
+-- Name: index_rubrics_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_rubrics_on_school_id ON public.rubrics USING btree (school_id);
+
+
+--
+-- Name: index_rubrics_on_school_id_and_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_rubrics_on_school_id_and_code ON public.rubrics USING btree (school_id, code);
+
+
+--
+-- Name: index_rubrics_on_school_id_and_valor; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_rubrics_on_school_id_and_valor ON public.rubrics USING btree (school_id, valor);
 
 
 --
@@ -3440,6 +3761,14 @@ ALTER TABLE ONLY public.final_grade_books
 
 
 --
+-- Name: activity_competencies fk_rails_0af49cc698; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.activity_competencies
+    ADD CONSTRAINT fk_rails_0af49cc698 FOREIGN KEY (competency_id) REFERENCES public.competencies(id);
+
+
+--
 -- Name: schools fk_rails_107a55d48b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3480,6 +3809,14 @@ ALTER TABLE ONLY public.representatives
 
 
 --
+-- Name: competencies fk_rails_1f14a26005; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.competencies
+    ADD CONSTRAINT fk_rails_1f14a26005 FOREIGN KEY (evaluation_moment_id) REFERENCES public.evaluation_moments(id);
+
+
+--
 -- Name: mensajes fk_rails_21e36c2460; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3501,6 +3838,14 @@ ALTER TABLE ONLY public.student_representatives
 
 ALTER TABLE ONLY public.mensaje_eventos
     ADD CONSTRAINT fk_rails_27f008ccda FOREIGN KEY (mensaje_id) REFERENCES public.mensajes(id);
+
+
+--
+-- Name: rubrics fk_rails_28ec4c65ca; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rubrics
+    ADD CONSTRAINT fk_rails_28ec4c65ca FOREIGN KEY (school_id) REFERENCES public.schools(id);
 
 
 --
@@ -3632,6 +3977,14 @@ ALTER TABLE ONLY public.grades
 
 
 --
+-- Name: indicators fk_rails_56ebcb73df; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.indicators
+    ADD CONSTRAINT fk_rails_56ebcb73df FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
 -- Name: teachers fk_rails_579a190d8f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3744,6 +4097,14 @@ ALTER TABLE ONLY public.evaluation_activities
 
 
 --
+-- Name: competencies fk_rails_7be14e9c53; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.competencies
+    ADD CONSTRAINT fk_rails_7be14e9c53 FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
 -- Name: mensajes fk_rails_7fb3bbfd50; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3797,6 +4158,14 @@ ALTER TABLE ONLY public.grade_subjects
 
 ALTER TABLE ONLY public.siga_staffs
     ADD CONSTRAINT fk_rails_9179172cf3 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: competencies fk_rails_97d95ad371; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.competencies
+    ADD CONSTRAINT fk_rails_97d95ad371 FOREIGN KEY (subject_id) REFERENCES public.subjects(id);
 
 
 --
@@ -3904,6 +4273,14 @@ ALTER TABLE ONLY public.moment_grades
 
 
 --
+-- Name: activity_competencies fk_rails_c15f814dcb; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.activity_competencies
+    ADD CONSTRAINT fk_rails_c15f814dcb FOREIGN KEY (evaluation_activity_id) REFERENCES public.evaluation_activities(id);
+
+
+--
 -- Name: report_cards fk_rails_c161237368; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3960,6 +4337,14 @@ ALTER TABLE ONLY public.attendances
 
 
 --
+-- Name: indicators fk_rails_d5369ae67e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.indicators
+    ADD CONSTRAINT fk_rails_d5369ae67e FOREIGN KEY (competency_id) REFERENCES public.competencies(id);
+
+
+--
 -- Name: importaciones fk_rails_d7eeace914; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3976,6 +4361,14 @@ ALTER TABLE ONLY public.evaluation_activities
 
 
 --
+-- Name: activity_competencies fk_rails_d8d03ac39c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.activity_competencies
+    ADD CONSTRAINT fk_rails_d8d03ac39c FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
 -- Name: final_grade_books fk_rails_dbeb5931bb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3989,6 +4382,14 @@ ALTER TABLE ONLY public.final_grade_books
 
 ALTER TABLE ONLY public.evaluation_moments
     ADD CONSTRAINT fk_rails_dd1331b651 FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
+-- Name: competencies fk_rails_dfae0806ca; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.competencies
+    ADD CONSTRAINT fk_rails_dfae0806ca FOREIGN KEY (section_id) REFERENCES public.sections(id);
 
 
 --
@@ -4054,6 +4455,12 @@ ALTER TABLE ONLY public.evaluation_activities
 ALTER TABLE public.academic_periods ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: activity_competencies; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.activity_competencies ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: activity_grades; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -4076,6 +4483,13 @@ ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
 --
 
 CREATE POLICY aislamiento_por_colegio ON public.academic_periods USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
+-- Name: activity_competencies aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.activity_competencies USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
 
 
 --
@@ -4104,6 +4518,13 @@ CREATE POLICY aislamiento_por_colegio ON public.admins USING (((current_setting(
 --
 
 CREATE POLICY aislamiento_por_colegio ON public.attendances USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
+-- Name: competencies aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.competencies USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
 
 
 --
@@ -4163,6 +4584,13 @@ CREATE POLICY aislamiento_por_colegio ON public.importaciones USING (((current_s
 
 
 --
+-- Name: indicators aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.indicators USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
 -- Name: mensaje_eventos aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -4202,6 +4630,13 @@ CREATE POLICY aislamiento_por_colegio ON public.report_cards USING (((current_se
 --
 
 CREATE POLICY aislamiento_por_colegio ON public.representatives USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
+-- Name: rubrics aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.rubrics USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
 
 
 --
@@ -4260,6 +4695,12 @@ CREATE POLICY aislamiento_por_colegio ON public.teachers USING (((current_settin
 ALTER TABLE public.attendances ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: competencies; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.competencies ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: departments; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -4308,6 +4749,12 @@ ALTER TABLE public.grades ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.importaciones ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: indicators; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.indicators ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: mensaje_eventos; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -4342,6 +4789,12 @@ ALTER TABLE public.report_cards ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.representatives ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: rubrics; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.rubrics ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: sections; Type: ROW SECURITY; Schema: public; Owner: -
@@ -4392,6 +4845,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260904150000'),
 ('20260902120000'),
 ('20260902100000'),
 ('20260901215555'),
