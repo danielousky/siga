@@ -18,6 +18,7 @@ class Indicator < ApplicationRecord
   include SchoolScoped
 
   belongs_to :competency
+  llega_al_nivel_por competency: { section: :grade }
   derives_school_from :competency
 
   validates :descripcion, presence: true

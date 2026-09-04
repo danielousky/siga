@@ -245,6 +245,46 @@ class EvaluacionPorCompetenciasTest < ActiveSupport::TestCase
     end
   end
 
+  # ══════════════════════════════════════════════════════════════════════════
+  # Los dos pivotes de la sesión: el año y el nivel
+  # ══════════════════════════════════════════════════════════════════════════
+
+  # ⚠️ Sin `llega_al_nivel_por`, el filtro de la barra ignora el plan EN
+  # SILENCIO: con «Primaria» puesto, el profesor abre su plan y lo ve vacío —
+  # que es indistinguible de «todavía no cargué nada».
+  test "el plan respeta el nivel de la sesión" do
+    con_el_colegio(@a.colegio) do
+      c = competencia(@a, "Resuelve problemas de adición")
+
+      Current.nivel = nil
+      assert_includes Competency.del_nivel_de_la_sesion, c
+
+      Current.nivel = GradoOficial.abarcados_por(GradoOficial.se_elige_como(@a.grado.level))
+      assert_includes Competency.del_nivel_de_la_sesion, c
+
+      Current.nivel = [ :preescolar ]
+      assert_not_includes Competency.del_nivel_de_la_sesion, c
+    ensure
+      Current.nivel = nil
+    end
+  end
+
+  test "el plan respeta el año escolar de la sesión" do
+    con_el_colegio(@a.colegio) do
+      c = competencia(@a, "Resuelve problemas de adición")
+
+      Current.academic_period = @a.escenario.periodo
+      assert_includes Competency.del_anio_de_la_sesion, c
+
+      otro = AcademicPeriod.create!(name: "2030-2031", start_date: Date.new(2030, 9, 15),
+                                    end_date: Date.new(2031, 7, 31))
+      Current.academic_period = otro
+      assert_not_includes Competency.del_anio_de_la_sesion, c
+    ensure
+      Current.academic_period = nil
+    end
+  end
+
   private
 
   def atributos_de(colegio)

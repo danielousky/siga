@@ -23,6 +23,7 @@ class ActivityCompetency < ApplicationRecord
   belongs_to :competency
   belongs_to :evaluation_activity
   llega_al_anio_por evaluation_activity: :section
+  llega_al_nivel_por evaluation_activity: { section: :grade }
 
   derives_school_from :evaluation_activity
   validates_same_school :competency

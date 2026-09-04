@@ -27,6 +27,7 @@ class Competency < ApplicationRecord
   belongs_to :subject
   belongs_to :evaluation_moment
   llega_al_anio_por :section
+  llega_al_nivel_por section: :grade
 
   derives_school_from :section
   validates_same_school :subject, :evaluation_moment
