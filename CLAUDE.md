@@ -805,6 +805,74 @@ en el año de la sesión, y al **editarla el año ni se muestra**: mover una sec
 arrastraría sus inscripciones, su asistencia y sus notas, que son de ese año y de ningún
 otro.
 
+### 8.b El NIVEL de la sesión — el segundo pivote
+
+Un colegio venezolano de tamaño medio dicta los tres niveles a la vez, y el
+trabajo está partido por nivel en la realidad: la coordinadora de primaria no
+toca bachillerato, y la reunión de septiembre para armar secciones se hace un
+nivel por vez. Daniel: *«puede ser confuso crear una sección y que me aparezcan
+preescolar, primaria y bachillerato juntos»*.
+
+```
+   Current.school            del ROL       →  límite de SEGURIDAD
+   Current.academic_period   de la SESIÓN  →  preferencia de quien mira
+   Current.nivel             de la SESIÓN  →  preferencia de quien mira
+```
+
+`DelNivel` es gemelo de `DelAnioEscolar` y **tampoco es un `default_scope`**, por
+las mismas razones más una peor: el historial de un alumno **cruza niveles por
+definición** —el mismo niño hace 6to Grado y después 1er Año— y `School#niveles`,
+que es quien DECIDE qué niveles ofrecer, tendría que consultar grados sin filtrar
+por el nivel que todavía no eligió. Eso es una recursión.
+
+```ruby
+llega_al_nivel_por                                 # grades   (columna propia)
+llega_al_nivel_por :grade                          # sections, grade_subjects
+llega_al_nivel_por section: :grade                 # enrollments, teacher_sections
+llega_al_nivel_por enrollment: { section: :grade } # notas, asistencias, boletines
+llega_al_nivel_por_los Enrollment, :student_id     # Student  ← SUBCONSULTA
+```
+
+⚠️ **Alumno y profesor van por SUBCONSULTA, no por `joins`.** Tienen muchas
+inscripciones y muchas secciones: un `joins` los duplica —un profesor con cuatro
+secciones aparecería cuatro veces— y `.distinct` rompe el `ORDER BY` sobre la
+tabla unida, que es como se ordena por apellido. La subconsulta arrastra además
+el AÑO: «alumnos de primaria» solo tiene respuesta dentro de un año, o quien pasó
+de 6to Grado a 1er Año cuenta en los dos niveles y la suma da más que el total.
+
+⚠️ **«Bachillerato» son DOS valores del enum** (`secundaria` + `media_tecnica`).
+Con `=` en vez de `IN`, elegirlo escondería el **6to Año** de un colegio técnico
+— la misma trampa que `Grade#media?` existe para evitar. Vive en
+`GradoOficial::ABARCA`, y por eso el selector ofrece **tres** opciones, no cuatro.
+
+⚠️ **El defecto es «Todos», no el primer nivel.** Un director de 360 alumnos que
+abre el panel y lee 142 no concluye «estoy en primaria»: concluye que se
+perdieron los datos. Es la trampa de `AcademicPeriod.en_operacion`, cuarta
+aparición. Daniel lo pidió como un MODO DE TRABAJO —*«vamos a trabajar
+Primaria»*— y un modo de trabajo se entra, no se hereda.
+
+⚠️ **El filtro NO puede tocar `Subscription.matricula_de`.** Un colegio de 360
+alumnos con primaria elegida se facturaría como uno de 140: la factura sale más
+barata y nadie la mira. Ya usa `Enrollment.unscoped`, y lo cuida un test.
+
+⚠️ **Donde el nivel no aplica, la pantalla lo DICE** — `el_nivel_no_aplica "…"`
+arriba del controller. Un filtro que aparece puesto y no filtra hace que quien
+vea ocho departamentos con «PRIMARIA» arriba concluya que primaria tiene ocho.
+Y el conteo del listado se calla el nivel ahí, o miente en el mismo renglón.
+
+⚠️ **Editar no puede perder lo guardado.** `grados_por_nivel(incluyendo:)`: una
+sección de bachillerato abierta desde una sesión de primaria mostraría un
+desplegable sin su propio grado, y guardar lo borraría. Ahí es donde un filtro
+deja de ser preferencia y pasa a ser daño.
+
+⚠️ **Y NO es permisología.** El día que un colegio pida «la coordinadora de
+primaria no puede ver bachillerato», eso vive en el ROL —como `Current.school`—
+y no acá. Un límite de seguridad que se apaga desde un desplegable no es un
+límite.
+
+Spec completo, con las decisiones y quién las tomó, en
+[`docs/specs/nivel-de-la-sesion.md`](docs/specs/nivel-de-la-sesion.md).
+
 ### 9. Copiar la estructura de un año al siguiente (`MOR-166`)
 
 Un colegio de diez secciones con ocho materias son **ochenta** asignaciones de

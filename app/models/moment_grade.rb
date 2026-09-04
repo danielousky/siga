@@ -5,7 +5,7 @@ class MomentGrade < ApplicationRecord
   belongs_to :subject
   belongs_to :evaluation_moment
   llega_al_anio_por enrollment: :section
-
+  llega_al_nivel_por enrollment: { section: :grade }
   derives_school_from :enrollment
   validates_same_school :subject
 

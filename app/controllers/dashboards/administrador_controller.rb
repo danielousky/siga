@@ -21,9 +21,20 @@ class Dashboards::AdministradorController < ApplicationController
   def index
     @admin = current_user.admin
 
-    @total_students = Student.count
-    @total_teachers = Teacher.count
-    @total_sections = Section.count
+    # ⚠️ Los conteos respetan el NIVEL de la sesión. Decisión de Daniel: si la
+    # barra dice PRIMARIA, todo lo de abajo es de primaria.
+    #
+    # ⚠️ Menos `Admin`, que no tiene nivel: una secretaria lo es del colegio.
+    # Filtrarlo por nivel devolvería cero y parecería que se borraron.
+    #
+    # ⚠️ Y menos la MATRÍCULA QUE FACTURA, que se calcula en
+    # `Subscription.matricula_de` con `Enrollment.unscoped` — o sea que ya es
+    # inmune a esto. Es la peor consecuencia posible de este filtro: un colegio
+    # de 360 alumnos con primaria elegida se facturaría como uno de 140, la
+    # factura sale más barata y nadie la mira. Lo cuida `nivel_de_la_sesion_test`.
+    @total_students = Student.del_nivel_de_la_sesion.count
+    @total_teachers = Teacher.del_nivel_de_la_sesion.count
+    @total_sections = Section.del_nivel_de_la_sesion.count
     @total_admins   = Admin.count
 
     # ⚠️ El mapa de arranque solo mientras falte algo obligatorio: un colegio ya

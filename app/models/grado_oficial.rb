@@ -56,6 +56,29 @@ class GradoOficial
   ].each_with_index.map { |(nivel, nombre), i| Entrada.new(nivel: nivel, orden: i + 1, nombre: nombre) }
                    .freeze
 
+  # ── Los niveles que se ELIGEN, que son TRES y no cuatro ──────────────────
+  #
+  # El selector de la barra de contexto ofrece Preescolar, Primaria y
+  # Bachillerato. **Media Técnica no es una opción**, y no es una simplificación
+  # de la pantalla: es lo que dice el dominio.
+  #
+  # Un colegio técnico dicta 1er a 5to Año como cualquier bachillerato y agrega
+  # un 6to. Si el selector ofreciera «Bachillerato» y «Media Técnica» por
+  # separado, elegir «Bachillerato» **escondería el 6to Año** — que es
+  # exactamente la trampa que `Grade#media?` existe para evitar, y la que dejó
+  # ciega a la certificación 31059 en su momento.
+  #
+  #     LA OPCIÓN OFRECE     Y ABARCA
+  #     ────────────────     ────────
+  #     Preescolar           preescolar
+  #     Primaria             primaria
+  #     Bachillerato         secundaria + media_tecnica     ← las dos
+  ABARCA = {
+    preescolar: %i[preescolar],
+    primaria: %i[primaria],
+    secundaria: %i[secundaria media_tecnica]
+  }.freeze
+
   # Etiquetas para la pantalla. El nivel se nombra como lo nombra un director,
   # no como lo nombra el enum.
   ETIQUETAS = {
@@ -97,6 +120,17 @@ class GradoOficial
 
       CATALOGO.find { |e| normalizar(e.nombre) == buscado }
     end
+
+    # Bajo qué opción del selector cae un nivel del enum. `media_tecnica` cae
+    # bajo «Bachillerato»; ver `ABARCA`.
+    def se_elige_como(nivel)
+      ABARCA.find { |_opcion, abarcados| abarcados.include?(nivel.to_sym) }&.first
+    end
+
+    # Qué valores del enum abarca una opción del selector. Devuelve `[]` para
+    # una opción que no existe, que es lo que hace que un valor viejo guardado
+    # en la sesión caiga a «todos» en vez de filtrar por nada.
+    def abarcados_por(opcion) = ABARCA.fetch(opcion.to_sym, [])
 
     def nivel_de(nombre) = para(nombre)&.nivel
     def orden_de(nombre) = para(nombre)&.orden

@@ -42,7 +42,28 @@ module ApplicationHelper
   #     Preescolar     1er Nivel · 2do Nivel · 3er Nivel
   #     Primaria       1er Grado · … · 6to Grado
   #     Bachillerato   1er Año · … · 6to Año
-  def grados_por_nivel(grados = Grade.en_orden)
+  #
+  # ⚠️ Y respeta el NIVEL DE LA SESIÓN. Era la queja exacta de Daniel: *«puede
+  # ser confuso crear una sección y que me aparezcan preescolar, primaria y
+  # bachillerato juntos»*. Con «Primaria» elegido arriba, el desplegable trae
+  # seis grados y ningún rótulo de grupo, porque no hay nada que agrupar.
+  #
+  # Va acá y no en cada controller a propósito: son cuatro desplegables —el
+  # filtro de secciones, el de inscripciones, el alta de sección y el que venga—
+  # y el que se olvide es el que va a ofrecer «5to Año» en una sesión de
+  # primaria.
+  #
+  # ⚠️ `incluyendo:` es el grado que el registro YA tiene, y en un formulario de
+  # EDICIÓN no es opcional. Una sección de bachillerato abierta desde una sesión
+  # parada en primaria mostraría un desplegable sin su propio grado: quedaría en
+  # «Seleccione…» y guardar la dejaría sin ninguno.
+  #
+  # El nivel de la sesión es una preferencia de quien mira. No puede borrar un
+  # dato, y esa es la línea entre esto y un `default_scope`.
+  def grados_por_nivel(grados = nil, incluyendo: nil)
+    grados = (grados || Grade.del_nivel_de_la_sesion.en_orden).to_a
+    grados = (grados + [ incluyendo ]).sort_by { |g| g.orden || 99 } if incluyendo && grados.exclude?(incluyendo)
+
     grados.group_by(&:level).map do |nivel, del_nivel|
       [ GradoOficial::ETIQUETAS.fetch(nivel.to_sym, nivel.to_s.humanize),
         del_nivel.map { |g| [ g.name, g.id ] } ]

@@ -93,7 +93,20 @@ class DesbordeEnElTelefonoTest < ApplicationSystemTestCase
 
   test "ninguna pantalla se corre de lado en un teléfono" do
     a, _b = dos_colegios_completos
+
+    # ⚠️ Con DOS niveles y uno elegido, que es la barra más ancha que existe.
+    #
+    # `dos_colegios_completos` trae un solo nivel, así que el selector de nivel
+    # no se dibujaba y este test —que existe justamente para la barra— no lo
+    # habría medido nunca. Es la misma clase de agujero que el `sign_in` que no
+    # entraba: verde por no haber mirado.
+    con_el_colegio(a.colegio) { Grade.create!(school: a.colegio, name: "6to Grado") }
+
     entrar_como(a.director)
+    visit sections_path
+    # ⚠️ Sin el tercer control, este test no mide la barra que hay que medir.
+    assert_selector ".contexto-nivel-select", text: "Todos los niveles"
+    select "Primaria", from: "nivel"
 
     culpables = ANCHOS.flat_map do |ancho|
       PANTALLAS.filter_map do |helper|

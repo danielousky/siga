@@ -1,5 +1,6 @@
 class Grade < ApplicationRecord
   include SchoolScoped
+  llega_al_nivel_por
 
   # ⚠️ `preescolar` se agregó en MOR-153 y faltaba ENTERO: un colegio con
   # maternal no se podía representar, y son la mitad de los colegios privados

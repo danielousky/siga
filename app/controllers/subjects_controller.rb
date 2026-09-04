@@ -1,4 +1,5 @@
 class SubjectsController < ApplicationController
+  el_nivel_no_aplica "una materia puede darse en varios niveles"
   before_action :set_subject, only: [:show, :edit, :update, :destroy]
 
   # Por nombre o por CÓDIGO: el colegio conoce sus materias por las dos cosas, y

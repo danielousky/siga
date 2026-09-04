@@ -11,8 +11,25 @@
 -#
 -# `detalle` es para cuando el número no se explica solo (una búsqueda filtrando,
 -# un tope de filas).
+-#
+-# ⚠️ Y dice sobre QUÉ NIVEL está contando, si hay uno elegido.
+-#
+-# «142 alumnos» a secas, en un colegio de 290, es un número que no cuadra con
+-# nada y que la persona va a atribuir a un error del sistema antes que a un
+-# filtro que puso hace media hora. «142 alumnos de Primaria» se explica solo.
+-#
+-# Sale de `Current`, no de un parámetro de cada vista: son dieciséis pantallas
+-# y la que se olvide es la que va a mentir.
+-#
+-# ⚠️ Y NO lo dice donde el nivel no aplica. Se vio en pantalla: en
+-# `/departamentos`, con primaria elegida, decía «1 departamento de Primaria» —
+-# y no lo es, los departamentos son del colegio. Es exactamente la mentira que
+-# el aviso de la barra existe para evitar, dicha dos centímetros más abajo.
+- nivel = Current.un_solo_nivel? && !nivel_no_aplica? ? GradoOficial.se_elige_como(Current.niveles_del_enum.first) : nil
 .listado-escala
   %span.listado-escala-numero= number_with_delimiter(total)
   %span.listado-escala-sustantivo= pluralizar(total, singular, plural)
+  - if nivel
+    %span.listado-escala-nivel= "de #{GradoOficial::ETIQUETAS[nivel]}"
   - if local_assigns[:detalle].present?
     %span.listado-escala-detalle= detalle

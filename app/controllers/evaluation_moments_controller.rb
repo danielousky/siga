@@ -1,4 +1,5 @@
 class EvaluationMomentsController < ApplicationController
+  el_nivel_no_aplica "los lapsos son de todo el colegio"
   before_action :require_admin_access!
   before_action :set_evaluation_moment, only: [:edit, :update, :destroy]
 

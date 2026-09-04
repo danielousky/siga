@@ -5,6 +5,7 @@
 # tendría que demostrar de algún modo que ese alumno es su hijo, y el único que
 # puede saberlo es el colegio.
 class RepresentativesController < ApplicationController
+  el_nivel_no_aplica "un representante puede tener hijos en varios niveles"
   include GeneraCodigosDeAcceso
 
   genera_codigos_de_acceso_para :representative

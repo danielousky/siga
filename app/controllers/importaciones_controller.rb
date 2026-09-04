@@ -22,6 +22,7 @@
 #     matricula   alumnos y representantes  →  MatriculaInterpretada · CargaDeMatricula
 #     pensum      materias y profesores     →  PensumInterpretado    · CargaDePensum
 class ImportacionesController < ApplicationController
+  el_nivel_no_aplica "una planilla puede traer varios niveles"
   before_action :require_puede_gestionar!
   before_action :set_importacion,
                 only: [ :show, :update, :destroy, :previsualizar,

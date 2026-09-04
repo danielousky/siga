@@ -13,7 +13,7 @@ class TeachersController < ApplicationController
   ].freeze
 
   def index
-    scope = Teacher.includes(:user, :school)
+    scope = Teacher.del_nivel_de_la_sesion.includes(:user, :school)
     if params[:q].present?
       ids = User.where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:q])).pluck(:id)
       scope = scope.where(user_id: ids)
