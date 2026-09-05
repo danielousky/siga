@@ -31,9 +31,24 @@ module MenuHelper
   #
   # `nombre` va también en un `data-nombre` porque el menú encogido lo muestra
   # como globo al pasar el mouse — con el menú angosto, el icono queda solo.
-  Enlace = Data.define(:nombre, :icono, :ruta, :tambien_en) do
-    def initialize(nombre:, icono:, ruta:, tambien_en: []) = super
+  # ⚠️ `estado` es opcional y solo lo usan las secciones del profesor: dice
+  # cómo va su carga de notas (MOR-223). El resto del menú lo deja en nil, y la
+  # plantilla no dibuja nada — un punto de color al lado de «Alumnos» no
+  # significaría nada.
+  Enlace = Data.define(:nombre, :icono, :ruta, :tambien_en, :estado) do
+    def initialize(nombre:, icono:, ruta:, tambien_en: [], estado: nil) = super
   end
+
+  # Cómo se llama cada estado de carga, para el tooltip y el lector de pantalla.
+  #
+  # ⚠️ Nombrados por lo que SIGNIFICAN, no por su color: «al día» y no «verde».
+  # Es la misma regla que ya siguen los chips de estado — un alumno retirado es
+  # `--inactivo`, no `--gris`.
+  NOMBRES_DE_ESTADO = {
+    completo: "Notas al día",
+    a_medias: "Le faltan notas por cargar",
+    vacio: "Sin ninguna nota cargada"
+  }.freeze
 
   # Un grupo plegable, que nace PLEGADO (MOR-203).
   #
@@ -418,16 +433,46 @@ module MenuHelper
   # Del nivel, porque con «Primaria» puesto arriba el menú tiene que acompañar:
   # un filtro que la barra dice tener y el menú ignora es peor que no tenerlo.
   def mis_secciones
-    asignaciones = current_user.teacher&.teacher_sections
-                               &.del_anio_de_la_sesion&.del_nivel_de_la_sesion
-                               &.includes(section: :grade) || []
-
-    asignaciones.map(&:section).uniq
+    mis_asignaciones_del_menu.map(&:section).uniq
                 .sort_by { |s| [ s.grade.orden || 99, s.grade.name, s.name ] }
   end
 
   def enlace_a_seccion(seccion)
     Enlace.new(nombre: "#{seccion.grade.name} – #{seccion.name}",
-               icono: nil, ruta: section_path(seccion))
+               icono: nil, ruta: section_path(seccion),
+               estado: estado_de_calificacion(seccion))
+  end
+
+  # Cómo va la carga de notas de esta sección, para pintarla en el menú.
+  #
+  # Daniel: *«en el panel de cada sección, además de un enlace al detalle, hay
+  # un indicativo de si les falta por calificar alguna nota»*.
+  #
+  # ⚠️ El peor de sus áreas manda. Un profesor que da dos áreas en la misma
+  # sección y tiene una al día y otra sin empezar necesita ver que le falta —
+  # promediarlas diría «a medias» y esconde que una está en cero.
+  def estado_de_calificacion(seccion)
+    avance = avances_del_profesor.select { |ts, _| ts.section_id == seccion.id }.values
+    return nil if avance.empty?
+
+    estados = avance.map(&:estado)
+    return :vacio    if estados.include?(:vacio)
+    return :a_medias if estados.include?(:a_medias)
+    return nil       if estados.all? { |e| e == :sin_evaluaciones }
+
+    :completo
+  end
+
+  # ⚠️ UNA consulta para todo el menú, no una por sección. El menú se dibuja en
+  # CADA pantalla, así que una consulta por sección serían diecinueve en cada
+  # petición — el error clásico de N+1, en el lugar donde más cuesta.
+  def avances_del_profesor
+    @avances_del_profesor ||= CargaDeNotas.avance_por_asignacion(mis_asignaciones_del_menu)
+  end
+
+  def mis_asignaciones_del_menu
+    current_user.teacher&.teacher_sections
+                &.del_anio_de_la_sesion&.del_nivel_de_la_sesion
+                &.includes(section: :grade) || []
   end
 end

@@ -36,7 +36,70 @@ class CargaDeNotas
     def mas_vieja = faltantes.map { |f| f.evaluacion.date_scheduled }.min
   end
 
+  # El estado de UNA sección, para pintarla de un vistazo (MOR-223).
+  #
+  # Daniel: *«en el panel de cada sección, además de un enlace al detalle, hay
+  # un indicativo de si les falta por calificar alguna nota de esa sección o si
+  # ya está calificada… si ya las tengo calificadas me aparece 20 de 20 y un
+  # check en verde; si me falta me aparece 20 de 30 y en amarillo; si no tengo
+  # nada calificado me aparece en rojo»*.
+  Avance = Data.define(:puestas, :total, :primera_incompleta) do
+    def completo? = total.positive? && puestas >= total
+    def vacio?    = puestas.zero?
+    def sin_nada_que_calificar? = total.zero?
+
+    def estado
+      return :sin_evaluaciones if sin_nada_que_calificar?
+      return :completo if completo?
+      return :vacio    if vacio?
+
+      :a_medias
+    end
+
+    def porcentaje = total.zero? ? 0 : (puestas * 100.0 / total).round
+  end
+
   class << self
+    # El avance de cada asignación, para pintar la lista de secciones.
+    #
+    # ⚠️ Devuelve un mapa por `TeacherSection`, no por sección: un profesor
+    # puede dictar DOS áreas en la misma sección, y su estado de calificación es
+    # distinto en cada una. Agregarlas por sección escondería que Matemática
+    # está al día y Castellano no.
+    #
+    # ⚠️ Cuenta TODAS las evaluaciones del año, no solo las vencidas. La
+    # diferencia con `incompletas` es la pregunta: ésa es «¿a quién le reclamo?»
+    # —y reclamar por un examen que es la semana que viene hace que nadie mire
+    # la pantalla—; ésta es «¿cómo voy?», y ahí la de la semana que viene cuenta.
+    def avance_por_asignacion(asignaciones)
+      asignaciones = asignaciones.to_a
+      return {} if asignaciones.empty?
+
+      # ⚠️ El producto cartesiano trae DE MÁS —una evaluación de Castellano en
+      # una sección donde este profesor solo da Matemática— y se filtra abajo,
+      # por par. Es una consulta en vez de una por asignación, que es lo que
+      # importa: este panel lo abre un profesor desde el teléfono.
+      evaluaciones = EvaluationActivity
+                     .where(section_id: asignaciones.map(&:section_id).uniq,
+                            subject_id: asignaciones.map(&:subject_id).uniq)
+                     .order(:date_scheduled, :id)
+                     .to_a
+      puestas = ActivityGrade.where(evaluation_activity_id: evaluaciones.map(&:id))
+                             .group(:evaluation_activity_id).count
+      inscritos = inscritos_por_seccion(asignaciones.map(&:section_id).uniq)
+
+      asignaciones.index_with do |ts|
+        suyas = evaluaciones.select { |e| e.section_id == ts.section_id && e.subject_id == ts.subject_id }
+        por_evaluacion = inscritos[ts.section_id].to_i
+
+        Avance.new(
+          puestas: suyas.sum { |e| puestas[e.id].to_i },
+          total: suyas.size * por_evaluacion,
+          primera_incompleta: suyas.find { |e| puestas[e.id].to_i < por_evaluacion }
+        )
+      end
+    end
+
     # Lo que le falta a un conjunto de asignaciones (`TeacherSection`).
     def incompletas(asignaciones)
       asignaciones = asignaciones.to_a

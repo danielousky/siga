@@ -19,3 +19,16 @@
         - if enlace.icono
           = icono(enlace.icono, tamano: 18)
         %span= enlace.nombre
+
+        -# ⚠️ Cómo va la carga de notas de esta sección (MOR-223). Daniel: *«hay
+        -# un indicativo de si les falta por calificar alguna nota de esa
+        -# sección o si ya está calificada»*.
+        -#
+        -# ⚠️ Un punto de color CON su nombre en el tooltip, nunca solo color:
+        -# quien no distingue el rojo del verde tiene que poder saberlo igual.
+        -# Acá el color SÍ es del dato —cuántas notas faltan es un hecho— y por
+        -# eso puede llevarlo (regla de color, MOR-135).
+        - if enlace.estado
+          %span.seccion-estado{ class: "seccion-estado--#{enlace.estado}",
+                                data: { tooltip: MenuHelper::NOMBRES_DE_ESTADO[enlace.estado] },
+                                "aria-label": MenuHelper::NOMBRES_DE_ESTADO[enlace.estado] }

@@ -34,6 +34,8 @@ class SectionsController < ApplicationController
       @available_subjects = @section.grade.subjects.where.not(id: assigned_subject_ids).order(:name)
       @available_teachers = Teacher.includes(:user).order("users.last_name")
     end
+
+    preparar_la_libreta
   end
 
   def new
@@ -75,6 +77,53 @@ class SectionsController < ApplicationController
   end
 
   private
+
+  # La libreta: todas las notas de esta sección en una tabla (MOR-223).
+  #
+  # Daniel: *«debería tener una vista en la que aparezcan todas las evaluaciones
+  # y él pueda ir ajustando durante el lapso… una tabla donde la primera columna
+  # es la lista de los estudiantes y las siguientes columnas son las
+  # evaluaciones»*.
+  #
+  # ⚠️ Las áreas que se ofrecen son las que ESTA PERSONA califica, no las de la
+  # sección. Daniel, ratificándolo con Cyndi: *«califica el profe de la materia.
+  # Incluso el guía… ¿cómo sabes cuáles califica? guía + áreas asignadas»*.
+  #
+  # La dirección las ve todas: no califica, supervisa.
+  def preparar_la_libreta
+    @areas_que_califico = areas_que_califico
+    return if @areas_que_califico.empty?
+
+    @lapsos_de_la_libreta = EvaluationMoment
+                            .where(academic_period_id: @section.academic_period_id)
+                            .order(:starts_on, :id).to_a
+    @area_de_la_libreta = @areas_que_califico.find { |s| s.id.to_s == params[:area] } ||
+                          @areas_que_califico.first
+    @lapso_de_la_libreta = @lapsos_de_la_libreta.find { |l| l.id.to_s == params[:lapso] } ||
+                           lapso_en_curso || @lapsos_de_la_libreta.first
+    return if @lapso_de_la_libreta.nil?
+
+    @libreta = LibretaDeLaSeccion.para(seccion: @section, materia: @area_de_la_libreta,
+                                       lapso: @lapso_de_la_libreta)
+  end
+
+  def areas_que_califico
+    return @section.grade.subjects.order(:name).to_a if can_manage_sections?
+    return [] unless profesor?
+
+    @teacher_sections.select { |ts| ts.teacher_id == current_user.teacher&.id }
+                     .map(&:subject).uniq.sort_by(&:name)
+  end
+
+  # ⚠️ El lapso que se está cursando, no el primero.
+  #
+  # Es la misma trampa que `AcademicPeriod.en_operacion` para el año escolar,
+  # cuarta o quinta aparición: abrir en el primero es abrirle a un profesor de
+  # marzo la libreta de octubre, que ya cerró.
+  def lapso_en_curso
+    hoy = Date.current
+    @lapsos_de_la_libreta.find { |l| l.starts_on && l.ends_on && (l.starts_on..l.ends_on).cover?(hoy) }
+  end
 
   def set_section
     @section = Section.find(params[:id])

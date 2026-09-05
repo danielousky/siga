@@ -1,0 +1,76 @@
+-# La libreta: todas las notas de la sección en UNA tabla (MOR-223).
+-#
+-# Daniel: *«está bien que califique particularmente cada evaluación, pero
+-# debería tener una vista en la que aparezcan todas las evaluaciones y él pueda
+-# ir ajustando durante el lapso»*. Y la razón: *«ten presente que lo más
+-# importante para los profesores son sus estudiantes»*.
+-#
+-# Es la misma información que la planilla, girada noventa grados:
+-#
+-#     LA PLANILLA          una evaluación, todos los alumnos   → para CARGAR
+-#     LA LIBRETA           un lapso entero, alumno × columna   → para MIRAR
+- ruta = ->(**cambios) { section_path(@section, { area: @area_de_la_libreta&.id, lapso: @lapso_de_la_libreta&.id }.merge(cambios)) }
+
+- if @areas_que_califico.many?
+  = render "shared/pastillas", etiqueta: Vocabulario::AREA,
+           opciones: @areas_que_califico.map { |s| [ s.name, ruta.(area: s.id), s.id == @area_de_la_libreta&.id ] }
+
+- if @lapsos_de_la_libreta.many?
+  = render "shared/pastillas", etiqueta: "Lapso",
+           opciones: @lapsos_de_la_libreta.map { |l| [ l.name, ruta.(lapso: l.id), l.id == @lapso_de_la_libreta&.id ] }
+
+- if @libreta[:columnas].empty?
+  .empty-state
+    %h3= "Todavía no hay evaluaciones en #{@lapso_de_la_libreta&.name.to_s.downcase}"
+    %p
+      Cuando registres una evaluación de
+      %strong= @area_de_la_libreta&.name
+      aparece acá como una columna, y podrás ver a todos tus alumnos de una vez.
+    - if profesor?
+      .empty-state-acciones
+        = boton "Registrar evaluación", new_evaluation_activity_path, icono: :agregar
+
+- else
+  .libreta-marco
+    %table.table-academic.libreta
+      %thead
+        %tr
+          %th.libreta-alumno= Student.model_name.human
+          - @libreta[:columnas].each do |columna|
+            %th.libreta-columna
+              -# ⚠️ El encabezado es un ENLACE a su planilla: desde acá el
+              -# profesor ve que faltan cinco y entra a ponerlas sin volver
+              -# atrás. Daniel: *«al hacer clic me voy directamente a la
+              -# calificación que falta»*.
+              = link_to evaluation_activity_notas_path(columna.evaluacion), class: "libreta-columna-enlace" do
+                %span.libreta-columna-nombre= columna.evaluacion.description
+                %span.libreta-columna-peso= "#{number_with_precision(columna.evaluacion.weight_percentage, precision: columna.evaluacion.weight_percentage.frac.zero? ? 0 : 2)} %"
+                %span.libreta-columna-avance{ class: "libreta-avance--#{columna.estado}" }
+                  = "#{columna.puestas} de #{columna.total}"
+          %th.libreta-promedio= @lapso_de_la_libreta&.name
+
+      %tbody
+        - @libreta[:filas].each do |fila|
+          %tr
+            %td.libreta-alumno= fila.alumno.user.apellidos_y_nombres
+            - @libreta[:columnas].each do |columna|
+              - nota = fila.notas[columna.evaluacion.id]
+              %td.libreta-nota
+                - if nota
+                  %span{ class: ("nota-aplazada" if nota < 10) }= nota.to_i
+                - else
+                  -# ⚠️ Una raya, NUNCA un cero. Sin nota no es reprobado: es que
+                  -# todavía no se corrigió, y confundirlos reprueba a media
+                  -# sección a mitad de lapso.
+                  %span.libreta-sin-nota —
+            %td.libreta-promedio
+              - if fila.promedio
+                %strong{ class: ("nota-aplazada" if fila.promedio < 10) }= fila.promedio.to_i
+              - else
+                %span.libreta-sin-nota —
+
+  %p.nota-ayuda
+    El promedio sale de las evaluaciones con su peso, como manda el Artículo 111.
+    Una raya es
+    %strong sin corregir
+    \, que no es lo mismo que un cero.

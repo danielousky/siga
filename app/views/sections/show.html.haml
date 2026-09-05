@@ -51,9 +51,18 @@
 -# profesores» se mira una vez a principio de año.
 - if profesor?
   .card-academic
-    = con_paneles [ [ "Alumnos", "alumnos", @enrollments.size ],
-                    [ "#{Vocabulario::AREAS_CORTAS} y profesores", "areas", @teacher_sections.size ] ],
-                  etiqueta: "Qué mirar de esta sección" do
+    -# ⚠️ CALIFICACIONES primero, y es la decisión del panel. Daniel: *«ten
+    -# presente que lo más importante para los profesores son sus estudiantes»*
+    -# — y lo que hace con ellos, semana a semana, es ponerles notas.
+    - paneles = []
+    - paneles << [ "Calificaciones", "libreta" ] if @libreta
+    - paneles << [ "Alumnos", "alumnos", @enrollments.size ]
+    - paneles << [ "#{Vocabulario::AREAS_CORTAS} y profesores", "areas", @teacher_sections.size ]
+
+    = con_paneles paneles, etiqueta: "Qué mirar de esta sección" do
+      - if @libreta
+        = panel_de "libreta" do
+          = render "libreta"
 
       = panel_de "alumnos" do
         - if @enrollments.any?
@@ -101,9 +110,19 @@
 -# asigna un profesor a un área, y ese formulario es de otro trabajo.
 - if administrador?
   .card-academic
-    = con_paneles [ [ "Alumnos", "alumnos", @enrollments.size ],
-                    [ "#{Vocabulario::AREAS_CORTAS} y profesores", "areas", @teacher_sections.size ] ],
-                  etiqueta: "Qué mirar de esta sección" do
+    -# ⚠️ La dirección VE la libreta aunque no califique: es la pantalla donde
+    -# se contesta «¿este profesor está al día?» sin tener que abrir sus cinco
+    -# planillas. Lo que no puede es cargar notas — el enlace de cada columna
+    -# lleva a una planilla que su rol no deja escribir.
+    - paneles = []
+    - paneles << [ "Calificaciones", "libreta" ] if @libreta
+    - paneles << [ "Alumnos", "alumnos", @enrollments.size ]
+    - paneles << [ "#{Vocabulario::AREAS_CORTAS} y profesores", "areas", @teacher_sections.size ]
+
+    = con_paneles paneles, etiqueta: "Qué mirar de esta sección" do
+      - if @libreta
+        = panel_de "libreta" do
+          = render "libreta"
 
       = panel_de "alumnos" do
         %p.seccion-conteo= "#{@enrollments.size} de #{@section.capacity} lugares ocupados"

@@ -23,14 +23,25 @@ class PanelesDeUnaPantallaTest < ApplicationSystemTestCase
     entrar_como @a.profesor
   end
 
-  # ⚠️ Los ALUMNOS primero. Daniel: *«ten presente que lo más importante para
-  # los profesores son sus estudiantes»*.
-  test "al abrir se ven los alumnos, no lo que se escribió primero" do
+  # ⚠️ CALIFICACIONES primero, y es la decisión del panel. Daniel: *«ten
+  # presente que lo más importante para los profesores son sus estudiantes»* —
+  # y lo que hace con ellos, semana a semana, es ponerles notas.
+  #
+  # «Áreas y profesores» va última: se mira una vez a principio de año.
+  test "al abrir se ven las calificaciones, no lo que se escribió primero" do
     visit section_path(@a.seccion)
 
-    assert_selector ".panel-pestana.activa", text: "Alumnos"
-    assert_selector ".panel-contenido[data-panel='alumnos']", visible: true
+    assert_selector ".panel-pestana.activa", text: "Calificaciones"
+    assert_selector ".panel-contenido[data-panel='libreta']", visible: true
     assert_no_selector ".panel-contenido[data-panel='areas']", visible: true
+  end
+
+  # El orden completo, que es lo que decide qué ve el profesor al entrar.
+  test "el orden de las pestañas va de lo que más se usa a lo que menos" do
+    visit section_path(@a.seccion)
+
+    nombres = all(".panel-pestana").map { |p| p.text.strip.split("\n").first }
+    assert_equal [ "Calificaciones", "Alumnos", "#{Vocabulario::AREAS_CORTAS} y profesores" ], nombres
   end
 
   test "un clic cambia de panel, sin recargar" do
@@ -38,7 +49,7 @@ class PanelesDeUnaPantallaTest < ApplicationSystemTestCase
     tocando { find(".panel-pestana", text: Vocabulario::AREAS_CORTAS).click }
 
     assert_selector ".panel-contenido[data-panel='areas']", visible: true
-    assert_no_selector ".panel-contenido[data-panel='alumnos']", visible: true
+    assert_no_selector ".panel-contenido[data-panel='libreta']", visible: true
     assert_text "Castellano y Literatura"
   end
 
@@ -64,5 +75,6 @@ class PanelesDeUnaPantallaTest < ApplicationSystemTestCase
     assert_text "Castellano y Literatura"
     assert_selector ".panel-contenido[data-panel='alumnos']", visible: true
     assert_selector ".panel-contenido[data-panel='areas']", visible: true
+    assert_selector ".panel-contenido[data-panel='libreta']", visible: true
   end
 end

@@ -16,10 +16,14 @@ class Dashboards::ProfesorController < ApplicationController
     # ⚠️ Solo el año que está cursando (MOR-165). Sin esto, un profesor con tres
     # años en el colegio abre su panel y lee «12 secciones · 340 alumnos»
     # sumando los tres — y entra a cargar notas de una sección que ya cerró.
+    # ⚠️ Del año Y del NIVEL de la sesión (MOR-223): un profesor que da primaria
+    # y media veía las dieciséis secciones juntas.
     @teacher_sections = @teacher.teacher_sections
                                 .del_anio_de_la_sesion
+                                .del_nivel_de_la_sesion
                                 .includes(:subject, section: [ :grade, :academic_period, :enrollments ])
-                                .order("grades.name, sections.name")
+                                .to_a
+                                .sort_by { |ts| [ ts.section.grade.orden || 99, ts.section.name, ts.subject.name ] }
 
     # Las secciones de las que es GUÍA — no los grados (MOR-209). El guía es de
     # la sección; el grado, si acaso, tiene un coordinador.
@@ -30,6 +34,7 @@ class Dashboards::ProfesorController < ApplicationController
     @total_subjects = @teacher_sections.map(&:subject_id).uniq.size
 
     @sin_corregir = evaluaciones_sin_corregir
+    @avances = CargaDeNotas.avance_por_asignacion(@teacher_sections)
   end
 
   private

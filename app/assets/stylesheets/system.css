@@ -5956,6 +5956,156 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 }
 
 
+/* El avance de cada área en el panel del profesor (MOR-223).
+   Daniel: «si ya las tengo calificadas me aparece 20 de 20 y un check en verde;
+   si me falta me aparece 20 de 30 y en amarillo; si no tengo nada, en rojo».
+
+   ⚠️ Es un ENLACE: lleva a la primera evaluación incompleta, no al listado.
+   «Al hacer clic me voy directamente a la calificación que falta». */
+.subject-avance {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: var(--space-xs);
+  padding: 1px var(--space-xs);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.subject-avance--completo {
+  background: color-mix(in srgb, var(--success-text) 12%, transparent);
+  color: var(--success-text);
+}
+
+.subject-avance--a_medias {
+  background: color-mix(in srgb, var(--warning-text) 14%, transparent);
+  color: var(--warning-text);
+}
+
+.subject-avance--vacio {
+  background: color-mix(in srgb, var(--danger-text) 12%, transparent);
+  color: var(--danger-text);
+}
+
+.subject-avance--sin_evaluaciones {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+a.subject-avance:hover { filter: brightness(0.9); }
+
+/* El estado de carga de una sección, en el menú (MOR-223).
+   Daniel: «hay un indicativo de si les falta por calificar alguna nota».
+
+   ⚠️ Acá el color SÍ es del dato —cuántas notas faltan es un hecho de la
+   sección, no la afordancia de un control— y por eso puede llevarlo. Pero
+   nunca SOLO color: el nombre va en el tooltip y en el `aria-label`. */
+.seccion-estado {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: auto;
+}
+
+.seccion-estado--completo { background: var(--success-text); }
+.seccion-estado--a_medias { background: var(--warning-text); }
+.seccion-estado--vacio    { background: var(--danger-text); }
+
+/* ---- La libreta de la sección (MOR-223) ---- */
+/* Todas las notas del lapso en una tabla: alumno × evaluación. Daniel: «ten
+   presente que lo más importante para los profesores son sus estudiantes». */
+
+/* ⚠️ El scroll horizontal es de la TABLA, no de la página. Una sección con
+   ocho evaluaciones no cabe en un teléfono, y sin este marco el `body` entero
+   se corre de lado — que es el bug que `desborde_en_el_telefono_test` persigue. */
+.libreta-marco {
+  overflow-x: auto;
+  margin-bottom: var(--space-md);
+}
+
+.libreta { min-width: max-content; }
+
+/* La columna del alumno se queda quieta al desplazar: sin ella, a la tercera
+   evaluación no se sabe de quién es la fila que se está mirando. */
+.libreta .libreta-alumno {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface-elevated);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.libreta thead .libreta-alumno { background: var(--surface-hover); }
+
+.libreta-columna { min-width: 8rem; }
+
+.libreta-columna-enlace {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.libreta-columna-enlace:hover .libreta-columna-nombre { color: var(--brand-primary); }
+
+.libreta-columna-nombre {
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+  /* Un nombre largo se recorta: la columna la define el conteo de abajo, no
+     cuánto escribió el profesor. */
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.libreta-columna-peso {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ⚠️ El avance en TRES estados, y con el texto siempre visible.
+   
+   Daniel: «si ya las tengo calificadas me aparece 20 de 20 y un check en verde;
+   si me falta me aparece 20 de 30 y en amarillo; si no tengo nada, en rojo».
+   
+   Acá el color SÍ es del dato —cuántas notas faltan es un hecho de la
+   evaluación, no una afordancia de un control— y por eso puede llevarlo. Pero
+   nunca solo color: el «20 de 30» se lee igual en blanco y negro y por quien no
+   distingue el rojo del verde. */
+.libreta-columna-avance {
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.libreta-avance--completa { color: var(--success-text); }
+.libreta-avance--a_medias { color: var(--warning-text); }
+.libreta-avance--vacia    { color: var(--danger-text); }
+
+.libreta-nota,
+.libreta-promedio {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.libreta thead .libreta-promedio { min-width: 6rem; }
+
+.libreta-sin-nota { color: var(--text-tertiary); }
+
 /* ---- Paneles de una misma pantalla (MOR-223) ---- */
 /* Daniel: «un clic vale más que muchos scroll hacia abajo… si no lo hago me
    pierdo de lo que está allí que no me aparece al cargar la vista».
