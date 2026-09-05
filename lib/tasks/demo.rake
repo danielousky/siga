@@ -180,37 +180,6 @@ namespace :demo do
       puts ""
     end
   end
-end
-
-# ⚠️ Fuera del namespace `demo`: esto no es de la demostración, es del correo
-# que le avisa al equipo de SIGA que entró un cliente.
-namespace :avisos do
-  desc "Manda el aviso de colegio nuevo con un colegio real, para comprobar que sale (MOR-158)"
-  task probar: :environment do
-    destinatario = PlataformaMailer.destinatario
-
-    if destinatario.blank?
-      abort "\n🚫 SIGA_AVISOS_EMAIL no está configurada. Sin ella el aviso NO se manda\n" \
-            "   —y no falla, que es lo peligroso: un colegio nuevo entra y nadie se entera.\n"
-    end
-
-    colegio, usuario = Current.sin_aislamiento do
-      [ School.order(:id).first, User.order(:id).first ]
-    end
-    abort "🚫 No hay ningún colegio con el que probar." if colegio.nil?
-
-    puts "Mandando el aviso a #{destinatario} con #{colegio.name}…"
-    # `deliver_now` y no `deliver_later`: si se encola, esto termina diciendo
-    # «listo» sin que el correo haya salido, que es justo lo que se comprueba.
-    PlataformaMailer.colegio_registrado(colegio, usuario).deliver_now
-    puts "✅ Salió. Si no llega en unos minutos, revisa el log y la carpeta de spam."
-  end
-
-  # ⚠️ De dónde salió cada colegio, para decidir sin adivinar (MOR-146).
-  #
-  # El inventario dice CUÁNTOS hay; esto dice QUIÉN los creó y CUÁNDO. La
-  # diferencia importa cuando el guarda de `es_solo_demo` encuentra un colegio
-  # inesperado: puede ser una prueba de Daniel o el trabajo de un broker
   # mostrándole el producto a un cliente, y borrar el segundo no se deshace.
   desc "Quién creó cada colegio y qué tiene adentro (MOR-146)"
   task procedencia: :environment do
@@ -244,4 +213,35 @@ namespace :avisos do
       puts ""
     end
   end
+end
+
+# ⚠️ Fuera del namespace `demo`: esto no es de la demostración, es del correo
+# que le avisa al equipo de SIGA que entró un cliente.
+namespace :avisos do
+  desc "Manda el aviso de colegio nuevo con un colegio real, para comprobar que sale (MOR-158)"
+  task probar: :environment do
+    destinatario = PlataformaMailer.destinatario
+
+    if destinatario.blank?
+      abort "\n🚫 SIGA_AVISOS_EMAIL no está configurada. Sin ella el aviso NO se manda\n" \
+            "   —y no falla, que es lo peligroso: un colegio nuevo entra y nadie se entera.\n"
+    end
+
+    colegio, usuario = Current.sin_aislamiento do
+      [ School.order(:id).first, User.order(:id).first ]
+    end
+    abort "🚫 No hay ningún colegio con el que probar." if colegio.nil?
+
+    puts "Mandando el aviso a #{destinatario} con #{colegio.name}…"
+    # `deliver_now` y no `deliver_later`: si se encola, esto termina diciendo
+    # «listo» sin que el correo haya salido, que es justo lo que se comprueba.
+    PlataformaMailer.colegio_registrado(colegio, usuario).deliver_now
+    puts "✅ Salió. Si no llega en unos minutos, revisa el log y la carpeta de spam."
+  end
+
+  # ⚠️ De dónde salió cada colegio, para decidir sin adivinar (MOR-146).
+  #
+  # El inventario dice CUÁNTOS hay; esto dice QUIÉN los creó y CUÁNDO. La
+  # diferencia importa cuando el guarda de `es_solo_demo` encuentra un colegio
+  # inesperado: puede ser una prueba de Daniel o el trabajo de un broker
 end
