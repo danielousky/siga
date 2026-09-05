@@ -15,7 +15,9 @@
         un botón que confirmaba y después fallaba.
       = boton "Editar", edit_section_path(@section), icono: :editar, tono: :secondary
     - else
-      = boton "← Volver", dashboards_profesor_path, icono: :volver, tono: :secondary
+      -# ⚠️ Sin la flecha en el texto: `boton` ya dibuja el icono, y las dos
+      -# juntas salían como «← ← Volver» (QA de Daniel).
+      = boton "Volver", dashboards_profesor_path, icono: :volver, tono: :secondary
 
   .detail-row
     .detail-item
@@ -38,118 +40,130 @@
         %span.detail-label Aula
         %p.detail-value= @section.classroom
 
-/ =============================================
-/ VISTA PROFESOR: Solo lectura
-/ =============================================
+-# ⚠️ PESTAÑAS, no bloques apilados (MOR-223).
+-#
+-# Daniel: *«esos dos paneles van en pestañas o pills, un clic vale más que
+-# muchos scroll hacia abajo… si no lo hago me pierdo de lo que está allí que no
+-# me aparece al cargar la vista»*.
+-#
+-# ⚠️ Los ALUMNOS van primero, y el orden es la decisión: *«ten presente que lo
+-# más importante para los profesores son sus estudiantes»*. «Áreas y
+-# profesores» se mira una vez a principio de año.
 - if profesor?
   .card-academic
-    %h2 Materias y profesores
-    - if @teacher_sections.any?
-      %table.table-academic
-        %thead
-          %tr
-            %th= Subject.model_name.human
-            %th= Teacher.model_name.human
-        %tbody
-          - @teacher_sections.each do |ts|
-            %tr
-              %td= ts.subject.name
-              %td
-                - if ts.teacher.user_id == current_user.id
-                  %strong= "#{ts.teacher.user.nombre_completo}"
-                  %span.seccion-soy-yo (tú)
-                - else
-                  = "#{ts.teacher.user.nombre_completo}"
-    - else
-      .empty-state
-        %p No hay materias asignadas aún.
+    = con_paneles [ [ "Alumnos", "alumnos", @enrollments.size ],
+                    [ "#{Vocabulario::AREAS_CORTAS} y profesores", "areas", @teacher_sections.size ] ],
+                  etiqueta: "Qué mirar de esta sección" do
 
-  .card-academic
-    %h2 Alumnos inscritos
-    %p.seccion-conteo= contar(@enrollments.size, "alumno", "alumnos") + " en esta sección"
+      = panel_de "alumnos" do
+        - if @enrollments.any?
+          %table.table-academic
+            %thead
+              %tr
+                %th #
+                %th= Section.human_attribute_name(:name)
+                %th Apellido
+                %th Nro. expediente
+            %tbody
+              - @enrollments.each_with_index do |enrollment, i|
+                %tr
+                  %td= i + 1
+                  %td= enrollment.student.user.first_name
+                  %td= enrollment.student.user.apellidos
+                  %td= enrollment.student.school_card
+        - else
+          .empty-state
+            %h3 Sin alumnos inscritos
+            %p Esta sección aún no tiene alumnos inscritos.
 
-    - if @enrollments.any?
-      %table.table-academic
-        %thead
-          %tr
-            %th #
-            %th= Section.human_attribute_name(:name)
-            %th Apellido
-            %th Nro. expediente
-        %tbody
-          - @enrollments.each_with_index do |enrollment, i|
-            %tr
-              %td= i + 1
-              %td= enrollment.student.user.first_name
-              %td= enrollment.student.user.apellidos
-              %td= enrollment.student.school_card
-    - else
-      .empty-state
-        %h3 Sin alumnos inscritos
-        %p Esta sección aún no tiene alumnos inscritos.
+      = panel_de "areas" do
+        - if @teacher_sections.any?
+          %table.table-academic
+            %thead
+              %tr
+                %th= Vocabulario::AREA_CORTA
+                %th= Teacher.model_name.human
+            %tbody
+              - @teacher_sections.each do |ts|
+                %tr
+                  %td= ts.subject.name
+                  %td
+                    - if ts.teacher.user_id == current_user.id
+                      %strong= ts.teacher.user.nombre_completo
+                      %span.seccion-soy-yo (tú)
+                    - else
+                      = ts.teacher.user.nombre_completo
+        - else
+          .empty-state
+            %p= "Todavía no hay #{Vocabulario::LAS_AREAS} asignadas."
 
-/ =============================================
-/ VISTA ADMINISTRADOR: Gestión completa
-/ =============================================
+-# ⚠️ La misma división para la dirección, con una pestaña más: acá SÍ se
+-# asigna un profesor a un área, y ese formulario es de otro trabajo.
 - if administrador?
   .card-academic
-    %h2 Profesores asignados
-    - if @teacher_sections.any?
-      %table.table-academic
-        %thead
-          %tr
-            %th= Teacher.model_name.human
-            %th Cédula
-            %th= Subject.model_name.human
-            %th Acciones
-        %tbody
-          - @teacher_sections.each do |ts|
-            %tr
-              %td= "#{ts.teacher.user.nombre_completo}"
-              %td= ts.teacher.user.document || "—"
-              %td= "#{ts.subject.code} - #{ts.subject.name}"
-              %td
-                = boton "Quitar", section_teacher_section_path(@section, ts), data: { turbo_method: :delete, turbo_confirm: "¿Quitar este profesor de #{Vocabulario::LA_AREA}?" }, icono: :borrar, tono: :danger, sm: true
-    - else
-      .empty-state
-        %p No hay profesores asignados.
+    = con_paneles [ [ "Alumnos", "alumnos", @enrollments.size ],
+                    [ "#{Vocabulario::AREAS_CORTAS} y profesores", "areas", @teacher_sections.size ] ],
+                  etiqueta: "Qué mirar de esta sección" do
 
-    - if @available_subjects&.any? && @available_teachers&.any?
-      %hr.seccion-separador
-      %h3.seccion-subtitulo= "Asignar profesor a #{Vocabulario::LA_AREA}"
-      = form_with url: section_teacher_sections_path(@section), method: :post do |f|
-        .form-row
-          .form-group
-            = f.label :subject_id, class: "form-label"
-            = f.select :subject_id, options_for_select(@available_subjects.map { |s| ["#{s.code} - #{s.name}", s.id] }), {}, class: "form-select"
-          .form-group
-            = f.label :teacher_id, class: "form-label"
-            = f.select :teacher_id, options_for_select(@available_teachers.map { |t| ["#{t.user.apellidos_y_nombres} (#{t.user.identificador})", t.user_id] }), {}, class: "form-select"
-          .form-group.form-group--boton
-            = f.submit "Asignar", class: "btn btn-guardar"
+      = panel_de "alumnos" do
+        %p.seccion-conteo= "#{@enrollments.size} de #{@section.capacity} lugares ocupados"
 
-  .card-academic
-    %h2 Alumnos inscritos
-    %p.seccion-conteo= "#{@enrollments.size} de #{@section.capacity} lugares ocupados"
+        - if @enrollments.any?
+          %table.table-academic
+            %thead
+              %tr
+                %th #
+                %th= Section.human_attribute_name(:name)
+                %th Apellido
+                %th Nro. expediente
+                %th Inscrito el
+            %tbody
+              - @enrollments.each_with_index do |enrollment, i|
+                %tr
+                  %td= i + 1
+                  %td= enrollment.student.user.first_name
+                  %td= enrollment.student.user.apellidos
+                  %td= enrollment.student.school_card
+                  %td= enrollment.enrollment_date.strftime("%d/%m/%Y")
+        - else
+          .empty-state
+            %h3 Sin alumnos inscritos
+            %p Aún no hay alumnos inscritos en esta sección.
 
-    - if @enrollments.any?
-      %table.table-academic
-        %thead
-          %tr
-            %th #
-            %th= Section.human_attribute_name(:name)
-            %th Apellido
-            %th Nro. expediente
-            %th Inscrito el
-        %tbody
-          - @enrollments.each_with_index do |enrollment, i|
-            %tr
-              %td= i + 1
-              %td= enrollment.student.user.first_name
-              %td= enrollment.student.user.apellidos
-              %td= enrollment.student.school_card
-              %td= enrollment.enrollment_date.strftime("%d/%m/%Y")
-    - else
-      .empty-state
-        %h3 Sin alumnos inscritos
-        %p Aún no hay alumnos inscritos en esta sección.
+      = panel_de "areas" do
+        - if @teacher_sections.any?
+          %table.table-academic
+            %thead
+              %tr
+                %th= Vocabulario::AREA_CORTA
+                %th= Teacher.model_name.human
+                %th Cédula
+                %th.columna-acciones
+            %tbody
+              - @teacher_sections.each do |ts|
+                %tr
+                  %td= "#{ts.subject.code} - #{ts.subject.name}"
+                  %td= ts.teacher.user.nombre_completo
+                  %td= ts.teacher.user.document || "—"
+                  %td.columna-acciones
+                    = boton "Quitar", section_teacher_section_path(@section, ts), data: { turbo_method: :delete, turbo_confirm: "¿Quitar este profesor de #{Vocabulario::LA_AREA}?" }, icono: :borrar, tono: :danger, sm: true
+        - else
+          .empty-state
+            %p No hay profesores asignados.
+
+        -# ⚠️ El formulario solo aparece si HAY qué elegir en los dos lados. Un
+        -# desplegable vacío es un callejón: se ve el control, se abre, y no hay
+        -# nada — y quien lo mira no sabe si falta cargar áreas o profesores.
+        - if @available_subjects&.any? && @available_teachers&.any?
+          %hr.seccion-separador
+          %h3.seccion-subtitulo= "Asignar profesor a #{Vocabulario::LA_AREA}"
+          = form_with url: section_teacher_sections_path(@section), method: :post do |f|
+            .form-row
+              .form-group
+                = f.label :subject_id, Vocabulario::AREA_CORTA, class: "form-label"
+                = f.select :subject_id, options_for_select(@available_subjects.map { |s| [ "#{s.code} - #{s.name}", s.id ] }), {}, class: "form-select"
+              .form-group
+                = f.label :teacher_id, class: "form-label"
+                = f.select :teacher_id, options_for_select(@available_teachers.map { |t| [ "#{t.user.apellidos_y_nombres} (#{t.user.identificador})", t.user_id ] }), {}, class: "form-select"
+              .form-group.form-group--boton
+                = f.submit "Asignar", class: "btn btn-guardar"

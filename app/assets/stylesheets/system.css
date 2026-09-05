@@ -5934,6 +5934,86 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 }
 
 
+/* ---- Paneles de una misma pantalla (MOR-223) ---- */
+/* Daniel: «un clic vale más que muchos scroll hacia abajo… si no lo hago me
+   pierdo de lo que está allí que no me aparece al cargar la vista».
+
+   El problema NO era el scroll: era no saber que había algo más abajo. Una fila
+   de pestañas dice de una qué tiene esta pantalla. */
+.paneles-grupo { display: block; }
+
+.paneles {
+  display: flex;
+  gap: var(--space-xs);
+  border-bottom: 1px solid var(--border-standard);
+  margin-bottom: var(--space-lg);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.paneles::-webkit-scrollbar { display: none; }
+
+.panel-pestana {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  /* 44 px de objetivo táctil: esto se toca desde un teléfono. */
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  /* Tapa el borde de `.paneles`: sin esto la activa queda con dos líneas de
+     distinto color. */
+  margin-bottom: -1px;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.panel-pestana:hover {
+  color: var(--text-primary);
+  border-bottom-color: var(--border-standard);
+}
+
+.panel-pestana.activa {
+  color: var(--brand-primary);
+  border-bottom-color: var(--brand-primary);
+  font-weight: 600;
+}
+
+.panel-pestana:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+/* El número al lado del nombre —«Alumnos 22»— para no tener que entrar a
+   contar. Sin color semántico: es un conteo, no una alerta (MOR-135). */
+.panel-insignia {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.25rem;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--surface-hover);
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.panel-pestana.activa .panel-insignia {
+  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  color: var(--brand-primary);
+}
+
 /* ---- Pastillas: elegir UNO entre pocos (MOR-136) ---- */
 /* Primas de las pestañas y por eso se parecen: enlaces, no botones de
    JavaScript. Lo que cambia es qué preguntan — una pestaña cambia el ÁNGULO

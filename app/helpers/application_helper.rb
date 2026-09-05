@@ -242,6 +242,35 @@ module ApplicationHelper
     piso.to_i == tope ? "solo #{tope}" : "#{piso} a #{tope}"
   end
 
+  # Un panel con pestañas, de los que alternan sin navegar (MOR-223).
+  #
+  #     = con_paneles [["Alumnos", "alumnos", 22], ["Áreas", "areas"]] do
+  #       = panel_de "alumnos" do
+  #         …
+  #       = panel_de "areas" do
+  #         …
+  #
+  # ⚠️ El primero de la lista es el que se ve al cargar, así que el ORDEN es
+  # una decisión: va primero lo que más se usa, no lo que primero se escribió.
+  def con_paneles(paneles, etiqueta: nil, &bloque)
+    tag.div(class: "paneles-grupo", data: { controller: "paneles" }) do
+      concat render("shared/paneles", paneles: paneles, etiqueta: etiqueta)
+      concat capture(&bloque)
+    end
+  end
+
+  # ⚠️ `hidden` lo pone el CONTROLADOR al conectar, no el servidor.
+  #
+  # Si el servidor escondiera todos menos el primero y Stimulus no cargara, la
+  # pantalla mostraría un tercio de su contenido sin manera de llegar al resto.
+  # Saliendo todos visibles, el fallo devuelve la pantalla de antes —apilada,
+  # con scroll— que es incómoda pero completa.
+  def panel_de(clave, &bloque)
+    tag.section(class: "panel-contenido", id: "panel-#{clave}",
+                role: "tabpanel", "aria-labelledby": "pestana-#{clave}",
+                data: { paneles_target: "panel", panel: clave }, &bloque)
+  end
+
   # El 20 del Artículo 108: es el techo de la escala, no una preferencia.
   NOTA_MAXIMA = 20
 end
