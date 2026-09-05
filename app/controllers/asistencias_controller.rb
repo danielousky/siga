@@ -172,15 +172,17 @@ class AsistenciasController < ApplicationController
   # o sea que el «guía de 1er Año» pasaba lista de A, B y C —de alumnos que no
   # son suyos— y a los guías de B y C no les aparecía su propia sección. No era
   # un nombre mal puesto: era la lista de asistencia equivocada.
+  # ⚠️ Del NIVEL de la sesión también (MOR-223), y ordenadas por el ORDEN
+  # OFICIAL del grado: alfabéticamente «1er Año» va antes que «6to Grado» y la
+  # lista mezcla primaria con bachillerato.
   def secciones_a_cargo
-    @secciones_a_cargo ||=
-      if administrador?
-        Section.del_anio_de_la_sesion.includes(:grade, :academic_period).order("grades.name", :name).to_a
-      else
-        Section.del_anio_de_la_sesion.includes(:grade, :academic_period)
-               .where(leader_teacher_id: current_user.teacher&.id)
-               .order("grades.name", :name).to_a
-      end
+    @secciones_a_cargo ||= begin
+      secciones = Section.del_anio_de_la_sesion.del_nivel_de_la_sesion
+                         .includes(:grade, :academic_period)
+      secciones = secciones.where(leader_teacher_id: current_user.teacher&.id) unless administrador?
+
+      secciones.to_a.sort_by { |s| [ s.grade.orden || 99, s.grade.name, s.name ] }
+    end
   end
 
   def require_puede_tomar_asistencia!

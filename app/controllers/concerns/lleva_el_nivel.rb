@@ -108,9 +108,30 @@ module LlevaElNivel
     niveles_para_elegir.include?(guardado) ? guardado : nil
   end
 
-  # Las opciones, en orden pedagógico. Salen de los grados que el colegio tiene.
+  # Las opciones, en orden pedagógico.
+  #
+  # ⚠️ Para la DIRECCIÓN salen de los grados del colegio; para un PROFESOR, de
+  # los grados que él dicta. Y esa diferencia es todo el punto: darle al de
+  # Matemática de primaria un selector con «Bachillerato» adentro es ofrecerle
+  # un modo de trabajo donde no tiene nada.
   def niveles_para_elegir
-    @niveles_para_elegir ||= Current.school&.niveles_para_elegir || []
+    @niveles_para_elegir ||= profesor? ? niveles_que_dicto : (Current.school&.niveles_para_elegir || [])
+  end
+
+  # Los niveles donde este profesor tiene secciones EN EL AÑO DE LA SESIÓN.
+  #
+  # ⚠️ Del año, no de siempre: un profesor que el año pasado dio primaria y este
+  # año solo da media no necesita el selector — y con él vería un «Primaria» que
+  # no le muestra nada.
+  def niveles_que_dicto
+    return [] if current_user&.teacher.nil?
+
+    current_user.teacher.teacher_sections
+                .del_anio_de_la_sesion
+                .includes(section: :grade)
+                .filter_map { |ts| GradoOficial.se_elige_como(ts.section.grade.level) }
+                .uniq
+                .sort_by { |nivel| GradoOficial::ABARCA.keys.index(nivel) || 99 }
   end
 
   # ⚠️ Con un solo nivel no hay selector, igual que con un solo año escolar: un
@@ -119,9 +140,27 @@ module LlevaElNivel
 
   def mirando_todos_los_niveles? = nivel_de_la_sesion.nil?
 
-  # Quién elige. Los mismos que el año escolar: el profesor ve las secciones que
-  # dicta y el alumno las suyas — para ellos el nivel no es una preferencia.
+  # Quién elige.
+  #
+  # ## ⚠️ El profesor SÍ, y es un cambio de criterio
+  #
+  # Acá decía que no: *«para ellos el nivel no es una preferencia»*, con el
+  # argumento —bueno— de que el AÑO ESCOLAR no se le da al profesor porque
+  # sería una manera de cargar notas en el año equivocado sin enterarse.
+  #
+  # Pero el nivel no es eso. Elegir «Primaria» no le da acceso a nada nuevo ni
+  # le mueve dónde escribe: acota lo que ve entre lo que ya es suyo. Y el
+  # profesor que da los dos niveles es **el caso normal de un colegio mediano**
+  # — en la demo, García dicta Matemática en nueve secciones de primaria y siete
+  # de media, todas en una lista sola.
+  #
+  # Daniel, viéndolo: *«mira eso: primaria y media juntos y sin división… no
+  # trabajas las cosas juntas, supongo que primero haces un primaria y luego
+  # media»*.
+  #
+  # ⚠️ Y solo si dicta en MÁS DE UNO: `hay_nivel_que_elegir?` lo comprueba con
+  # `.many?`. Al de primaria pura no le aparece nada.
   def puede_elegir_nivel?
-    administrador? || equipo_de_siga?
+    administrador? || equipo_de_siga? || profesor?
   end
 end
