@@ -79,24 +79,69 @@ class GradoOficial
     secundaria: %i[secundaria media_tecnica]
   }.freeze
 
-  # Etiquetas para la pantalla. El nivel se nombra como lo nombra un director,
-  # no como lo nombra el enum.
+  # Cómo se llama cada nivel EN LA PANTALLA (MOR-212).
+  #
+  # ## ⚠️ Los nombres son los del MPPE, no los de la calle
+  #
+  # Daniel, de la jornada del 3 de septiembre: *«corrección de nomenclatura:
+  # Preescolar = Educación Inicial; Primaria = Educación Primaria; Bachillerato
+  # = Educación Media General; Técnico Medio = Educación Técnica Media»*.
+  #
+  # No es purismo. Un director llena planillas del MPPE con estas palabras, y un
+  # sistema que le dice «Bachillerato» donde el ministerio dice «Educación
+  # Media» lo obliga a traducir en cada pantalla. El vocabulario del producto
+  # tiene que ser el de su trabajo.
+  #
+  # ⚠️ Y el enum NO cambia. `grades.level` sigue diciendo `secundaria` y
+  # `preescolar`: son enteros escritos en la base de todos los colegios, y
+  # renombrarlos sería una migración de datos para arreglar un problema de
+  # TEXTO. Es la misma distinción de `MOR-162` —inglés donde Rails deduce,
+  # español donde alguien lee— llevada un paso más allá.
   ETIQUETAS = {
-    preescolar: "Preescolar",
+    preescolar: "Educación Inicial",
+    primaria: "Educación Primaria",
+    secundaria: "Educación Media",
+    media_tecnica: "Educación Técnica Media"
+  }.freeze
+
+  # La forma CORTA, para donde el nombre completo no cabe.
+  #
+  # Daniel: *«si necesitas reducirlo en algunos espacios muy particulares (como
+  # teléfonos) podemos poner: Inicial, Primaria y Media»*.
+  #
+  # ⚠️ Es una sola palabra y sigue siendo inequívoca: no hay otra «Inicial» ni
+  # otra «Media» en el vocabulario del sistema. Abreviar a «Ed. Inicial» habría
+  # sido peor — un punto que se lee como un error de tipeo y no ahorra nada.
+  #
+  # ⚠️ Dónde va cada una: la LARGA donde se decide (elegir niveles al arrancar,
+  # el panel del director), la CORTA donde solo se confirma dónde estoy parado
+  # (la barra, las pestañas, los chips).
+  ETIQUETAS_CORTAS = {
+    preescolar: "Inicial",
     primaria: "Primaria",
-    secundaria: "Bachillerato",
-    media_tecnica: "Media Técnica"
+    secundaria: "Media",
+    media_tecnica: "Técnica Media"
   }.freeze
 
   # Lo que un director reconoce de cada nivel, para que elegir no sea adivinar.
   DESCRIPCIONES = {
-    preescolar: "Tres niveles. La calificación es cualitativa.",
+    preescolar: "Tres niveles. No se califica: se describe.",
     primaria: "Primero a sexto grado. Boletín por literales.",
     secundaria: "Primer a quinto año. Boletín por notas del 1 al 20.",
-    media_tecnica: "Agrega el sexto año, que gradúa Técnico Medio. Incluye el bachillerato."
+    media_tecnica: "Agrega el sexto año, que gradúa Técnico Medio. Incluye la media general."
   }.freeze
 
   class << self
+    # El nombre de un nivel. `corto: true` donde el largo no cabe.
+    #
+    # ⚠️ Un método y no dos constantes sueltas: quien escribe una pantalla no
+    # tiene que acordarse de que existen las dos formas — pide el nombre y elige
+    # si tiene lugar.
+    def etiqueta(nivel, corto: false)
+      tabla = corto ? ETIQUETAS_CORTAS : ETIQUETAS
+      tabla[nivel&.to_sym] || nivel.to_s.humanize
+    end
+
     def de_nivel(nivel) = CATALOGO.select { |e| e.nivel == nivel.to_sym }
 
     # ⚠️ Expande las implicaciones: pedir Media Técnica trae también los cinco

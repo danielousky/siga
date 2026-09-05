@@ -20,6 +20,7 @@ import CampoQueCreceController from "controllers/campo_que_crece_controller"
 application.register("campo-que-crece", CampoQueCreceController)
 
 import AsistenciaController from "controllers/asistencia_controller"
+import AreaController from "controllers/area_controller"
 import AutoEnvioController from "controllers/auto_envio_controller"
 import CampoFiltradoController from "controllers/campo_filtrado_controller"
 import CampoTelefonoController from "controllers/campo_telefono_controller"
@@ -31,6 +32,7 @@ import CopiarController from "controllers/copiar_controller"
 import EscalaPorNivelController from "controllers/escala_por_nivel_controller"
 import FiltroLocalController from "controllers/filtro_local_controller"
 import PasswordVisibilityController from "controllers/password_visibility_controller"
+import PanelesController from "controllers/paneles_controller"
 import PonderacionController from "controllers/ponderacion_controller"
 import QueEvaluaController from "controllers/que_evalua_controller"
 import MenuController from "controllers/menu_controller"
@@ -39,6 +41,7 @@ import UbicacionController from "controllers/ubicacion_controller"
 import SearchFilterController from "controllers/search_filter_controller"
 
 application.register("asistencia", AsistenciaController)
+application.register("area", AreaController)
 application.register("auto-envio", AutoEnvioController)
 application.register("campo-filtrado", CampoFiltradoController)
 application.register("campo-telefono", CampoTelefonoController)
@@ -50,6 +53,7 @@ application.register("copiar", CopiarController)
 application.register("escala-por-nivel", EscalaPorNivelController)
 application.register("filtro-local", FiltroLocalController)
 application.register("password-visibility", PasswordVisibilityController)
+application.register("paneles", PanelesController)
 application.register("ponderacion", PonderacionController)
 application.register("que-evalua", QueEvaluaController)
 application.register("menu", MenuController)

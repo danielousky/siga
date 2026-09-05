@@ -28,5 +28,5 @@
           %tr
             %td= link_to grade.name, grade
             - if mirando_todos_los_niveles?
-              %td= GradoOficial::ETIQUETAS.fetch(grade.level.to_sym, grade.level.humanize)
+              %td= GradoOficial.etiqueta(grade.level)
             %td= grade.coordinator_teacher&.user&.nombre_completo || "—"

@@ -33,7 +33,7 @@
         %td.arranque-listo-cifra= @grados_por_nivel.values.sum
         %td
           %strong Grados
-          - desglose = @grados_por_nivel.map { |nivel, cuantos| "#{cuantos} de #{GradoOficial::ETIQUETAS[nivel.to_sym] || nivel}" }
+          - desglose = @grados_por_nivel.map { |nivel, cuantos| "#{cuantos} de #{GradoOficial.etiqueta(nivel)}" }
           %p.dato-secundario= "#{desglose.to_sentence}. Los que fija el Reglamento de la LOE, con su nombre y su orden."
         %td.columna-acciones
           = boton "Ver los grados", grades_path, icono: :grados, tono: :secondary, sm: true
@@ -42,7 +42,7 @@
         %tr
           %td.arranque-listo-cifra= @materias
           %td
-            %strong Materias
+            %strong= Vocabulario::AREAS
             %p.dato-secundario El plan de estudio del ministerio, repartido por año: Física empieza en 3er Año, no antes.
           %td.columna-acciones
             = boton "Ver las materias", subjects_path, icono: :materias, tono: :secondary, sm: true

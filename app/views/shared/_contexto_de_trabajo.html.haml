@@ -64,7 +64,7 @@
         %span.contexto-valor-vacio Sin año escolar cargado
 
 - else
-  %details.contexto{ data: { controller: "contexto", action: "toggle->contexto#alTogglear" } }
+  %details.contexto{ data: { controller: "contexto" } }
     -# La pastilla dice el estado completo en una frase, y por eso no lleva
     -# etiquetas: «2025-2026 · Primaria» se entiende sin que nada diga «AÑO
     -# ESCOLAR» al lado.
@@ -88,7 +88,7 @@
 
         - if hay_nivel_que_elegir? && !mirando_todos_los_niveles?
           %span.contexto-pastilla-separador ·
-          = GradoOficial::ETIQUETAS[nivel_de_la_sesion]
+          = GradoOficial.etiqueta(nivel_de_la_sesion, corto: true)
 
       -# ⚠️ La situación va SIEMPRE, también cuando el año está en curso.
       -#
@@ -155,7 +155,7 @@
             - niveles_para_elegir.each do |nivel|
               = form_with url: cambiar_nivel_path, method: :post, class: "contexto-opcion-form", data: { turbo: false } do
                 = hidden_field_tag :nivel, nivel
-                = button_tag GradoOficial::ETIQUETAS[nivel], type: :submit,
+                = button_tag GradoOficial.etiqueta(nivel, corto: true), type: :submit,
                     class: class_names("contexto-nivel-boton", elegida: (nivel_de_la_sesion == nivel))
 
           -# El motivo completo, acá adentro: en la barra se recortaba a «los

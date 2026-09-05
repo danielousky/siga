@@ -390,7 +390,7 @@ class PasosDeArranque
   end
 
   def nombres_de_niveles
-    colegio.niveles.map { |n| GradoOficial::ETIQUETAS[n] }.to_sentence(two_words_connector: " y ",
+    colegio.niveles.map { |n| GradoOficial.etiqueta(n) }.to_sentence(two_words_connector: " y ",
                                                                       last_word_connector: " y ")
   end
 end

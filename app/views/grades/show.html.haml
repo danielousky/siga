@@ -87,7 +87,7 @@
 
     - if @available_subjects.any?
       = form_with url: grade_grade_subjects_path(@grade), method: :post, class: "ficha-agregar" do |f|
-        = f.label :subject_id, "Agregar una materia", class: "form-label"
+        = f.label :subject_id, "Agregar #{Vocabulario::LA_AREA}", class: "form-label"
         .ficha-agregar-fila
           = f.select :subject_id,
             options_for_select(@available_subjects.map { |s| [ "#{s.code} · #{s.name}", s.id ] }),

@@ -1,0 +1,49 @@
+-# Varios paneles de la MISMA pantalla, con pestañas (MOR-223).
+-#
+-# `paneles` es un arreglo de `[nombre, clave, insignia]` — la insignia es
+-# opcional y va como un número al lado del nombre («Alumnos 22»).
+-#
+-# El contenido de cada uno se pasa como bloque, envuelto en
+-# `panel_de "clave" do`.
+-#
+-# ## ⚠️ Por qué NO son `shared/_pestanas`
+-#
+-# Se parecen y hacen cosas distintas:
+-#
+-#     _pestanas   cada una es una URL   →  navega, el botón de atrás funciona
+-#     _paneles    el mismo documento    →  alterna, sin ir a ningún lado
+-#
+-# Una pestaña con URL propia es lo correcto cuando el sujeto cambia —la
+-# asistencia de hoy y quién acumula faltas—. Acá el sujeto es UNO —esta
+-# sección— y lo que cambia es qué mirás de ella: pedirle al servidor toda la
+-# página para mover la vista de los alumnos a las áreas sería tres viajes para
+-# no cambiar de tema.
+-#
+-# ## Por qué pestañas y no acordeones
+-#
+-# Daniel: *«esos dos paneles van en pestañas o pills, un clic vale más que
+-# muchos scroll hacia abajo… si no lo hago me pierdo de lo que está allí que no
+-# me aparece al cargar la vista»*.
+-#
+-# El problema NO es el scroll: es no saber que hay algo más abajo. Un acordeón
+-# tampoco lo resuelve —deja al usuario decidiendo qué abrir sin saber qué hay
+-# adentro—; una fila de pestañas **dice de una qué tiene esta pantalla**, y eso
+-# es lo que faltaba.
+-#
+-# ## ⚠️ Todos los paneles vienen en el HTML, y solo uno se ve
+-#
+-# Se esconden con `hidden`, que el navegador respeta sin CSS. Si la hoja de
+-# estilos no carga —o si Stimulus muere, que ya pasó— la pantalla se degrada a
+-# lo que era antes: todo apilado, con scroll. Nunca a una pantalla vacía.
+%nav.paneles{ role: "tablist", "aria-label": (local_assigns[:etiqueta] || "Secciones de esta pantalla") }
+  - paneles.each_with_index do |(nombre, clave, insignia), i|
+    %button.panel-pestana{ type: "button", role: "tab",
+                           id: "pestana-#{clave}",
+                           class: ("activa" if i.zero?),
+                           "aria-selected": i.zero?.to_s,
+                           "aria-controls": "panel-#{clave}",
+                           data: { paneles_target: "pestana", panel: clave,
+                                   action: "paneles#mostrar" } }
+      %span= nombre
+      - if insignia.present?
+        %span.panel-insignia= insignia

@@ -22,7 +22,7 @@
         %label.nivel-opcion{class: ("nivel-opcion--puesto" if ya_dicta)}
           = check_box_tag "niveles[]", nivel, ya_dicta, id: "nivel_#{nivel}"
           .nivel-cuerpo
-            %span.nivel-nombre= GradoOficial::ETIQUETAS[nivel]
+            %span.nivel-nombre= GradoOficial.etiqueta(nivel)
             %span.nivel-detalle= GradoOficial::DESCRIPCIONES[nivel]
             %span.nivel-grados= grados.map(&:nombre).to_sentence(last_word_connector: " y ")
             - if ya_dicta
@@ -65,7 +65,7 @@
       - @grados.each do |grado|
         %li.niveles-item
           = link_to grado.name, grade_path(grado), class: "niveles-item-nombre"
-          %span.niveles-item-nivel= GradoOficial::ETIQUETAS[grado.level.to_sym]
+          %span.niveles-item-nivel= GradoOficial.etiqueta(grado.level)
           - unless grado.oficial?
             %span.niveles-item-aviso
               = icono(:alerta, tamano: 13)

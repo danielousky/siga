@@ -59,8 +59,8 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
     # sin abrir nada.
     assert_select ".contexto-nivel-boton", 3
     assert_select ".contexto-nivel-boton", text: "Todos"
-    assert_select ".contexto-nivel-boton", text: "Primaria"
-    assert_select ".contexto-nivel-boton", text: "Bachillerato"
+    assert_select ".contexto-nivel-boton", text: GradoOficial.etiqueta(:primaria, corto: true)
+    assert_select ".contexto-nivel-boton", text: GradoOficial.etiqueta(:secundaria, corto: true)
   end
 
   # ⚠️ El profesor SÍ elige nivel desde MOR-223, y el AÑO ESCOLAR sigue sin
@@ -175,7 +175,7 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
     elegir :primaria
 
     get students_path
-    assert_select ".listado-escala-nivel", text: "de Primaria"
+    assert_select ".listado-escala-nivel", text: "de #{GradoOficial.etiqueta(:primaria)}"
   end
 
   # ⚠️ Bachillerato abarca DOS valores del enum. Un colegio técnico dicta 1er a
@@ -331,8 +331,8 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
     get dashboards_profesor_path
 
     niveles = css_select(".contexto-nivel-boton").map { |n| n.text.strip }
-    assert_includes niveles, "Primaria"
-    assert_includes niveles, "Bachillerato"
+    assert_includes niveles, GradoOficial.etiqueta(:primaria, corto: true)
+    assert_includes niveles, GradoOficial.etiqueta(:secundaria, corto: true)
     assert_includes niveles, "Todos"
   end
 
@@ -349,7 +349,7 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
     get dashboards_profesor_path
 
     niveles = css_select(".contexto-nivel-boton").map { |n| n.text.strip }
-    assert_not_includes niveles, "Preescolar",
+    assert_not_includes niveles, GradoOficial.etiqueta(:preescolar, corto: true),
                         "este profesor no dicta preescolar: ofrecérselo es un modo de trabajo vacío"
   end
 

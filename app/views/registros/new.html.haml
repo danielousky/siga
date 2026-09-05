@@ -103,7 +103,7 @@
           - GradoOficial::NIVELES.each do |nivel|
             %label.opcion-boton
               = check_box_tag "niveles[]", nivel, @niveles.include?(nivel), id: "nivel_#{nivel}"
-              %span= GradoOficial::ETIQUETAS[nivel]
+              %span= GradoOficial.etiqueta(nivel)
         %p.nota-ayuda
           Marque todo lo que dicte. Media Técnica agrega el 6to Año y trae
           consigo el bachillerato: no hay sexto año sin los cinco anteriores.

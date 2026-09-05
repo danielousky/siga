@@ -39,6 +39,15 @@
     .card-academic-header
       %h2 Mis secciones
 
+    -# ⚠️ Cada área con su AVANCE, y el número enlaza a lo que falta (MOR-223).
+    -#
+    -# Daniel: *«en el panel de cada sección, además de un enlace al detalle,
+    -# hay un indicativo de si les falta por calificar alguna nota… al hacer
+    -# clic me voy directamente a la calificación que falta»*.
+    -#
+    -# El panel decía cuántos alumnos tiene cada sección, que es un dato que no
+    -# cambia y que el profesor ya sabe. Lo que cambia cada semana —y lo que lo
+    -# trae acá— es cuánto le falta corregir.
     - if @teacher_sections.any?
       - @teacher_sections.group_by(&:section).each do |section, asignaciones|
         .section-block
@@ -51,8 +60,21 @@
 
           .section-subjects
             - asignaciones.each do |ts|
+              - avance = @avances[ts]
               .subject-tag
                 %span.subject-name= ts.subject.name
+                - if avance && !avance.sin_nada_que_calificar?
+                  -# El enlace va a la PRIMERA evaluación incompleta, no al
+                  -# listado: el profesor entra a poner las que faltan, no a
+                  -# buscar cuál era.
+                  - destino = avance.primera_incompleta ? evaluation_activity_notas_path(avance.primera_incompleta) : section_path(section, area: ts.subject_id)
+                  = link_to destino, class: "subject-avance subject-avance--#{avance.estado}",
+                            data: { tooltip: MenuHelper::NOMBRES_DE_ESTADO[avance.estado] } do
+                    - if avance.completo?
+                      = icono(:ok, tamano: 13)
+                    %span= "#{avance.puestas} de #{avance.total}"
+                - else
+                  %span.subject-avance.subject-avance--sin_evaluaciones sin evaluaciones
 
     - else
       .empty-state
@@ -85,4 +107,4 @@
 
     .stat-card
       %h3= @total_subjects
-      %p= pluralizar(@total_subjects, "materia distinta", "materias distintas")
+      %p= pluralizar(@total_subjects, "área distinta", "áreas distintas")

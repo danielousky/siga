@@ -13,8 +13,13 @@
     = "#{@evaluation_activity.section.grade.name} – #{@evaluation_activity.section.name}"
     = "· #{@evaluation_activity.subject.name}"
     = "· #{@evaluation_activity.evaluation_moment.name}"
+    -# ⚠️ El PESO se resalta como un chip, no como texto en negrita (QA de
+    -# Daniel: «esto un poco más resaltado»). Es el dato que cambia lo que estas
+    -# notas significan —el mismo 15 vale distinto en una evaluación del 30 %
+    -# que en una del 70 %— y en negrita se perdía dentro de la misma frase que
+    -# el grado, la sección y el lapso.
     - peso = @evaluation_activity.weight_percentage
-    %strong= "· #{number_with_precision(peso, precision: peso.frac.zero? ? 0 : 2)} % del lapso"
+    %span.carga-peso= "#{number_with_precision(peso, precision: peso.frac.zero? ? 0 : 2)} % del lapso"
 
   .carga-progreso
     .carga-progreso-barra

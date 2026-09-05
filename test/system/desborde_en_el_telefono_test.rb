@@ -28,6 +28,25 @@ class DesbordeEnElTelefonoTest < ApplicationSystemTestCase
   # 390 px es un iPhone; 493 es el ancho exacto donde Daniel lo vio.
   ANCHOS = [ 390, 493 ].freeze
 
+  # ⚠️ La ventana se DEVUELVE al terminar, y no es limpieza de cortesía.
+  #
+  # Los tests de sistema comparten una sola ventana de Chrome, así que este test
+  # dejaba el navegador en 390 px para el que corriera después. Con el orden
+  # aleatorio de minitest eso es una bomba de tiempo: falla un test cualquiera,
+  # en un punto cualquiera, con un mensaje que no menciona el teléfono.
+  #
+  # Ya explotó — «element not clickable at point (-35, 134)» en el panel de
+  # contexto, que a 390 px se ancla a la derecha y quedaba fuera de una ventana
+  # que el test creía de 1400.
+  teardown do
+    page.driver.browser.execute_cdp("Emulation.clearDeviceMetricsOverride")
+    page.driver.browser.manage.window.resize_to(*ApplicationSystemTestCase::ESCRITORIO)
+  rescue StandardError
+    # Si el navegador ya se cerró, no hay nada que devolver — y hacer fallar el
+    # teardown escondería el error de verdad que cerró la sesión.
+    nil
+  end
+
   # ⚠️ Se emula por CDP, NO con `resize_to`, y la diferencia invalidaba la
   # medición entera.
   #
@@ -108,9 +127,16 @@ class DesbordeEnElTelefonoTest < ApplicationSystemTestCase
     # ⚠️ Con un nivel PUESTO, que es cuando la barra lleva más texto: la
     # pastilla dice «2025-2026 · Primaria» en vez de solo el año. Sin esto, el
     # test mide la barra en su estado más corto y no la que hay que medir.
-    find(".contexto-pastilla").click
-    within(".contexto-panel") { click_button "Primaria" }
-    assert_selector ".contexto-pastilla", text: "Primaria"
+    tocando { find(".contexto-pastilla").click }
+    assert_selector ".contexto-panel", visible: true
+    tocando do
+      find(".contexto-panel button", text: GradoOficial.etiqueta(:primaria, corto: true),
+                                     exact_text: true).click
+    end
+    esperando_la_pagina
+    tocando do
+      assert_selector ".contexto-pastilla", text: GradoOficial.etiqueta(:primaria, corto: true)
+    end
 
     culpables = ANCHOS.flat_map do |ancho|
       PANTALLAS.filter_map do |helper|

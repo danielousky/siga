@@ -100,20 +100,79 @@ class EvaluationActivitiesController < ApplicationController
 
   # Las asignaciones del profesor: cada par sección–materia que dicta.
   #
-  # ⚠️ Filtradas por el NIVEL de la sesión, para que el desplegable del
-  # formulario ofrezca lo mismo que el listado. Con uno filtrado y el otro no,
-  # el profesor crea una evaluación en una sección que su pantalla no le muestra.
+  # ⚠️ Por el AÑO y por el NIVEL de la sesión, y las dos hacen falta.
+  #
+  # Sin el AÑO, el desplegable mostraba cada sección DOS VECES —«1er Año A ·
+  # Matemática» arriba de «1er Año A · Matemática»— porque un colegio que ya
+  # copió su estructura al año siguiente tiene las mismas secciones en los dos.
+  # Daniel lo vio en una lista de treinta y dos renglones donde había dieciséis
+  # asignaciones. Y no era solo feo: el segundo renglón crea la evaluación en el
+  # año que viene, sin que nada lo diga.
+  #
+  # Sin el NIVEL, el desplegable ofrece lo que el listado esconde, y el profesor
+  # crea una evaluación en una sección que su pantalla no le muestra.
   #
   # ⚠️ Ordenadas por el ORDEN OFICIAL del grado, no por su nombre: «10mo» iría
   # antes que «2do» alfabéticamente el día que un colegio cargue esos nombres.
   def mis_asignaciones
     @mis_asignaciones ||= current_user.teacher
       .teacher_sections
+      .del_anio_de_la_sesion
       .del_nivel_de_la_sesion
       .includes(:subject, section: [:grade, :academic_period])
       .sort_by { |ts| [ts.section.grade.orden || 99, ts.section.name, ts.subject.name] }
   end
   helper_method :mis_asignaciones
+
+  # Las ÁREAS que dicta este profesor, para el primer select del formulario.
+  #
+  # ⚠️ Dos selects y no uno (MOR-223). Daniel: *«esto lo separamos en 2 selects:
+  # si el profe solo da una materia pues vamos directo, pero si dicta más de
+  # una, le colocamos el select previo»*.
+  #
+  # Con uno solo, el profesor de Matemática con dieciséis secciones abría un
+  # desplegable de dieciséis renglones donde tenía que LEER cada uno para
+  # elegir, y las quince que no eran la suya solo estorbaban. Partido en área →
+  # sección, la primera lista tiene un renglón para él y la segunda tiene las
+  # suyas.
+  def mis_areas
+    @mis_areas ||= mis_asignaciones.map(&:subject).uniq.sort_by(&:name)
+  end
+  helper_method :mis_areas
+
+  # ⚠️ Con UNA sola área no hay primer select: un desplegable de una opción es
+  # un control que no decide nada, y le agrega un paso a quien no tiene nada
+  # que elegir. Es la misma regla del selector de nivel y la del año escolar.
+  def hay_area_que_elegir? = mis_areas.many?
+  helper_method :hay_area_que_elegir?
+
+  # El área elegida, o la única que dicta.
+  def area_elegida
+    return @area_elegida if defined?(@area_elegida)
+
+    pedida = params.dig(:evaluation_activity, :area).presence || @evaluation_activity&.subject_id
+    @area_elegida = mis_areas.find { |s| s.id.to_s == pedida.to_s } || mis_areas.first
+  end
+  helper_method :area_elegida
+
+  # Las secciones donde dicta ESA área.
+  def mis_secciones_del_area
+    @mis_secciones_del_area ||= mis_asignaciones.select { |ts| ts.subject_id == area_elegida&.id }
+  end
+  helper_method :mis_secciones_del_area
+
+  # Las secciones de cada área, para que el segundo select cambie sin ir al
+  # servidor. Es el mismo patrón que `ponderacion` y `que-evalua`: la elección
+  # ocurre en esta pantalla, así que la respuesta tiene que estar acá.
+  def secciones_por_area
+    mis_asignaciones.group_by(&:subject_id).transform_values do |asignaciones|
+      asignaciones.map do |ts|
+        { valor: "#{ts.section_id}:#{ts.subject_id}",
+          nombre: "#{ts.section.grade.name} – #{ts.section.name}" }
+      end
+    end
+  end
+  helper_method :secciones_por_area
 
   # La asignación que viene en el formulario, **buscada entre las del profesor**.
   # Que la búsqueda esté acotada a `current_user.teacher` es lo que autoriza: un

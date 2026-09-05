@@ -2086,9 +2086,31 @@ nav.pagy a.gap {
    ============================================ */
 
 .carga-contexto {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
   color: var(--text-secondary);
   font-size: 14px;
   margin: 0 0 var(--space-md);
+}
+
+/* El peso de la evaluación dentro del lapso.
+   ⚠️ Es un CHIP, no negrita: cambia lo que estas notas significan —el mismo 15
+   vale distinto en una evaluación del 30 % que en una del 70 %— y en negrita se
+   perdía dentro de la misma frase que el grado, la sección y el lapso.
+   Sin color semántico: es un dato de la evaluación, no una alerta (MOR-135). */
+.carga-peso {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-sm);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  color: var(--brand-primary);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .carga-progreso {
@@ -5934,6 +5956,236 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 }
 
 
+/* El avance de cada área en el panel del profesor (MOR-223).
+   Daniel: «si ya las tengo calificadas me aparece 20 de 20 y un check en verde;
+   si me falta me aparece 20 de 30 y en amarillo; si no tengo nada, en rojo».
+
+   ⚠️ Es un ENLACE: lleva a la primera evaluación incompleta, no al listado.
+   «Al hacer clic me voy directamente a la calificación que falta». */
+.subject-avance {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: var(--space-xs);
+  padding: 1px var(--space-xs);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.subject-avance--completo {
+  background: color-mix(in srgb, var(--success-text) 12%, transparent);
+  color: var(--success-text);
+}
+
+.subject-avance--a_medias {
+  background: color-mix(in srgb, var(--warning-text) 14%, transparent);
+  color: var(--warning-text);
+}
+
+.subject-avance--vacio {
+  background: color-mix(in srgb, var(--danger-text) 12%, transparent);
+  color: var(--danger-text);
+}
+
+.subject-avance--sin_evaluaciones {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+a.subject-avance:hover { filter: brightness(0.9); }
+
+/* El estado de carga de una sección, en el menú (MOR-223).
+   Daniel: «hay un indicativo de si les falta por calificar alguna nota».
+
+   ⚠️ Acá el color SÍ es del dato —cuántas notas faltan es un hecho de la
+   sección, no la afordancia de un control— y por eso puede llevarlo. Pero
+   nunca SOLO color: el nombre va en el tooltip y en el `aria-label`. */
+.seccion-estado {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-left: auto;
+}
+
+.seccion-estado--completo { background: var(--success-text); }
+.seccion-estado--a_medias { background: var(--warning-text); }
+.seccion-estado--vacio    { background: var(--danger-text); }
+
+/* ---- La libreta de la sección (MOR-223) ---- */
+/* Todas las notas del lapso en una tabla: alumno × evaluación. Daniel: «ten
+   presente que lo más importante para los profesores son sus estudiantes». */
+
+/* ⚠️ El scroll horizontal es de la TABLA, no de la página. Una sección con
+   ocho evaluaciones no cabe en un teléfono, y sin este marco el `body` entero
+   se corre de lado — que es el bug que `desborde_en_el_telefono_test` persigue. */
+.libreta-marco {
+  overflow-x: auto;
+  margin-bottom: var(--space-md);
+}
+
+.libreta { min-width: max-content; }
+
+/* La columna del alumno se queda quieta al desplazar: sin ella, a la tercera
+   evaluación no se sabe de quién es la fila que se está mirando. */
+.libreta .libreta-alumno {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface-elevated);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.libreta thead .libreta-alumno { background: var(--surface-hover); }
+
+.libreta-columna { min-width: 8rem; }
+
+.libreta-columna-enlace {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.libreta-columna-enlace:hover .libreta-columna-nombre { color: var(--brand-primary); }
+
+.libreta-columna-nombre {
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+  /* Un nombre largo se recorta: la columna la define el conteo de abajo, no
+     cuánto escribió el profesor. */
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.libreta-columna-peso {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ⚠️ El avance en TRES estados, y con el texto siempre visible.
+   
+   Daniel: «si ya las tengo calificadas me aparece 20 de 20 y un check en verde;
+   si me falta me aparece 20 de 30 y en amarillo; si no tengo nada, en rojo».
+   
+   Acá el color SÍ es del dato —cuántas notas faltan es un hecho de la
+   evaluación, no una afordancia de un control— y por eso puede llevarlo. Pero
+   nunca solo color: el «20 de 30» se lee igual en blanco y negro y por quien no
+   distingue el rojo del verde. */
+.libreta-columna-avance {
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.libreta-avance--completa { color: var(--success-text); }
+.libreta-avance--a_medias { color: var(--warning-text); }
+.libreta-avance--vacia    { color: var(--danger-text); }
+
+.libreta-nota,
+.libreta-promedio {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.libreta thead .libreta-promedio { min-width: 6rem; }
+
+.libreta-sin-nota { color: var(--text-tertiary); }
+
+/* ---- Paneles de una misma pantalla (MOR-223) ---- */
+/* Daniel: «un clic vale más que muchos scroll hacia abajo… si no lo hago me
+   pierdo de lo que está allí que no me aparece al cargar la vista».
+
+   El problema NO era el scroll: era no saber que había algo más abajo. Una fila
+   de pestañas dice de una qué tiene esta pantalla. */
+.paneles-grupo { display: block; }
+
+.paneles {
+  display: flex;
+  gap: var(--space-xs);
+  border-bottom: 1px solid var(--border-standard);
+  margin-bottom: var(--space-lg);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.paneles::-webkit-scrollbar { display: none; }
+
+.panel-pestana {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  /* 44 px de objetivo táctil: esto se toca desde un teléfono. */
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  /* Tapa el borde de `.paneles`: sin esto la activa queda con dos líneas de
+     distinto color. */
+  margin-bottom: -1px;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.panel-pestana:hover {
+  color: var(--text-primary);
+  border-bottom-color: var(--border-standard);
+}
+
+.panel-pestana.activa {
+  color: var(--brand-primary);
+  border-bottom-color: var(--brand-primary);
+  font-weight: 600;
+}
+
+.panel-pestana:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+/* El número al lado del nombre —«Alumnos 22»— para no tener que entrar a
+   contar. Sin color semántico: es un conteo, no una alerta (MOR-135). */
+.panel-insignia {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.25rem;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--surface-hover);
+  color: var(--text-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.panel-pestana.activa .panel-insignia {
+  background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+  color: var(--brand-primary);
+}
+
 /* ---- Pastillas: elegir UNO entre pocos (MOR-136) ---- */
 /* Primas de las pestañas y por eso se parecen: enlaces, no botones de
    JavaScript. Lo que cambia es qué preguntan — una pestaña cambia el ÁNGULO
@@ -6982,15 +7234,26 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 /* La pastilla dice el estado completo en una frase —«2025-2026 · Primaria»— y
    por eso no lleva etiquetas al lado. */
+/* ⚠️ La pastilla se RESALTA, y es una decisión de producto.
+   
+   Daniel: *«definitivamente se queda el select en el navbar, es el pivot
+   principal. Se queda. De hecho vamos a resaltarlo un poco… una sutileza pero
+   que de entrada la persona perciba dónde está parado y que todo gira en torno
+   a esos elementos, Año Escolar y Nivel»*.
+   
+   Lo que la resalta es el FONDO, no el color del texto: un tinte del azul de
+   marca la separa de la barra sin competir con el nombre del colegio, que está
+   a su izquierda en la serif del sistema. Con solo el borde se leía como un
+   campo más de un formulario. */
 .contexto-pastilla {
   display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
-  min-height: 32px;
-  padding: 0 var(--space-sm);
-  border: 1px solid var(--border-subtle);
+  min-height: 34px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--brand-primary);
   border-radius: 999px;
-  background: var(--surface-elevated);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-elevated));
   color: var(--brand-primary);
   font-size: 14px;
   font-weight: 600;
@@ -7007,7 +7270,7 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 .contexto-pastilla:hover {
   border-color: var(--brand-primary);
-  background: var(--surface-hover);
+  background: color-mix(in srgb, var(--brand-primary) 16%, var(--surface-elevated));
 }
 
 .contexto-pastilla:focus-visible {
@@ -7017,7 +7280,7 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 .contexto[open] .contexto-pastilla {
   border-color: var(--brand-primary);
-  background: var(--surface-hover);
+  background: color-mix(in srgb, var(--brand-primary) 16%, var(--surface-elevated));
 }
 
 .contexto[open] .contexto-pastilla-flecha { transform: rotate(180deg); }
@@ -7036,7 +7299,8 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 }
 
 .contexto-pastilla-flecha {
-  color: var(--text-tertiary);
+  color: var(--brand-primary);
+  opacity: 0.6;
   transition: transform var(--transition-fast);
 }
 
@@ -7311,12 +7575,33 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
   /* El panel se ancla a la DERECHA: pegado a la izquierda de la pastilla se
      salía por el borde de la pantalla. */
+  /* ⚠️ El panel se ancla al VIEWPORT, no a la pastilla.
+     
+     Con `right: 0` se alinea al borde derecho de la pastilla, y la pastilla
+     está a la izquierda de la barra: el panel se salía por el borde IZQUIERDO
+     de la pantalla y el primer tercio quedaba cortado. Se vio en la captura.
+     
+     `position: fixed` lo saca del sistema de coordenadas de la pastilla y lo
+     pone en el de la ventana, que es donde tiene que caber. El `top` fijo es el
+     alto de la barra, que es fija también. */
   .contexto-panel {
-    left: auto;
-    right: 0;
+    position: fixed;
+    top: var(--alto-barra);
+    left: var(--space-sm);
+    right: var(--space-sm);
+    width: auto;
     min-width: 0;
-    width: min(20rem, calc(100vw - 2rem));
+    max-width: none;
   }
+
+  /* ⚠️ Los niveles se APILAN, no se recortan.
+     
+     En fila, «Todos · Educación Inicial · Primaria» no entra en 320 px y el
+     último quedaba fuera del panel — Daniel: *«en el phone se oculta la opción
+     de seleccionar todo»*. Y era el peor de los tres que se podía perder: es la
+     salida del filtro. */
+  .contexto-niveles { flex-direction: column; align-items: stretch; }
+  .contexto-nivel-boton { justify-content: flex-start; }
 }
 
 /* ---- La planilla de informes descriptivos (MOR-216) ---- */

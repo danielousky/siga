@@ -30,6 +30,6 @@
   %span.listado-escala-numero= number_with_delimiter(total)
   %span.listado-escala-sustantivo= pluralizar(total, singular, plural)
   - if nivel
-    %span.listado-escala-nivel= "de #{GradoOficial::ETIQUETAS[nivel]}"
+    %span.listado-escala-nivel= "de #{GradoOficial.etiqueta(nivel)}"
   - if local_assigns[:detalle].present?
     %span.listado-escala-detalle= detalle
