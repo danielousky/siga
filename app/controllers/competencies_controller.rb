@@ -128,6 +128,12 @@ class CompetenciesController < ApplicationController
   end
   helper_method :mis_asignaciones
 
+  # La asignación elegida. Puede venir entera —`sección:materia`, que es lo que
+  # guardan los enlaces— o deducirse de las pastillas de grado y área.
+  #
+  # ⚠️ La búsqueda va SIEMPRE contra `mis_asignaciones`, y eso es lo que
+  # autoriza: un id de la sección de otro profesor no está en la lista y
+  # devuelve nil, así que no hace falta comprobar permisos aparte.
   def asignacion
     return @asignacion if defined?(@asignacion)
 
@@ -135,9 +141,23 @@ class CompetenciesController < ApplicationController
     @asignacion = mis_asignaciones.find do |ts|
       ts.section_id.to_s == seccion && ts.subject_id.to_s == materia
     end
-    @asignacion ||= mis_asignaciones.first
+    @asignacion ||= por_pastillas
   end
   helper_method :asignacion
+
+  def por_pastillas
+    del_grado = mis_asignaciones.select { |ts| ts.section.grade_id == grado_pedido&.id }
+    del_grado = mis_asignaciones if del_grado.empty?
+
+    del_area = del_grado.select { |ts| ts.subject_id.to_s == params[:area] }
+    (del_area.presence || del_grado).first
+  end
+
+  # El grado pedido, sin pasar por `asignacion` — o sería una recursión.
+  def grado_pedido
+    @grado_pedido ||= mis_asignaciones.map { |ts| ts.section.grade }
+                                      .find { |g| g.id.to_s == params[:grado] }
+  end
 
   def lapsos
     return [] if asignacion.nil?
@@ -152,12 +172,63 @@ class CompetenciesController < ApplicationController
   end
   helper_method :lapso
 
+  # Las secciones HERMANAS: mismo grado, misma materia, otra sección.
+  #
+  # ⚠️ El grado también, y faltaba: sin él, «copiar a mis otras secciones»
+  # ofrecía las DIECINUEVE donde este profesor dicta Matemática, de 1er a 5to
+  # Año. Una competencia de 1er Año no tiene nada que hacer en 5to, y copiarla
+  # allá es basura que después alguien tiene que borrar a mano.
   def otras_secciones
     @otras_secciones ||= mis_asignaciones.select do |ts|
-      ts.subject_id == asignacion.subject_id && ts.section_id != asignacion.section_id
+      ts.subject_id == asignacion.subject_id &&
+        ts.section.grade_id == asignacion.section.grade_id &&
+        ts.section_id != asignacion.section_id
     end
   end
   helper_method :otras_secciones
+
+  # ── Los tres niveles de la elección, en pastillas ────────────────────────
+  #
+  # Idea de Cyndi Montoya: primero el GRADO, después el ÁREA DE APRENDIZAJE, y
+  # solo entonces el LAPSO. Es el orden en que ella piensa el trabajo, y además
+  # rompe el «chorrero»: un profesor de bachillerato con veinte asignaciones
+  # veía un desplegable de veinte renglones donde tenía que leer para elegir.
+  #
+  #     GRADO    1er Año · 2do Año · 3er Año …
+  #     ÁREA     Matemática · Castellano …        ← solo las de ESE grado
+  #     LAPSO    1er · 2do · 3er                  ← solo los de ESE año escolar
+  def mis_grados
+    @mis_grados ||= mis_asignaciones.map { |ts| ts.section.grade }.uniq
+                                    .sort_by { |g| [ g.orden || 99, g.name ] }
+  end
+  helper_method :mis_grados
+
+  def grado
+    @grado ||= mis_grados.find { |g| g.id.to_s == params[:grado] } ||
+               asignacion&.section&.grade || mis_grados.first
+  end
+  helper_method :grado
+
+  # Las secciones de ESTE grado donde dicto ESTA materia. Es lo que decide si
+  # hay hermanas a las que copiar.
+  # El contexto de la pantalla, para los enlaces que tienen que volver acá.
+  #
+  # ⚠️ Sale de `asignacion`, no de `params`. Con las pastillas, la asignación se
+  # DEDUCE de grado+área, así que `params[:asignacion]` viene vacío la primera
+  # vez y todos los enlaces perdían la sección — «Registrar competencia» abría
+  # el formulario de otra.
+  def contexto
+    return {} if asignacion.nil?
+
+    { asignacion: "#{asignacion.section_id}:#{asignacion.subject_id}", lapso: lapso&.id }
+  end
+  helper_method :contexto
+
+  def mis_areas
+    @mis_areas ||= mis_asignaciones.select { |ts| ts.section.grade_id == grado&.id }
+                                   .map(&:subject).uniq.sort_by(&:name)
+  end
+  helper_method :mis_areas
 
   def plan_path
     competencies_path(asignacion: "#{asignacion&.section_id}:#{asignacion&.subject_id}",

@@ -4,8 +4,8 @@
 -# OFRECIÉNDOLO. Es todo el punto del issue — que la maestra no vuelva a
 -# escribir lo que su colegio ya escribió.
 = render "shared/cabecera_de_lista", titulo: "Plan de evaluación",
-         detalle: (asignacion ? "#{asignacion.section.grade.name} #{asignacion.section.name} · #{asignacion.subject.name}" : nil),
-         alta: (asignacion && profesor? ? { ruta: new_competency_path(asignacion: params[:asignacion], lapso: lapso&.id), nombre: "Registrar competencia" } : nil)
+         detalle: (asignacion ? "#{asignacion.section.grade.name} #{asignacion.section.name} · #{asignacion.subject.name.titleize}" : nil),
+         alta: (asignacion && profesor? ? { ruta: new_competency_path(contexto), nombre: "Registrar competencia" } : nil)
 
 - if mis_asignaciones.empty?
   .card-academic
@@ -14,20 +14,26 @@
              texto: "El plan de evaluación cuelga de la sección que dictas. Cuando la dirección te asigne una materia, aparece acá."
 
 - else
-  .card-academic
-    -# El par sección–materia y el lapso: la unidad de trabajo, la misma de las
-    -# evaluaciones. Se envía solo al cambiar, como el año escolar de la barra.
-    = form_with url: competencies_path, method: :get, class: "cabecera-de-lista-filtros", data: { controller: "auto-envio" } do |f|
-      .campo-con-boton
-        = f.label :asignacion, "Sección", class: "campo-con-boton-inicio"
-        = f.select :asignacion,
-            options_for_select(mis_asignaciones.map { |ts| [ "#{ts.section.grade.name} #{ts.section.name} · #{ts.subject.name}", "#{ts.section_id}:#{ts.subject_id}" ] },
-                               "#{asignacion&.section_id}:#{asignacion&.subject_id}"),
-            {}, { class: "form-select", data: { action: "change->auto-envio#enviar" } }
-      .campo-con-boton
-        = f.label :lapso, class: "campo-con-boton-inicio"
-        = f.select :lapso, options_for_select(lapsos.map { |l| [ l.name, l.id ] }, lapso&.id),
-            {}, { class: "form-select", data: { action: "change->auto-envio#enviar" } }
+  -# ⚠️ La escalera: GRADO → ÁREA → LAPSO, en ese orden y no en otro.
+  -#
+  -# Era un desplegable de veinte renglones —«1er Año A · Matemática», «1er Año
+  -# B · Matemática»…— donde había que leer para elegir. Cyndi lo partió en tres
+  -# preguntas cortas, y cada una acota la siguiente: elegido 4to Grado, el área
+  -# solo ofrece lo que este profesor dicta EN 4to Grado.
+  -#
+  -# La sección no es una de las tres, y esa es la gracia: el plan es el mismo
+  -# para las hermanas —«4to A» y «4to B» evalúan las mismas competencias— así
+  -# que preguntarla sería pedir una decisión que después hay que deshacer con
+  -# el botón de copiar. Se elige una y se copia a las demás.
+  .card-academic.plan-escalera
+    = render "shared/pastillas", etiqueta: "Grado",
+             opciones: mis_grados.map { |g| [ g.name, competencies_path(grado: g.id, lapso: lapso&.id), g.id == grado&.id ] }
+
+    = render "shared/pastillas", etiqueta: "Área de aprendizaje",
+             opciones: mis_areas.map { |s| [ s.name.titleize, competencies_path(grado: grado&.id, area: s.id, lapso: lapso&.id), s.id == asignacion&.subject_id ] }
+
+    = render "shared/pastillas", etiqueta: "Lapso",
+             opciones: lapsos.map { |l| [ l.name, competencies_path(contexto.merge(lapso: l.id)), l.id == lapso&.id ] }
 
   - if @sugerido&.any?
     -# ⚠️ Se OFRECE, no se carga solo. Un plan clonado que nadie miró es un plan
@@ -47,7 +53,7 @@
         - if @sugerido.size > 4
           %li.dato-secundario= "y #{contar(@sugerido.size - 4, 'competencia más', 'competencias más')}"
       = button_to "Traerlo para revisarlo",
-                  traer_competencies_path(asignacion: params[:asignacion], lapso: lapso&.id),
+                  traer_competencies_path(contexto),
                   class: "btn btn-accion"
 
   .card-academic
@@ -60,7 +66,7 @@
           no se califican aparte.
         - if profesor?
           .empty-state-acciones
-            = boton "Registrar competencia", new_competency_path(asignacion: params[:asignacion], lapso: lapso&.id), icono: :agregar
+            = boton "Registrar competencia", new_competency_path(contexto), icono: :agregar
 
     - else
       = render "shared/escala", total: @competencias.size, singular: "competencia", plural: "competencias"
@@ -76,11 +82,11 @@
                     %li= i.descripcion
             - if profesor?
               .columna-acciones
-                = link_to edit_competency_path(c, asignacion: params[:asignacion], lapso: lapso&.id),
+                = link_to edit_competency_path(c, contexto),
                           class: "btn btn-secondary btn-sm btn-solo-icono",
                           data: { tooltip: "Editar" }, "aria-label": "Editar" do
                   = icono(:editar, tamano: 15)
-                = button_to competency_path(c, asignacion: params[:asignacion], lapso: lapso&.id),
+                = button_to competency_path(c, contexto),
                             method: :delete, class: "btn btn-danger btn-sm btn-solo-icono",
                             form: { data: { turbo_confirm: "¿Borrar «#{c.descripcion.truncate(50)}» del plan?" } },
                             data: { tooltip: "Borrar" }, "aria-label": "Borrar" do
@@ -90,9 +96,9 @@
         -# ⚠️ Copiar es un ATAJO, no un vínculo: después de copiar, cada sección
         -# es independiente y admite sus propias modificaciones.
         .plan-acciones
-          = button_to copiar_a_competencies_path(asignacion: params[:asignacion], lapso: lapso&.id),
+          = button_to copiar_a_competencies_path(contexto),
                       class: "btn btn-accion" do
             = icono(:secciones, tamano: 16)
-            %span= "Copiar a mis otras #{contar(otras_secciones.size, 'sección', 'secciones')}"
+            %span= "Copiar a #{asignacion.section.grade.name} #{otras_secciones.map { |ts| ts.section.name }.to_sentence(two_words_connector: ' y ', last_word_connector: ' y ')}"
           %p.nota-ayuda
             Se copia el texto. Después cada sección es independiente: cambiar una no cambia la otra.

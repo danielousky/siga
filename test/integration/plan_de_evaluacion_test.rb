@@ -107,6 +107,46 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # ⚠️ Copiar es a las HERMANAS: mismo grado, misma materia.
+  #
+  # Ofrecía las diecinueve secciones donde el profesor dicta la materia, de 1er
+  # a 5to Año — y una competencia de 1er Año en 5to es basura que después
+  # alguien borra a mano. En pantalla se leía «Copiar a mis otras 19 secciones».
+  test "copiar no alcanza a una sección de otro grado" do
+    otro_grado, hermana = con_el_colegio(@a.colegio) do
+      g = Grade.create!(name: "6to Grado", school: @a.colegio)
+      lejana = Section.create!(grade: g, academic_period: @a.escenario.periodo, name: "U", capacity: 30)
+      TeacherSection.create!(teacher: @a.registro_de_profesor, section: lejana, subject: @a.escenario.materia)
+
+      h = Section.create!(grade: @a.grado, academic_period: @a.escenario.periodo, name: "W", capacity: 30)
+      TeacherSection.create!(teacher: @a.registro_de_profesor, section: h, subject: @a.escenario.materia)
+      [ lejana, h ]
+    end
+    con_el_colegio(@a.colegio) { competencia_con(1) }
+    sign_in @a.profesor
+
+    post copiar_a_competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+
+    con_el_colegio(@a.colegio) do
+      assert Competency.del_plan(hermana.id, @a.escenario.materia.id, @lapso.id).exists?,
+             "la sección hermana —mismo grado, misma materia— sí tenía que recibir la copia"
+      assert_empty Competency.del_plan(otro_grado.id, @a.escenario.materia.id, @lapso.id),
+                   "una sección de OTRO grado no puede recibir el plan de este"
+    end
+  end
+
+  # La escalera de Cyndi: grado → área → lapso. Elegir solo el grado tiene que
+  # bastar — el área y la sección se deducen.
+  test "las pastillas de grado y área deducen la asignación" do
+    sign_in @a.profesor
+    get competencies_path(grado: @a.grado.id, area: @a.escenario.materia.id, lapso: @lapso.id)
+
+    assert_response :success
+    assert_select ".pastilla.activa", text: @a.grado.name
+    assert_select "h1 ~ *", /#{@a.seccion.name}/, false
+    assert_select ".cabecera-de-lista", /#{@a.escenario.materia.name.titleize}/
+  end
+
   # ⚠️ El plan ajeno no aparece: pedirlo por id da 404, no 403 — no se confirma
   # que exista.
   test "no se llega al plan de otro profesor" do

@@ -5912,6 +5912,89 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
+
+/* ---- Pastillas: elegir UNO entre pocos (MOR-136) ---- */
+/* Primas de las pestañas y por eso se parecen: enlaces, no botones de
+   JavaScript. Lo que cambia es qué preguntan — una pestaña cambia el ÁNGULO
+   sobre lo mismo, una pastilla cambia el SUJETO. Ver `shared/_pastillas`. */
+.pastillas {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-md);
+  /* Se apilan en el teléfono: la etiqueta arriba y las pastillas debajo. */
+  flex-wrap: wrap;
+}
+
+/* La etiqueta ancla la fila, así que necesita ancho FIJO: sin él, «Lapso» y
+   «Área de aprendizaje» empiezan sus pastillas en columnas distintas y las
+   tres filas se leen como tres controles sueltos en vez de una escalera. */
+.pastillas-etiqueta {
+  flex: 0 0 auto;
+  min-width: 8.5rem;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.pastillas-fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  /* Que quede algo por envolver: sin esto, un `flex` mide por el contenido y
+     una fila de nueve grados empuja la tarjeta hacia afuera. */
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.pastilla {
+  display: inline-flex;
+  align-items: center;
+  /* 40px, no 44: van tres filas apiladas y la escalera completa tiene que
+     entrar arriba de la lista sin empujarla fuera de la pantalla. Sigue por
+     encima del mínimo de Apple para un control secundario en fila. */
+  min-height: 40px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--border-standard);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast),
+              border-color var(--transition-fast);
+}
+
+.pastilla:hover {
+  border-color: var(--brand-primary);
+  color: var(--text-primary);
+}
+
+/* ⚠️ La activa se pinta con el azul de marca y no con un tono semántico: es
+   afordancia de un control, no significado de un dato (regla de color,
+   MOR-135). Y va SÓLIDA, no con un borde: entre nueve pastillas, un borde de
+   1px no se encuentra de un vistazo. */
+.pastilla.activa {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.pastilla:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  /* En el teléfono la etiqueta pasa a ser un renglón propio: reservarle 8.5rem
+     al lado dejaba a las pastillas en una columna de dos dedos de ancho. */
+  .pastillas-etiqueta { min-width: 100%; }
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    QUÉ NIVELES DICTA EL COLEGIO (MOR-153)
 
