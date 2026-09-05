@@ -228,6 +228,15 @@ Rails.application.routes.draw do
   resources :grades, path: "grados" do
     resources :grade_subjects, path: "materias", only: [:create, :destroy]
   end
+  # La rúbrica con que el colegio lee las notas de primaria (MOR-136).
+  #
+  # Singular por lo mismo que `colegio`: un colegio tiene UNA rúbrica, aunque
+  # esté hecha de cinco niveles. `resources` daría `/rubricas/3/edit`, que es
+  # pedirle a un director que edite un peldaño suelto de una escalera.
+  resource :rubrica, only: [ :show, :update ], controller: "rubrics" do
+    post :restablecer
+  end
+
   # La identidad del colegio: nombre, ubicación y escudo. Singular porque un
   # colegio solo se administra a sí mismo — el suyo sale de la sesión.
   resource :colegio, only: [:show, :update], controller: "colegio" do

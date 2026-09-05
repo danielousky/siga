@@ -344,6 +344,10 @@ module MenuHelper
     # menú: es el estado vacío de Alumnos, que lo ofrece cuando hace falta.
     enlaces << Enlace.new(nombre: "Importar datos", icono: :subir, ruta: importaciones_path)
     if can_manage_academic_config?
+      # ⚠️ La rúbrica va en Configuración y no en Académico, aunque hable de
+      # notas: no se toca durante el año. Se define una vez, al arrancar, y
+      # después solo se consulta — igual que la identidad del colegio.
+      enlaces << Enlace.new(nombre: "Rúbrica de evaluación", icono: :notas, ruta: rubrica_path)
       enlaces << Enlace.new(nombre: "Identidad del colegio", icono: :configuracion, ruta: colegio_path)
     end
     enlaces

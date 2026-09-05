@@ -6008,6 +6008,83 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   outline-offset: 2px;
 }
 
+/* ---- La rúbrica del colegio (MOR-136) ---- */
+/* Una tabla de cinco filas que se editan juntas: es una ESCALERA, y sus
+   peldaños solo tienen sentido unos respecto de otros. */
+.tabla-rubrica .columna-codigo { width: 7rem; }
+.tabla-rubrica .columna-desde  { width: 6rem; }
+.tabla-rubrica .columna-cubre  { width: 8rem; }
+
+.tabla-rubrica td { vertical-align: middle; }
+
+/* El código es corto y se lee como una sigla: centrado y en mayúscula. */
+.campo-rubrica-codigo {
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.campo-rubrica-valor { text-align: center; }
+
+/* «Cubre» es DATO derivado, no un campo: se pinta como tal — sin caja, en el
+   tono secundario y con cifras tabulares para que las bandas se lean como una
+   columna de números y no como cinco frases. */
+.rubrica-cubre {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Quitar es una CASILLA disfrazada de botón, y a propósito: el guardado es uno
+   solo, así que una fila que desapareciera en el acto no se podría recuperar
+   con el botón de atrás. Marcada, la fila se atenúa y se tacha — se ve que va
+   a irse, y se puede desmarcar. */
+.rubrica-quitar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.rubrica-quitar:hover { color: var(--eliminar-primary); background: var(--surface-hover); }
+
+.rubrica-quitar-check { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.rubrica-quitar:has(.rubrica-quitar-check:checked) {
+  color: var(--eliminar-primary);
+}
+
+.rubrica-fila:has(.rubrica-quitar-check:checked) td:not(.columna-acciones) {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.rubrica-quitar:focus-within {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* El aviso de que la rúbrica es una propuesta y no está guardada. */
+.rubrica-propuesta {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border-left: 3px solid var(--brand-primary);
+  background: var(--surface-hover);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: var(--space-md);
+}
+
+.rubrica-propuesta .icono { flex: 0 0 auto; margin-top: 2px; color: var(--brand-primary); }
+
 @media (max-width: 700px) {
   /* En el teléfono la etiqueta pasa a ser un renglón propio: reservarle 9.5rem
      al lado dejaba a las pastillas en una columna de dos dedos de ancho. */

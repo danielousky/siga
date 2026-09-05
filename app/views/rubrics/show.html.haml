@@ -1,0 +1,83 @@
+-# La rúbrica del colegio (MOR-136).
+-#
+-# ⚠️ Lo primero que se lee tiene que ser QUÉ NO cambia. Un director que llega
+-# acá está por tocar algo que aparece en la boleta de sus trescientos alumnos,
+-# y la pregunta que se hace es «¿esto les cambia las notas?». La respuesta es
+-# no, y decirla arriba es lo que hace que se anime a ajustarla.
+.card-academic
+  .card-academic-header
+    %h1 Rúbrica de evaluación
+    - unless @propuesta
+      = button_to "Volver a la propuesta de SIGA", restablecer_rubrica_path,
+                  class: "btn btn-secondary",
+                  form: { data: { turbo_confirm: "Vuelve a los cinco niveles de SIGA y se pierden los nombres que usted escribió. Ninguna nota cambia." } }
+
+  %p.nota-ayuda
+    En primaria la familia no lee un 17: lee un nivel. Acá se decide con qué
+    palabras. Los docentes siguen cargando
+    %strong números del 1 al 20
+    \— esto solo cambia cómo se leen.
+
+  - if @propuesta
+    -# ⚠️ Se OFRECE, no se crea sola. Es la misma decisión que el plan de
+    -# competencias: una rúbrica que nadie miró es una rúbrica que nadie entiende,
+    -# y esta sale impresa en la boleta.
+    .nota-ayuda.rubrica-propuesta
+      = icono(:info, tamano: 16)
+      %span
+        Este colegio todavía no definió la suya. Abajo está la que propone SIGA,
+        que es la más usada en Venezuela. Ajústela y guarde.
+
+  = form_with model: @colegio, url: rubrica_path, method: :patch do |f|
+    = render "shared/errors", object: @colegio
+
+    %table.table-academic.tabla-rubrica
+      %thead
+        %tr
+          %th.columna-codigo Código
+          %th Nombre
+          %th.columna-desde Desde
+          %th.columna-cubre Cubre
+          %th.columna-acciones
+      %tbody
+        = f.fields_for :rubrics, @rubricas do |r|
+          %tr.rubrica-fila
+            %td
+              = r.hidden_field :id
+              = r.text_field :code, class: "form-control campo-rubrica-codigo",
+                  maxlength: 4, required: true, "aria-label": "Código del nivel",
+                  data: { controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9" }
+            %td
+              = r.text_field :name, class: "form-control", required: true,
+                  "aria-label": "Nombre del nivel",
+                  placeholder: "Proceso avanzado"
+            %td
+              -# ⚠️ `valor` es el PISO de la banda, y por eso la columna se
+              -# titula «Desde» y no «Valor». Con una sola columna las bandas
+              -# quedan contiguas por construcción: no puede haber un 16 sin
+              -# nivel, ni un 17 que caiga en dos.
+              = r.number_field :valor, class: "form-control campo-rubrica-valor",
+                  min: 1, max: 20, required: true, "aria-label": "Nota desde la que aplica"
+            %td.rubrica-cubre
+              = cobertura_de_la_rubrica(r.object, @rubricas)
+            %td.columna-acciones
+              -# Ocultar en vez de borrar en el acto: el guardado es uno solo, y
+              -# una fila que desaparece antes de guardar no se puede recuperar
+              -# con el botón de atrás.
+              %label.rubrica-quitar{ data: { tooltip: "Quitar este nivel" } }
+                = r.check_box :_destroy, class: "rubrica-quitar-check"
+                = icono(:borrar, tamano: 15)
+                %span.sr-only Quitar este nivel
+
+    %p.nota-ayuda
+      -# ⚠️ `succeed` y no un `\:` en la línea siguiente: Haml mete un espacio
+      -# entre dos etiquetas hermanas, y quedaba «reprobado :».
+      El nivel más bajo es el
+      = succeed ":" do
+        %strong reprobado
+      cubre hasta el 9, que es la nota que no alcanza. Un colegio puede usar
+      tres niveles en vez de cinco — por dentro las notas siguen siendo
+      distintas.
+
+    .form-acciones
+      = f.submit class: "btn btn-guardar"
