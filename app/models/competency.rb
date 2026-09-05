@@ -89,6 +89,16 @@ class Competency < ApplicationRecord
       .order("sections.academic_period_id DESC")
   end
 
+  # Las evaluaciones que etiquetan esta competencia, con su peso.
+  #
+  # Es lo que hace falta para calcular su nivel en la boleta: el promedio
+  # ponderado de las actividades que la evalúan — la regla del Art. 111
+  # aplicada a un subconjunto, no una regla inventada.
+  def evaluation_activities_con_peso
+    EvaluationActivity.where(id: activity_competencies.select(:evaluation_activity_id))
+                      .pluck(:id, :weight_percentage).to_h
+  end
+
   private
 
   def calcular_la_canonica

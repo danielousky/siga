@@ -84,9 +84,9 @@ module ApplicationHelper
   #     nota_del_ano(19, grado)   # media general → "19"
   #     nota_del_ano(19, grado)   # primaria      → "A (19)"
   #
-  # Solo para las notas del año. Las de lapso van en número hasta que exista la
-  # rúbrica de competencias (`MOR-136`): en primaria el lapso no se evalúa con
-  # letras, y ponerle una sería inventarla.
+  # Solo para las notas del AÑO. Las de lapso llevan la rúbrica que definió el
+  # colegio (`MOR-136`) —«PA (17)»— y no el literal A–E: son dos vocabularios
+  # sobre la misma escala, y el que el colegio eligió es el suyo.
   def nota_del_ano(nota, grado)
     EscalaLiteral.mostrar(nota, escala: grado&.escala) || "—"
   end

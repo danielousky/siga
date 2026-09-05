@@ -188,21 +188,79 @@ class ReportCardPdf
     pdf.move_down 10
   end
 
+  # ⚠️ La columna de la derecha lleva el NIVEL cuando el colegio definió su
+  # rúbrica, y el número cuando no (MOR-136).
+  #
+  # Los dos, no uno: *«la niña sacó 19, por eso tiene PC»* —Cyndi—. La familia
+  # lee el nivel; el número queda al lado porque es lo que el docente cargó y lo
+  # que el colegio tiene que poder verificar. Esconderlo obligaría a pedir el
+  # boletín para saber de dónde salió la letra.
   def tabla_de_lapso(pdf, datos)
-    filas = [["MATERIA", "CALIFICACIÓN"]]
-    datos["materias"].each { |m| filas << [texto(m["materia"]), celda(m["nota"])] }
+    con_rubrica = datos["rubrica"].present?
+    filas = [["MATERIA", con_rubrica ? "NIVEL" : "CALIFICACIÓN"]]
+
+    datos["materias"].each do |materia|
+      filas << [texto(materia["materia"]), celda_de_lapso(materia, con_rubrica)]
+      # Las competencias van DEBAJO de su materia, en la misma tabla: son parte
+      # de esa fila, no una lista aparte. Ver `filas_de_competencias`.
+      filas.concat(filas_de_competencias(materia, con_rubrica))
+    end
+
     filas << ["PROMEDIO DEL LAPSO", celda(datos["promedio"])]
 
     dibujar_tabla(pdf, filas, [nil, 110], ultima_en_negrita: true)
+    leyenda_de_la_rubrica(pdf, datos["rubrica"])
   end
 
-  # Las notas de LAPSO van en número; las del AÑO llevan el literal cuando el
-  # grado se califica así (MOR-129).
+  def celda_de_lapso(materia, con_rubrica)
+    return celda(materia["nota"]) unless con_rubrica && materia["nivel_de_rubrica"].present?
+
+    # El nivel manda y el número lo respalda: «PC (19)».
+    { content: "#{materia['nivel_de_rubrica']} (#{materia['nota']})", align: :center }
+  end
+
+  # Las competencias e indicadores, sangrados bajo su materia (MOR-136).
+  #
+  # ⚠️ Es para lo ÚNICO que existen las competencias. Daniel: *«las competencias
+  # terminan siendo solo para mostrarlas en la boleta junto con los indicadores
+  # y la rúbrica»*.
+  #
+  # ⚠️ Una competencia sin nivel dice «Sin evaluar», en letras. Nunca «NP» y
+  # nunca cero: `NP` es reprobado —*«el docente está obligado a evaluar»*— y
+  # esto es que todavía no le tomaron nada.
+  def filas_de_competencias(materia, con_rubrica)
+    Array(materia["competencias"]).flat_map do |competencia|
+      nivel = con_rubrica ? (competencia["nivel_de_rubrica"] || "Sin evaluar") : ""
+      fila  = [ { content: "   • #{texto(competencia['texto'])}", size: 7.5, text_color: "555555" },
+                { content: nivel.to_s, size: 7.5, align: :center, text_color: "555555" } ]
+
+      indicadores = Array(competencia["indicadores"]).map do |indicador|
+        [ { content: "        – #{texto(indicador)}", size: 7, text_color: "888888" },
+          { content: "", size: 7 } ]
+      end
+
+      [ fila ] + indicadores
+    end
+  end
+
+  # La leyenda de la rúbrica, al pie de la tabla.
+  #
+  # ⚠️ Sale del SNAPSHOT y no de la base: si el colegio cambia la rúbrica en
+  # marzo, el boletín de diciembre tiene que seguir explicando la de entonces.
+  def leyenda_de_la_rubrica(pdf, rubrica)
+    return if rubrica.blank?
+
+    pdf.move_down 4
+    pdf.text rubrica.map { |r| "#{r['codigo']} #{r['nombre'].downcase}" }.join("  ·  "),
+             size: 7, color: "666666"
+  end
+
+  # Las notas de LAPSO van en número o en NIVEL; las del AÑO llevan el literal
+  # cuando el grado se califica así (MOR-129).
   #
   # No es una inconsistencia: *"los literales son la nota final del año escolar"*
-  # —Cyndi—. Durante los lapsos primaria evalúa con competencias e indicadores y
-  # una rúbrica de cinco niveles, que es `MOR-136` y todavía no existe. Hasta
-  # entonces el lapso se muestra como lo que se cargó: un número.
+  # —Cyndi—. El lapso lleva la rúbrica del colegio (`MOR-136`), que es otro
+  # vocabulario sobre la misma escala; el año lleva el literal A–E.
   #
   # La reparación también queda en número: es el resultado de UN examen, no la
   # calificación del año. La definitiva —que es `max(anual, reparación)`— sí.

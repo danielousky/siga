@@ -2620,9 +2620,13 @@ nav.pagy a.gap {
 
 .portal-materia {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
+  /* ⚠️ COLUMNA desde MOR-136: debajo del nombre y la nota va el plan que se
+     trabajó. En fila, las competencias quedaban al lado de la nota en vez de
+     abajo. Con una sola hija se ve igual que antes — `.portal-materia-fila`
+     hace el `space-between` que hacía este bloque. */
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-xs);
   padding: var(--space-md) 0;
   border-bottom: 1px solid var(--border-subtle);
   min-height: 56px;
@@ -6007,6 +6011,64 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   outline: 2px solid var(--brand-primary);
   outline-offset: 2px;
 }
+
+/* ---- Las competencias en el portal de la familia (MOR-136) ---- */
+/* Es para lo ÚNICO que existen las competencias: que la madre lea qué se
+   trabajó, no solo con qué nota salió su hijo. */
+.portal-materia-fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.portal-competencias {
+  list-style: none;
+  margin: var(--space-xs) 0 0;
+  padding: 0 0 0 var(--space-sm);
+  border-left: 2px solid var(--border-standard);
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.portal-competencia-fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* El nivel de la competencia es DATO, así que puede llevar tono — pero nunca
+   rojo, que en SIGA quiere decir «este niño está aplazado» y ese significado no
+   se gasta (regla de color, MOR-135). Neutro y con la sigla siempre legible. */
+.portal-competencia-nivel {
+  flex: 0 0 auto;
+  font-weight: 600;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.portal-indicadores {
+  margin: 2px 0 0;
+  padding-left: var(--space-md);
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.portal-leyenda {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.portal-leyenda strong { margin-right: var(--space-xs); }
+.portal-leyenda .dato-secundario { margin-left: var(--space-xs); }
 
 /* ---- Qué evalúa una evaluación (MOR-136) ---- */
 /* El enganche entre el plan y la nota. Se marcan COMPETENCIAS; los indicadores

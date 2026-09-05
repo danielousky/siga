@@ -88,13 +88,64 @@ class RepresentanteController < ApplicationController
     libros = FinalGradeBook.where(enrollment_id: inscripcion.id).index_by(&:subject_id)
 
     grado.subjects.order(:name).map do |materia|
+      del_lapso = @anual ? nil : notas[[materia.id, lapso&.id]]&.final_moment_score&.to_i
       {
         materia: materia,
-        lapso: @anual ? nil : notas[[materia.id, lapso&.id]]&.final_moment_score&.to_i,
+        lapso: del_lapso,
         definitiva: libros[materia.id]&.final_score&.to_i,
-        escala: grado.escala
+        escala: grado.escala,
+        # El nivel de la rúbrica del colegio y el plan que se trabajó (MOR-136).
+        # Es lo que la madre lee: no un 17, sino «PA» y qué se evaluó.
+        nivel: Rubric.para(del_lapso, rubricas_del_colegio)&.code,
+        competencias: competencias_de(inscripcion, materia, lapso)
       }
     end
+  end
+
+  def rubricas_del_colegio
+    @rubricas_del_colegio ||= Rubric.en_orden.to_a
+  end
+  helper_method :rubricas_del_colegio
+
+  # El plan del lapso, con el nivel que alcanzó ESTE alumno en cada competencia.
+  #
+  # ⚠️ Se lee del boletín EMITIDO cuando lo hay, y del estado de hoy cuando no.
+  # No es un capricho: el boletín está congelado y es lo que el colegio entregó.
+  # Si la maestra corrige una nota en marzo, la pantalla muestra lo de hoy y el
+  # papel sigue diciendo lo de diciembre — las dos cosas son correctas, y
+  # mezclarlas es lo que hace que una familia crea que le cambiaron algo.
+  #
+  # Acá se muestra lo de HOY: es la pantalla, no el documento.
+  def competencias_de(inscripcion, materia, lapso)
+    return [] if @anual || lapso.nil? || rubricas_del_colegio.empty?
+
+    plan = Competency.where(section_id: inscripcion.section_id, subject_id: materia.id,
+                            evaluation_moment_id: lapso.id)
+                     .includes(:indicators).order(:orden, :id)
+
+    plan.map do |competencia|
+      nota = nota_de_la_competencia(competencia, inscripcion)
+      { texto: competencia.descripcion,
+        indicadores: competencia.indicators.map(&:descripcion),
+        nivel: Rubric.para(nota, rubricas_del_colegio)&.code }
+    end
+  end
+
+  # ⚠️ `nil` y no cero cuando el alumno no tiene notas en las evaluaciones que
+  # la miden. Sin evaluar no es reprobado, y el nivel más bajo SÍ reprueba.
+  def nota_de_la_competencia(competencia, inscripcion)
+    actividades = competencia.evaluation_activities_con_peso
+    return nil if actividades.empty?
+
+    notas = ActivityGrade.where(student_id: inscripcion.student_id,
+                                evaluation_activity_id: actividades.keys)
+                         .pluck(:evaluation_activity_id, :score).to_h
+    return nil if notas.empty?
+
+    peso = notas.keys.sum { |id| actividades[id] }
+    return nil if peso.zero?
+
+    GradeCalculator.redondear(notas.sum { |id, nota| nota * actividades[id] } / peso)
   end
 
   def resumen_de_asistencia(inscripcion)

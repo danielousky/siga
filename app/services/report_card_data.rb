@@ -32,6 +32,14 @@ class ReportCardData
       "comparacion" => comparacion,
       "asistencia"  => asistencia,
       "puesto"      => puesto,
+      # ⚠️ La RÚBRICA va congelada, igual que todo lo demás (MOR-136).
+      #
+      # Si el colegio la cambia en marzo, el boletín de diciembre tiene que
+      # seguir diciendo «PA» aunque hoy ese 17 se lea distinto. Sin esto, el
+      # papel que la familia tiene en la mano y la verificación pública dirían
+      # cosas distintas — que es exactamente lo que este snapshot existe para
+      # impedir.
+      "rubrica"  => rubrica,
       "emitido"  => Date.current.to_s
     }
   end
@@ -241,8 +249,93 @@ class ReportCardData
         fila["definitiva"] = libro&.final_score&.to_i
       end
 
+      # El nivel de la materia y su plan (MOR-136). Solo cuando hay rúbrica y
+      # hay plan: un colegio sin nada de esto saca el boletín como hoy.
+      # ⚠️ `nivel_de_rubrica` y no `nivel` a secas: en este mismo hash, `nivel`
+      # YA significa otra cosa —la banda de comparación con la sección, en
+      # `comparacion`— y las dos claves conviven en la misma fila de materia.
+      # Es la trampa que ya tiene el proyecto con `Grade` (grado escolar vs
+      # calificación) y que está anotada como pendiente; acá no se repite.
+      nivel = nivel_de_rubrica(@lapso ? fila["nota"] : fila["definitiva"])
+      fila["nivel_de_rubrica"] = nivel if nivel
+      plan = competencias_de(materia)
+      fila["competencias"] = plan if plan.any?
+
       fila
     end
+  end
+
+  # ── Las competencias, que es para lo único que existen (MOR-136) ───────────
+  #
+  # ⚠️ El nivel de una COMPETENCIA sale de las actividades que la evalúan, con
+  # su peso. No es una regla inventada: es la del Art. 111 aplicada a un
+  # subconjunto de actividades — las mismas cuentas que ya hace el sistema.
+  #
+  # ⚠️ Una competencia que ninguna evaluación etiquetó SÍ se imprime, sin
+  # nivel. Es información del plan —«esto se trabajó este lapso»— y esconderla
+  # dejaría a la familia sin saber qué se evaluó. «Sin evaluar» se escribe en
+  # letras, nunca NP y nunca cero.
+  def competencias_de(materia)
+    return [] if @lapso.nil?          # el anual no lleva plan: cruza tres lapsos
+    return [] if plan_del_lapso.empty?
+
+    plan_del_lapso.fetch(materia.id, []).map do |competencia|
+      {
+        "texto"        => competencia.descripcion,
+        "indicadores"  => competencia.indicators.map(&:descripcion),
+        "nivel_de_rubrica" => nivel_de_rubrica(nota_de_la_competencia(competencia))
+      }.compact
+    end
+  end
+
+  def plan_del_lapso
+    @plan_del_lapso ||= begin
+      Competency.where(section_id: @seccion.id, evaluation_moment_id: @lapso&.id)
+                .includes(:indicators).order(:orden, :id).group_by(&:subject_id)
+    end
+  end
+
+  # El promedio ponderado de las actividades que evalúan esta competencia.
+  #
+  # ⚠️ Devuelve `nil` —no cero— cuando el alumno no tiene ninguna nota en ellas.
+  # Sin nota no es reprobado: es que nadie evaluó todavía, y confundirlos le
+  # pone un «NP» a un niño al que no le tomaron nada.
+  def nota_de_la_competencia(competencia)
+    actividades = competencia.evaluation_activities_con_peso
+    return nil if actividades.empty?
+
+    notas = ActivityGrade.where(student_id: @alumno.id,
+                                evaluation_activity_id: actividades.keys)
+                         .pluck(:evaluation_activity_id, :score).to_h
+    return nil if notas.empty?
+
+    peso_total = notas.keys.sum { |id| actividades[id] }
+    return nil if peso_total.zero?
+
+    suma = notas.sum { |id, nota| nota * actividades[id] }
+    GradeCalculator.redondear(suma / peso_total)
+  end
+
+  # ⚠️ El nombre lleva «de_rubrica» a propósito: `nivel_de` ya existe en esta
+  # misma clase y significa otra cosa —en qué banda cae un alumno respecto del
+  # promedio de su sección—. Definir dos `nivel_de` lo pisaba en silencio, y el
+  # síntoma fue un test de comparación buscando un índice donde había un «PC».
+  def nivel_de_rubrica(nota)
+    return nil if nota.blank? || rubricas.empty?
+
+    Rubric.para(nota, rubricas)&.code
+  end
+
+  def rubricas
+    @rubricas ||= Rubric.en_orden.to_a
+  end
+
+  # ⚠️ Se guarda ENTERA, no solo los códigos: la boleta impresa lleva su leyenda
+  # —«PA · Proceso avanzado»— y esa leyenda tiene que ser la de entonces.
+  def rubrica
+    return nil if rubricas.empty?
+
+    rubricas.map { |r| { "codigo" => r.code, "nombre" => r.name, "desde" => r.valor } }
   end
 
   # El promedio de las materias QUE TIENEN nota. Las que no, no cuentan como
