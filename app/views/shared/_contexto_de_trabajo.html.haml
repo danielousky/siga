@@ -1,0 +1,180 @@
+-# Sobre qué se está trabajando: el año escolar y el nivel, en UN control (MOR-223).
+-#
+-# ## Por qué se fusionaron
+-#
+-# Daniel: *«la verdad el filtro no me encanta, creo que la barra en general se
+-# ve desordenada»*. Y el número lo confirmaba: la barra tenía hasta DIEZ
+-# elementos en fila, y CINCO de ellos decían la misma frase —«sobre qué estoy
+-# trabajando»— escritos como cinco controles sueltos: dos etiquetas en
+-# mayúscula, dos `<select>` con borde, un botón índigo y dos chips.
+-#
+-#     ANTES  AÑO ESCOLAR [2025-2026 ▾] 📅  en curso  NIVEL [Primaria ▾]  ⓘ
+-#     AHORA  ( 2025-2026 · Primaria ▾ )
+-#
+-# ## ⚠️ Y por qué deja de ser un `<select>`
+-#
+-# Un desplegable nativo es la afordancia de **rellenar un formulario**. Daniel
+-# pidió el nivel como un MODO DE TRABAJO —*«vamos a trabajar Primaria»*— y un
+-# modo de trabajo se entra, no se rellena. La pastilla con su panel se lee como
+-# lo que es: dónde estoy parado.
+-#
+-# ## ⚠️ `<details>` nativo, no un menú de JavaScript
+-#
+-# Abre y cierra sin JS, con teclado, y el navegador se encarga del `aria`. El
+-# controlador de Stimulus solo agrega las dos cosas que el nativo no trae: cerrar
+-# con Escape y cerrar al tocar afuera. Si el JS no carga, el control sigue
+-# funcionando — que es exactamente lo que no pasaba con los `<select>` de
+-# `auto-envio`.
+-# ⚠️ Cuándo hay panel, y cuándo el contexto es solo texto.
+-#
+-# Un profesor no elige nada: ve el año que está cursando (`LlevaElAnioEscolar`)
+-# y su contexto es una frase, no un control. Darle forma de botón a algo que no
+-# se puede tocar es una promesa que la pantalla no cumple.
+-#
+-# ⚠️ Pero la DIRECCIÓN siempre tiene panel, aunque el colegio tenga un solo año
+-# y un solo nivel — porque adentro está el atajo a «Años escolares y lapsos», y
+-# ése hace más falta justamente ahí: un colegio con un año escolar es uno que
+-# acaba de empezar. Estuvo un rato condicionado a que hubiera algo que elegir, y
+-# el atajo desaparecía en el único momento en que se busca. Lo cazó el test de
+-# `MOR-166`.
+-#
+-# ⚠️ En UNA línea, aunque sea larga. Haml lee la continuación de una expresión
+-# partida como si fuera indentación y revienta con «inconsistent indentation».
+-# Es la misma trampa que está anotada en `_barra_superior` desde MOR-165, y se
+-# vuelve a pisar cada vez que la expresión crece.
+- hay_anios = puede_elegir_anio? && anios_para_elegir.many?
+- puede_elegir = hay_anios || hay_nivel_que_elegir? || can_manage_academic_config?
+
+- unless puede_elegir
+  -# Sin nada que elegir, el contexto es texto: un profesor ve el año que está
+  -# cursando y no lo cambia (`LlevaElAnioEscolar`).
+  .contexto-fijo
+    - if anio_de_la_sesion
+      %span.contexto-valor-anio= anio_de_la_sesion.name
+      %span.contexto-valor-situacion= situacion_del_periodo(anio_de_la_sesion)
+    - elsif mirando_todos_los_anios?
+      %span.contexto-valor-anio Todos los años
+    - else
+      -# Un colegio recién dado de alta todavía no tiene año escolar. Decirlo es
+      -# más útil que dejar el espacio en blanco: es una tarea pendiente, no un
+      -# error, y desde acá se sabe adónde ir.
+      - if can_manage_academic_config?
+        = link_to "Sin año escolar cargado", academic_periods_path, class: "contexto-valor-vacio"
+      - else
+        %span.contexto-valor-vacio Sin año escolar cargado
+
+- else
+  %details.contexto{ data: { controller: "contexto", action: "toggle->contexto#alTogglear" } }
+    -# La pastilla dice el estado completo en una frase, y por eso no lleva
+    -# etiquetas: «2025-2026 · Primaria» se entiende sin que nada diga «AÑO
+    -# ESCOLAR» al lado.
+    -#
+    -# ⚠️ `data-tooltip`, nunca `title` (MOR-173): el nativo no se puede estilar,
+    -# tarda un segundo largo en aparecer, sale con la tipografía del sistema y
+    -# EN EL TELÉFONO NO EXISTE.
+    -# `data-tooltip-arriba` no: la barra está pegada al techo de la ventana, así
+    -# que el tooltip va debajo — que es el valor por defecto.
+    %summary.contexto-pastilla{ data: { tooltip: "Sobre qué estás trabajando" },
+                                "aria-label": "Sobre qué estás trabajando" }
+      %span.contexto-pastilla-texto
+        - if anio_de_la_sesion
+          %span.contexto-valor-anio= anio_de_la_sesion.name
+        - elsif mirando_todos_los_anios?
+          %span.contexto-valor-anio Todos los años
+        - else
+          -# La frase COMPLETA, también acá: «Sin año escolar» a secas se lee
+          -# como un filtro puesto, y esto es una tarea pendiente.
+          %span.contexto-valor-vacio Sin año escolar cargado
+
+        - if hay_nivel_que_elegir? && !mirando_todos_los_niveles?
+          %span.contexto-pastilla-separador ·
+          = GradoOficial::ETIQUETAS[nivel_de_la_sesion]
+
+      -# ⚠️ La situación va SIEMPRE, también cuando el año está en curso.
+      -#
+      -# Se probó a esconderla en ese caso —«en curso» parece obvio— y estaba
+      -# mal: sin ella, quien mira no distingue «este año está corriendo» de «no
+      -# sé en qué está», y son dos cosas distintas. El invariante es de
+      -# `situacion_del_periodo` y lo cuida un test desde antes: **en agosto no
+      -# hay ningún año corriendo**, y una barra que se callara ahí dejaría a la
+      -# secretaria creyendo que sí.
+      -#
+      -# Lo que sí cambió es el peso: va en gris y en 13 px, pegada al año, en
+      -# vez de ser un chip suelto en la fila.
+      - if anio_de_la_sesion
+        %span.contexto-valor-situacion= situacion_del_periodo(anio_de_la_sesion)
+
+      -# ⚠️ El aviso de «acá no aplica» viaja con la pastilla y no como un chip
+      -# aparte en la barra. Sigue siendo necesario —un filtro puesto que no
+      -# filtra hace que quien vea ocho departamentos concluya que primaria tiene
+      -# ocho— pero es una nota SOBRE este control, no otro elemento de la fila.
+      -#
+      -# ⚠️ Y va en TEXTO, no solo en un icono. Un ⓘ solo lo descubre quien ya
+      -# sabe que está ahí, y esto contesta la pregunta que la persona se está
+      -# haciendo en ese momento: «¿por qué veo ocho si puse primaria?». El
+      -# porqué completo queda a un hover y dentro del panel.
+      - if nivel_no_aplica?
+        %span.contexto-pastilla-nota{ data: { tooltip: motivo_sin_nivel.upcase_first } }
+          = icono(:info, tamano: 13)
+          %span.contexto-pastilla-nota-texto acá no aplica
+
+      = icono(:desplegar, tamano: 14, clase: "contexto-pastilla-flecha")
+
+    .contexto-panel{ data: { contexto_target: "panel" } }
+      %p.contexto-panel-titulo Sobre qué estás trabajando
+
+      - if hay_anios
+        %section.contexto-grupo
+          %h3.contexto-grupo-titulo Año escolar
+          -# Un formulario por opción y no un `<select>`: cada año es un botón
+          -# que dice además en qué situación está, que es justo lo que hace
+          -# falta al elegir —quien acaba de poner «2024-2025» tiene que ver ahí
+          -# mismo que ese año está cerrado.
+          - anios_para_elegir.each do |anio|
+            = form_with url: cambiar_anio_escolar_path, method: :post, class: "contexto-opcion-form", data: { turbo: false } do
+              = hidden_field_tag :id, anio.id
+              = button_tag type: :submit, class: class_names("contexto-opcion", elegida: (anio_de_la_sesion&.id == anio.id)) do
+                %span.contexto-opcion-nombre= anio.name
+                %span.contexto-opcion-nota= situacion_del_periodo(anio)
+
+          = form_with url: cambiar_anio_escolar_path, method: :post, class: "contexto-opcion-form", data: { turbo: false } do
+            = hidden_field_tag :id, LlevaElAnioEscolar::TODOS
+            = button_tag type: :submit, class: class_names("contexto-opcion", elegida: mirando_todos_los_anios?) do
+              %span.contexto-opcion-nombre Todos los años
+              %span.contexto-opcion-nota para buscar en lo viejo
+
+      - if hay_nivel_que_elegir?
+        %section.contexto-grupo
+          %h3.contexto-grupo-titulo Nivel
+          .contexto-niveles
+            = form_with url: cambiar_nivel_path, method: :post, class: "contexto-opcion-form", data: { turbo: false } do
+              = hidden_field_tag :nivel, LlevaElNivel::TODOS
+              = button_tag "Todos", type: :submit,
+                  class: class_names("contexto-nivel-boton", elegida: mirando_todos_los_niveles?)
+
+            - niveles_para_elegir.each do |nivel|
+              = form_with url: cambiar_nivel_path, method: :post, class: "contexto-opcion-form", data: { turbo: false } do
+                = hidden_field_tag :nivel, nivel
+                = button_tag GradoOficial::ETIQUETAS[nivel], type: :submit,
+                    class: class_names("contexto-nivel-boton", elegida: (nivel_de_la_sesion == nivel))
+
+          -# El motivo completo, acá adentro: en la barra se recortaba a «los
+          -# departamen», que es peor que no decir nada.
+          - if nivel_no_aplica?
+            %p.contexto-panel-nota
+              = icono(:info, tamano: 13)
+              %span= "En esta pantalla no aplica: #{motivo_sin_nivel}."
+
+      -# El atajo a lo primero que hace un colegio. Estaba como un botón índigo
+      -# suelto en la barra; acá es un renglón del panel que ya habla del año.
+      -# ⚠️ Conserva `contexto-anio-gestionar` además de su clase nueva.
+      -#
+      -# Es el atajo a lo primero que hace un colegio, y lo cuida un test desde
+      -# MOR-166 —«desde la barra de arriba se llega a los años escolares»—.
+      -# Cambiarle la clase sin más habría dejado el test buscando un botón que
+      -# existe con otro nombre: el enlace seguiría ahí y la prueba diría que se
+      -# perdió. Ver la memoria «renombrar es también las palabras».
+      - if can_manage_academic_config?
+        = link_to academic_periods_path, class: "contexto-panel-enlace contexto-anio-gestionar", data: { tooltip: "Crear y editar los años escolares y sus lapsos" }, aria: { label: "Años escolares" } do
+          = icono(:calendario, tamano: 15)
+          %span Años escolares y lapsos

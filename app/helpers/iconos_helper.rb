@@ -95,6 +95,9 @@ module IconosHelper
     siguiente: '<path d="M5 12h14M13 6l6 6-6 6"/>',
     volver: '<path d="M19 12H5M11 18l-6-6 6-6"/>',
     cerrar: '<path d="M18 6 6 18M6 6l12 12"/>',
+    # El chevrón de «esto se despliega» (MOR-223). Es la única señal de que la
+    # pastilla de contexto abre algo: sin ella se lee como una etiqueta.
+    desplegar: '<path d="m6 9 6 6 6-6"/>',
     filtrar: '<path d="M4 6h16M7 12h10M10 18h4"/>',
     correo: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
     llave: '<circle cx="8" cy="15" r="4"/><path d="m11 12 8-8 2 2-2 2 2 2-3 3-2-2-2 2"/>',

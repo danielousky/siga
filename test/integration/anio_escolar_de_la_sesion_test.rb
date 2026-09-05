@@ -48,8 +48,8 @@ class AnioEscolarDeLaSesionTest < ActionDispatch::IntegrationTest
     sign_in @a.director
     get sections_path
 
-    assert_select ".contexto-anio-select option[selected]", text: @a.periodo.name
-    assert_select ".contexto-anio-select option", text: sin_alumnos.name,
+    assert_select ".contexto-opcion.elegida .contexto-opcion-nombre", text: @a.periodo.name
+    assert_select ".contexto-opcion-nombre", text: sin_alumnos.name,
                   message: "el año que viene tiene que estar en la lista, solo que no elegido"
   end
 
@@ -94,7 +94,7 @@ class AnioEscolarDeLaSesionTest < ActionDispatch::IntegrationTest
     get enrollments_path
     get sections_path
 
-    assert_select ".contexto-anio-select option[selected]", text: "2024-2025"
+    assert_select ".contexto-opcion.elegida .contexto-opcion-nombre", text: "2024-2025"
   end
 
   # ══════════════════════════════════════════════════════════════════════════
@@ -111,7 +111,7 @@ class AnioEscolarDeLaSesionTest < ActionDispatch::IntegrationTest
     get dashboards_profesor_url
 
     assert_response :success
-    assert_select ".contexto-anio-select", count: 0,
+    assert_select ".contexto-opcion", count: 0,
                   message: "el profesor no debe poder cambiar de año escolar"
   end
 
@@ -121,7 +121,7 @@ class AnioEscolarDeLaSesionTest < ActionDispatch::IntegrationTest
     post cambiar_anio_escolar_path, params: { id: @viejo.id }
     get dashboards_profesor_url
 
-    assert_select ".contexto-anio-select", count: 0
+    assert_select ".contexto-opcion", count: 0
     assert_no_match(/2024-2025/, response.body,
                     "el profesor terminó viendo un año escolar que no le toca")
   end
@@ -140,7 +140,7 @@ class AnioEscolarDeLaSesionTest < ActionDispatch::IntegrationTest
     assert_response :success
     # Cae al año vigente del PROPIO colegio: el id ajeno no encuentra nada
     # porque `SchoolScoped` y el RLS lo filtran antes de llegar acá.
-    assert_select ".contexto-anio-select option[selected]", text: "2025-2026"
+    assert_select ".contexto-opcion.elegida .contexto-opcion-nombre", text: "2025-2026"
     assert_no_match(/#{Regexp.escape(@b.colegio.name)}/, response.body)
   end
 
