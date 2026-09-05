@@ -3,6 +3,12 @@ require "rake"
 
 # El guarda que protege la base antes de borrarla (MOR-146).
 #
+# ## ⚠️ Se identifica por CÓDIGO DEA, no por nombre
+#
+# El código es el identificador de verdad —lo asigna el MPPE, es único global— y
+# no cambia de mayúsculas ni de acentos. Y `dokku run` parte el comando por
+# espacios: un nombre como «U.E. Ceapucv» llega despedazado a producción.
+#
 # ## Por qué esto tiene test y la tarea de borrar no
 #
 # La tarea de borrar se prueba corriéndola: o la base queda vacía o no. El
@@ -25,8 +31,8 @@ class GuardaDeLaLimpiezaTest < ActiveSupport::TestCase
 
   test "deja pasar cuando solo está la demo, escriba como escriba el nombre" do
     Current.sin_aislamiento do
-      School.create!(name: "U.E. Simón Bolívar", dea_code: "GUARD1", location: "Caracas")
-      School.create!(name: "U.E. Andrés Bello", dea_code: "GUARD2", location: "Valencia")
+      School.create!(name: "U.E. Simón Bolívar", dea_code: "BOL-001", location: "Caracas")
+      School.create!(name: "U.E. Andrés Bello", dea_code: "AND-002", location: "Valencia")
     end
 
     assert_nothing_raised { @tarea.invoke }
@@ -36,8 +42,8 @@ class GuardaDeLaLimpiezaTest < ActiveSupport::TestCase
   # alguien registró. Borrar acá se lleva el trabajo de una persona real.
   test "aborta cuando hay un colegio que no es de la demo" do
     Current.sin_aislamiento do
-      School.create!(name: "U.E. Simón Bolívar", dea_code: "GUARD1", location: "Caracas")
-      School.create!(name: "U.E. Andrés Bello", dea_code: "GUARD2", location: "Valencia")
+      School.create!(name: "U.E. Simón Bolívar", dea_code: "BOL-001", location: "Caracas")
+      School.create!(name: "U.E. Andrés Bello", dea_code: "AND-002", location: "Valencia")
       School.create!(name: "Colegio de Alguien", dea_code: "GUARD3", location: "Mérida")
     end
 
@@ -49,25 +55,25 @@ class GuardaDeLaLimpiezaTest < ActiveSupport::TestCase
   # después no hereda el permiso de borrar el colegio de alguien.
   test "deja pasar un colegio ajeno solo si se lo autoriza por su nombre" do
     Current.sin_aislamiento do
-      School.create!(name: "U.E. Simón Bolívar", dea_code: "GUARD1", location: "Caracas")
-      School.create!(name: "U.E. Andrés Bello", dea_code: "GUARD2", location: "Valencia")
+      School.create!(name: "U.E. Simón Bolívar", dea_code: "BOL-001", location: "Caracas")
+      School.create!(name: "U.E. Andrés Bello", dea_code: "AND-002", location: "Valencia")
       School.create!(name: "Colegio de Alguien", dea_code: "GUARD3", location: "Mérida")
     end
 
-    ENV["SIGA_BORRAR_TAMBIEN"] = "Colegio de Alguien"
+    ENV["SIGA_BORRAR_TAMBIEN"] = "GUARD3"
     assert_nothing_raised { @tarea.invoke }
   end
 
   # ⚠️ Autorizar UNO no autoriza a los demás: cada nombre se escribe.
   test "autorizar un colegio no abre la puerta a otro" do
     Current.sin_aislamiento do
-      School.create!(name: "U.E. Simón Bolívar", dea_code: "GUARD1", location: "Caracas")
-      School.create!(name: "U.E. Andrés Bello", dea_code: "GUARD2", location: "Valencia")
+      School.create!(name: "U.E. Simón Bolívar", dea_code: "BOL-001", location: "Caracas")
+      School.create!(name: "U.E. Andrés Bello", dea_code: "AND-002", location: "Valencia")
       School.create!(name: "Colegio de Alguien", dea_code: "GUARD3", location: "Mérida")
       School.create!(name: "Colegio de Otro", dea_code: "GUARD4", location: "Maracay")
     end
 
-    ENV["SIGA_BORRAR_TAMBIEN"] = "Colegio de Alguien"
+    ENV["SIGA_BORRAR_TAMBIEN"] = "GUARD3"
     assert_raises(SystemExit) { @tarea.invoke }
   end
 end

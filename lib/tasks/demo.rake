@@ -169,52 +169,60 @@ namespace :demo do
   desc "¿Es seguro resembrar? Falla si hay algo que no sea la demo (MOR-146)"
   task es_solo_demo: :environment do
     Current.sin_aislamiento do
-      esperados = [ "U.E. Simón Bolívar", "U.E. Andrés Bello" ]
 
       # ⚠️ Los colegios que alguien REGISTRÓ y que igual se van, uno por uno y
-      # con su nombre escrito.
+      # POR SU CÓDIGO DEA.
       #
       # No es una excepción cómoda: es el registro de una decisión que se tomó
       # mirando los datos. El 5 de septiembre de 2026 había dos colegios que no
-      # eran de la demo —«U.E. Ceapucv», registrado por Yoleima Contreras con
-      # tres alumnos, y «LA ESCUELITA», de Daniel, vacío— y Daniel autorizó
-      # borrar los dos: pruebas del registro, no clientes.
+      # eran de la demo —«U.E. Ceapucv» (PD123123), registrado por Yoleima
+      # Contreras con tres alumnos, y «LA ESCUELITA» (PD123125), de Daniel,
+      # vacío— y Daniel autorizó borrar los dos: pruebas del registro, no
+      # clientes.
+      #
+      # ⚠️ Por CÓDIGO y no por nombre, y hay dos razones:
+      #
+      #   1. El código es el identificador de verdad —lo asigna el MPPE, es
+      #      único global— y no cambia de mayúsculas ni de acentos. Comparar
+      #      nombres ya falló una vez: `School` los guarda en MAYÚSCULA, y los
+      #      sembrados antes de esa regla quedaron en «U.E. Simón Bolívar», así
+      #      que el guarda declaraba que la propia demo no era de la demo.
+      #   2. `dokku run` PARTE EL COMANDO POR ESPACIOS. Un nombre como «U.E.
+      #      Ceapucv» llega despedazado y la autorización no coincide con nada —
+      #      o peor, coincide con otra cosa. El código no tiene espacios.
       #
       # Se pasan por variable de entorno y no se escriben acá a propósito. El
       # que venga después NO puede heredar el permiso de borrar el colegio de
       # alguien: tiene que volver a mirar `demo:procedencia`, decidir, y
-      # escribir los nombres él.
-      autorizados = ENV["SIGA_BORRAR_TAMBIEN"].to_s.split("|").map(&:strip).compact_blank
-      encontrados = School.order(:id).pluck(:name)
+      # escribir los códigos él.
+      autorizados = ENV["SIGA_BORRAR_TAMBIEN"].to_s.split(/[|,]/).map(&:strip).compact_blank
 
-      # ⚠️ Se comparan los nombres NORMALIZADOS, no literales.
-      #
-      # `School` guarda el nombre en mayúscula desde `MOR-…`, pero los colegios
-      # sembrados antes de esa regla quedaron como «U.E. Simón Bolívar». Con
-      # comparación literal, el guarda decía que la propia demo «NO es de la
-      # demo» —y en producción pasaba por casualidad, porque ahí los nombres
-      # son los viejos—. Un guarda que depende de cuándo se sembró la fila es
-      # un guarda que va a fallar el día que importa.
-      igual = ->(a, b) { Normaliza.para_comparar(a) == Normaliza.para_comparar(b) }
-      permitidos = esperados + autorizados
+      # La demo se identifica igual: por su código, no por su nombre.
+      codigos_de_demo = %w[BOL-001 AND-002 BOL001 AND002]
+      permitidos = codigos_de_demo + autorizados
 
       problemas = []
-      inesperados = encontrados.reject { |c| permitidos.any? { |p| igual.(c, p) } }
-      problemas << "colegios que NO son de la demo: #{inesperados.join(', ')}" if inesperados.any?
+      inesperados = School.where.not(dea_code: permitidos).order(:id).to_a
+      if inesperados.any?
+        problemas << "colegios que NO son de la demo: " +
+                     inesperados.map { |c| "#{c.name} (#{c.dea_code})" }.join(", ")
+      end
+      encontrados = School.order(:id).pluck(:name)
 
       if autorizados.any?
         puts ""
         puts "⚠️  Se van a borrar TAMBIÉN estos colegios, autorizados a mano:"
-        autorizados.each do |nombre|
-          colegio = School.all.find { |c| igual.(c.name, nombre) }
+        autorizados.each do |codigo|
+          colegio = School.find_by(dea_code: codigo)
           if colegio.nil?
-            puts "   · #{nombre} — NO EXISTE (¿nombre mal escrito?)"
+            puts "   · #{codigo} — NO EXISTE ningún colegio con ese código"
             next
           end
           Current.en_el_colegio(colegio) do
             quien = colegio.registrado_por
-            puts "   · #{nombre} — lo registró #{quien&.email || 'el equipo'} · " \
-                 "#{Student.count} alumnos · #{ActivityGrade.count} notas"
+            puts "   · #{colegio.name} (#{codigo}) — lo registró " \
+                 "#{quien&.email || 'el equipo'} · #{Student.count} alumnos · " \
+                 "#{ActivityGrade.count} notas"
           end
         end
         puts ""
