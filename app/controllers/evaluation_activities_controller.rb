@@ -100,15 +100,24 @@ class EvaluationActivitiesController < ApplicationController
 
   # Las asignaciones del profesor: cada par sección–materia que dicta.
   #
-  # ⚠️ Filtradas por el NIVEL de la sesión, para que el desplegable del
-  # formulario ofrezca lo mismo que el listado. Con uno filtrado y el otro no,
-  # el profesor crea una evaluación en una sección que su pantalla no le muestra.
+  # ⚠️ Por el AÑO y por el NIVEL de la sesión, y las dos hacen falta.
+  #
+  # Sin el AÑO, el desplegable mostraba cada sección DOS VECES —«1er Año A ·
+  # Matemática» arriba de «1er Año A · Matemática»— porque un colegio que ya
+  # copió su estructura al año siguiente tiene las mismas secciones en los dos.
+  # Daniel lo vio en una lista de treinta y dos renglones donde había dieciséis
+  # asignaciones. Y no era solo feo: el segundo renglón crea la evaluación en el
+  # año que viene, sin que nada lo diga.
+  #
+  # Sin el NIVEL, el desplegable ofrece lo que el listado esconde, y el profesor
+  # crea una evaluación en una sección que su pantalla no le muestra.
   #
   # ⚠️ Ordenadas por el ORDEN OFICIAL del grado, no por su nombre: «10mo» iría
   # antes que «2do» alfabéticamente el día que un colegio cargue esos nombres.
   def mis_asignaciones
     @mis_asignaciones ||= current_user.teacher
       .teacher_sections
+      .del_anio_de_la_sesion
       .del_nivel_de_la_sesion
       .includes(:subject, section: [:grade, :academic_period])
       .sort_by { |ts| [ts.section.grade.orden || 99, ts.section.name, ts.subject.name] }

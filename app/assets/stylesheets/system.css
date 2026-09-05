@@ -6982,15 +6982,26 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 /* La pastilla dice el estado completo en una frase —«2025-2026 · Primaria»— y
    por eso no lleva etiquetas al lado. */
+/* ⚠️ La pastilla se RESALTA, y es una decisión de producto.
+   
+   Daniel: *«definitivamente se queda el select en el navbar, es el pivot
+   principal. Se queda. De hecho vamos a resaltarlo un poco… una sutileza pero
+   que de entrada la persona perciba dónde está parado y que todo gira en torno
+   a esos elementos, Año Escolar y Nivel»*.
+   
+   Lo que la resalta es el FONDO, no el color del texto: un tinte del azul de
+   marca la separa de la barra sin competir con el nombre del colegio, que está
+   a su izquierda en la serif del sistema. Con solo el borde se leía como un
+   campo más de un formulario. */
 .contexto-pastilla {
   display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
-  min-height: 32px;
-  padding: 0 var(--space-sm);
-  border: 1px solid var(--border-subtle);
+  min-height: 34px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--brand-primary);
   border-radius: 999px;
-  background: var(--surface-elevated);
+  background: color-mix(in srgb, var(--brand-primary) 8%, var(--surface-elevated));
   color: var(--brand-primary);
   font-size: 14px;
   font-weight: 600;
@@ -7007,7 +7018,7 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 .contexto-pastilla:hover {
   border-color: var(--brand-primary);
-  background: var(--surface-hover);
+  background: color-mix(in srgb, var(--brand-primary) 16%, var(--surface-elevated));
 }
 
 .contexto-pastilla:focus-visible {
@@ -7017,7 +7028,7 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 .contexto[open] .contexto-pastilla {
   border-color: var(--brand-primary);
-  background: var(--surface-hover);
+  background: color-mix(in srgb, var(--brand-primary) 16%, var(--surface-elevated));
 }
 
 .contexto[open] .contexto-pastilla-flecha { transform: rotate(180deg); }
@@ -7036,7 +7047,8 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 }
 
 .contexto-pastilla-flecha {
-  color: var(--text-tertiary);
+  color: var(--brand-primary);
+  opacity: 0.6;
   transition: transform var(--transition-fast);
 }
 
@@ -7311,12 +7323,33 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
   /* El panel se ancla a la DERECHA: pegado a la izquierda de la pastilla se
      salía por el borde de la pantalla. */
+  /* ⚠️ El panel se ancla al VIEWPORT, no a la pastilla.
+     
+     Con `right: 0` se alinea al borde derecho de la pastilla, y la pastilla
+     está a la izquierda de la barra: el panel se salía por el borde IZQUIERDO
+     de la pantalla y el primer tercio quedaba cortado. Se vio en la captura.
+     
+     `position: fixed` lo saca del sistema de coordenadas de la pastilla y lo
+     pone en el de la ventana, que es donde tiene que caber. El `top` fijo es el
+     alto de la barra, que es fija también. */
   .contexto-panel {
-    left: auto;
-    right: 0;
+    position: fixed;
+    top: var(--alto-barra);
+    left: var(--space-sm);
+    right: var(--space-sm);
+    width: auto;
     min-width: 0;
-    width: min(20rem, calc(100vw - 2rem));
+    max-width: none;
   }
+
+  /* ⚠️ Los niveles se APILAN, no se recortan.
+     
+     En fila, «Todos · Educación Inicial · Primaria» no entra en 320 px y el
+     último quedaba fuera del panel — Daniel: *«en el phone se oculta la opción
+     de seleccionar todo»*. Y era el peor de los tres que se podía perder: es la
+     salida del filtro. */
+  .contexto-niveles { flex-direction: column; align-items: stretch; }
+  .contexto-nivel-boton { justify-content: flex-start; }
 }
 
 /* ---- La planilla de informes descriptivos (MOR-216) ---- */
