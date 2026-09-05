@@ -124,6 +124,56 @@ class EvaluationActivitiesController < ApplicationController
   end
   helper_method :mis_asignaciones
 
+  # Las ÁREAS que dicta este profesor, para el primer select del formulario.
+  #
+  # ⚠️ Dos selects y no uno (MOR-223). Daniel: *«esto lo separamos en 2 selects:
+  # si el profe solo da una materia pues vamos directo, pero si dicta más de
+  # una, le colocamos el select previo»*.
+  #
+  # Con uno solo, el profesor de Matemática con dieciséis secciones abría un
+  # desplegable de dieciséis renglones donde tenía que LEER cada uno para
+  # elegir, y las quince que no eran la suya solo estorbaban. Partido en área →
+  # sección, la primera lista tiene un renglón para él y la segunda tiene las
+  # suyas.
+  def mis_areas
+    @mis_areas ||= mis_asignaciones.map(&:subject).uniq.sort_by(&:name)
+  end
+  helper_method :mis_areas
+
+  # ⚠️ Con UNA sola área no hay primer select: un desplegable de una opción es
+  # un control que no decide nada, y le agrega un paso a quien no tiene nada
+  # que elegir. Es la misma regla del selector de nivel y la del año escolar.
+  def hay_area_que_elegir? = mis_areas.many?
+  helper_method :hay_area_que_elegir?
+
+  # El área elegida, o la única que dicta.
+  def area_elegida
+    return @area_elegida if defined?(@area_elegida)
+
+    pedida = params.dig(:evaluation_activity, :area).presence || @evaluation_activity&.subject_id
+    @area_elegida = mis_areas.find { |s| s.id.to_s == pedida.to_s } || mis_areas.first
+  end
+  helper_method :area_elegida
+
+  # Las secciones donde dicta ESA área.
+  def mis_secciones_del_area
+    @mis_secciones_del_area ||= mis_asignaciones.select { |ts| ts.subject_id == area_elegida&.id }
+  end
+  helper_method :mis_secciones_del_area
+
+  # Las secciones de cada área, para que el segundo select cambie sin ir al
+  # servidor. Es el mismo patrón que `ponderacion` y `que-evalua`: la elección
+  # ocurre en esta pantalla, así que la respuesta tiene que estar acá.
+  def secciones_por_area
+    mis_asignaciones.group_by(&:subject_id).transform_values do |asignaciones|
+      asignaciones.map do |ts|
+        { valor: "#{ts.section_id}:#{ts.subject_id}",
+          nombre: "#{ts.section.grade.name} – #{ts.section.name}" }
+      end
+    end
+  end
+  helper_method :secciones_por_area
+
   # La asignación que viene en el formulario, **buscada entre las del profesor**.
   # Que la búsqueda esté acotada a `current_user.teacher` es lo que autoriza: un
   # id de otra sección simplemente no aparece y devuelve nil.

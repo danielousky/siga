@@ -20,6 +20,7 @@ import CampoQueCreceController from "controllers/campo_que_crece_controller"
 application.register("campo-que-crece", CampoQueCreceController)
 
 import AsistenciaController from "controllers/asistencia_controller"
+import AreaController from "controllers/area_controller"
 import AutoEnvioController from "controllers/auto_envio_controller"
 import CampoFiltradoController from "controllers/campo_filtrado_controller"
 import CampoTelefonoController from "controllers/campo_telefono_controller"
@@ -40,6 +41,7 @@ import UbicacionController from "controllers/ubicacion_controller"
 import SearchFilterController from "controllers/search_filter_controller"
 
 application.register("asistencia", AsistenciaController)
+application.register("area", AreaController)
 application.register("auto-envio", AutoEnvioController)
 application.register("campo-filtrado", CampoFiltradoController)
 application.register("campo-telefono", CampoTelefonoController)

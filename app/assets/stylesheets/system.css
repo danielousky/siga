@@ -2086,9 +2086,31 @@ nav.pagy a.gap {
    ============================================ */
 
 .carga-contexto {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
   color: var(--text-secondary);
   font-size: 14px;
   margin: 0 0 var(--space-md);
+}
+
+/* El peso de la evaluación dentro del lapso.
+   ⚠️ Es un CHIP, no negrita: cambia lo que estas notas significan —el mismo 15
+   vale distinto en una evaluación del 30 % que en una del 70 %— y en negrita se
+   perdía dentro de la misma frase que el grado, la sección y el lapso.
+   Sin color semántico: es un dato de la evaluación, no una alerta (MOR-135). */
+.carga-peso {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-sm);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+  color: var(--brand-primary);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .carga-progreso {

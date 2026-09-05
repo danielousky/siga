@@ -7,18 +7,45 @@
 -# Stimulus admite varias acciones en un control —van separadas por espacio— así
 -# que no hace falta que uno llame al otro.
 = form_with(model: evaluation_activity,
-            data: { controller: "ponderacion que-evalua",
+            data: { controller: "ponderacion que-evalua area",
                     ponderacion_asignaciones_value: ponderacion_de_mis_asignaciones.to_json,
                     que_evalua_planes_value: competencias_de_mis_asignaciones.to_json,
-                    que_evalua_marcadas_value: competencias_marcadas.to_json }) do |f|
+                    que_evalua_marcadas_value: competencias_marcadas.to_json,
+                    area_secciones_value: secciones_por_area.to_json }) do |f|
   = render "shared/errors", object: evaluation_activity
 
+  -# ⚠️ DOS selects, área primero y sección después (MOR-223).
+  -#
+  -# Daniel: *«esto lo separamos en 2 selects: si el profe solo da una materia
+  -# pues vamos directo, pero si dicta más de una, le colocamos el select
+  -# previo»*.
+  -#
+  -# Con uno solo, el profesor de Matemática con dieciséis secciones abría un
+  -# desplegable de dieciséis renglones donde tenía que LEER cada uno para
+  -# elegir. Partido, la primera lista tiene un renglón para él y la segunda
+  -# tiene solo las suyas.
+  -#
+  -# ⚠️ Con UNA sola área el primer select no aparece: es un control que no
+  -# decide nada y le agrega un paso a quien no tiene nada que elegir. Misma
+  -# regla que el selector de nivel y el de año escolar.
+  - if hay_area_que_elegir?
+    .form-group
+      = f.label :area, Vocabulario::AREA, class: "form-label"
+      = f.select :area,
+        mis_areas.map { |s| [ s.name, s.id ] },
+        { selected: area_elegida&.id },
+        class: "form-select", data: { area_target: "area", action: "change->area#cambio" }
+  - else
+    -# El área viaja igual, porque `asignacion` la necesita para armarse.
+    = f.hidden_field :area, value: area_elegida&.id
+
   .form-group
-    = f.label :asignacion, "Sección y #{Vocabulario::AREA_CORTA.downcase}", class: "form-label"
+    = f.label :asignacion, Section.model_name.human, class: "form-label"
     = f.select :asignacion,
-      mis_asignaciones.map { |ts| ["#{ts.section.grade.name} – #{ts.section.name} · #{ts.subject.name}", "#{ts.section_id}:#{ts.subject_id}"] },
+      mis_secciones_del_area.map { |ts| [ "#{ts.section.grade.name} – #{ts.section.name}", "#{ts.section_id}:#{ts.subject_id}" ] },
       { include_blank: "Elige una de tus secciones...", selected: ("#{evaluation_activity.section_id}:#{evaluation_activity.subject_id}" if evaluation_activity.section_id) },
       class: "form-select", data: { ponderacion_target: "asignacion", que_evalua_target: "asignacion",
+                                    area_target: "seccion",
                                     action: "change->ponderacion#asignacionCambio change->que-evalua#actualizar" }
 
   .form-group
