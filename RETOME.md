@@ -1,4 +1,109 @@
-# 🔖 Punto de retome — actualizado 1 de septiembre de 2026 (madrugada)
+# 🔖 Punto de retome — actualizado 5 de septiembre de 2026 (03:45)
+
+## Sesión del 4 al 5 de septiembre — MOR-136 completo, la resiembra y la barra
+
+`bin/ci` en verde: **1259 tests**, 5.841 aserciones, ~2 min 30 s.
+Todo en `main`. **NO desplegado** — ver «Pendientes que necesitan a Daniel».
+
+```
+   MERGEADO ESTA SESIÓN
+   ────────────────────
+   PR  #7   MOR-136  el plan: competencias e indicadores
+   PR  #8   MOR-224  la resiembra de la demo
+   PR  #9   MOR-136  la rúbrica, el etiquetado y la boleta
+   PR #10   MOR-216  el informe descriptivo del docente
+   PR #11   MOR-223  la barra de contexto en un solo control
+```
+
+### MOR-136 · Evaluar primaria por competencias, de punta a punta
+
+Cuatro tandas, en el orden en que se usan:
+
+```
+   1 · EL PLAN        Competencias e indicadores · pastillas grado→área→lapso
+                      se sugiere el del año pasado · se copia a las hermanas
+   2 · LA RÚBRICA     Configuración › Rúbrica de evaluación
+                      los cinco niveles juntos · el colegio de TRES también
+   3 · EL ETIQUETADO  «Qué evalúa» en el formulario de la evaluación
+   4 · LA BOLETA      «PA (17)» + el plan con su nivel + la leyenda
+```
+
+**La decisión que lo hizo barato**, de Daniel: *«las competencias terminan siendo
+solo para mostrarlas en la boleta»*. Con eso, `GradeCalculator`,
+`activity_grades`, `moment_grades` y `final_grade_books` **no se tocaron**.
+
+Spec cerrado en `docs/specs/mor-136-evaluacion-de-primaria.md`, con las cinco
+trampas que se pisaron.
+
+### MOR-224 · La demo, resembrada
+
+```
+   ANTES                          AHORA
+   ─────                          ─────
+   Bolívar  solo bachillerato     los TRES niveles + Media Técnica
+            5 grados · 11 materias        15 grados · 26 áreas
+            200 alumnos                   360 alumnos · 19 secciones
+```
+
+**El pensum es el del MPPE y por GRADO**: «Formación para la Soberanía
+Nacional», «Grupo de Creación, Recreación y Producción», las dos etapas de
+primaria con pensum distinto, y Física y Química que no existen en 1er Año.
+
+Sembrados los casos que antes había que fabricar a mano: 3 retirados · una
+sección sin guía · 11 secciones sin notas · 98 representantes sin correo ·
+2024-2025 importado (4.002 definitivas) · 2026-2027 copiado y vacío · 29
+informes descriptivos, con un tercio de alumnos SIN informe a propósito.
+
+⚠️ **Los cuatro correos de los brokers y `123123` intactos.**
+
+### MOR-216 · El informe descriptivo
+
+Uno por alumno y lapso, escrito por el **guía de la sección** (o la dirección,
+porque el guía es opcional). Sale al final de la boleta, en el PDF y en el
+portal de la familia.
+
+⚠️ **Dos decisiones las tomé con Daniel durmiendo** y están marcadas en
+`docs/specs/mor-216-informe-descriptivo.md` para que las confirme: que sea uno
+por LAPSO (no por materia) y que lo escriba el GUÍA. Las dos aguantan el cambio
+barato.
+
+### MOR-223 · La barra, de diez elementos a cinco
+
+```
+   ANTES  ▣ SIGA · 🛡 colegio · AÑO ESCOLAR [▾] · 📅 · en curso ·
+          NIVEL [▾] · ⓘ acá no aplica · 🔍 · Daniel · Cerrar sesión
+
+   AHORA  ▣ SIGA · 🛡 colegio · ( 2025-2026 · Primaria ▾ ) · 🔍 · Daniel · Salir
+```
+
+Es un `<details>` **nativo**: abre, cierra y envía sin JavaScript.
+
+### Lo que se rompió, y lo que dejó puesto
+
+**Un `import` roto mata la aplicación Stimulus ENTERA.** Un heredoc que no llegó
+a escribirse dejó `carga_informes_controller.js` sin crear mientras `index.js`
+ya lo importaba, y fallaron **ocho tests de sistema en pantallas ajenas** —el
+filtro de la barra, el borrado en línea, el campo con error—. Nada apuntaba al
+archivo que faltaba.
+
+→ **`test/integration/controladores_de_stimulus_test.rb`**, que comprueba las
+tres cosas que se desparejan solas: que cada import tenga su archivo, que cada
+archivo esté registrado, y que el nombre del registro coincida con la clase.
+
+**Y tres trampas de CSS que ya son un patrón:**
+
+1. Un `<details>` cerrado **no oculta** a un hijo con `position: absolute` —
+   tercera aparición, después de `.sidebar-nav` y `.nav-institutional`.
+2. Un `@media` **5.700 líneas antes** de su regla base no aplica: a igual
+   especificidad gana la última. Primo del accidente de `.nota-ayuda`.
+3. El reparto de la barra estaba invertido, y **se pudo medir**: a 390 px el
+   nombre del colegio se quedaba con 165 px y la pastilla de contexto con 13.
+
+**Lección de proceso:** no encadenar `grep` con `&&` antes de escribir un
+archivo. Un `grep` sin resultados devuelve 1 y corta la cadena — pasó dos veces
+esta noche, y las dos veces el archivo no se escribió sin que nada avisara.
+
+---
 
 ## Sesión del 1 de septiembre — QA de Daniel y la clonación
 
@@ -1222,12 +1327,25 @@ tocan una vez al año— y los estados vacíos con lenguaje de producto.
 ## Dónde está todo ahora
 
 ```
-  main  (7139e7c)   ← origin y producción, los tres al día
+  main  (0cb373b)   ← origin al día · PRODUCCIÓN QUEDÓ ATRÁS, ver abajo
 ```
 
-`bin/ci` en verde: **809 tests**, 4020 aserciones, ~23 s.
+`bin/ci` en verde: **1259 tests**, 5.841 aserciones, ~2 min 30 s.
 
 ## ⚠️ Pendientes que necesitan a Daniel
+
+0. **DESPLEGAR.** `main` tiene cinco PR que producción no tiene: MOR-136 entero,
+   la resiembra, el informe descriptivo y la barra nueva. **No lo hice a
+   propósito**: hay brokers usando prod ahora mismo con las credenciales de
+   demo, y desplegar cambia lo que están mirando. Es `git push dokku` y es
+   decisión de Daniel cuándo.
+
+   ⚠️ Y ojo con la resiembra: `db:seed` en producción **no** corre solo, pero el
+   despliegue trae migraciones nuevas (`informes`, y las cuatro de MOR-136).
+
+0b. **Confirmar dos decisiones de MOR-216** que tomé sin él: el informe es uno
+   por LAPSO (no por materia) y lo escribe el GUÍA de la sección. Están
+   marcadas en el spec y en el comentario del issue.
 
 1. **Subir `SIGA_HSTS_SEGUNDOS` a 31536000** cuando pasen unos días sin sobresaltos.
 3. **`MOR-144` · DMARC a `p=reject`** — vence el 4 de septiembre de 2026.
@@ -1280,6 +1398,18 @@ certificado— vuelve a hacer falta `credentials`. Mientras el despliegue sea po
 entorno, no.
 
 ## Lo que sigue, en orden
+
+**En cola en Linear, sin abrir** (el acuerdo es una tarea a la vez):
+
+```
+   MOR-212  nomenclatura del MPPE: Preescolar → Educación Inicial,
+            Materias → Áreas de aprendizaje…  ← transversal, toca todo
+   MOR-213  los tres equipos administrativos (directivo, pedagógico, admin.)
+   MOR-214  poder borrar grados y materias
+   MOR-217  un profesor coordinador por área de aprendizaje del grado
+   MOR-218  Educación Inicial no califica: DESCRIBE  ← otra pantalla entera
+   MOR-215  el listado nacional de códigos DEA
+```
 
 0. **`MOR-146` · Limpiar los datos de demo de producción.** Es lo único marcado como
    **urgente** en todo el backlog, y no lo toqué a propósito: borrar 290 alumnos y sus notas
