@@ -89,6 +89,7 @@ class DesbordeEnElTelefonoTest < ApplicationSystemTestCase
     departments_path academic_periods_path evaluation_moments_path
     asistencias_path evaluation_activities_path report_cards_path
     constancias_path importaciones_path dashboards_activity_logs_path
+    competencies_path
   ].freeze
 
   test "ninguna pantalla se corre de lado en un teléfono" do

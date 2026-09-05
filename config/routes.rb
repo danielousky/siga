@@ -207,6 +207,18 @@ Rails.application.routes.draw do
   post "asistencia/:seccion_id",        to: "asistencias#create"
 
   resources :evaluation_moments, path: "lapsos", except: [ :show ]
+  # El plan de evaluación de una sección: sus competencias e indicadores
+  # (MOR-136). Cuelga de (sección, materia, lapso), que es la misma unidad de
+  # trabajo de las evaluaciones.
+  resources :competencies, path: "competencias", except: [ :show ] do
+    collection do
+      # Traer el plan del año pasado para revisarlo. POST porque escribe.
+      post "sugerido", to: "competencies#sugerido", as: :traer
+      # Copiarlo a las otras secciones que dicta este mismo profesor.
+      post "copiar",   to: "competencies#copiar",   as: :copiar_a
+    end
+  end
+
   resources :evaluation_activities, path: "evaluaciones" do
     # La planilla de carga. `notas/:student_id` hace upsert y borrado: mandar el
     # campo vacío devuelve al alumno a "sin nota", que NO es lo mismo que un 1.

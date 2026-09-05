@@ -1,0 +1,31 @@
+-# Una fila de pastillas: elegir UNO entre pocos (MOR-136).
+-#
+-# `opciones` es un arreglo de `[texto, ruta, activa?]` — la misma forma que
+-# `shared/_pestanas`, a propósito: son primas y se leen igual desde la vista.
+-#
+-# ## Cuándo pastillas y cuándo un desplegable
+-#
+-# Idea de Cyndi Montoya, sobre el plan de evaluación: *«que subdividiera este
+-# panel en pestañas (o group-button o pills) donde seleccione primero el grado,
+-# área de aprendizaje y luego sí el lapso»*.
+-#
+-#     PASTILLAS      pocas opciones, y CUÁLES son parte de la respuesta
+-#     DESPLEGABLE    muchas, o la lista no dice nada por sí misma
+-#
+-# Un profesor con veinte asignaciones veía un desplegable de veinte renglones
+-# donde tenía que LEER para elegir. Partido en grado → área → lapso, ninguna
+-# fila pasa de seis, y de paso la pantalla dice cuántos grados dicta.
+-#
+-# ## ⚠️ Cada pastilla es un ENLACE, igual que una pestaña
+-#
+-# Con la elección en la URL, el botón de atrás vuelve a la anterior y el enlace
+-# se puede mandar por WhatsApp. Con JavaScript y `hidden`, no.
+-#
+-# `aria-current="true"` y no `"page"`: no se navega a otra página, se acota la
+-# misma. `role` no hace falta — es una lista de enlaces y eso ya es navegación.
+%nav.pastillas{ "aria-label": etiqueta }
+  %span.pastillas-etiqueta= etiqueta
+  .pastillas-fila
+    - opciones.each do |texto, ruta, activa|
+      = link_to texto, ruta, class: class_names("pastilla", activa: activa),
+                "aria-current": (activa ? "true" : nil)

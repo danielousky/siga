@@ -920,6 +920,7 @@ textarea.form-control {
     flex: 0 0 auto;
   }
 
+
   /* ── el grupo, como botón del navbar ────────────────────────────────── */
 
   .sidebar-grupo {
@@ -993,6 +994,28 @@ textarea.form-control {
     white-space: normal;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
+  }
+
+  /* ⚠️ El desplegable CERRADO se estaba maquetando igual.
+     `.sidebar-section .sidebar-nav { display: flex }` alcanza también al `<ul>`
+     de un `<details>` cerrado, y un `display` explícito **anula el ocultamiento
+     que hace el navegador**. O sea que los enlaces de los cinco grupos estaban
+     ahí, con ancho, aunque no se vieran.
+     Nunca se notó porque ninguna etiqueta había sido lo bastante larga: el día
+     que apareció «Planes de evaluación» desbordó 9 px las TRECE pantallas del
+     director a la vez. */
+  .sidebar-grupo:not([open]) > .sidebar-nav { display: none; }
+
+  /* ⚠️ El NOMBRE tiene que poder encogerse, y un `<span>` dentro de un flex NO
+     lo hace solo: `min-width: auto` es el valor inicial de un ítem flex, o sea
+     «nunca más angosto que mi contenido». Con `flex-direction: column` de
+     arriba, el nombre es un ítem — y «Planes de evaluación», veinte caracteres,
+     desbordaba 9 px **las trece pantallas del director a la vez**.
+     Se arregla la causa y no el nombre: el próximo enlace largo no rompe nada.
+     Es la misma trampa de `.cabecera-de-lista` en MOR-194, un nivel más adentro. */
+  .sidebar-grupo[open] > .sidebar-nav .sidebar-nav-link > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .sidebar-grupo[open] > .sidebar-nav .sidebar-nav-link.active {
@@ -2248,10 +2271,30 @@ nav.pagy a.gap {
   padding: 2px 10px;
 }
 
+/* La nota que SÍ se queda visible: la que dice qué pasa si no se hace (MOR-161).
+   Se afina para que no compita con el campo, pero se sigue leyendo.
+
+   ⚠️ NO lleva `max-width`, y antes sí: tenía `62ch`, la medida clásica de
+   lectura. Daniel lo señaló DOS veces —«no entiendo por qué los textos de ayuda
+   están recortados y no ocupan el ancho»— y tenía razón las dos.
+
+   La medida de lectura se gana su lugar en PROSA LARGA. Acá el texto más largo
+   de los 74 usos son 90 caracteres, o sea línea y media: cortar a 62 no evita
+   ninguna fatiga y sí deja la nota terminando en el aire, sin alinearse con el
+   campo del que cuelga. En un formulario, la nota pertenece al control que
+   tiene encima, y esa relación pesa más que un ideal tipográfico.
+
+   ⚠️ Y estaba definida DOS VECES, a cuatro mil líneas de distancia. Eso es lo
+   que hacía difícil de encontrar el recorte: quien leía la primera no veía el
+   `max-width` de la segunda. Ahora es una sola.
+
+   `pretty` se queda: evita la línea huérfana de dos palabras al final, y no
+   cuesta ancho. */
 .nota-ayuda {
   margin: var(--space-sm) 0 0;
   font-size: 13px;
   color: var(--text-tertiary);
+  text-wrap: pretty;
 }
 
 @media (max-width: 600px) {
@@ -5869,6 +5912,110 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
+
+/* ---- Pastillas: elegir UNO entre pocos (MOR-136) ---- */
+/* Primas de las pestañas y por eso se parecen: enlaces, no botones de
+   JavaScript. Lo que cambia es qué preguntan — una pestaña cambia el ÁNGULO
+   sobre lo mismo, una pastilla cambia el SUJETO. Ver `shared/_pastillas`.
+
+   ⚠️ Miden y se redondean como un `.btn`: 36 px de alto y `--radius-sm`.
+   Estuvieron con `border-radius: 999px` y 40 px, y desentonaban con todo lo
+   demás —«los botones no cuadran con el resto del estilo del proyecto»—: en
+   una app donde cada control tiene 3 px de radio, una cápsula se lee como
+   pegada de otro sitio. */
+
+/* La escalera: las tres filas juntas. El `gap` va acá y no en cada fila —
+   márgenes de hermanos se colapsan entre sí y se duplican contra el padding
+   de la tarjeta; un `gap` de grid no hace ninguna de las dos cosas. */
+.plan-escalera {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.pastillas {
+  display: flex;
+  /* ⚠️ `center`, NUNCA `baseline`.
+     Con `baseline`, el navegador alinea la línea de texto de la etiqueta de
+     11 px con la de una pastilla de 36 px, y para lograrlo empuja la pastilla
+     HACIA ARRIBA fuera de su renglón: las tres filas se montaban una sobre
+     otra y la activa aparecía como un borrón azul encima de la de al lado. */
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+/* La etiqueta ancla la fila, así que necesita ancho FIJO: sin él, «Lapso» y
+   «Área de aprendizaje» empiezan sus pastillas en columnas distintas y las
+   tres filas se leen como tres controles sueltos en vez de una escalera. */
+.pastillas-etiqueta {
+  flex: 0 0 auto;
+  min-width: 9.5rem;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.pastillas-fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  /* Que quede algo por envolver: sin esto, un `flex` mide por el contenido y
+     una fila de nueve grados empuja la tarjeta hacia afuera. */
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.pastilla {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.pastilla:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  background: var(--surface-hover);
+}
+
+/* ⚠️ La activa se pinta con el azul de marca y no con un tono semántico: es
+   afordancia de un control, no significado de un dato (regla de color,
+   MOR-135). Y va SÓLIDA, no con un borde: entre nueve pastillas, un borde de
+   1px no se encuentra de un vistazo. */
+.pastilla.activa,
+.pastilla.activa:hover {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #fff;
+}
+
+.pastilla:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+@media (max-width: 700px) {
+  /* En el teléfono la etiqueta pasa a ser un renglón propio: reservarle 9.5rem
+     al lado dejaba a las pastillas en una columna de dos dedos de ancho. */
+  .pastillas { gap: var(--space-micro); }
+  .pastillas-etiqueta { min-width: 100%; }
+}
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    QUÉ NIVELES DICTA EL COLEGIO (MOR-153)
 
@@ -6421,16 +6568,6 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
     margin-top: var(--space-micro);
     position-try-fallbacks: flip-block, flip-inline;
   }
-}
-
-/* La nota que SÍ se queda visible: la que dice qué pasa si no se hace. Se
-   afina para que no compita con el campo, pero se sigue leyendo. */
-/* ⚠️ `pretty` evita la línea huérfana. Con 62ch de ancho, «tomar la dirección.»
-   caía sola al final y el párrafo se leía como si estuviera roto. El navegador
-   reparte las últimas líneas para que ninguna quede con dos palabras. */
-.nota-ayuda {
-  max-width: 62ch;
-  text-wrap: pretty;
 }
 
 /* Un dato secundario: el teléfono debajo de un nombre, «Sin asignar», el
@@ -7192,3 +7329,95 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 }
 
 .paso-pendiente-enlace::after { content: " →"; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   El plan de evaluación: competencias e indicadores (MOR-136)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* El plan del año pasado, OFRECIDO y no cargado.
+   ⚠️ En el tono de `accion` (índigo) y no de aviso: no hay nada que corregir,
+   hay algo que se puede aprovechar. El ámbar diría que algo está mal. */
+.plan-sugerido { border-left: 3px solid var(--accion-primary); }
+
+.plan-sugerido-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0 0 var(--space-xs);
+  font-size: 16px;
+  color: var(--accion-primary);
+}
+
+.plan-sugerido-lista {
+  margin: var(--space-sm) 0 var(--space-md);
+  padding-left: var(--space-lg);
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* La lista del plan. Numerada de verdad —`<ol>`— porque el orden es del
+   docente y un lector de pantalla tiene que poder decir «3 de 21». */
+.plan-competencias {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: competencia;
+}
+
+.plan-competencia {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.plan-competencia:first-child { border-top: 0; }
+.plan-competencia-texto { flex: 1; min-width: 0; }
+
+/* ⚠️ `.columna-acciones` trae `width: 1%` —sirve en una TABLA, donde el 1 % lo
+   resuelve el algoritmo de la tabla— y dentro de un flex eso la deja encogerse
+   por debajo de su contenido: los dos botones se salían del borde en el
+   teléfono, con el de borrar cortado a la mitad. */
+.plan-competencia .columna-acciones { flex: 0 0 auto; width: auto; }
+
+@media (max-width: 700px) {
+  /* Con el texto de una competencia —cuarenta palabras— y dos botones al lado,
+     a 390 px no hay ancho para las dos cosas. Los botones bajan a su renglón. */
+  .plan-competencia { flex-wrap: wrap; }
+  .plan-competencia .columna-acciones { width: 100%; }
+}
+
+/* ⚠️ El número va por CSS y no escrito: renumerar veintiuna a mano al borrar la
+   tercera es el trabajo que este issue viene a quitar. */
+.plan-competencia-descripcion {
+  margin: 0;
+  counter-increment: competencia;
+  text-wrap: pretty;
+  max-width: 80ch;
+}
+
+.plan-competencia-descripcion::before {
+  content: counter(competencia) ". ";
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Los indicadores DESCRIBEN: van en segundo plano, sin nivel al lado, porque no
+   se califican. Que se vean subordinados es la mitad de decir eso. */
+.plan-indicadores {
+  margin: var(--space-xs) 0 0;
+  padding-left: var(--space-lg);
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.plan-acciones {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.plan-acciones .nota-ayuda { margin-top: var(--space-xs); }
