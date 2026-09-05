@@ -1,0 +1,62 @@
+-# La planilla de informes descriptivos (MOR-216).
+-#
+-# ⚠️ Es una PLANILLA, no un formulario por alumno: la maestra escribe
+-# veinticinco seguidos, y con una pantalla por alumno son cincuenta clics de
+-# navegación además de lo que escribe. Es lo mismo que resolvió la planilla de
+-# notas, con la misma solución.
+= render "shared/cabecera_de_lista", titulo: "Informes descriptivos",
+         detalle: "#{@seccion.grade.name} #{@seccion.name} · #{@seccion.academic_period.name}"
+
+.card-academic
+  - if @lapsos.many?
+    = render "shared/pastillas", etiqueta: "Lapso",
+             opciones: @lapsos.map { |l| [ l.name, section_informes_path(@seccion, lapso: l.id), l.id == @lapso&.id ] }
+
+  %p.nota-ayuda
+    Cómo le fue al alumno en el lapso, en sus palabras. Sale
+    %strong al final de la boleta
+    \, debajo de las calificaciones. Se guarda solo mientras escribe.
+
+- if @inscripciones.empty?
+  .card-academic
+    .empty-state
+      %h3 Esta sección no tiene alumnos inscritos
+      %p Cuando se inscriban, aparecen acá para escribirles su informe.
+
+- else
+  .card-academic{ data: { controller: "carga-informes",
+                          carga_informes_url_base_value: section_informes_path(@seccion, lapso: @lapso&.id) } }
+    %ul.informes-lista
+      - @inscripciones.each do |inscripcion|
+        - informe = @informes[inscripcion.id]
+        %li.informe-fila{ data: { carga_informes_target: "fila" } }
+          .informe-cabecera
+            %span.informe-alumno= inscripcion.student.user.apellidos_y_nombres
+            -# ⚠️ El promedio al lado del nombre, y no es decorado: escribiendo
+            -# veinticinco informes seguidos hay que poder recordar de quién se
+            -# habla sin salir de la pantalla.
+            - promedio = @promedios[inscripcion.id]
+            - if promedio
+              %span.informe-promedio
+                - nivel = Rubric.para(promedio, @rubricas)
+                - if nivel
+                  = "#{nivel.code} · #{promedio}"
+                - else
+                  = promedio
+            - else
+              %span.informe-promedio.dato-secundario Sin notas
+            %span.informe-estado{ data: { carga_informes_target: "estado" } }
+
+          = text_area_tag :cuerpo, informe&.cuerpo,
+              rows: 3, class: "form-control informe-campo",
+              placeholder: "Cómo le fue en el lapso: qué logró, en qué avanzó, qué conviene reforzar…",
+              data: { carga_informes_target: "campo",
+                      enrollment: inscripcion.id,
+                      action: "input->carga-informes#crecer blur->carga-informes#guardar" }
+
+    -# La cola de fallos, visible y con reintento: un guardado silencioso que
+    -# falla es peor que no guardar — se cierra el teléfono creyendo que terminó.
+    .carga-aviso{ data: { carga_informes_target: "aviso" }, hidden: true }
+      %span{ data: { carga_informes_target: "avisoTexto" } }
+      = button_tag "Reintentar", type: "button", class: "btn btn-secondary btn-sm",
+          data: { action: "carga-informes#reintentarTodo" }

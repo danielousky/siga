@@ -40,6 +40,10 @@ class ReportCardData
       # cosas distintas — que es exactamente lo que este snapshot existe para
       # impedir.
       "rubrica"  => rubrica,
+      # El informe descriptivo del docente (MOR-216). Va CONGELADO como todo lo
+      # demás: si la maestra lo corrige en marzo, el boletín de diciembre sigue
+      # diciendo lo que la familia leyó.
+      "informe"  => informe,
       "emitido"  => Date.current.to_s
     }
   end
@@ -328,6 +332,17 @@ class ReportCardData
 
   def rubricas
     @rubricas ||= Rubric.en_orden.to_a
+  end
+
+  # El informe descriptivo de ESTE lapso (MOR-216).
+  #
+  # ⚠️ Solo en el boletín de lapso: el informe habla de «su rendimiento del
+  # lapso» y el anual cruza tres. Ponerle el del primero sería mentir sobre los
+  # otros dos.
+  def informe
+    return nil if @lapso.nil?
+
+    Informe.para(@enrollment.id, @lapso.id)&.cuerpo
   end
 
   # ⚠️ Se guarda ENTERA, no solo los códigos: la boleta impresa lleva su leyenda

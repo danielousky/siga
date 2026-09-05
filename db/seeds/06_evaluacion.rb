@@ -413,6 +413,58 @@ etiquetadas = 0
   end
 end
 
+# ── Los informes descriptivos (MOR-216) ──────────────────────────────────────
+#
+# ⚠️ Algunos SÍ y otros NO, a propósito. Un colegio a mitad de lapso tiene la
+# mitad escritos, y la boleta de un alumno sin informe tiene que salir igual —
+# sin un renglón vacío ni un título huérfano. Con todos escritos ese caso no se
+# ve nunca.
+paso "✍️  Informes descriptivos"
+
+INFORMES = [
+  "Avanzó mucho en la lectura en voz alta durante este lapso. Todavía se apura al " \
+  "leer y se salta los signos de puntuación; conviene practicar en casa diez minutos " \
+  "diarios con un cuento que le guste.",
+
+  "Trabaja con constancia y termina lo que empieza. Le cuesta pedir ayuda cuando no " \
+  "entiende: hay que animarla a preguntar en el momento y no al final de la clase.",
+
+  "Domina las operaciones básicas y ayuda a sus compañeros cuando terminan tarde. " \
+  "En los problemas de dos pasos se apura y responde antes de leer todo el enunciado.",
+
+  "Se distrae al final de la mañana y conviene sentarlo adelante. Cuando está atento " \
+  "resuelve sin dificultad, y eso se nota en las evaluaciones de la primera hora.",
+
+  "Mejoró mucho desde octubre, sobre todo en la escritura: separa bien las palabras y " \
+  "empezó a usar mayúscula al iniciar la oración sin que se le recuerde."
+].freeze
+
+escritos = 0
+
+[ [ bolivar, "4to Grado" ], [ bolivar, "1er Grado" ] ].each do |colegio, grado|
+  Current.school = colegio
+  seccion = seccion_de(colegio, grado, "A", SEMILLA[:anio_bolivar])
+  next if seccion.nil?
+
+  guia = seccion.leader_teacher&.user || User.find_by(email: "director.bolivar@siga.edu")
+  next if guia.nil?
+
+  primer_lapso = lapsos_bol.first
+  Enrollment.where(section_id: seccion.id, status: :regular).order(:id).each_with_index do |inscripcion, i|
+    # Dos de cada tres: el estado real de una maestra a mitad de lapso.
+    next if (i % 3) == 2
+
+    Informe.find_or_create_by!(enrollment: inscripcion, evaluation_moment: primer_lapso) do |informe|
+      informe.escrito_por = guia
+      informe.cuerpo = INFORMES[i % INFORMES.size]
+    end
+    escritos += 1
+  end
+end
+
+Current.school = bolivar
+puts "   ✓ #{escritos} informes escritos · el tercio restante queda SIN informe, a propósito"
+
 Current.school = bolivar
 puts "   ✓ #{competencias} competencias con sus indicadores, en 1er y 4to Grado"
 puts "     #{etiquetadas} evaluaciones del 1er lapso etiquetadas con lo que evalúan"

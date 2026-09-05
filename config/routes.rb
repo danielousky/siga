@@ -345,6 +345,15 @@ Rails.application.routes.draw do
   end
   resources :sections, path: "secciones" do
     resources :teacher_sections, path: "profesores", only: [:create, :destroy]
+
+    # Los informes descriptivos del lapso (MOR-216). Cuelgan de la SECCIÓN
+    # porque se escriben de a veinticinco, no de a uno: es una planilla, como
+    # la de notas.
+    #
+    # `informes/:enrollment_id` guarda uno solo — el guardado es incremental y
+    # cada informe viaja apenas se deja de escribir.
+    get   "informes",                to: "informes#index",  as: :informes
+    patch "informes/:enrollment_id", to: "informes#update", as: :informe
   end
   resources :enrollments, path: "inscripciones", except: [ :show ]
   # Los documentos oficiales del MPPE (MOR-99). Cuelgan del alumno o de su

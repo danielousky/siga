@@ -6012,6 +6012,90 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   outline-offset: 2px;
 }
 
+/* ---- La planilla de informes descriptivos (MOR-216) ---- */
+/* La maestra escribe veinticinco seguidos: la pantalla tiene que sentirse como
+   una lista y no como veinticinco formularios. */
+.informes-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.informe-cabecera {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.informe-alumno {
+  font-weight: 600;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* El promedio al lado del nombre: escribiendo veinticinco informes seguidos hay
+   que poder recordar de quién se habla sin salir de la pantalla.
+   ⚠️ SIN color semántico — es una referencia para el docente, no una alarma, y
+   en SIGA el rojo quiere decir «este niño está aplazado» (MOR-135). */
+.informe-promedio {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* El estado del guardado, por fila. Un guardado silencioso que falla es peor
+   que no guardar: se cierra el teléfono creyendo que se terminó. */
+.informe-estado {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  min-width: 5.5rem;
+  text-align: right;
+}
+
+.informe-fila[data-estado="guardado"] .informe-estado { color: var(--guardar-primary); }
+.informe-fila[data-estado="error"]    .informe-estado { color: var(--eliminar-primary); }
+
+.informe-campo {
+  /* Crece con lo que se escribe: tres líneas fijas esconden lo ya escrito justo
+     cuando se relee para corregir. El alto lo pone el controlador. */
+  resize: vertical;
+  min-height: 4.5rem;
+  overflow-y: hidden;
+  line-height: 1.5;
+}
+
+.informe-fila[data-estado="error"] .informe-campo { border-color: var(--eliminar-primary); }
+
+/* El informe en la boleta y en el portal de la familia. */
+.informe-descriptivo {
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  border-left: 3px solid var(--border-standard);
+  background: var(--surface-hover);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.informe-descriptivo-titulo {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-xs);
+}
+
+.informe-descriptivo-cuerpo {
+  margin: 0;
+  white-space: pre-line;
+  line-height: 1.6;
+}
+
 /* ---- Las competencias en el portal de la familia (MOR-136) ---- */
 /* Es para lo ÚNICO que existen las competencias: que la madre lea qué se
    trabajó, no solo con qué nota salió su hijo. */

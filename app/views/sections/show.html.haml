@@ -1,6 +1,13 @@
 .card-academic
   .card-academic-header
     %h1= "#{@section.grade.name} – Sección #{@section.name}"
+    -# ⚠️ Los informes descriptivos los escribe el GUÍA de la sección, o la
+    -# dirección cuando no lo hay (MOR-216). El botón aparece exactamente para
+    -# quien puede entrar: ofrecerlo a un profesor que no es guía lo manda a una
+    -# pantalla que solo puede rechazarlo.
+    - if can_manage_sections? || (profesor? && @section.leader_teacher_id == current_user.teacher&.id)
+      = boton "Informes descriptivos", section_informes_path(@section), icono: :notas, tono: :secondary
+
     - if administrador?
       -# "Eliminar" vive en la pantalla de edición, en el bloque que explica
         qué se pierde y solo aparece si va a funcionar (`shared/_borrar`). Una
