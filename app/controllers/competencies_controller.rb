@@ -118,7 +118,7 @@ class CompetenciesController < ApplicationController
   # Las asignaciones del profesor: cada par sección–materia que dicta.
   # Es el MISMO método de `EvaluationActivitiesController`, y acotar la búsqueda
   # a `current_user.teacher` es lo que autoriza.
-  # ⚠️ Del AÑO de la sesión, y sin eso la pantalla miente.
+  # ⚠️ Del AÑO y del NIVEL de la sesión.
   #
   # Un colegio que ya copió su estructura al año siguiente tiene las MISMAS
   # secciones dos veces —«1er Año A» de 2025-2026 y «1er Año A» de 2026-2027—
@@ -132,6 +132,10 @@ class CompetenciesController < ApplicationController
   #
   # ⚠️ Y solo los grados que EVALÚAN POR COMPETENCIAS. Ver `Grade#por_competencias?`.
   #
+  # ⚠️ El NIVEL de la sesión también (MOR-223): un profesor que da primaria y
+  # media veía las dieciséis secciones juntas en la escalera de grados. Daniel:
+  # *«no trabajas las cosas juntas, primero haces primaria y luego media»*.
+  #
   # ⚠️ Ordenadas por el ORDEN OFICIAL del grado, no por su nombre: «10mo» iría
   # antes que «2do» alfabéticamente el día que un colegio cargue esos nombres.
   def mis_asignaciones
@@ -140,6 +144,7 @@ class CompetenciesController < ApplicationController
 
     @mis_asignaciones = current_user.teacher.teacher_sections
                                     .del_anio_de_la_sesion
+                                    .del_nivel_de_la_sesion
                                     .includes(:subject, section: [ :grade, :academic_period ])
                                     .select { |ts| ts.section.grade.por_competencias? }
                                     .sort_by { |ts| [ ts.section.grade.orden || 99, ts.section.name, ts.subject.name ] }

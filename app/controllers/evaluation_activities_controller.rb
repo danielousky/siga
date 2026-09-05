@@ -80,12 +80,18 @@ class EvaluationActivitiesController < ApplicationController
   # El conjunto que este usuario puede siquiera nombrar. `find` sale de acá, así
   # que pedir el id de una evaluación ajena da 404 y no 403: no se confirma que
   # exista.
+  # ⚠️ Y el NIVEL de la sesión (MOR-223). Un profesor que da primaria y media
+  # veía las dos listas mezcladas y sin división. Daniel: *«mira eso: primaria y
+  # media juntos y sin división… no trabajas las cosas juntas»*.
+  #
+  # Va acá y no en `index` para que alcance también a `show`, `edit` y a la
+  # planilla de notas: si el listado esconde una sección, entrar a su evaluación
+  # por el botón de atrás no puede devolver algo que la pantalla anterior dijo
+  # que no existe.
   def alcance
-    if profesor?
-      EvaluationActivity.dictadas_por(current_user.teacher)
-    else
-      EvaluationActivity.all
-    end
+    base = profesor? ? EvaluationActivity.dictadas_por(current_user.teacher) : EvaluationActivity.all
+
+    base.del_nivel_de_la_sesion
   end
 
   def set_evaluation_activity
@@ -93,11 +99,19 @@ class EvaluationActivitiesController < ApplicationController
   end
 
   # Las asignaciones del profesor: cada par sección–materia que dicta.
+  #
+  # ⚠️ Filtradas por el NIVEL de la sesión, para que el desplegable del
+  # formulario ofrezca lo mismo que el listado. Con uno filtrado y el otro no,
+  # el profesor crea una evaluación en una sección que su pantalla no le muestra.
+  #
+  # ⚠️ Ordenadas por el ORDEN OFICIAL del grado, no por su nombre: «10mo» iría
+  # antes que «2do» alfabéticamente el día que un colegio cargue esos nombres.
   def mis_asignaciones
     @mis_asignaciones ||= current_user.teacher
       .teacher_sections
+      .del_nivel_de_la_sesion
       .includes(:subject, section: [:grade, :academic_period])
-      .sort_by { |ts| [ts.section.grade.name, ts.section.name, ts.subject.name] }
+      .sort_by { |ts| [ts.section.grade.orden || 99, ts.section.name, ts.subject.name] }
   end
   helper_method :mis_asignaciones
 

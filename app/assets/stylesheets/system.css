@@ -1216,7 +1216,11 @@ textarea.form-control {
    cuál de los dos colegios está parada la secretaria que tiene los dos. */
 @media (max-width: 640px) {
   .barra-superior-inner {
-    gap: var(--space-sm);
+    /* ⚠️ El aire de la barra, al mínimo. Cinco elementos separados por 12 px
+       son 48 px; a 4 px son 16. En una pantalla de 390 px esa diferencia es la
+       que decide si «Cerrar sesión» cabe o hay que esconderlo — y esconderlo
+       fue lo que Daniel encontró mal. */
+    gap: var(--space-micro);
     /* 16 px de cada lado son 32 px de una pantalla de 390: el 8 % gastado en
        margen antes de dibujar nada. */
     padding: 0 var(--space-sm);
@@ -1242,10 +1246,43 @@ textarea.form-control {
     display: none;
   }
 
-  /* El botón se va y queda el nombre, que ya enlaza al perfil — y ahí adentro
-     está «Cerrar sesión». Un botón de texto entero es lo más caro de la barra
-     y lo que menos se usa. */
-  .barra-superior .session-menu .btn { display: none; }
+  /* ⚠️ «Cerrar sesión» se queda, como ICONO.
+
+     Estuvo escondido, con el argumento de que el nombre enlaza al perfil y ahí
+     adentro está el botón. Daniel lo probó en un iPhone XR: *«en el mobile
+     display no se visualiza el cerrar sesión»*. Y tenía razón — nadie va a
+     buscar la salida dentro de su propia ficha.
+
+     Lo que lo hace posible ahora es que la barra adelgazó: la pastilla de
+     contexto reemplazó a cinco controles (MOR-223), así que hay lugar para un
+     objetivo táctil de 36 px.
+
+     ⚠️ Se esconde el TEXTO, no el botón, y con `.sr-only` en vez de
+     `display: none`: el nombre sigue existiendo para el lector de pantalla, que
+     es justo quien lo necesita cuando lo único visible es un dibujo. */
+  .barra-superior .session-menu .btn {
+    padding: 0;
+    width: 36px;
+    min-height: 36px;
+    justify-content: center;
+  }
+
+  /* El nombre entero se va y queda la inicial: son ~50 px para decirle a
+     alguien quién es él mismo, y ese lugar lo necesita la salida. */
+  .barra-superior .session-menu .user-info-nombre { display: none; }
+  .barra-superior .session-menu .user-info-inicial { display: inline; }
+
+  .barra-superior .session-menu .btn .salir-texto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
 
   /* ⚠️ El buscador global se encoge a su icono, y su `min-width: 220px` TIENE
      que levantarse explícitamente: es un mínimo, así que ningún `flex-shrink`
@@ -6985,6 +7022,19 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 
 .contexto[open] .contexto-pastilla-flecha { transform: rotate(180deg); }
 
+/* ⚠️ Con el panel ABIERTO, el tooltip de la pastilla se apaga.
+   
+   Los dos salen hacia abajo desde el mismo punto, así que el panel tapaba al
+   tooltip y solo asomaba una franja negra cortada por su borde — que fue lo que
+   Daniel vio. La salida no es darle más alto al panel: es que no compitan.
+   
+   Y no se pierde nada: el panel abierto ya dice «SOBRE QUÉ ESTÁS TRABAJANDO»
+   en su primer renglón, que es exactamente lo que decía el tooltip. */
+.contexto[open] .contexto-pastilla::after,
+.contexto[open] .contexto-pastilla::before {
+  display: none;
+}
+
 .contexto-pastilla-flecha {
   color: var(--text-tertiary);
   transition: transform var(--transition-fast);
@@ -7204,6 +7254,11 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 /* ⚠️ El MISMO vocabulario en los dos caminos —la pastilla y el texto fijo—
    porque es el mismo dato: cuál año, en qué situación, o que no hay ninguno.
    Con dos juegos de clases, retocar uno dejaba al otro atrás. */
+/* La inicial del usuario solo aparece en el teléfono; en escritorio manda el
+   nombre. Sin esta regla se veían las DOS —«LUISAL»— porque el ancla de este
+   bloque se había renombrado y el reemplazo no encontró dónde escribir. */
+.user-info-inicial { display: none; }
+
 .contexto-valor-anio { font-weight: 600; color: var(--brand-primary); }
 .contexto-valor-situacion { color: var(--text-tertiary); font-size: 13px; }
 
@@ -7240,13 +7295,13 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
      El nombre igual no desaparece: se recorta con puntos suspensivos, que es
      lo que dice en cuál de los dos colegios está parada la secretaria que
      tiene los dos. */
-  .contexto-colegio { max-width: 10ch; }
+  .contexto-colegio { max-width: 8ch; }
 
   /* ⚠️ Cede, pero con PISO. `flex-shrink: 0` a secas devolvía el desborde de
      45 px; `flex-shrink: 1` sin piso lo dejaba en 13 px, o sea invisible. El
      piso es lo que el año necesita —«2025-2026» son nueve caracteres— y lo que
      sobra se reparte con el nombre del colegio. */
-  .contexto { min-width: 7.5rem; flex-shrink: 1; }
+  .contexto { min-width: 6.5rem; flex-shrink: 1; }
   .contexto-pastilla { max-width: 100%; min-width: 0; overflow: hidden; }
   .contexto-pastilla-texto { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 

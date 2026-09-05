@@ -56,5 +56,22 @@
       = render "shared/buscador_global"
 
     .session-menu
-      = link_to current_user.first_name, edit_user_registration_path, class: "user-info"
-      = link_to "Cerrar sesión", destroy_user_session_path, data: { turbo_method: :delete }, class: "btn btn-outline-light btn-sm"
+      -# ⚠️ En el teléfono queda la INICIAL, no el nombre entero.
+      -#
+      -# El nombre completo son ~50 px para decirle a alguien quién es él mismo;
+      -# la inicial conserva lo único que ese enlace hace falta que haga, que es
+      -# llevar al perfil. Los 50 px se los lleva «Cerrar sesión», que sí hay que
+      -# poder encontrar.
+      = link_to edit_user_registration_path, class: "user-info" do
+        %span.user-info-nombre= current_user.first_name
+        %span.user-info-inicial{ "aria-hidden": true }= current_user.first_name.first
+      -# ⚠️ El icono SIEMPRE, y el texto solo cuando hay ancho (MOR-223).
+      -#
+      -# En el teléfono el botón se reducía a nada y quedaba solo el nombre, que
+      -# enlaza al perfil: había que entrar a la propia ficha para encontrar la
+      -# salida. Daniel: *«en el mobile display no se visualiza el cerrar
+      -# sesión»*. Ahora se encoge a su icono, como el buscador.
+      = link_to destroy_user_session_path, data: { turbo_method: :delete },
+                class: "btn btn-outline-light btn-sm", aria: { label: "Cerrar sesión" } do
+        = icono(:salir, tamano: 16)
+        %span.salir-texto Cerrar sesión

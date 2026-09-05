@@ -63,22 +63,54 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
     assert_select ".contexto-nivel-boton", text: "Bachillerato"
   end
 
-  # ⚠️ El profesor no elige nivel, igual que no elige año escolar. No es
-  # permisología: es que para él el nivel no es una preferencia.
-  test "el profesor no ve el selector" do
+  # ⚠️ El profesor SÍ elige nivel desde MOR-223, y el AÑO ESCOLAR sigue sin
+  # dárselo. La diferencia entre los dos es lo que hay que tener claro:
+  #
+  #     EL AÑO    lo lleva a otro año escolar, donde puede CARGAR NOTAS sin
+  #               enterarse de que está en el equivocado  →  no se le da
+  #     EL NIVEL  acota lo que ve entre lo que YA es suyo, y no mueve dónde
+  #               escribe                                  →  sí se le da
+  #
+  # Daniel, viendo «Mis evaluaciones» de un profesor con dieciséis secciones:
+  # *«mira eso: primaria y media juntos y sin división»*.
+  test "el profesor sigue SIN elegir año escolar" do
+    con_el_colegio(@a.colegio) do
+      AcademicPeriod.create!(name: "2024-2025", start_date: Date.new(2024, 9, 15),
+                             end_date: Date.new(2025, 7, 31))
+    end
     sign_in @a.profesor
+    get root_path
+
+    assert_select ".contexto-opcion", 0,
+                  "el año escolar sí lo llevaría a cargar notas donde no debe"
+  end
+
+  test "el profesor de un solo nivel no ve el selector" do
+    sign_in @a.profesor   # solo dicta «1er Año», de bachillerato
     get root_path
 
     assert_select ".contexto-nivel-boton", 0
   end
 
-  test "el profesor no puede cambiarlo por POST" do
+  test "el profesor de dos niveles sí puede cambiarlo por POST" do
+    profesor_de_los_dos
     sign_in @a.profesor
     post cambiar_nivel_path, params: { nivel: :primaria }
 
     assert_response :redirect
-    assert_nil session[LlevaElNivel::CLAVE],
-               "un profesor que cambia el nivel carga notas en el nivel equivocado sin enterarse"
+    assert_equal "primaria", session[LlevaElNivel::CLAVE]
+  end
+
+  # ⚠️ Y el de UN solo nivel no: la barra no le dibuja los botones, así que un
+  # POST a mano es la única forma de llegar acá — y `puede_elegir_nivel?` tiene
+  # que dar la MISMA respuesta que la barra, o el nivel se pone en la pantalla y
+  # nada cambia.
+  test "el profesor de un solo nivel no puede cambiarlo por POST" do
+    sign_in @a.profesor
+    post cambiar_nivel_path, params: { nivel: :primaria }
+
+    assert_response :redirect
+    assert_nil session[LlevaElNivel::CLAVE]
   end
 
   # ══════════════════════════════════════════════════════════════════════════
@@ -276,7 +308,82 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
     assert_select "table.table-academic td", text: @seccion_de_primaria.name
   end
 
+  # ══════════════════════════════════════════════════════════════════════════
+  # El profesor que da DOS niveles (MOR-223)
+  # ══════════════════════════════════════════════════════════════════════════
+  #
+  # Daniel, viendo «Mis evaluaciones» de un profesor con dieciséis secciones:
+  # *«mira eso: primaria y media juntos y sin división… no trabajas las cosas
+  # juntas, supongo que primero haces un primaria y luego media»*.
+
+  test "un profesor de un solo nivel NO ve el selector" do
+    sign_in @a.profesor
+    get dashboards_profesor_path
+
+    # Con un solo nivel el selector es un control que no decide nada.
+    assert_select ".contexto-nivel-boton", count: 0
+  end
+
+  test "un profesor que da dos niveles SÍ lo ve, y solo con sus niveles" do
+    profesor_de_los_dos
+
+    sign_in @a.profesor
+    get dashboards_profesor_path
+
+    niveles = css_select(".contexto-nivel-boton").map { |n| n.text.strip }
+    assert_includes niveles, "Primaria"
+    assert_includes niveles, "Bachillerato"
+    assert_includes niveles, "Todos"
+  end
+
+  # ⚠️ Los niveles del PROFESOR, no los del colegio. Darle al de primaria un
+  # «Bachillerato» que no le muestra nada es ofrecerle un modo de trabajo vacío.
+  test "el selector del profesor trae SUS niveles, no los del colegio" do
+    con_el_colegio(@a.colegio) do
+      # El colegio dicta preescolar además, y este profesor no.
+      Grade.create!(school: @a.colegio, name: "1er Nivel")
+    end
+    profesor_de_los_dos
+
+    sign_in @a.profesor
+    get dashboards_profesor_path
+
+    niveles = css_select(".contexto-nivel-boton").map { |n| n.text.strip }
+    assert_not_includes niveles, "Preescolar",
+                        "este profesor no dicta preescolar: ofrecérselo es un modo de trabajo vacío"
+  end
+
+  test "elegido un nivel, sus evaluaciones y su menú lo acompañan" do
+    de_media = profesor_de_los_dos
+
+    sign_in @a.profesor
+    post cambiar_nivel_path, params: { nivel: "primaria" }
+    get evaluation_activities_path
+
+    assert_response :success
+    assert_select "body", { text: /#{de_media.grade.name}/, count: 0 },
+                  "con «Primaria» puesto, la sección de bachillerato no puede seguir en la lista"
+
+    enlaces = css_select(".sidebar-nav-link span").map { |n| n.text.strip }
+    assert_not_includes enlaces, "#{de_media.grade.name} – #{de_media.name}",
+                        "el menú tiene que acompañar al filtro de la barra"
+  end
+
   private
+
+  # El profesor de @a ya dicta en «1er Año» (bachillerato); acá le agregamos la
+  # sección de PRIMARIA que el setup creó, para que dicte en los dos niveles.
+  #
+  # Devuelve la de BACHILLERATO: es la que tiene que desaparecer al elegir
+  # «Primaria», y por eso es la que el test mira.
+  def profesor_de_los_dos
+    con_el_colegio(@a.colegio) do
+      TeacherSection.find_or_create_by!(teacher: @a.registro_de_profesor,
+                                        section: @seccion_de_primaria,
+                                        subject: @a.escenario.materia)
+    end
+    @a.seccion
+  end
 
   def entrar_en_a = sign_in(@a.director)
 
