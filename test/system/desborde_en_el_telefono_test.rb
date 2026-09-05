@@ -127,9 +127,16 @@ class DesbordeEnElTelefonoTest < ApplicationSystemTestCase
     # ⚠️ Con un nivel PUESTO, que es cuando la barra lleva más texto: la
     # pastilla dice «2025-2026 · Primaria» en vez de solo el año. Sin esto, el
     # test mide la barra en su estado más corto y no la que hay que medir.
-    find(".contexto-pastilla").click
-    within(".contexto-panel") { click_button "Primaria" }
-    assert_selector ".contexto-pastilla", text: "Primaria"
+    tocando { find(".contexto-pastilla").click }
+    assert_selector ".contexto-panel", visible: true
+    tocando do
+      find(".contexto-panel button", text: GradoOficial.etiqueta(:primaria, corto: true),
+                                     exact_text: true).click
+    end
+    esperando_la_pagina
+    tocando do
+      assert_selector ".contexto-pastilla", text: GradoOficial.etiqueta(:primaria, corto: true)
+    end
 
     culpables = ANCHOS.flat_map do |ancho|
       PANTALLAS.filter_map do |helper|

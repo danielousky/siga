@@ -50,10 +50,16 @@ class NivelEnLaBarraTest < ApplicationSystemTestCase
   # documento.
   test "el panel se cierra con Escape" do
     visit grades_path
-    find(".contexto-pastilla").click
+    tocando { find(".contexto-pastilla").click }
     assert_selector ".contexto-panel", visible: true
 
-    find("body").send_keys :escape
+    # ⚠️ El Escape va al `<summary>`, no al `<body>`.
+    #
+    # Al `body` llegaba a veces antes de que el foco estuviera dentro del
+    # control, y el listener del controlador no lo veía: el panel seguía
+    # abierto y el test fallaba una de cada cinco corridas. Mandándoselo al
+    # elemento que tiene el foco, no hay carrera.
+    find(".contexto-pastilla").send_keys :escape
 
     assert_no_selector ".contexto-panel", visible: true
   end
