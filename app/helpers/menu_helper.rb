@@ -96,6 +96,10 @@ module MenuHelper
     [
       Grupo.new(enlaces: [ Enlace.new(nombre: "Inicio", icono: :panel, ruta: dashboards_profesor_path) ]),
       Grupo.new(titulo: "Mi trabajo", enlaces: [
+        # ⚠️ El plan va ANTES de las evaluaciones, y es el orden del trabajo
+        # real: primero se decide QUÉ se va a evaluar en el lapso, después se
+        # arman las evaluaciones que lo miden (MOR-136).
+        Enlace.new(nombre: "Plan de evaluación", icono: :materias, ruta: competencies_path),
         Enlace.new(nombre: "Mis evaluaciones", icono: :notas, ruta: evaluation_activities_path),
         Enlace.new(nombre: "Asistencia", icono: :asistencia, ruta: asistencias_path)
       ]),
@@ -255,6 +259,9 @@ module MenuHelper
       enlaces << Enlace.new(nombre: "Inscripciones", icono: :inscripciones, ruta: enrollments_path)
     end
     enlaces << Enlace.new(nombre: "Materias", icono: :materias, ruta: subjects_path)
+    # ⚠️ La dirección VE los planes y no los toca, por la misma razón que no
+    # toca la ponderación: es la decisión pedagógica de quien evalúa (MOR-136).
+    enlaces << Enlace.new(nombre: "Planes de evaluación", icono: :notas, ruta: competencies_path)
     enlaces << Enlace.new(nombre: "Departamentos", icono: :colegio, ruta: departments_path)
     enlaces
   end

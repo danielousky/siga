@@ -1,0 +1,98 @@
+-# El plan de evaluación de una sección (MOR-136).
+-#
+-# ⚠️ La pantalla NO abre vacía cuando hay un plan del año pasado: abre
+-# OFRECIÉNDOLO. Es todo el punto del issue — que la maestra no vuelva a
+-# escribir lo que su colegio ya escribió.
+= render "shared/cabecera_de_lista", titulo: "Plan de evaluación",
+         detalle: (asignacion ? "#{asignacion.section.grade.name} #{asignacion.section.name} · #{asignacion.subject.name}" : nil),
+         alta: (asignacion && profesor? ? { ruta: new_competency_path(asignacion: params[:asignacion], lapso: lapso&.id), nombre: "Registrar competencia" } : nil)
+
+- if mis_asignaciones.empty?
+  .card-academic
+    = render "shared/lista_vacia", clave: :materias,
+             titulo: "Todavía no tienes secciones asignadas",
+             texto: "El plan de evaluación cuelga de la sección que dictas. Cuando la dirección te asigne una materia, aparece acá."
+
+- else
+  .card-academic
+    -# El par sección–materia y el lapso: la unidad de trabajo, la misma de las
+    -# evaluaciones. Se envía solo al cambiar, como el año escolar de la barra.
+    = form_with url: competencies_path, method: :get, class: "cabecera-de-lista-filtros", data: { controller: "auto-envio" } do |f|
+      .campo-con-boton
+        = f.label :asignacion, "Sección", class: "campo-con-boton-inicio"
+        = f.select :asignacion,
+            options_for_select(mis_asignaciones.map { |ts| [ "#{ts.section.grade.name} #{ts.section.name} · #{ts.subject.name}", "#{ts.section_id}:#{ts.subject_id}" ] },
+                               "#{asignacion&.section_id}:#{asignacion&.subject_id}"),
+            {}, { class: "form-select", data: { action: "change->auto-envio#enviar" } }
+      .campo-con-boton
+        = f.label :lapso, class: "campo-con-boton-inicio"
+        = f.select :lapso, options_for_select(lapsos.map { |l| [ l.name, l.id ] }, lapso&.id),
+            {}, { class: "form-select", data: { action: "change->auto-envio#enviar" } }
+
+  - if @sugerido&.any?
+    -# ⚠️ Se OFRECE, no se carga solo. Un plan clonado que nadie miró es un plan
+    -# que alguien va a usar sin leer. Daniel: «se le sugiere… lo previsualiza,
+    -# hace los ajustes que considere y se guarda».
+    .card-academic.plan-sugerido
+      %h3.plan-sugerido-titulo
+        = icono(:lapsos, tamano: 18)
+        Hay un plan del año pasado
+      %p.nota-ayuda
+        = "#{@sugerido.first.section.academic_period.name} · #{@sugerido.first.section.grade.name} · #{asignacion.subject.name}"
+        \—
+        = contar(@sugerido.size, "competencia", "competencias")
+      %ul.plan-sugerido-lista
+        - @sugerido.first(4).each do |c|
+          %li= c.descripcion.truncate(110)
+        - if @sugerido.size > 4
+          %li.dato-secundario= "y #{contar(@sugerido.size - 4, 'competencia más', 'competencias más')}"
+      = button_to "Traerlo para revisarlo",
+                  traer_competencies_path(asignacion: params[:asignacion], lapso: lapso&.id),
+                  class: "btn btn-accion"
+
+  .card-academic
+    - if @competencias.blank?
+      .empty-state
+        %h3 Todavía no hay competencias en este plan
+        %p
+          Son las que vas a evaluar en este lapso. Cada una puede llevar sus
+          indicadores, que describen qué significa — se imprimen en la boleta,
+          no se califican aparte.
+        - if profesor?
+          .empty-state-acciones
+            = boton "Registrar competencia", new_competency_path(asignacion: params[:asignacion], lapso: lapso&.id), icono: :agregar
+
+    - else
+      = render "shared/escala", total: @competencias.size, singular: "competencia", plural: "competencias"
+
+      %ol.plan-competencias
+        - @competencias.each do |c|
+          %li.plan-competencia
+            .plan-competencia-texto
+              %p.plan-competencia-descripcion= c.descripcion
+              - if c.indicators.any?
+                %ul.plan-indicadores
+                  - c.indicators.en_orden.each do |i|
+                    %li= i.descripcion
+            - if profesor?
+              .columna-acciones
+                = link_to edit_competency_path(c, asignacion: params[:asignacion], lapso: lapso&.id),
+                          class: "btn btn-secondary btn-sm btn-solo-icono",
+                          data: { tooltip: "Editar" }, "aria-label": "Editar" do
+                  = icono(:editar, tamano: 15)
+                = button_to competency_path(c, asignacion: params[:asignacion], lapso: lapso&.id),
+                            method: :delete, class: "btn btn-danger btn-sm btn-solo-icono",
+                            form: { data: { turbo_confirm: "¿Borrar «#{c.descripcion.truncate(50)}» del plan?" } },
+                            data: { tooltip: "Borrar" }, "aria-label": "Borrar" do
+                  = icono(:borrar, tamano: 15)
+
+      - if profesor? && otras_secciones.any?
+        -# ⚠️ Copiar es un ATAJO, no un vínculo: después de copiar, cada sección
+        -# es independiente y admite sus propias modificaciones.
+        .plan-acciones
+          = button_to copiar_a_competencies_path(asignacion: params[:asignacion], lapso: lapso&.id),
+                      class: "btn btn-accion" do
+            = icono(:secciones, tamano: 16)
+            %span= "Copiar a mis otras #{contar(otras_secciones.size, 'sección', 'secciones')}"
+          %p.nota-ayuda
+            Se copia el texto. Después cada sección es independiente: cambiar una no cambia la otra.

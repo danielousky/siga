@@ -920,6 +920,7 @@ textarea.form-control {
     flex: 0 0 auto;
   }
 
+
   /* ── el grupo, como botón del navbar ────────────────────────────────── */
 
   .sidebar-grupo {
@@ -993,6 +994,28 @@ textarea.form-control {
     white-space: normal;
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-sm);
+  }
+
+  /* ⚠️ El desplegable CERRADO se estaba maquetando igual.
+     `.sidebar-section .sidebar-nav { display: flex }` alcanza también al `<ul>`
+     de un `<details>` cerrado, y un `display` explícito **anula el ocultamiento
+     que hace el navegador**. O sea que los enlaces de los cinco grupos estaban
+     ahí, con ancho, aunque no se vieran.
+     Nunca se notó porque ninguna etiqueta había sido lo bastante larga: el día
+     que apareció «Planes de evaluación» desbordó 9 px las TRECE pantallas del
+     director a la vez. */
+  .sidebar-grupo:not([open]) > .sidebar-nav { display: none; }
+
+  /* ⚠️ El NOMBRE tiene que poder encogerse, y un `<span>` dentro de un flex NO
+     lo hace solo: `min-width: auto` es el valor inicial de un ítem flex, o sea
+     «nunca más angosto que mi contenido». Con `flex-direction: column` de
+     arriba, el nombre es un ítem — y «Planes de evaluación», veinte caracteres,
+     desbordaba 9 px **las trece pantallas del director a la vez**.
+     Se arregla la causa y no el nombre: el próximo enlace largo no rompe nada.
+     Es la misma trampa de `.cabecera-de-lista` en MOR-194, un nivel más adentro. */
+  .sidebar-grupo[open] > .sidebar-nav .sidebar-nav-link > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 
   .sidebar-grupo[open] > .sidebar-nav .sidebar-nav-link.active {
@@ -7192,3 +7215,95 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 }
 
 .paso-pendiente-enlace::after { content: " →"; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   El plan de evaluación: competencias e indicadores (MOR-136)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* El plan del año pasado, OFRECIDO y no cargado.
+   ⚠️ En el tono de `accion` (índigo) y no de aviso: no hay nada que corregir,
+   hay algo que se puede aprovechar. El ámbar diría que algo está mal. */
+.plan-sugerido { border-left: 3px solid var(--accion-primary); }
+
+.plan-sugerido-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0 0 var(--space-xs);
+  font-size: 16px;
+  color: var(--accion-primary);
+}
+
+.plan-sugerido-lista {
+  margin: var(--space-sm) 0 var(--space-md);
+  padding-left: var(--space-lg);
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* La lista del plan. Numerada de verdad —`<ol>`— porque el orden es del
+   docente y un lector de pantalla tiene que poder decir «3 de 21». */
+.plan-competencias {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: competencia;
+}
+
+.plan-competencia {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.plan-competencia:first-child { border-top: 0; }
+.plan-competencia-texto { flex: 1; min-width: 0; }
+
+/* ⚠️ `.columna-acciones` trae `width: 1%` —sirve en una TABLA, donde el 1 % lo
+   resuelve el algoritmo de la tabla— y dentro de un flex eso la deja encogerse
+   por debajo de su contenido: los dos botones se salían del borde en el
+   teléfono, con el de borrar cortado a la mitad. */
+.plan-competencia .columna-acciones { flex: 0 0 auto; width: auto; }
+
+@media (max-width: 700px) {
+  /* Con el texto de una competencia —cuarenta palabras— y dos botones al lado,
+     a 390 px no hay ancho para las dos cosas. Los botones bajan a su renglón. */
+  .plan-competencia { flex-wrap: wrap; }
+  .plan-competencia .columna-acciones { width: 100%; }
+}
+
+/* ⚠️ El número va por CSS y no escrito: renumerar veintiuna a mano al borrar la
+   tercera es el trabajo que este issue viene a quitar. */
+.plan-competencia-descripcion {
+  margin: 0;
+  counter-increment: competencia;
+  text-wrap: pretty;
+  max-width: 80ch;
+}
+
+.plan-competencia-descripcion::before {
+  content: counter(competencia) ". ";
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Los indicadores DESCRIBEN: van en segundo plano, sin nivel al lado, porque no
+   se califican. Que se vean subordinados es la mitad de decir eso. */
+.plan-indicadores {
+  margin: var(--space-xs) 0 0;
+  padding-left: var(--space-lg);
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.plan-acciones {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.plan-acciones .nota-ayuda { margin-top: var(--space-xs); }
