@@ -171,18 +171,18 @@ LAPSOS_TRES = [
   { name: AcademicPeriod::LAPSOS[2], desde: [ 4,  6 ], hasta: [  7, 15 ] }
 ].freeze
 
-# 2026-2027 estrena una estructura DISTINTA a propósito: dos lapsos en vez de tres.
-# Sirve para ver que reorganizar la evaluación de un año nuevo no toca en nada
-# la del año anterior ni las notas ya calculadas.
-LAPSOS_DOS = [
-  { name: "Primer Semestre", desde: [ 9, 15 ], hasta: [ 1, 31 ] },
-  { name: "Segundo Semestre", desde: [ 2,  2 ], hasta: [ 7, 15 ] }
-].freeze
-
+# ⚠️ Los TRES lapsos, también en 2026-2027. Hubo aquí un «Primer Semestre /
+# Segundo Semestre» a propósito, para mostrar que reorganizar la evaluación de
+# un año nuevo no toca la del anterior — pero eso es un invariante del CÁLCULO,
+# y lo prueba `grade_calculator_test` con su propio escenario de dos semestres.
+#
+# En los seeds solo confundía: quien hace QA abre el selector de lapso, ve
+# «Primer Semestre» y no sabe si es un dato de demo o algo que él rompió.
+# Daniel: *«no deben haber otros que no sean 1ero, 2do y 3ro Lapso»*.
 {
   periodo_bolivar           => LAPSOS_TRES,
   periodo_bello             => LAPSOS_TRES,
-  periodo_bolivar_siguiente => LAPSOS_DOS
+  periodo_bolivar_siguiente => LAPSOS_TRES
 }.each do |periodo, lapsos|
   lapsos.each do |lapso|
     EvaluationMoment.find_or_create_by!(name: lapso[:name], academic_period: periodo).tap do |m|
@@ -200,7 +200,7 @@ LAPSOS_DOS = [
   end
 end
 puts "   ✓ 2025-2026: 3 lapsos (30/30/40) en ambos colegios"
-puts "   ✓ 2026-2027 Bolívar: 2 semestres (50/50) — estructura distinta, mismo colegio"
+puts "   ✓ 2026-2027 Bolívar: 3 lapsos, listos para el año que empieza"
 
 # =============================================================================
 # DEPARTAMENTOS - SIMÓN BOLÍVAR

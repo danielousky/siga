@@ -327,19 +327,60 @@ module MenuHelper
 
   # Las secciones del profesor: son datos, no menú fijo, así que se arman aparte.
   #
+  # ⚠️ Agrupadas por NIVEL, no en una lista sola (QA de Daniel: «lo mismo con
+  # ese chorrero de secciones, hay que dividirlas por Nivel»). Un profesor de
+  # Matemática con diecinueve secciones tenía diecinueve renglones seguidos
+  # donde primaria y bachillerato se pisaban.
+  #
+  # ⚠️ Se AGRUPA, no se filtra, y esa es la diferencia con la barra de arriba.
+  # El filtro de nivel esconde; un encabezado ordena y sigue mostrando todo. En
+  # un menú de navegación, esconder es peor: el profesor va a buscar la sección
+  # que no ve y concluye que se la quitaron.
+  #
   # ⚠️ Sin icono, y es a propósito: un icono distingue categorías distintas
   # —«Asistencia» de «Boletines»—. Diez secciones son diez cosas del MISMO tipo,
   # y el mismo símbolo repetido diez veces no agrega información, agrega ruido.
   # Lo que las distingue es su nombre, que ya está.
   def grupo_de_mis_secciones
-    secciones = current_user.teacher&.teacher_sections&.includes(section: :grade) || []
+    secciones = mis_secciones
     return [] if secciones.empty?
 
-    enlaces = secciones.map do |ts|
-      Enlace.new(nombre: "#{ts.section.grade.name} – #{ts.section.name}",
-                 icono: nil, ruta: section_path(ts.section))
-    end
+    por_nivel = secciones.group_by { |s| GradoOficial.se_elige_como(s.grade.level) }
 
-    [ Grupo.new(titulo: "Mis secciones", enlaces: enlaces) ]
+    # ⚠️ Un solo nivel NO lleva encabezado propio.
+    #
+    # Un profesor de primaria y nada más leería «PRIMARIA» arriba de sus tres
+    # secciones, y ese rótulo no distingue nada: solo agrega un renglón. El
+    # agrupamiento aparece cuando hay algo que separar, que es el caso del
+    # profesor de Matemática que da primaria Y bachillerato.
+    return [ Grupo.new(titulo: "Mis secciones", enlaces: secciones.map { |s| enlace_a_seccion(s) }) ] if por_nivel.one?
+
+    # En orden pedagógico —preescolar, primaria, bachillerato— y no por cuántas
+    # secciones tenga cada uno: el orden de los niveles es el mismo siempre, y
+    # un menú que se reordena solo obliga a leerlo cada vez.
+    GradoOficial::ABARCA.keys.filter_map do |nivel|
+      del_nivel = por_nivel[nivel]
+      next if del_nivel.blank?
+
+      Grupo.new(titulo: GradoOficial::ETIQUETAS[nivel],
+                enlaces: del_nivel.map { |s| enlace_a_seccion(s) })
+    end
+  end
+
+  # ⚠️ Ordenadas por el ORDEN OFICIAL del grado, no por su nombre.
+  #
+  # Alfabéticamente, «1er Año» va antes que «6to Grado» y el menú queda
+  # mezclando primaria con bachillerato. `grades.orden` es el del catálogo del
+  # Reglamento de la LOE, que es el que un profesor tiene en la cabeza.
+  def mis_secciones
+    asignaciones = current_user.teacher&.teacher_sections&.includes(section: :grade) || []
+
+    asignaciones.map(&:section).uniq
+                .sort_by { |s| [ s.grade.orden || 99, s.grade.name, s.name ] }
+  end
+
+  def enlace_a_seccion(seccion)
+    Enlace.new(nombre: "#{seccion.grade.name} – #{seccion.name}",
+               icono: nil, ruta: section_path(seccion))
   end
 end

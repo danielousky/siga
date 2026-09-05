@@ -5958,7 +5958,7 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   padding: 0 var(--space-md);
   border: 1px solid var(--border-standard);
   border-radius: 999px;
-  background: var(--surface-raised);
+  background: var(--surface-elevated);
   color: var(--text-secondary);
   font-size: 13px;
   font-weight: 500;
