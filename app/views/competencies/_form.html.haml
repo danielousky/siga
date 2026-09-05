@@ -15,11 +15,24 @@
     -# pantalla que salta. Y sin JavaScript funciona con la conexión caída.
     = etiqueta_con_pista "competency[indicadores]", "Indicadores",
         pista: "Describen qué significa esa competencia. Se imprimen en la boleta para que el representante entienda, pero NO se califican aparte: la nota es de la competencia."
+    -# ⚠️ Un textarea y NO un campo por indicador, y la razón que decide es
+    -# PEGAR: una maestra ya tiene sus indicadores escritos en un documento.
+    -# Con una línea por indicador, pega los cinco y quedan cinco. Con un campo
+    -# por indicador los cinco caen en uno solo y le toca separarlos a mano —
+    -# o sea peor que lo que hace hoy.
+    -#
+    -# Lo demás cae del mismo lado: escribir tres seguidos es UN acto, reordenar
+    -# es cortar y pegar una línea, borrar es borrar una línea, y funciona sin
+    -# JavaScript. Un campo por indicador cuesta un toque entre cada uno, y en un
+    -# teléfono cada toque baja y sube el teclado.
     = text_area_tag "competency[indicadores]",
         competency.indicators.en_orden.map(&:descripcion).join("\n"),
-        rows: 4, class: "form-control",
-        placeholder: "Uno por línea:\nSuma y resta con reagrupación\nResuelve problemas de dos pasos"
-    %p.nota-ayuda Uno por línea. Puedes dejarlo vacío.
+        rows: 3, class: "form-control",
+        data: { controller: "campo-que-crece", action: "input->campo-que-crece#crecer" },
+        placeholder: "Suma y resta con reagrupación\nResuelve problemas de dos pasos\nEstima antes de calcular"
+    %p.nota-ayuda
+      Uno por línea, los que necesites. Si ya los tienes escritos, puedes pegarlos
+      todos de una vez.
 
   .form-actions
     = f.submit class: "btn btn-guardar"
