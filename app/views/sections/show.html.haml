@@ -109,14 +109,14 @@
               %td= ts.teacher.user.document || "—"
               %td= "#{ts.subject.code} - #{ts.subject.name}"
               %td
-                = boton "Quitar", section_teacher_section_path(@section, ts), data: { turbo_method: :delete, turbo_confirm: "¿Quitar este profesor de esta materia?" }, icono: :borrar, tono: :danger, sm: true
+                = boton "Quitar", section_teacher_section_path(@section, ts), data: { turbo_method: :delete, turbo_confirm: "¿Quitar este profesor de #{Vocabulario::LA_AREA}?" }, icono: :borrar, tono: :danger, sm: true
     - else
       .empty-state
         %p No hay profesores asignados.
 
     - if @available_subjects&.any? && @available_teachers&.any?
       %hr.seccion-separador
-      %h3.seccion-subtitulo Asignar profesor a materia
+      %h3.seccion-subtitulo= "Asignar profesor a #{Vocabulario::LA_AREA}"
       = form_with url: section_teacher_sections_path(@section), method: :post do |f|
         .form-row
           .form-group

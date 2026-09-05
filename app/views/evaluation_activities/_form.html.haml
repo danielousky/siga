@@ -14,7 +14,7 @@
   = render "shared/errors", object: evaluation_activity
 
   .form-group
-    = f.label :asignacion, "Sección y materia", class: "form-label"
+    = f.label :asignacion, "Sección y #{Vocabulario::AREA_CORTA.downcase}", class: "form-label"
     = f.select :asignacion,
       mis_asignaciones.map { |ts| ["#{ts.section.grade.name} – #{ts.section.name} · #{ts.subject.name}", "#{ts.section_id}:#{ts.subject_id}"] },
       { include_blank: "Elige una de tus secciones...", selected: ("#{evaluation_activity.section_id}:#{evaluation_activity.subject_id}" if evaluation_activity.section_id) },

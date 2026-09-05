@@ -26,19 +26,23 @@ class NivelEnLaBarraTest < ApplicationSystemTestCase
 
     elegir_nivel "Primaria"
 
-    assert_text "6to Grado"
-    assert_no_text @a.grado.name
-    assert_selector ".listado-escala-nivel", text: "de Primaria"
+    tocando do
+      assert_text "6to Grado"
+      assert_no_text @a.grado.name
+      assert_selector ".listado-escala-nivel", text: "de #{GradoOficial.etiqueta(:primaria)}"
+    end
   end
 
   test "volver a «Todos» devuelve todo" do
     visit grades_path
     elegir_nivel "Primaria"
-    assert_no_text @a.grado.name
+    tocando { assert_no_text @a.grado.name }
 
     elegir_nivel "Todos"
-    assert_text @a.grado.name
-    assert_text "6to Grado"
+    tocando do
+      assert_text @a.grado.name
+      assert_text "6to Grado"
+    end
   end
 
   # ⚠️ El panel se cierra con Escape, y el foco vuelve a la pastilla: cerrarlo
@@ -60,16 +64,51 @@ class NivelEnLaBarraTest < ApplicationSystemTestCase
     visit grades_path
     elegir_nivel "Primaria"
 
-    assert_selector ".contexto-pastilla", text: @a.periodo.name
-    assert_selector ".contexto-pastilla", text: "Primaria"
+    tocando do
+      assert_selector ".contexto-pastilla", text: @a.periodo.name
+      assert_selector ".contexto-pastilla", text: GradoOficial.etiqueta(:primaria, corto: true)
+    end
   end
 
   private
 
+  # ⚠️ Esperar a que el panel esté ABIERTO antes de tocar lo de adentro.
+  #
+  # Sin esto el test falla de forma intermitente y con un mensaje que no dice
+  # nada: «element click intercepted at point (-35, 134)». Los botones del panel
+  # existen en el HTML desde el primer momento —es un `<details>`— así que
+  # Capybara los encuentra y les hace clic **antes de que el panel se despliegue**,
+  # cuando todavía están en una posición que no es la suya.
+  #
+  # `assert_selector` con `visible: true` es lo que convierte «existe» en «se
+  # puede tocar», y es la diferencia entre un test que prueba el panel y uno que
+  # prueba el HTML.
   def elegir_nivel(nombre)
-    find(".contexto-pastilla").click
-    within ".contexto-panel" do
-      click_button nombre
-    end
+    tocando { find(".contexto-pastilla").click }
+    assert_selector ".contexto-panel", visible: true
+
+    # ⚠️ SIN `within`, y esa es la corrección que lo estabilizó.
+    #
+    # `within(".contexto-panel") { click_button … }` deja a Capybara con el
+    # scope apuntando al panel, y el clic NAVEGA: al salir del bloque, Capybara
+    # va a validar un nodo que el navegador ya tiró. El error sale con un
+    # mensaje que no menciona nada de esto —«Node with given id does not belong
+    # to the document»— y aparece una vez de cada diez.
+    #
+    # Un selector completo hace lo mismo sin dejar scope colgando.
+    tocando { find(".contexto-panel button", text: nombre, exact_text: true).click }
+    esperando_la_pagina
+
+    # ⚠️ Y NO se espera nada acá. Cada test espera lo suyo, que es más fuerte.
+    #
+    # Se probaron dos esperas en este punto y las dos fallaban de forma
+    # intermitente, porque las dos consultan nodos MIENTRAS la página se está
+    # yendo: Capybara los encuentra, el navegador los tira, y el reintento
+    # revienta con «Node with given id does not belong to the document».
+    #
+    # Lo que sigue a esta llamada en cada test —`assert_no_text`,
+    # `assert_selector ".contexto-pastilla", text: …`— ya espera a la página
+    # nueva, y además comprueba algo que importa. Una espera genérica acá era
+    # una espera de más que no probaba nada.
   end
 end

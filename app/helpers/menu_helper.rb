@@ -289,7 +289,7 @@ module MenuHelper
       enlaces << Enlace.new(nombre: "Secciones", icono: :secciones, ruta: sections_path)
       enlaces << Enlace.new(nombre: "Inscripciones", icono: :inscripciones, ruta: enrollments_path)
     end
-    enlaces << Enlace.new(nombre: "Materias", icono: :materias, ruta: subjects_path)
+    enlaces << Enlace.new(nombre: Vocabulario::AREAS, icono: :materias, ruta: subjects_path)
     # ⚠️ La dirección VE los planes y no los toca, por la misma razón que no
     # toca la ponderación: es la decisión pedagógica de quien evalúa (MOR-136).
     enlaces << Enlace.new(nombre: "Planes de evaluación", icono: :notas, ruta: competencies_path)
@@ -397,7 +397,9 @@ module MenuHelper
       del_nivel = por_nivel[nivel]
       next if del_nivel.blank?
 
-      Grupo.new(titulo: GradoOficial::ETIQUETAS[nivel],
+      # ⚠️ Forma CORTA: el menú tiene 200 px y «Educación Primaria» los llena.
+      # Acá solo se confirma dónde estoy parado, no se decide nada (MOR-212).
+      Grupo.new(titulo: GradoOficial.etiqueta(nivel, corto: true),
                 enlaces: del_nivel.map { |s| enlace_a_seccion(s) })
     end
   end

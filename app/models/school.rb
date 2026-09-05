@@ -24,7 +24,7 @@ class School < ApplicationRecord
   def que_dicta
     return nil if niveles.empty?
 
-    niveles.map { |n| GradoOficial::ETIQUETAS[n] }
+    niveles.map { |n| GradoOficial.etiqueta(n) }
            .to_sentence(two_words_connector: " y ", last_word_connector: " y ")
   end
   # Quién dio de alta este colegio (MOR-158).

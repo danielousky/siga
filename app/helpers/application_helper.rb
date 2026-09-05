@@ -65,7 +65,7 @@ module ApplicationHelper
     grados = (grados + [ incluyendo ]).sort_by { |g| g.orden || 99 } if incluyendo && grados.exclude?(incluyendo)
 
     grados.group_by(&:level).map do |nivel, del_nivel|
-      [ GradoOficial::ETIQUETAS.fetch(nivel.to_sym, nivel.to_s.humanize),
+      [ GradoOficial.etiqueta(nivel),
         del_nivel.map { |g| [ g.name, g.id ] } ]
     end
   end

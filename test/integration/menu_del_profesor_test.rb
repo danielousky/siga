@@ -35,11 +35,12 @@ class MenuDelProfesorTest < ActionDispatch::IntegrationTest
     get dashboards_profesor_path
 
     titulos = css_select(".sidebar-section-title").map { |n| n.text.strip }
-    assert_includes titulos, "Primaria"
-    assert_includes titulos, "Bachillerato"
+    assert_includes titulos, GradoOficial.etiqueta(:primaria, corto: true)
+    assert_includes titulos, GradoOficial.etiqueta(:secundaria, corto: true)
     assert_not_includes titulos, "Mis secciones",
                         "con dos niveles el encabezado genérico sobra: cada grupo dice cuál es"
-    assert titulos.index("Primaria") < titulos.index("Bachillerato"),
+    assert titulos.index(GradoOficial.etiqueta(:primaria, corto: true)) <
+           titulos.index(GradoOficial.etiqueta(:secundaria, corto: true)),
            "el orden es el pedagógico, no el de cuántas secciones tenga cada nivel"
   end
 
@@ -85,7 +86,7 @@ class MenuDelProfesorTest < ActionDispatch::IntegrationTest
     get dashboards_profesor_path
 
     titulos = css_select(".sidebar-section-title").map { |n| n.text.strip }
-    assert_not_includes titulos, "Media Técnica",
+    assert_not_includes titulos, GradoOficial.etiqueta(:media_tecnica, corto: true),
                         "la Media Técnica no es un grupo aparte: su 6to Año es bachillerato"
     assert_select ".sidebar-nav-link span", text: /6to Año/
   end
