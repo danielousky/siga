@@ -72,29 +72,27 @@ namespace :demo do
   #   2. **No es atómico entre tablas.** Un `DELETE` ordenado dentro de una
   #      transacción sí lo es: o se borra todo, o no se borra nada.
   #
-  # `delete_all` y no `destroy_all`: los `dependent: :restrict_with_error` están
-  # para que nadie borre un grado con alumnos por accidente desde una pantalla.
-  # Acá el orden es explícito y las claves foráneas son la red — si el orden
-  # estuviera mal, la base lo rechaza en vez de dejar filas huérfanas.
+  # ## ⚠️ El orden se CALCULA del esquema, no se escribe a mano
   #
-  # ⚠️ El orden va de HIJOS a PADRES, y `siga_staffs` está en la lista por una
-  # razón que costó un intento fallido contra producción: **también apunta a
-  # `users`**. Sin él, el `DELETE FROM users` choca contra su clave foránea, la
-  # transacción entera se deshace, y —si nadie comprueba— la tarea informa que
-  # borró todo habiendo borrado nada.
+  # Acá había una lista escrita, y falló dos veces contra producción:
   #
-  # Que se borre es además lo correcto: `dev.demo@siga.local` quedó ahí desde el
-  # primer sembrado, con rol `fundador`, o sea con acceso a todos los colegios de
-  # la plataforma. Los seeds recrean el equipo con cuentas conocidas.
-  EN_ORDEN_DE_BORRADO = %w[
-    activity_grades moment_grades final_grade_books report_cards attendances
-    evaluation_activities teacher_sections student_representatives enrollments
-    grade_subjects sections evaluation_moments academic_periods
-    subjects departments grades
-    students teachers admins representatives
-    subscriptions importaciones activity_logs addresses
-    siga_staffs users schools
-  ].freeze
+  #     1er intento   faltaba `siga_staffs`, que también apunta a `users`
+  #     2do intento   `importaciones` estaba DESPUÉS de `academic_periods`,
+  #                   y le apunta
+  #
+  # Y le faltaban además las cinco tablas de `MOR-136` y `MOR-216`
+  # —`competencies`, `indicators`, `activity_competencies`, `rubrics`,
+  # `informes`— que nacieron después de escribirla. O sea que el tercer intento
+  # también habría fallado, y el cuarto.
+  #
+  # Una lista a mano de dependencias es una copia del esquema que se despareja
+  # sola. PostgreSQL ya sabe qué apunta a qué: se le pregunta, se ordena
+  # topológicamente, y el día que alguien agregue una tabla el orden sale bien
+  # sin que nadie se acuerde de esto.
+  #
+  # ⚠️ Las tablas de la MAQUINARIA no se tocan: `solid_queue_*` es la cola de
+  # trabajos y `ar_internal_metadata` / `schema_migrations` son de Rails.
+  # Borrarlas no limpia una demo, rompe la instalación.
 
   desc "Borra TODA la demo y la vuelve a sembrar (MOR-146). Exige respaldo previo."
   task limpiar: :environment do
@@ -126,8 +124,10 @@ namespace :demo do
     antes = Current.sin_aislamiento { [ School.count, User.count ] }
 
     Current.sin_aislamiento do
+      orden = OrdenDeBorrado.calcular
+
       ActiveRecord::Base.transaction do
-        EN_ORDEN_DE_BORRADO.each do |tabla|
+        orden.each do |tabla|
           cuantas = ActiveRecord::Base.connection.select_value("SELECT count(*) FROM #{tabla}").to_i
           next if cuantas.zero?
 
@@ -143,7 +143,7 @@ namespace :demo do
     # que uno que falla, porque el siguiente paso —resembrar— se ejecuta sobre
     # datos que se creían borrados.
     quedan = Current.sin_aislamiento do
-      EN_ORDEN_DE_BORRADO.filter_map do |tabla|
+      orden.filter_map do |tabla|
         cuantas = ActiveRecord::Base.connection.select_value("SELECT count(*) FROM #{tabla}").to_i
         "#{tabla}=#{cuantas}" if cuantas.positive?
       end
@@ -151,8 +151,7 @@ namespace :demo do
 
     if quedan.any?
       abort "\n🚫 EL BORRADO NO PERSISTIÓ. Todavía hay filas en: #{quedan.join(' ')}\n" \
-            "   La transacción se deshizo —casi seguro una clave foránea contra una\n" \
-            "   tabla que falta en EN_ORDEN_DE_BORRADO—. La base quedó como estaba.\n" \
+            "   La transacción se deshizo. La base quedó como estaba.\n" \
             "   NO corras los seeds hasta resolver esto.\n"
     end
 
