@@ -28,6 +28,25 @@
       .detail-label Notas cargadas
       .detail-value= "#{@notas_cargadas} de #{@inscritos} inscritos"
 
+  -# ⚠️ Qué evalúa, con sus indicadores (MOR-136).
+  -#
+  -# Es lo que hace visible el enganche: sin esto, el profesor marca competencias
+  -# en el formulario y nunca vuelve a verlas — y no tiene forma de comprobar que
+  -# la boleta va a decir lo correcto hasta que la boleta salga.
+  - if @evaluation_activity.competencies.any?
+    .detail-row
+      .detail-item
+        .detail-label Qué evalúa
+        .detail-value
+          %ul.que-evalua-lista
+            - @evaluation_activity.competencies.includes(:indicators).each do |competencia|
+              %li.que-evalua-item
+                = competencia.descripcion
+                - if competencia.indicators.any?
+                  %ul.que-evalua-indicadores
+                    - competencia.indicators.en_orden.each do |indicador|
+                      %li= indicador.descripcion
+
   - if profesor?
     .section-actions
       = boton "Cargar notas", evaluation_activity_notas_path(@evaluation_activity), icono: :subir

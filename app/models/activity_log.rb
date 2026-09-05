@@ -58,6 +58,11 @@ class ActivityLog < ApplicationRecord
     # avisamos, y cuándo?»; volcar el cuerpo entero convertiría la auditoría en
     # un archivo de correspondencia con la familia (MOR-181).
     "mensaje_enviado"       => "Mensaje enviado a la familia",
+    # ⚠️ Token propio y no `colegio_updated` (MOR-136): la rúbrica decide cómo
+    # se LEE una nota, así que la boleta de un alumno puede cambiar de palabra
+    # sin que su nota se haya movido. En la pantalla que contesta «¿por qué esto
+    # dice otra cosa que en diciembre?», ése es el hecho que hay que ver.
+    "rubrica_definida"      => "Rúbrica de evaluación definida",
     "certificacion_emitida" => "Certificación de calificaciones emitida",
     "documento_de_primaria_emitido" => "Documento de primaria emitido",
     "pensum_importada"     => "Materias y profesores importados",

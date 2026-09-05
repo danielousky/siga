@@ -159,11 +159,33 @@ SEMILLA[:areas_bello] = sembrar_pensum!(
   SEMILLA[:bello], niveles: %i[preescolar primaria]
 )
 
+# ── La rúbrica de cada colegio (MOR-136) ─────────────────────────────────────
+#
+# ⚠️ Los DOS con rúbrica, y distintas a propósito. Bolívar usa los cinco
+# niveles que propone SIGA; Bello usa TRES, que es el caso que contó Cyndi —
+# *«había colegios que solo tenían tres, lo que lo hacía muy complicado porque
+# metías en el mismo saco a estudiantes con 13 que a estudiantes con 17»*.
+#
+# Sin un colegio de tres niveles sembrado, esa queja no se puede ver resuelta:
+# la máscara es más gruesa y por dentro el 13 y el 17 siguen siendo distintos.
+Current.school = SEMILLA[:bolivar]
+SEMILLA[:bolivar].restablecer_la_rubrica! if SEMILLA[:bolivar].rubrics.none?
+
+Current.school = SEMILLA[:bello]
+if SEMILLA[:bello].rubrics.none?
+  [ { code: "L",  name: "Logrado",     description: "Alcanzó lo esperado para el lapso", valor: 15 },
+    { code: "EP", name: "En proceso",  description: "Avanza, con apoyo del docente",     valor: 10 },
+    { code: "I",  name: "Iniciado",    description: "Todavía no alcanza lo esperado",     valor: 1 } ].each do |datos|
+    SEMILLA[:bello].rubrics.create!(datos)
+  end
+end
+
 [ SEMILLA[:bolivar], SEMILLA[:bello] ].each do |colegio|
   Current.school = colegio
   resumen = colegio.grades.en_orden.group_by { |g| GradoOficial.se_elige_como(g.level) }
                    .map { |nivel, gs| "#{GradoOficial::ETIQUETAS[nivel]} #{gs.size}" }.join(" · ")
-  puts "   ✓ #{colegio.name}: #{colegio.grades.count} grados (#{resumen}) · #{colegio.subjects.count} áreas"
+  puts "   ✓ #{colegio.name}: #{colegio.grades.count} grados (#{resumen}) · " \
+       "#{colegio.subjects.count} áreas · rúbrica de #{colegio.rubrics.count} niveles"
 end
 
 Current.school = SEMILLA[:bolivar]

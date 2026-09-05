@@ -51,6 +51,7 @@ class EvaluationActivitiesController < ApplicationController
     end
 
     if @evaluation_activity.save
+      etiquetar_lo_que_evalua(@evaluation_activity)
       redirect_to @evaluation_activity, notice: "Evaluación creada."
     else
       render :new, status: :unprocessable_entity
@@ -59,6 +60,7 @@ class EvaluationActivitiesController < ApplicationController
 
   def update
     if @evaluation_activity.update(evaluation_activity_params)
+      etiquetar_lo_que_evalua(@evaluation_activity)
       redirect_to @evaluation_activity, notice: "Evaluación actualizada."
     else
       render :edit, status: :unprocessable_entity
@@ -122,6 +124,24 @@ class EvaluationActivitiesController < ApplicationController
     )
   end
 
+  # Qué competencias del plan evalúa esta actividad (MOR-136).
+  #
+  # ⚠️ Se guarda APARTE del resto de los atributos, y después de guardar la
+  # actividad. Con `competency_ids` dentro de `update`, Rails escribe las
+  # etiquetas ANTES de validar la actividad: una evaluación rechazada por peso
+  # dejaba las etiquetas puestas de todos modos.
+  #
+  # ⚠️ Y se filtra contra el plan de ESTA sección, materia y lapso. El modelo ya
+  # lo valida —`la_competencia_es_del_mismo_plan`— pero ahí es una excepción a
+  # mitad de un guardado; acá es simplemente una lista que no incluye lo ajeno.
+  def etiquetar_lo_que_evalua(actividad)
+    pedidas = Array(params[:evaluation_activity][:competency_ids]).compact_blank.map(&:to_i)
+
+    del_plan = Competency.del_plan(actividad.section_id, actividad.subject_id,
+                                   actividad.evaluation_moment_id).pluck(:id)
+    actividad.competency_ids = pedidas & del_plan
+  end
+
   # Los lapsos de los años escolares que aparecen en el alcance del usuario.
   def lapsos_del_alcance
     periodos = if profesor?
@@ -163,6 +183,43 @@ class EvaluationActivitiesController < ApplicationController
     end
   end
   helper_method :ponderacion_de_mis_asignaciones
+
+  # El plan de competencias de cada asignación, para el formulario (MOR-136).
+  #
+  # ⚠️ Va EMBEBIDO en el formulario, igual que la ponderación, y por la misma
+  # razón: la sección y el lapso se eligen ahí mismo, así que las competencias
+  # tienen que cambiar mientras la persona elige — no después de enviar.
+  #
+  # ⚠️ Y solo las secciones de PRIMARIA. Un profesor de bachillerato no tiene
+  # plan por competencias, así que su mapa queda vacío y el bloque entero no
+  # aparece en la pantalla: no hay nada que ofrecerle. Eso es además lo que
+  # mantiene chico el JSON — un maestro de primaria tiene dos o tres secciones,
+  # no diecinueve.
+  def competencias_de_mis_asignaciones
+    return {} unless profesor?
+
+    de_primaria = mis_asignaciones.select { |ts| ts.section.grade.por_competencias? }
+    return {} if de_primaria.empty?
+
+    planes = Competency.where(section_id: de_primaria.map(&:section_id))
+                       .includes(:indicators).order(:orden, :id)
+
+    planes.each_with_object({}) do |competencia, mapa|
+      clave = "#{competencia.section_id}:#{competencia.subject_id}:#{competencia.evaluation_moment_id}"
+      (mapa[clave] ||= []) << {
+        id: competencia.id,
+        texto: competencia.descripcion,
+        indicadores: competencia.indicators.map(&:descripcion)
+      }
+    end
+  end
+  helper_method :competencias_de_mis_asignaciones
+
+  # Las que esta evaluación ya tiene marcadas.
+  def competencias_marcadas
+    @competencias_marcadas ||= @evaluation_activity&.competency_ids || []
+  end
+  helper_method :competencias_marcadas
 
   def require_acceso!
     return if profesor? || puede_supervisar?

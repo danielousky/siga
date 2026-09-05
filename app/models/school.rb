@@ -42,6 +42,31 @@ class School < ApplicationRecord
   # Sin filas, la boleta muestra el número — que es lo que hace hoy.
   has_many :rubrics, -> { en_orden }, dependent: :destroy, inverse_of: :school
 
+  # ⚠️ Los cinco niveles se editan JUNTOS, en una sola pantalla y un solo
+  # guardado. No es comodidad: una rúbrica es una escalera, y sus peldaños solo
+  # tienen sentido unos respecto de otros —«PA» cubre de 17 a 18 *porque* «PC»
+  # empieza en 19—. Editándolos de a uno, el colegio pasa por estados donde la
+  # escalera tiene un hueco o un solape, y esos estados se pueden guardar.
+  #
+  # `allow_destroy` porque el colegio de TRES niveles es un caso real y tiene
+  # que poder borrar dos filas en el mismo guardado en que ajusta las otras.
+  accepts_nested_attributes_for :rubrics, allow_destroy: true,
+                                reject_if: ->(a) { a[:code].blank? && a[:name].blank? }
+
+  # Deja la rúbrica en la propuesta de SIGA. Es lo que ofrece el botón de
+  # «Restablecer», y lo que usa la siembra.
+  #
+  # ⚠️ Borra y vuelve a crear, en una transacción. Actualizar en su lugar
+  # obligaría a emparejar filas por código —y el colegio pudo renombrarlos— con
+  # el riesgo de chocar contra el índice único de `valor` a mitad de camino.
+  def restablecer_la_rubrica!
+    transaction do
+      rubrics.destroy_all
+      Rubric::POR_DEFECTO.each { |datos| rubrics.create!(datos) }
+    end
+    rubrics.reload
+  end
+
   # Qué niveles dicta este colegio, deducido de los grados que tiene cargados.
   #
   # ## Por qué no es una columna

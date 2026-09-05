@@ -247,14 +247,6 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
 
   private
 
-  def competencia_con(cuantos_indicadores)
-    c = Competency.create!(section: @a.seccion, subject: @a.escenario.materia,
-                           evaluation_moment: @lapso,
-                           descripcion: "Resuelve problemas de adición y sustracción")
-    cuantos_indicadores.times { |i| c.indicators.create!(descripcion: "Indicador #{i + 1}", orden: i) }
-    c
-  end
-
   # El mismo grado y la misma materia, un año antes.
   def plan_viejo
     periodo = AcademicPeriod.create!(name: "2024-2025", start_date: Date.new(2024, 9, 15),

@@ -84,9 +84,9 @@ module ApplicationHelper
   #     nota_del_ano(19, grado)   # media general → "19"
   #     nota_del_ano(19, grado)   # primaria      → "A (19)"
   #
-  # Solo para las notas del año. Las de lapso van en número hasta que exista la
-  # rúbrica de competencias (`MOR-136`): en primaria el lapso no se evalúa con
-  # letras, y ponerle una sería inventarla.
+  # Solo para las notas del AÑO. Las de lapso llevan la rúbrica que definió el
+  # colegio (`MOR-136`) —«PA (17)»— y no el literal A–E: son dos vocabularios
+  # sobre la misma escala, y el que el colegio eligió es el suyo.
   def nota_del_ano(nota, grado)
     EscalaLiteral.mostrar(nota, escala: grado&.escala) || "—"
   end
@@ -221,4 +221,27 @@ module ApplicationHelper
     boton Importacion.accion_de(tipo), new_importacion_path(tipo: tipo),
           icono: :subir, tono: tono, **opciones
   end
+
+  # Qué banda de notas cubre un nivel de la rúbrica (MOR-136).
+  #
+  # ⚠️ El TOPE no se guarda: se deduce del nivel de arriba. Con `valor` como
+  # piso y una lista ordenada, las bandas quedan contiguas por construcción —
+  # no puede haber un 16 sin nivel ni un 17 que caiga en dos. Guardar el tope
+  # sería un segundo lugar donde vive la misma verdad, y el día que alguien
+  # mueva un piso sin mover el tope de al lado, la boleta saca un renglón en
+  # blanco y nadie se entera.
+  def cobertura_de_la_rubrica(rubrica, todas)
+    piso = rubrica.valor
+    return "—" if piso.blank?
+
+    pisos = todas.reject { |r| r.marked_for_destruction? }
+                 .filter_map(&:valor).map(&:to_i).uniq.sort
+    siguiente = pisos.find { |v| v > piso.to_i }
+    tope = siguiente ? siguiente - 1 : NOTA_MAXIMA
+
+    piso.to_i == tope ? "solo #{tope}" : "#{piso} a #{tope}"
+  end
+
+  # El 20 del Artículo 108: es el techo de la escala, no una preferencia.
+  NOTA_MAXIMA = 20
 end

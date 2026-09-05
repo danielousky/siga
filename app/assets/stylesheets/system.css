@@ -2620,9 +2620,13 @@ nav.pagy a.gap {
 
 .portal-materia {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
+  /* ⚠️ COLUMNA desde MOR-136: debajo del nombre y la nota va el plan que se
+     trabajó. En fila, las competencias quedaban al lado de la nota en vez de
+     abajo. Con una sola hija se ve igual que antes — `.portal-materia-fila`
+     hace el `space-between` que hacía este bloque. */
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-xs);
   padding: var(--space-md) 0;
   border-bottom: 1px solid var(--border-subtle);
   min-height: 56px;
@@ -6007,6 +6011,218 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   outline: 2px solid var(--brand-primary);
   outline-offset: 2px;
 }
+
+/* ---- Las competencias en el portal de la familia (MOR-136) ---- */
+/* Es para lo ÚNICO que existen las competencias: que la madre lea qué se
+   trabajó, no solo con qué nota salió su hijo. */
+.portal-materia-fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.portal-competencias {
+  list-style: none;
+  margin: var(--space-xs) 0 0;
+  padding: 0 0 0 var(--space-sm);
+  border-left: 2px solid var(--border-standard);
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.portal-competencia-fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* El nivel de la competencia es DATO, así que puede llevar tono — pero nunca
+   rojo, que en SIGA quiere decir «este niño está aplazado» y ese significado no
+   se gasta (regla de color, MOR-135). Neutro y con la sigla siempre legible. */
+.portal-competencia-nivel {
+  flex: 0 0 auto;
+  font-weight: 600;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.portal-indicadores {
+  margin: 2px 0 0;
+  padding-left: var(--space-md);
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.portal-leyenda {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.portal-leyenda strong { margin-right: var(--space-xs); }
+.portal-leyenda .dato-secundario { margin-left: var(--space-xs); }
+
+/* ---- Qué evalúa una evaluación (MOR-136) ---- */
+/* El enganche entre el plan y la nota. Se marcan COMPETENCIAS; los indicadores
+   van debajo como contexto —ayudan a reconocer cuál es cuál— y no se guardan. */
+.que-evalua-lista {
+  list-style: none;
+  margin: var(--space-xs) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.que-evalua-item {
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-elevated);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+/* Marcada se NOTA, y no solo por la casilla: en una lista de seis competencias
+   de dos renglones cada una, un tilde de 13px no se encuentra de un vistazo. */
+.que-evalua-item:has(input:checked) {
+  border-color: var(--brand-primary);
+  background: var(--surface-hover);
+}
+
+.que-evalua-competencia {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  cursor: pointer;
+  /* 44px de objetivo táctil: esto se marca desde un teléfono. */
+  min-height: 44px;
+  align-content: center;
+  flex-wrap: wrap;
+}
+
+.que-evalua-competencia input {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand-primary);
+}
+
+.que-evalua-competencia span { flex: 1 1 0; min-width: 0; }
+
+/* Los indicadores describen, no se marcan: sin casilla, sangrados y en el tono
+   secundario. Si tuvieran casilla, prometerían una precisión que el modelo no
+   guarda — su nivel en la boleta es el de su competencia. */
+.que-evalua-indicadores {
+  margin: var(--space-micro) 0 0 calc(18px + var(--space-xs));
+  padding-left: var(--space-md);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.que-evalua-indicadores li { margin-top: 2px; }
+
+/* Lo que la evaluación ya evalúa, en su ficha. */
+.evalua-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.evalua-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px var(--space-sm);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ---- La rúbrica del colegio (MOR-136) ---- */
+/* Una tabla de cinco filas que se editan juntas: es una ESCALERA, y sus
+   peldaños solo tienen sentido unos respecto de otros. */
+.tabla-rubrica .columna-codigo { width: 7rem; }
+.tabla-rubrica .columna-desde  { width: 6rem; }
+.tabla-rubrica .columna-cubre  { width: 8rem; }
+
+.tabla-rubrica td { vertical-align: middle; }
+
+/* El código es corto y se lee como una sigla: centrado y en mayúscula. */
+.campo-rubrica-codigo {
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.campo-rubrica-valor { text-align: center; }
+
+/* «Cubre» es DATO derivado, no un campo: se pinta como tal — sin caja, en el
+   tono secundario y con cifras tabulares para que las bandas se lean como una
+   columna de números y no como cinco frases. */
+.rubrica-cubre {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Quitar es una CASILLA disfrazada de botón, y a propósito: el guardado es uno
+   solo, así que una fila que desapareciera en el acto no se podría recuperar
+   con el botón de atrás. Marcada, la fila se atenúa y se tacha — se ve que va
+   a irse, y se puede desmarcar. */
+.rubrica-quitar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.rubrica-quitar:hover { color: var(--eliminar-primary); background: var(--surface-hover); }
+
+.rubrica-quitar-check { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.rubrica-quitar:has(.rubrica-quitar-check:checked) {
+  color: var(--eliminar-primary);
+}
+
+.rubrica-fila:has(.rubrica-quitar-check:checked) td:not(.columna-acciones) {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.rubrica-quitar:focus-within {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* El aviso de que la rúbrica es una propuesta y no está guardada. */
+.rubrica-propuesta {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border-left: 3px solid var(--brand-primary);
+  background: var(--surface-hover);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: var(--space-md);
+}
+
+.rubrica-propuesta .icono { flex: 0 0 auto; margin-top: 2px; color: var(--brand-primary); }
 
 @media (max-width: 700px) {
   /* En el teléfono la etiqueta pasa a ser un renglón propio: reservarle 9.5rem

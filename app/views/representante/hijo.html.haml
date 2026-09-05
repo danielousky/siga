@@ -37,17 +37,55 @@
       - @materias.each do |fila|
         - valor = @anual ? fila[:definitiva] : fila[:lapso]
         %li.portal-materia
-          %span.portal-materia-nombre= fila[:materia].name
-          - if valor
-            -# En el año se muestra el literal si el grado califica así
-              (MOR-129). En el lapso va el número: primaria no evalúa el lapso
-              con letras, eso es la rúbrica de MOR-136.
-            %span.portal-nota{class: valor >= 10 ? "portal-nota--aprobada" : "portal-nota--aplazada"}
-              = @anual ? EscalaLiteral.mostrar(valor, escala: fila[:escala]) : valor
-          - else
-            -# NUNCA un cero: el profesor todavía no corrigió. Confundirlos hace
-              que una familia crea que su hijo está reprobando.
-            %span.portal-pendiente Pendiente
+          .portal-materia-fila
+            %span.portal-materia-nombre= fila[:materia].name
+            - if valor
+              -# En el AÑO va el literal si el grado califica así (MOR-129); en
+                el LAPSO va el nivel de la rúbrica del colegio cuando la definió
+                (MOR-136). Los dos llevan el número al lado: «la niña sacó 19,
+                por eso tiene PC» — la familia lee el nivel, y el número es lo
+                que el colegio tiene que poder verificar.
+              %span.portal-nota{class: valor >= 10 ? "portal-nota--aprobada" : "portal-nota--aplazada"}
+                - if @anual
+                  = EscalaLiteral.mostrar(valor, escala: fila[:escala])
+                - elsif fila[:nivel]
+                  = "#{fila[:nivel]} (#{valor})"
+                - else
+                  = valor
+            - else
+              -# NUNCA un cero: el profesor todavía no corrigió. Confundirlos hace
+                que una familia crea que su hijo está reprobando.
+              %span.portal-pendiente Pendiente
+
+          -# ⚠️ Qué se trabajó en el lapso (MOR-136). Es para lo único que
+            existen las competencias, y lo que `MOR-216` pedía: que los padres
+            entiendan qué se evaluó, no solo con qué nota salió.
+          - if fila[:competencias].present?
+            %ul.portal-competencias
+              - fila[:competencias].each do |competencia|
+                %li.portal-competencia
+                  .portal-competencia-fila
+                    %span= competencia[:texto]
+                    -# «Sin evaluar» en LETRAS, nunca el nivel más bajo: ése
+                      reprueba, y esto es que todavía no le tomaron nada.
+                    %span.portal-competencia-nivel
+                      = competencia[:nivel] || "Sin evaluar"
+                  - if competencia[:indicadores].any?
+                    %ul.portal-indicadores
+                      - competencia[:indicadores].each do |indicador|
+                        %li= indicador
+
+    -# La leyenda de la rúbrica del colegio. Sin ella, «PA» es una sigla que la
+    -# familia tiene que adivinar.
+    - if !@anual && rubricas_del_colegio.any?
+      = mas_detalle "Qué significa cada nivel" do
+        %ul.portal-leyenda
+          - rubricas_del_colegio.each do |nivel|
+            %li
+              %strong= nivel.code
+              = nivel.name.downcase
+              %span.dato-secundario= "desde #{nivel.valor}"
+        %p.nota-ayuda El número va al lado de cada nota para que se lea igual.
 
     - if @anual && @materias.any? { |f| f[:escala].to_s == "literal" }
       = mas_detalle "Qué significa cada letra" do

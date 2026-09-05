@@ -23,10 +23,15 @@
 # ## Qué NO cubre
 #
 # El literal es **la nota final del año escolar** — *"los literales son la nota
-# final del año escolar, ABCDE"*. Durante los lapsos primaria no evalúa con
-# letras sino con competencias e indicadores y una rúbrica de cinco niveles
-# (PC/PA/PI/PD/NP). Eso es `MOR-136`, y está aparte a propósito: las notas de
-# lapso se siguen mostrando en número hasta que exista.
+# final del año escolar, ABCDE"*. Durante los lapsos primaria evalúa con
+# competencias e indicadores y la rúbrica que define cada colegio, que ya existe
+# (`Rubric`, `MOR-136`).
+#
+# ⚠️ Son dos vocabularios sobre LA MISMA escala del 1 al 20, y por eso conviven
+# sin pelearse: el corte de aprobación cae en 10 en los dos, y la propuesta de
+# `Rubric::POR_DEFECTO` coincide banda por banda con estos rangos. Lo que cambia
+# es quién los nombra — el literal lo fija el MPPE para el año, la rúbrica la
+# elige el colegio para sus lapsos.
 class EscalaLiteral
   # De mayor a menor. El orden importa: se devuelve el primero que abarca.
   RANGOS = [
