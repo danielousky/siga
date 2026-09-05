@@ -1,4 +1,4 @@
--# UNA barra, fina y fija (MOR-184).
+-# UNA barra, fina y fija (MOR-184), y con UN control de contexto (MOR-223).
 -#
 -# Daniel: «esta barra la podemos hacer más fina o fusionarla en una, no veo para
 -# qué 2. Y también convendría dejarla fija. En realidad el content debe ser el
@@ -8,6 +8,22 @@
 -# comían 120 px de alto en cada pantalla, y ninguna de las dos scrolleaba con
 -# nada: al bajar por una lista de doscientos alumnos se perdían las dos, y con
 -# ellas el selector de año y el buscador.
+-#
+-# ## ⚠️ Diez elementos eran demasiados (MOR-223)
+-#
+-# Daniel, de nuevo: *«la verdad el filtro no me encanta, creo que la barra en
+-# general se ve desordenada»*. Tenía razón, y el número lo decía: había hasta
+-# DIEZ elementos en fila y CINCO decían la misma frase —«sobre qué estoy
+-# trabajando»— escritos como cinco controles sueltos.
+-#
+-#     ANTES  ▣ SIGA · 🛡 colegio · AÑO ESCOLAR [▾] · 📅 · en curso ·
+-#            NIVEL [▾] · ⓘ acá no aplica · 🔍 · Daniel · Cerrar sesión
+-#
+-#     AHORA  ▣ SIGA · 🛡 colegio · ( 2025-2026 · Primaria ▾ ) · 🔍 · Daniel · Salir
+-#
+-# Lo que se fue no se perdió: vive dentro del panel de `shared/_contexto_de_trabajo`,
+-# que es donde hace falta —la situación del año explica cada opción **al
+-# elegirla**, y el motivo de «acá no aplica» entra completo en vez de recortarse.
 -#
 -# ## ⚠️ Los avisos NO entran acá
 -#
@@ -28,130 +44,13 @@
       - if Current.school&.location.present?
         %span.contexto-colegio-lugar= Current.school.location
 
-    -# ⚠️ Empuja lo de la derecha. Sin esto, el año escolar y la sesión quedarían
-    -# pegados al nombre del colegio, que es justo el que cambia de largo.
+    -# Sobre qué se está trabajando: el año escolar y el nivel, en un control.
+    - if Current.school
+      = render "shared/contexto_de_trabajo"
+
+    -# ⚠️ Empuja lo de la derecha. Sin esto, el buscador y la sesión quedarían
+    -# pegados al contexto, que es justo el que cambia de largo.
     .barra-superior-espacio
-
-    -# ⚠️ El año escolar de la sesión, y se puede CAMBIAR (MOR-165).
-    -#
-    -# Antes decía cuál era «el vigente», calculado a mano y de cuatro maneras
-    -# distintas según la pantalla. Ahora se elige una vez, acá arriba, y filtra
-    -# todo lo filtrable.
-    -#
-    -# El selector es solo para quien dirige: un profesor ve el año que está
-    -# cursando y no lo cambia — darle la opción es darle una manera de cargar
-    -# notas en el año equivocado sin enterarse.
-    .contexto-periodo
-      - if puede_elegir_anio? && anios_para_elegir.many?
-        -# Un formulario normal que se envía solo al cambiar: el id viaja en el
-        -# cuerpo, así que no hace falta que JavaScript arme ninguna URL.
-        -#
-        -# ⚠️ Las opciones se arman ARRIBA y no dentro del `select_tag`: Haml lee
-        -# la continuación de una expresión partida como si fuera indentación, y
-        -# revienta con «indented 16 levels deeper than the previous line».
-        - opciones = anios_para_elegir.map { |a| [ a.name, a.id ] } + [ [ "Todos los años", LlevaElAnioEscolar::TODOS ] ]
-        - elegido = mirando_todos_los_anios? ? LlevaElAnioEscolar::TODOS : anio_de_la_sesion&.id
-        = form_with url: cambiar_anio_escolar_path, method: :post, class: "contexto-anio", data: { controller: "auto-envio", turbo: false } do
-          %label.contexto-anio-etiqueta{ for: "id" } Año escolar
-          = select_tag :id, options_for_select(opciones, elegido), class: "contexto-anio-select", data: { action: "change->auto-envio#enviar" }
-
-      - elsif anio_de_la_sesion
-        %span.contexto-periodo-nombre= anio_de_la_sesion.name
-
-      - elsif mirando_todos_los_anios?
-        %span.contexto-periodo-nombre Todos los años
-
-      - else
-        -# Un colegio recién dado de alta todavía no tiene año escolar. Decirlo es
-        -# más útil que dejar el espacio en blanco: es una tarea pendiente, no un
-        -# error, y desde acá se sabe adónde ir.
-        - if can_manage_academic_config?
-          = link_to "Sin año escolar cargado", academic_periods_path, class: "contexto-periodo-vacio"
-        - else
-          %span.contexto-periodo-vacio Sin año escolar cargado
-
-      -# ⚠️ El acceso a los años escolares, ACÁ y no solo en el menú (QA de Daniel).
-      -#
-      -# «Sigue sin convencerme el orden del sidebar, en particular que la
-      -# configuración del año escolar esté por allá abajo; es verdad que lo
-      -# hacemos una sola vez pero es lo primero que se hace».
-      -#
-      -# Tenía razón, y la salida no era reordenar el menú: el menú está agrupado
-      -# por QUÉ ES la cosa, y «Años escolares» es configuración académica lo mire
-      -# quien lo mire. Moverlo arriba rompería esa regla para tapar un problema
-      -# que en realidad era de ACCESO — y el acceso natural está donde ya se
-      -# habla del año escolar, que es acá.
-      -#
-      -# ⚠️ Un BOTÓN, no un icono suelto (QA de Daniel: «dale más presencia al
-      -# link a academic_periods, un btn tal vez»). El icono solo lo encontraba
-      -# quien ya sabía que estaba ahí — y este es el atajo a lo primero que hace
-      -# un colegio.
-      -#
-      -# Solo el icono: la barra ya dice «AÑO ESCOLAR» dos centímetros a la
-      -# izquierda, así que el texto lo repetía. Lo que hace que se vea es el
-      -# tono —índigo contra el azul grisáceo de la franja— y el tooltip explica.
-      -#
-      -# ⚠️ `aria-label` porque no tiene texto: sin él, un lector de pantalla
-      -# anuncia «enlace» y nada más. El tooltip es visual; esto es su nombre.
-      - if can_manage_academic_config?
-        = link_to academic_periods_path, class: "contexto-anio-gestionar", data: { tooltip: "Crear y editar los años escolares y sus lapsos" }, aria: { label: "Años escolares" } do
-          = icono(:calendario, tamano: 15)
-
-      -# ⚠️ La situación se pinta CON selector y sin él, y son dos datos distintos:
-      -# el nombre dice CUÁL año, la situación dice si está corriendo. Con el
-      -# selector puesto hace más falta todavía — quien acaba de elegir «2024-2025»
-      -# tiene que ver ahí mismo que ese año está cerrado.
-      - if anio_de_la_sesion
-        %span.contexto-periodo-situacion= situacion_del_periodo(anio_de_la_sesion)
-
-    -# ⚠️ El NIVEL de la sesión, el segundo pivote.
-    -#
-    -# Daniel: *«además de dividirse en Año Escolar, el otro gran elemento
-    -# divisor son los tipos que maneja la institución… seteas un Año Escolar y
-    -# luego un tipo: vamos a trabajar Primaria»*.
-    -#
-    -# Va PEGADO al año y no en otra parte de la barra: son los dos ejes de lo
-    -# mismo —sobre qué estoy trabajando— y separarlos haría que uno se lea como
-    -# un filtro más de la pantalla.
-    -#
-    -# ⚠️ Solo si hay más de uno que elegir. Un colegio de pura primaria no
-    -# necesita un desplegable de una opción, igual que uno con un solo año
-    -# escolar no ve el selector de año.
-    - if hay_nivel_que_elegir?
-      - opciones = [ [ "Todos los niveles", LlevaElNivel::TODOS ] ] + niveles_para_elegir.map { |n| [ GradoOficial::ETIQUETAS[n], n ] }
-      - elegido = nivel_de_la_sesion || LlevaElNivel::TODOS
-      -# ⚠️ Cuando hay un nivel elegido el control se PINTA, no se queda gris.
-      -# Un filtro puesto que no se ve es la manera de que alguien cargue veinte
-      -# alumnos en el lugar equivocado y culpe al sistema.
-      = form_with url: cambiar_nivel_path, method: :post, class: "contexto-nivel", data: { controller: "auto-envio", turbo: false } do
-        %label.contexto-nivel-etiqueta{ for: "nivel" } Nivel
-        - clases = [ "contexto-nivel-select" ]
-        - clases << "contexto-nivel-select--puesto" unless mirando_todos_los_niveles? || nivel_no_aplica?
-        - clases << "contexto-nivel-select--inerte" if nivel_no_aplica?
-        = select_tag :nivel, options_for_select(opciones, elegido),
-            class: clases.join(" "), data: { action: "change->auto-envio#enviar" }
-
-        -# ⚠️ Se APAGA pero sigue funcionando, y las dos mitades importan.
-        -#
-        -# Apagado, porque un filtro que aparece puesto y no filtra hace que
-        -# quien vea ocho departamentos concluya que primaria tiene ocho.
-        -#
-        -# Y funcionando, porque deshabilitarlo dejaría a la persona sin poder
-        -# cambiar de nivel desde esta pantalla: tendría que salir a otra para
-        -# volver. Un control muerto no explica nada; el motivo, sí.
-        -# ⚠️ El texto visible es FIJO y corto; la razón va en el tooltip.
-        -#
-        -# La razón completa —«los departamentos son de todo el colegio»— son 39
-        -# caracteres y en una barra de 1440 px se recortaba a «los departamen»,
-        -# que es peor que no decir nada. Se vio en pantalla.
-        -#
-        -# «Acá no aplica» entra siempre, contesta la pregunta que la persona se
-        -# está haciendo —¿por qué veo ocho si puse primaria?— y el porqué está a
-        -# un hover. El tooltip aparece también con `:focus-visible` (MOR-173).
-        - if nivel_no_aplica?
-          %span.contexto-nivel-inerte-motivo{ data: { tooltip: motivo_sin_nivel.upcase_first } }
-            = icono(:info, tamano: 13)
-            %span Acá no aplica
 
     - unless representante?
       = render "shared/buscador_global"

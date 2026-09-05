@@ -26,6 +26,7 @@ import CampoTelefonoController from "controllers/campo_telefono_controller"
 import BusquedaController from "controllers/busqueda_controller"
 import CargaInformesController from "controllers/carga_informes_controller"
 import CargaNotasController from "controllers/carga_notas_controller"
+import ContextoController from "controllers/contexto_controller"
 import CopiarController from "controllers/copiar_controller"
 import EscalaPorNivelController from "controllers/escala_por_nivel_controller"
 import FiltroLocalController from "controllers/filtro_local_controller"
@@ -44,6 +45,7 @@ application.register("campo-telefono", CampoTelefonoController)
 application.register("busqueda", BusquedaController)
 application.register("carga-informes", CargaInformesController)
 application.register("carga-notas", CargaNotasController)
+application.register("contexto", ContextoController)
 application.register("copiar", CopiarController)
 application.register("escala-por-nivel", EscalaPorNivelController)
 application.register("filtro-local", FiltroLocalController)

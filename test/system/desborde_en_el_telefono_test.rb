@@ -105,9 +105,12 @@ class DesbordeEnElTelefonoTest < ApplicationSystemTestCase
 
     entrar_como(a.director)
     visit sections_path
-    # ⚠️ Sin el tercer control, este test no mide la barra que hay que medir.
-    assert_selector ".contexto-nivel-select", text: "Todos los niveles"
-    select "Primaria", from: "nivel"
+    # ⚠️ Con un nivel PUESTO, que es cuando la barra lleva más texto: la
+    # pastilla dice «2025-2026 · Primaria» en vez de solo el año. Sin esto, el
+    # test mide la barra en su estado más corto y no la que hay que medir.
+    find(".contexto-pastilla").click
+    within(".contexto-panel") { click_button "Primaria" }
+    assert_selector ".contexto-pastilla", text: "Primaria"
 
     culpables = ANCHOS.flat_map do |ancho|
       PANTALLAS.filter_map do |helper|

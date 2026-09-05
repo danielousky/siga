@@ -1184,27 +1184,11 @@ textarea.form-control {
   white-space: nowrap;
 }
 
-.contexto-periodo {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  flex-shrink: 0;
-}
-
-.contexto-periodo-nombre {
-  font-weight: 600;
-  color: var(--brand-primary);
-}
-
-.contexto-periodo-situacion {
-  color: var(--text-tertiary);
-}
-
-.contexto-periodo-vacio {
-  color: var(--warning-text);
-  text-decoration: none;
-  border-bottom: 1px dotted currentColor;
-}
+/* ⚠️ `.contexto-periodo*` SE BORRÓ con MOR-223: era el contenedor del año
+   cuando vivía suelto en la barra, y ahora el año vive dentro de la pastilla de
+   contexto (`.contexto-valor-anio`). Se borra en vez de dejarse «por si acaso»:
+   una regla huérfana no falla, simplemente deja de aplicar — y es exactamente
+   así como esta barra se quedó sin reglas de teléfono en MOR-194. */
 
 /* La barra en un teléfono (MOR-194).
    ─────────────────────────────────
@@ -1233,7 +1217,9 @@ textarea.form-control {
 @media (max-width: 640px) {
   .barra-superior-inner {
     gap: var(--space-sm);
-    padding: 0 var(--space-md);
+    /* 16 px de cada lado son 32 px de una pantalla de 390: el 8 % gastado en
+       margen antes de dibujar nada. */
+    padding: 0 var(--space-sm);
     /* ⚠️ `min-width: 0` en el contenedor Y en el hijo que se encoge: un ítem
        flex no baja de su tamaño de contenido si no se le dice, y ES esa
        negativa la que empuja la fila entera más allá del viewport. */
@@ -1252,8 +1238,7 @@ textarea.form-control {
   }
 
   .contexto-colegio-lugar,
-  .navbar-brand-text,
-  .contexto-anio-etiqueta {
+  .navbar-brand-text {
     display: none;
   }
 
@@ -1288,18 +1273,13 @@ textarea.form-control {
     min-width: 0;
   }
 
-  .contexto-periodo-situacion { display: none; }
-  .contexto-anio-select { max-width: 130px; }
+  /* ⚠️ El gap de la barra se achica: cinco elementos × 12 px son 48 px, que a
+     390 px es el 12 % de la pantalla gastado en aire. */
+  .barra-superior-inner { gap: var(--space-xs); }
 
-  /* ⚠️ El tercer control de la barra, y el que la puede volver a desbordar.
-     La etiqueta «NIVEL» se va —como se fue «AÑO ESCOLAR»— y el desplegable se
-     queda: es lo que decide qué se ve, y en un teléfono se toca.
-     `min-width: 0` en el contenedor Y en el select: un ítem flex se niega por
-     defecto a encogerse por debajo de su contenido, y basta un eslabón que no
-     levante esa negativa para que la página se corra de lado. */
-  .contexto-nivel-etiqueta { display: none; }
-  .contexto-nivel { flex-shrink: 1; min-width: 0; }
-  .contexto-nivel-select { max-width: 120px; min-width: 0; }
+  /* Las reglas de teléfono del control de contexto NO viven acá: están junto a
+     `.contexto`, cinco mil líneas más abajo, porque a igual especificidad gana
+     la última regla del archivo. Ver la nota de ahí. */
 }
 
 /* ---- Pagination ---- */
@@ -6948,181 +6928,1283 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 .mas-detalle-cuerpo p { margin: 0 0 var(--space-sm); }
 .mas-detalle-cuerpo p:last-child { margin-bottom: 0; }
 
-/* El selector de año escolar en la barra de contexto (MOR-165).
-   Va donde antes se leía el año «vigente»: mismo lugar, ahora se puede cambiar. */
-.contexto-anio {
-  display: flex;
+/* El control de contexto de la barra (MOR-223).
+   ────────────────────────────────────────────
+   Reemplaza a `.contexto-anio*` y `.contexto-nivel*`, que eran dos `<select>`
+   con sus etiquetas, un botón índigo y dos chips: cinco controles diciendo la
+   misma frase. Daniel: «la verdad el filtro no me encanta, creo que la barra en
+   general se ve desordenada».
+
+   ⚠️ Es un `<details>` NATIVO. Todo lo de aquí abajo es apariencia: si el CSS
+   o el JavaScript no cargan, el panel sigue abriendo y los formularios de
+   adentro siguen enviando. */
+.contexto {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* La pastilla dice el estado completo en una frase —«2025-2026 · Primaria»— y
+   por eso no lleva etiquetas al lado. */
+.contexto-pastilla {
+  display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
-  margin: 0;
-}
-
-.contexto-anio-etiqueta {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin: 0;
-}
-
-/* Sin caja: es un dato de la barra que se puede tocar, no un campo de
-   formulario. La caja llega al pasar el ratón, que es cuando importa saber que
-   es un control. */
-.contexto-anio-select {
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--brand-primary);
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 600;
-  padding: var(--space-micro) var(--space-xs);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-}
-
-.contexto-anio-select:hover { border-color: var(--border-standard); background: var(--surface-elevated); }
-
-/* El NIVEL de la sesión, el segundo pivote.
-   ─────────────────────────────────────────
-   Hereda la forma del selector de año —sin caja, la caja llega al hover— porque
-   son los dos ejes de lo mismo y tienen que leerse como una pareja.
-
-   ⚠️ Lo que NO hereda es el estado «puesto». Con un año elegido siempre hay uno
-   y el nombre lo dice; con el nivel, «Todos» es lo normal y elegir uno es un
-   MODO DE TRABAJO. Un filtro puesto que no se ve es la manera de que alguien
-   cargue veinte alumnos en el nivel equivocado y culpe al sistema. */
-.contexto-nivel {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  margin: 0;
-  /* ⚠️ SÍ se encoge, y su hijo el aviso es el que da el ancho. Con
-     `flex-shrink: 0` acá, el `flex: 0 100 auto` del motivo solo competía contra
-     el propio desplegable y nunca contra el resto de la barra. */
-  flex: 0 1 auto;
-  min-width: 0;
-}
-
-.contexto-nivel-etiqueta {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin: 0;
-}
-
-.contexto-nivel-select {
-  flex: 0 0 auto;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--brand-primary);
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 600;
-  padding: var(--space-micro) var(--space-xs);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-}
-
-.contexto-nivel-select:hover {
-  border-color: var(--border-standard);
+  min-height: 32px;
+  padding: 0 var(--space-sm);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
   background: var(--surface-elevated);
+  color: var(--brand-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  /* El triángulo que Safari y Firefox le ponen a un `<summary>`: acá el chevrón
+     propio es la señal, y dos marcadores compiten. */
+  list-style: none;
 }
 
-.contexto-nivel-select:focus-visible {
+.contexto-pastilla::-webkit-details-marker { display: none; }
+.contexto-pastilla::marker { content: ""; }
+
+.contexto-pastilla:hover {
+  border-color: var(--brand-primary);
+  background: var(--surface-hover);
+}
+
+.contexto-pastilla:focus-visible {
   outline: 2px solid var(--brand-primary);
-  outline-offset: 1px;
+  outline-offset: 2px;
 }
 
-/* Con un nivel elegido, el control se PINTA.
-   ⚠️ En índigo —la familia fría de `btn-accion`— y no en verde ni ámbar: la
-   regla de color reserva esos para el dato (MOR-135). Acá lo que hay que decir
-   es «hay un modo puesto», que es información sobre un CONTROL. */
-.contexto-nivel-select--puesto {
-  background: var(--accion-primary);
-  border-color: var(--accion-primary);
-  color: white;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 13px;
+.contexto[open] .contexto-pastilla {
+  border-color: var(--brand-primary);
+  background: var(--surface-hover);
 }
 
-.contexto-nivel-select--puesto:hover {
-  background: var(--accion-hover);
-  border-color: var(--accion-hover);
-  color: white;
-}
+.contexto[open] .contexto-pastilla-flecha { transform: rotate(180deg); }
 
-/* Donde el nivel NO aplica: apagado, pero vivo.
-   ⚠️ No es `disabled`. Deshabilitarlo dejaría a la persona sin poder cambiar de
-   nivel desde esta pantalla —tendría que salir a otra para volver— y un control
-   que no se puede enfocar tampoco se puede preguntar con el teclado. Lo que
-   contesta la pregunta es el motivo de al lado, no la muerte del control. */
-.contexto-nivel-select--inerte {
+.contexto-pastilla-flecha {
   color: var(--text-tertiary);
+  transition: transform var(--transition-fast);
+}
+
+.contexto-pastilla-separador { color: var(--text-tertiary); margin: 0 2px; }
+
+
+/* La nota de «acá el nivel no aplica» viaja CON la pastilla y no como un chip
+   suelto en la barra: es una nota sobre este control, no otro elemento de la
+   fila. El texto completo vive en el panel y en el tooltip. */
+.contexto-pastilla-nota {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--warning-text);
+  font-size: 12px;
   font-weight: 500;
 }
 
-/* ⚠️ Este es el que CEDE el ancho, y hubo que decírselo.
-   Se vio en pantalla: con el aviso puesto, «COLEGIO A 7328013» se recortaba a
-   «C». El nombre del colegio ya tiene `overflow: hidden` para no empujar al año
-   escolar fuera de la barra, así que al aparecer un elemento nuevo era él quien
-   se encogía — y es el último que debería. Un `flex-shrink` alto y su propio
-   recorte ponen el orden al derecho. */
-.contexto-nivel-inerte-motivo {
+/* En el teléfono queda el icono: el texto entero empujaría el buscador fuera
+   de la pantalla. El tooltip aparece también con `:focus-visible` (MOR-173). */
+@media (max-width: 900px) {
+  .contexto-pastilla-nota-texto { display: none; }
+}
+
+/* ── El panel ─────────────────────────────────────────────────────────────── */
+
+/* ⚠️ Cerrado, el panel se ESCONDE explícitamente. Tercera vez que esta trampa
+   aparece en el proyecto.
+
+   El navegador oculta el contenido de un `<details>` cerrado, pero ese
+   ocultamiento lo pierde cualquier regla que le dé al hijo un `display` propio
+   —o, como acá, `position: absolute`, que fuerza un `display` calculado—. El
+   panel seguía midiendo 549 px en un teléfono de 390 y corría la página entera
+   de lado, sin verse.
+   
+   Ya pasó con `.sidebar-section .sidebar-nav { display: flex }` en el menú, y
+   antes con `.nav-institutional`. El síntoma es siempre el mismo: un desborde
+   horizontal idéntico en TODAS las pantallas, que es la firma de algo que vive
+   en la barra o en el menú. */
+.contexto:not([open]) .contexto-panel { display: none; }
+
+.contexto-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 60;
+  min-width: 20rem;
+  max-width: min(24rem, calc(100vw - 2rem));
+  padding: var(--space-md);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  /* Que el panel scrollee y no la barra, cuando un colegio tiene seis años
+     escolares cargados y la ventana es baja. */
+  max-height: min(30rem, calc(100vh - 5rem));
+  overflow-y: auto;
+}
+
+.contexto-panel-titulo {
+  margin: 0 0 var(--space-sm);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.contexto-grupo + .contexto-grupo {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.contexto-grupo-titulo {
+  margin: 0 0 var(--space-xs);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* Cada opción es un formulario propio, así que el `<form>` no puede meter
+   espacio ni romper la columna. */
+.contexto-opcion-form { display: contents; }
+
+/* Un año por renglón, con su situación al lado: es justo lo que hace falta al
+   elegir — quien pone «2024-2025» tiene que ver ahí mismo que está cerrado. */
+.contexto-opcion {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  width: 100%;
+  min-height: 40px;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  text-align: left;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.contexto-opcion:hover { background: var(--surface-hover); }
+
+.contexto-opcion:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+}
+
+/* La elegida se PINTA. Un filtro puesto que no se ve es la manera de que
+   alguien cargue veinte alumnos en el año equivocado y culpe al sistema. */
+.contexto-opcion.elegida {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #fff;
+}
+
+.contexto-opcion.elegida .contexto-opcion-nota { color: rgba(255, 255, 255, 0.75); }
+
+.contexto-opcion-nombre { font-weight: 600; }
+
+.contexto-opcion-nota {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+/* El nivel es un MODO DE TRABAJO —«vamos a trabajar Primaria»— y son tres
+   opciones: en fila, como pastillas, no una lista de renglones. */
+.contexto-niveles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.contexto-nivel-boton {
+  min-height: 36px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.contexto-nivel-boton:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+}
+
+.contexto-nivel-boton:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.contexto-nivel-boton.elegida,
+.contexto-nivel-boton.elegida:hover {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+  color: #fff;
+}
+
+/* El motivo completo de «acá no aplica». En la barra se recortaba a «los
+   departamen», que es peor que no decir nada. */
+.contexto-panel-nota {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  margin: var(--space-sm) 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.contexto-panel-nota svg { flex: 0 0 auto; margin-top: 2px; color: var(--warning-text); }
+
+/* El atajo a los años escolares: era un botón índigo suelto en la barra y acá
+   es un renglón del panel que ya habla del año. */
+.contexto-panel-enlace {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.contexto-panel-enlace:hover { color: var(--brand-primary); }
+
+/* Sin nada que elegir —un profesor, un alumno— el contexto es TEXTO. Darle
+   forma de control a algo que no se puede tocar es una promesa que la pantalla
+   no cumple. */
+.contexto-fijo {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+/* ⚠️ El MISMO vocabulario en los dos caminos —la pastilla y el texto fijo—
+   porque es el mismo dato: cuál año, en qué situación, o que no hay ninguno.
+   Con dos juegos de clases, retocar uno dejaba al otro atrás. */
+.contexto-valor-anio { font-weight: 600; color: var(--brand-primary); }
+.contexto-valor-situacion { color: var(--text-tertiary); font-size: 13px; }
+
+/* Dentro de la pastilla el año ya hereda su color: repetirlo lo pinta dos veces
+   y el `currentColor` del chevrón deja de coincidir. */
+.contexto-pastilla .contexto-valor-anio { color: inherit; }
+
+.contexto-valor-vacio {
+  color: var(--warning-text);
+  text-decoration: none;
+  border-bottom: 1px dotted currentColor;
+}
+
+/* El control de contexto en un teléfono.
+   ─────────────────────────────────────
+   ⚠️ Estas reglas viven ACÁ y no en el `@media` grande de la barra, que está
+   cinco mil líneas más arriba. Ahí estuvieron un rato y **no aplicaban**: a
+   igual especificidad gana la última regla del archivo, y `.contexto {
+   flex-shrink: 0 }` de este bloque pisaba al `flex-shrink: 1` del media. El
+   síntoma fue un desborde de 168 px idéntico en las diecinueve pantallas.
+
+   Es primo del accidente de `.nota-ayuda`, que estaba definida dos veces con
+   4.000 líneas de distancia: en una hoja de 8.000 líneas, la distancia entre
+   dos reglas del mismo selector ES el bug. */
+@media (max-width: 640px) {
+  /* ⚠️ Acá el que CEDE es el nombre del COLEGIO, no la pastilla.
+     
+     Estuvo al revés y el resultado se pudo medir: a 390 px el nombre se
+     quedaba con 165 px y la pastilla con **13**. O sea, la identidad —que no
+     cambia y que quien entró ya sabe— aplastaba al control con el que se
+     trabaja. En un teléfono, «2025-2026 · Primaria» es lo que hay que poder
+     leer; «COLEGIO A 65994001» no.
+     
+     El nombre igual no desaparece: se recorta con puntos suspensivos, que es
+     lo que dice en cuál de los dos colegios está parada la secretaria que
+     tiene los dos. */
+  .contexto-colegio { max-width: 10ch; }
+
+  /* ⚠️ Cede, pero con PISO. `flex-shrink: 0` a secas devolvía el desborde de
+     45 px; `flex-shrink: 1` sin piso lo dejaba en 13 px, o sea invisible. El
+     piso es lo que el año necesita —«2025-2026» son nueve caracteres— y lo que
+     sobra se reparte con el nombre del colegio. */
+  .contexto { min-width: 7.5rem; flex-shrink: 1; }
+  .contexto-pastilla { max-width: 100%; min-width: 0; overflow: hidden; }
+  .contexto-pastilla-texto { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+  /* La situación del año se cae antes que el año: «finalizado el 31 de julio»
+     son 24 caracteres para decir algo que el panel repite en cada opción. */
+  .contexto-valor-situacion { display: none; }
+
+  /* El panel se ancla a la DERECHA: pegado a la izquierda de la pastilla se
+     salía por el borde de la pantalla. */
+  .contexto-panel {
+    left: auto;
+    right: 0;
+    min-width: 0;
+    width: min(20rem, calc(100vw - 2rem));
+  }
+}
+
+/* ---- La planilla de informes descriptivos (MOR-216) ---- */
+/* La maestra escribe veinticinco seguidos: la pantalla tiene que sentirse como
+   una lista y no como veinticinco formularios. */
+.informes-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.informe-cabecera {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.informe-alumno {
+  font-weight: 600;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* El promedio al lado del nombre: escribiendo veinticinco informes seguidos hay
+   que poder recordar de quién se habla sin salir de la pantalla.
+   ⚠️ SIN color semántico — es una referencia para el docente, no una alarma, y
+   en SIGA el rojo quiere decir «este niño está aplazado» (MOR-135). */
+.informe-promedio {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* El estado del guardado, por fila. Un guardado silencioso que falla es peor
+   que no guardar: se cierra el teléfono creyendo que se terminó. */
+.informe-estado {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  min-width: 5.5rem;
+  text-align: right;
+}
+
+.informe-fila[data-estado="guardado"] .informe-estado { color: var(--guardar-primary); }
+.informe-fila[data-estado="error"]    .informe-estado { color: var(--eliminar-primary); }
+
+.informe-campo {
+  /* Crece con lo que se escribe: tres líneas fijas esconden lo ya escrito justo
+     cuando se relee para corregir. El alto lo pone el controlador. */
+  resize: vertical;
+  min-height: 4.5rem;
+  overflow-y: hidden;
+  line-height: 1.5;
+}
+
+.informe-fila[data-estado="error"] .informe-campo { border-color: var(--eliminar-primary); }
+
+/* El informe en la boleta y en el portal de la familia. */
+.informe-descriptivo {
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  border-left: 3px solid var(--border-standard);
+  background: var(--surface-hover);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.informe-descriptivo-titulo {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-xs);
+}
+
+.informe-descriptivo-cuerpo {
+  margin: 0;
+  white-space: pre-line;
+  line-height: 1.6;
+}
+
+/* ---- Las competencias en el portal de la familia (MOR-136) ---- */
+/* Es para lo ÚNICO que existen las competencias: que la madre lea qué se
+   trabajó, no solo con qué nota salió su hijo. */
+.portal-materia-fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.portal-competencias {
+  list-style: none;
+  margin: var(--space-xs) 0 0;
+  padding: 0 0 0 var(--space-sm);
+  border-left: 2px solid var(--border-standard);
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.portal-competencia-fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* El nivel de la competencia es DATO, así que puede llevar tono — pero nunca
+   rojo, que en SIGA quiere decir «este niño está aplazado» y ese significado no
+   se gasta (regla de color, MOR-135). Neutro y con la sigla siempre legible. */
+.portal-competencia-nivel {
+  flex: 0 0 auto;
+  font-weight: 600;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.portal-indicadores {
+  margin: 2px 0 0;
+  padding-left: var(--space-md);
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.portal-leyenda {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.portal-leyenda strong { margin-right: var(--space-xs); }
+.portal-leyenda .dato-secundario { margin-left: var(--space-xs); }
+
+/* ---- Qué evalúa una evaluación (MOR-136) ---- */
+/* El enganche entre el plan y la nota. Se marcan COMPETENCIAS; los indicadores
+   van debajo como contexto —ayudan a reconocer cuál es cuál— y no se guardan. */
+.que-evalua-lista {
+  list-style: none;
+  margin: var(--space-xs) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.que-evalua-item {
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-elevated);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+/* Marcada se NOTA, y no solo por la casilla: en una lista de seis competencias
+   de dos renglones cada una, un tilde de 13px no se encuentra de un vistazo. */
+.que-evalua-item:has(input:checked) {
+  border-color: var(--brand-primary);
+  background: var(--surface-hover);
+}
+
+.que-evalua-competencia {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  cursor: pointer;
+  /* 44px de objetivo táctil: esto se marca desde un teléfono. */
+  min-height: 44px;
+  align-content: center;
+  flex-wrap: wrap;
+}
+
+.que-evalua-competencia input {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand-primary);
+}
+
+.que-evalua-competencia span { flex: 1 1 0; min-width: 0; }
+
+/* Los indicadores describen, no se marcan: sin casilla, sangrados y en el tono
+   secundario. Si tuvieran casilla, prometerían una precisión que el modelo no
+   guarda — su nivel en la boleta es el de su competencia. */
+.que-evalua-indicadores {
+  margin: var(--space-micro) 0 0 calc(18px + var(--space-xs));
+  padding-left: var(--space-md);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.que-evalua-indicadores li { margin-top: 2px; }
+
+/* Lo que la evaluación ya evalúa, en su ficha. */
+.evalua-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.evalua-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px var(--space-sm);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ---- La rúbrica del colegio (MOR-136) ---- */
+/* Una tabla de cinco filas que se editan juntas: es una ESCALERA, y sus
+   peldaños solo tienen sentido unos respecto de otros. */
+.tabla-rubrica .columna-codigo { width: 7rem; }
+.tabla-rubrica .columna-desde  { width: 6rem; }
+.tabla-rubrica .columna-cubre  { width: 8rem; }
+
+.tabla-rubrica td { vertical-align: middle; }
+
+/* El código es corto y se lee como una sigla: centrado y en mayúscula. */
+.campo-rubrica-codigo {
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.campo-rubrica-valor { text-align: center; }
+
+/* «Cubre» es DATO derivado, no un campo: se pinta como tal — sin caja, en el
+   tono secundario y con cifras tabulares para que las bandas se lean como una
+   columna de números y no como cinco frases. */
+.rubrica-cubre {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Quitar es una CASILLA disfrazada de botón, y a propósito: el guardado es uno
+   solo, así que una fila que desapareciera en el acto no se podría recuperar
+   con el botón de atrás. Marcada, la fila se atenúa y se tacha — se ve que va
+   a irse, y se puede desmarcar. */
+.rubrica-quitar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.rubrica-quitar:hover { color: var(--eliminar-primary); background: var(--surface-hover); }
+
+.rubrica-quitar-check { position: absolute; opacity: 0; width: 0; height: 0; }
+
+.rubrica-quitar:has(.rubrica-quitar-check:checked) {
+  color: var(--eliminar-primary);
+}
+
+.rubrica-fila:has(.rubrica-quitar-check:checked) td:not(.columna-acciones) {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.rubrica-quitar:focus-within {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* El aviso de que la rúbrica es una propuesta y no está guardada. */
+.rubrica-propuesta {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border-left: 3px solid var(--brand-primary);
+  background: var(--surface-hover);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: var(--space-md);
+}
+
+.rubrica-propuesta .icono { flex: 0 0 auto; margin-top: 2px; color: var(--brand-primary); }
+
+@media (max-width: 700px) {
+  /* En el teléfono la etiqueta pasa a ser un renglón propio: reservarle 9.5rem
+     al lado dejaba a las pastillas en una columna de dos dedos de ancho. */
+  .pastillas { gap: var(--space-micro); }
+  .pastillas-etiqueta { min-width: 100%; }
+}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   QUÉ NIVELES DICTA EL COLEGIO (MOR-153)
+
+   Tres casillas que reemplazan catorce formularios. Se dibujan grandes a
+   propósito: es la decisión más importante de la primera hora, y de ella salen
+   los nombres de los grados, su orden y la escala de sus boletines.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.niveles-opciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.nivel-opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.nivel-opcion:hover { border-color: var(--brand-primary); }
+
+/* ⚠️ `:has()` y no una clase que ponga JavaScript: la casilla marcada ES el
+   estado, y duplicarlo en una clase deja dos verdades que se desincronizan. */
+.nivel-opcion:has(input:checked) {
+  border-color: var(--brand-primary);
+  background: var(--brand-subtle);
+}
+
+.nivel-opcion:has(input:focus-visible) {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.nivel-opcion input { margin-top: 3px; flex: 0 0 auto; }
+
+.nivel-cuerpo { display: flex; flex-direction: column; gap: var(--space-micro); min-width: 0; }
+
+.nivel-nombre { font-weight: 600; font-size: 15px; color: var(--text-primary); }
+.nivel-detalle { font-size: 13px; color: var(--text-secondary); }
+
+/* Los nombres de los grados se muestran ANTES de crear nada: un director tiene
+   que poder ver qué va a aparecer, no descubrirlo después. */
+.nivel-grados {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+
+.nivel-puesto {
   display: inline-flex;
   align-items: center;
   gap: var(--space-micro);
   font-size: 12px;
+  color: var(--success-text);
+}
+
+/* ---- La escala de primaria ---- */
+
+.escala-de-primaria {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.escala-opciones { display: flex; flex-wrap: wrap; gap: var(--space-md); }
+
+.escala-opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  cursor: pointer;
+}
+
+.escala-opcion > span { display: flex; flex-direction: column; }
+.escala-opcion .nota-ayuda { margin: 0; }
+
+/* ---- Los grados que ya tiene ---- */
+
+.niveles-titulo-grados {
+  font-size: 15px;
+  margin: var(--space-xl) 0 var(--space-sm);
+  color: var(--text-secondary);
+}
+
+.niveles-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+
+.niveles-item {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--surface-input);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+}
+
+.niveles-item-nombre { font-weight: 500; }
+.niveles-item-nivel { font-size: 12px; color: var(--text-tertiary); }
+
+/* Un grado con nombre fuera del catálogo no se rechaza —hay colegios con datos
+   cargados antes de esto— pero sí se señala: es lo que el importador no va a
+   poder emparejar contra una planilla. */
+.niveles-item-aviso {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-micro);
+  font-size: 12px;
+  color: var(--danger-text);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL MAPA DE LA PUESTA EN MARCHA (MOR-154)
+
+   No es un wizard: es una lista de pasos en el panel, donde cada uno enlaza a
+   la pantalla que ya existe. Ver `_puesta_en_marcha.html.haml`.
+
+   ⚠️ El color acá lo lleva el ESTADO, que es un dato —«esto ya está»— y nunca
+   el botón. Un paso listo se tiñe; su enlace «Cambiar» no.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.puesta-en-marcha { margin-bottom: var(--space-xl); }
+
+.pasos {
+  list-style: none;
+  margin: var(--space-lg) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.paso {
+  display: grid;
+  grid-template-columns: 2rem 1fr auto;
+  gap: var(--space-sm) var(--space-md);
+  padding: var(--space-md) 0;
+  border-top: 1px solid var(--border-subtle);
+  align-items: start;
+}
+
+.paso:first-child { border-top: none; }
+
+/* La marca: número mientras falta, visto cuando está. */
+.paso-marca {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.6rem;
   color: var(--text-tertiary);
-  line-height: 1.3;
+}
+
+.paso-numero {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.paso--listo .paso-marca { color: var(--success-text); }
+
+.paso-cuerpo { display: flex; flex-direction: column; gap: var(--space-xs); min-width: 0; }
+
+.paso-titulo {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+/* Un paso terminado se colapsa a una línea con su resultado. NO se atenúa hasta
+   volverse ilegible: sigue siendo información que alguien va a querer leer para
+   verificar qué quedó configurado. */
+.paso--listo .paso-titulo { font-weight: 500; color: var(--text-secondary); }
+
+.paso-resultado {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+/* La explicación del paso, como un aviso (MOR-203).
+   ────────────────────────────────────────────────
+   Daniel, en dos vueltas: «esos textos deberían ser más llamativos» y «aún las
+   descripciones están más cortas que el ancho total; deberían ser mensajes tipo
+   warning o info».
+
+   ⚠️ El tono es AZUL y no ámbar, y eso no contradice el pedido: la regla de
+   color (MOR-135) reserva el ámbar, el verde y el rojo para el DATO —un ámbar
+   acá compite con «196 alumnos sin representante», que sí es una anomalía—. La
+   familia fría queda libre para el cromo, y un aviso informativo es cromo: no
+   dice que algo esté mal, dice qué es este paso.
+
+   ⚠️ Y sin `max-width`. Lo tuvo en 62ch y después en 92ch, y las dos veces
+   Daniel vio el texto cortado antes del borde. La medida cómoda de lectura está
+   pensada para un párrafo largo; acá son dos renglones dentro de una caja que
+   YA los acota con su propio relleno. */
+.paso-explicacion {
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  border-left: 3px solid var(--brand-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: color-mix(in srgb, var(--brand-primary) 6%, transparent);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  text-wrap: pretty;
+}
+
+/* El bloqueo se DICE, con el nombre de lo que falta, y el botón de al lado
+   lleva ahí. Nunca un control apagado. */
+.paso-bloqueo {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+.paso-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-micro);
+}
+
+.paso-acciones form { margin: 0; }
+
+.paso-rehacer { display: flex; align-items: center; }
+
+.paso-enlace-tenue {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  padding: var(--space-micro) var(--space-xs);
+  border-radius: var(--radius-sm);
+}
+
+.paso-enlace-tenue:hover { color: var(--brand-primary); text-decoration: underline; }
+
+.paso--omitido .paso-titulo,
+.paso--omitido .paso-resultado { color: var(--text-tertiary); }
+
+@media (max-width: 640px) {
+  /* En el teléfono el enlace de «Cambiar» pasa abajo: tres columnas en 375px
+     dejan el título en dos letras por línea. */
+  .paso { grid-template-columns: 2rem 1fr; }
+  .paso-rehacer { grid-column: 2; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   QUIÉN NO HA CARGADO SUS NOTAS (MOR-155)
+
+   El único pendiente del panel con fecha de vencimiento: el lapso cierra y los
+   boletines salen incompletos. Por eso va primero de los tres.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.atrasados { display: flex; flex-direction: column; gap: var(--space-md); }
+
+.atrasado {
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.atrasado-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--surface-input);
+}
+
+.atrasado-nombre { font-weight: 600; text-decoration: none; color: var(--text-primary); }
+.atrasado-nombre:hover { color: var(--brand-primary); }
+
+.atrasado-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.atrasado-punto { color: var(--border-emphasis); }
+
+/* ⚠️ El rojo acá describe un DATO —cuántos niños no tienen nota—, no un
+   control. La regla del proyecto prohíbe teñir el botón, no señalar la falta. */
+.atrasado-dato--alerta { color: var(--danger-text); font-weight: 500; }
+
+.atrasado-correo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-micro);
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+.atrasado-correo:hover { text-decoration: underline; }
+
+.atrasado-lista { list-style: none; margin: 0; padding: 0; }
+
+/* Una fila por evaluación, no una tabla: son dos o tres por profesor y una
+   tabla de tres filas con cinco encabezados pesa más de lo que informa. */
+.atrasado-fila {
+  display: grid;
+  grid-template-columns: 5rem minmax(9rem, 1fr) 2fr auto;
+  gap: var(--space-sm);
+  align-items: baseline;
+  padding: var(--space-sm) var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 14px;
+}
+
+.atrasado-fecha { color: var(--text-tertiary); font-size: 13px; white-space: nowrap; }
+
+.atrasado-que { display: flex; flex-direction: column; }
+.atrasado-materia { font-size: 12px; color: var(--text-tertiary); }
+
+.atrasado-descripcion { color: var(--text-secondary); min-width: 0; }
+
+.atrasado-avance {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--text-secondary);
   white-space: nowrap;
-  flex: 0 0 auto;
-  cursor: help;
+  text-align: right;
 }
 
-/* El icono no se encoge con el texto: medio ⓘ no dice nada. */
-.contexto-nivel-inerte-motivo svg { flex: 0 0 auto; }
-
-@media (max-width: 900px) {
-  .contexto-nivel-inerte-motivo { display: none; }
+@media (max-width: 640px) {
+  /* En el teléfono la descripción pasa a su propia línea: cuatro columnas en
+     375px dejan «Examen del primer corte» en una palabra por renglón. */
+  .atrasado-fila { grid-template-columns: 5rem 1fr auto; }
+  .atrasado-descripcion { grid-column: 1 / -1; }
 }
 
-/* El atajo a los años escolares, al lado del selector (MOR-171 · MOR-174).
-   ──────────────────────────────────────────────────────────────────────
-   Solo el icono, y en ÍNDIGO. Daniel: «quita Años escolares, está bien el icono
-   pero con otro color más llamativo».
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA FRANJA DEL RECORRIDO (MOR-154)
 
-   El texto sobraba: la barra ya dice «AÑO ESCOLAR» dos centímetros a la
-   izquierda, así que el botón lo repetía. Lo que faltaba no era explicación —el
-   tooltip la da— sino que se VIERA, y eso lo resuelve el tono: contra el azul
-   grisáceo de la barra, el índigo salta. */
-.contexto-anio-gestionar {
+   Una línea que dice dónde está y cómo vuelve al plan. Ver
+   `shared/_franja_de_recorrido`.
+
+   ⚠️ NO es `position: fixed`, a propósito. En una laptop de 13" ya hay barra de
+   contexto y a veces avisos de suscripción; una cuarta banda fija son doscientos
+   píxeles de cromo antes del primer dato del colegio.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.franja {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  /* 44px de alto mínimo: los dos enlaces son objetivos táctiles. */
+  min-height: 44px;
+  padding: var(--space-xs) var(--space-md);
+  margin-bottom: var(--space-lg);
+  background: var(--brand-subtle);
+  border: 1px solid var(--brand-primary);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+}
+
+.franja-volver,
+.franja-seguir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-micro);
+  color: var(--brand-primary);
+  text-decoration: none;
+  font-weight: 500;
+  padding: var(--space-micro) var(--space-xs);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.franja-volver:hover,
+.franja-seguir:hover { text-decoration: underline; }
+
+.franja-volver:focus-visible,
+.franja-seguir:focus-visible,
+.franja-cerrar:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.franja-centro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-micro);
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--text-secondary);
+}
+
+.franja-titulo { font-weight: 600; color: var(--text-primary); }
+.franja-avance { font-variant-numeric: tabular-nums; }
+.franja-punto { color: var(--border-emphasis); }
+.franja-paso { color: var(--text-primary); }
+
+/* Cuando se desvió a otra pantalla, la franja lo dice en vez de fingir. */
+.franja-paso--lejos { color: var(--text-secondary); font-style: italic; }
+
+.franja-acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-left: auto;
+}
+
+.franja-cerrar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
+  /* 32px porque va pegado a «seguir»: más chico se falla y se sale del
+     recorrido queriendo avanzar. */
+  width: 32px;
+  height: 32px;
+  color: var(--text-tertiary);
   border-radius: var(--radius-sm);
-  background: var(--accion-primary);
-  color: white;
-  border: 1px solid var(--accion-primary);
-  flex-shrink: 0;
 }
 
-.contexto-anio-gestionar:hover {
-  background: var(--accion-hover);
-  border-color: var(--accion-hover);
-  color: white;
-}
+.franja-cerrar:hover { color: var(--text-primary); background: var(--surface-hover); }
+
+@media (max-width: 640px) {
+  /* En el teléfono el centro pasa a su propia línea y las acciones quedan
+     abajo: los tres bloques en 375px dejan «va por materias» ilegible. */
+  .franja { gap: var(--space-xs); }
+  .franja-centro { flex: 1 0 100%; order: 3; }
+  .franja-acciones { margin-left: auto; }
 }
 
-.contexto-anio-select:focus-visible {
+/* El enlace al registro, al pie de la pantalla de entrada (MOR-158). */
+.acceso-registro {
+  margin-top: var(--space-md);
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.acceso-registro a { color: var(--brand-primary); font-weight: 500; }
+
+/* Las dos pantallas del camino de entrada: registro y alta del colegio. */
+.registro { max-width: 46rem; margin: 0 auto; }
+.registro-form { display: flex; flex-direction: column; gap: var(--space-md); }
+
+/* El campo que aparece cuando el municipio o la parroquia no están en el
+   catálogo (MOR-159). Va pegado a su desplegable, sin etiqueta propia: la
+   etiqueta ya la puso el select de arriba. */
+.ubicacion-libre { margin-top: var(--space-xs); }
+
+/* La ficha de una sección. Salieron de estilos en línea que estaban escritos
+   cinco veces en la misma vista (revisión rails-style). */
+.seccion-conteo {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: var(--space-lg);
+}
+
+.seccion-soy-yo {
+  margin-left: var(--space-micro);
+  font-size: 12px;
+  color: var(--brand-primary);
+}
+
+.seccion-separador {
+  margin: var(--space-xl) 0;
+  border: 0;
+  border-top: 1px solid var(--border-standard);
+}
+
+.seccion-subtitulo { font-size: 16px; margin-bottom: var(--space-lg); }
+
+/* El nombre de quien tiene la sesión, en la barra: hereda el color de la barra
+   en vez de declararlo. */
+.user-info { color: inherit; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA AYUDA BAJO DEMANDA (MOR-161)
+
+   Un «?» junto a la etiqueta; el texto aparece al tocarlo y se va solo. Ver
+   `PistasHelper` para el porqué.
+
+   ⚠️ Usa `popover` nativo: el navegador se encarga de cerrar al tocar afuera,
+   de `esc`, y de dibujarlo en la CAPA SUPERIOR — o sea que ningún `overflow`
+   del formulario lo recorta, que es lo que rompe a un tooltip casero.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.form-etiqueta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-micro);
+  margin-bottom: var(--space-micro);
+}
+
+.form-etiqueta .form-label { margin-bottom: 0; }
+
+/* ⚠️ El ancla es de CADA pista y viene del marcado (`--ancla`, MOR-196).
+   Con `anchor-name: --pista` para todas, el navegador resolvía al ÚLTIMO
+   «?» del documento y cada popover salía junto a ése. */
+.pista { display: inline-flex; anchor-name: var(--ancla); }
+
+.pista-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* 24px de caja para un icono de 14: el objetivo táctil no puede ser el
+     dibujo. Va con `padding` y no con `width` para no deformar la línea. */
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.pista-boton:hover { color: var(--brand-primary); background: var(--surface-hover); }
+
+.pista-boton:focus-visible {
   outline: 2px solid var(--brand-primary);
   outline-offset: 1px;
 }
 
+.pista-texto {
+  max-width: 26rem;
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  box-shadow: 0 8px 24px rgba(10, 16, 26, 0.16);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+/* Anclado al «?» donde el navegador sabe hacerlo. Donde no —Firefox todavía—,
+   el popover se centra solo en la pantalla: se lee igual y se cierra igual. */
+@supports (position-anchor: --pista) {
+  .pista-texto {
+    position-anchor: var(--ancla);
+    position-area: bottom span-right;
+    margin-top: var(--space-micro);
+    position-try-fallbacks: flip-block, flip-inline;
+  }
+}
+
+/* Un dato secundario: el teléfono debajo de un nombre, «Sin asignar», el
+   formato de una columna (MOR-161).
+   ⚠️ NO es `.nota-ayuda`. Se veían igual y por eso se confundían, pero una dice
+   «esto te explica algo» y la otra es un dato del colegio. Mezclarlas hacía que
+   el buscador de ayuda del proyecto —y quien lee el código— no supiera cuál es
+   cuál. */
+.dato-secundario {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+/* La descripción de una opción, dentro del propio control (MOR-161).
+   ⚠️ NO es ayuda: es parte de la opción. Esconderla detrás de un «?» obligaría
+   a abrir dos tarjetas para poder elegir entre dos radios. */
+.escala-opcion-detalle {
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+/* ---- «Por qué funciona así», plegado (MOR-161) ---- */
+/* El hermano de `.pista` para el texto que no cuelga de un campo. Mismo
+   argumento que los grupos del menú: `<details>` nativo, sin JavaScript. */
+
+.mas-detalle {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin-top: var(--space-md);
+}
+
+.mas-detalle-resumen {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  /* 44px: es un control que se toca. */
+  min-height: 44px;
+  padding: 0 var(--space-md);
+  cursor: pointer;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.mas-detalle-resumen::-webkit-details-marker { display: none; }
+
+/* El triángulo lo dibujamos para que gire: el nativo no se anima igual entre
+   navegadores. Mismo patrón que `.sidebar-grupo`. */
+.mas-detalle-resumen::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 5px solid currentColor;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  transition: transform var(--transition-fast);
+}
+
+.mas-detalle[open] > .mas-detalle-resumen::before { transform: rotate(90deg); }
+.mas-detalle-resumen:hover { color: var(--brand-primary); }
+
+.mas-detalle-resumen:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+  border-radius: var(--radius-md);
+}
+
+.mas-detalle-cuerpo {
+  padding: 0 var(--space-md) var(--space-md);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 68ch;
+}
+
+.mas-detalle-cuerpo p { margin: 0 0 var(--space-sm); }
+.mas-detalle-cuerpo p:last-child { margin-bottom: 0; }
+
+/* ⚠️ Acá vivía una SEGUNDA copia de `.contexto-anio*` y `.contexto-nivel*`,
+   4.000 líneas más abajo que la primera. Es el mismo accidente que ya tuvo
+   `.nota-ayuda`, y con el mismo síntoma: se retoca una y la otra gana sin
+   que nadie entienda por qué. Las dos se fueron con MOR-223 — el control de
+   contexto está definido UNA vez, junto a `.contexto` y su panel. */
 
 /* ══════════════════════════════════════════════════════════════════════════
    La cabecera de un listado: título, buscador y alta en UNA línea (MOR-192)

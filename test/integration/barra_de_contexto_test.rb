@@ -60,8 +60,8 @@ class BarraDeContextoTest < ActionDispatch::IntegrationTest
       sign_in @a.director
       get dashboards_administrador_url
 
-      assert_select ".contexto-periodo-nombre", text: "2025-2026"
-      assert_select ".contexto-periodo-situacion", text: "en curso"
+      assert_select ".contexto-valor-anio", text: "2025-2026"
+      assert_select ".contexto-valor-situacion", text: "en curso"
     end
   end
 
@@ -85,9 +85,9 @@ class BarraDeContextoTest < ActionDispatch::IntegrationTest
       # Arranca en el año con clases, no en el que empieza en dos semanas y está
       # vacío: entrar ahí es abrir el panel de un colegio lleno y leer «0 alumnos».
       # El de 2026-2027 está a un clic, en el mismo desplegable.
-      assert_select ".contexto-anio-select option[selected]", text: "2025-2026"
-      assert_select ".contexto-anio-select option", text: "2026-2027"
-      assert_select ".contexto-periodo-situacion", text: "finalizado el 31 de julio"
+      assert_select ".contexto-opcion.elegida .contexto-opcion-nombre", text: "2025-2026"
+      assert_select ".contexto-opcion-nombre", text: "2026-2027"
+      assert_select ".contexto-valor-situacion", text: "finalizado el 31 de julio"
       assert_no_match(/en curso/, response.body)
     end
   end
@@ -106,8 +106,8 @@ class BarraDeContextoTest < ActionDispatch::IntegrationTest
       post cambiar_anio_escolar_path, params: { id: que_viene.id }
       get dashboards_administrador_url
 
-      assert_select ".contexto-anio-select option[selected]", text: "2026-2027"
-      assert_select ".contexto-periodo-situacion", text: "comienza el 15 de septiembre"
+      assert_select ".contexto-opcion.elegida .contexto-opcion-nombre", text: "2026-2027"
+      assert_select ".contexto-valor-situacion", text: "comienza el 15 de septiembre"
       assert_no_match(/en curso/, response.body)
     end
   end
@@ -117,8 +117,8 @@ class BarraDeContextoTest < ActionDispatch::IntegrationTest
       sign_in @a.director
       get dashboards_administrador_url
 
-      assert_select ".contexto-periodo-nombre", text: "2025-2026"
-      assert_select ".contexto-periodo-situacion", text: "finalizado el 31 de julio"
+      assert_select ".contexto-valor-anio", text: "2025-2026"
+      assert_select ".contexto-valor-situacion", text: "finalizado el 31 de julio"
     end
   end
 
@@ -142,7 +142,7 @@ class BarraDeContextoTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select ".contexto-colegio-nombre", text: "COLEGIO RECIÉN DADO DE ALTA"
-    assert_select ".contexto-periodo-vacio", text: "Sin año escolar cargado"
+    assert_select ".contexto-valor-vacio", text: "Sin año escolar cargado"
   end
 
   # ══════════════════════════════════════════════════════════════════════════

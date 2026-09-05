@@ -45,7 +45,7 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
     sign_in @b.director   # solo bachillerato
     get sections_path
 
-    assert_select ".contexto-nivel-select", count: 0,
+    assert_select ".contexto-nivel-boton", count: 0,
                   message: "un desplegable de una opción es un control que no decide nada"
   end
 
@@ -53,9 +53,14 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
     entrar_en_a
     get sections_path
 
-    assert_select ".contexto-nivel-select", 1
-    assert_select ".contexto-nivel-select option", text: "Primaria"
-    assert_select ".contexto-nivel-select option", text: "Bachillerato"
+    # ⚠️ TRES botones, no uno: «Todos» + los dos niveles que el colegio dicta.
+    # Con un `<select>` era un control con tres opciones adentro; ahora las
+    # opciones son el control, que es lo que hace que se vea cuál está puesta
+    # sin abrir nada.
+    assert_select ".contexto-nivel-boton", 3
+    assert_select ".contexto-nivel-boton", text: "Todos"
+    assert_select ".contexto-nivel-boton", text: "Primaria"
+    assert_select ".contexto-nivel-boton", text: "Bachillerato"
   end
 
   # ⚠️ El profesor no elige nivel, igual que no elige año escolar. No es
@@ -64,7 +69,7 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
     sign_in @a.profesor
     get root_path
 
-    assert_select ".contexto-nivel-select", 0
+    assert_select ".contexto-nivel-boton", 0
   end
 
   test "el profesor no puede cambiarlo por POST" do
@@ -88,7 +93,7 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
     entrar_en_a
     get sections_path
 
-    assert_select ".contexto-nivel-select option[selected]", text: "Todos los niveles"
+    assert_select ".contexto-nivel-boton.elegida", text: "Todos"
     assert_select "table.table-academic td", text: @a.seccion.name
     assert_select "table.table-academic td", text: @seccion_de_primaria.name
   end
@@ -182,7 +187,7 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
 
     get new_importacion_path(tipo: :matricula)
     assert_response :success
-    assert_select ".contexto-nivel-inerte-motivo[data-tooltip*=?]", "varios niveles"
+    assert_select ".contexto-pastilla-nota[data-tooltip*=?]", "varios niveles"
   end
 
   # ══════════════════════════════════════════════════════════════════════════
@@ -233,9 +238,9 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
       get send(ruta)
       # ⚠️ El texto visible es fijo —«Acá no aplica»— y la razón vive en el
       # tooltip: 39 caracteres en la barra se recortaban a «los departamen».
-      assert_select ".contexto-nivel-inerte-motivo", text: "Acá no aplica",
+      assert_select ".contexto-pastilla-nota", text: "acá no aplica",
                     message: "#{ruta} tiene el filtro puesto y no filtra, sin decirlo"
-      assert_select ".contexto-nivel-inerte-motivo[data-tooltip=?]", motivo,
+      assert_select ".contexto-pastilla-nota[data-tooltip=?]", motivo,
                     message: "#{ruta} no explica POR QUÉ no aplica"
     end
   end
@@ -245,7 +250,7 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
     entrar_en_a
     get departments_path
 
-    assert_select ".contexto-nivel-inerte-motivo", 0
+    assert_select ".contexto-pastilla-nota", 0
   end
 
   # ══════════════════════════════════════════════════════════════════════════
@@ -257,7 +262,7 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
     elegir :primaria
 
     get grades_path
-    assert_select ".contexto-nivel-select option[selected]", text: "Primaria"
+    assert_select ".contexto-nivel-boton.elegida", text: "Primaria"
   end
 
   # ⚠️ Un nivel guardado que este colegio no dicta cae a «todos», y no filtra
