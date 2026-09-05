@@ -49,6 +49,9 @@ class RepresentanteController < ApplicationController
     @anual   = params[:lapso] == "anual"
 
     @materias    = materias_con_notas(@inscripcion, @lapso)
+    # El informe descriptivo del lapso (MOR-216). Solo del lapso: el anual
+    # cruza tres y ponerle el del primero sería mentir sobre los otros dos.
+    @informe     = (Informe.para(@inscripcion.id, @lapso&.id) unless @anual)
     @asistencia  = resumen_de_asistencia(@inscripcion)
     @boletines   = ReportCard.where(enrollment_id: @inscripcion.id).order(created_at: :desc).limit(5)
   end

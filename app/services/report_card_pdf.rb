@@ -131,6 +131,7 @@ class ReportCardPdf
     datos["tipo"] == "anual" ? tabla_anual(pdf, datos) : tabla_de_lapso(pdf, datos)
     asistencia_y_puesto(pdf, datos)
     situacion_en_la_seccion(pdf, datos)
+    informe_descriptivo(pdf, datos)
     pie(pdf, datos, boletin)
   end
 
@@ -299,6 +300,23 @@ class ReportCardPdf
   # con el mismo promedio están los dos décimos; darle el 10 a uno y el 11 al
   # otro por el orden alfabético inventa una diferencia que no existe — y se
   # imprime en un papel que la familia guarda.
+  # El informe descriptivo del docente, al final (MOR-216).
+  #
+  # ⚠️ Va DESPUÉS de las notas y antes del pie, que es donde lo trae la boleta
+  # real del Teresiano: primero cuánto sacó, después cómo le fue. Al revés, la
+  # familia lee la opinión antes que el dato que la sostiene.
+  def informe_descriptivo(pdf, datos)
+    cuerpo = datos["informe"]
+    return if cuerpo.blank?
+
+    pdf.move_down 10
+    pdf.text "INFORME DESCRIPTIVO", size: 8, style: :bold, color: "444444"
+    pdf.move_down 3
+    # `text` respeta los saltos de línea del original: la maestra escribió
+    # párrafos y el papel tiene que mostrarlos como párrafos.
+    pdf.text texto(cuerpo), size: 9, leading: 2, align: :justify
+  end
+
   def asistencia_y_puesto(pdf, datos)
     asistencia = datos["asistencia"]
     puesto     = datos["puesto"]

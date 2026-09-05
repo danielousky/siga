@@ -102,6 +102,14 @@
           por debajo de 10.
         %p El número va al lado de cada nota para que se lea igual.
 
+    -# ⚠️ El informe descriptivo va DESPUÉS de las notas (MOR-216): primero
+    -# cuánto sacó, después cómo le fue. Al revés, la familia lee la opinión
+    -# antes que el dato que la sostiene.
+    - if @informe
+      .informe-descriptivo
+        .informe-descriptivo-titulo Informe del docente
+        %p.informe-descriptivo-cuerpo= @informe.cuerpo
+
   .card-academic
     .card-academic-header
       %h2 Asistencia

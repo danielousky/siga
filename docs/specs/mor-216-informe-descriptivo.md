@@ -64,10 +64,15 @@ mencionar los componentes. Eso es `MOR-218` y es otra pantalla.
 
 ```
    enrollments ──┐
-                 ├──► informes_del_lapso  (uno por alumno y lapso)
+                 ├──► informes            (uno por alumno y lapso)
    evaluation_   ┘        · cuerpo
      moments               · escrito_por  → users
                            · school_id    → RLS
+
+⚠️ **Se llama `informes`, de una sola palabra.** `informes_del_lapso` no
+sirve: `"informe_del_lapso".pluralize` da «informe_del_lapsos» —Rails pluraliza
+la última palabra y acá manda la primera—. Un nombre de una palabra lo evita
+sin agregarle una inflexión irregular al proyecto.
 ```
 
 ⚠️ **Tabla propia y no una columna en `report_cards`.** El boletín se EMITE y

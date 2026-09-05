@@ -828,6 +828,43 @@ ALTER SEQUENCE public.indicators_id_seq OWNED BY public.indicators.id;
 
 
 --
+-- Name: informes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.informes (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    evaluation_moment_id bigint NOT NULL,
+    escrito_por_id bigint NOT NULL,
+    cuerpo text NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.informes FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: informes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.informes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: informes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.informes_id_seq OWNED BY public.informes.id;
+
+
+--
 -- Name: mensaje_eventos; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2048,6 +2085,13 @@ ALTER TABLE ONLY public.indicators ALTER COLUMN id SET DEFAULT nextval('public.i
 
 
 --
+-- Name: informes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.informes ALTER COLUMN id SET DEFAULT nextval('public.informes_id_seq'::regclass);
+
+
+--
 -- Name: mensaje_eventos id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2431,6 +2475,14 @@ ALTER TABLE ONLY public.importaciones
 
 ALTER TABLE ONLY public.indicators
     ADD CONSTRAINT indicators_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: informes informes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.informes
+    ADD CONSTRAINT informes_pkey PRIMARY KEY (id);
 
 
 --
@@ -3142,6 +3194,41 @@ CREATE UNIQUE INDEX index_indicators_sin_repetir_en_la_competencia ON public.ind
 
 
 --
+-- Name: index_informes_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_informes_on_enrollment_id ON public.informes USING btree (enrollment_id);
+
+
+--
+-- Name: index_informes_on_escrito_por_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_informes_on_escrito_por_id ON public.informes USING btree (escrito_por_id);
+
+
+--
+-- Name: index_informes_on_evaluation_moment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_informes_on_evaluation_moment_id ON public.informes USING btree (evaluation_moment_id);
+
+
+--
+-- Name: index_informes_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_informes_on_school_id ON public.informes USING btree (school_id);
+
+
+--
+-- Name: index_informes_uno_por_alumno_y_lapso; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_informes_uno_por_alumno_y_lapso ON public.informes USING btree (enrollment_id, evaluation_moment_id);
+
+
+--
 -- Name: index_mensaje_eventos_on_mensaje_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3769,6 +3856,14 @@ ALTER TABLE ONLY public.activity_competencies
 
 
 --
+-- Name: informes fk_rails_0b4f90b7cf; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.informes
+    ADD CONSTRAINT fk_rails_0b4f90b7cf FOREIGN KEY (enrollment_id) REFERENCES public.enrollments(id);
+
+
+--
 -- Name: schools fk_rails_107a55d48b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3998,6 +4093,14 @@ ALTER TABLE ONLY public.teachers
 
 ALTER TABLE ONLY public.academic_periods
     ADD CONSTRAINT fk_rails_5ad2b9b5bf FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
+-- Name: informes fk_rails_5cc5c2c6b2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.informes
+    ADD CONSTRAINT fk_rails_5cc5c2c6b2 FOREIGN KEY (evaluation_moment_id) REFERENCES public.evaluation_moments(id);
 
 
 --
@@ -4337,6 +4440,14 @@ ALTER TABLE ONLY public.attendances
 
 
 --
+-- Name: informes fk_rails_d1acd15cea; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.informes
+    ADD CONSTRAINT fk_rails_d1acd15cea FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
 -- Name: indicators fk_rails_d5369ae67e; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4382,6 +4493,14 @@ ALTER TABLE ONLY public.final_grade_books
 
 ALTER TABLE ONLY public.evaluation_moments
     ADD CONSTRAINT fk_rails_dd1331b651 FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
+-- Name: informes fk_rails_de55fbc1ab; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.informes
+    ADD CONSTRAINT fk_rails_de55fbc1ab FOREIGN KEY (escrito_por_id) REFERENCES public.users(id);
 
 
 --
@@ -4591,6 +4710,13 @@ CREATE POLICY aislamiento_por_colegio ON public.indicators USING (((current_sett
 
 
 --
+-- Name: informes aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.informes USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
 -- Name: mensaje_eventos aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -4755,6 +4881,12 @@ ALTER TABLE public.importaciones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.indicators ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: informes; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.informes ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: mensaje_eventos; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -4845,6 +4977,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260905003000'),
 ('20260904150000'),
 ('20260902120000'),
 ('20260902100000'),
