@@ -1,4 +1,76 @@
-# 🔖 Punto de retome — actualizado 5 de septiembre de 2026 (03:45)
+# 🔖 Punto de retome — actualizado 5 de septiembre de 2026 (13:45)
+
+## Sesión del 5 de septiembre — las cinco tandas del QA
+
+`bin/ci` verde: **1288 tests**, 5.930 aserciones.
+**Todo desplegado** a producción (`6d60e05`).
+
+```
+   10:51   desplegadas las cinco PR de la noche anterior
+   12:35   TANDA 1 · nomenclatura del MPPE
+   12:40   TANDA 2 · la barra resaltada, y el select duplicado
+   12:53   TANDA 3 · paneles con pestañas
+   13:19   TANDA 4 · dos selects en el formulario
+   13:39   TANDA 5 · la libreta y el avance de calificación
+   13:43   desplegado
+```
+
+### El vocabulario, en un solo lugar
+
+```
+   EN LA BASE            EN PANTALLA               CORTO
+   preescolar            Educación Inicial         Inicial
+   primaria              Educación Primaria        Primaria
+   secundaria            Educación Media           Media
+   media_tecnica         Educación Técnica Media   Técnica Media
+   Subject / subjects    Áreas de aprendizaje      Áreas
+```
+
+Nace `app/services/vocabulario.rb`. **El enum, el modelo y la URL no cambian**:
+son enteros y nombres de tabla escritos en la base de todos los colegios, y
+`/materias` se lee mejor que `/areas-de-aprendizaje`.
+
+### La libreta (lo más grande de la tanda)
+
+`app/services/libreta_de_la_seccion.rb` — todas las notas de un lapso en una
+tabla: alumno × evaluación, con el promedio a la derecha. Es la planilla girada
+noventa grados: ésa es para CARGAR, ésta para MIRAR.
+
+⚠️ Es del **área que dicta**, no de la sección entera. Daniel lo ratificó con
+Cyndi: *«guía + áreas asignadas»*. La dirección las ve todas: supervisa.
+
+### El avance de calificación, en tres estados
+
+```
+   6to Grado – A     [Castellano 1 de 4]  [Matemática ✓ 4 de 4]
+   6to Grado – B     [Matemática 0 de 3]
+```
+
+Cada uno enlaza a la **primera evaluación incompleta**, no al listado. En el
+menú lateral, cada sección lleva su punto de color — con el nombre en el
+tooltip, nunca solo color.
+
+### Tres bugs reales que destaparon los tests
+
+1. **El Escape no siempre cerraba el panel de contexto.** Los listeners
+   colgaban del evento `toggle`, que es ASÍNCRONO: entre abrir el panel y tener
+   el oyente puesto hay una ventana. Un humano no presiona Escape en 20 ms,
+   pero eso no lo vuelve un problema del test.
+2. **El test del teléfono dejaba la ventana en 390 px** para el siguiente. Con
+   el orden aleatorio de minitest, hace fallar un test cualquiera en un punto
+   cualquiera, con un mensaje que no menciona el teléfono. Ahora el tamaño se
+   repone en el `setup` de `ApplicationSystemTestCase`.
+3. **32 renglones donde había 16.** El desplegable de «Registrar evaluación» no
+   filtraba por año escolar. No era solo feo: el segundo renglón creaba la
+   evaluación en el año que viene, sin que nada lo dijera.
+
+### Y un patrón que ya cuesta caro
+
+`assert_select ".x", "texto"` toma el segundo argumento como **texto esperado**,
+no como mensaje de fallo. Cuatro veces en una sesión. Está anotado en
+`test/test_helper.rb`, donde se lee.
+
+---
 
 ## Sesión del 4 al 5 de septiembre — MOR-136 completo, la resiembra y la barra
 
@@ -1334,14 +1406,11 @@ tocan una vez al año— y los estados vacíos con lenguaje de producto.
 
 ## ⚠️ Pendientes que necesitan a Daniel
 
-0. **DESPLEGAR.** `main` tiene cinco PR que producción no tiene: MOR-136 entero,
-   la resiembra, el informe descriptivo y la barra nueva. **No lo hice a
-   propósito**: hay brokers usando prod ahora mismo con las credenciales de
-   demo, y desplegar cambia lo que están mirando. Es `git push dokku` y es
-   decisión de Daniel cuándo.
+0. ~~DESPLEGAR~~ → **hecho el 5 de septiembre, 13:43.** Producción responde 200.
 
-   ⚠️ Y ojo con la resiembra: `db:seed` en producción **no** corre solo, pero el
-   despliegue trae migraciones nuevas (`informes`, y las cuatro de MOR-136).
+   ⚠️ Producción sigue con los datos de demo VIEJOS: `db:seed` no corre en el
+   despliegue. Los colegios nuevos —quince grados, el pensum del MPPE— solo
+   están en desarrollo. Eso se decide junto con `MOR-146`.
 
 0b. **Confirmar dos decisiones de MOR-216** que tomé sin él: el informe es uno
    por LAPSO (no por materia) y lo escribe el GUÍA de la sección. Están
