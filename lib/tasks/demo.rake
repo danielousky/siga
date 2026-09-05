@@ -205,4 +205,43 @@ namespace :avisos do
     PlataformaMailer.colegio_registrado(colegio, usuario).deliver_now
     puts "✅ Salió. Si no llega en unos minutos, revisa el log y la carpeta de spam."
   end
+
+  # ⚠️ De dónde salió cada colegio, para decidir sin adivinar (MOR-146).
+  #
+  # El inventario dice CUÁNTOS hay; esto dice QUIÉN los creó y CUÁNDO. La
+  # diferencia importa cuando el guarda de `es_solo_demo` encuentra un colegio
+  # inesperado: puede ser una prueba de Daniel o el trabajo de un broker
+  # mostrándole el producto a un cliente, y borrar el segundo no se deshace.
+  desc "Quién creó cada colegio y qué tiene adentro (MOR-146)"
+  task procedencia: :environment do
+    Current.sin_aislamiento do
+      puts ""
+      puts "═══ PROCEDENCIA · #{Rails.env} · #{Time.current.strftime('%d/%m/%Y %H:%M')} ═══"
+      puts ""
+
+      School.order(:id).each do |c|
+        quien = c.registrado_por
+        puts "#{c.name}  (dea #{c.dea_code})"
+        puts "  creado          #{c.created_at.strftime('%d/%m/%Y %H:%M')}"
+        puts "  lo registró     #{quien ? "#{quien.email} · #{quien.nombre_completo}" : '— nadie (lo sembró el equipo)'}"
+
+        Current.en_el_colegio(c) do
+          puts "  alumnos         #{Student.count}"
+          puts "  profesores      #{Teacher.count}"
+          puts "  administradores #{Admin.includes(:user).map { |a| "#{a.user.email} (#{a.role})" }.join(', ').presence || '—'}"
+          puts "  notas cargadas  #{ActivityGrade.count}"
+          puts "  boletines       #{ReportCard.count}"
+          puts "  última señal    #{ActivityLog.order(:created_at).last&.created_at&.strftime('%d/%m/%Y %H:%M') || '—'}"
+        end
+        puts ""
+      end
+
+      puts "ÚLTIMOS INICIOS DE SESIÓN"
+      ActivityLog.unscoped.where(action: "login").includes(:user)
+                 .order(created_at: :desc).limit(10).each do |log|
+        puts format("  %-16s %s", log.created_at.strftime("%d/%m %H:%M"), log.user&.email)
+      end
+      puts ""
+    end
+  end
 end
