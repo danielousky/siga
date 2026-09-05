@@ -1,4 +1,71 @@
-# 🔖 Punto de retome — actualizado 5 de septiembre de 2026 (13:45)
+# 🔖 Punto de retome — actualizado 5 de septiembre de 2026 (19:30)
+
+## Producción limpia y resembrada (MOR-146 · MOR-224)
+
+```
+   18:42   respaldo exportado y VERIFICADO restaurándolo en otra base
+   19:19   borrado — 320 personas, 293 alumnos, 20 boletines
+   19:22   resiembra con los datos nuevos
+   19:25   las cuatro credenciales de los brokers, probadas contra prod
+```
+
+**El respaldo está en `~/Documents/siga-respaldos/siga-prod-20260905-1842.dump`.**
+No se declaró: se restauró en una base aparte y se contaron las filas.
+
+### Lo que había, y qué se decidió
+
+El guarda encontró **cuatro colegios, no dos**. Dos los había registrado
+alguien por `/registrarse`:
+
+```
+   U.E. Ceapucv    PD123123   Yoleima Contreras   3 alumnos, 2 profesores
+   LA ESCUELITA    PD123125   Daniel              vacío
+```
+
+Le consulté a Daniel por el de Yoleima antes de tocar nada —es el trabajo de
+una persona real que no está en la conversación— y autorizó borrar los dos.
+
+### Lo que quedó en producción
+
+```
+   U.E. SIMÓN BOLÍVAR — los tres niveles + Media Técnica
+     Educación Inicial    3 grados ·  54 alumnos
+     Educación Primaria   6 grados · 190 alumnos
+     Educación Media      6 grados · 116 alumnos
+                                     ───
+                                     360   →  plan Estándar
+   U.E. ANDRÉS BELLO — el segundo inquilino, con la suscripción VENCIDA
+```
+
+Las cuatro credenciales de los brokers siguen siendo las mismas, probadas una
+por una: `director.bolivar@siga.edu`, `prof.garcia@bolivar.edu`,
+`maria.perez@familia.test`, `alvaro.lopez001@bolivar.edu` — todas con `123123`.
+
+### ⚠️ Dos cosas que se rompieron ejecutando, y quedaron arregladas
+
+**El guarda comparaba nombres literales**, y `School` los guarda en MAYÚSCULA:
+declaraba que la propia demo «no era de la demo». En producción pasaba por
+casualidad —ahí los nombres son los viejos—, o sea que dependía de cuándo se
+había sembrado la fila. Ahora identifica por **código DEA**, que además no
+tiene espacios: `dokku run` parte el comando por espacios y «U.E. Ceapucv»
+llegaba despedazado.
+
+**El orden de borrado estaba escrito a mano y falló dos veces** —`siga_staffs`
+y `importaciones`— y le faltaban las cinco tablas de MOR-136 y MOR-216. Una
+lista de dependencias a mano es una copia del esquema que se despareja sola.
+Ahora vive en `lib/orden_de_borrado.rb` y se calcula preguntándole a PostgreSQL.
+
+⚠️ **Y la transacción hizo su trabajo:** el intento fallido dejó la base
+exactamente como estaba. Es la razón de no usar `TRUNCATE`.
+
+### ⚠️ Lo que esto NO resuelve
+
+Producción sigue con **cuentas de administrador con contraseña conocida y
+públicamente documentada**. El día que entre un colegio de verdad esto es
+urgente otra vez — pero ya no por alumnos inventados, sino por las cuentas.
+`MOR-146` sigue abierto por esa mitad.
+
+---
 
 ## Sesión del 5 de septiembre — las cinco tandas del QA
 
@@ -1406,11 +1473,8 @@ tocan una vez al año— y los estados vacíos con lenguaje de producto.
 
 ## ⚠️ Pendientes que necesitan a Daniel
 
-0. ~~DESPLEGAR~~ → **hecho el 5 de septiembre, 13:43.** Producción responde 200.
-
-   ⚠️ Producción sigue con los datos de demo VIEJOS: `db:seed` no corre en el
-   despliegue. Los colegios nuevos —quince grados, el pensum del MPPE— solo
-   están en desarrollo. Eso se decide junto con `MOR-146`.
+0. ~~DESPLEGAR~~ y ~~limpiar producción~~ → **hechos el 5 de septiembre.**
+   Producción corre `550792a` con los datos nuevos.
 
 0b. **Confirmar dos decisiones de MOR-216** que tomé sin él: el informe es uno
    por LAPSO (no por materia) y lo escribe el GUÍA de la sección. Están
@@ -1480,9 +1544,9 @@ entorno, no.
    MOR-215  el listado nacional de códigos DEA
 ```
 
-0. **`MOR-146` · Limpiar los datos de demo de producción.** Es lo único marcado como
-   **urgente** en todo el backlog, y no lo toqué a propósito: borrar 290 alumnos y sus notas
-   de la base que ve el mundo es irreversible y necesita a Daniel delante.
+0. ~~**`MOR-146` · Limpiar los datos de demo de producción**~~ → hecho el 5 de
+   septiembre. Queda abierta la otra mitad: las cuentas de administrador con
+   contraseña conocida.
 1. **`MOR-148` · Wizard de alta de un colegio nuevo.** Hoy un colegio recién creado nace sin
    año escolar, sin grados y sin secciones, y el importador es el que se lo encuentra. La
    salida de emergencia ya está puesta —crear el año escolar y las secciones **desde la
