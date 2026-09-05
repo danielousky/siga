@@ -8,7 +8,9 @@ require "test_helper"
 # copiar a otra sección no ate las dos.
 class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
   setup do
-    @a, @b = dos_colegios_completos
+    # ⚠️ PRIMARIA: la evaluación por competencias es de primaria, y en
+    # bachillerato la pantalla dice justamente que no aplica.
+    @a, @b = dos_colegios_completos(nivel: :primaria)
     @asignacion = "#{@a.seccion.id}:#{@a.escenario.materia.id}"
     @lapso = @a.escenario.lapso(1)
   end
@@ -114,7 +116,7 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
   # alguien borra a mano. En pantalla se leía «Copiar a mis otras 19 secciones».
   test "copiar no alcanza a una sección de otro grado" do
     otro_grado, hermana = con_el_colegio(@a.colegio) do
-      g = Grade.create!(name: "6to Grado", school: @a.colegio)
+      g = Grade.create!(name: "3er Grado", school: @a.colegio)
       lejana = Section.create!(grade: g, academic_period: @a.escenario.periodo, name: "U", capacity: 30)
       TeacherSection.create!(teacher: @a.registro_de_profesor, section: lejana, subject: @a.escenario.materia)
 
@@ -135,6 +137,34 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # ⚠️ Un colegio que ya copió su estructura al año siguiente tiene la MISMA
+  # sección dos veces —«1er Año B» de 2025-2026 y «1er Año B» de 2026-2027— y
+  # sin filtrar por año salían las dos: «Copiar a 1er Año A, B y B».
+  #
+  # Lo cosmético era lo de menos: copiar hacia el año anterior escribe un plan
+  # en un lapso cerrado, y el profesor no tiene selector de año para notarlo.
+  test "copiar no alcanza a la misma sección de otro año escolar" do
+    del_ano_pasado = con_el_colegio(@a.colegio) do
+      viejo = ano_escolar_viejo(@a.escenario, nombre: "2023-2024", seccion: "B")
+      s = Section.find_by(academic_period: viejo, name: "B")
+      TeacherSection.create!(teacher: @a.registro_de_profesor, section: s, subject: @a.escenario.materia)
+      s
+    end
+    con_el_colegio(@a.colegio) { competencia_con(1) }
+    sign_in @a.profesor
+
+    get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+    assert_select ".plan-acciones", false,
+                  "sin secciones hermanas EN ESTE AÑO no hay nada que ofrecer copiar"
+
+    post copiar_a_competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+
+    con_el_colegio(@a.colegio) do
+      assert_empty Competency.unscoped.where(section_id: del_ano_pasado.id),
+                   "el plan de este año no puede caer en una sección del año pasado"
+    end
+  end
+
   # La escalera de Cyndi: grado → área → lapso. Elegir solo el grado tiene que
   # bastar — el área y la sección se deducen.
   test "las pastillas de grado y área deducen la asignación" do
@@ -145,6 +175,39 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     assert_select ".pastilla.activa", text: @a.grado.name
     assert_select "h1 ~ *", /#{@a.seccion.name}/, false
     assert_select ".cabecera-de-lista", /#{@a.escenario.materia.name.titleize}/
+  end
+
+  # ⚠️ Bachillerato NO evalúa por competencias, y la pantalla tiene que decirlo
+  # en vez de ofrecer un plan vacío.
+  #
+  # Daniel, en el QA: *«1er año de matemática no debería tener competencias ni
+  # indicadores, es otro tipo de evaluación para educación media»*.
+  test "un profesor de bachillerato no arma un plan por competencias" do
+    media, = dos_colegios_completos(nivel: :secundaria)
+    sign_in media.profesor
+
+    get competencies_path
+
+    assert_response :success
+    assert_select "body", /plan por competencias es de primaria/i
+    assert_select ".pastilla", count: 0, message: "no hay nada que elegir: ninguna sección aplica"
+  end
+
+  # ⚠️ Y el que da los DOS niveles ve solo sus grados de primaria.
+  test "el profesor que da primaria y bachillerato solo ve primaria en la escalera" do
+    con_el_colegio(@a.colegio) do
+      bachillerato = Grade.create!(name: "1er Año", school: @a.colegio)
+      s = Section.create!(grade: bachillerato, academic_period: @a.escenario.periodo, name: "A", capacity: 30)
+      TeacherSection.create!(teacher: @a.registro_de_profesor, section: s, subject: @a.escenario.materia)
+    end
+    sign_in @a.profesor
+
+    get competencies_path
+
+    grados = css_select(".pastillas").first.css(".pastilla").map { |n| n.text.strip }
+    assert_includes grados, @a.grado.name
+    assert_not_includes grados, "1er Año",
+                        "bachillerato no evalúa por competencias: no puede ofrecerse en la escalera"
   end
 
   # ⚠️ El plan ajeno no aparece: pedirlo por id da 404, no 403 — no se confirma

@@ -118,15 +118,47 @@ class CompetenciesController < ApplicationController
   # Las asignaciones del profesor: cada par sección–materia que dicta.
   # Es el MISMO método de `EvaluationActivitiesController`, y acotar la búsqueda
   # a `current_user.teacher` es lo que autoriza.
+  # ⚠️ Del AÑO de la sesión, y sin eso la pantalla miente.
+  #
+  # Un colegio que ya copió su estructura al año siguiente tiene las MISMAS
+  # secciones dos veces —«1er Año A» de 2025-2026 y «1er Año A» de 2026-2027—
+  # y sin filtrar salían las veinte. Se vio en pantalla como «Copiar a 1er Año
+  # A, B y B»: dos secciones B, la de este año y la del pasado.
+  #
+  # Lo cosmético era lo de menos. Copiar hacia el año anterior escribe un plan
+  # en un lapso ya cerrado, y el profesor no tiene selector de año para darse
+  # cuenta (`LlevaElAnioEscolar`: «los docentes solo ven lo que están
+  # calificando»).
+  #
+  # ⚠️ Y solo los grados que EVALÚAN POR COMPETENCIAS. Ver `Grade#por_competencias?`.
+  #
+  # ⚠️ Ordenadas por el ORDEN OFICIAL del grado, no por su nombre: «10mo» iría
+  # antes que «2do» alfabéticamente el día que un colegio cargue esos nombres.
   def mis_asignaciones
     return @mis_asignaciones if defined?(@mis_asignaciones)
     return @mis_asignaciones = [] unless profesor?
 
     @mis_asignaciones = current_user.teacher.teacher_sections
+                                    .del_anio_de_la_sesion
                                     .includes(:subject, section: [ :grade, :academic_period ])
-                                    .sort_by { |ts| [ ts.section.grade.name, ts.section.name, ts.subject.name ] }
+                                    .select { |ts| ts.section.grade.por_competencias? }
+                                    .sort_by { |ts| [ ts.section.grade.orden || 99, ts.section.name, ts.subject.name ] }
   end
   helper_method :mis_asignaciones
+
+  # Todo lo que dicta este profesor, sin el filtro de competencias.
+  #
+  # Sirve para distinguir dos vacíos que se ven igual y no lo son: «todavía no
+  # te asignaron nada» y «lo tuyo es bachillerato, que no se evalúa así». El
+  # segundo no es un problema que el profesor pueda resolver, y decirle que
+  # espere a que la dirección le asigne una materia sería mentirle.
+  def dicta_solo_media?
+    return false unless profesor?
+
+    mis_asignaciones.empty? &&
+      current_user.teacher.teacher_sections.del_anio_de_la_sesion.exists?
+  end
+  helper_method :dicta_solo_media?
 
   # La asignación elegida. Puede venir entera —`sección:materia`, que es lo que
   # guardan los enlaces— o deducirse de las pastillas de grado y área.

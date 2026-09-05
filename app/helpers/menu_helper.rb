@@ -372,8 +372,12 @@ module MenuHelper
   # Alfabéticamente, «1er Año» va antes que «6to Grado» y el menú queda
   # mezclando primaria con bachillerato. `grades.orden` es el del catálogo del
   # Reglamento de la LOE, que es el que un profesor tiene en la cabeza.
+  # ⚠️ Del AÑO de la sesión. Un colegio que ya copió su estructura al año que
+  # viene tiene cada sección DOS veces, y el menú las listaba las veinte: «1er
+  # Año – A» arriba de «1er Año – A», sin nada que las distinga.
   def mis_secciones
-    asignaciones = current_user.teacher&.teacher_sections&.includes(section: :grade) || []
+    asignaciones = current_user.teacher&.teacher_sections&.del_anio_de_la_sesion
+                               &.includes(section: :grade) || []
 
     asignaciones.map(&:section).uniq
                 .sort_by { |s| [ s.grade.orden || 99, s.grade.name, s.name ] }

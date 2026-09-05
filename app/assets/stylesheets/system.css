@@ -5916,12 +5916,31 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 /* ---- Pastillas: elegir UNO entre pocos (MOR-136) ---- */
 /* Primas de las pestañas y por eso se parecen: enlaces, no botones de
    JavaScript. Lo que cambia es qué preguntan — una pestaña cambia el ÁNGULO
-   sobre lo mismo, una pastilla cambia el SUJETO. Ver `shared/_pastillas`. */
+   sobre lo mismo, una pastilla cambia el SUJETO. Ver `shared/_pastillas`.
+
+   ⚠️ Miden y se redondean como un `.btn`: 36 px de alto y `--radius-sm`.
+   Estuvieron con `border-radius: 999px` y 40 px, y desentonaban con todo lo
+   demás —«los botones no cuadran con el resto del estilo del proyecto»—: en
+   una app donde cada control tiene 3 px de radio, una cápsula se lee como
+   pegada de otro sitio. */
+
+/* La escalera: las tres filas juntas. El `gap` va acá y no en cada fila —
+   márgenes de hermanos se colapsan entre sí y se duplican contra el padding
+   de la tarjeta; un `gap` de grid no hace ninguna de las dos cosas. */
+.plan-escalera {
+  display: grid;
+  gap: var(--space-sm);
+}
+
 .pastillas {
   display: flex;
-  align-items: baseline;
+  /* ⚠️ `center`, NUNCA `baseline`.
+     Con `baseline`, el navegador alinea la línea de texto de la etiqueta de
+     11 px con la de una pastilla de 36 px, y para lograrlo empuja la pastilla
+     HACIA ARRIBA fuera de su renglón: las tres filas se montaban una sobre
+     otra y la activa aparecía como un borrón azul encima de la de al lado. */
+  align-items: center;
   gap: var(--space-md);
-  /* Se apilan en el teléfono: la etiqueta arriba y las pastillas debajo. */
   flex-wrap: wrap;
 }
 
@@ -5930,7 +5949,7 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
    tres filas se leen como tres controles sueltos en vez de una escalera. */
 .pastillas-etiqueta {
   flex: 0 0 auto;
-  min-width: 8.5rem;
+  min-width: 9.5rem;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -5951,37 +5970,37 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 .pastilla {
   display: inline-flex;
   align-items: center;
-  /* 40px, no 44: van tres filas apiladas y la escalera completa tiene que
-     entrar arriba de la lista sin empujarla fuera de la pantalla. Sigue por
-     encima del mínimo de Apple para un control secundario en fila. */
-  min-height: 40px;
+  justify-content: center;
+  min-height: 36px;
   padding: 0 var(--space-md);
   border: 1px solid var(--border-standard);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: var(--surface-elevated);
   color: var(--text-secondary);
+  font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
+  line-height: 1;
   text-decoration: none;
   white-space: nowrap;
-  transition: background var(--transition-fast), color var(--transition-fast),
-              border-color var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .pastilla:hover {
   border-color: var(--brand-primary);
-  color: var(--text-primary);
+  color: var(--brand-primary);
+  background: var(--surface-hover);
 }
 
 /* ⚠️ La activa se pinta con el azul de marca y no con un tono semántico: es
    afordancia de un control, no significado de un dato (regla de color,
    MOR-135). Y va SÓLIDA, no con un borde: entre nueve pastillas, un borde de
    1px no se encuentra de un vistazo. */
-.pastilla.activa {
+.pastilla.activa,
+.pastilla.activa:hover {
   background: var(--brand-primary);
   border-color: var(--brand-primary);
   color: #fff;
-  font-weight: 600;
 }
 
 .pastilla:focus-visible {
@@ -5990,9 +6009,11 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 }
 
 @media (max-width: 700px) {
-  /* En el teléfono la etiqueta pasa a ser un renglón propio: reservarle 8.5rem
+  /* En el teléfono la etiqueta pasa a ser un renglón propio: reservarle 9.5rem
      al lado dejaba a las pastillas en una columna de dos dedos de ancho. */
+  .pastillas { gap: var(--space-micro); }
   .pastillas-etiqueta { min-width: 100%; }
+}
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

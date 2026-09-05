@@ -4,10 +4,29 @@
 -# OFRECIÉNDOLO. Es todo el punto del issue — que la maestra no vuelva a
 -# escribir lo que su colegio ya escribió.
 = render "shared/cabecera_de_lista", titulo: "Plan de evaluación",
-         detalle: (asignacion ? "#{asignacion.section.grade.name} #{asignacion.section.name} · #{asignacion.subject.name.titleize}" : nil),
+         detalle: (asignacion ? "#{asignacion.section.grade.name} #{asignacion.section.name} · #{asignacion.subject.name}" : nil),
          alta: (asignacion && profesor? ? { ruta: new_competency_path(contexto), nombre: "Registrar competencia" } : nil)
 
-- if mis_asignaciones.empty?
+-# ⚠️ Dos vacíos que se ven igual y no lo son.
+-#
+-# «No te asignaron nada» lo resuelve la dirección; «lo tuyo es bachillerato»
+-# no lo resuelve nadie, porque no es un problema. Decirle a un profesor de 5to
+-# Año que espere una asignación lo deja esperando algo que no va a llegar.
+- if dicta_solo_media?
+  -# ⚠️ Sin `shared/lista_vacia`: ese partial saca el texto de `PasosDeArranque`
+  -# —«todavía no hay materias cargadas»— y acá no falta ningún paso. No es un
+  -# colegio a medio armar, es una pantalla que no le toca a este profesor.
+  .card-academic
+    .empty-state
+      %h3 El plan por competencias es de primaria
+      %p
+        En Educación Media la evaluación va por notas del 1 al 20 sobre cada
+        actividad, sin competencias ni indicadores. Lo que dictas se carga
+        desde «Mis evaluaciones».
+      .empty-state-acciones
+        = boton "Ir a mis evaluaciones", evaluation_activities_path, icono: :notas
+
+- elsif mis_asignaciones.empty?
   .card-academic
     = render "shared/lista_vacia", clave: :materias,
              titulo: "Todavía no tienes secciones asignadas",
@@ -30,7 +49,7 @@
              opciones: mis_grados.map { |g| [ g.name, competencies_path(grado: g.id, lapso: lapso&.id), g.id == grado&.id ] }
 
     = render "shared/pastillas", etiqueta: "Área de aprendizaje",
-             opciones: mis_areas.map { |s| [ s.name.titleize, competencies_path(grado: grado&.id, area: s.id, lapso: lapso&.id), s.id == asignacion&.subject_id ] }
+             opciones: mis_areas.map { |s| [ s.name, competencies_path(grado: grado&.id, area: s.id, lapso: lapso&.id), s.id == asignacion&.subject_id ] }
 
     = render "shared/pastillas", etiqueta: "Lapso",
              opciones: lapsos.map { |l| [ l.name, competencies_path(contexto.merge(lapso: l.id)), l.id == lapso&.id ] }

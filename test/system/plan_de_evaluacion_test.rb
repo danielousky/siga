@@ -13,7 +13,7 @@ require "application_system_test_case"
 # el campo con alto fijo y a la maestra sin ver lo que escribió.
 class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
   setup do
-    @a, _b = dos_colegios_completos
+    @a, _b = dos_colegios_completos(nivel: :primaria)
     entrar_como(@a.profesor)
   end
 

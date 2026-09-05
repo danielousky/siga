@@ -25,6 +25,25 @@ class Grade < ApplicationRecord
   # proyecto entero.
   def media? = secundaria? || media_tecnica?
 
+  # Si este grado se evalúa por COMPETENCIAS E INDICADORES (MOR-136).
+  #
+  # Venezuela tiene tres regímenes de evaluación y no son variantes del mismo:
+  #
+  #     INICIAL    describe, no califica   informe por áreas de formación (MOR-218)
+  #     PRIMARIA   competencias + indicadores, mostradas con rúbrica en la boleta
+  #     MEDIA      notas del 1 al 20 por evaluación, sin competencias
+  #
+  # ⚠️ Es del GRADO, no del colegio: el mismo plantel dicta primaria y
+  # bachillerato, y su profesor de Matemática da los dos. Preguntárselo al
+  # colegio le ofrecería el plan de competencias para «1er Año» —lo detectó
+  # Daniel en el QA: *«1er año de matemática no debería tener competencias ni
+  # indicadores, es otro tipo de evaluación para educación media»*.
+  #
+  # ⚠️ Preescolar queda AFUERA a propósito, y no por descuido: su boleta no
+  # lleva competencias sino un informe descriptivo por área, sin mencionar
+  # siquiera los componentes. Es otra pantalla, y es MOR-218.
+  def por_competencias? = primaria?
+
   # Con qué escala se califica este grado (MOR-129).
   #
   # Cuelga del GRADO y no del colegio: un mismo colegio tiene primaria por
