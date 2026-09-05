@@ -7,7 +7,8 @@ require "test_helper"
 # renglones seguidos, primaria y bachillerato mezclados.
 class MenuDelProfesorTest < ActionDispatch::IntegrationTest
   setup do
-    @a, = dos_colegios_completos
+    # PRIMARIA: es quien evalúa por competencias.
+    @a, = dos_colegios_completos(nivel: :primaria)
   end
 
   # ⚠️ Con un solo nivel NO aparece encabezado: sería un rótulo que no separa
@@ -23,8 +24,8 @@ class MenuDelProfesorTest < ActionDispatch::IntegrationTest
 
   test "un profesor de dos niveles las ve separadas y en orden pedagógico" do
     con_el_colegio(@a.colegio) do
-      primaria = Grade.create!(name: "6to Grado", school: @a.colegio)
-      seccion = Section.create!(grade: primaria, academic_period: @a.escenario.periodo,
+      otro_nivel = Grade.create!(name: "1er Año", school: @a.colegio)
+      seccion = Section.create!(grade: otro_nivel, academic_period: @a.escenario.periodo,
                                 name: "A", capacity: 30)
       TeacherSection.create!(teacher: @a.registro_de_profesor, section: seccion,
                              subject: @a.escenario.materia)
@@ -40,6 +41,29 @@ class MenuDelProfesorTest < ActionDispatch::IntegrationTest
                         "con dos niveles el encabezado genérico sobra: cada grupo dice cuál es"
     assert titulos.index("Primaria") < titulos.index("Bachillerato"),
            "el orden es el pedagógico, no el de cuántas secciones tenga cada nivel"
+  end
+
+  # ⚠️ «Competencias e indicadores» solo a quien dicta PRIMARIA.
+  #
+  # QA de Daniel: *«si el profesor no tiene secciones de primaria, para qué
+  # mostrarle esa vista, sobra»*. Y el nombre importa igual: un plan de
+  # evaluación de bachillerato existe —las evaluaciones y su ponderación— y
+  # vive en «Mis evaluaciones».
+  test "un profesor de bachillerato no ve la entrada de competencias" do
+    media, = dos_colegios_completos(nivel: :secundaria)
+    sign_in media.profesor
+    get dashboards_profesor_path
+
+    enlaces = css_select(".sidebar-nav-link span").map { |n| n.text.strip }
+    assert_not_includes enlaces, "Competencias e indicadores"
+    assert_includes enlaces, "Mis evaluaciones"
+  end
+
+  test "un profesor de primaria sí la ve" do
+    sign_in @a.profesor
+    get dashboards_profesor_path
+
+    assert_select ".sidebar-nav-link span", text: "Competencias e indicadores"
   end
 
   # ⚠️ El 6to Año de la Media Técnica va en BACHILLERATO, no en un grupo suyo.

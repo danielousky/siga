@@ -3,7 +3,7 @@
 -# ⚠️ La pantalla NO abre vacía cuando hay un plan del año pasado: abre
 -# OFRECIÉNDOLO. Es todo el punto del issue — que la maestra no vuelva a
 -# escribir lo que su colegio ya escribió.
-= render "shared/cabecera_de_lista", titulo: "Plan de evaluación",
+= render "shared/cabecera_de_lista", titulo: "Competencias e indicadores",
          detalle: (asignacion ? "#{asignacion.section.grade.name} #{asignacion.section.name} · #{asignacion.subject.name}" : nil),
          alta: (asignacion && profesor? ? { ruta: new_competency_path(contexto), nombre: "Registrar competencia" } : nil)
 
@@ -18,11 +18,11 @@
   -# colegio a medio armar, es una pantalla que no le toca a este profesor.
   .card-academic
     .empty-state
-      %h3 El plan por competencias es de primaria
+      %h3 Las competencias son de primaria
       %p
-        En Educación Media la evaluación va por notas del 1 al 20 sobre cada
-        actividad, sin competencias ni indicadores. Lo que dictas se carga
-        desde «Mis evaluaciones».
+        En Educación Media el plan de evaluación son las evaluaciones y su
+        ponderación —el 70/30 del Artículo 111—, no competencias. Lo que dictas
+        se arma desde «Mis evaluaciones».
       .empty-state-acciones
         = boton "Ir a mis evaluaciones", evaluation_activities_path, icono: :notas
 

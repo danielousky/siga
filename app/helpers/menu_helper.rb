@@ -93,18 +93,49 @@ module MenuHelper
   end
 
   def menu_del_profesor
+    trabajo = []
+
+    # ⚠️ «Competencias e indicadores», NO «Plan de evaluación» — y solo a quien
+    # dicta primaria.
+    #
+    # QA de Daniel: *«no deberíamos asociar directamente Plan de Evaluación a
+    # Competencias. Para Educación Media tenemos también plan de evaluación… si
+    # el profesor no tiene secciones de primaria, para qué mostrarle esa vista,
+    # sobra»*.
+    #
+    # Tiene las dos mitades. Un plan de evaluación de bachillerato es la lista
+    # de evaluaciones con su ponderación —el 70/30 del Art. 111— y eso vive en
+    # «Mis evaluaciones»: llamar «Plan de evaluación» a la pantalla de primaria
+    # se apropia de un nombre que ya significa otra cosa. Y ofrecérsela a un
+    # profesor de 5to Año es mandarlo a una pantalla que solo puede decirle que
+    # no es para él.
+    #
+    # ⚠️ Va antes de las evaluaciones, y es el orden del trabajo real: primero
+    # se decide QUÉ se evalúa en el lapso, después se arman las evaluaciones que
+    # lo miden (MOR-136).
+    if dicta_primaria?
+      trabajo << Enlace.new(nombre: "Competencias e indicadores", icono: :materias,
+                            ruta: competencies_path)
+    end
+
+    trabajo << Enlace.new(nombre: "Mis evaluaciones", icono: :notas, ruta: evaluation_activities_path)
+    trabajo << Enlace.new(nombre: "Asistencia", icono: :asistencia, ruta: asistencias_path)
+
     [
       Grupo.new(enlaces: [ Enlace.new(nombre: "Inicio", icono: :panel, ruta: dashboards_profesor_path) ]),
-      Grupo.new(titulo: "Mi trabajo", enlaces: [
-        # ⚠️ El plan va ANTES de las evaluaciones, y es el orden del trabajo
-        # real: primero se decide QUÉ se va a evaluar en el lapso, después se
-        # arman las evaluaciones que lo miden (MOR-136).
-        Enlace.new(nombre: "Plan de evaluación", icono: :materias, ruta: competencies_path),
-        Enlace.new(nombre: "Mis evaluaciones", icono: :notas, ruta: evaluation_activities_path),
-        Enlace.new(nombre: "Asistencia", icono: :asistencia, ruta: asistencias_path)
-      ]),
+      Grupo.new(titulo: "Mi trabajo", enlaces: trabajo),
       *grupo_de_mis_secciones
     ]
+  end
+
+  # Si este profesor tiene alguna sección que se evalúe por competencias.
+  #
+  # ⚠️ Se pregunta por `Grade#por_competencias?` y no por «primaria» a mano: es
+  # la misma pregunta que hace `CompetenciesController`, y con dos lugares
+  # decidiéndolo el menú termina ofreciendo una pantalla que el controller
+  # rechaza.
+  def dicta_primaria?
+    mis_secciones.any? { |s| s.grade.por_competencias? }
   end
 
   def menu_del_estudiante

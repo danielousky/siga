@@ -20,7 +20,7 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
 
     assert_response :success
-    assert_select "h1", /Plan de evaluación/
+    assert_select "h1", /Competencias e indicadores/
   end
 
   test "escribe una competencia con sus indicadores, uno por línea" do
@@ -189,7 +189,7 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     get competencies_path
 
     assert_response :success
-    assert_select "body", /plan por competencias es de primaria/i
+    assert_select "body", /competencias son de primaria/i
     assert_select ".pastilla", count: 0, message: "no hay nada que elegir: ninguna sección aplica"
   end
 
