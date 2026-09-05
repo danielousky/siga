@@ -1,8 +1,8 @@
 # MOR-136 · Evaluar Educación Primaria por competencias
 
-> **Estado:** **congelado** — 4 de septiembre de 2026
+> **Estado:** **implementado** — 5 de septiembre de 2026
 > **Issue:** [MOR-136](https://linear.app/morosdevelopment/issue/MOR-136) · P1 · proyecto «SIGA · Módulo de evaluación»
-> **PR:** —
+> **PR:** [#7](https://github.com/danielousky/siga/pull/7) (el plan) · rama `feat/rubrica-del-colegio` (rúbrica, etiquetado y boleta)
 
 ---
 
@@ -436,3 +436,43 @@ septiembre, y la segunda **redujo el trabajo a la mitad**.
 **Lo que eso significa en una línea:** esto **no es** un módulo de evaluación
 nuevo. Es el módulo que ya existe, más un **plan descriptivo** que se cuelga de
 la sección y se imprime.
+
+---
+
+## 10 · Lo que quedó construido
+
+Cuatro tandas, en el orden en que se usan:
+
+```
+   1 · EL PLAN            Competencias e indicadores · pastillas grado→área→lapso
+                          se sugiere el del año pasado · se copia a las hermanas
+   2 · LA RÚBRICA         Configuración › Rúbrica de evaluación
+                          los cinco niveles juntos · el colegio de tres también
+   3 · EL ETIQUETADO      «Qué evalúa» en el formulario de la evaluación
+                          se marca la COMPETENCIA; los indicadores son contexto
+   4 · LA BOLETA          «PA (17)» + el plan con su nivel + la leyenda
+                          en la pantalla de la familia y en el PDF
+```
+
+### Las cinco trampas que se pisaron y quedaron con test
+
+1. **`nivel_de` ya existía.** En `ReportCardData`, con otro significado —la
+   banda de comparación con la sección—. Definir un segundo lo pisaba en
+   silencio. Ahora es `nivel_de_rubrica`, en el método y en la clave del hash.
+2. **`competency_ids` dentro de `update`** escribe las etiquetas ANTES de
+   validar: una evaluación rechazada por peso dejaba las etiquetas puestas.
+   Se guarda aparte y después.
+3. **El promedio de una competencia va PONDERADO.** Con promedio simple, un 20
+   en el examen del 70 % y un 10 en el taller del 30 % daba 15 en vez de 17.
+4. **La materia entra al boletín solo si alguien la dicta o tiene notas**
+   (`Enrollment#materias_del_boletin`). Dos tests fallaron por eso antes que
+   por el código — y es el riesgo que la § 7 ya anotaba.
+5. **`copiar` sin filtrar por grado Y año** ofrecía las diecinueve secciones y
+   alcanzaba la misma sección del año pasado: «Copiar a 1er Año A, B y B».
+
+### Lo que NO se construyó, y sigue sin construirse
+
+Pesos entre competencias · catálogo compartido entre colegios · taxonomías ·
+aprobación del plan por la coordinadora · gráficos de progreso · marcar
+indicadores uno por uno. Cyndi lo advirtió sin que se le preguntara: *«hay un
+montón de cosas que son innecesarias que uno no utiliza»*.
