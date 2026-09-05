@@ -382,5 +382,37 @@ competencias = 0
   end
 end
 
+# ── Etiquetar las evaluaciones con lo que evalúan ────────────────────────────
+#
+# El enganche entre el PLAN y la NOTA. Sin esto las competencias existen y no
+# aparecen en ninguna boleta — que es para lo único que existen.
+#
+# ⚠️ Se etiquetan las del PRIMER lapso, que es donde está el plan. Las de los
+# otros dos quedan sin etiqueta a propósito: es el estado normal de un año en
+# curso, y hace visible que una evaluación sin etiquetar sigue funcionando.
+Current.school = bolivar
+etiquetadas = 0
+
+[ [ bolivar, "4to Grado" ], [ bolivar, "1er Grado" ] ].each do |colegio, grado|
+  Current.school = colegio
+  seccion = seccion_de(colegio, grado, "A", SEMILLA[:anio_bolivar])
+  next if seccion.nil?
+
+  primer_lapso = lapsos_bol.first
+  EvaluationActivity.where(section_id: seccion.id, evaluation_moment_id: primer_lapso.id)
+                    .find_each do |actividad|
+    plan = Competency.del_plan(actividad.section_id, actividad.subject_id,
+                               actividad.evaluation_moment_id).to_a
+    next if plan.empty?
+
+    # Cada evaluación etiqueta UNA competencia, rotando: así ninguna queda sin
+    # evaluar y ninguna acapara las tres.
+    competencia = plan[etiquetadas % plan.size]
+    ActivityCompetency.find_or_create_by!(competency: competencia, evaluation_activity: actividad)
+    etiquetadas += 1
+  end
+end
+
 Current.school = bolivar
 puts "   ✓ #{competencias} competencias con sus indicadores, en 1er y 4to Grado"
+puts "     #{etiquetadas} evaluaciones del 1er lapso etiquetadas con lo que evalúan"

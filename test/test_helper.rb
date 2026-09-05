@@ -14,6 +14,7 @@ class ActiveSupport::TestCase
   # Constructores de escenarios — ver test/support/.
   include EscenarioAcademico
   include DosColegios
+  include PlanesDeEvaluacion
 
   teardown { Current.reset }
 end

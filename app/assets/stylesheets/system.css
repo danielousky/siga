@@ -6008,6 +6008,83 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   outline-offset: 2px;
 }
 
+/* ---- Qué evalúa una evaluación (MOR-136) ---- */
+/* El enganche entre el plan y la nota. Se marcan COMPETENCIAS; los indicadores
+   van debajo como contexto —ayudan a reconocer cuál es cuál— y no se guardan. */
+.que-evalua-lista {
+  list-style: none;
+  margin: var(--space-xs) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.que-evalua-item {
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-elevated);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+/* Marcada se NOTA, y no solo por la casilla: en una lista de seis competencias
+   de dos renglones cada una, un tilde de 13px no se encuentra de un vistazo. */
+.que-evalua-item:has(input:checked) {
+  border-color: var(--brand-primary);
+  background: var(--surface-hover);
+}
+
+.que-evalua-competencia {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  cursor: pointer;
+  /* 44px de objetivo táctil: esto se marca desde un teléfono. */
+  min-height: 44px;
+  align-content: center;
+  flex-wrap: wrap;
+}
+
+.que-evalua-competencia input {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand-primary);
+}
+
+.que-evalua-competencia span { flex: 1 1 0; min-width: 0; }
+
+/* Los indicadores describen, no se marcan: sin casilla, sangrados y en el tono
+   secundario. Si tuvieran casilla, prometerían una precisión que el modelo no
+   guarda — su nivel en la boleta es el de su competencia. */
+.que-evalua-indicadores {
+  margin: var(--space-micro) 0 0 calc(18px + var(--space-xs));
+  padding-left: var(--space-md);
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.que-evalua-indicadores li { margin-top: 2px; }
+
+/* Lo que la evaluación ya evalúa, en su ficha. */
+.evalua-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.evalua-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px var(--space-sm);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
 /* ---- La rúbrica del colegio (MOR-136) ---- */
 /* Una tabla de cinco filas que se editan juntas: es una ESCALERA, y sus
    peldaños solo tienen sentido unos respecto de otros. */

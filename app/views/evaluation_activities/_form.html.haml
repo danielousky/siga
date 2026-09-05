@@ -2,9 +2,15 @@
 -# ver cuánto le queda MIENTRAS elige, no después de que el formulario lo rechace.
 -# Los pesos ya comprometidos de todas sus asignaciones caben en un atributo de
 -# datos — un profesor tiene pocas secciones.
+-# ⚠️ Dos controladores en el mismo formulario, y los dos escuchan los MISMOS
+-# cambios: `ponderacion` recalcula el medidor y `que-evalua` redibuja el plan.
+-# Stimulus admite varias acciones en un control —van separadas por espacio— así
+-# que no hace falta que uno llame al otro.
 = form_with(model: evaluation_activity,
-            data: { controller: "ponderacion",
-                    ponderacion_asignaciones_value: ponderacion_de_mis_asignaciones.to_json }) do |f|
+            data: { controller: "ponderacion que-evalua",
+                    ponderacion_asignaciones_value: ponderacion_de_mis_asignaciones.to_json,
+                    que_evalua_planes_value: competencias_de_mis_asignaciones.to_json,
+                    que_evalua_marcadas_value: competencias_marcadas.to_json }) do |f|
   = render "shared/errors", object: evaluation_activity
 
   .form-group
@@ -12,13 +18,15 @@
     = f.select :asignacion,
       mis_asignaciones.map { |ts| ["#{ts.section.grade.name} – #{ts.section.name} · #{ts.subject.name}", "#{ts.section_id}:#{ts.subject_id}"] },
       { include_blank: "Elige una de tus secciones...", selected: ("#{evaluation_activity.section_id}:#{evaluation_activity.subject_id}" if evaluation_activity.section_id) },
-      class: "form-select", data: { ponderacion_target: "asignacion", action: "change->ponderacion#asignacionCambio" }
+      class: "form-select", data: { ponderacion_target: "asignacion", que_evalua_target: "asignacion",
+                                    action: "change->ponderacion#asignacionCambio change->que-evalua#actualizar" }
 
   .form-group
     = con_pista "Solo aparecen los lapsos del año escolar de la sección que elegiste arriba." do
       = f.label :evaluation_moment_id, class: "form-label"
     = f.select :evaluation_moment_id, [], { include_blank: "Elige el lapso..." },
-      class: "form-select", data: { ponderacion_target: "lapso", action: "change->ponderacion#lapsoCambio" }
+      class: "form-select", data: { ponderacion_target: "lapso", que_evalua_target: "lapso",
+                                    action: "change->ponderacion#lapsoCambio change->que-evalua#actualizar" }
 
   .form-group
     = f.label :description, "Qué se evalúa", class: "form-label"
@@ -40,8 +48,25 @@
     = f.label :date_scheduled, "Fecha", class: "form-label"
     = f.date_field :date_scheduled, class: "form-control"
 
+  -# ⚠️ Qué evalúa: el enganche entre el PLAN y la NOTA (MOR-136).
+  -#
+  -# Es lo único que hace falta para que la boleta pueda decir «Resuelve
+  -# situaciones con fracciones… PA» en vez de un 17 pelado.
+  -#
+  -# El bloque entero se esconde solo cuando no hay plan que ofrecer: un profesor
+  -# de bachillerato no evalúa por competencias, y un titulito sobre un vacío
+  -# permanente le enseña a ignorar esa zona del formulario.
+  - if competencias_de_mis_asignaciones.any?
+    .form-group.que-evalua{ data: { que_evalua_target: "bloque" } }
+      = con_pista "Se marca la COMPETENCIA. Sus indicadores se imprimen debajo en la boleta con el mismo nivel — no se califican aparte." do
+        %span.form-label Qué evalúa, del plan de esta sección
+      %p.nota-ayuda{ data: { que_evalua_target: "vacio" }, hidden: true }
+      %ul.que-evalua-lista{ data: { que_evalua_target: "lista" } }
+
   .form-acciones
     = f.submit class: "btn btn-guardar"
+    -# ⚠️ DENTRO de `.form-acciones`. Estaba una indentación afuera, así que caía
+    -# debajo del submit en vez de al lado — se vio en pantalla.
+    = link_to "Cancelar", evaluation_activities_path, class: "btn btn-secondary"
     - if local_assigns[:volver]
       = boton "Volver", volver, icono: :volver, tono: :secondary
-  = link_to "Cancelar", evaluation_activities_path, class: "btn btn-secondary"
