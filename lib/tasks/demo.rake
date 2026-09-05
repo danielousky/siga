@@ -106,6 +106,23 @@ namespace :demo do
             "   Exporta la base, restáurala en otra aparte, cuenta las filas, y entonces sí.\n"
     end
 
+    # ⚠️ Lo que se va a perder, ANTES de perderlo y en voz alta.
+    #
+    # La tarea ya avisaba que era irreversible; lo que no decía es CUÁNTO. Un
+    # «esto no se puede deshacer» abstracto se lee y se sigue; «293 alumnos y
+    # 20 boletines» se lee distinto.
+    Current.sin_aislamiento do
+      puts ""
+      puts "═══ SE VA A BORRAR ═══"
+      puts format("  %-22s %s", "colegios", School.count)
+      puts format("  %-22s %s", "personas", User.count)
+      puts format("  %-22s %s", "alumnos", Student.unscoped.count)
+      puts format("  %-22s %s", "notas cargadas", ActivityGrade.unscoped.count)
+      puts format("  %-22s %s", "boletines emitidos", ReportCard.unscoped.count)
+      puts format("  %-22s %s", "registro de actividad", ActivityLog.unscoped.count)
+      puts ""
+    end
+
     antes = Current.sin_aislamiento { [ School.count, User.count ] }
 
     Current.sin_aislamiento do
@@ -153,12 +170,55 @@ namespace :demo do
   task es_solo_demo: :environment do
     Current.sin_aislamiento do
       esperados = [ "U.E. Simón Bolívar", "U.E. Andrés Bello" ]
+
+      # ⚠️ Los colegios que alguien REGISTRÓ y que igual se van, uno por uno y
+      # con su nombre escrito.
+      #
+      # No es una excepción cómoda: es el registro de una decisión que se tomó
+      # mirando los datos. El 5 de septiembre de 2026 había dos colegios que no
+      # eran de la demo —«U.E. Ceapucv», registrado por Yoleima Contreras con
+      # tres alumnos, y «LA ESCUELITA», de Daniel, vacío— y Daniel autorizó
+      # borrar los dos: pruebas del registro, no clientes.
+      #
+      # Se pasan por variable de entorno y no se escriben acá a propósito. El
+      # que venga después NO puede heredar el permiso de borrar el colegio de
+      # alguien: tiene que volver a mirar `demo:procedencia`, decidir, y
+      # escribir los nombres él.
+      autorizados = ENV["SIGA_BORRAR_TAMBIEN"].to_s.split("|").map(&:strip).compact_blank
       encontrados = School.order(:id).pluck(:name)
 
+      # ⚠️ Se comparan los nombres NORMALIZADOS, no literales.
+      #
+      # `School` guarda el nombre en mayúscula desde `MOR-…`, pero los colegios
+      # sembrados antes de esa regla quedaron como «U.E. Simón Bolívar». Con
+      # comparación literal, el guarda decía que la propia demo «NO es de la
+      # demo» —y en producción pasaba por casualidad, porque ahí los nombres
+      # son los viejos—. Un guarda que depende de cuándo se sembró la fila es
+      # un guarda que va a fallar el día que importa.
+      igual = ->(a, b) { Normaliza.para_comparar(a) == Normaliza.para_comparar(b) }
+      permitidos = esperados + autorizados
+
       problemas = []
-      problemas << "hay #{School.count} colegios y se esperaban 2" if School.count != 2
-      inesperados = encontrados - esperados
+      inesperados = encontrados.reject { |c| permitidos.any? { |p| igual.(c, p) } }
       problemas << "colegios que NO son de la demo: #{inesperados.join(', ')}" if inesperados.any?
+
+      if autorizados.any?
+        puts ""
+        puts "⚠️  Se van a borrar TAMBIÉN estos colegios, autorizados a mano:"
+        autorizados.each do |nombre|
+          colegio = School.all.find { |c| igual.(c.name, nombre) }
+          if colegio.nil?
+            puts "   · #{nombre} — NO EXISTE (¿nombre mal escrito?)"
+            next
+          end
+          Current.en_el_colegio(colegio) do
+            quien = colegio.registrado_por
+            puts "   · #{nombre} — lo registró #{quien&.email || 'el equipo'} · " \
+                 "#{Student.count} alumnos · #{ActivityGrade.count} notas"
+          end
+        end
+        puts ""
+      end
 
       # Un boletín emitido es un papel que salió a una familia. Si existe, alguien
       # usó esto de verdad y truncar deja de ser una decisión técnica.
