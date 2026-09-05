@@ -2271,10 +2271,30 @@ nav.pagy a.gap {
   padding: 2px 10px;
 }
 
+/* La nota que SÍ se queda visible: la que dice qué pasa si no se hace (MOR-161).
+   Se afina para que no compita con el campo, pero se sigue leyendo.
+
+   ⚠️ NO lleva `max-width`, y antes sí: tenía `62ch`, la medida clásica de
+   lectura. Daniel lo señaló DOS veces —«no entiendo por qué los textos de ayuda
+   están recortados y no ocupan el ancho»— y tenía razón las dos.
+
+   La medida de lectura se gana su lugar en PROSA LARGA. Acá el texto más largo
+   de los 74 usos son 90 caracteres, o sea línea y media: cortar a 62 no evita
+   ninguna fatiga y sí deja la nota terminando en el aire, sin alinearse con el
+   campo del que cuelga. En un formulario, la nota pertenece al control que
+   tiene encima, y esa relación pesa más que un ideal tipográfico.
+
+   ⚠️ Y estaba definida DOS VECES, a cuatro mil líneas de distancia. Eso es lo
+   que hacía difícil de encontrar el recorte: quien leía la primera no veía el
+   `max-width` de la segunda. Ahora es una sola.
+
+   `pretty` se queda: evita la línea huérfana de dos palabras al final, y no
+   cuesta ancho. */
 .nota-ayuda {
   margin: var(--space-sm) 0 0;
   font-size: 13px;
   color: var(--text-tertiary);
+  text-wrap: pretty;
 }
 
 @media (max-width: 600px) {
@@ -6444,16 +6464,6 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
     margin-top: var(--space-micro);
     position-try-fallbacks: flip-block, flip-inline;
   }
-}
-
-/* La nota que SÍ se queda visible: la que dice qué pasa si no se hace. Se
-   afina para que no compita con el campo, pero se sigue leyendo. */
-/* ⚠️ `pretty` evita la línea huérfana. Con 62ch de ancho, «tomar la dirección.»
-   caía sola al final y el párrafo se leía como si estuviera roto. El navegador
-   reparte las últimas líneas para que ninguna quede con dos palabras. */
-.nota-ayuda {
-  max-width: 62ch;
-  text-wrap: pretty;
 }
 
 /* Un dato secundario: el teléfono debajo de un nombre, «Sin asignar», el
