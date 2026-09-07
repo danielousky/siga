@@ -99,8 +99,19 @@
   -# le hago. El título deja de competir por el ancho con los controles.
   .cabecera-de-lista-titular
     %h1.cabecera-de-lista-titulo= titulo
+    -# ⚠️ `detalle_destacado` invierte el peso del título y el detalle.
+    -#
+    -# En casi todas las pantallas el título manda —«Alumnos», «Secciones»— y el
+    -# detalle es contexto. Pero hay una donde es al revés: en «Competencias e
+    -# indicadores», el título dice lo mismo las veinte veces que se abre,
+    -# mientras que «1er Grado A · Matemática» dice DÓNDE ESTOY PARADO —y eso es
+    -# lo que hay que confirmar de un vistazo antes de escribir algo.
+    -#
+    -# Daniel: *«el título del Grado - Sección - Área hay que resaltarlo más,
+    -# debe ser de rápida lectura»*.
     - if local_assigns[:detalle].present?
-      %p.cabecera-de-lista-detalle= detalle
+      %p.cabecera-de-lista-detalle{ class: ("cabecera-de-lista-detalle--destacado" if local_assigns[:detalle_destacado]) }
+        = detalle
 
   .cabecera-de-lista-controles
 

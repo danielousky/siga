@@ -3,8 +3,16 @@
 -# ⚠️ La pantalla NO abre vacía cuando hay un plan del año pasado: abre
 -# OFRECIÉNDOLO. Es todo el punto del issue — que la maestra no vuelva a
 -# escribir lo que su colegio ya escribió.
+-# ⚠️ El DETALLE es lo que hay que leer rápido, no el título.
+-#
+-# Daniel: *«el título del Grado - Sección - Área hay que resaltarlo más, debe
+-# ser de rápida lectura»*. Y es correcto: «Competencias e indicadores» dice qué
+-# pantalla es —lo mismo en las veinte veces que se abre— mientras que «1er
+-# Grado A · Matemática» dice DÓNDE ESTOY PARADO, que es lo que cambia y lo que
+-# se necesita confirmar de un vistazo antes de escribir algo.
 = render "shared/cabecera_de_lista", titulo: "Competencias e indicadores",
          detalle: (asignacion ? "#{asignacion.section.grade.name} #{asignacion.section.name} · #{asignacion.subject.name}" : nil),
+         detalle_destacado: true,
          alta: (asignacion && profesor? ? { ruta: new_competency_path(contexto), nombre: "Registrar competencia" } : nil)
 
 -# ⚠️ Dos vacíos que se ven igual y no lo son.
@@ -33,26 +41,49 @@
              texto: "El plan de evaluación cuelga de la sección que dictas. Cuando la dirección te asigne una materia, aparece acá."
 
 - else
-  -# ⚠️ La escalera: GRADO → ÁREA → LAPSO, en ese orden y no en otro.
+  -# ⚠️ La escalera: GRADO → ÁREA → SECCIÓN → LAPSO.
   -#
   -# Era un desplegable de veinte renglones —«1er Año A · Matemática», «1er Año
-  -# B · Matemática»…— donde había que leer para elegir. Cyndi lo partió en tres
+  -# B · Matemática»…— donde había que leer para elegir. Cyndi lo partió en
   -# preguntas cortas, y cada una acota la siguiente: elegido 4to Grado, el área
   -# solo ofrece lo que este profesor dicta EN 4to Grado.
   -#
-  -# La sección no es una de las tres, y esa es la gracia: el plan es el mismo
-  -# para las hermanas —«4to A» y «4to B» evalúan las mismas competencias— así
-  -# que preguntarla sería pedir una decisión que después hay que deshacer con
-  -# el botón de copiar. Se elige una y se copia a las demás.
+  -# ⚠️ La SECCIÓN entró como cuarto escalón, y antes no estaba.
+  -#
+  -# El razonamiento viejo era que el plan es el mismo para las hermanas, así que
+  -# preguntarla sobraba: se elegía una y se copiaba a las demás. En pantalla no
+  -# funcionó. Daniel: *«no me queda claro y evidente en la vista que lo que
+  -# estoy editando son las competencias de la sección A… tampoco tengo desde acá
+  -# la posibilidad de editar las competencias de la sección B. Me parece que la
+  -# mejor opción son pestañas por cada Sección»*.
+  -#
+  -# Dos problemas en uno: no se sabía dónde se estaba parado, y a la hermana no
+  -# se llegaba. Copiar sigue existiendo —es el atajo— pero ya no es la única
+  -# puerta.
+  -#
+  -# ⚠️ Cada fila aparece SOLO si hay más de una opción. Un control de una
+  -# opción no decide nada y agrega un renglón que hay que leer: es la misma
+  -# regla del selector de nivel y del año escolar.
   .card-academic.plan-escalera
     = render "shared/pastillas", etiqueta: "Grado",
              opciones: mis_grados.map { |g| [ g.name, competencies_path(grado: g.id, lapso: lapso&.id), g.id == grado&.id ] }
 
-    = render "shared/pastillas", etiqueta: "Área de aprendizaje",
-             opciones: mis_areas.map { |s| [ s.name, competencies_path(grado: grado&.id, area: s.id, lapso: lapso&.id), s.id == asignacion&.subject_id ] }
+    - if hay_area_que_elegir?
+      = render "shared/pastillas", etiqueta: Vocabulario::AREA,
+               opciones: mis_areas.map { |s| [ s.name, competencies_path(grado: grado&.id, area: s.id, lapso: lapso&.id), s.id == asignacion&.subject_id ] }
 
-    = render "shared/pastillas", etiqueta: "Lapso",
-             opciones: lapsos.map { |l| [ l.name, competencies_path(contexto.merge(lapso: l.id)), l.id == lapso&.id ] }
+    - if hay_seccion_que_elegir?
+      -# ⚠️ Las opciones se arman ARRIBA y no dentro del `render`.
+      -#
+      -# Haml lee la continuación de una expresión partida como si fuera
+      -# indentación y revienta con «inconsistent indentation». Está anotado en
+      -# `_barra_superior` desde MOR-165 y se vuelve a pisar cada vez que la
+      -# expresión crece — acá creció al agregar la sección a la URL.
+      - opciones_de_seccion = mis_secciones_del_area.map { |ts| [ ts.section.name, competencies_path(grado: grado&.id, area: ts.subject_id, seccion: ts.section_id, lapso: lapso&.id), ts.section_id == asignacion&.section_id ] }
+      = render "shared/pastillas", etiqueta: Section.model_name.human, opciones: opciones_de_seccion
+
+    - opciones_de_lapso = lapsos.map { |l| [ l.name, competencies_path(contexto.merge(grado: grado&.id, area: asignacion&.subject_id, seccion: asignacion&.section_id, lapso: l.id)), l.id == lapso&.id ] }
+    = render "shared/pastillas", etiqueta: "Lapso", opciones: opciones_de_lapso
 
   - if @sugerido&.any?
     -# ⚠️ Se OFRECE, no se carga solo. Un plan clonado que nadie miró es un plan
@@ -114,10 +145,26 @@
       - if profesor? && otras_secciones.any?
         -# ⚠️ Copiar es un ATAJO, no un vínculo: después de copiar, cada sección
         -# es independiente y admite sus propias modificaciones.
+        -#
+        -# ⚠️ Y solo se ofrece a las hermanas que NO tienen plan todavía.
+        -#
+        -# Daniel: *«si la sección ya tiene competencia, se deshabilita esta
+        -# opción con mensaje indicativo»*. Tenía razón por partida doble:
+        -# copiar dos veces no duplicaba nada —la copia es idempotente— pero el
+        -# botón seguía ahí ofreciendo una acción que ya no hacía nada, y un
+        -# control que no pasa nada al tocarlo enseña a desconfiar del resto.
         .plan-acciones
-          = button_to copiar_a_competencies_path(contexto),
-                      class: "btn btn-accion" do
-            = icono(:secciones, tamano: 16)
-            %span= "Copiar a #{asignacion.section.grade.name} #{otras_secciones.map { |ts| ts.section.name }.to_sentence(two_words_connector: ' y ', last_word_connector: ' y ')}"
-          %p.nota-ayuda
-            Se copia el texto. Después cada sección es independiente: cambiar una no cambia la otra.
+          - if hermanas_sin_plan.any?
+            = button_to copiar_a_competencies_path(contexto),
+                        class: "btn btn-accion" do
+              = icono(:secciones, tamano: 16)
+              %span= "Copiar a #{asignacion.section.grade.name} #{hermanas_sin_plan.map { |ts| ts.section.name }.to_sentence(two_words_connector: ' y ', last_word_connector: ' y ')}"
+            %p.nota-ayuda
+              Se copia el texto. Después cada sección es independiente: cambiar una no cambia la otra.
+          - else
+            -# Un botón apagado explicaría menos: se dice qué pasó y adónde ir.
+            %p.nota-ayuda.plan-ya-copiado
+              = icono(:ok, tamano: 15)
+              %span
+                = "#{pluralizar(otras_secciones.size, 'La otra sección', 'Las otras secciones')} de #{asignacion.section.grade.name} ya #{otras_secciones.one? ? 'tiene' : 'tienen'} su plan en este lapso."
+                Cámbialo desde su pestaña, arriba.

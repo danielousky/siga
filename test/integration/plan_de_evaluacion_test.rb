@@ -245,6 +245,109 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     assert flash[:alert].present?, "y hay que decir por qué no se pudo"
   end
 
+  # ══════════════════════════════════════════════════════════════════════════
+  # El QA de Daniel del 7 de septiembre
+  # ══════════════════════════════════════════════════════════════════════════
+
+  # ⚠️ Daniel: *«tampoco tengo desde acá la posibilidad de editar las
+  # competencias de la sección B. Me parece que la mejor opción son pestañas por
+  # cada Sección»*.
+  test "la sección se elige con pestañas, y se llega a la hermana" do
+    hermana = con_el_colegio(@a.colegio) do
+      s = Section.create!(grade: @a.grado, academic_period: @a.escenario.periodo,
+                          name: "B", capacity: 30)
+      TeacherSection.create!(teacher: @a.registro_de_profesor, section: s,
+                             subject: @a.escenario.materia)
+      s
+    end
+    con_el_colegio(@a.colegio) { competencia_con(1) }
+    sign_in @a.profesor
+
+    get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+    assert_select ".pastilla", text: "A"
+    assert_select ".pastilla", text: "B"
+
+    # Y la pestaña de la hermana lleva a SU plan, que está vacío.
+    get competencies_path(grado: @a.grado.id, area: @a.escenario.materia.id,
+                          seccion: hermana.id, lapso: @lapso.id)
+    assert_response :success
+    assert_select ".cabecera-de-lista-detalle", /#{hermana.name}/
+    assert_select ".plan-competencia", count: 0
+  end
+
+  # ⚠️ Con UNA sola sección no hay pestañas: un control de una opción no decide
+  # nada. Misma regla que el área, el nivel y el año escolar.
+  test "con una sola sección no aparecen las pestañas" do
+    con_el_colegio(@a.colegio) { competencia_con(0) }
+    sign_in @a.profesor
+    get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+
+    etiquetas = css_select(".pastillas-etiqueta").map { |e| e.text.strip }
+    assert_not_includes etiquetas, "Sección"
+  end
+
+  # ⚠️ Daniel: *«si es una sola materia que dicto, no debería aparecer la opción
+  # de selección sino ir directo al siguiente nivel, es redundante»*.
+  test "con una sola área tampoco aparece su fila" do
+    sign_in @a.profesor
+    get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+
+    etiquetas = css_select(".pastillas-etiqueta").map { |e| e.text.strip }
+    assert_not_includes etiquetas, Vocabulario::AREA
+    assert_includes etiquetas, "Grado"
+  end
+
+  test "con dos áreas en el grado, la fila sí aparece" do
+    con_el_colegio(@a.colegio) do
+      otra = Subject.create!(department: @a.escenario.materia.department,
+                             code: "LEN", name: "Castellano")
+      GradeSubject.create!(grade: @a.grado, subject: otra)
+      TeacherSection.create!(teacher: @a.registro_de_profesor, section: @a.seccion, subject: otra)
+    end
+    sign_in @a.profesor
+    get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+
+    assert_includes css_select(".pastillas-etiqueta").map { |e| e.text.strip }, Vocabulario::AREA
+  end
+
+  # ⚠️ Daniel: *«si la sección ya tiene competencia, se deshabilita esta opción
+  # con mensaje indicativo»*. Copiar dos veces no duplicaba nada —es
+  # idempotente— pero el botón seguía ahí ofreciendo algo que no hacía nada.
+  test "copiar desaparece cuando la hermana ya tiene su plan" do
+    hermana = con_el_colegio(@a.colegio) do
+      s = Section.create!(grade: @a.grado, academic_period: @a.escenario.periodo,
+                          name: "B", capacity: 30)
+      TeacherSection.create!(teacher: @a.registro_de_profesor, section: s,
+                             subject: @a.escenario.materia)
+      s
+    end
+    con_el_colegio(@a.colegio) { competencia_con(1) }
+    sign_in @a.profesor
+
+    get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+    assert_select ".plan-acciones form", 1, "con la hermana vacía, copiar tiene sentido"
+
+    post copiar_a_competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+    get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+
+    assert_select ".plan-acciones form", 0
+    # ⚠️ Empieza con «La», sin número delante: `contar` antepone el conteo
+    # —«1 La otra sección»— y acá la frase ya trae su artículo.
+    assert_select ".plan-ya-copiado", /\ALa otra sección de .* ya tiene su plan/
+    assert hermana.present?
+  end
+
+  # ⚠️ Daniel: *«el título del Grado - Sección - Área hay que resaltarlo más,
+  # debe ser de rápida lectura»*. El título dice lo mismo las veinte veces que
+  # se abre; el detalle dice dónde estoy parado.
+  test "el detalle va destacado, no el título" do
+    sign_in @a.profesor
+    get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+
+    assert_select ".cabecera-de-lista-detalle--destacado",
+                  text: "#{@a.grado.name} #{@a.seccion.name} · #{@a.escenario.materia.name}"
+  end
+
   private
 
   # El mismo grado y la misma materia, un año antes.

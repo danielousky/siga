@@ -168,7 +168,6 @@ namespace :demo do
   desc "¿Es seguro resembrar? Falla si hay algo que no sea la demo (MOR-146)"
   task es_solo_demo: :environment do
     Current.sin_aislamiento do
-
       # ⚠️ Los colegios que alguien REGISTRÓ y que igual se van, uno por uno y
       # POR SU CÓDIGO DEA.
       #

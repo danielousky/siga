@@ -63,7 +63,7 @@
         %tbody
           - @quienes.each do |asignacion|
             %tr
-              %td= link_to asignacion.teacher.user.apellidos_y_nombres, teacher_path(asignacion.teacher)
+              %td= nombre_de_profesor(asignacion.teacher)
               %td= link_to "#{asignacion.section.grade.name} – #{asignacion.section.name}", section_path(asignacion.section)
               %td= asignacion.section.academic_period.name
     - else

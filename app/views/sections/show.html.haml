@@ -32,7 +32,9 @@
     .detail-item
       %span.detail-label Profesor guía
       - if @section.leader_teacher
-        %p.detail-value= link_to @section.leader_teacher.user.apellidos_y_nombres, teacher_path(@section.leader_teacher)
+        -# ⚠️ Enlazado solo para quien puede abrir la ficha. Ver
+        -# `nombre_de_profesor`: evitar el error es mejor que anunciarlo.
+        %p.detail-value= nombre_de_profesor(@section.leader_teacher)
       - else
         %p.detail-value.dato-secundario Sin asignar
     - if @section.classroom.present?
