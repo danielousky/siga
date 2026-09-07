@@ -24,11 +24,19 @@
         -# un indicativo de si les falta por calificar alguna nota de esa
         -# sección o si ya está calificada»*.
         -#
-        -# ⚠️ Un punto de color CON su nombre en el tooltip, nunca solo color:
-        -# quien no distingue el rojo del verde tiene que poder saberlo igual.
-        -# Acá el color SÍ es del dato —cuántas notas faltan es un hecho— y por
-        -# eso puede llevarlo (regla de color, MOR-135).
+        -# ⚠️ Un ICONO con su nombre en el tooltip, nunca solo color: quien no
+        -# distingue el rojo del verde tiene que poder saberlo igual. Un check,
+        -# un reloj y un signo de admiración se distinguen SIN color. Acá el
+        -# color acompaña al dato —cuántas notas faltan es un hecho— y por eso
+        -# puede llevarlo (regla de color, MOR-135).
+        -#
+        -# ⚠️ `data-tooltip-izquierda`: el sidebar tiene `overflow-y: auto`, y
+        -# eso convierte el eje X en `auto` también. Un globo centrado sobre un
+        -# icono pegado al borde derecho se corta al ras — se veía «Notas al
+        -# dí…». Anclado a la derecha, crece hacia adentro y cabe.
         - if enlace.estado
           %span.seccion-estado{ class: "seccion-estado--#{enlace.estado}",
-                                data: { tooltip: MenuHelper::NOMBRES_DE_ESTADO[enlace.estado] },
+                                data: { tooltip: MenuHelper::NOMBRES_DE_ESTADO[enlace.estado],
+                                        tooltip_izquierda: true },
                                 "aria-label": MenuHelper::NOMBRES_DE_ESTADO[enlace.estado] }
+            = icono(MenuHelper::ICONOS_DE_ESTADO[enlace.estado], tamano: 15)

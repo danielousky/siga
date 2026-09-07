@@ -5845,6 +5845,23 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   visibility: visible;
 }
 
+/* ⚠️ Anclado a la DERECHA, creciendo hacia adentro.
+   Para un control pegado al borde de un contenedor que recorta. El caso que lo
+   trajo: el estado de cada sección en el menú lateral, que tiene
+   `overflow-y: auto` — y el CSS convierte el eje X en `auto` en cuanto el otro
+   no es `visible`, así que un globo centrado se corta al ras del sidebar. */
+[data-tooltip][data-tooltip-izquierda]::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+[data-tooltip][data-tooltip-izquierda]::before {
+  left: auto;
+  right: 4px;
+  transform: none;
+}
+
 [data-tooltip][data-tooltip-arriba]::after {
   top: auto;
   bottom: calc(100% + 8px);
@@ -6004,17 +6021,23 @@ a.subject-avance:hover { filter: brightness(0.9); }
    ⚠️ Acá el color SÍ es del dato —cuántas notas faltan es un hecho de la
    sección, no la afordancia de un control— y por eso puede llevarlo. Pero
    nunca SOLO color: el nombre va en el tooltip y en el `aria-label`. */
+/* ⚠️ Un ICONO, no un punto de color (QA del 7 de septiembre).
+   Los tres estados eran el MISMO círculo de 8 px y solo cambiaba el color, así
+   que el color cargaba con todo el significado y había que leer el tooltip
+   para saber cuál era. Un check, un reloj y un «!» se distinguen sin color. */
 .seccion-estado {
   flex: 0 0 auto;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  display: inline-flex;
   margin-left: auto;
 }
 
-.seccion-estado--completo { background: var(--success-text); }
-.seccion-estado--a_medias { background: var(--warning-text); }
-.seccion-estado--vacio    { background: var(--danger-text); }
+.seccion-estado--completo { color: var(--success-text); }
+.seccion-estado--a_medias { color: var(--warning-text); }
+.seccion-estado--vacio    { color: var(--danger-text); }
+
+/* Sin evaluaciones todavía: es un HECHO, no un problema. Va en el gris de lo
+   secundario — un ámbar acá le pondría urgencia a septiembre. */
+.seccion-estado--sin_evaluaciones { color: var(--text-tertiary); }
 
 /* ---- La libreta de la sección (MOR-223) ---- */
 /* Todas las notas del lapso en una tabla: alumno × evaluación. Daniel: «ten
@@ -6219,7 +6242,13 @@ a.subject-avance:hover { filter: brightness(0.9); }
   gap: var(--space-sm);
 }
 
+/* ⚠️ El margen de abajo, y su excepción en la última.
+   En la libreta la fila de lapsos quedaba PEGADA a la tabla —«sigue sin
+   espacio entre los filtros de lapsos y la lista»—. Donde las pastillas son lo
+   último de su tarjeta (la escalera del plan) el margen sobraría, así que se
+   quita con `:last-child` en vez de escribirlo a mano en cada pantalla. */
 .pastillas {
+  margin-bottom: var(--space-md);
   display: flex;
   /* ⚠️ `center`, NUNCA `baseline`.
      Con `baseline`, el navegador alinea la línea de texto de la etiqueta de
@@ -6234,6 +6263,8 @@ a.subject-avance:hover { filter: brightness(0.9); }
 /* La etiqueta ancla la fila, así que necesita ancho FIJO: sin él, «Lapso» y
    «Área de aprendizaje» empiezan sus pastillas en columnas distintas y las
    tres filas se leen como tres controles sueltos en vez de una escalera. */
+.pastillas:last-child { margin-bottom: 0; }
+
 .pastillas-etiqueta {
   flex: 0 0 auto;
   min-width: 9.5rem;

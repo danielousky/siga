@@ -47,7 +47,29 @@ module MenuHelper
   NOMBRES_DE_ESTADO = {
     completo: "Notas al día",
     a_medias: "Le faltan notas por cargar",
-    vacio: "Sin ninguna nota cargada"
+    vacio: "Sin ninguna nota cargada",
+    sin_evaluaciones: "Todavía sin evaluaciones"
+  }.freeze
+
+  # ⚠️ Un ICONO por estado, no un punto de color.
+  #
+  # QA de Daniel: *«check o icon-check verde. Si no está completado, otro ícono
+  # descriptivo. Incluso si no tiene evaluación, el ícono debe indicarlo»*.
+  #
+  # El punto obligaba a leer el tooltip para saber CUÁL de los tres estados era
+  # —los tres eran el mismo círculo de 8 px— así que el color cargaba solo con
+  # todo el significado. Un check, un reloj y un signo de admiración se
+  # distinguen sin color, que es exactamente lo que pide la regla: el color
+  # acompaña al dato, nunca lo sustituye.
+  #
+  # Y «sin evaluaciones» ahora se DIBUJA. Antes devolvía `nil` y la sección
+  # aparecía sin nada, indistinguible de una sección cuyo avance no se pudo
+  # calcular — que es el estado NORMAL de un colegio en septiembre.
+  ICONOS_DE_ESTADO = {
+    completo: :ok,
+    a_medias: :pendiente,
+    vacio: :error,
+    sin_evaluaciones: :notas
   }.freeze
 
   # Un grupo plegable, que nace PLEGADO (MOR-203).
@@ -458,7 +480,14 @@ module MenuHelper
     estados = avance.map(&:estado)
     return :vacio    if estados.include?(:vacio)
     return :a_medias if estados.include?(:a_medias)
-    return nil       if estados.all? { |e| e == :sin_evaluaciones }
+
+    # ⚠️ Devuelve `:sin_evaluaciones`, NO `nil`.
+    #
+    # Con `nil` la sección se dibujaba sin marca ninguna, igual que si el avance
+    # no se hubiera podido calcular. Y ese es el estado normal de un colegio en
+    # septiembre: el profesor todavía no armó sus evaluaciones. Callarlo lo deja
+    # sin saber si el sistema no tiene nada o si no lo está mirando.
+    return :sin_evaluaciones if estados.all? { |e| e == :sin_evaluaciones }
 
     :completo
   end
