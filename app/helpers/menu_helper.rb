@@ -276,11 +276,26 @@ module MenuHelper
   # `recognize_path` recorre las rutas al revés y puede levantar si la ruta no
   # existe —un enlace roto—, así que el rescate evita que un menú tumbe la página
   # entera por un enlace mal armado.
+  # ⚠️ El controller NO alcanza cuando el enlace apunta a UNO en concreto.
+  #
+  # QA de Daniel: *«el resaltado absorbe todas las secciones en el side»*. Y era
+  # literal: las nueve secciones del menú apuntan a `sections#show`, así que
+  # estando en `/secciones/78` las nueve daban `controller == "sections"` y las
+  # nueve se pintaban activas. El menú decía «estás en todas partes», que es lo
+  # mismo que no decir nada.
+  #
+  # Con `:id` en el destino se compara también el id. Sin él —`students_path`,
+  # `asistencias_path`, todo el menú de arriba— la comparación por controller
+  # sigue siendo la correcta: son listados, y cualquier pantalla de ese
+  # controller cuenta como «estás acá».
   def enlace_activo?(enlace)
     return true if enlace.tambien_en.include?(controller_path)
 
     destino = Rails.application.routes.recognize_path(enlace.ruta)
-    destino[:controller] == controller_path
+    return false unless destino[:controller] == controller_path
+    return true if destino[:id].blank?
+
+    destino[:id].to_s == params[:id].to_s
   rescue ActionController::RoutingError, ActionController::UrlGenerationError
     false
   end

@@ -90,4 +90,41 @@ class MenuDelProfesorTest < ActionDispatch::IntegrationTest
                         "la Media Técnica no es un grupo aparte: su 6to Año es bachillerato"
     assert_select ".sidebar-nav-link span", text: /6to Año/
   end
+
+  # ── El resaltado marca UNA sección, no todas (QA del 7 de septiembre) ──────
+  #
+  # Daniel: *«el resaltado absorbe todas las secciones en el side»*. Y era
+  # literal: las nueve secciones apuntan a `sections#show`, así que
+  # `enlace_activo?` —que solo comparaba el CONTROLLER— las daba todas por
+  # activas. Un menú que dice «estás en todas partes» no dice nada.
+  test "abierta una sección, solo esa queda resaltada en el menú" do
+    otra = con_el_colegio(@a.colegio) do
+      seccion = Section.create!(grade: @a.seccion.grade, academic_period: @a.escenario.periodo,
+                                name: "B", capacity: 30)
+      TeacherSection.create!(teacher: @a.registro_de_profesor, section: seccion,
+                             subject: @a.escenario.materia)
+      seccion
+    end
+
+    sign_in @a.profesor
+    get section_path(@a.seccion)
+
+    marcadas = css_select("a.sidebar-nav-link.active").map { |a| a["data-nombre"] }
+    assert_equal [ "#{@a.seccion.grade.name} – #{@a.seccion.name}" ], marcadas
+
+    get section_path(otra)
+
+    marcadas = css_select("a.sidebar-nav-link.active").map { |a| a["data-nombre"] }
+    assert_equal [ "#{otra.grade.name} – #{otra.name}" ], marcadas
+  end
+
+  # ⚠️ Y los enlaces SIN id siguen marcándose por controller: son listados, y
+  # cualquier pantalla de ese controller cuenta como «estás acá».
+  test "un listado se marca aunque la URL traiga filtros" do
+    sign_in @a.profesor
+    get evaluation_activities_path(lapso: @a.escenario.lapso(1).id)
+
+    marcadas = css_select("a.sidebar-nav-link.active").map { |a| a["data-nombre"] }
+    assert_equal [ "Mis evaluaciones" ], marcadas
+  end
 end
