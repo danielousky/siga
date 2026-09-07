@@ -65,4 +65,38 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
     assert_text "Calcula porcentajes"
     assert_text "Interpreta una tabla"
   end
+
+  # ── Conectar evaluaciones desde el plan (MOR-136, el enganche) ─────────────
+  #
+  # ⚠️ Se prueba en un navegador de verdad porque el panel es un `<details>`, y
+  # este proyecto ya se tropezó TRES veces con lo mismo: un `<details>` cerrado
+  # **no** esconde a un hijo con `position: absolute`. El marcado sale perfecto,
+  # el panel «cerrado» y sus casillas encima de la pantalla.
+  test "conecta una evaluación con una competencia desde el plan" do
+    # ⚠️ Se reusa la evaluación del escenario y no se crea otra: el lapso ya
+    # tiene el 100 % de la ponderación repartido, y una segunda al 100 % la
+    # rechaza el modelo — que es justo lo que tiene que hacer.
+    evaluacion  = @a.actividad
+    competencia = con_el_colegio(@a.colegio) do
+      Competency.create!(section: @a.seccion, subject: @a.escenario.materia,
+                         evaluation_moment: @a.escenario.lapso(1),
+                         descripcion: "Resuelve problemas de adición")
+    end
+
+    visit competencies_path(asignacion: "#{@a.seccion.id}:#{@a.escenario.materia.id}",
+                            lapso: @a.escenario.lapso(1).id)
+
+    assert_text "Ninguna evaluación todavía"
+
+    # El panel viene cerrado: la casilla no se puede tocar hasta abrirlo.
+    assert_no_selector "#conectar-#{competencia.id}-#{evaluacion.id}", visible: true
+
+    find(".plan-conectar-abrir").click
+    check "conectar-#{competencia.id}-#{evaluacion.id}"
+    click_on "Guardar"
+
+    assert_text "Listo: 1 evaluación mide esta competencia."
+    assert_selector ".plan-medida-chip", text: evaluacion.description
+    assert_no_text "Ninguna evaluación todavía"
+  end
 end

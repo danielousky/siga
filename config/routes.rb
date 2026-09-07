@@ -217,6 +217,18 @@ Rails.application.routes.draw do
       # Copiarlo a las otras secciones que dicta este mismo profesor.
       post "copiar",   to: "competencies#copiar",   as: :copiar_a
     end
+
+    # Qué evaluaciones MIDEN esta competencia (MOR-136).
+    #
+    # ⚠️ El enganche ya existía —al crear una evaluación se marca qué evalúa—
+    # pero solo en esa dirección, y el orden real del trabajo es el contrario:
+    # el profesor escribe su plan, arma sus evaluaciones, y si se olvidó de
+    # marcar no tenía forma de arreglarlo salvo editando una por una.
+    #
+    # Daniel: *«no sé cómo asociamos las evaluaciones con los indicadores.
+    # RECUERDA UX, debe ser un proceso fácil y fluido»*. Lo fluido es verlo
+    # donde ya se está trabajando.
+    patch "evaluaciones", to: "competencies#conectar", as: :conectar_evaluaciones
   end
 
   resources :evaluation_activities, path: "evaluaciones" do

@@ -6091,6 +6091,20 @@ a.subject-avance:hover { filter: brightness(0.9); }
   letter-spacing: 0;
 }
 
+/* Cuántas competencias mide esta evaluación. Un número con su icono, y el
+   texto completo en el tooltip: en un encabezado de tabla no hay lugar para
+   «Resuelve problemas de adición y sustracción con números naturales». */
+.libreta-columna-mide {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 .libreta-avance--completa { color: var(--success-text); }
 .libreta-avance--a_medias { color: var(--warning-text); }
 .libreta-avance--vacia    { color: var(--danger-text); }
@@ -6422,6 +6436,172 @@ a.subject-avance:hover { filter: brightness(0.9); }
 
 .portal-leyenda strong { margin-right: var(--space-xs); }
 .portal-leyenda .dato-secundario { margin-left: var(--space-xs); }
+
+/* ---- Qué evaluaciones miden una competencia (MOR-136) ---- */
+/* El enganche existía solo al CREAR la evaluación, y el orden real del trabajo
+   es el contrario: el profesor escribe su plan, arma sus evaluaciones, y si se
+   olvidó de marcar no tenía forma de arreglarlo. Daniel: «no sé cómo asociamos
+   las evaluaciones con los indicadores… debe ser un proceso fácil y fluido».
+   Lo fluido es verlo donde ya se está trabajando. */
+.plan-medida {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px dashed var(--border-subtle);
+}
+
+.plan-medida-etiqueta {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-right: var(--space-micro);
+}
+
+/* Cada evaluación que la mide, enlazada a su ficha: desde el plan se llega a
+   la evaluación, que es el otro lado del mismo trabajo. */
+.plan-medida-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-micro);
+  padding: 2px var(--space-sm);
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--surface-hover);
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  max-width: 18rem;
+}
+
+.plan-medida-chip:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+
+.plan-medida-chip > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plan-medida-peso {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+/* ⚠️ «Ninguna todavía» en ÁMBAR, no en gris: una competencia que ninguna
+   evaluación mide sale en la boleta SIN nivel, y eso hay que poder verlo antes
+   de emitirla. Acá el color es del dato —es un hecho del plan, no una
+   afordancia— así que puede llevarlo (regla de color, MOR-135). */
+.plan-medida-vacio {
+  font-size: 12px;
+  color: var(--warning-text);
+}
+
+/* ── Conectar, en un `<details>` ─────────────────────────────────────────── */
+/* Nativo: abre y cierra sin JavaScript. Si Stimulus muriera —ya pasó— el
+   profesor sigue pudiendo conectar sus evaluaciones. */
+.plan-conectar { position: relative; margin-left: auto; }
+
+.plan-conectar-abrir {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px var(--space-xs);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--brand-primary);
+  cursor: pointer;
+  text-decoration: none;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.plan-conectar-abrir::-webkit-details-marker { display: none; }
+.plan-conectar-abrir::marker { content: ""; }
+.plan-conectar-abrir:hover { background: var(--surface-hover); }
+
+.plan-conectar-abrir:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* ⚠️ Con el panel ABIERTO, el tooltip se calla.
+   El puntero sigue encima del `summary` después del clic, así que el globo se
+   dibuja justo sobre el panel que acaba de abrirse y tapa su título — se ve el
+   recuadro y no se lee qué pide. Es la misma queja de Daniel sobre los
+   tooltips que se montan encima de lo que hay que leer. Y una vez abierto ya
+   no explica nada: lo que iba a pasar, pasó. */
+.plan-conectar[open] > .plan-conectar-abrir::after,
+.plan-conectar[open] > .plan-conectar-abrir::before { content: none; }
+
+/* ⚠️ Escondido explícitamente cuando el `<details>` está cerrado.
+   Tercera aparición de esta trampa —ya pasó con el panel de contexto y con el
+   menú—: `position: absolute` fuerza un `display` calculado y el navegador
+   pierde su ocultamiento. El panel seguiría midiendo y corriendo la página. */
+.plan-conectar:not([open]) .plan-conectar-panel { display: none; }
+
+.plan-conectar-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 20;
+  min-width: 18rem;
+  max-width: min(24rem, calc(100vw - 2rem));
+  padding: var(--space-sm);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.plan-conectar-titulo {
+  margin: 0 0 var(--space-xs);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.plan-conectar-opcion {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  /* 40px de objetivo táctil: esto se marca desde un teléfono. */
+  min-height: 40px;
+  padding: 0 var(--space-micro);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.plan-conectar-opcion:hover { background: var(--surface-hover); }
+
+.plan-conectar-opcion input {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--brand-primary);
+}
+
+.plan-conectar-nombre {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plan-conectar-acciones {
+  margin-top: var(--space-xs);
+  padding-top: var(--space-xs);
+  border-top: 1px solid var(--border-subtle);
+}
 
 /* ---- Qué evalúa una evaluación (MOR-136) ---- */
 /* El enganche entre el plan y la nota. Se marcan COMPETENCIAS; los indicadores

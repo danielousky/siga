@@ -130,6 +130,12 @@
                 %ul.plan-indicadores
                   - c.indicators.en_orden.each do |i|
                     %li= i.descripcion
+
+              -# ⚠️ Qué evaluaciones la miden, y cómo conectarlas.
+              -#
+              -# El enganche existía solo al CREAR la evaluación, y el orden
+              -# real del trabajo es el contrario. Ver `_medida_por`.
+              = render "medida_por", competencia: c
             - if profesor?
               .columna-acciones
                 = link_to edit_competency_path(c, contexto),
