@@ -271,6 +271,32 @@ module ApplicationHelper
                 data: { paneles_target: "panel", panel: clave }, &bloque)
   end
 
+  # El nombre de un profesor, enlazado SOLO si quien mira puede abrir su ficha.
+  #
+  # ## ⚠️ Evitar el error, no anunciarlo
+  #
+  # Daniel, viendo la ficha de una sección como profesor: *«¿para qué colocamos
+  # el enlace a otro profe si como profesor solo puedo ver mis datos? Evitar el
+  # error es mejor UI que indicar que ocurrió»*.
+  #
+  # `/profesores/:id` es de la dirección: un profesor que tocaba ese enlace
+  # rebotaba a su panel con «Acceso no autorizado». El nombre igual hace falta
+  # —dice quién es el guía de su sección, que es información suya— pero como
+  # TEXTO.
+  #
+  # ⚠️ La condición es la MISMA que la del controller, `can_manage_teachers?`,
+  # y no una copia escrita a mano. Dos listas de permisos se desparejan, y el
+  # síntoma es exactamente el que Daniel encontró: una pantalla que ofrece una
+  # puerta que otra rechaza.
+  def nombre_de_profesor(profesor)
+    return nil if profesor.nil?
+
+    nombre = profesor.user.apellidos_y_nombres
+    return nombre unless can_manage_teachers?
+
+    link_to nombre, teacher_path(profesor)
+  end
+
   # El 20 del Artículo 108: es el techo de la escala, no una preferencia.
   NOTA_MAXIMA = 20
 end

@@ -182,12 +182,23 @@ class CompetenciesController < ApplicationController
   end
   helper_method :asignacion
 
+  # ⚠️ La SECCIÓN también entra en la deducción (QA de Daniel).
+  #
+  # Antes la escalera llegaba hasta el lapso y la sección se elegía sola: la
+  # primera del grado. Daniel: *«no me queda claro y evidente en la vista que lo
+  # que estoy editando son las competencias de la sección A… tampoco tengo desde
+  # acá la posibilidad de editar las competencias de la sección B»*.
+  #
+  # Ahora es la cuarta pregunta de la escalera y viaja en la URL como las otras.
   def por_pastillas
     del_grado = mis_asignaciones.select { |ts| ts.section.grade_id == grado_pedido&.id }
     del_grado = mis_asignaciones if del_grado.empty?
 
     del_area = del_grado.select { |ts| ts.subject_id.to_s == params[:area] }
-    (del_area.presence || del_grado).first
+    candidatas = del_area.presence || del_grado
+
+    de_la_seccion = candidatas.select { |ts| ts.section_id.to_s == params[:seccion] }
+    (de_la_seccion.presence || candidatas).first
   end
 
   # El grado pedido, sin pasar por `asignacion` — o sería una recursión.
@@ -266,6 +277,56 @@ class CompetenciesController < ApplicationController
                                    .map(&:subject).uniq.sort_by(&:name)
   end
   helper_method :mis_areas
+
+  # ⚠️ Con UNA sola área en este grado, la fila de pastillas no se dibuja.
+  #
+  # Daniel: *«si es una sola materia que dicto, no debería aparecer la opción de
+  # selección sino ir directo al siguiente nivel, es redundante»*. Es la misma
+  # regla que ya siguen el selector de nivel, el de año escolar y el del área en
+  # el formulario de evaluación: un control de una opción no decide nada y
+  # agrega un renglón que hay que leer.
+  def hay_area_que_elegir? = mis_areas.many?
+  helper_method :hay_area_que_elegir?
+
+  # Las secciones de este grado donde dicto esta área — incluida la que estoy
+  # mirando. Son las pestañas.
+  #
+  # ⚠️ Se ordena por el identificador, que es como el colegio las nombra: «A»,
+  # «B», «U1». Sin orden, dos cargas de la misma pantalla las ponen distinto.
+  def mis_secciones_del_area
+    @mis_secciones_del_area ||= mis_asignaciones
+                                .select { |ts| ts.section.grade_id == grado&.id &&
+                                               ts.subject_id == asignacion&.subject_id }
+                                .sort_by { |ts| ts.section.name }
+  end
+  helper_method :mis_secciones_del_area
+
+  def hay_seccion_que_elegir? = mis_secciones_del_area.many?
+  helper_method :hay_seccion_que_elegir?
+
+  # Cuáles de las hermanas YA tienen plan en este lapso.
+  #
+  # ⚠️ Es lo que apaga el botón de copiar. Daniel: *«si la sección ya tiene
+  # competencia, se deshabilita esta opción con mensaje indicativo»* — y tenía
+  # razón por partida doble: copiar dos veces no duplicaba nada (la copia es
+  # idempotente) pero el botón seguía ahí, invitando a una acción que ya no
+  # hacía nada. Un control que no hace nada al tocarlo enseña a desconfiar del
+  # resto.
+  def hermanas_con_plan
+    @hermanas_con_plan ||= begin
+      ids = otras_secciones.map(&:section_id)
+      Competency.where(section_id: ids, subject_id: asignacion&.subject_id,
+                       evaluation_moment_id: lapso&.id)
+                .distinct.pluck(:section_id).to_set
+    end
+  end
+  helper_method :hermanas_con_plan
+
+  # Las que todavía no lo tienen: a esas sí se puede copiar.
+  def hermanas_sin_plan
+    @hermanas_sin_plan ||= otras_secciones.reject { |ts| hermanas_con_plan.include?(ts.section_id) }
+  end
+  helper_method :hermanas_sin_plan
 
   def plan_path
     competencies_path(asignacion: "#{asignacion&.section_id}:#{asignacion&.subject_id}",

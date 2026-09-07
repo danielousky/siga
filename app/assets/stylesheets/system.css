@@ -8612,6 +8612,30 @@ a.subject-avance:hover { filter: brightness(0.9); }
   color: var(--text-secondary);
 }
 
+/* ⚠️ Cuando el detalle importa MÁS que el título.
+   
+   En «Competencias e indicadores» el título dice lo mismo las veinte veces que
+   se abre; «1er Grado A · Matemática» dice dónde estoy parado. Se le da el peso
+   del dato —tamaño, color de marca, la serif del sistema— sin llegar a competir
+   con el `<h1>`: sigue siendo su subtítulo, no otro título. */
+.cabecera-de-lista-detalle--destacado {
+  margin-top: 2px;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--brand-primary);
+}
+
+/* El plan que ya está copiado: no es un error ni un aviso, es un hecho. Va en
+   el tono normal de una nota, con el visto en verde de «esto ya está». */
+.plan-ya-copiado {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+}
+
+.plan-ya-copiado svg { flex: 0 0 auto; margin-top: 2px; color: var(--success-text); }
+
 /* El renglón de abajo. Los controles arrancan a la IZQUIERDA, alineados con el
    título: es el orden en que se leen. El [+] se va al final con su propio
    `margin-left: auto`. */
