@@ -36,8 +36,19 @@ class EvaluationActivitiesController < ApplicationController
     @inscritos      = @evaluation_activity.section.enrollments.count
   end
 
+  # ⚠️ Nace CON el contexto puesto cuando viene de un enlace (QA del 7 de sept.).
+  #
+  # Daniel, señalando los dos primeros desplegables: *«vienen del enlace»* —
+  # *«este enlace puede llevar ya todas estas características, ¿para qué
+  # repedírselas al usuario si vengo de una especificación?»*.
+  #
+  # Es «no preguntemos lo deducible» en su forma más literal: quien llega desde
+  # el plan de 1er Grado B · Matemática · 1er Lapso ya eligió las tres cosas, y
+  # volver a preguntárselas no es prudencia, es hacerle repetir. Y peor: puede
+  # elegir mal y crear la evaluación en otra sección.
   def new
-    @evaluation_activity = EvaluationActivity.new(date_scheduled: Date.current)
+    @evaluation_activity = EvaluationActivity.new(date_scheduled: Date.current,
+                                                  **atributos_del_enlace)
   end
 
   def edit; end
@@ -174,6 +185,51 @@ class EvaluationActivitiesController < ApplicationController
   end
   helper_method :secciones_por_area
 
+  # ── Lo que llega por el enlace, ya decidido ───────────────────────────────
+  #
+  # `asignacion` («seccion:materia») y `lapso`, más `competencia` para dejarla
+  # marcada. Los tres son opcionales: entrar por «Mis evaluaciones» sigue dando
+  # el formulario completo.
+  #
+  # ⚠️ Se busca ENTRE LAS DEL PROFESOR, igual que `asignacion_elegida`, y eso es
+  # lo que autoriza: un id de la sección de otro simplemente no aparece y queda
+  # en nil, sin 403 que confirme que existe.
+  def asignacion_del_enlace
+    return @asignacion_del_enlace if defined?(@asignacion_del_enlace)
+
+    seccion, materia = params[:asignacion].to_s.split(":")
+    @asignacion_del_enlace = mis_asignaciones.find do |ts|
+      ts.section_id.to_s == seccion && ts.subject_id.to_s == materia
+    end
+  end
+  helper_method :asignacion_del_enlace
+
+  # ⚠️ El lapso se valida contra el AÑO ESCOLAR de esa sección, no contra los del
+  # colegio. Un lapso del año que viene sobre una sección de este año crea una
+  # evaluación que no existe para nadie.
+  def lapso_del_enlace
+    return @lapso_del_enlace if defined?(@lapso_del_enlace)
+
+    return @lapso_del_enlace = nil unless asignacion_del_enlace && params[:lapso].present?
+
+    @lapso_del_enlace =
+      EvaluationMoment.find_by(id: params[:lapso],
+                               academic_period_id: asignacion_del_enlace.section.academic_period_id)
+  end
+  helper_method :lapso_del_enlace
+
+  # Si el contexto viene entero, la pantalla no lo pregunta: lo muestra.
+  def contexto_del_enlace? = asignacion_del_enlace.present? && lapso_del_enlace.present?
+  helper_method :contexto_del_enlace?
+
+  def atributos_del_enlace
+    return {} unless contexto_del_enlace?
+
+    { section_id: asignacion_del_enlace.section_id,
+      subject_id: asignacion_del_enlace.subject_id,
+      evaluation_moment_id: lapso_del_enlace.id }
+  end
+
   # La asignación que viene en el formulario, **buscada entre las del profesor**.
   # Que la búsqueda esté acotada a `current_user.teacher` es lo que autoriza: un
   # id de otra sección simplemente no aparece y devuelve nil.
@@ -269,12 +325,9 @@ class EvaluationActivitiesController < ApplicationController
   # mantiene chico el JSON — un maestro de primaria tiene dos o tres secciones,
   # no diecinueve.
   def competencias_de_mis_asignaciones
-    return {} unless profesor?
+    return {} if asignaciones_por_competencias.empty?
 
-    de_primaria = mis_asignaciones.select { |ts| ts.section.grade.por_competencias? }
-    return {} if de_primaria.empty?
-
-    planes = Competency.where(section_id: de_primaria.map(&:section_id))
+    planes = Competency.where(section_id: asignaciones_por_competencias.map(&:section_id))
                        .includes(:indicators).order(:orden, :id)
 
     planes.each_with_object({}) do |competencia, mapa|
@@ -288,11 +341,51 @@ class EvaluationActivitiesController < ApplicationController
   end
   helper_method :competencias_de_mis_asignaciones
 
-  # Las que esta evaluación ya tiene marcadas.
+  # Las asignaciones de este profesor que SE EVALÚAN POR COMPETENCIAS.
+  #
+  # ⚠️ Es la pregunta que decide si el bloque «Qué evalúa» aparece, y **no** es
+  # «¿ya tiene competencias escritas?». Con esa otra, el maestro que estrena su
+  # primer plan no veía el bloque —ni su botón [+]— justamente cuando iba a
+  # escribir la primera. Es el caso del colegio nuevo, que es el caso normal.
+  #
+  # Un profesor de bachillerato sigue sin verlo: su grado no evalúa por
+  # competencias, y un titulito sobre un vacío permanente le enseña a ignorar
+  # esa zona del formulario.
+  #
+  # Se pregunta por `Grade#por_competencias?` y no por «primaria» a mano: es la
+  # misma pregunta que hacen `CompetenciesController` y el menú.
+  def asignaciones_por_competencias
+    return [] unless profesor?
+
+    @asignaciones_por_competencias ||= mis_asignaciones.select { |ts| ts.section.grade.por_competencias? }
+  end
+  helper_method :asignaciones_por_competencias
+
+  # Las que esta evaluación ya tiene marcadas — más la que trajo el enlace.
+  #
+  # ⚠️ Quien llega desde «Resuelve problemas de adición… + Registrar una
+  # evaluación» viene a medir ESA competencia. Que llegue desmarcada le pide
+  # buscarla de nuevo en una lista donde ya sabe cuál es, y si se olvida de
+  # marcarla la evaluación no mide nada — que es exactamente el agujero que
+  # `MOR-229` vino a tapar.
+  #
+  # Se filtra contra el plan real, igual que al guardar: un id de la competencia
+  # de otro simplemente no está en la lista.
   def competencias_marcadas
-    @competencias_marcadas ||= @evaluation_activity&.competency_ids || []
+    @competencias_marcadas ||= begin
+      ya = @evaluation_activity&.competency_ids || []
+      ya | competencia_del_enlace
+    end
   end
   helper_method :competencias_marcadas
+
+  def competencia_del_enlace
+    return [] unless contexto_del_enlace? && params[:competencia].present?
+
+    Competency.del_plan(asignacion_del_enlace.section_id, asignacion_del_enlace.subject_id,
+                        lapso_del_enlace.id)
+              .where(id: params[:competencia]).pluck(:id)
+  end
 
   def require_acceso!
     return if profesor? || puede_supervisar?

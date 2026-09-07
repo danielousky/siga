@@ -2025,6 +2025,11 @@ nav.pagy a.gap {
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-micro);
   margin-bottom: var(--space-md);
+  /* ⚠️ Separado del deslizador, que ahora está justo encima. Son dos barras
+     horizontales y a dos píxeles se leen como una sola cosa partida: el
+     deslizador es el CONTROL —cuánto vale esta— y el medidor es el ESTADO del
+     lapso entero. */
+  margin-top: var(--space-sm);
 }
 
 .weight-meter-label {
@@ -5770,6 +5775,169 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 .opcion-boton:has(input:focus-visible) {
   outline: 2px solid var(--control-focus-border);
   outline-offset: 2px;
+}
+
+/* ── Lo que ya viene decidido, mostrado y no preguntado ───────────────────── */
+/* QA de Daniel, sobre los dos primeros desplegables del formulario de
+   evaluación: «vienen del enlace». No es un campo: es el encabezado que dice a
+   qué plan pertenece lo que se está por crear. Y su «Cambiar», porque mostrar
+   el contexto no puede volverlo una jaula.
+
+   ⚠️ NO se llama `.contexto-fijo`: ese nombre ya es del año escolar en la barra
+   superior, y dos definiciones del mismo nombre en la misma hoja se pisan en
+   silencio —gana la de más abajo, y la otra se aplica a medias—. */
+.contexto-del-enlace {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--brand-primary);
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.contexto-del-enlace-etiqueta {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-right: var(--space-micro);
+}
+
+.contexto-del-enlace-separador { color: var(--text-tertiary); }
+
+.contexto-del-enlace-cambiar {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+
+.contexto-del-enlace-cambiar:hover { text-decoration: underline; }
+
+/* ── El peso, arrastrado y escrito ────────────────────────────────────────── */
+/* Daniel pidió un «range value». Un porcentaje es una porción de algo, y
+   arrastrarla es la manera natural de repartir; escribir «30» en una caja
+   obliga a imaginarse la proporción.
+
+   ⚠️ Van los DOS controles: el deslizador REPARTE, el número PRECISA — 33,33
+   no se arrastra jamás. El que viaja al servidor es el número. */
+.campo-rango {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.campo-rango-barra {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  /* `appearance: none` es lo que permite estilar la pista y el pulgar; sin él
+     el control queda con la piel del sistema operativo, distinta en cada uno. */
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.campo-rango-barra::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border-standard);
+}
+
+.campo-rango-barra::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border-standard);
+}
+
+.campo-rango-barra::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  /* El pulgar mide 18 y la pista 6: hay que subirlo 6 px para centrarlo. */
+  margin-top: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--surface-elevated);
+  background: var(--brand-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.campo-rango-barra::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--surface-elevated);
+  background: var(--brand-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.campo-rango-barra:focus-visible { outline: none; }
+
+.campo-rango-barra:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.campo-rango-barra:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* El número, angosto: son tres dígitos y una coma, no un campo de texto. */
+.campo-rango-valor {
+  flex: 0 0 auto;
+  width: 5.5rem;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-primary);
+}
+
+/* Los mismos tokens de foco que `.form-control`: es un campo del formulario y
+   tiene que responder igual que los de al lado. */
+.campo-rango-valor:focus {
+  outline: none;
+  border-color: var(--control-focus-border);
+  box-shadow: 0 0 0 3px var(--control-focus-ring);
+}
+
+.campo-rango-signo {
+  flex: 0 0 auto;
+  font-size: 14px;
+  color: var(--text-tertiary);
+}
+
+/* ── La cabecera de «Qué evalúa», con su [+] ──────────────────────────────── */
+.que-evalua-cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.que-evalua-cabecera .btn { margin-left: auto; }
+
+/* ⚠️ Sin sección elegida no hay plan al que agregar, así que el [+] queda
+   apagado. Un `<a>` no tiene `disabled`: se le quita el `href` y esto lo
+   muestra. `pointer-events: none` impide además el clic en el hueco. */
+.que-evalua-cabecera .btn[aria-disabled="true"] {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 /* Tooltip propio (MOR-173).

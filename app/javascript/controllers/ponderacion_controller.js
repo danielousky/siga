@@ -10,17 +10,33 @@ import { Controller } from "@hotwired/stimulus"
 // al servidor en cada cambio. Un profesor tiene pocas secciones, así que el mapa
 // es chico — y así el medidor responde al instante y sin conexión.
 export default class extends Controller {
-  static targets = ["asignacion", "lapso", "peso", "medidor", "barraUsado", "barraNuevo", "leyenda"]
+  static targets = ["asignacion", "lapso", "peso", "rango", "medidor", "barraUsado", "barraNuevo", "leyenda"]
   static values  = { asignaciones: Object }
 
   connect() {
     this.asignacionCambio({ conservarLapso: true })
+
+    // ⚠️ Y el deslizador se pone donde el número, también al EDITAR.
+    // `asignacionCambio` llega hasta `proponerElPeso`, que sale en la primera
+    // línea cuando el campo ya trae un valor —justo el caso de editar— así que
+    // el deslizador se quedaba en 1 sobre una evaluación que vale 40.
+    this.#moverElRango()
   }
 
   // Al cambiar de sección/materia, los lapsos disponibles son otros: son los del
   // año escolar de ESA sección.
   asignacionCambio({ conservarLapso = false } = {}) {
     const datos = this.#asignacionActual()
+
+    // ⚠️ Con el contexto fijado desde el enlace, el lapso es un `hidden` y no
+    // hay lista que repoblar — ya está decidido. Repoblarlo sería, además,
+    // `appendChild` sobre un `<input>`, que es un elemento vacío.
+    if (this.lapsoTarget.tagName !== "SELECT") {
+      this.proponerElPeso()
+      this.recalcular()
+      return
+    }
+
     const elegido = conservarLapso ? this.lapsoTarget.value : ""
 
     this.lapsoTarget.innerHTML = ""
@@ -58,6 +74,32 @@ export default class extends Controller {
 
     const libre = 100 - Number(datos.usado[lapso] ?? 0)
     if (libre > 0) this.pesoTarget.value = Number(libre.toFixed(2))
+    this.#moverElRango()
+  }
+
+  #moverElRango() {
+    if (!this.hasRangoTarget) return
+
+    const valor = Number(this.pesoTarget.value)
+    this.rangoTarget.value = Number.isFinite(valor) ? Math.min(Math.max(valor, 1), 100) : 1
+  }
+
+  // ⚠️ El deslizador y el número son DOS caras del mismo valor, y hay que
+  // moverlas juntas. El que viaja al servidor es el número; el deslizador no
+  // tiene `name`.
+  //
+  // Del deslizador al número: el valor entero se escribe tal cual. Del número
+  // al deslizador: se recorta al rango 1–100 —el campo admite 33,33 y el
+  // deslizador solo enteros— y el número NO se toca, o escribir «33,33» se
+  // volvería «33» debajo de los dedos.
+  desdeElRango() {
+    this.pesoTarget.value = this.rangoTarget.value
+    this.recalcular()
+  }
+
+  desdeElNumero() {
+    this.#moverElRango()
+    this.recalcular()
   }
 
   recalcular() {

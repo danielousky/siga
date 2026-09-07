@@ -67,6 +67,17 @@
       -# ⚠️ Sin evaluaciones en el lapso no hay nada que conectar, y decirlo es
       -# más útil que un botón que abre una lista vacía: se dice qué falta y se
       -# ofrece el camino.
-      = link_to new_evaluation_activity_path, class: "plan-conectar-abrir" do
-        = icono(:agregar, tamano: 13)
-        %span Registrar una evaluación
+      -#
+      -# ⚠️ Y el camino va CON el contexto puesto (QA del 7 de septiembre).
+      -#
+      -# Daniel: *«este enlace puede llevar ya todas estas características, ¿para
+      -# qué repedírselas al usuario si vengo de una especificación? Para mantener
+      -# concordancia debía ser un botón [+] como los otros new, con tooltip»*.
+      -#
+      -# Sección, área, lapso y la competencia viajan en la URL: el formulario
+      -# abre con las cuatro decididas y esta competencia ya marcada.
+      = link_to new_evaluation_activity_path(contexto.merge(competencia: competencia.id)),
+                class: "btn btn-primary btn-sm btn-solo-icono",
+                data: { tooltip: "Registrar una evaluación que mida esta competencia" },
+                "aria-label": "Registrar una evaluación que mida esta competencia" do
+        = icono(:agregar, tamano: 15)

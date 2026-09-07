@@ -110,12 +110,18 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
 
   # ⚠️ Sin evaluaciones en el lapso no hay nada que conectar, y un panel vacío
   # no explica nada: se dice qué falta y se ofrece el camino.
-  test "sin evaluaciones en el lapso, se ofrece crear una" do
+  #
+  # ⚠️ Y el camino va CON el contexto puesto: sección, área, lapso y la propia
+  # competencia. Daniel: *«este enlace puede llevar ya todas estas
+  # características, ¿para qué repedírselas al usuario?»*. Que el destino sea
+  # `/evaluaciones/new` a secas era exactamente el problema.
+  test "sin evaluaciones en el lapso, se ofrece crear una con el contexto puesto" do
     sign_in @a.profesor
     get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
 
     assert_select ".plan-conectar-panel", count: 0
-    assert_select "a[href=?]", new_evaluation_activity_path
+    assert_select "a[href=?]", new_evaluation_activity_path(asignacion: @asignacion, lapso: @lapso.id,
+                                                            competencia: @competencia.id)
   end
 
   # La competencia de otro profesor no se toca: `set_competency` la busca
