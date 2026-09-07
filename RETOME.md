@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 5 de septiembre de 2026 (19:30)
+# 🔖 Punto de retome — actualizado 7 de septiembre de 2026 (09:57)
 
 ## Producción limpia y resembrada (MOR-146 · MOR-224)
 
@@ -64,6 +64,86 @@ Producción sigue con **cuentas de administrador con contraseña conocida y
 públicamente documentada**. El día que entre un colegio de verdad esto es
 urgente otra vez — pero ya no por alumnos inventados, sino por las cuentas.
 `MOR-146` sigue abierto por esa mitad.
+
+---
+
+## Sesión del 7 de septiembre — el QA de competencias y el enganche
+
+`bin/ci` verde: **1.316 tests**, 6.121 aserciones. **Todo desplegado** (`d935597`).
+
+```
+   08:30   PR #14 · las cinco correcciones del QA de la pantalla
+   09:52   PR #15 · MOR-229 · conectar evaluaciones con competencias
+   09:55   desplegado a producción · /up 200 · /salud 200
+```
+
+### Lo que faltaba, y lo dijo Daniel en una línea
+
+> *«no sé cómo asociamos las evaluaciones con los indicadores. RECUERDA UX,
+> debe ser un proceso fácil y fluido»*
+
+El enganche **existía desde `MOR-136`** —al crear una evaluación se marca qué
+competencia mide— pero solo en esa dirección. Y el orden real del trabajo es el
+contrario:
+
+```
+   COMO ESTABA                        COMO TRABAJA UN DOCENTE
+
+   1. crear la evaluación             1. escribir el plan del lapso
+   2. acordarse de marcar             2. armar las evaluaciones
+      ← acá o nunca                   3. «¿cuáles me faltaron?»  ← sin respuesta
+```
+
+Y no es cosmético: **una competencia que ninguna evaluación mide sale en la
+boleta sin nivel**, y eso se descubría cuando la familia preguntaba.
+
+### Lo que se ve ahora
+
+```
+   ┌──────────────────────────────────────────────────────────────┐
+   │  1. Resuelve problemas de adición y sustracción   [✎] [🗑]   │
+   │  ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ │
+   │  LA MIDEN  (Prueba corta 30 %) (Examen 40 %)    ✎ Cambiar   │
+   ├──────────────────────────────────────────────────────────────┤
+   │  2. Reconoce figuras geométricas del entorno     [✎] [🗑]   │
+   │  ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ │
+   │  LA MIDEN  Ninguna evaluación todavía          + Conectar   │
+   └──────────────────────────────────────────────────────────────┘
+                └── ÁMBAR: esa sale en la boleta SIN nivel
+```
+
+**Y la vuelta, en la libreta** —la pantalla que el profesor más mira, y la
+única donde el plan no existía—:
+
+```
+   ALUMNO      │ Examen del lapso │ Prueba corta │ LAPSO 1
+               │ 40 %             │ 30 %         │
+               │ 28 de 30         │ 30 de 30     │
+               │ 📄 Mide 2        │ 📄 Mide 1    │  ← tooltip: cuáles
+```
+
+⚠️ «Mide 2» y **no un «2» pelado**: justo encima hay otro número —«28 de 30»,
+lo que lleva cargado— y dos cifras apiladas sin etiqueta se leen como lo mismo.
+
+### Tres trampas que costaron
+
+1. **`params[:competency_id]` vs `params[:id]`.** `conectar` cuelga de una ruta
+   ANIDADA, así que `find(params[:id])` era `find(nil)`: **404 en una acción
+   que existía y estaba bien escrita**.
+2. **El tooltip tapaba el panel que acababa de abrir.** El puntero sigue sobre
+   el `summary` después del clic, y el globo se dibuja encima del título del
+   panel. Se calla con `[open]` — una vez abierto ya no explica nada.
+3. **Un `<details>` cerrado NO esconde un hijo con `position: absolute`.**
+   Tercera aparición de esta trampa en el proyecto (panel de contexto, menú, y
+   ahora éste). Va con su `display: none` explícito y su test de SISTEMA, que
+   es donde se ve: en un test de integración el marcado sale perfecto.
+
+### Y los seeds dejan un hueco a propósito
+
+La última competencia de 1er Grado queda **sin conectar**. «Ninguna evaluación
+todavía» es un estado que hay que poder ver —esa competencia sale en la boleta
+sin nivel— y con el plan entero conectado no aparece nunca. Es la misma razón
+por la que hay secciones sin notas y representantes sin correo.
 
 ---
 
@@ -1535,13 +1615,22 @@ entorno, no.
 **En cola en Linear, sin abrir** (el acuerdo es una tarea a la vez):
 
 ```
-   MOR-212  nomenclatura del MPPE: Preescolar → Educación Inicial,
-            Materias → Áreas de aprendizaje…  ← transversal, toca todo
-   MOR-213  los tres equipos administrativos (directivo, pedagógico, admin.)
-   MOR-214  poder borrar grados y materias
-   MOR-217  un profesor coordinador por área de aprendizaje del grado
    MOR-218  Educación Inicial no califica: DESCRIBE  ← otra pantalla entera
-   MOR-215  el listado nacional de códigos DEA
+   MOR-213  los tres equipos administrativos (directivo, pedagógico, admin.)
+   MOR-217  un profesor coordinador por área de aprendizaje del grado
+   MOR-214  poder borrar grados y áreas   ← lleva una pregunta para Daniel
+   MOR-215  registrarse eligiendo el colegio de una lista, no escribiéndolo
+```
+
+**Y dos que quedaron a medias, cada una esperando UNA decisión de Daniel:**
+
+```
+   MOR-212  el vocabulario del MPPE ya está desplegado (Vocabulario);
+            faltan las DOS ETAPAS de primaria — hoy viven solo en los
+            seeds. ¿Dato del grado, derivado del orden (1-3 / 4-6), o
+            solo una agrupación de la boleta?
+   MOR-216  el informe descriptivo está escrito y desplegado; falta
+            confirmar que es por LAPSO y que lo escribe el GUÍA
 ```
 
 0. ~~**`MOR-146` · Limpiar los datos de demo de producción**~~ → hecho el 5 de
