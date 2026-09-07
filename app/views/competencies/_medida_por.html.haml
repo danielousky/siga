@@ -1,0 +1,72 @@
+-# Qué evaluaciones MIDEN esta competencia, y cómo conectarlas (MOR-136).
+-#
+-# ## El enganche existía y no se descubría
+-#
+-# Al crear una evaluación se marca qué evalúa, y eso está desde el principio.
+-# Pero solo funciona en esa dirección, y el orden real del trabajo es el
+-# contrario: el profesor escribe su plan, arma sus evaluaciones, y si se olvidó
+-# de marcar no tenía forma de arreglarlo salvo editando una por una — sin saber
+-# siquiera cuáles le faltaban.
+-#
+-# Daniel: *«no sé cómo asociamos las evaluaciones con los indicadores. RECUERDA
+-# UX, debe ser un proceso fácil y fluido»*. Lo fluido es verlo donde ya se está
+-# trabajando: en el plan, junto a la competencia.
+-#
+-# ## ⚠️ Se conectan COMPETENCIAS, no indicadores
+-#
+-# Es la decisión de `MOR-136` y no cambió: una competencia puede no tener
+-# ningún indicador —la boleta real del Teresiano trae varias así— y entonces no
+-# habría nada que marcar. Los indicadores describen; su nivel en la boleta es
+-# el de su competencia.
+- midiendo = competencia.evaluation_activities.to_a
+
+.plan-medida
+  %span.plan-medida-etiqueta La miden
+
+  - if midiendo.any?
+    - midiendo.each do |evaluacion|
+      = link_to evaluacion, class: "plan-medida-chip" do
+        %span= evaluacion.description
+        %span.plan-medida-peso= "#{number_with_precision(evaluacion.weight_percentage, precision: evaluacion.weight_percentage.frac.zero? ? 0 : 2)} %"
+  - else
+    -# ⚠️ «Ninguna todavía» y no un hueco. Una competencia que no mide ninguna
+    -# evaluación sale en la boleta SIN nivel, y eso hay que poder verlo antes
+    -# de emitirla — no descubrirlo cuando la familia pregunta.
+    %span.plan-medida-vacio Ninguna evaluación todavía
+
+  - if profesor?
+    - if evaluaciones_del_lapso.any?
+      %details.plan-conectar
+        %summary.plan-conectar-abrir{ data: { tooltip: "Elegir qué evaluaciones miden esta competencia" } }
+          = icono(midiendo.any? ? :editar : :agregar, tamano: 13)
+          %span= midiendo.any? ? "Cambiar" : "Conectar"
+
+        .plan-conectar-panel
+          = form_with url: competency_conectar_evaluaciones_path(competencia, contexto), method: :patch do
+            -# ⚠️ «del», no «de»: el nombre del lapso viene con su artículo pedido
+            -# —«1er Lapso», «Lapso 1»— y «Evaluaciones de 1er lapso» no es
+            -# español. Y sin bajarle la caja: es un nombre propio del año.
+            %p.plan-conectar-titulo= "Evaluaciones del #{lapso&.name}"
+
+            -# ⚠️ Un campo VACÍO además de las casillas: sin él, desmarcar todas
+            -# no manda ningún `evaluation_activity_ids` y Rails no puede
+            -# distinguir «ninguna» de «no me preguntes». La competencia se
+            -# quedaría con las que tenía.
+            = hidden_field_tag "evaluation_activity_ids[]", ""
+
+            - evaluaciones_del_lapso.each do |evaluacion|
+              %label.plan-conectar-opcion
+                = check_box_tag "evaluation_activity_ids[]", evaluacion.id,
+                                midiendo.map(&:id).include?(evaluacion.id), id: "conectar-#{competencia.id}-#{evaluacion.id}"
+                %span.plan-conectar-nombre= evaluacion.description
+                %span.plan-medida-peso= "#{number_with_precision(evaluacion.weight_percentage, precision: evaluacion.weight_percentage.frac.zero? ? 0 : 2)} %"
+
+            .plan-conectar-acciones
+              = submit_tag "Guardar", class: "btn btn-guardar btn-sm"
+    - else
+      -# ⚠️ Sin evaluaciones en el lapso no hay nada que conectar, y decirlo es
+      -# más útil que un botón que abre una lista vacía: se dice qué falta y se
+      -# ofrece el camino.
+      = link_to new_evaluation_activity_path, class: "plan-conectar-abrir" do
+        = icono(:agregar, tamano: 13)
+        %span Registrar una evaluación

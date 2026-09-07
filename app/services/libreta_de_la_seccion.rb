@@ -41,8 +41,8 @@ class LibretaDeLaSeccion
     def sin_nota = notas.count { |_, valor| valor.nil? }
   end
 
-  # Una columna: la evaluación, con su peso y cuánto lleva cargado.
-  Columna = Data.define(:evaluacion, :puestas, :total) do
+  # Una columna: la evaluación, con su peso, cuánto lleva cargado y QUÉ MIDE.
+  Columna = Data.define(:evaluacion, :puestas, :total, :competencias) do
     def completa? = total.positive? && puestas >= total
     def vacia?    = puestas.zero?
     def faltan    = total - puestas
@@ -81,7 +81,7 @@ class LibretaDeLaSeccion
 
       evaluaciones.map do |evaluacion|
         Columna.new(evaluacion: evaluacion, puestas: notas_por_evaluacion[evaluacion.id].to_i,
-                    total: total)
+                    total: total, competencias: evaluacion.competencies.to_a)
       end
     end
   end
@@ -97,9 +97,13 @@ class LibretaDeLaSeccion
   end
 
   def evaluaciones
+    # ⚠️ `includes(:competencies)` y no una consulta por columna: en una
+    # libreta de cinco evaluaciones eso serían cinco viajes más, y esta pantalla
+    # la abre un profesor desde el teléfono.
     @evaluaciones ||= EvaluationActivity
                       .where(section_id: @seccion.id, subject_id: @materia.id,
                              evaluation_moment_id: @lapso.id)
+                      .includes(:competencies)
                       .order(:date_scheduled, :id)
                       .to_a
   end

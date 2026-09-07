@@ -23,13 +23,13 @@
 class CompetenciesController < ApplicationController
   before_action :require_acceso!
   before_action :require_profesor!, except: [ :index ]
-  before_action :set_competency, only: [ :edit, :update, :destroy ]
+  before_action :set_competency, only: [ :edit, :update, :destroy, :conectar ]
 
   def index
     return if asignacion.nil? || lapso.nil?
 
     @competencias = Competency.del_plan(asignacion.section_id, asignacion.subject_id, lapso.id)
-                              .includes(:indicators)
+                              .includes(:indicators, :evaluation_activities)
     # ⚠️ Solo se ofrece traer el plan viejo si NO hay uno. Ofrecerlo con el plan
     # escrito invita a duplicarlo, y el índice único lo rechazaría a la mitad.
     @sugerido = plan_del_ano_pasado if @competencias.empty? && profesor?
@@ -92,6 +92,35 @@ class CompetenciesController < ApplicationController
                         "Revísalas y ajusta lo que haga falta."
   end
 
+  # Qué evaluaciones MIDEN esta competencia (MOR-136).
+  #
+  # ## El enganche existía y no se descubría
+  #
+  # Al crear una evaluación se marca qué evalúa, y eso está desde el principio.
+  # Pero solo funciona en esa dirección, y **el orden real del trabajo es el
+  # contrario**: el profesor escribe su plan, arma sus evaluaciones, y si se
+  # olvidó de marcar no tenía forma de arreglarlo salvo editando una por una —
+  # sin saber cuáles le faltaban.
+  #
+  # Daniel: *«no sé cómo asociamos las evaluaciones con los indicadores.
+  # RECUERDA UX, debe ser un proceso fácil y fluido»*.
+  #
+  # ⚠️ Reemplaza, no suma: la lista que llega es la lista completa. Es lo mismo
+  # que hacen los indicadores al editar una competencia, y por la misma razón —
+  # la persona ve todas las casillas, así que desmarcar tiene que quitar.
+  def conectar
+    pedidas = Array(params[:evaluation_activity_ids]).compact_blank.map(&:to_i)
+
+    # ⚠️ Se filtra contra las evaluaciones de ESTE plan —misma sección, misma
+    # área, mismo lapso—. El modelo ya lo valida, pero ahí es una excepción a
+    # mitad de un guardado; acá es una lista que simplemente no incluye lo
+    # ajeno.
+    del_plan = evaluaciones_que_pueden_medir(@competency).map(&:id)
+    @competency.evaluation_activity_ids = pedidas & del_plan
+
+    redirect_to plan_path, notice: mensaje_de_conexion(@competency)
+  end
+
   # Copiar este plan a las otras secciones donde ESTE profesor dicta la misma
   # materia. Daniel: *«darle la opción de copiar el plan al resto de las
   # secciones que él dicta»*.
@@ -110,9 +139,15 @@ class CompetenciesController < ApplicationController
 
   # ── El alcance: lo que este usuario puede siquiera nombrar ────────────────
 
+  # ⚠️ `id` o `competency_id`, y hacen falta los dos.
+  #
+  # `edit`, `update` y `destroy` cuelgan de `resources` y traen `:id`;
+  # `conectar` es una ruta ANIDADA —`/competencias/:competency_id/evaluaciones`—
+  # y trae `:competency_id`. Con solo `params[:id]`, `find(nil)` devolvía 404 en
+  # una acción que existía y estaba bien escrita.
   def set_competency
     @competency = Competency.del_plan(asignacion&.section_id, asignacion&.subject_id, lapso&.id)
-                            .find(params[:id])
+                            .find(params[:id] || params[:competency_id])
   end
 
   # Las asignaciones del profesor: cada par sección–materia que dicta.
@@ -327,6 +362,42 @@ class CompetenciesController < ApplicationController
     @hermanas_sin_plan ||= otras_secciones.reject { |ts| hermanas_con_plan.include?(ts.section_id) }
   end
   helper_method :hermanas_sin_plan
+
+  # Las evaluaciones que pueden medir una competencia: las de su mismo plan.
+  #
+  # ⚠️ Se carga UNA vez para toda la pantalla, no una por competencia. Un lapso
+  # con cinco competencias y cinco evaluaciones son veinticinco consultas si se
+  # pregunta por fila.
+  def evaluaciones_del_lapso
+    return [] if asignacion.nil? || lapso.nil?
+
+    @evaluaciones_del_lapso ||= EvaluationActivity
+                                .where(section_id: asignacion.section_id,
+                                       subject_id: asignacion.subject_id,
+                                       evaluation_moment_id: lapso.id)
+                                .order(:date_scheduled, :id)
+                                .to_a
+  end
+  helper_method :evaluaciones_del_lapso
+
+  def evaluaciones_que_pueden_medir(competencia)
+    EvaluationActivity.where(section_id: competencia.section_id,
+                             subject_id: competencia.subject_id,
+                             evaluation_moment_id: competencia.evaluation_moment_id)
+                      .order(:date_scheduled, :id)
+                      .to_a
+  end
+
+  # ⚠️ El mensaje dice QUÉ QUEDÓ, no «guardado».
+  #
+  # «Listo» obliga a mirar la pantalla para saber qué pasó; «la miden 2
+  # evaluaciones» lo dice y de paso confirma que se entendió lo que se marcó.
+  def mensaje_de_conexion(competencia)
+    cuantas = competencia.evaluation_activities.size
+    return "Esta competencia ya no la mide ninguna evaluación." if cuantas.zero?
+
+    "Listo: #{helpers.contar(cuantas, 'evaluación mide', 'evaluaciones miden')} esta competencia."
+  end
 
   def plan_path
     competencies_path(asignacion: "#{asignacion&.section_id}:#{asignacion&.subject_id}",

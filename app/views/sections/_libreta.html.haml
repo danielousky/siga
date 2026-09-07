@@ -47,6 +47,21 @@
                 %span.libreta-columna-peso= "#{number_with_precision(columna.evaluacion.weight_percentage, precision: columna.evaluacion.weight_percentage.frac.zero? ? 0 : 2)} %"
                 %span.libreta-columna-avance{ class: "libreta-avance--#{columna.estado}" }
                   = "#{columna.puestas} de #{columna.total}"
+
+              -# ⚠️ Qué COMPETENCIAS mide esta evaluación (MOR-136).
+              -#
+              -# Es la otra mitad del enganche: desde el plan se ve qué
+              -# evaluaciones miden cada competencia, y acá al revés. Sin esto,
+              -# la libreta era la única pantalla del profesor donde el plan no
+              -# existía — y es la que más mira.
+              - if columna.competencias.any?
+                -# ⚠️ «Mide 2» y no un «2» pelado. Justo encima hay otro número
+                -# —«1 de 2», lo que lleva cargado— y dos cifras apiladas sin
+                -# etiqueta se leen como la misma cosa. El verbo cuesta cuatro
+                -# letras y quita la adivinanza.
+                %span.libreta-columna-mide{ data: { tooltip: columna.competencias.map(&:descripcion).join(" · ") } }
+                  = icono(:materias, tamano: 11)
+                  = "Mide #{columna.competencias.size}"
           %th.libreta-promedio= @lapso_de_la_libreta&.name
 
       %tbody

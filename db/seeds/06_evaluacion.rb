@@ -405,9 +405,16 @@ etiquetadas = 0
                                actividad.evaluation_moment_id).to_a
     next if plan.empty?
 
-    # Cada evaluación etiqueta UNA competencia, rotando: así ninguna queda sin
-    # evaluar y ninguna acapara las tres.
+    # ⚠️ Se etiquetan casi todas, pero NO todas: la última competencia del plan
+    # de 4to Grado queda suelta a propósito.
+    #
+    # «Ninguna evaluación todavía» es un estado que hay que poder ver —esa
+    # competencia sale en la boleta sin nivel— y con el plan entero conectado no
+    # aparece nunca. Es la misma razón por la que hay secciones sin notas y
+    # representantes sin correo.
     competencia = plan[etiquetadas % plan.size]
+    next if competencia == plan.last && seccion.grade.name == "4to Grado"
+
     ActivityCompetency.find_or_create_by!(competency: competencia, evaluation_activity: actividad)
     etiquetadas += 1
   end
