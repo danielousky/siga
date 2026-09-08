@@ -120,11 +120,13 @@
       = f.label :weight_percentage, "Peso dentro del lapso (%)", class: "form-label"
 
     .campo-rango
+      -# ⚠️ El `max` lo pone el controlador con lo que QUEDA del lapso, no 100:
+      -# arrastrarlo hasta el final tiene que proponer un reparto válido.
       = range_field_tag nil, evaluation_activity.weight_percentage, min: 1, max: 100, step: 1,
         class: "campo-rango-barra", "aria-label": "Peso dentro del lapso, deslizador",
         data: { ponderacion_target: "rango", action: "input->ponderacion#desdeElRango" }
       = f.number_field :weight_percentage, class: "campo-rango-valor", step: 0.01, min: 0.01, max: 100,
-        data: { ponderacion_target: "peso", action: "input->ponderacion#desdeElNumero" }
+        data: { ponderacion_target: "peso", action: "input->ponderacion#desdeElNumero blur->ponderacion#ajustarAlSalir" }
       %span.campo-rango-signo %
 
     .weight-meter{data: { ponderacion_target: "medidor" }, hidden: true}

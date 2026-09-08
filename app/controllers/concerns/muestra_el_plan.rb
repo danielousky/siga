@@ -34,10 +34,28 @@ module MuestraElPlan
 
   private
 
-  def lapsos
-    return [] if asignacion.nil?
+  # ⚠️ El plan cuelga de la SECCIÓN y el ÁREA, no de la asignación del profesor.
+  #
+  # Colgaba de `asignacion`, que un admin NO tiene: `mis_asignaciones` sale de
+  # `current_user.teacher`, y un director no dicta. Resultado: la dirección
+  # abría «Planificar» con su área elegida y rebotaba con «Elige primero un
+  # área» — o, peor, veía las competencias sin ninguna evaluación y la
+  # ponderación en 0 %.
+  #
+  # Un plan a medias es peor que no verlo: quien mira concluye que el profesor
+  # no armó su ponderación, y va a preguntarle por algo que sí hizo.
+  #
+  # Los dos controllers llegan a lo mismo por caminos distintos —el profesor
+  # por su asignación, la dirección por la sección que abrió— así que lo que se
+  # comparte es el DESTINO, y cada uno dice cómo llega.
+  def seccion_del_plan = asignacion&.section
 
-    @lapsos ||= EvaluationMoment.where(academic_period_id: asignacion.section.academic_period_id)
+  def area_del_plan = asignacion&.subject
+
+  def lapsos
+    return [] if seccion_del_plan.nil?
+
+    @lapsos ||= EvaluationMoment.where(academic_period_id: seccion_del_plan.academic_period_id)
                                 .order(:id)
   end
 
@@ -78,9 +96,9 @@ module MuestraElPlan
   # No es un `volver_a` con la URL adentro a propósito: eso sería un redirect
   # abierto. Es una bandera, y quien redirige arma la ruta.
   def contexto
-    return {} if asignacion.nil?
+    return {} if seccion_del_plan.nil? || area_del_plan.nil?
 
-    { asignacion: "#{asignacion.section_id}:#{asignacion.subject_id}",
+    { asignacion: "#{seccion_del_plan.id}:#{area_del_plan.id}",
       lapso: lapso&.id, desde: desde_donde }.compact
   end
 
@@ -175,11 +193,11 @@ module MuestraElPlan
   end
 
   def evaluaciones_del_lapso
-    return [] if asignacion.nil? || lapso.nil?
+    return [] if seccion_del_plan.nil? || area_del_plan.nil? || lapso.nil?
 
     @evaluaciones_del_lapso ||= EvaluationActivity
-                                .where(section_id: asignacion.section_id,
-                                       subject_id: asignacion.subject_id,
+                                .where(section_id: seccion_del_plan.id,
+                                       subject_id: area_del_plan.id,
                                        evaluation_moment_id: lapso.id)
                                 .includes(:competencies)
                                 .order(:date_scheduled, :id)

@@ -57,10 +57,16 @@ class SectionsController < ApplicationController
   # Y el plan de evaluación, igual: mismo parcial, misma preparación
   # (`MuestraElPlan`). La diferencia con `/competencias` es que acá la sección y
   # el área ya vienen del árbol del menú, así que la escalera se reduce al lapso.
+  # ⚠️ Se entra con el ÁREA, no con la asignación del profesor.
+  #
+  # Pedía `asignacion`, que sale de `current_user.teacher`, así que la dirección
+  # rebotaba de la pestaña con «Elige primero un área» **teniendo el área
+  # elegida**. El plan es de la sección; quién lo escribe es otra pregunta, y ya
+  # la contesta `profesor?` en cada botón.
   def planificar
-    return redirect_to(section_path(@section), alert: "Elige primero un área.") if asignacion.nil?
+    return redirect_to(section_path(@section), alert: "Elige primero un área.") if area_del_plan.nil?
 
-    @competencias = Competency.del_plan(asignacion.section_id, asignacion.subject_id, lapso&.id)
+    @competencias = Competency.del_plan(@section.id, area_del_plan.id, lapso&.id)
                               .includes(:indicators, :evaluation_activities)
   end
 
@@ -143,6 +149,13 @@ class SectionsController < ApplicationController
     @asignacion = mis_asignaciones.find { |ts| ts.subject_id == area_de_la_pestana&.id }
   end
   helper_method :asignacion
+
+  # ⚠️ Acá el plan se ve por la SECCIÓN que se abrió, no por lo que dicta quien
+  # mira: la dirección no tiene asignaciones y estaba viendo el plan sin sus
+  # evaluaciones, con la ponderación en 0 %.
+  def seccion_del_plan = @section
+
+  def area_del_plan = area_de_la_pestana
 
   # ⚠️ TODAS las del profesor, no solo las de esta sección.
   #

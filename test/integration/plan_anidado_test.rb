@@ -35,7 +35,7 @@ class PlanAnidadoTest < ActionDispatch::IntegrationTest
     # en cualquier parte de la página, que es justamente lo que cambió.
     assert_select ".plan-competencia .plan-evaluaciones .plan-evaluacion-descripcion",
                   "Examen del lapso"
-    assert_select ".plan-competencia .plan-evaluacion-peso", "40 %"
+    assert_select ".plan-competencia .plan-evaluacion-peso-campo[value=?]", "40.0"
   end
 
   test "una competencia sin evaluaciones avisa lo que le va a pasar en la boleta" do
@@ -73,8 +73,10 @@ class PlanAnidadoTest < ActionDispatch::IntegrationTest
 
     # Dos veces en la lista —una bajo cada competencia— y una sola en la suma.
     assert_select ".plan-evaluacion-descripcion", count: 2, text: "Examen"
-    assert_select ".plan-ponderacion .weight-meter-value", /\A\s*40 %/
-    assert_select ".plan-ponderacion .weight-meter-falta", /60 % sin repartir/
+    assert_select ".plan-ponderacion-cuenta", /\A\s*40 %/
+    assert_select ".plan-ponderacion-resto", /60 % sin repartir/
+    # Un tramo por evaluación, no uno por aparición en el anidado.
+    assert_select ".plan-ponderacion-tramo", count: 1
   end
 
   # ⚠️ El error que reportó Daniel: «content missing» donde iba el formulario.

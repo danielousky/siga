@@ -11,7 +11,23 @@
   = link_to evaluation_activity_notas_path(evaluacion, desde: contexto[:desde]),
             class: "plan-evaluacion-nombre", data: { turbo_frame: "_top" } do
     %span.plan-evaluacion-descripcion= evaluacion.description
-    %span.plan-evaluacion-peso= porcentaje(evaluacion.weight_percentage)
+    -# El peso se lee acá y se EDITA acá: es donde está la pregunta («¿cuánto
+    -# vale este taller?») y donde se ve la respuesta de las otras tres.
+    -# Fuera del enlace, o teclear dentro navegaría.
+  - if profesor?
+    -# ⚠️ `form:` ata el campo al formulario de la barra, que está ARRIBA y
+    -# fuera de esta lista. Es HTML estándar y es la única salida: un `<form>`
+    -# que envolviera el plan anidaría los `button_to` de borrar.
+    .plan-evaluacion-peso
+      = number_field_tag "pesos[#{evaluacion.id}]", evaluacion.weight_percentage,
+                         form: "reparto-del-lapso", step: 0.01, min: 0.01, max: 100,
+                         class: "plan-evaluacion-peso-campo",
+                         "aria-label": "Peso de #{evaluacion.description}, en porcentaje",
+                         data: { reparto_target: "peso", id: evaluacion.id,
+                                 action: "input->reparto#recalcular blur->reparto#ajustar" }
+      %span.plan-evaluacion-peso-signo %
+  - else
+    %span.plan-evaluacion-peso-fijo= porcentaje(evaluacion.weight_percentage)
   %span.plan-evaluacion-fecha
     - if evaluacion.date_scheduled
       = l(evaluacion.date_scheduled, format: :short)

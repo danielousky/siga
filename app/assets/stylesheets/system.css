@@ -6986,7 +6986,156 @@ a.subject-avance:hover { filter: brightness(0.9); }
   border-top: 1px solid var(--border-subtle);
 }
 
-.plan-ponderacion { margin-bottom: var(--space-lg); }
+/* ── El reparto del lapso, como un TODO ──────────────────────────────────── */
+/* Daniel: «no ver el porcentaje aislado sino como un todo». La barra tiene un
+   tramo por evaluación, no una franja llena: «40 %» no dice si es mucho, y al
+   lado de las otras tres sí. El hueco del final es lo que queda por repartir. */
+.plan-ponderacion {
+  margin-bottom: var(--space-lg);
+  display: grid;
+  gap: 6px;
+}
+
+.plan-ponderacion-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.plan-ponderacion-titulo {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.plan-ponderacion-cuenta {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.plan-ponderacion-cuenta--excedida { color: var(--danger-text); }
+
+.plan-ponderacion-resto {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+}
+
+.plan-ponderacion-resto--ok     { color: var(--success-text); }
+.plan-ponderacion-resto--exceso { color: var(--danger-text); font-weight: 600; }
+
+.plan-ponderacion-barra {
+  display: flex;
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-hover);
+}
+
+/* Un tono por tramo, rotando: los tramos vecinos tienen que distinguirse, y
+   los colores NO significan nada —no hay una evaluación «buena» y otra «mala»—
+   así que son variaciones del mismo azul y no una escala de semáforo. */
+.plan-ponderacion-tramo {
+  min-width: 2px;
+  transition: width var(--transition-fast);
+  border-right: 1px solid var(--surface-elevated);
+}
+
+.plan-ponderacion-tramo--0 { background: var(--brand-primary); }
+.plan-ponderacion-tramo--1 { background: color-mix(in srgb, var(--brand-primary) 72%, white); }
+.plan-ponderacion-tramo--2 { background: color-mix(in srgb, var(--brand-primary) 52%, white); }
+.plan-ponderacion-tramo--3 { background: color-mix(in srgb, var(--brand-primary) 86%, black); }
+.plan-ponderacion-tramo--4 { background: color-mix(in srgb, var(--brand-primary) 36%, white); }
+
+/* Pasado el 100 % los tramos se dibujan proporcionales a la SUMA, así que el
+   color es lo único que queda para decir que algo está mal. */
+.plan-ponderacion-tramo--excedido { background: var(--danger-text); }
+
+.plan-ponderacion-hueco {
+  transition: width var(--transition-fast);
+  background: repeating-linear-gradient(
+    45deg, transparent, transparent 4px,
+    var(--border-subtle) 4px, var(--border-subtle) 8px
+  );
+}
+
+.plan-ponderacion-guardar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.plan-ponderacion-exceso {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--danger-text);
+}
+
+/* ── El peso, editable en su fila ──────────────────────────────────────── */
+/* Se lee y se edita en el mismo sitio: es donde está la pregunta («¿cuánto
+   vale este taller?») y donde se ve la respuesta de las otras tres. */
+.plan-evaluacion-peso {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.plan-evaluacion-peso-campo {
+  width: 4.5ch;
+  padding: 2px 4px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-secondary);
+}
+
+/* ⚠️ El borde aparece al pasar por encima y al enfocar, y NO antes: cuatro
+   cajas de formulario dentro de una lista la convierten en una planilla, y
+   esto se lee mucho más de lo que se edita. Pero tiene que verse que se puede
+   tocar, o nadie lo intenta. */
+.plan-evaluacion:hover .plan-evaluacion-peso-campo,
+.plan-evaluacion-peso-campo:hover {
+  border-color: var(--border-subtle);
+  background: var(--surface-elevated);
+}
+
+.plan-evaluacion-peso-campo:focus {
+  border-color: var(--brand-primary);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  outline: none;
+}
+
+/* Las flechitas del `number` roban la mitad del ancho en un campo de 4ch. */
+.plan-evaluacion-peso-campo::-webkit-outer-spin-button,
+.plan-evaluacion-peso-campo::-webkit-inner-spin-button { appearance: none; margin: 0; }
+.plan-evaluacion-peso-campo { appearance: textfield; }
+
+.plan-evaluacion-peso-signo {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.plan-evaluacion-peso-fijo {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
 
 .plan-medida-peso {
   flex: 0 0 auto;

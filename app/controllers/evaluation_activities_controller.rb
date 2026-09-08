@@ -17,7 +17,7 @@ class EvaluationActivitiesController < ApplicationController
   include VuelveALaSeccion
 
   before_action :require_acceso!
-  before_action :require_profesor!, only: [:new, :create, :edit, :update, :destroy]
+  before_action :require_profesor!, only: [:new, :create, :edit, :update, :destroy, :repartir]
   before_action :set_evaluation_activity, only: [:show, :edit, :update, :destroy]
 
   # ⚠️ Para un PROFESOR, `/evaluaciones` deja de ser destino (etapa ③).
@@ -119,7 +119,78 @@ class EvaluationActivitiesController < ApplicationController
     end
   end
 
+  # ⚠️ El reparto del lapso se guarda ENTERO, de una vez.
+  #
+  # Daniel: *«no ver el porcentaje aislado sino como un todo»*. Guardando de a
+  # una, pasar de 40/60 a 60/40 es imposible sin un paso intermedio de 60/60
+  # que el modelo rechaza — el profesor tendría que bajar una, guardar, subir
+  # la otra, guardar. Acá se escriben las dos y se valida la SUMA al final.
+  #
+  # ⚠️ Todo en una transacción con `validate: false` + una comprobación propia,
+  # y no `update!` uno por uno: la validación de cada evaluación mira el total
+  # del lapso, así que la primera en guardarse chocaría contra el reparto
+  # viejo de las demás. La suma se comprueba una vez, sobre lo que va a quedar.
+  def repartir
+    reparto = pesos_pedidos
+    return redirect_to(volver_del_reparto, alert: "No hay nada que repartir.") if reparto.empty?
+
+    total = reparto.values.sum
+    if total > 100
+      return redirect_to volver_del_reparto,
+                         alert: "El reparto suma #{helpers.porcentaje(total)}: el lapso no puede pasar de 100 %."
+    end
+
+    aplicar_el_reparto(reparto)
+    redirect_to volver_del_reparto, notice: mensaje_del_reparto(reparto, total)
+  end
+
   private
+
+  # Solo las evaluaciones del profesor, del MISMO lapso, y solo las que llegaron
+  # con un número válido. Un id de otra sección se ignora sin ruido: el filtro
+  # es el `alcance`, no la confianza en el formulario.
+  def pesos_pedidos
+    return @pesos_pedidos if defined?(@pesos_pedidos)
+
+    @pesos_pedidos = calcular_pesos_pedidos
+  end
+
+  def calcular_pesos_pedidos
+    pedidos = params.fetch(:pesos, {}).to_unsafe_h
+    return {} if pedidos.blank?
+
+    del_lapso = alcance.where(id: pedidos.keys).to_a
+    return {} if del_lapso.empty?
+
+    lapso = del_lapso.first.evaluation_moment_id
+    del_lapso.select { |e| e.evaluation_moment_id == lapso }
+             .index_with { |e| BigDecimal(pedidos[e.id.to_s].to_s.tr(",", ".")) rescue nil }
+             .compact
+             .reject { |_, peso| peso <= 0 }
+  end
+
+  def aplicar_el_reparto(reparto)
+    EvaluationActivity.transaction do
+      reparto.each do |evaluacion, peso|
+        evaluacion.weight_percentage = peso
+        evaluacion.save!(validate: false) if evaluacion.changed?
+      end
+    end
+  end
+
+  # Se vuelve a donde estaba: el reparto se toca desde el plan y desde la
+  # libreta, y las dos son frames distintos (ver `VuelveALaSeccion`).
+  def volver_del_reparto
+    ruta_de_vuelta(pesos_pedidos.keys.first) || evaluation_activities_path
+  end
+
+  def mensaje_del_reparto(reparto, total)
+    hecho = "Reparto guardado: #{helpers.contar(reparto.size, 'evaluación', 'evaluaciones')}."
+    return "#{hecho} El lapso cierra en 100 %." if total == 100
+
+    "#{hecho} Faltan #{helpers.porcentaje(100 - total)} por repartir."
+  end
+
 
   # El conjunto que este usuario puede siquiera nombrar. `find` sale de acá, así
   # que pedir el id de una evaluación ajena da 404 y no 403: no se confirma que

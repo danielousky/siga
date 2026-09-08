@@ -56,7 +56,14 @@
                 traer_competencies_path(contexto),
                 class: "btn btn-accion"
 
-.card-academic
+-# ⚠️ El controlador del reparto envuelve la tarjeta ENTERA, no solo la barra.
+-#
+-# Stimulus busca sus `target` DENTRO del elemento del controlador, y los campos
+-# de peso viven en las filas de la lista —abajo—, no en la barra. Con el
+-# controlador puesto en la barra, `pesoTargets` salía vacío: la barra se
+-# dibujaba bien al cargar y no se movía nunca. No falla nada, simplemente no
+-# pasa nada.
+.card-academic{ data: { controller: "reparto" } }
   -# ⚠️ La barra va ARRIBA de todo y también cuando el plan está vacío: el
   -# 100 % es la condición para que la nota del lapso signifique algo, y es lo
   -# primero que un profesor viene a comprobar en septiembre.

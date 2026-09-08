@@ -1,26 +1,54 @@
--# Cuánto del 100 % está repartido en este lapso (etapa ③).
+-# El reparto del lapso, COMPLETO y editable (QA del 8 de septiembre).
 -#
--# ⚠️ Va ARRIBA del plan y también cuando el plan está vacío. El 100 % es la
--# condición para que la nota del lapso signifique algo —si suma 80, el promedio
--# se calcula sobre 80 y la nota sale más baja de lo que el alumno sacó— y es lo
--# primero que un profesor viene a comprobar en septiembre.
+-# Daniel: *«ese porcentaje debería estar directamente aquí y moverse
+-# dinámicamente unos con otros, de modo que vea cuánto % llevo y cuánto % me
+-# queda… no ver el porcentaje aislado sino como un todo»*.
 -#
--# ⚠️ Se suma sobre las evaluaciones del lapso, NO sobre el plan anidado: ahí una
--# evaluación que mide dos competencias aparece dos veces, y su 40 % contaría 80.
+-# La barra tiene un TRAMO POR EVALUACIÓN, no una sola franja llena: el peso de
+-# una evaluación no significa nada sola —«40 %» no dice si es mucho— y sí al
+-# lado de las otras tres. El hueco del final es lo que queda por repartir.
 -#
--# El medidor es el mismo `weight-meter` de `/evaluaciones` —misma barra, mismos
--# estados— porque es la misma pregunta contestada en otro sitio.
+-#     ████████ Taller 30 ██ Part. 5 ███████████ Examen 40 ░░ queda 25 ░░
+-#
+-# ⚠️ Los campos viven en las FILAS del plan, no acá, y se atan a este
+-# formulario con el atributo `form=`. Un `<form>` que envolviera el plan
+-# entero anidaría los `button_to` de borrar, y un formulario dentro de otro es
+-# HTML inválido: el navegador cierra el primero donde se le ocurre y el botón
+-# deja de enviar lo que dice.
+-#
+-# ⚠️ Y se guarda TODO DE UNA VEZ. Guardando de a una, pasar de 40/60 a 60/40
+-# es imposible sin un paso intermedio de 60/60 que el modelo rechaza.
 - usado = peso_del_lapso.to_f
-.weight-meter.plan-ponderacion
-  .weight-meter-label
-    %strong Ponderación
-    = "· #{contar(evaluaciones_del_lapso.size, 'evaluación', 'evaluaciones')} en #{lapso&.name}"
-  .weight-meter-bar
-    .weight-meter-fill{ class: ("weight-meter-fill--completo" if usado >= 100),
-                        style: "width: #{[ usado, 100 ].min}%" }
-  .weight-meter-value{ class: ("weight-meter-value--excedido" if usado > 100) }
-    = porcentaje(usado)
-    - if usado < 100
-      %span.weight-meter-falta= "· #{porcentaje(100 - usado)} sin repartir"
-    - elsif usado > 100
-      %span.weight-meter-falta= "· se pasa por #{porcentaje(usado - 100)}"
+.plan-ponderacion
+  .plan-ponderacion-cabecera
+    %span.plan-ponderacion-titulo
+      Ponderación
+      %span.dato-secundario= "· #{lapso&.name}"
+    %span.plan-ponderacion-cuenta{ data: { reparto_target: "cuenta" } }
+      = porcentaje(usado)
+      - if usado < 100
+        %span.plan-ponderacion-resto= "· #{porcentaje(100 - usado)} sin repartir"
+
+  .plan-ponderacion-barra{ data: { reparto_target: "barra" } }
+    - evaluaciones_del_lapso.each_with_index do |evaluacion, i|
+      -# ⚠️ El ancho va inline y con interpolación: es un DATO —el peso de esta
+      -# evaluación— y no una decisión de estilo. Lo admite el test del sistema
+      -# de diseño justamente por eso.
+      %span.plan-ponderacion-tramo{ class: "plan-ponderacion-tramo--#{i % 5}",
+                                    style: "width: #{[ evaluacion.weight_percentage.to_f, 100 ].min}%",
+                                    data: { reparto_target: "tramo", id: evaluacion.id,
+                                            tooltip: "#{evaluacion.description} · #{porcentaje(evaluacion.weight_percentage)}" } }
+    %span.plan-ponderacion-hueco{ data: { reparto_target: "hueco" },
+                                  style: "width: #{[ 100 - usado, 0 ].max}%" }
+
+  - if profesor? && evaluaciones_del_lapso.any?
+    = form_with url: reparto_evaluation_activities_path(contexto), method: :patch,
+                id: "reparto-del-lapso", class: "plan-ponderacion-guardar",
+                data: { reparto_target: "formulario" } do
+      -# Aparece solo cuando algo cambió: un botón que no tiene nada que guardar
+      -# invita a apretarlo para averiguar qué hace.
+      %button.btn.btn-guardar.btn-sm{ type: "submit", hidden: true,
+                                      data: { reparto_target: "boton" } }
+        = icono(:guardar, tamano: 14)
+        %span Guardar el reparto
+      %span.plan-ponderacion-exceso{ hidden: true, data: { reparto_target: "exceso" } }
