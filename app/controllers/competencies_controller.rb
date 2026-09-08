@@ -84,16 +84,27 @@ class CompetenciesController < ApplicationController
   # ⚠️ Se COPIA el texto, no se referencia. El plan de 2025 tiene que poder
   # corregirse este año sin reescribir la boleta que ya salió — es la misma
   # razón por la que el boletín guarda un snapshot.
+  #
+  # ⚠️ Y viene TODO: competencias, indicadores y evaluaciones, con la fecha
+  # corrida un año. Daniel: *«copiamos competencias, indicadores y evaluaciones,
+  # se le coloca el mismo mes y día del año pasado pero con el año actual»*.
+  #
+  # Es lo que pedía Cyndi, que es de donde sale MOR-136: *«nosotros todos los
+  # lapsos tenemos que estar cargando competencias e indicadores… es de verdad
+  # una pérdida de tiempo muy grande»*.
   def sugerido
     return redirect_to(plan_path, alert: "Elige tu sección y el lapso.") if asignacion.nil? || lapso.nil?
 
-    copiadas = ReplicarLaPlanificacion.solo_competencias(
-      origen: plan_del_ano_pasado, hacia: asignacion, lapso: lapso
-    ).competencias
+    origen = origen_del_ano_pasado
+    return redirect_to(plan_path, alert: "No hay un plan del año pasado que traer.") if origen.nil?
 
-    redirect_to plan_path,
-                notice: "Se trajeron #{contar(copiadas, 'competencia', 'competencias')}. " \
-                        "Revísalas y ajusta lo que haga falta."
+    hecho = ReplicarLaPlanificacion.del_ano_pasado(
+      desde: origen[:asignacion], lapso_de_origen: origen[:lapso],
+      hacia: asignacion, lapso: lapso
+    )
+
+    redirect_to plan_path, notice: resumen_de_lo_traido(hecho),
+                           alert: hecho.avisos.presence&.join(" ")
   end
 
   # Qué evaluaciones MIDEN esta competencia (MOR-136).
@@ -348,6 +359,34 @@ class CompetenciesController < ApplicationController
   helper_method :plan_path
 
   # ── El plan del año pasado ────────────────────────────────────────────────
+
+  # De dónde sale el plan del año pasado: su sección y su lapso.
+  #
+  # ⚠️ `plan_del_ano_pasado` devuelve COMPETENCIAS, y para traer también sus
+  # evaluaciones hace falta saber de qué (sección, lapso) vienen. Sale de la
+  # primera —vienen ordenadas por año descendente, así que es la más reciente—
+  # y se arma una asignación de solo lectura con lo que el servicio necesita:
+  # `section_id` y `subject_id`.
+  def origen_del_ano_pasado
+    primera = plan_del_ano_pasado.first
+    return nil if primera.nil?
+
+    { asignacion: Struct.new(:section_id, :subject_id).new(primera.section_id, primera.subject_id),
+      lapso: primera.evaluation_moment }
+  end
+
+  # ⚠️ Dice qué llegó, separando las dos cosas: el plan y las evaluaciones que
+  # lo miden. «Se trajeron 3 competencias» callaba que además vinieron cuatro
+  # evaluaciones con su peso y su fecha, que es la mitad del ahorro.
+  def resumen_de_lo_traido(hecho)
+    return "El plan del año pasado ya estaba completo acá." if hecho.nada?
+
+    partes = []
+    partes << helpers.contar(hecho.competencias, "competencia", "competencias") if hecho.competencias.positive?
+    partes << helpers.contar(hecho.evaluaciones, "evaluación", "evaluaciones") if hecho.evaluaciones.positive?
+
+    "Se trajo #{partes.join(' y ')} del año pasado. Revisa las fechas y ajusta lo que haga falta."
+  end
 
   def plan_del_ano_pasado
     return Competency.none if asignacion.nil? || lapso.nil?

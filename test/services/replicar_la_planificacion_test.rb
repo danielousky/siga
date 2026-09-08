@@ -153,22 +153,75 @@ class ReplicarLaPlanificacionTest < ActiveSupport::TestCase
 
   # ── La otra puerta: traer el plan del año pasado ──────────────────────────
   #
-  # ⚠️ Sin evaluaciones. Las del año que pasó tienen fechas de otro calendario y
-  # notas cargadas contra ellas; lo que se reutiliza es el PLAN, no la agenda.
-  test "traer del año pasado copia competencias y NINGUNA evaluación" do
-    viejas = con_el_colegio(@esc.colegio) do
-      c = Competency.create!(section: @esc.seccion, subject: @esc.materia,
-                             evaluation_moment: @lapso, descripcion: "Del año pasado")
-      actividad(@esc, lapso: @lapso, peso: 40, descripcion: "Examen viejo")
-      [ c ]
+  # ⚠️ Acá SÍ vienen las evaluaciones, con la fecha corrida un año.
+  #
+  # La primera versión traía solo las competencias, con el argumento de que las
+  # fechas del año pasado son de otro calendario. Daniel lo corrigió: la fecha
+  # no es un obstáculo, es una traducción —mismo día y mes, el año que
+  # corresponde—. Y es literalmente lo que pedía Cyndi.
+  test "del año pasado viene todo, con la fecha corrida un año" do
+    anterior, lapso_anterior = con_el_colegio(@esc.colegio) do
+      periodo = AcademicPeriod.create!(name: "2024-2025", start_date: Date.new(2024, 9, 1),
+                                       end_date: Date.new(2025, 7, 31))
+      lapso = EvaluationMoment.create!(academic_period: periodo, name: "2do Lapso",
+                                       starts_on: Date.new(2024, 11, 1), ends_on: Date.new(2025, 2, 28))
+      seccion = Section.create!(grade: @esc.seccion.grade, academic_period: periodo,
+                                name: "A", capacity: 30)
+      c = Competency.create!(section: seccion, subject: @esc.materia,
+                             evaluation_moment: lapso, descripcion: "Resuelve problemas")
+      c.indicators.create!(descripcion: "Suma con reagrupación", orden: 0)
+      e = EvaluationActivity.create!(section: seccion, subject: @esc.materia,
+                                     evaluation_moment: lapso, description: "Examen",
+                                     weight_percentage: 40, date_scheduled: Date.new(2024, 11, 8))
+      ActivityCompetency.create!(competency: c, evaluation_activity: e)
+      [ Struct.new(:section_id, :subject_id).new(seccion.id, @esc.materia.id), lapso ]
     end
 
-    resultado = con_el_colegio(@esc.colegio) do
-      ReplicarLaPlanificacion.solo_competencias(origen: viejas, hacia: @destino, lapso: @lapso)
+    hecho = con_el_colegio(@esc.colegio) do
+      ReplicarLaPlanificacion.del_ano_pasado(desde: anterior, lapso_de_origen: lapso_anterior,
+                                             hacia: @destino, lapso: @lapso)
     end
 
-    assert_equal 1, resultado.competencias
-    assert_equal 0, resultado.evaluaciones
-    assert_empty evaluaciones_del_destino
+    assert_equal 1, hecho.competencias
+    assert_equal 1, hecho.evaluaciones, "las evaluaciones del año pasado también se traen"
+
+    copiada = evaluaciones_del_destino.first
+    assert_equal 40, copiada.weight_percentage
+
+    # ⚠️ Mismo día y mes, el año del lapso destino: 8 de noviembre de 2024 →
+    # 8 de noviembre de 2025.
+    assert_equal Date.new(2025, 11, 8), copiada.date_scheduled
+
+    # Y su enganche apunta a la competencia recién creada acá, no a la vieja.
+    medidas = con_el_colegio(@esc.colegio) { copiada.competencies.to_a }
+    assert_equal 1, medidas.size
+    assert_equal @destino.section_id, medidas.first.section_id
+  end
+
+  # ⚠️ Los indicadores también viajan: son la mitad de lo que Cyndi no quería
+  # volver a escribir.
+  test "del año pasado vienen los indicadores" do
+    anterior, lapso_anterior = con_el_colegio(@esc.colegio) do
+      periodo = AcademicPeriod.create!(name: "2024-2025", start_date: Date.new(2024, 9, 1),
+                                       end_date: Date.new(2025, 7, 31))
+      lapso = EvaluationMoment.create!(academic_period: periodo, name: "2do Lapso",
+                                       starts_on: Date.new(2024, 11, 1), ends_on: Date.new(2025, 2, 28))
+      seccion = Section.create!(grade: @esc.seccion.grade, academic_period: periodo,
+                                name: "A", capacity: 30)
+      c = Competency.create!(section: seccion, subject: @esc.materia,
+                             evaluation_moment: lapso, descripcion: "Resuelve problemas")
+      c.indicators.create!(descripcion: "Suma con reagrupación", orden: 0)
+      c.indicators.create!(descripcion: "Estima el resultado", orden: 1)
+      [ Struct.new(:section_id, :subject_id).new(seccion.id, @esc.materia.id), lapso ]
+    end
+
+    con_el_colegio(@esc.colegio) do
+      ReplicarLaPlanificacion.del_ano_pasado(desde: anterior, lapso_de_origen: lapso_anterior,
+                                             hacia: @destino, lapso: @lapso)
+    end
+
+    copiada = plan_del_destino.first
+    assert_equal [ "Suma con reagrupación", "Estima el resultado" ],
+                 con_el_colegio(@esc.colegio) { copiada.indicators.en_orden.map(&:descripcion) }
   end
 end

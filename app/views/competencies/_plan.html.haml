@@ -26,6 +26,17 @@
         %li= c.descripcion.truncate(110)
       - if @sugerido.size > 4
         %li.dato-secundario= "y #{contar(@sugerido.size - 4, 'competencia más', 'competencias más')}"
+    -# ⚠️ Se dice que vienen TAMBIÉN las evaluaciones, y con la fecha corrida.
+    -#
+    -# Daniel: *«copiamos competencias, indicadores y evaluaciones, se le coloca
+    -# el mismo mes y día del año pasado pero con el año actual»*. Prometer solo
+    -# las competencias escondía la mitad del ahorro — y una fecha que cambia
+    -# sola hay que anunciarla antes, no descubrirla después.
+    %p.nota-ayuda
+      Vienen las competencias con sus indicadores
+      %strong y las evaluaciones
+      \, con su peso y la misma fecha corrida al año actual.
+
     = button_to "Traerlo para revisarlo",
                 traer_competencies_path(contexto),
                 class: "btn btn-accion"

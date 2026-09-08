@@ -61,38 +61,48 @@ class ReplicarLaPlanificacion
     new(desde, hacia, lapso).replicar
   end
 
-  # ⚠️ Del AÑO PASADO: solo las competencias, y por eso tiene su propia puerta.
+  # ⚠️ Del AÑO PASADO: TAMBIÉN las evaluaciones, con la fecha corrida un año.
   #
-  # Las evaluaciones del año que pasó no aplican: sus fechas son de otro
-  # calendario y sus notas ya están cargadas contra ellas. Lo que se reutiliza
-  # es el PLAN —«que un docente no vuelva a escribir una competencia que su
-  # colegio ya escribió», que es todo `MOR-136`—, no la agenda.
-  def self.solo_competencias(origen:, hacia:, lapso:)
-    servicio = new(nil, hacia, lapso)
-    servicio.plan_de_origen = origen
-    servicio.replicar(evaluaciones: false)
+  # La primera versión traía solo las competencias, con el argumento de que las
+  # fechas del año pasado son de otro calendario. Daniel lo corrigió, y tenía
+  # razón: la fecha no es un obstáculo, es una TRADUCCIÓN —mismo día y mes, el
+  # año que corresponde— y las notas no viajan, así que no hay nada que
+  # contaminar.
+  #
+  # Y es literalmente lo que pedía Cyndi, que es de donde sale `MOR-136`:
+  #
+  #   > *«nosotros todos los lapsos tenemos que estar cargando competencias e
+  #   > indicadores… eso es de verdad una pérdida de tiempo muy grande»*
+  #
+  # Quedarse en las competencias dejaba la mitad del trabajo sin resolver: el
+  # examen del 40 %, el taller del 30 y la participación del 30 se volvían a
+  # escribir igual, todos los años.
+  def self.del_ano_pasado(desde:, lapso_de_origen:, hacia:, lapso:)
+    new(desde, hacia, lapso, lapso_de_origen: lapso_de_origen).replicar
   end
 
   # `desde` y `hacia` son asignaciones (`TeacherSection`): sección + área.
-  def initialize(desde, hacia, lapso)
+  #
+  # `lapso_de_origen` solo difiere al traer de otro año; entre hermanas es el
+  # mismo, y por eso su valor por defecto es `lapso`.
+  def initialize(desde, hacia, lapso, lapso_de_origen: nil)
     @desde = desde
     @hacia = hacia
     @lapso = lapso
+    @lapso_de_origen = lapso_de_origen || lapso
     @avisos = []
   end
 
-  attr_writer :plan_de_origen
-
-  def replicar(evaluaciones: true)
+  def replicar
     copiadas = copiar_competencias
-    hechas   = evaluaciones ? copiar_evaluaciones : 0
+    hechas   = copiar_evaluaciones
 
     Resultado.new(competencias: copiadas, evaluaciones: hechas, avisos: @avisos)
   end
 
   private
 
-  attr_reader :desde, :hacia, :lapso
+  attr_reader :desde, :hacia, :lapso, :lapso_de_origen
 
   # ── Las competencias, con sus indicadores ─────────────────────────────────
 
@@ -130,7 +140,8 @@ class ReplicarLaPlanificacion
         nueva = EvaluationActivity.create!(
           section_id: hacia.section_id, subject_id: hacia.subject_id,
           evaluation_moment_id: lapso.id, description: vieja.description,
-          weight_percentage: vieja.weight_percentage, date_scheduled: vieja.date_scheduled
+          weight_percentage: vieja.weight_percentage,
+          date_scheduled: fecha_trasladada(vieja.date_scheduled)
         )
         nueva.competency_ids = equivalentes_de(vieja)
         ya_estan << Normaliza.para_comparar(nueva.description)
@@ -152,18 +163,44 @@ class ReplicarLaPlanificacion
     competencias_del_destino.values_at(*canonicas).compact
   end
 
+  # ⚠️ La fecha se CORRE los años que separan los dos calendarios.
+  #
+  # Daniel: *«se le coloca el mismo mes y día del año pasado pero con el año
+  # actual»*. Entre hermanas el desfase es cero y la fecha queda igual; del año
+  # pasado, el examen del 8 de noviembre de 2025 pasa al 8 de noviembre de 2026.
+  #
+  # ⚠️ Se suman AÑOS, no días: `+ 1.year` sobre un 29 de febrero cae en el 28,
+  # que es lo que un humano esperaría. Sumar 365 días lo correría un día en
+  # cada bisiesto y, a los cuatro años, el examen del 8 de noviembre estaría el
+  # 7 sin que nadie lo hubiera movido.
+  def fecha_trasladada(fecha)
+    return fecha if fecha.nil? || desfase_de_anios.zero?
+
+    fecha + desfase_de_anios.years
+  end
+
+  def desfase_de_anios
+    @desfase_de_anios ||= anio_de(lapso) - anio_de(lapso_de_origen)
+  end
+
+  # El año del calendario en que ARRANCA ese lapso. Del período académico y no
+  # del lapso, porque `starts_on` es opcional: un colegio puede no habérselo
+  # puesto y ahí el desfase saldría cero, dejando la fecha en el año pasado.
+  def anio_de(momento)
+    (momento.starts_on || momento.academic_period.start_date).year
+  end
+
   # ── Lo que se lee una sola vez ────────────────────────────────────────────
 
   def plan_de_origen
-    @plan_de_origen ||= Competency.del_plan(desde.section_id, desde.subject_id, lapso.id)
+    @plan_de_origen ||= Competency.del_plan(desde.section_id, desde.subject_id, lapso_de_origen.id)
                                   .includes(:indicators).to_a
   end
-  public :plan_de_origen
 
   def evaluaciones_de_origen
     @evaluaciones_de_origen ||= EvaluationActivity
                                 .where(section_id: desde.section_id, subject_id: desde.subject_id,
-                                       evaluation_moment_id: lapso.id)
+                                       evaluation_moment_id: lapso_de_origen.id)
                                 .includes(:competencies)
                                 .order(:date_scheduled, :id).to_a
   end
