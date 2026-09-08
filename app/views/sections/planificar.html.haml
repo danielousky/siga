@@ -1,0 +1,13 @@
+-# PLANIFICAR, dentro de la sección (etapa ③).
+-#
+-# ⚠️ Es el MISMO plan de `/competencias`, con el mismo parcial y el mismo
+-# concern. La diferencia es la escalera: allá hay que elegir grado → área →
+-# sección → lapso, y acá la sección y el área ya vinieron del árbol del menú,
+-# así que solo queda el lapso.
+= render layout: "sections/marco",
+         locals: { seccion: @section, area: area_de_la_pestana, activa: :planificar,
+                   inscritos: @enrollments.size } do
+  - opciones = lapsos.map { |l| [ l.name, planificar_section_path(@section, area: area_de_la_pestana&.id, lapso: l.id), l.id == lapso&.id ] }
+  = render "shared/pastillas", etiqueta: "Lapso", opciones: opciones
+
+  = render "competencies/plan"

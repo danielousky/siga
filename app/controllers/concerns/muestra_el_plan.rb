@@ -1,0 +1,126 @@
+# El plan de evaluación de una asignación, listo para dibujar.
+#
+# ⚠️ Existe porque el MISMO plan se muestra en dos lugares: en `/competencias`
+# —donde hay que elegir grado → área → sección → lapso— y en la pestaña
+# «Planificar» de la sección, donde la sección y el área ya vienen del árbol del
+# menú y solo queda el lapso (etapa ③).
+#
+# Daniel, sobre por qué la pestaña no puede sacarte de la sección: *«no me
+# gustan ni Asistencia ni Planificación como URL, se descontextualiza todo, se
+# supone que estoy en mi espacio de trabajo —la Sección— no para salir de él…
+# no es solo "fingir" sino realmente estar en la sección»*.
+#
+# ## Lo que cada controller tiene que definir
+#
+#     asignacion        el par sección–área del que se habla
+#     mis_asignaciones  todo lo que este profesor dicta (es lo que AUTORIZA:
+#                       un id ajeno no está en la lista y devuelve nil)
+#     plan_path         a dónde vuelven los formularios de esta pantalla
+#
+# El resto —los lapsos, el contexto de los enlaces, las secciones hermanas y
+# las evaluaciones que pueden medir una competencia— sale de esos tres.
+module MuestraElPlan
+  extend ActiveSupport::Concern
+
+  # ⚠️ Los `helper_method` van acá y no sueltos entre las definiciones: dentro
+  # de un concern, `helper_method` en el cuerpo del módulo no existe todavía —
+  # es un método de clase del controller, y el módulo no es uno.
+  included do
+    helper_method :lapsos, :lapso, :otras_secciones, :contexto,
+                  :hermanas_con_plan, :hermanas_sin_plan, :evaluaciones_del_lapso
+  end
+
+  private
+
+  def lapsos
+    return [] if asignacion.nil?
+
+    @lapsos ||= EvaluationMoment.where(academic_period_id: asignacion.section.academic_period_id)
+                                .order(:id)
+  end
+
+  def lapso
+    @lapso ||= lapsos.find { |l| l.id.to_s == params[:lapso] } || lapsos.first
+  end
+
+  # Las secciones HERMANAS: mismo grado, misma materia, otra sección.
+  #
+  # ⚠️ El grado también, y faltaba: sin él, «copiar a mis otras secciones»
+  # ofrecía las DIECINUEVE donde este profesor dicta Matemática, de 1er a 5to
+  # Año. Una competencia de 1er Año no tiene nada que hacer en 5to, y copiarla
+  # allá es basura que después alguien tiene que borrar a mano.
+  def otras_secciones
+    @otras_secciones ||= mis_asignaciones.select do |ts|
+      ts.subject_id == asignacion.subject_id &&
+        ts.section.grade_id == asignacion.section.grade_id &&
+        ts.section_id != asignacion.section_id
+    end
+  end
+
+  # Las secciones de ESTE grado donde dicto ESTA materia. Es lo que decide si
+  # hay hermanas a las que copiar.
+  # El contexto de la pantalla, para los enlaces que tienen que volver acá.
+  #
+  # ⚠️ Sale de `asignacion`, no de `params`. Con las pastillas, la asignación se
+  # DEDUCE de grado+área, así que `params[:asignacion]` viene vacío la primera
+  # vez y todos los enlaces perdían la sección — «Registrar competencia» abría
+  # el formulario de otra.
+  # ⚠️ `desde` viaja en el contexto, y es lo que impide que copiar o traer un
+  # plan te expulse de la sección.
+  #
+  # Los formularios de «Copiar a mis otras secciones» y «Traer el plan del año
+  # pasado» hacen POST a `CompetenciesController`, que redirige a SU
+  # `plan_path` — o sea, a `/competencias`. Desde la pestaña de la sección eso
+  # es exactamente la descontextualización que Daniel rechazó, con un paso más.
+  #
+  # No es un `volver_a` con la URL adentro a propósito: eso sería un redirect
+  # abierto. Es una bandera, y quien redirige arma la ruta.
+  def contexto
+    return {} if asignacion.nil?
+
+    { asignacion: "#{asignacion.section_id}:#{asignacion.subject_id}",
+      lapso: lapso&.id, desde: desde_donde }.compact
+  end
+
+  # `nil` en `/competencias`; `"seccion"` en la pestaña. Lo sobreescribe quien
+  # dibuja el plan dentro de otra pantalla.
+  def desde_donde = nil
+
+  # Cuáles de las hermanas YA tienen plan en este lapso.
+  #
+  # ⚠️ Es lo que apaga el botón de copiar. Daniel: *«si la sección ya tiene
+  # competencia, se deshabilita esta opción con mensaje indicativo»* — y tenía
+  # razón por partida doble: copiar dos veces no duplicaba nada (la copia es
+  # idempotente) pero el botón seguía ahí, invitando a una acción que ya no
+  # hacía nada. Un control que no hace nada al tocarlo enseña a desconfiar del
+  # resto.
+  def hermanas_con_plan
+    @hermanas_con_plan ||= begin
+      ids = otras_secciones.map(&:section_id)
+      Competency.where(section_id: ids, subject_id: asignacion&.subject_id,
+                       evaluation_moment_id: lapso&.id)
+                .distinct.pluck(:section_id).to_set
+    end
+  end
+
+  # Las que todavía no lo tienen: a esas sí se puede copiar.
+  def hermanas_sin_plan
+    @hermanas_sin_plan ||= otras_secciones.reject { |ts| hermanas_con_plan.include?(ts.section_id) }
+  end
+
+  # Las evaluaciones que pueden medir una competencia: las de su mismo plan.
+  #
+  # ⚠️ Se carga UNA vez para toda la pantalla, no una por competencia. Un lapso
+  # con cinco competencias y cinco evaluaciones son veinticinco consultas si se
+  # pregunta por fila.
+  def evaluaciones_del_lapso
+    return [] if asignacion.nil? || lapso.nil?
+
+    @evaluaciones_del_lapso ||= EvaluationActivity
+                                .where(section_id: asignacion.section_id,
+                                       subject_id: asignacion.subject_id,
+                                       evaluation_moment_id: lapso.id)
+                                .order(:date_scheduled, :id)
+                                .to_a
+  end
+end

@@ -1,8 +1,13 @@
 class SectionsController < ApplicationController
-  before_action :require_admin_access!, except: [ :show, :alumnos ]
-  before_action :require_read_access!, only: [ :show, :alumnos ]
-  before_action :set_section, only: [ :show, :alumnos, :edit, :update, :destroy ]
-  before_action :cargar_la_seccion, only: [ :show, :alumnos ]
+  include PreparaLaAsistencia
+  include MuestraElPlan
+
+  PESTANAS = [ :show, :alumnos, :asistencia, :planificar ].freeze
+
+  before_action :require_admin_access!, except: PESTANAS
+  before_action :require_read_access!, only: PESTANAS
+  before_action :set_section, only: PESTANAS + [ :edit, :update, :destroy ]
+  before_action :cargar_la_seccion, only: PESTANAS
 
   # Por el nombre del grado o el de la sección: quien escribe «1er» quiere todas
   # las de primer año, y quien escribe «A» quiere las secciones A.
@@ -36,6 +41,28 @@ class SectionsController < ApplicationController
   # navega y media que alterna no se le puede explicar a nadie: el botón de
   # atrás funcionaría en unas y en otras no.
   def alumnos; end
+
+  # ⚠️ La asistencia DENTRO de la sección, no en otra pantalla.
+  #
+  # Es la misma planilla de `/asistencia/:seccion_id` —el parcial y la
+  # preparación son compartidos (`PreparaLaAsistencia`)— para que las dos no se
+  # separen: la de allá ordenaría por apellido y la de acá no, y nadie se
+  # enteraría hasta que un profesor comparara las dos.
+  def asistencia
+    return redirect_to(section_path(@section), alert: "Solo el profesor guía toma asistencia.") unless puede_tomar_asistencia?
+
+    preparar_la_asistencia(@section)
+  end
+
+  # Y el plan de evaluación, igual: mismo parcial, misma preparación
+  # (`MuestraElPlan`). La diferencia con `/competencias` es que acá la sección y
+  # el área ya vienen del árbol del menú, así que la escalera se reduce al lapso.
+  def planificar
+    return redirect_to(section_path(@section), alert: "Elige primero un área.") if asignacion.nil?
+
+    @competencias = Competency.del_plan(asignacion.section_id, asignacion.subject_id, lapso&.id)
+                              .includes(:indicators, :evaluation_activities)
+  end
 
   def new
     @section = Section.new
@@ -105,6 +132,39 @@ class SectionsController < ApplicationController
 
   # El área por la que entré, que es la que el árbol del menú trajo en la URL.
   # Es lo que decide qué libreta se abre y a qué plan lleva «Planificar».
+  # ── Lo que `MuestraElPlan` y `PreparaLaAsistencia` necesitan ──────────────
+
+  # La asignación de la que habla esta pantalla: esta sección, el área que trajo
+  # el árbol del menú. ⚠️ Se busca entre las de ESTE profesor, y eso es lo que
+  # autoriza: un área que no dicta no está en la lista y devuelve nil.
+  def asignacion
+    return @asignacion if defined?(@asignacion)
+
+    @asignacion = mis_asignaciones.find { |ts| ts.subject_id == area_de_la_pestana&.id }
+  end
+  helper_method :asignacion
+
+  def mis_asignaciones
+    @mis_asignaciones ||= begin
+      docente = current_user.teacher
+      docente ? @teacher_sections.select { |ts| ts.teacher_id == docente.id } : []
+    end
+  end
+  helper_method :mis_asignaciones
+
+  def desde_donde = "seccion"
+
+  # Los formularios del plan vuelven a la pestaña, no a `/competencias`.
+  def plan_path
+    planificar_section_path(@section, area: area_de_la_pestana&.id, lapso: lapso&.id)
+  end
+  helper_method :plan_path
+
+  # Quién puede pasar lista: el guía de la sección, o la dirección.
+  def puede_tomar_asistencia?
+    can_manage_sections? || @section.leader_teacher_id == current_user.teacher&.id
+  end
+
   def area_de_la_pestana
     @area_de_la_pestana ||= areas_que_califico.find { |s| s.id.to_s == params[:area] }
   end

@@ -370,7 +370,20 @@ Rails.application.routes.draw do
     # calificar, planificar— son pantallas de verdad con su controller. Media
     # fila de pestañas que navega y media que alterna no se puede explicar: el
     # botón de atrás funcionaría en unas y en otras no.
-    member { get "alumnos" }
+    # ⚠️ Las cuatro vistas de la sección viven EN la sección (etapa ③).
+    #
+    # Daniel: *«no me gustan ni Asistencia ni Planificación como URL, se
+    # descontextualiza todo, se supone que estoy en mi espacio de trabajo —la
+    # Sección— no para salir de él… no es solo "fingir" sino realmente estar en
+    # la sección»*. Y tenía razón: una pestaña que te expulsa no divide nada.
+    #
+    # `/asistencia/:seccion_id` y `/competencias` siguen existiendo: son la
+    # entrada por el MENÚ, para quien no viene de una sección.
+    member do
+      get "alumnos"
+      get "asistencia"
+      get "planificar"
+    end
 
     resources :teacher_sections, path: "profesores", only: [:create, :destroy]
 

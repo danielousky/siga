@@ -3,22 +3,21 @@
 -# ⚠️ Es una de las cuatro pestañas de la sección, no «la pantalla de la
 -# sección». Las otras tres —Asistencia, Planificar, Alumnos— son pantallas de
 -# verdad con su propio controller, y las cuatro comparten el encabezado.
-= render layout: "sections/encabezado",
-         locals: { seccion: @section, area: area_de_la_pestana, activa: :calificar,
-                   inscritos: @enrollments.size } do
+- acciones = capture do
   -# ⚠️ Los informes descriptivos los escribe el GUÍA de la sección, o la
   -# dirección cuando no lo hay (MOR-216). El botón aparece exactamente para
   -# quien puede entrar: ofrecerlo a un profesor que no es guía lo manda a una
   -# pantalla que solo puede rechazarlo.
   - if can_manage_sections? || guio?(@section)
     = boton "Informes descriptivos", section_informes_path(@section), icono: :notas, tono: :secondary
-
   - if administrador?
     -# «Eliminar» vive en la pantalla de edición, en el bloque que explica qué
     -# se pierde y solo aparece si va a funcionar (`shared/_borrar`).
     = boton "Editar", edit_section_path(@section), icono: :editar, tono: :secondary
 
-.card-academic
+= render layout: "sections/marco",
+         locals: { seccion: @section, area: area_de_la_pestana, activa: :calificar,
+                   inscritos: @enrollments.size, acciones: acciones } do
   - if @libreta
     = render "libreta"
   - else

@@ -1,0 +1,25 @@
+-# El marco de las cuatro pestañas de una sección (etapa ③).
+-#
+-# Dos paneles, y la separación es la que pidió Daniel: *«debería ser un panel
+-# para la descripción y otro para contenidos, separados por cada pestaña»*.
+-#
+-#     ┌────────────────────────────────────────────────┐
+-#     │ ▌ 4to Grado · Sección A   [Informes descr.]   │  ← QUÉ sección es
+-#     │   PERÍODO   CAPACIDAD   GUÍA   AULA           │
+-#     └────────────────────────────────────────────────┘
+-#     ┌────────────────────────────────────────────────┐
+-#     │  Asistencia │ Calificar │ Planificar │ Alumnos │  ← QUÉ hago con ella
+-#     │  ────────────────────────────────────────────  │
+-#     │  el contenido de la pestaña activa             │
+-#     └────────────────────────────────────────────────┘
+-#
+-# ⚠️ Existe para que las cuatro vistas no repitan esa estructura: son la misma
+-# sección vista de otro ángulo, y cuatro copias del marco se separan.
+= render "sections/encabezado", **{ seccion: seccion, area: area, inscritos: inscritos,
+                                    acciones: local_assigns[:acciones] }
+
+.card-academic
+  = render "shared/pestanas", etiqueta: "Vistas de esta sección",
+           pestanas: pestanas_de_la_seccion(seccion, area: area, activa: activa)
+
+  = yield

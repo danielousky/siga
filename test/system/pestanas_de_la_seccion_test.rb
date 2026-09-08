@@ -52,22 +52,36 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
   test "el área se conserva al moverse entre pestañas" do
     visit section_path(@a.seccion, area: @area.id)
 
-    all(".pestana").each do |pestana|
-      next if pestana[:href].include?("/competencias")
+    all(".pestana").each { |p| assert_includes p[:href], "area=#{@area.id}" }
+  end
 
-      assert_includes pestana[:href], "area=#{@area.id}"
+  # ⚠️ NINGUNA pestaña saca al profesor de la sección.
+  #
+  # Daniel: *«no me gustan ni Asistencia ni Planificación como URL, se
+  # descontextualiza todo… no es solo "fingir" sino realmente estar en la
+  # sección»*. Las cuatro son acciones de `SectionsController`.
+  test "las cuatro pestañas se quedan dentro de la sección" do
+    con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: @a.registro_de_profesor) }
+    visit section_path(@a.seccion, area: @area.id)
+
+    all(".pestana").each do |pestana|
+      assert_includes pestana[:href], "/secciones/#{@a.seccion.id}"
     end
   end
 
-  # ⚠️ «Planificar» lleva al plan de ESTA área en ESTA sección, no al listado:
-  # la planificación es de una asignación, no de una sección.
-  test "planificar lleva al plan de esta asignación" do
+  # Y al entrar en ellas, el encabezado y la fila siguen ahí.
+  test "planificar y asistencia conservan el encabezado de la sección" do
+    con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: @a.registro_de_profesor) }
     visit section_path(@a.seccion, area: @area.id)
 
-    destino = find(".pestana", text: "Planificar")[:href]
+    [ "Planificar", "Asistencia" ].each do |nombre|
+      visit section_path(@a.seccion, area: @area.id)
+      click_on nombre
 
-    assert_includes destino, "/competencias"
-    assert_includes destino, CGI.escape("#{@a.seccion.id}:#{@area.id}")
+      assert_selector ".pestana.activa", text: nombre
+      assert_selector ".cabecera-de-lista-titulo", text: /#{@a.seccion.grade.name}/
+      assert_selector ".detail-label", text: "PROFESOR GUÍA"
+    end
   end
 
   # El encabezado es el mismo en las dos pantallas de la sección: una fila de

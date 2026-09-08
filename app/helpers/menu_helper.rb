@@ -200,38 +200,35 @@ module MenuHelper
     ].reject { |grupo| grupo.enlaces.empty? }
   end
 
+  # El menú del profesor: sus secciones, y nada más (etapa ③).
+  #
+  # ## ⚠️ «Mi trabajo» se retiró, y era medio menú
+  #
+  # Tenía tres entradas —«Competencias e indicadores», «Mis evaluaciones» y
+  # «Asistencia»— y las tres pasaron a ser pestañas DENTRO de la sección.
+  #
+  # Daniel, tachando ese grupo: *«al final esta parte tiende a desaparecer»*. Y
+  # es la consecuencia de la decisión anterior: si el trabajo del profesor es
+  # por sección, un renglón que lleva a «todas mis competencias» sin decir de
+  # cuál sección es exactamente la descontextualización que las pestañas vienen
+  # a evitar — con el agravante de que ahí hay que volver a elegir grado, área,
+  # sección y lapso, que el árbol ya sabe.
+  #
+  #     ANTES                        AHORA
+  #     ▾ MI TRABAJO                 ▾ SOY GUÍA DE
+  #         Competencias e indic.        4to Grado – A
+  #         Mis evaluaciones         ▾ DICTO
+  #         Asistencia                   …
+  #     ▾ MIS SECCIONES
+  #         …quince renglones
+  #
+  # ⚠️ Las pantallas NO desaparecen: `/competencias`, `/evaluaciones` y
+  # `/asistencia` siguen respondiendo, y la dirección las usa desde su propio
+  # menú. Lo que se quita es la entrada que le ofrecía al profesor entrar por el
+  # camino largo.
   def menu_del_profesor
-    trabajo = []
-
-    # ⚠️ «Competencias e indicadores», NO «Plan de evaluación» — y solo a quien
-    # dicta primaria.
-    #
-    # QA de Daniel: *«no deberíamos asociar directamente Plan de Evaluación a
-    # Competencias. Para Educación Media tenemos también plan de evaluación… si
-    # el profesor no tiene secciones de primaria, para qué mostrarle esa vista,
-    # sobra»*.
-    #
-    # Tiene las dos mitades. Un plan de evaluación de bachillerato es la lista
-    # de evaluaciones con su ponderación —el 70/30 del Art. 111— y eso vive en
-    # «Mis evaluaciones»: llamar «Plan de evaluación» a la pantalla de primaria
-    # se apropia de un nombre que ya significa otra cosa. Y ofrecérsela a un
-    # profesor de 5to Año es mandarlo a una pantalla que solo puede decirle que
-    # no es para él.
-    #
-    # ⚠️ Va antes de las evaluaciones, y es el orden del trabajo real: primero
-    # se decide QUÉ se evalúa en el lapso, después se arman las evaluaciones que
-    # lo miden (MOR-136).
-    if dicta_primaria?
-      trabajo << Enlace.new(nombre: "Competencias e indicadores", icono: :materias,
-                            ruta: competencies_path)
-    end
-
-    trabajo << Enlace.new(nombre: "Mis evaluaciones", icono: :notas, ruta: evaluation_activities_path)
-    trabajo << Enlace.new(nombre: "Asistencia", icono: :asistencia, ruta: asistencias_path)
-
     [
       Grupo.new(enlaces: [ Enlace.new(nombre: "Inicio", icono: :panel, ruta: dashboards_profesor_path) ]),
-      Grupo.new(titulo: "Mi trabajo", enlaces: trabajo),
       *grupo_de_lo_que_guio,
       *grupo_de_lo_que_dicto
     ]
@@ -378,13 +375,21 @@ module MenuHelper
   #     PLANIFICAR    competencias, indicadores y evaluaciones
   #     ALUMNOS       quiénes son
   #
-  # ## ⚠️ Pestañas con URL, no paneles que alternan
+  # ## ⚠️ Las cuatro viven EN la sección
   #
-  # Son cuatro pantallas de verdad —la asistencia tiene su propio controller y
-  # su formulario, la planificación también—, así que esconderlas con `hidden`
-  # significaría cargar las cuatro en cada visita. La regla del proyecto ya lo
-  # dice: `_pestanas` cuando cada una es una URL, `_paneles` cuando es el mismo
-  # documento.
+  # Daniel: *«no me gustan ni Asistencia ni Planificación como URL, se
+  # descontextualiza todo, se supone que estoy en mi espacio de trabajo —la
+  # Sección— no para salir de él, ese es todo el fin de esta división: no es
+  # solo "fingir" sino realmente estar en la sección»*.
+  #
+  # Y tenía razón: una pestaña que te expulsa no divide nada, solo mueve el
+  # problema. Las cuatro son acciones de `SectionsController` y comparten el
+  # encabezado; la planilla de asistencia y el plan son los MISMOS parciales que
+  # usan `/asistencia` y `/competencias`, vía `PreparaLaAsistencia` y
+  # `MuestraElPlan`, para que no se separen.
+  #
+  # Esas dos rutas siguen existiendo: son la entrada por el MENÚ, para quien no
+  # viene de una sección.
   #
   # ## ⚠️ Y la ACTIVA por defecto sale de POR DÓNDE ENTRÓ
   #
@@ -401,23 +406,14 @@ module MenuHelper
     contexto = { area: area&.id }
     pestanas = []
 
-    if guio?(seccion)
-      pestanas << [ "Asistencia", seccion_asistencia_path(seccion, contexto), activa == :asistencia ]
+    if guio?(seccion) || can_manage_sections?
+      pestanas << [ "Asistencia", asistencia_section_path(seccion, contexto), activa == :asistencia ]
     end
 
     pestanas << [ "Calificar", section_path(seccion, contexto), activa == :calificar ]
-    pestanas << [ "Planificar", ruta_de_planificar(seccion, area), activa == :planificar ]
+    pestanas << [ "Planificar", planificar_section_path(seccion, contexto), activa == :planificar ]
     pestanas << [ "Alumnos", alumnos_section_path(seccion, contexto), activa == :alumnos ]
     pestanas
-  end
-
-  # ⚠️ «Planificar» lleva al plan de ESTA área en ESTA sección, no al listado.
-  # Sin área no hay plan que abrir —la planificación es de una asignación— así
-  # que cae en la pantalla que la deja elegir.
-  def ruta_de_planificar(seccion, area)
-    return competencies_path if area.nil?
-
-    competencies_path(asignacion: "#{seccion.id}:#{area.id}")
   end
 
   def guio?(seccion)

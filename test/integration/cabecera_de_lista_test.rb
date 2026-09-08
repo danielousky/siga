@@ -154,31 +154,35 @@ class CabeceraDeListaTest < ActionDispatch::IntegrationTest
     assert_no_match(/padding:\s*0\s/, regla, "el relleno de arriba volvió a cero")
   end
 
-  # ── Sin controles, la cabecera es UNA línea ──────────────────────────────
+  # ── La franja: título y controles en UNA barra ───────────────────────────
   #
-  # Daniel, sobre Grados: *«alto mínimo, espacio desaprovechado en este caso
-  # particular de los grados»*. Los dos renglones existen para las pantallas con
-  # buscador, filtros e importador; Grados, Lapsos, Años escolares y
-  # Administradores no tienen ninguno y el segundo renglón lleva un botón solo.
+  # `--compacta` se retiró el 8 de septiembre. Existía para ahorrar alto en las
+  # pantallas sin buscador, y quedó sin sentido cuando Daniel pidió lo otro:
+  # *«que el título no se detenga ni en el botón ni en filtros, completo
+  # siempre»* y, al ver el botón en un renglón aparte, *«el botón quedó arriba,
+  # es dentro»*.
   #
-  # ⚠️ Se DEDUCE de lo que la vista pasa. Un `compacta: true` a mano se queda
-  # viejo el día que la pantalla gane un buscador.
+  # Las dos cosas juntas dan una sola barra de borde a borde para las ochenta y
+  # cuatro pantallas — con o sin buscador, el alto es el mismo.
   SIN_CONTROLES = %i[grades_path evaluation_moments_path academic_periods_path admins_path].freeze
   CON_CONTROLES = %i[students_path teachers_path subjects_path].freeze
 
-  test "un listado sin buscador ni importador va en una sola línea" do
-    SIN_CONTROLES.each do |ruta|
+  test "todas las cabeceras son una franja, tengan controles o no" do
+    (SIN_CONTROLES + CON_CONTROLES).each do |ruta|
       get send(ruta)
-      assert_select ".cabecera-de-lista--compacta", 1,
-                    "#{ruta} no tiene controles: su cabecera sobra de alto"
+
+      assert_select ".cabecera-de-lista-franja", 1, "#{ruta} perdió su franja"
+      assert_select ".cabecera-de-lista--compacta", 0,
+                    "#{ruta}: `--compacta` se retiró y no vuelve"
     end
   end
 
-  test "un listado con buscador conserva sus dos líneas" do
-    CON_CONTROLES.each do |ruta|
-      get send(ruta)
-      assert_select ".cabecera-de-lista--compacta", 0,
-                    "#{ruta} tiene controles: colapsarla los apretaría contra el título"
-    end
+  # ⚠️ Sin controles no se dibuja el hueco: el contenedor queda vacío y el CSS
+  # lo esconde con `:empty`. Se comprueba acá porque una regla de CSS que nadie
+  # mira es una regla que alguien borra.
+  test "sin controles, el contenedor queda vacío y el CSS lo esconde" do
+    hoja = Rails.root.join("app/assets/stylesheets/system.css").read
+
+    assert_match(/\.cabecera-de-lista-controles:empty \{ display: none; \}/, hoja)
   end
 end

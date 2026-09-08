@@ -26,6 +26,8 @@
 # "guardado incremental siempre": es "que el profesor no pierda su trabajo", y
 # acá se cumple al revés.
 class AsistenciasController < ApplicationController
+  include PreparaLaAsistencia
+
   before_action :require_puede_tomar_asistencia!
   before_action :set_seccion, only: [:show, :create]
 
@@ -41,15 +43,7 @@ class AsistenciasController < ApplicationController
   end
 
   def show
-    @dia = dia_pedido
-    @inscripciones = @seccion.enrollments.includes(student: :user).to_a
-                             .sort_by { |i| [i.student.user.last_name, i.student.user.first_name] }
-
-    @asistencias = Attendance.del_dia(@dia)
-                             .where(enrollment_id: @inscripciones.map(&:id))
-                             .index_by(&:enrollment_id)
-
-    @ya_tomada = @asistencias.any?
+    preparar_la_asistencia(@seccion)
   end
 
   # Guarda el día entero de una vez: las excepciones que vinieron marcadas, y
@@ -146,12 +140,6 @@ class AsistenciasController < ApplicationController
 
   def contar(n, singular, plural)
     "#{n} #{n == 1 ? singular : plural}"
-  end
-
-  def dia_pedido
-    Date.parse(params[:dia].to_s)
-  rescue ArgumentError, TypeError
-    Date.current
   end
 
   def set_seccion

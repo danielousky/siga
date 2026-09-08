@@ -21,6 +21,8 @@
 # materias que dicta, en las secciones que tiene asignadas. Un plan ajeno no
 # aparece, así que pedirlo por id da 404 y no 403.
 class CompetenciesController < ApplicationController
+  include MuestraElPlan
+
   before_action :require_acceso!
   before_action :require_profesor!, except: [ :index ]
   before_action :set_competency, only: [ :edit, :update, :destroy, :conectar ]
@@ -242,33 +244,8 @@ class CompetenciesController < ApplicationController
                                       .find { |g| g.id.to_s == params[:grado] }
   end
 
-  def lapsos
-    return [] if asignacion.nil?
 
-    @lapsos ||= EvaluationMoment.where(academic_period_id: asignacion.section.academic_period_id)
-                                .order(:id)
-  end
-  helper_method :lapsos
 
-  def lapso
-    @lapso ||= lapsos.find { |l| l.id.to_s == params[:lapso] } || lapsos.first
-  end
-  helper_method :lapso
-
-  # Las secciones HERMANAS: mismo grado, misma materia, otra sección.
-  #
-  # ⚠️ El grado también, y faltaba: sin él, «copiar a mis otras secciones»
-  # ofrecía las DIECINUEVE donde este profesor dicta Matemática, de 1er a 5to
-  # Año. Una competencia de 1er Año no tiene nada que hacer en 5to, y copiarla
-  # allá es basura que después alguien tiene que borrar a mano.
-  def otras_secciones
-    @otras_secciones ||= mis_asignaciones.select do |ts|
-      ts.subject_id == asignacion.subject_id &&
-        ts.section.grade_id == asignacion.section.grade_id &&
-        ts.section_id != asignacion.section_id
-    end
-  end
-  helper_method :otras_secciones
 
   # ── Los tres niveles de la elección, en pastillas ────────────────────────
   #
@@ -292,20 +269,6 @@ class CompetenciesController < ApplicationController
   end
   helper_method :grado
 
-  # Las secciones de ESTE grado donde dicto ESTA materia. Es lo que decide si
-  # hay hermanas a las que copiar.
-  # El contexto de la pantalla, para los enlaces que tienen que volver acá.
-  #
-  # ⚠️ Sale de `asignacion`, no de `params`. Con las pastillas, la asignación se
-  # DEDUCE de grado+área, así que `params[:asignacion]` viene vacío la primera
-  # vez y todos los enlaces perdían la sección — «Registrar competencia» abría
-  # el formulario de otra.
-  def contexto
-    return {} if asignacion.nil?
-
-    { asignacion: "#{asignacion.section_id}:#{asignacion.subject_id}", lapso: lapso&.id }
-  end
-  helper_method :contexto
 
   def mis_areas
     @mis_areas ||= mis_asignaciones.select { |ts| ts.section.grade_id == grado&.id }
@@ -339,46 +302,8 @@ class CompetenciesController < ApplicationController
   def hay_seccion_que_elegir? = mis_secciones_del_area.many?
   helper_method :hay_seccion_que_elegir?
 
-  # Cuáles de las hermanas YA tienen plan en este lapso.
-  #
-  # ⚠️ Es lo que apaga el botón de copiar. Daniel: *«si la sección ya tiene
-  # competencia, se deshabilita esta opción con mensaje indicativo»* — y tenía
-  # razón por partida doble: copiar dos veces no duplicaba nada (la copia es
-  # idempotente) pero el botón seguía ahí, invitando a una acción que ya no
-  # hacía nada. Un control que no hace nada al tocarlo enseña a desconfiar del
-  # resto.
-  def hermanas_con_plan
-    @hermanas_con_plan ||= begin
-      ids = otras_secciones.map(&:section_id)
-      Competency.where(section_id: ids, subject_id: asignacion&.subject_id,
-                       evaluation_moment_id: lapso&.id)
-                .distinct.pluck(:section_id).to_set
-    end
-  end
-  helper_method :hermanas_con_plan
 
-  # Las que todavía no lo tienen: a esas sí se puede copiar.
-  def hermanas_sin_plan
-    @hermanas_sin_plan ||= otras_secciones.reject { |ts| hermanas_con_plan.include?(ts.section_id) }
-  end
-  helper_method :hermanas_sin_plan
 
-  # Las evaluaciones que pueden medir una competencia: las de su mismo plan.
-  #
-  # ⚠️ Se carga UNA vez para toda la pantalla, no una por competencia. Un lapso
-  # con cinco competencias y cinco evaluaciones son veinticinco consultas si se
-  # pregunta por fila.
-  def evaluaciones_del_lapso
-    return [] if asignacion.nil? || lapso.nil?
-
-    @evaluaciones_del_lapso ||= EvaluationActivity
-                                .where(section_id: asignacion.section_id,
-                                       subject_id: asignacion.subject_id,
-                                       evaluation_moment_id: lapso.id)
-                                .order(:date_scheduled, :id)
-                                .to_a
-  end
-  helper_method :evaluaciones_del_lapso
 
   def evaluaciones_que_pueden_medir(competencia)
     EvaluationActivity.where(section_id: competencia.section_id,
@@ -399,7 +324,16 @@ class CompetenciesController < ApplicationController
     "Listo: #{helpers.contar(cuantas, 'evaluación mide', 'evaluaciones miden')} esta competencia."
   end
 
+  # ⚠️ Vuelve a la PESTAÑA de la sección cuando el plan se dibujó ahí.
+  #
+  # `traer` y `copiar` son POST a este controller, y sin esto redirigían a
+  # `/competencias` — sacando al profesor de su sección justo después de una
+  # acción que hizo desde adentro.
   def plan_path
+    if params[:desde] == "seccion" && asignacion
+      return planificar_section_path(asignacion.section_id, area: asignacion.subject_id, lapso: lapso&.id)
+    end
+
     competencies_path(asignacion: "#{asignacion&.section_id}:#{asignacion&.subject_id}",
                       lapso: lapso&.id)
   end

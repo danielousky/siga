@@ -95,14 +95,33 @@ class MenuDelProfesorTest < ActionDispatch::IntegrationTest
                  css_select("a.sidebar-nav-link.active").map { |a| a["href"] }
   end
 
-  # ⚠️ Y los enlaces SIN id siguen marcándose por controller: son listados, y
-  # cualquier pantalla de ese controller cuenta como «estás acá».
-  test "un listado se marca aunque la URL traiga filtros" do
+  # ⚠️ «Mi trabajo» se retiró: sus tres entradas son pestañas de la sección.
+  #
+  # Daniel, tachando ese grupo: *«al final esta parte tiende a desaparecer»*. Es
+  # la consecuencia de que el trabajo sea por sección — un renglón que lleva a
+  # «todas mis competencias» sin decir de cuál es justo lo que las pestañas
+  # evitan, y encima obliga a elegir grado, área, sección y lapso otra vez.
+  test "el menú del profesor son sus secciones, y nada más" do
     sign_in @a.profesor
-    get evaluation_activities_path(lapso: @a.escenario.lapso(1).id)
+    get dashboards_profesor_path
 
-    marcadas = css_select("a.sidebar-nav-link.active").map { |a| a["data-nombre"] }
-    assert_equal [ "Mis evaluaciones" ], marcadas
+    titulos = css_select(".sidebar-section-title").map(&:text)
+
+    assert_equal [ "Dicto" ], titulos
+    assert_select "a.sidebar-nav-link[data-nombre=?]", "Competencias e indicadores", count: 0
+    assert_select "a.sidebar-nav-link[data-nombre=?]", "Mis evaluaciones", count: 0
+  end
+
+  # ⚠️ Pero las PANTALLAS no desaparecen: la dirección las usa desde su menú, y
+  # un enlace viejo tiene que seguir abriendo.
+  test "las pantallas que salieron del menú siguen respondiendo" do
+    sign_in @a.profesor
+
+    get evaluation_activities_path
+    assert_response :success
+
+    get competencies_path
+    assert_response :success
   end
 
   # ⚠️ El resaltado marca UNA asignación, no todas las de la misma sección.

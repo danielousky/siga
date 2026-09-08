@@ -1,19 +1,35 @@
--# La identidad de la sección y sus cuatro pestañas (etapa ③).
+-# La DESCRIPCIÓN de la sección: quién es, y nada más (etapa ③).
 -#
--# Va en las CUATRO pantallas —calificar, alumnos, asistencia y planificar—
--# porque las cuatro son la misma sección vista de otro ángulo, y una fila de
--# pestañas que desaparece al tocarla no es una fila de pestañas.
+-# ⚠️ Las pestañas NO van acá: van encabezando el panel del CONTENIDO.
+-#
+-# Daniel: *«también las pestañas van en un panel inferior. Debería ser un panel
+-# para la descripción y otro para contenidos, separados por cada pestaña»*.
+-#
+-# Y es la división correcta: esta tarjeta contesta «¿qué sección es?» —y no
+-# cambia al moverse entre pestañas— mientras que la de abajo contesta «¿qué
+-# estoy haciendo con ella?». Tenerlas juntas hacía que la fila de pestañas
+-# pareciera parte de la identidad de la sección.
 -#
 -# ⚠️ El título lleva el ÁREA cuando se entró por ella. «4to Grado – Sección A»
 -# no dice cuál de las dos que dicto ahí es, y eso es justo lo que el árbol del
 -# menú vino a resolver: repetirlo acá es confirmarlo, no adornarlo.
+-# ⚠️ Las acciones llegan como LOCAL, no como bloque: quien las pasa es
+-# `sections/_marco`, y un parcial no puede reenviar el bloque que recibió.
+- acciones = local_assigns[:acciones]
 - area = local_assigns[:area]
 - inscritos = local_assigns.fetch(:inscritos, seccion.enrollments.where(status: :regular).size)
-- detalle = area&.name
+-# ⚠️ El área va DENTRO del título, no al lado como detalle gris.
+-#
+-# Daniel lo dibujó así encima de una captura: «4to Grado · Sección A ·
+-# Matemáticas» en una sola franja. Y es correcto — el área no es contexto de la
+-# sección, es la mitad de la identidad: «4to Grado – A» no dice cuál de las dos
+-# que dicto ahí estoy calificando, que es justo lo que el árbol vino a
+-# resolver.
+- titulo = [ "#{seccion.grade.name} · Sección #{seccion.name}", area&.name ].compact.join(" · ")
 
 .card-academic
-  = render layout: "shared/cabecera", locals: { titulo: "#{seccion.grade.name} – Sección #{seccion.name}", detalle: detalle } do
-    - if local_assigns[:acciones].present?
+  = render layout: "shared/cabecera", locals: { titulo: titulo } do
+    - if acciones.present?
       = acciones
 
   -# ⚠️ Los cuatro datos de la sección van ACÁ, en el encabezado compartido, y
@@ -43,5 +59,3 @@
         %span.detail-label Aula
         %p.detail-value= seccion.classroom
 
-  = render "shared/pestanas", etiqueta: "Vistas de esta sección",
-           pestanas: pestanas_de_la_seccion(seccion, area: area, activa: activa)

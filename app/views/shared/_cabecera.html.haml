@@ -124,20 +124,24 @@
 -# Se DEDUCE de lo que la vista pasa, no se pide: una pantalla que mañana gane
 -# un buscador vuelve a dos renglones sin tocar nada. Preguntarlo sería un
 -# `compacta: true` que se queda viejo.
--# ⚠️ UNA sola línea cuando no hay nada que poner en la de abajo (QA de Daniel,
--# señalando Grados: *«alto mínimo, espacio desaprovechado»*).
+-# ⚠️ `--compacta` —título y controles en la MISMA fila— se retiró.
 -#
--# Se DEDUCE de lo que la vista pasa, no se pide: una pantalla que mañana gane
--# un buscador vuelve a dos renglones sin tocar nada.
+-# Existía para ahorrar alto en las pantallas sin buscador («Grados  ……
+-# [+ Agregar]» en un renglón), y es incompatible con lo que Daniel pidió
+-# después: *«que el título no se detenga ni en el botón ni en filtros, completo
+-# siempre»*. Compartir renglón es exactamente lo que lo detenía.
 -#
--# ⚠️ El ALTA y las ACCIONES no la rompen, y eso es deliberado: compacta pone
--# título y controles en la MISMA fila, que es justo lo que hace falta para
--# «Grados  ……  [+ Agregar]» o para «Editar sección  ……  [Volver]». Mirarlas acá
--# devolvería esas pantallas a dos renglones — una regresión de sesenta píxeles
--# de alto en todas.
-- compacta = !busca && extras.empty? && local_assigns[:alta_en_linea].nil? && local_assigns[:importar].nil?
+-# El costo son unos treinta píxeles de alto en las cuatro pantallas que no
+-# buscan. Se gana que las ochenta y cuatro se lean igual.
+-# ⚠️ El contenedor de controles se dibuja SIEMPRE y se esconde con
+-# `:empty` en el CSS, en vez de envolverlo en un `- if`.
+-#
+-# Meterlo bajo un `if` obliga a reindentar ciento cuarenta líneas, y ahí vive
+-# la trampa de Haml que este proyecto ya pisó tres veces: la continuación de
+-# una expresión partida se lee como indentación y revienta con «inconsistent
+-# indentation». `:empty` cuesta una regla de CSS y no toca nada.
 
-.cabecera-de-lista{ class: ("cabecera-de-lista--compacta" if compacta) }
+.cabecera-de-lista
   -# ⚠️ DOS renglones, y una sola sección (MOR-194).
   -#
   -# Daniel: *«van a terminar siendo 2 líneas de la misma sección: arriba el
@@ -150,159 +154,170 @@
   -# igual, pero de una manera que depende de la pantalla. Partirlo a propósito
   -# hace que las ocho se vean iguales tengan dos controles o seis.
   -#
-  -# Y separa dos cosas que no son la misma: arriba QUÉ estoy viendo, abajo qué
-  -# le hago. El título deja de competir por el ancho con los controles.
-  .cabecera-de-lista-titular
-    = content_tag etiqueta_del_titulo, titulo, class: "cabecera-de-lista-titulo"
-    -# ⚠️ `detalle_destacado` invierte el peso del título y el detalle.
-    -#
-    -# En casi todas las pantallas el título manda —«Alumnos», «Secciones»— y el
-    -# detalle es contexto. Pero hay una donde es al revés: en «Competencias e
-    -# indicadores», el título dice lo mismo las veinte veces que se abre,
-    -# mientras que «1er Grado A · Matemática» dice DÓNDE ESTOY PARADO —y eso es
-    -# lo que hay que confirmar de un vistazo antes de escribir algo.
-    -#
-    -# Daniel: *«el título del Grado - Sección - Área hay que resaltarlo más,
-    -# debe ser de rápida lectura»*.
-    - if local_assigns[:detalle].present?
-      %p.cabecera-de-lista-detalle{ class: ("cabecera-de-lista-detalle--destacado" if local_assigns[:detalle_destacado]) }
-        = detalle
-
-  .cabecera-de-lista-controles
-
-    -# ⚠️ Una lista corta no se filtra: se escribe en ella (MOR-205).
-    -#
-    -# Daniel, mirando Departamentos: *«la creación de los dptos es solo el campo
-    -# nombre; en ese caso podemos sustituir el filtro por un campo del new para
-    -# agregar directamente allí… El filtro no hace falta, a lo sumo serán 10
-    -# departamentos»*.
-    -#
-    -# Y es el mismo lugar de la pantalla haciendo el trabajo que corresponde:
-    -# con diez filas a la vista, un buscador es un control que nadie toca y un
-    -# campo de alta es el que se usa. Cuando la entidad tiene UN campo, ir a
-    -# otra pantalla para escribirlo es todo el trámite.
-    - if local_assigns[:alta_en_linea]
-      -# ⚠️ El rótulo NOMBRA lo que se agrega y el botón solo dice el verbo
-      -# (MOR-207). Daniel: *«el primer "Agregar" lo vas a reemplazar por
-      -# "Agregar Nueva <cosa>" y el del botón submit va a ser un [+ Agregar]»*.
+  -# ⚠️ El título y los controles van DENTRO de la misma franja.
+  -#
+  -# Daniel, señalando el botón que había quedado en la fila de arriba: *«el
+  -# botón quedó arriba, es dentro»*. Y antes: *«que el título no se detenga ni
+  -# en el botón ni en filtros, completo siempre, elementos adicionales sobre
+  -# él»*.
+  -#
+  -# Las dos cosas juntas dan esto: una sola barra de borde a borde, con el
+  -# título a la izquierda y lo que se hace con la pantalla a la derecha. Ni el
+  -# título compartiendo ancho —se cortaba antes del primer botón— ni los
+  -# controles en un renglón aparte, que costaba treinta píxeles y partía en dos
+  -# lo que es una sola cosa.
+  .cabecera-de-lista-franja
+    .cabecera-de-lista-titular
+      = content_tag etiqueta_del_titulo, titulo, class: "cabecera-de-lista-titulo"
+      -# ⚠️ `detalle_destacado` invierte el peso del título y el detalle.
       -#
-      -# Antes los dos decían «Agregar» y quedaban uno a cada lado del mismo
-      -# campo, diciendo lo mismo dos veces sin decir de qué.
+      -# En casi todas las pantallas el título manda —«Alumnos», «Secciones»— y el
+      -# detalle es contexto. Pero hay una donde es al revés: en «Competencias e
+      -# indicadores», el título dice lo mismo las veinte veces que se abre,
+      -# mientras que «1er Grado A · Matemática» dice DÓNDE ESTOY PARADO —y eso es
+      -# lo que hay que confirmar de un vistazo antes de escribir algo.
       -#
-      -# ⚠️ Acá sí se escribe «Nuevo/Nueva» —que `MOR-175` evita— y no rompe esa
-      -# regla: lo que ella esquiva es la concordancia DEDUCIDA, y este texto lo
-      -# escribe la vista, una vez, con el género a la vista.
-      = form_with url: alta_en_linea[:ruta], class: "cabecera-de-lista-filtros cabecera-de-lista-alta" do |f|
-        .campo-con-boton
-          = f.label alta_en_linea[:campo], alta_en_linea[:etiqueta], class: "campo-con-boton-inicio"
-          .search-input-wrap
-            = f.text_field alta_en_linea[:campo], class: "form-control", autocomplete: "off",
-                required: true, placeholder: alta_en_linea[:placeholder],
-                value: nil, name: alta_en_linea[:nombre_del_campo]
-          -# ⚠️ `button_tag` y no `f.submit`: un `<input type=submit>` no admite
-          -# hijos, así que no puede llevar el icono adentro.
-          = button_tag type: :submit, class: "btn btn-guardar campo-con-boton-final" do
-            = icono(:agregar, tamano: 16)
-            %span Agregar
+      -# Daniel: *«el título del Grado - Sección - Área hay que resaltarlo más,
+      -# debe ser de rápida lectura»*.
+      - if local_assigns[:detalle].present?
+        %p.cabecera-de-lista-detalle{ class: ("cabecera-de-lista-detalle--destacado" if local_assigns[:detalle_destacado]) }
+          = detalle
 
-    - elsif busca || extras.any?
-      -# ⚠️ `local: false` y el `turbo_frame` explícito, igual que antes: el frame de
-      -# resultados declara `target: "_top"` para que los enlaces de las filas salgan
-      -# de él, y el destino explícito del formulario es lo que le gana a ese target.
-      = form_with url: ruta, method: :get, local: false, class: "cabecera-de-lista-filtros",
-          data: { controller: "search-filter", turbo_frame: marco,
-                  action: "submit->search-filter#hideSpinner" } do |f|
+    .cabecera-de-lista-controles
 
-        -# El campo y «Limpiar» son UN control: se pegan sin borde entre ellos, como
-        -# la cédula con su V/E (`campo-compuesto`, MOR-178).
-        -# ⚠️ `- if busca`: una pantalla puede traer un filtro sin traer buscador.
-        - if busca
+      -# ⚠️ Una lista corta no se filtra: se escribe en ella (MOR-205).
+      -#
+      -# Daniel, mirando Departamentos: *«la creación de los dptos es solo el campo
+      -# nombre; en ese caso podemos sustituir el filtro por un campo del new para
+      -# agregar directamente allí… El filtro no hace falta, a lo sumo serán 10
+      -# departamentos»*.
+      -#
+      -# Y es el mismo lugar de la pantalla haciendo el trabajo que corresponde:
+      -# con diez filas a la vista, un buscador es un control que nadie toca y un
+      -# campo de alta es el que se usa. Cuando la entidad tiene UN campo, ir a
+      -# otra pantalla para escribirlo es todo el trámite.
+      - if local_assigns[:alta_en_linea]
+        -# ⚠️ El rótulo NOMBRA lo que se agrega y el botón solo dice el verbo
+        -# (MOR-207). Daniel: *«el primer "Agregar" lo vas a reemplazar por
+        -# "Agregar Nueva <cosa>" y el del botón submit va a ser un [+ Agregar]»*.
+        -#
+        -# Antes los dos decían «Agregar» y quedaban uno a cada lado del mismo
+        -# campo, diciendo lo mismo dos veces sin decir de qué.
+        -#
+        -# ⚠️ Acá sí se escribe «Nuevo/Nueva» —que `MOR-175` evita— y no rompe esa
+        -# regla: lo que ella esquiva es la concordancia DEDUCIDA, y este texto lo
+        -# escribe la vista, una vez, con el género a la vista.
+        = form_with url: alta_en_linea[:ruta], class: "cabecera-de-lista-filtros cabecera-de-lista-alta" do |f|
           .campo-con-boton
-            -# ⚠️ «Buscar» vuelve, pero PEGADO adelante y no encima (MOR-193).
-            -#
-            -# Daniel: *«siendo así creo que podemos alargar un poco más el buscador y
-            -# colocarle Buscar como pre-group»*. Y es otra cosa que la etiqueta que se
-            -# quitó: aquélla vivía en su propio renglón y costaba altura; ésta va
-            -# dentro del grupo y no cuesta ninguna.
-            -#
-            -# Es un `label` de verdad y no un `span`: así se puede tocar para enfocar
-            -# el campo —un blanco de 70 px en un teléfono— y además ES el nombre
-            -# accesible del input, que por eso ya no necesita `aria-label`.
-            = f.label campo, "Buscar", class: "campo-con-boton-inicio"
+            = f.label alta_en_linea[:campo], alta_en_linea[:etiqueta], class: "campo-con-boton-inicio"
             .search-input-wrap
-              = f.text_field campo, value: params[campo], placeholder: pista, autocomplete: "off",
-                  class: "form-control",
-                  data: { "search-filter-target": "input", action: "input->search-filter#search" }
-              %span.search-spinner.hidden{data: { "search-filter-target": "spinner" }}
-            = link_to ruta, class: "btn btn-secondary campo-con-boton-final",
-                      data: { tooltip: "Limpiar la búsqueda" }, "aria-label": "Limpiar la búsqueda" do
-              = icono(:cerrar, tamano: 15)
+              = f.text_field alta_en_linea[:campo], class: "form-control", autocomplete: "off",
+                  required: true, placeholder: alta_en_linea[:placeholder],
+                  value: nil, name: alta_en_linea[:nombre_del_campo]
+            -# ⚠️ `button_tag` y no `f.submit`: un `<input type=submit>` no admite
+            -# hijos, así que no puede llevar el icono adentro.
+            = button_tag type: :submit, class: "btn btn-guardar campo-con-boton-final" do
+              = icono(:agregar, tamano: 16)
+              %span Agregar
 
-        - extras.each do |extra|
-          - case extra[:type]
-          - when :select_agrupado
-            -# ⚠️ `grouped_options_for_select` y no opciones anidadas en `f.select`:
-            -# ése aplana el anidamiento y pinta el nombre del grupo como una opción
-            -# elegible.
-            = f.select extra[:name], grouped_options_for_select(extra[:options], params[extra[:name]]),
-                { include_blank: extra[:blanco] },
-                { class: "form-select cabecera-de-lista-select", "aria-label": extra[:label],
-                  data: { action: "change->search-filter#search" } }
-          - when :date
-            -# ⚠️ La fecha SÍ lleva su etiqueta visible: «Desde» y «Hasta» no se
-            -# deducen de nada. Un campo de fecha vacío se ve idéntico al otro, y
-            -# dos iguales al lado son una adivinanza — que es exactamente lo que la
-            -# etiqueta del buscador no hacía falta para evitar.
-            %span.cabecera-de-lista-fecha
-              = f.label extra[:name], extra[:label], class: "cabecera-de-lista-etiqueta"
-              = f.date_field extra[:name], value: params[extra[:name]], class: "form-select",
-                  data: { action: "change->search-filter#search" }
-          - else
-            = f.select extra[:name], extra[:options], { selected: params[extra[:name]] },
-                { class: "form-select cabecera-de-lista-select", "aria-label": extra[:label],
-                  data: { action: "change->search-filter#search" } }
+      - elsif busca || extras.any?
+        -# ⚠️ `local: false` y el `turbo_frame` explícito, igual que antes: el frame de
+        -# resultados declara `target: "_top"` para que los enlaces de las filas salgan
+        -# de él, y el destino explícito del formulario es lo que le gana a ese target.
+        = form_with url: ruta, method: :get, local: false, class: "cabecera-de-lista-filtros",
+            data: { controller: "search-filter", turbo_frame: marco,
+                    action: "submit->search-filter#hideSpinner" } do |f|
 
-    -# ⚠️ El importador va DONDE ESTÁN LOS DATOS (MOR-204).
-    -#
-    -# Daniel: *«esos enlaces a importar directamente deberían estar en sus
-    -# respectivas listas: Materias / Profesores, Estudiantes e Inscripciones»*.
-    -#
-    -# Y es la misma idea que ya arregló el estado vacío: vivían solo en
-    -# Configuración → Importar datos, o sea que para subir la matrícula había
-    -# que salir de Alumnos, entrar a otra sección y elegir de cuál de las tres
-    -# planillas se trataba. La pantalla que ya sabe de qué datos se habla puede
-    -# decirlo por uno.
-    -#
-    -# ⚠️ Tono `accion` (índigo) y no `primary`: MOR-172 lo reserva para lo que
-    -# hace MUCHO de una vez, y una planilla carga trescientas filas mientras que
-    -# «Agregar» carga una. Que se distingan es el punto de esa regla.
-    -# ⚠️ Recibe el TIPO y nada más: el nombre, el destino y el icono los pone
-    -# `boton_de_importar`. Antes recibía `{ tipo:, nombre: }` y cada vista
-    -# escribía su propio nombre — así fue como el pensum terminó con tres.
-    - if local_assigns[:importar]
-      = boton_de_importar importar
+          -# El campo y «Limpiar» son UN control: se pegan sin borde entre ellos, como
+          -# la cédula con su V/E (`campo-compuesto`, MOR-178).
+          -# ⚠️ `- if busca`: una pantalla puede traer un filtro sin traer buscador.
+          - if busca
+            .campo-con-boton
+              -# ⚠️ «Buscar» vuelve, pero PEGADO adelante y no encima (MOR-193).
+              -#
+              -# Daniel: *«siendo así creo que podemos alargar un poco más el buscador y
+              -# colocarle Buscar como pre-group»*. Y es otra cosa que la etiqueta que se
+              -# quitó: aquélla vivía en su propio renglón y costaba altura; ésta va
+              -# dentro del grupo y no cuesta ninguna.
+              -#
+              -# Es un `label` de verdad y no un `span`: así se puede tocar para enfocar
+              -# el campo —un blanco de 70 px en un teléfono— y además ES el nombre
+              -# accesible del input, que por eso ya no necesita `aria-label`.
+              = f.label campo, "Buscar", class: "campo-con-boton-inicio"
+              .search-input-wrap
+                = f.text_field campo, value: params[campo], placeholder: pista, autocomplete: "off",
+                    class: "form-control",
+                    data: { "search-filter-target": "input", action: "input->search-filter#search" }
+                %span.search-spinner.hidden{data: { "search-filter-target": "spinner" }}
+              = link_to ruta, class: "btn btn-secondary campo-con-boton-final",
+                        data: { tooltip: "Limpiar la búsqueda" }, "aria-label": "Limpiar la búsqueda" do
+                = icono(:cerrar, tamano: 15)
 
-    -# Las acciones que la vista pasó como bloque: [Volver], chips, badges.
-    -# Van ANTES del alta, que es la que cierra la fila a la derecha.
-    - if acciones.present?
-      = acciones
+          - extras.each do |extra|
+            - case extra[:type]
+            - when :select_agrupado
+              -# ⚠️ `grouped_options_for_select` y no opciones anidadas en `f.select`:
+              -# ése aplana el anidamiento y pinta el nombre del grupo como una opción
+              -# elegible.
+              = f.select extra[:name], grouped_options_for_select(extra[:options], params[extra[:name]]),
+                  { include_blank: extra[:blanco] },
+                  { class: "form-select cabecera-de-lista-select", "aria-label": extra[:label],
+                    data: { action: "change->search-filter#search" } }
+            - when :date
+              -# ⚠️ La fecha SÍ lleva su etiqueta visible: «Desde» y «Hasta» no se
+              -# deducen de nada. Un campo de fecha vacío se ve idéntico al otro, y
+              -# dos iguales al lado son una adivinanza — que es exactamente lo que la
+              -# etiqueta del buscador no hacía falta para evitar.
+              %span.cabecera-de-lista-fecha
+                = f.label extra[:name], extra[:label], class: "cabecera-de-lista-etiqueta"
+                = f.date_field extra[:name], value: params[extra[:name]], class: "form-select",
+                    data: { action: "change->search-filter#search" }
+            - else
+              = f.select extra[:name], extra[:options], { selected: params[extra[:name]] },
+                  { class: "form-select cabecera-de-lista-select", "aria-label": extra[:label],
+                    data: { action: "change->search-filter#search" } }
 
-    - if alta
-      -# ⚠️ Dice «Agregar», no solo [+] (MOR-194).
+      -# ⚠️ El importador va DONDE ESTÁN LOS DATOS (MOR-204).
       -#
-      -# Daniel: *«el [+] puede cambiar a [+ Agregar]»* y después *«colocarle el
-      -# nombre al botón de new»*. Nació pelado porque la cabecera era un solo
-      -# renglón; con dos, sobra sitio.
+      -# Daniel: *«esos enlaces a importar directamente deberían estar en sus
+      -# respectivas listas: Materias / Profesores, Estudiantes e Inscripciones»*.
       -#
-      -# Y en el teléfono es lo que lo salva: ahí **no hay hover**, así que un
-      -# icono solo es un botón mudo a un dedo de distancia de tocarlo sin saber
-      -# qué hace.
+      -# Y es la misma idea que ya arregló el estado vacío: vivían solo en
+      -# Configuración → Importar datos, o sea que para subir la matrícula había
+      -# que salir de Alumnos, entrar a otra sección y elegir de cuál de las tres
+      -# planillas se trataba. La pantalla que ya sabe de qué datos se habla puede
+      -# decirlo por uno.
       -#
-      -# ⚠️ El tooltip se queda aunque el botón ya se lea, y no es redundante:
-      -# dice QUÉ se agrega («Registrar inscripción»). Es lo que sostiene la
-      -# regla de MOR-175 —una acción, un nombre— ahora que lo visible es el
-      -# verbo a secas.
-      = link_to alta[:ruta], class: "btn btn-guardar btn-agregar",
-                data: { tooltip: alta[:nombre] }, "aria-label": alta[:nombre] do
-        = icono(:agregar, tamano: 18)
-        %span Agregar
+      -# ⚠️ Tono `accion` (índigo) y no `primary`: MOR-172 lo reserva para lo que
+      -# hace MUCHO de una vez, y una planilla carga trescientas filas mientras que
+      -# «Agregar» carga una. Que se distingan es el punto de esa regla.
+      -# ⚠️ Recibe el TIPO y nada más: el nombre, el destino y el icono los pone
+      -# `boton_de_importar`. Antes recibía `{ tipo:, nombre: }` y cada vista
+      -# escribía su propio nombre — así fue como el pensum terminó con tres.
+      - if local_assigns[:importar]
+        = boton_de_importar importar
+
+      -# Las acciones que la vista pasó como bloque: [Volver], chips, badges.
+      -# Van ANTES del alta, que es la que cierra la fila a la derecha.
+      - if acciones.present?
+        = acciones
+
+      - if alta
+        -# ⚠️ Dice «Agregar», no solo [+] (MOR-194).
+        -#
+        -# Daniel: *«el [+] puede cambiar a [+ Agregar]»* y después *«colocarle el
+        -# nombre al botón de new»*. Nació pelado porque la cabecera era un solo
+        -# renglón; con dos, sobra sitio.
+        -#
+        -# Y en el teléfono es lo que lo salva: ahí **no hay hover**, así que un
+        -# icono solo es un botón mudo a un dedo de distancia de tocarlo sin saber
+        -# qué hace.
+        -#
+        -# ⚠️ El tooltip se queda aunque el botón ya se lea, y no es redundante:
+        -# dice QUÉ se agrega («Registrar inscripción»). Es lo que sostiene la
+        -# regla de MOR-175 —una acción, un nombre— ahora que lo visible es el
+        -# verbo a secas.
+        = link_to alta[:ruta], class: "btn btn-guardar btn-agregar",
+                  data: { tooltip: alta[:nombre] }, "aria-label": alta[:nombre] do
+          = icono(:agregar, tamano: 18)
+          %span Agregar

@@ -6262,9 +6262,17 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   border-bottom-color: var(--border-standard);
 }
 
+/* ⚠️ La activa lleva además un fondo pastel, no solo la línea de abajo.
+   Daniel: «la pestaña activa un poco más resaltada, pudiera ser agregarle un
+   sutil bg pastel». Con la línea sola, en una fila de cuatro hay que buscar
+   cuál está subrayada; con el fondo se ve sin leer.
+   Es el mismo `--brand-subtle` de la franja del título y del ítem activo del
+   sidebar: las tres marcas de «estás acá» son la misma. */
 .pestana.activa {
   color: var(--brand-primary);
   border-bottom-color: var(--brand-primary);
+  background: var(--brand-subtle);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
 .pestana:focus-visible {
@@ -9108,20 +9116,9 @@ a.subject-avance:hover { filter: brightness(0.9); }
    que apila TODO a propósito: en un teléfono el título y el botón compartiendo
    renglón dejan al botón de 90 px, que es donde se falla al tocarlo. */
 @media (min-width: 701px) {
-  .cabecera-de-lista--compacta {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-md);
-  }
 
-  /* Se come el sobrante para que el botón quede pegado a la derecha aunque el
-     título sea corto. */
-  .cabecera-de-lista--compacta .cabecera-de-lista-titular { flex: 1; min-width: 0; }
-  .cabecera-de-lista--compacta .cabecera-de-lista-controles { flex: 0 0 auto; }
 
   /* Con una sola línea, el aire de arriba y abajo también sobra. */
-  .cabecera-de-lista--compacta { padding-block: var(--space-md); }
 }
 
 .cabecera-de-lista-titular {
@@ -9131,7 +9128,51 @@ a.subject-avance:hover { filter: brightness(0.9); }
   gap: var(--space-xs) var(--space-md);
 }
 
-.cabecera-de-lista-titulo { margin: 0; }
+/* ⚠️ El título de la pantalla se ve como el ítem ACTIVO del sidebar, y eso es
+   una asociación deliberada.
+   QA de Daniel: «los títulos deberían ser similares a los ítems activos del
+   sidebar: pipe con fondo de color sutil, habría una asociación y referencia».
+   El ojo va del renglón marcado en el menú al título y reconoce la misma
+   marca: es el mismo «estás acá», dicho dos veces.
+   Mismos tokens que `.sidebar-nav-link.active`, para que sigan iguales el día
+   que cambie la marca. */
+.cabecera-de-lista-titulo {
+  margin: 0;
+  color: var(--brand-primary);
+}
+
+/* ⚠️ LA FRANJA: el título y los controles, en una sola barra de borde a borde.
+   ─────────────────────────────────────────────────────────────────────────
+   Daniel, en dos pasos. Primero: «que el título no se detenga ni en el botón
+   ni en filtros, completo siempre, elementos adicionales sobre él». Y al ver
+   el botón en un renglón aparte: «el botón quedó arriba, es dentro».
+
+   Juntos dan esto — una barra completa con el título a la izquierda y lo que
+   se hace con la pantalla a la derecha. Lleva la MISMA marca que el ítem
+   activo del sidebar («habría una asociación y referencia»), con sus mismos
+   tokens para que sigan iguales el día que cambie. */
+.cabecera-de-lista-franja {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+  padding: var(--space-xs) var(--space-md);
+  border-left: 3px solid var(--brand-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--brand-subtle);
+  /* ⚠️ `min-width: 0` o la franja NO se encoge por debajo de su contenido.
+     Un flex item toma `min-width: auto` por defecto, así que el campo de alta
+     en línea de Departamentos —etiqueta + input + botón— la empujaba 1 px más
+     allá de los 390 px de un teléfono. Lo destapó el test de desborde: un
+     píxel es scroll horizontal igual. */
+  min-width: 0;
+}
+
+/* El titular se come el sobrante para que los controles queden pegados a la
+   derecha aunque el título sea corto. */
+.cabecera-de-lista-franja > .cabecera-de-lista-titular { flex: 1 1 auto; min-width: 0; }
+.cabecera-de-lista-franja > .cabecera-de-lista-controles { flex: 0 1 auto; min-width: 0; }
 
 .cabecera-de-lista-detalle {
   margin: 0;
@@ -9171,7 +9212,15 @@ a.subject-avance:hover { filter: brightness(0.9); }
   align-items: center;
   gap: var(--space-sm);
   flex-wrap: wrap;
+  /* Los controles van ARRIBA del título desde el 8 de septiembre — Daniel:
+     «que el título no se detenga ni en el botón ni en filtros, completo
+     siempre, elementos adicionales sobre él». */
+  justify-content: flex-end;
 }
+
+/* Sin controles no hay fila: el `:empty` evita el hueco sin tener que envolver
+   ciento cuarenta líneas de Haml en un `if`. */
+.cabecera-de-lista-controles:empty { display: none; }
 
 .cabecera-de-lista-filtros {
   display: flex;
@@ -9259,6 +9308,38 @@ a.subject-avance:hover { filter: brightness(0.9); }
 
   .cabecera-de-lista .campo-con-boton { width: 100%; }
   .cabecera-de-lista .search-input-wrap { flex: 1; width: auto; }
+
+  /* ⚠️ Y el INPUT de adentro también tiene que poder encogerse.
+     `min-width: 0` en el `.search-input-wrap` no alcanza: un `<input>` trae su
+     propio ancho intrínseco de la UA (~180 px), y con el padre a `width: 100%`
+     los hijos se desbordan sin que el rect del padre crezca — el botón de al
+     lado terminaba 1 px fuera del viewport. Un píxel es scroll horizontal
+     igual, y lo destapó el test de desborde, no el ojo. */
+  .cabecera-de-lista .search-input-wrap > .form-control { width: 100%; min-width: 0; }
+
+  /* ⚠️ Y el rótulo pegado adelante se sube a su propio renglón.
+     «Agregar nuevo departamento» mide 222 px con `flex: 0 0 auto` —no encoge—
+     así que en 390 px se comía el campo entero y empujaba al botón fuera del
+     viewport. En el teléfono el rótulo va ENCIMA: el grupo sigue siendo uno
+     solo, con los bordes redondeados de arriba en el rótulo. */
+  .cabecera-de-lista .campo-con-boton { flex-wrap: wrap; }
+
+  .cabecera-de-lista .campo-con-boton > .campo-con-boton-inicio {
+    flex: 1 1 100%;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    border-right-width: 1px;
+  }
+
+  .cabecera-de-lista .campo-con-boton > .search-input-wrap > .form-control {
+    border-radius: 0 0 0 var(--radius-sm);
+    border-top-width: 0;
+  }
+
+  .cabecera-de-lista .campo-con-boton > .campo-con-boton-final {
+    border-radius: 0 0 var(--radius-sm) 0;
+    border-top-width: 0;
+    margin-left: 0;
+  }
   .cabecera-de-lista-select { width: 100%; }
 
   /* Con los controles apilados, el botón ya no va «al final de la fila»: es
@@ -9529,9 +9610,34 @@ a.subject-avance:hover { filter: brightness(0.9); }
    eso el `margin-left: auto` no hace nada: un ítem que crece ya ocupa todo el
    sobrante, así que no queda margen que repartir. Se veía como «el cambio no se
    aplicó». */
+/* ⚠️ `1 1 auto` y no `0 0 auto`: dentro de la franja tiene que poder
+   ENCOGERSE. El alta en línea de Departamentos —«Agregar nuevo departamento» +
+   campo + botón— desbordaba un teléfono por 1 px con `0 0 auto`, y un píxel es
+   scroll horizontal igual. */
 .cabecera-de-lista-alta {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
   margin-left: auto;
+}
+
+.cabecera-de-lista-alta .campo-con-boton { min-width: 0; }
+.cabecera-de-lista-alta .search-input-wrap { min-width: 0; }
+
+/* ⚠️ En el teléfono la franja APILA, y no es cosmética: es lo que impide el
+   scroll horizontal.
+   Con título y controles compartiendo renglón, el alta en línea de
+   Departamentos —etiqueta larga + campo + botón— no cabe en 390 px, y un flex
+   item no encoge por debajo de su contenido aunque le pongan `min-width: 0`
+   si sus hijos tampoco lo hacen. Apilar resuelve la causa en vez de pelearle
+   a la cadena entera. */
+@media (max-width: 640px) {
+  .cabecera-de-lista-franja {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cabecera-de-lista-franja > .cabecera-de-lista-controles { justify-content: flex-start; }
+  .cabecera-de-lista-alta { margin-left: 0; width: 100%; }
 }
 
 /* Y el campo se queda con un ancho cómodo en vez de estirarse: el nombre de un
