@@ -23,8 +23,15 @@
                 class: "btn btn-secondary btn-sm btn-solo-icono",
                 data: { tooltip: "Editar la evaluación" }, "aria-label": "Editar la evaluación" do
         = icono(:editar, tamano: 14)
+      -# ⚠️ El aviso decía «se borran también las notas cargadas», y es al revés:
+      -# con notas, el modelo RECHAZA el borrado. Prometer lo que no va a pasar
+      -# es peor que no ofrecerlo — quien lo lee acepta creyendo otra cosa, y lo
+      -# que recibe es un error.
+      - notas = notas_cargadas_en(evaluacion)
+      - aviso = notas.zero? ? "¿Borrar «#{evaluacion.description}»? Deja de contar en el promedio del lapso." : "«#{evaluacion.description}» tiene #{contar(notas, 'nota cargada', 'notas cargadas')} y no se puede borrar hasta que se vacíen desde su planilla."
       = button_to evaluation_activity_path(evaluacion, contexto),
                   method: :delete, class: "btn btn-danger btn-sm btn-solo-icono",
-                  form: { data: { turbo_confirm: "¿Borrar «#{evaluacion.description}»? Se borran también las notas cargadas." } },
-                  data: { tooltip: "Borrar" }, "aria-label": "Borrar" do
+                  form: { data: { turbo_confirm: aviso } },
+                  data: { tooltip: (notas.zero? ? "Borrar" : "Tiene notas cargadas") },
+                  "aria-label": "Borrar" do
         = icono(:borrar, tamano: 14)

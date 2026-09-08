@@ -166,9 +166,15 @@ class EvaluationActivitiesControllerTest < ActionDispatch::IntegrationTest
       delete evaluation_activity_url(@de_garcia)
     end
 
-    assert_redirected_to evaluation_activity_url(@de_garcia)
-    assert_match(/no se puede eliminar mientras tenga/i, flash[:alert])
+    # ⚠️ Vuelve a la LIBRETA, no a la ficha de la evaluación. Dentro de un
+    # turbo_frame, un redirect a una pantalla que no tiene ese frame deja
+    # «Content missing» donde estaba todo — lo reportó Daniel el 8 de
+    # septiembre. Ver `test/integration/el_frame_sobrevive_test.rb`.
+    assert_redirected_to a_la_libreta_de(@de_garcia)
+    assert_match(/no se puede eliminar: todavía tiene notas/i, flash[:alert])
+    # Ni el inglés de Rails ni el nombre de la tabla: decía «activity grades».
     assert_no_match(/Cannot delete/, flash[:alert])
+    assert_no_match(/activity grades/i, flash[:alert])
   end
 
   # ════════════════════════════════════════════════════════════════════════

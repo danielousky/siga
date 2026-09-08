@@ -41,8 +41,11 @@ es:
         # ("Cannot delete record because dependent activity grades exist") además
         # de estar en inglés no dice qué hacer.
         restrict_dependent_destroy:
-          has_one: "no se puede eliminar: tiene %{record} asociado"
-          has_many: "no se puede eliminar mientras tenga %{record} cargadas"
+          # ⚠️ El mensaje no lleva género ni «cargadas»: el mismo texto sale
+          # para notas, secciones, alumnos e inscripciones, y cualquier
+          # adjetivo concuerda con la mitad. `%{record}` ya dice qué es.
+          has_one: "no se puede eliminar: todavía tiene %{record}"
+          has_many: "no se puede eliminar: todavía tiene %{record}"
 
     models:
       school:
@@ -125,23 +128,38 @@ es:
         dea_code: Código DEA
         location: Ubicación
         school_type: Tipo de institución
+        academic_periods: Años escolares
+        admins: Administradores
+        departments: Departamentos
+        grades: Grados
+        students: Alumnos
+        subjects: Áreas de aprendizaje
+        teachers: Profesores
         logo: Logotipo
       grade:
         level: Nivel
+        sections: Secciones
         escala: Escala de calificación
       academic_period:
         start_date: Fecha de inicio
+        evaluation_moments: Lapsos
+        sections: Secciones
         end_date: Fecha de cierre
       evaluation_moment:
         weight: Peso
         starts_on: Comienza el
+        evaluation_activities: Evaluaciones
+        moment_grades: Notas de lapso
         ends_on: Termina el
       student:
+        activity_grades: Notas
+        enrollments: Inscripciones
         school_card: Carnet
       evaluation_activity:
         description: Descripción
         weight_percentage: Ponderación
         date_scheduled: Fecha prevista
+        activity_grades: Notas
         evaluation_moment: Lapso
       activity_grade:
         score: Nota
@@ -158,6 +176,8 @@ es:
       # ⚠️ «Identificador» y no «Nombre» (MOR-170). Daniel: «lo natural es que
       # siempre sean los mismos... esto además permite que se entienda como un
       # campo no demasiado libre». Una sección se llama «A», no «Sección A de
+        final_grade_books: Notas definitivas
+        moment_grades: Notas de lapso
       # primer año en el turno de la mañana», y el rótulo es lo que lo dice.
       section:
         name: Identificador
@@ -166,6 +186,31 @@ es:
   # Va DENTRO de `es:` y FUERA de `activerecord:` — Rails lo busca como
   # `es.attributes.<atributo>` cuando no encuentra el del modelo. Si se escribe
   # al nivel del documento, YAML lo interpreta como otro idioma y no se aplica.
+        enrollments: Inscripciones
+        evaluation_activities: Evaluaciones
+
+
+      # ── Lo que IMPIDE borrar (`dependent: :restrict_with_error`) ──────────
+      #
+      # ⚠️ El mensaje ya estaba en español; el nombre de la asociación NO, y es
+      # el que se lee: **«no se puede eliminar mientras tenga activity grades
+      # cargadas»** era lo que veía un profesor al intentar borrar una
+      # evaluación con notas. Lo encontró Daniel el 8 de septiembre.
+      #
+      # Son las veintiséis asociaciones con `restrict_with_error`, y el defecto
+      # alcanzaba a las veintiséis: cada borrado bloqueado de la app le decía a
+      # un director el nombre de una tabla en inglés.
+      competency:
+        activity_competencies: Evaluaciones que la miden
+      department:
+        subjects: Áreas de aprendizaje
+      subject:
+        evaluation_activities: Evaluaciones
+        final_grade_books: Notas definitivas
+        moment_grades: Notas de lapso
+        teacher_sections: Asignaciones de profesor
+      teacher:
+        teacher_sections: Asignaciones de sección
   attributes:
     school: Colegio
     grade: Grado

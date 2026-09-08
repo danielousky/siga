@@ -98,15 +98,24 @@ class EvaluationActivitiesController < ApplicationController
     end
   end
 
+  # ⚠️ El fallo vuelve al MISMO sitio, no a la ficha de la evaluación.
+  #
+  # Una evaluación con notas cargadas no se borra (`restrict_with_error`), y el
+  # error redirigía al `show` — una pantalla que NO tiene el frame «plan». Turbo
+  # pedía «plan», recibía una respuesta sin él, y escribía «Content missing»
+  # donde estaba la planificación entera. Lo reportó Daniel el 8 de septiembre.
+  #
+  # Es la misma lección que el frame fijo de `new`, del otro lado: dentro de un
+  # frame, el destino de un redirect tiene que contener ese frame.
   def destroy
-    @a_la_libreta = ruta_de_vuelta(@evaluation_activity)
+    # ⚠️ La ruta se arma ANTES de borrar: después el objeto ya no puede
+    # resolver su sección para armarla.
+    volver_a = ruta_de_vuelta(@evaluation_activity) || evaluation_activities_path
 
     if @evaluation_activity.destroy
-      # ⚠️ La ruta se arma ANTES de borrar: después el objeto ya no puede
-      # resolver su sección para armarla.
-      redirect_to @a_la_libreta, notice: "Evaluación eliminada."
+      redirect_to volver_a, notice: "Evaluación eliminada."
     else
-      redirect_to @evaluation_activity, alert: @evaluation_activity.errors.full_messages.to_sentence
+      redirect_to volver_a, alert: @evaluation_activity.errors.full_messages.to_sentence
     end
   end
 
