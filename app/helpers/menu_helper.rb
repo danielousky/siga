@@ -369,6 +369,63 @@ module MenuHelper
     ]
   end
 
+  # Las cuatro vistas de una sección, para el profesor (etapa ③).
+  #
+  # Daniel fijó el orden: **Asistencia · Calificar · Planificar · Alumnos**.
+  #
+  #     ASISTENCIA    solo el GUÍA, y es lo diario
+  #     CALIFICAR     la libreta del área que dicto acá
+  #     PLANIFICAR    competencias, indicadores y evaluaciones
+  #     ALUMNOS       quiénes son
+  #
+  # ## ⚠️ Pestañas con URL, no paneles que alternan
+  #
+  # Son cuatro pantallas de verdad —la asistencia tiene su propio controller y
+  # su formulario, la planificación también—, así que esconderlas con `hidden`
+  # significaría cargar las cuatro en cada visita. La regla del proyecto ya lo
+  # dice: `_pestanas` cuando cada una es una URL, `_paneles` cuando es el mismo
+  # documento.
+  #
+  # ## ⚠️ Y la ACTIVA por defecto sale de POR DÓNDE ENTRÓ
+  #
+  # Daniel puso «Asistencia» primera y notó la consecuencia: *«no había pensado
+  # en la pestaña de default»*. Con las pestañas leyéndose en ese orden, la
+  # primera es la que abre — y quien viene de «Dicto › Matemática › 4to A» no
+  # viene a pasar lista, viene a calificar esa área.
+  #
+  # No hace falta preguntarlo: el árbol ya lo dice.
+  #
+  #     entró por «Soy guía de»  (sin área)  →  Asistencia
+  #     entró por «Dicto»        (con área)  →  Calificar
+  def pestanas_de_la_seccion(seccion, area: nil, activa: nil)
+    contexto = { area: area&.id }
+    pestanas = []
+
+    if guio?(seccion)
+      pestanas << [ "Asistencia", seccion_asistencia_path(seccion, contexto), activa == :asistencia ]
+    end
+
+    pestanas << [ "Calificar", section_path(seccion, contexto), activa == :calificar ]
+    pestanas << [ "Planificar", ruta_de_planificar(seccion, area), activa == :planificar ]
+    pestanas << [ "Alumnos", alumnos_section_path(seccion, contexto), activa == :alumnos ]
+    pestanas
+  end
+
+  # ⚠️ «Planificar» lleva al plan de ESTA área en ESTA sección, no al listado.
+  # Sin área no hay plan que abrir —la planificación es de una asignación— así
+  # que cae en la pantalla que la deja elegir.
+  def ruta_de_planificar(seccion, area)
+    return competencies_path if area.nil?
+
+    competencies_path(asignacion: "#{seccion.id}:#{area.id}")
+  end
+
+  def guio?(seccion)
+    docente = current_user.teacher
+    docente.present? && seccion.leader_teacher_id == docente.id
+  end
+  helper_method :guio? if respond_to?(:helper_method)
+
   # Los papeles que emite el colegio. Los dos son «elegir sección, elegir alumno,
   # emitir»: la misma tarea con distinto papel al final.
   def pestanas_de_documentos

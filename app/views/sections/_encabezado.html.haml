@@ -1,0 +1,47 @@
+-# La identidad de la sección y sus cuatro pestañas (etapa ③).
+-#
+-# Va en las CUATRO pantallas —calificar, alumnos, asistencia y planificar—
+-# porque las cuatro son la misma sección vista de otro ángulo, y una fila de
+-# pestañas que desaparece al tocarla no es una fila de pestañas.
+-#
+-# ⚠️ El título lleva el ÁREA cuando se entró por ella. «4to Grado – Sección A»
+-# no dice cuál de las dos que dicto ahí es, y eso es justo lo que el árbol del
+-# menú vino a resolver: repetirlo acá es confirmarlo, no adornarlo.
+- area = local_assigns[:area]
+- inscritos = local_assigns.fetch(:inscritos, seccion.enrollments.where(status: :regular).size)
+- detalle = area&.name
+
+.card-academic
+  = render layout: "shared/cabecera", locals: { titulo: "#{seccion.grade.name} – Sección #{seccion.name}", detalle: detalle } do
+    - if local_assigns[:acciones].present?
+      = acciones
+
+  -# ⚠️ Los cuatro datos de la sección van ACÁ, en el encabezado compartido, y
+  -# no en la pestaña de calificar. Al mover la cabecera a este parcial se
+  -# quedaron atrás por descuido, y tres tests lo dijeron: quién es el guía es
+  -# un dato de la SECCIÓN, no de una de sus cuatro vistas.
+  .detail-row
+    .detail-item
+      %span.detail-label Período Académico
+      %p.detail-value= seccion.academic_period.name
+    .detail-item
+      %span.detail-label Capacidad
+      %p.detail-value= "#{inscritos} / #{seccion.capacity} alumnos"
+    -# Se muestra también cuando NO hay guía: sin él la asistencia solo la puede
+    -# tomar la dirección, y eso hay que enterarse mirando la sección, no
+    -# descubriéndolo un lunes a las siete.
+    .detail-item
+      %span.detail-label Profesor guía
+      - if seccion.leader_teacher
+        -# ⚠️ Enlazado solo para quien puede abrir la ficha (`nombre_de_profesor`):
+        -# evitar el error es mejor que anunciarlo.
+        %p.detail-value= nombre_de_profesor(seccion.leader_teacher)
+      - else
+        %p.detail-value.dato-secundario Sin asignar
+    - if seccion.classroom.present?
+      .detail-item
+        %span.detail-label Aula
+        %p.detail-value= seccion.classroom
+
+  = render "shared/pestanas", etiqueta: "Vistas de esta sección",
+           pestanas: pestanas_de_la_seccion(seccion, area: area, activa: activa)

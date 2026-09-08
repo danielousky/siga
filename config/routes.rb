@@ -364,6 +364,14 @@ Rails.application.routes.draw do
     end
   end
   resources :sections, path: "secciones" do
+    # ⚠️ «Alumnos» es una PESTAÑA de la sección, con su propia URL (etapa ③).
+    #
+    # Era un panel que alternaba con `hidden`, y las otras tres —asistencia,
+    # calificar, planificar— son pantallas de verdad con su controller. Media
+    # fila de pestañas que navega y media que alterna no se puede explicar: el
+    # botón de atrás funcionaría en unas y en otras no.
+    member { get "alumnos" }
+
     resources :teacher_sections, path: "profesores", only: [:create, :destroy]
 
     # Los informes descriptivos del lapso (MOR-216). Cuelgan de la SECCIÓN

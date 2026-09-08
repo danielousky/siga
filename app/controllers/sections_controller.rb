@@ -1,7 +1,8 @@
 class SectionsController < ApplicationController
-  before_action :require_admin_access!, except: [:show]
-  before_action :require_read_access!, only: [:show]
-  before_action :set_section, only: [:show, :edit, :update, :destroy]
+  before_action :require_admin_access!, except: [ :show, :alumnos ]
+  before_action :require_read_access!, only: [ :show, :alumnos ]
+  before_action :set_section, only: [ :show, :alumnos, :edit, :update, :destroy ]
+  before_action :cargar_la_seccion, only: [ :show, :alumnos ]
 
   # Por el nombre del grado o el de la sección: quien escribe «1er» quiere todas
   # las de primer año, y quien escribe «A» quiere las secciones A.
@@ -24,19 +25,17 @@ class SectionsController < ApplicationController
     @grades_options = helpers.grados_por_nivel
   end
 
+  # `show` es la pestaña CALIFICAR (etapa ③). Las otras tres son
+  # `alumnos` acá al lado, `asistencias#show` y `competencies#index`.
   def show
-    @teacher_sections = @section.teacher_sections.includes(teacher: :user, subject: {})
-    @enrollments = @section.enrollments.where(status: :regular).includes(student: :user).order("users.last_name")
-
-    # Solo los admins necesitan los datos de gestión
-    if administrador?
-      assigned_subject_ids = @teacher_sections.pluck(:subject_id)
-      @available_subjects = @section.grade.subjects.where.not(id: assigned_subject_ids).order(:name)
-      @available_teachers = Teacher.includes(:user).order("users.last_name")
-    end
-
     preparar_la_libreta
   end
+
+  # ⚠️ «Alumnos» dejó de ser un panel que alterna con `hidden` y pasó a tener
+  # su URL. Las otras tres pestañas son pantallas de verdad, y media fila que
+  # navega y media que alterna no se le puede explicar a nadie: el botón de
+  # atrás funcionaría en unas y en otras no.
+  def alumnos; end
 
   def new
     @section = Section.new
@@ -90,6 +89,27 @@ class SectionsController < ApplicationController
   # Incluso el guía… ¿cómo sabes cuáles califica? guía + áreas asignadas»*.
   #
   # La dirección las ve todas: no califica, supervisa.
+  # Lo que las dos pestañas de esta pantalla necesitan siempre: quiénes dictan
+  # acá y quiénes están inscritos.
+  def cargar_la_seccion
+    @teacher_sections = @section.teacher_sections.includes(teacher: :user, subject: {})
+    @enrollments = @section.enrollments.where(status: :regular)
+                           .includes(student: :user).order("users.last_name")
+
+    return unless administrador?
+
+    asignadas = @teacher_sections.pluck(:subject_id)
+    @available_subjects = @section.grade.subjects.where.not(id: asignadas).order(:name)
+    @available_teachers = Teacher.includes(:user).order("users.last_name")
+  end
+
+  # El área por la que entré, que es la que el árbol del menú trajo en la URL.
+  # Es lo que decide qué libreta se abre y a qué plan lleva «Planificar».
+  def area_de_la_pestana
+    @area_de_la_pestana ||= areas_que_califico.find { |s| s.id.to_s == params[:area] }
+  end
+  helper_method :area_de_la_pestana
+
   def preparar_la_libreta
     @areas_que_califico = areas_que_califico
     return if @areas_que_califico.empty?
