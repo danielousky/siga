@@ -6831,69 +6831,168 @@ a.subject-avance:hover { filter: brightness(0.9); }
 .portal-leyenda strong { margin-right: var(--space-xs); }
 .portal-leyenda .dato-secundario { margin-left: var(--space-xs); }
 
-/* ---- Qué evaluaciones miden una competencia (MOR-136) ---- */
-/* El enganche existía solo al CREAR la evaluación, y el orden real del trabajo
-   es el contrario: el profesor escribe su plan, arma sus evaluaciones, y si se
-   olvidó de marcar no tenía forma de arreglarlo. Daniel: «no sé cómo asociamos
-   las evaluaciones con los indicadores… debe ser un proceso fácil y fluido».
-   Lo fluido es verlo donde ya se está trabajando. */
-.plan-medida {
+/* ---- El plan ANIDADO: la evaluación cuelga de su competencia ---- */
+/* Decisión de Daniel, 8 de septiembre: «¿será que colocamos las competencias y
+   evaluaciones juntas?». Eran dos pantallas, y qué evalúa qué era una lista de
+   chips que había que ir a buscar. */
+
+.plan-evaluaciones {
+  list-style: none;
+  margin: var(--space-sm) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--border-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+/* Las filas se separan con el fondo del contenedor asomando por el `gap`: una
+   sola regla en vez de un `border-bottom` con su excepción para la última. */
+.plan-evaluacion {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-xs);
-  margin-top: var(--space-sm);
-  padding-top: var(--space-sm);
-  border-top: 1px dashed var(--border-subtle);
+  gap: var(--space-sm);
+  padding: 6px var(--space-sm);
+  background: var(--surface-elevated);
 }
 
-.plan-medida-etiqueta {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-  margin-right: var(--space-micro);
-}
-
-/* Cada evaluación que la mide, enlazada a su ficha: desde el plan se llega a
-   la evaluación, que es el otro lado del mismo trabajo. */
-.plan-medida-chip {
-  display: inline-flex;
+.plan-evaluacion-nombre {
+  flex: 1;
+  min-width: 0;
+  display: flex;
   align-items: baseline;
-  gap: var(--space-micro);
-  padding: 2px var(--space-sm);
-  border: 1px solid var(--border-subtle);
-  border-radius: 999px;
-  background: var(--surface-hover);
-  font-size: 12px;
-  color: var(--text-secondary);
+  gap: var(--space-sm);
+  color: inherit;
   text-decoration: none;
-  max-width: 18rem;
 }
 
-.plan-medida-chip:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+.plan-evaluacion-nombre:hover .plan-evaluacion-descripcion {
+  color: var(--brand-primary);
+  text-decoration: underline;
+}
 
-.plan-medida-chip > span:first-child {
+.plan-evaluacion-descripcion {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 13px;
 }
+
+/* El peso es el dato que se compara entre filas, así que va tabular y en su
+   propio ancho: alineado, la suma se lee de arriba abajo sin sumar. */
+.plan-evaluacion-peso {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.plan-evaluacion-fecha {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+/* «sin fecha» no es un dato menor: es un dato que NO está, y se escribe en
+   letras por lo mismo que la libreta escribe «Pendiente» en vez de un cero. */
+.plan-evaluacion-fecha .dato-vacio { font-style: italic; }
+
+.plan-evaluacion-acciones {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 2px;
+}
+
+/* Los botones de la fila aparecen al pasar por encima —son tres por fila y
+   siempre visibles compiten con el nombre— pero NUNCA se esconden del teclado
+   ni del táctil, donde no hay «pasar por encima». */
+.plan-evaluacion-acciones { opacity: 0.45; transition: opacity var(--transition-fast); }
+.plan-evaluacion:hover .plan-evaluacion-acciones,
+.plan-evaluacion:focus-within .plan-evaluacion-acciones { opacity: 1; }
+
+@media (hover: none) {
+  .plan-evaluacion-acciones { opacity: 1; }
+}
+
+@media (max-width: 700px) {
+  .plan-evaluacion { flex-wrap: wrap; }
+  .plan-evaluacion-nombre { flex: 1 0 100%; }
+}
+
+/* ⚠️ El aviso va en ÁMBAR, no en gris: una competencia que ninguna evaluación
+   mide sale en la boleta SIN nivel, y eso hay que poder verlo antes de
+   emitirla. Acá el color es del dato —es un hecho del plan, no una afordancia—
+   así que puede llevarlo (regla de color, MOR-135).
+
+   Y dice la CONSECUENCIA, no el síntoma: «sin evaluaciones» no significa nada
+   para quien está armando su plan; «saldrá sin nivel en la boleta» sí. */
+.plan-sin-evaluar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: var(--space-sm) 0 0;
+  padding: 6px var(--space-sm);
+  border-radius: var(--radius-sm);
+  background: var(--warning-bg);
+  color: var(--warning-text);
+  font-size: 12.5px;
+}
+
+.plan-sin-evaluar svg { flex: 0 0 auto; }
+
+.plan-competencia-acciones {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+/* ── Las evaluaciones que no miden ninguna competencia ──────────────────── */
+/* No es un error —el profesor puede querer una suelta— pero cuentan para el
+   promedio sin describir nada, así que la boleta las suma sin explicarlas. */
+.plan-sueltas {
+  margin-top: var(--space-lg);
+  padding: var(--space-md);
+  border: 1px solid var(--warning-border);
+  border-radius: var(--radius-md);
+  background: var(--warning-bg);
+}
+
+.plan-sueltas-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--warning-text);
+}
+
+.plan-sueltas .nota-ayuda { margin: var(--space-xs) 0 0; }
+
+/* Las altas: crear una competencia o una evaluación. Separadas de
+   `.plan-acciones`, que es replicar a las secciones hermanas. */
+.plan-altas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.plan-ponderacion { margin-bottom: var(--space-lg); }
 
 .plan-medida-peso {
   flex: 0 0 auto;
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   color: var(--text-tertiary);
-}
-
-/* ⚠️ «Ninguna todavía» en ÁMBAR, no en gris: una competencia que ninguna
-   evaluación mide sale en la boleta SIN nivel, y eso hay que poder verlo antes
-   de emitirla. Acá el color es del dato —es un hecho del plan, no una
-   afordancia— así que puede llevarlo (regla de color, MOR-135). */
-.plan-medida-vacio {
-  font-size: 12px;
-  color: var(--warning-text);
 }
 
 /* ── Conectar, en un `<details>` ─────────────────────────────────────────── */
@@ -9838,14 +9937,22 @@ a.subject-avance:hover { filter: brightness(0.9); }
 }
 
 .plan-competencia {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-md);
   padding: var(--space-md) 0;
   border-top: 1px solid var(--border-subtle);
 }
 
 .plan-competencia:first-child { border-top: 0; }
+
+/* ⚠️ El flex es la CABECERA, no la competencia entera. Desde que las
+   evaluaciones van anidadas debajo (8 de septiembre), tener el flex arriba
+   ponía la lista de evaluaciones como una tercera columna al lado de los
+   botones, con veinte píxeles de ancho. */
+.plan-competencia-cabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
 .plan-competencia-texto { flex: 1; min-width: 0; }
 
 /* ⚠️ `.columna-acciones` trae `width: 1%` —sirve en una TABLA, donde el 1 % lo
@@ -9857,7 +9964,7 @@ a.subject-avance:hover { filter: brightness(0.9); }
 @media (max-width: 700px) {
   /* Con el texto de una competencia —cuarenta palabras— y dos botones al lado,
      a 390 px no hay ancho para las dos cosas. Los botones bajan a su renglón. */
-  .plan-competencia { flex-wrap: wrap; }
+  .plan-competencia-cabecera { flex-wrap: wrap; }
   .plan-competencia .columna-acciones { width: 100%; }
 }
 

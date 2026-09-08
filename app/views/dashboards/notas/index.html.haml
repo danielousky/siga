@@ -82,7 +82,7 @@
             .nota-cabecera
               %span.nota-valor{class: materia.nota_lapso >= 10 ? "nota-valor--aprobada" : "nota-valor--aplazada"}= materia.nota_lapso
               - if materia.parcial?
-                %span.nota-parcial= "parcial · sobre #{number_with_precision(materia.peso_cargado, precision: materia.peso_cargado.to_d.frac.zero? ? 0 : 2)} % corregido"
+                %span.nota-parcial= "parcial · sobre #{porcentaje(materia.peso_cargado)} corregido"
           - else
             .nota-cabecera
               %span.nota-pendiente Sin nota todavía
@@ -100,7 +100,7 @@
                 %td= fila[:actividad].description
                 %td= l(fila[:actividad].date_scheduled, format: :long)
                 - peso = fila[:actividad].weight_percentage
-                %td= "#{number_with_precision(peso, precision: peso.frac.zero? ? 0 : 2)} %"
+                %td= porcentaje(peso)
                 %td
                   - if fila[:nota]
                     %span.nota-valor{class: fila[:nota] >= 10 ? "nota-valor--aprobada" : "nota-valor--aplazada"}= fila[:nota]
@@ -111,7 +111,7 @@
         - if materia.peso_definido < 100
           %p.dato-secundario
             El profesor definió el
-            = "#{number_with_precision(materia.peso_definido, precision: materia.peso_definido.frac.zero? ? 0 : 2)} %"
+            = porcentaje(materia.peso_definido)
             de este lapso. Falta definir el resto.
 
     - if @sin_evaluaciones.any?

@@ -7,12 +7,11 @@
 -# Fuera de un frame —un enlace directo, una pestaña nueva— Turbo lo ignora y
 -# la pantalla se ve entera. Por eso la cabecera se queda: es lo que hace que la
 -# URL siga sirviendo sola.
-= turbo_frame_tag "libreta" do
+= turbo_frame_tag frame_que_pregunta("libreta") do
   .card-academic
     = render layout: "shared/cabecera", locals: { titulo: "Editar evaluación" } do
       -# A la libreta, que es de donde vino.
-      - a_la_libreta = section_path(@evaluation_activity.section_id, area: @evaluation_activity.subject_id, lapso: @evaluation_activity.evaluation_moment_id)
-      = boton "Volver", a_la_libreta, icono: :volver, tono: :secondary
+      = boton "Volver", ruta_de_vuelta(@evaluation_activity), icono: :volver, tono: :secondary
 
     = render "form", evaluation_activity: @evaluation_activity
 

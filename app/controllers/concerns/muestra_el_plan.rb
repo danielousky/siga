@@ -27,7 +27,8 @@ module MuestraElPlan
   # es un método de clase del controller, y el módulo no es uno.
   included do
     helper_method :lapsos, :lapso, :otras_secciones, :contexto,
-                  :hermanas_con_plan, :hermanas_sin_plan, :evaluaciones_del_lapso
+                  :hermanas_con_plan, :hermanas_sin_plan, :evaluaciones_del_lapso,
+                  :evaluaciones_de, :evaluaciones_sueltas, :peso_del_lapso
   end
 
   private
@@ -113,6 +114,49 @@ module MuestraElPlan
   # ⚠️ Se carga UNA vez para toda la pantalla, no una por competencia. Un lapso
   # con cinco competencias y cinco evaluaciones son veinticinco consultas si se
   # pregunta por fila.
+  # ── El plan ANIDADO: cada evaluación bajo la competencia que mide ─────────
+  #
+  # Decisión de Daniel, 8 de septiembre: *«¿será que colocamos las competencias
+  # y evaluaciones juntas?»* — sí, y anidadas.
+  #
+  #     1 ▸ Resuelve problemas de adición
+  #           Examen del lapso     40 %    8 nov
+  #           Taller en clase      20 %   22 nov
+  #     2 ▸ Interpreta gráficos
+  #           ⚠ sin evaluaciones — no tendrá nivel en la boleta
+  #
+  # Antes eran dos pantallas y el enganche entre ellas era una lista de chips.
+  # Que una competencia no tenga con qué medirse es la falla más común del plan
+  # —sale SIN nivel en la boleta (`MOR-229`)— y era justamente lo que había que
+  # abrir otra pantalla para descubrir.
+  #
+  # ⚠️ Una evaluación que mide DOS competencias sale DOS veces, a propósito.
+  # Daniel, sobre el mismo caso en las secciones: *«no importa que se dupliquen
+  # …es entendible y no se siente como un bug»*. La alternativa —repartirla— es
+  # peor: la evaluación tiene UN peso y mostrar la mitad bajo cada competencia
+  # inventa un número que no existe. Por eso la suma del 100 % va en su barra
+  # arriba, contando cada evaluación UNA vez.
+  def evaluaciones_de(competencia)
+    por_competencia[competencia.id]
+  end
+
+  # Las que no miden nada. No es un error —el profesor puede querer una
+  # evaluación suelta— pero sí algo que hay que ver: en la boleta esa nota
+  # cuenta para el promedio y no describe ninguna competencia.
+  def evaluaciones_sueltas
+    @evaluaciones_sueltas ||= evaluaciones_del_lapso.reject { |e| e.competencies.any? }
+  end
+
+  # ⚠️ Se suma sobre `evaluaciones_del_lapso`, NUNCA sobre el anidado: ahí una
+  # evaluación de dos competencias está dos veces y el 40 % se contaría 80.
+  def peso_del_lapso = evaluaciones_del_lapso.sum(&:weight_percentage)
+
+  def por_competencia
+    @por_competencia ||= evaluaciones_del_lapso.each_with_object(Hash.new { |h, k| h[k] = [] }) do |e, mapa|
+      e.competencies.each { |c| mapa[c.id] << e }
+    end
+  end
+
   def evaluaciones_del_lapso
     return [] if asignacion.nil? || lapso.nil?
 
@@ -120,6 +164,7 @@ module MuestraElPlan
                                 .where(section_id: asignacion.section_id,
                                        subject_id: asignacion.subject_id,
                                        evaluation_moment_id: lapso.id)
+                                .includes(:competencies)
                                 .order(:date_scheduled, :id)
                                 .to_a
   end

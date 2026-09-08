@@ -25,7 +25,7 @@
     .detail-item
       .detail-label Peso dentro del lapso
       - peso = @evaluation_activity.weight_percentage
-      .detail-value= "#{number_with_precision(peso, precision: peso.frac.zero? ? 0 : 2)} %"
+      .detail-value= porcentaje(peso)
     .detail-item
       .detail-label Notas cargadas
       .detail-value= "#{@notas_cargadas} de #{@inscritos} inscritos"

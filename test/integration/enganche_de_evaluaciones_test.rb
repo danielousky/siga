@@ -30,13 +30,18 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
     get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
     follow_redirect! while response.redirect?
 
-    assert_select ".plan-medida-chip", /Examen/
-    assert_select ".plan-medida-vacio", count: 0
+    # ⚠️ DENTRO de la competencia. Desde el 8 de septiembre el plan va anidado
+    # y las evaluaciones cuelgan de lo que miden; antes eran chips al lado.
+    assert_select ".plan-competencia .plan-evaluacion-descripcion", "Examen"
+    assert_select ".plan-sin-evaluar", count: 0
   end
 
-  # ⚠️ «Ninguna todavía» y no un hueco: una competencia que no mide ninguna
-  # evaluación sale en la boleta SIN nivel, y eso hay que verlo ANTES de
-  # emitirla — no descubrirlo cuando la familia pregunta.
+  # ⚠️ Se dice, y no se calla: una competencia que no mide ninguna evaluación
+  # sale en la boleta SIN nivel, y eso hay que verlo ANTES de emitirla — no
+  # descubrirlo cuando la familia pregunta.
+  #
+  # Y se dice la CONSECUENCIA, no el síntoma. «Ninguna evaluación todavía» —que
+  # es lo que decía— no significa nada para quien está armando su plan.
   test "una competencia sin evaluaciones lo dice, no lo calla" do
     con_el_colegio(@a.colegio) { actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Suelta") }
     sign_in @a.profesor
@@ -44,7 +49,8 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
     get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
     follow_redirect! while response.redirect?
 
-    assert_select ".plan-medida-vacio", text: /Ninguna evaluación todavía/
+    assert_select ".plan-competencia--sin-evaluar"
+    assert_select ".plan-sin-evaluar", /sin nivel en la boleta/
   end
 
   test "conectar una evaluación desde el plan" do

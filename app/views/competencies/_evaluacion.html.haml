@@ -1,0 +1,30 @@
+-# UNA evaluación, dentro del plan (etapa ③).
+-#
+-# La misma fila sirve colgada de su competencia y en el bloque de las sueltas,
+-# porque es el mismo objeto contestando la misma pregunta: qué se evalúa,
+-# cuánto pesa y cuándo.
+-#
+-# ⚠️ El nombre es un ENLACE a su planilla de notas, no al `show`. Desde el plan
+-# lo que sigue es CARGAR: el detalle de la evaluación no le dice nada al
+-# profesor que ya la escribió él mismo. Y `_top` porque sale del frame «plan».
+%li.plan-evaluacion
+  = link_to evaluation_activity_notas_path(evaluacion, desde: contexto[:desde]),
+            class: "plan-evaluacion-nombre", data: { turbo_frame: "_top" } do
+    %span.plan-evaluacion-descripcion= evaluacion.description
+    %span.plan-evaluacion-peso= porcentaje(evaluacion.weight_percentage)
+  %span.plan-evaluacion-fecha
+    - if evaluacion.date_scheduled
+      = l(evaluacion.date_scheduled, format: :short)
+    - else
+      %span.dato-vacio sin fecha
+  - if profesor?
+    .plan-evaluacion-acciones
+      = link_to edit_evaluation_activity_path(evaluacion, contexto),
+                class: "btn btn-secondary btn-sm btn-solo-icono",
+                data: { tooltip: "Editar la evaluación" }, "aria-label": "Editar la evaluación" do
+        = icono(:editar, tamano: 14)
+      = button_to evaluation_activity_path(evaluacion, contexto),
+                  method: :delete, class: "btn btn-danger btn-sm btn-solo-icono",
+                  form: { data: { turbo_confirm: "¿Borrar «#{evaluacion.description}»? Se borran también las notas cargadas." } },
+                  data: { tooltip: "Borrar" }, "aria-label": "Borrar" do
+        = icono(:borrar, tamano: 14)

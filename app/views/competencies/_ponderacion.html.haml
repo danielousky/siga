@@ -1,0 +1,26 @@
+-# Cuánto del 100 % está repartido en este lapso (etapa ③).
+-#
+-# ⚠️ Va ARRIBA del plan y también cuando el plan está vacío. El 100 % es la
+-# condición para que la nota del lapso signifique algo —si suma 80, el promedio
+-# se calcula sobre 80 y la nota sale más baja de lo que el alumno sacó— y es lo
+-# primero que un profesor viene a comprobar en septiembre.
+-#
+-# ⚠️ Se suma sobre las evaluaciones del lapso, NO sobre el plan anidado: ahí una
+-# evaluación que mide dos competencias aparece dos veces, y su 40 % contaría 80.
+-#
+-# El medidor es el mismo `weight-meter` de `/evaluaciones` —misma barra, mismos
+-# estados— porque es la misma pregunta contestada en otro sitio.
+- usado = peso_del_lapso.to_f
+.weight-meter.plan-ponderacion
+  .weight-meter-label
+    %strong Ponderación
+    = "· #{contar(evaluaciones_del_lapso.size, 'evaluación', 'evaluaciones')} en #{lapso&.name}"
+  .weight-meter-bar
+    .weight-meter-fill{ class: ("weight-meter-fill--completo" if usado >= 100),
+                        style: "width: #{[ usado, 100 ].min}%" }
+  .weight-meter-value{ class: ("weight-meter-value--excedido" if usado > 100) }
+    = porcentaje(usado)
+    - if usado < 100
+      %span.weight-meter-falta= "· #{porcentaje(100 - usado)} sin repartir"
+    - elsif usado > 100
+      %span.weight-meter-falta= "· se pasa por #{porcentaje(usado - 100)}"

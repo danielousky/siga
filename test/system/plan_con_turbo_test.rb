@@ -25,7 +25,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
   test "el formulario aparece dentro de la pestaña, sin cambiar de página" do
     assert_selector ".pestana.activa", text: "Planificar"
 
-    click_on "Registrar competencia"
+    click_on "Agregar competencia"
 
     # ⚠️ La URL NO cambia: es la prueba de que el frame hizo su trabajo. Con
     # Turbo apagado el navegador iría a `/competencias/new`.
@@ -39,7 +39,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
   # una sola respuesta— y el formulario desaparece. Es lo que se gana con
   # envolver el plan entero y no solo el hueco del form.
   test "al guardar, la competencia aparece en la lista y el formulario se va" do
-    click_on "Registrar competencia"
+    click_on "Agregar competencia"
     fill_in "competency[descripcion]", with: "Resuelve problemas de proporcionalidad"
     fill_in "competency[indicadores]", with: "Calcula porcentajes\nInterpreta una tabla"
     click_on "Crear"
@@ -72,7 +72,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
   # ⚠️ Cancelar devuelve la lista, no navega a `/competencias`. Es el mismo
   # frame: se pide el plan y reemplaza al formulario.
   test "cancelar devuelve la lista sin salir de la sección" do
-    click_on "Registrar competencia"
+    click_on "Agregar competencia"
     click_on "Cancelar"
 
     assert_current_path planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
@@ -86,7 +86,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
   test "registrar una evaluación se levanta en la libreta" do
     visit section_path(@a.seccion, area: @area.id, lapso: @a.escenario.lapso(2).id)
 
-    click_on "Registrar evaluación"
+    click_on "Agregar evaluación"
 
     # La URL no cambia: el frame hizo su trabajo.
     assert_current_path(/secciones/)
@@ -100,7 +100,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
   test "al guardar, la columna aparece en la libreta" do
     lapso = @a.escenario.lapso(2)
     visit section_path(@a.seccion, area: @area.id, lapso: lapso.id)
-    click_on "Registrar evaluación"
+    click_on "Agregar evaluación"
 
     fill_in "evaluation_activity[description]", with: "Prueba corta"
     click_on "Crear"

@@ -15,9 +15,9 @@
           - usado = grupo[:usado].to_f
           .weight-meter-fill{class: ("weight-meter-fill--completo" if usado >= 100), style: "width: #{[usado, 100].min}%"}
         .weight-meter-value
-          = "#{number_with_precision(usado, precision: usado.to_d.frac.zero? ? 0 : 2)} %"
+          = porcentaje(usado)
           - if usado < 100
-            %span.weight-meter-falta= "· Faltan #{number_with_precision(100 - usado, precision: (100 - usado).to_d.frac.zero? ? 0 : 2)} %"
+            %span.weight-meter-falta= "· Faltan #{porcentaje(100 - usado)}"
 
 -# ⚠️ El alta la ve SOLO el profesor: una evaluación la crea quien la va a
 -# calificar. La cabecera acepta que no haya `alta:` y no dibuja el botón.
@@ -54,7 +54,7 @@
             %td= actividad.subject.name
             %td= actividad.evaluation_moment.name
             %td= link_to actividad.description, actividad
-            %td= "#{number_with_precision(actividad.weight_percentage, precision: actividad.weight_percentage.frac.zero? ? 0 : 2)} %"
+            %td= porcentaje(actividad.weight_percentage)
             %td= l(actividad.date_scheduled, format: :long)
             -# Se queda SOLO la acción principal del profesor. "Ver" y "Editar"
               se fueron a la ficha, adonde ahora lleva el nombre de la

@@ -315,4 +315,18 @@ module ApplicationHelper
 
   # El 20 del Artículo 108: es el techo de la escala, no una preferencia.
   NOTA_MAXIMA = 20
+
+  # ⚠️ El peso se escribe SIN decimales cuando no los tiene.
+  #
+  # «40 %» y no «40,00 %»: un profesor reparte en números redondos y la coma
+  # con ceros hace leer dos veces. Pero 33,33 % existe —tres evaluaciones
+  # iguales— y ahí los decimales son el dato.
+  #
+  # Estaba escrito a mano NUEVE veces, con tres variantes distintas del mismo
+  # `frac.zero?`, y una se olvidaba el `.to_d` sobre un float.
+  def porcentaje(valor)
+    numero = valor.to_d
+
+    "#{number_with_precision(numero, precision: numero.frac.zero? ? 0 : 2)} %"
+  end
 end

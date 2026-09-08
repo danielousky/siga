@@ -49,9 +49,19 @@
               -# profesor ve que faltan cinco y entra a ponerlas sin volver
               -# atrás. Daniel: *«al hacer clic me voy directamente a la
               -# calificación que falta»*.
-              = link_to evaluation_activity_notas_path(columna.evaluacion), class: "libreta-columna-enlace" do
+              -# ⚠️ `_top`: sale del frame «libreta».
+              -#
+              -# El encabezado vive DENTRO del turbo_frame, así que Turbo busca
+              -# un frame «libreta» en la respuesta — y la planilla de notas es
+              -# otra pantalla, que no lo tiene. El resultado era un «Content
+              -# missing» donde debía estar la tabla.
+              -#
+              -# Es la regla de los frames que más cuesta: todo enlace de
+              -# adentro que lleve a otra pantalla tiene que decir que sale.
+              = link_to evaluation_activity_notas_path(columna.evaluacion), class: "libreta-columna-enlace",
+                        data: { turbo_frame: "_top" } do
                 %span.libreta-columna-nombre= columna.evaluacion.description
-                %span.libreta-columna-peso= "#{number_with_precision(columna.evaluacion.weight_percentage, precision: columna.evaluacion.weight_percentage.frac.zero? ? 0 : 2)} %"
+                %span.libreta-columna-peso= porcentaje(columna.evaluacion.weight_percentage)
                 %span.libreta-columna-cuando
                   = l(columna.evaluacion.date_scheduled, format: :short) if columna.evaluacion.date_scheduled
                   - case columna.momento

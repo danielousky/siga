@@ -83,7 +83,7 @@ class EvaluationActivitiesController < ApplicationController
       # nueva aparece en la tabla mientras el formulario desaparece — todo en
       # una respuesta. Redirigiendo a la ficha, el frame se reemplazaría por
       # una pantalla que no es la libreta.
-      redirect_to ruta_de_calificar(@evaluation_activity), notice: "Evaluación creada."
+      redirect_to ruta_de_vuelta(@evaluation_activity), notice: "Evaluación creada."
     else
       render :new, status: :unprocessable_entity
     end
@@ -92,14 +92,14 @@ class EvaluationActivitiesController < ApplicationController
   def update
     if @evaluation_activity.update(evaluation_activity_params)
       etiquetar_lo_que_evalua(@evaluation_activity)
-      redirect_to ruta_de_calificar(@evaluation_activity), notice: "Evaluación actualizada."
+      redirect_to ruta_de_vuelta(@evaluation_activity), notice: "Evaluación actualizada."
     else
       render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
-    @a_la_libreta = ruta_de_calificar(@evaluation_activity)
+    @a_la_libreta = ruta_de_vuelta(@evaluation_activity)
 
     if @evaluation_activity.destroy
       # ⚠️ La ruta se arma ANTES de borrar: después el objeto ya no puede

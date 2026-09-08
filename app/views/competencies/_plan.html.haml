@@ -9,6 +9,21 @@
 -# La diferencia entre los dos lugares es la ESCALERA: en `/competencias` hay
 -# que elegir grado → área → sección → lapso, y en la pestaña la sección y el
 -# área ya vienen del árbol del menú — solo queda el lapso.
+-#
+-# ## ⚠️ Las evaluaciones van ANIDADAS bajo su competencia
+-#
+-# Decisión de Daniel, 8 de septiembre: *«¿será que colocamos las competencias
+-# y evaluaciones juntas?»*. Eran dos pantallas, y el vínculo entre ellas —qué
+-# evalúa qué— era una lista de chips que había que ir a buscar.
+-#
+-# Lo que se gana no es estética: una competencia sin evaluaciones sale SIN
+-# nivel en la boleta (`MOR-229`), y ese era exactamente el estado que había que
+-# abrir la otra pantalla para descubrir. Anidada, se ve sola.
+-#
+-#     1 ▸ Resuelve problemas de adición
+-#           Examen del lapso   40 %    8 nov
+-#     2 ▸ Interpreta gráficos
+-#           ⚠ sin evaluaciones — no tendrá nivel en la boleta
 - if @sugerido&.any?
   -# ⚠️ Se OFRECE, no se carga solo. Un plan clonado que nadie miró es un plan
   -# que alguien va a usar sin leer. Daniel: «se le sugiere… lo previsualiza,
@@ -42,47 +57,82 @@
                 class: "btn btn-accion"
 
 .card-academic
-  - if @competencias.blank?
+  -# ⚠️ La barra va ARRIBA de todo y también cuando el plan está vacío: el
+  -# 100 % es la condición para que la nota del lapso signifique algo, y es lo
+  -# primero que un profesor viene a comprobar en septiembre.
+  = render "competencies/ponderacion"
+  - if @competencias.blank? && evaluaciones_sueltas.empty?
     .empty-state
-      %h3 Todavía no hay competencias en este plan
+      %h3 Todavía no hay nada planificado en este lapso
       %p
-        Son las que vas a evaluar en este lapso. Cada una puede llevar sus
-        indicadores, que describen qué significa — se imprimen en la boleta,
-        no se califican aparte.
+        Empieza por las competencias: son lo que vas a evaluar. Cada una lleva
+        sus indicadores —que describen qué significa, se imprimen en la boleta y
+        no se califican aparte— y las evaluaciones que la miden.
       - if profesor?
         .empty-state-acciones
-          = boton "Registrar competencia", new_competency_path(contexto), icono: :agregar, tono: :guardar
-
+          = boton "Agregar competencia", new_competency_path(contexto), icono: :agregar, tono: :guardar
   - else
-    = render "shared/escala", total: @competencias.size, singular: "competencia", plural: "competencias"
-
     %ol.plan-competencias
       - @competencias.each do |c|
-        %li.plan-competencia
-          .plan-competencia-texto
-            %p.plan-competencia-descripcion= c.descripcion
-            - if c.indicators.any?
-              %ul.plan-indicadores
-                - c.indicators.en_orden.each do |i|
-                  %li= i.descripcion
-
-            -# ⚠️ Qué evaluaciones la miden, y cómo conectarlas.
-            -#
-            -# El enganche existía solo al CREAR la evaluación, y el orden
-            -# real del trabajo es el contrario. Ver `_medida_por`.
-            = render "competencies/medida_por", competencia: c
+        - suyas = evaluaciones_de(c)
+        %li.plan-competencia{ class: ("plan-competencia--sin-evaluar" if suyas.empty?) }
+          .plan-competencia-cabecera
+            .plan-competencia-texto
+              %p.plan-competencia-descripcion= c.descripcion
+              - if c.indicators.any?
+                %ul.plan-indicadores
+                  - c.indicators.en_orden.each do |i|
+                    %li= i.descripcion
+            - if profesor?
+              .columna-acciones
+                = link_to edit_competency_path(c, contexto),
+                          class: "btn btn-secondary btn-sm btn-solo-icono",
+                          data: { tooltip: "Editar la competencia" }, "aria-label": "Editar la competencia" do
+                  = icono(:editar, tamano: 15)
+                = button_to competency_path(c, contexto),
+                            method: :delete, class: "btn btn-danger btn-sm btn-solo-icono",
+                            form: { data: { turbo_confirm: "¿Borrar «#{c.descripcion.truncate(50)}» del plan?" } },
+                            data: { tooltip: "Borrar" }, "aria-label": "Borrar" do
+                  = icono(:borrar, tamano: 15)
+          - if suyas.any?
+            %ul.plan-evaluaciones
+              = render partial: "competencies/evaluacion", collection: suyas, as: :evaluacion
+          - else
+            -# ⚠️ Es un AVISO, no un error: el plan se guarda igual. Pero dice la
+            -# consecuencia y no el síntoma — «sin evaluaciones» no significa
+            -# nada, «no tendrá nivel en la boleta» sí (`MOR-229`).
+            %p.plan-sin-evaluar
+              = icono(:alerta, tamano: 15)
+              %span Sin evaluaciones — esta competencia saldrá sin nivel en la boleta.
           - if profesor?
-            .columna-acciones
-              = link_to edit_competency_path(c, contexto),
-                        class: "btn btn-secondary btn-sm btn-solo-icono",
-                        data: { tooltip: "Editar" }, "aria-label": "Editar" do
-                = icono(:editar, tamano: 15)
-              = button_to competency_path(c, contexto),
-                          method: :delete, class: "btn btn-danger btn-sm btn-solo-icono",
-                          form: { data: { turbo_confirm: "¿Borrar «#{c.descripcion.truncate(50)}» del plan?" } },
-                          data: { tooltip: "Borrar" }, "aria-label": "Borrar" do
-                = icono(:borrar, tamano: 15)
-
+            .plan-competencia-acciones
+              = boton "Agregar evaluación",
+                      new_evaluation_activity_path(contexto.merge(competencia: c.id)),
+                      icono: :agregar, tono: :guardar, sm: true
+              - if evaluaciones_sueltas.any? || suyas.any?
+                = render "competencies/medida_por", competencia: c
+    - if evaluaciones_sueltas.any?
+      -# ⚠️ Las que no miden ninguna competencia. Cuentan para el promedio igual
+      -# —el peso es el peso— pero no describen nada, así que la boleta las suma
+      -# sin poder explicarlas.
+      .plan-sueltas
+        %h4.plan-sueltas-titulo
+          = icono(:alerta, tamano: 15)
+          %span= "#{contar(evaluaciones_sueltas.size, 'evaluación', 'evaluaciones')} sin competencia"
+        %p.nota-ayuda
+          Cuentan para el promedio, pero no miden ninguna competencia del plan.
+          Engánchalas desde el botón de cada competencia, o edítalas.
+        %ul.plan-evaluaciones
+          = render partial: "competencies/evaluacion", collection: evaluaciones_sueltas, as: :evaluacion
+    - if profesor?
+      -# ⚠️ Las altas van en su PROPIO contenedor, no en `.plan-acciones`, que es
+      -# el de replicar a las secciones hermanas. Son dos cosas distintas —crear
+      -# una y copiar treinta— y mezclarlas rompió un test que usaba
+      -# `.plan-acciones` para preguntar «¿hay algo que copiar?».
+      .plan-altas
+        = boton "Agregar competencia", new_competency_path(contexto), icono: :agregar, tono: :guardar
+        = boton "Agregar evaluación", new_evaluation_activity_path(contexto),
+                icono: :agregar, tono: :accion
     - if profesor? && otras_secciones.any?
       -# ⚠️ Copiar es un ATAJO, no un vínculo: después de copiar, cada sección
       -# es independiente y admite sus propias modificaciones.

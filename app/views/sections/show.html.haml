@@ -4,7 +4,7 @@
 -# sección». Las otras tres —Asistencia, Planificar, Alumnos— son pantallas de
 -# verdad con su propio controller, y las cuatro comparten el encabezado.
 - acciones = capture do
-  -# ⚠️ «Registrar evaluación» SIEMPRE, no solo cuando la libreta está vacía.
+  -# ⚠️ «Agregar evaluación» SIEMPRE, no solo cuando la libreta está vacía.
   -#
   -# Vivía dentro del estado vacío, así que un profesor con dos evaluaciones no
   -# tenía desde dónde crear la tercera: tenía que salir a «Mis evaluaciones»
@@ -19,7 +19,7 @@
     -# Vive en las acciones de la cabecera, y Turbo solo usa el frame ancestro:
     -# desde acá navegaba la página entera y se llevaba puestas las pestañas.
     -# Nombrarlo es lo que lo devuelve adentro.
-    = boton "Registrar evaluación", nueva, icono: :agregar, tono: :guardar,
+    = boton "Agregar evaluación", nueva, icono: :agregar, tono: :guardar,
             data: { turbo_frame: "libreta" }
 
   -# ⚠️ Los informes descriptivos los escribe el GUÍA de la sección, o la

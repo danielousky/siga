@@ -86,7 +86,7 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
     visit competencies_path(asignacion: "#{@a.seccion.id}:#{@a.escenario.materia.id}",
                             lapso: @a.escenario.lapso(1).id)
 
-    assert_text "Ninguna evaluación todavía"
+    assert_selector ".plan-competencia--sin-evaluar"
 
     # El panel viene cerrado: la casilla no se puede tocar hasta abrirlo.
     assert_no_selector "#conectar-#{competencia.id}-#{evaluacion.id}", visible: true
@@ -96,7 +96,9 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
     click_on "Guardar"
 
     assert_text "Listo: 1 evaluación mide esta competencia."
-    assert_selector ".plan-medida-chip", text: evaluacion.description
-    assert_no_text "Ninguna evaluación todavía"
+    # Enganchada, la evaluación pasa a colgar DENTRO de la competencia y el
+    # aviso de la boleta desaparece: es el mismo hecho contado en un solo sitio.
+    assert_selector ".plan-competencia .plan-evaluacion-descripcion", text: evaluacion.description
+    assert_no_selector ".plan-competencia--sin-evaluar"
   end
 end

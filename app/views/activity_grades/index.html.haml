@@ -30,7 +30,7 @@
     -# que en una del 70 %— y en negrita se perdía dentro de la misma frase que
     -# el grado, la sección y el lapso.
     - peso = @evaluation_activity.weight_percentage
-    %span.carga-peso= "#{number_with_precision(peso, precision: peso.frac.zero? ? 0 : 2)} % del lapso"
+    %span.carga-peso= "#{porcentaje(peso)} del lapso"
 
   .carga-progreso
     .carga-progreso-barra

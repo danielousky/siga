@@ -234,4 +234,37 @@ class SistemaDeDisenoTest < ActiveSupport::TestCase
     assert_match(/nivel == 2 \? "cabecera-de-lista-titular-simple" : "cabecera-de-lista-franja"/,
                  cabecera)
   end
+
+  # ⚠️ Un comentario Haml SE TRAGA todo lo que quede más indentado debajo.
+  #
+  #     - @columnas.each do |columna|
+  #     -# ⚠️ el momento de la evaluación…      ← en la columna 0
+  #             %th= columna.nombre             ← se lo tragó: la tabla salió sin
+  #                                               columnas, y NADA falló
+  #
+  # `-#` es un comentario de BLOQUE, no de línea: consume su cuerpo entero, igual
+  # que `- if` consume el suyo. Un comentario mal indentado se lleva por delante
+  # la vista que viene debajo, Haml compila feliz y el HTML sale válido — solo
+  # que le falta la mitad. Pasó tres veces en un día y el único síntoma fue un
+  # test que no encontraba lo que buscaba.
+  test "ningún comentario Haml se traga la vista que viene debajo" do
+    culpables = VISTAS.flat_map do |vista|
+      lineas = vista.read.lines
+      lineas.each_with_index.filter_map do |linea, n|
+        sangria = linea[/\A */].size
+        next unless linea.lstrip.start_with?("-#")
+
+        # La siguiente línea que sea CÓDIGO. Entre medio puede haber más texto
+        # del comentario, que sí va indentado a propósito.
+        siguiente = lineas[(n + 1)..].find { |l| l.strip.match?(/\A[%.#=-][^#]/) }
+        next unless siguiente && siguiente[/\A */].size > sangria
+
+        "#{vista.relative_path_from(Rails.root)}:#{n + 1}"
+      end
+    end
+
+    assert_empty culpables,
+      "comentarios Haml que se tragan el bloque de abajo; la vista se dibuja de " \
+      "menos SIN FALLAR:\n  " + culpables.join("\n  ")
+  end
 end
