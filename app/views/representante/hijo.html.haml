@@ -12,8 +12,11 @@
   -# para lo que existe `detalle:`.
   - donde_estudia = [ "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}",
                       @inscripcion.section.academic_period.name ].join(" · ") if @inscripcion
-  = render "shared/cabecera", titulo: @hijo[:student].user.nombre_completo,
-           detalle: donde_estudia
+  -# ⚠️ En su propia tarjeta, como en el resto de la app: sin ella la
+  -# franja del título quedaba pegada al borde de la pantalla.
+  .card-academic
+    = render "shared/cabecera", titulo: @hijo[:student].user.nombre_completo,
+             detalle: donde_estudia
 
 - if @inscripcion.nil?
   .card-academic

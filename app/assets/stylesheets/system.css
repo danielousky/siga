@@ -9156,6 +9156,20 @@ a.subject-avance:hover { filter: brightness(0.9); }
 
 .cabecera-de-lista:last-child { margin-bottom: 0; }
 
+/* ⚠️ Cuando la franja es LO ÚNICO de la tarjeta, la tarjeta no lleva relleno
+   abajo: quedaba una banda blanca de veinte píxeles debajo del color, que se
+   lee como una tarjeta a medio dibujar. Se ve en el portal del representante,
+   donde el título vive solo en su tarjeta.
+   `:has()` y no una clase a mano: la vista no tiene por qué saber si es la
+   única, y una clase `--sola` se queda vieja el día que alguien agregue algo
+   debajo. */
+.card-academic:has(> .cabecera-de-lista:only-child) { padding-bottom: 0; }
+
+.card-academic:has(> .cabecera-de-lista:only-child) > .cabecera-de-lista > .cabecera-de-lista-franja {
+  margin-bottom: calc(-1 * var(--space-lg));
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
 /* Una sola línea cuando no hay controles que poner abajo (QA de Daniel).
    ─────────────────────────────────────────────────────────────────────
    Grados, Lapsos, Años escolares y Administradores no buscan ni importan: su
@@ -9229,10 +9243,29 @@ a.subject-avance:hover { filter: brightness(0.9); }
   min-width: 0;
 }
 
+/* ⚠️ El título de una TARJETA (nivel 2) no lleva franja: lleva su línea.
+   Con la franja en los dos, el portal del representante salía con cuatro
+   barras azules apiladas y el H1 dejaba de distinguirse de los H2. La marca de
+   «esto es la pantalla» solo sirve si aparece una vez. */
+.cabecera-de-lista-titular-simple {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+  min-width: 0;
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.cabecera-de-lista-titular-simple > .cabecera-de-lista-titular { flex: 1 1 auto; min-width: 0; }
+.cabecera-de-lista-titular-simple .cabecera-de-lista-titulo { color: var(--text-primary); }
+
 /* El titular se come el sobrante para que los controles queden pegados a la
    derecha aunque el título sea corto. */
 .cabecera-de-lista-franja > .cabecera-de-lista-titular { flex: 1 1 auto; min-width: 0; }
 .cabecera-de-lista-franja > .cabecera-de-lista-controles { flex: 0 1 auto; min-width: 0; }
+.cabecera-de-lista-titular-simple > .cabecera-de-lista-controles { flex: 0 1 auto; min-width: 0; }
 
 .cabecera-de-lista-detalle {
   margin: 0;

@@ -220,4 +220,18 @@ class SistemaDeDisenoTest < ActiveSupport::TestCase
     assert_match(/nivel = local_assigns\.fetch\(:nivel, 1\)/, cabecera)
     assert_match(/etiqueta_del_titulo = nivel == 2 \? :h2 : :h1/, cabecera)
   end
+
+  # ⚠️ La FRANJA es solo del título de PANTALLA.
+  #
+  # Con ella también en los de tarjeta, el portal del representante salía con
+  # cuatro barras azules apiladas —«Calificaciones», «Asistencia»,
+  # «Boletines»— y el H1 dejaba de distinguirse de los H2. Una marca que
+  # aparece en todo deja de marcar nada; lo destapó el barrido visual de las
+  # tres vistas, no un test.
+  test "el título de tarjeta no lleva franja" do
+    cabecera = Rails.root.join("app/views/shared/_cabecera.html.haml").read
+
+    assert_match(/nivel == 2 \? "cabecera-de-lista-titular-simple" : "cabecera-de-lista-franja"/,
+                 cabecera)
+  end
 end

@@ -166,7 +166,13 @@
   -# título compartiendo ancho —se cortaba antes del primer botón— ni los
   -# controles en un renglón aparte, que costaba treinta píxeles y partía en dos
   -# lo que es una sola cosa.
-  .cabecera-de-lista-franja
+  -# ⚠️ La FRANJA es solo del título de PANTALLA (nivel 1).
+  -#
+  -# Con ella también en los de tarjeta, el portal del representante salía con
+  -# cuatro barras azules apiladas —«Calificaciones», «Asistencia»,
+  -# «Boletines»— y la jerarquía desaparecía: el H1 y los H2 se veían igual.
+  -# Una marca que aparece en todo deja de marcar nada.
+  %div{ class: nivel == 2 ? "cabecera-de-lista-titular-simple" : "cabecera-de-lista-franja" }
     .cabecera-de-lista-titular
       = content_tag etiqueta_del_titulo, titulo, class: "cabecera-de-lista-titulo"
       -# ⚠️ `detalle_destacado` invierte el peso del título y el detalle.
