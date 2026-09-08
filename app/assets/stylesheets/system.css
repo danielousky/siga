@@ -6437,6 +6437,60 @@ a.subject-avance:hover { filter: brightness(0.9); }
   letter-spacing: 0;
 }
 
+/* ── El MOMENTO de cada columna (etapa ③) ─────────────────────────────────── */
+/* ⚠️ La fecha ORDENA y da FOCO. No cierra nada.
+   Daniel lo había planteado como «se activa conforme a la fecha y se
+   desactivan las otras», y suena razonable hasta que se piensa quién queda
+   afuera: el profesor que carga tarde, que es el caso NORMAL y lo descubre un
+   domingo a las nueve. Quedó en que la fecha jerarquiza, y él estuvo de
+   acuerdo.
+
+   Las tres columnas se escriben igual; lo que cambia es cuánto pesan. */
+
+/* ATRASADA: ya pasó y le faltan notas. Es lo que hay que hacer HOY, así que
+   es la única con fondo — el resto de la fila de encabezados es plana. */
+.libreta-columna--atrasada {
+  background: var(--warning-bg);
+  box-shadow: inset 0 -2px 0 var(--warning-text);
+}
+
+.libreta-columna--atrasada .libreta-cuando-marca {
+  color: var(--warning-text);
+  font-weight: 600;
+}
+
+/* HOY: se aplica hoy. Se marca, sin alarmar: todavía no falta nada. */
+.libreta-columna--hoy { box-shadow: inset 0 -2px 0 var(--brand-primary); }
+.libreta-columna--hoy .libreta-cuando-marca { color: var(--brand-primary); font-weight: 600; }
+
+/* FUTURA: atenuada, pero ESCRIBIBLE. Una evaluación se puede adelantar, y una
+   columna apagada que igual acepta notas es más honesta que una cerrada. */
+.libreta-columna--futura .libreta-columna-nombre,
+.libreta-columna--futura .libreta-columna-peso,
+.libreta-columna--futura .libreta-columna-cuando { opacity: 0.55; }
+
+/* ⚠️ Y su «0 de 22» pierde el rojo.
+   El rojo del avance significa «no has cargado ninguna», y en una evaluación
+   que todavía no se aplicó eso no es un problema: es lo esperado. Dejarlo
+   rojo pone una alarma sobre algo que no pasó, y una alarma que suena sin
+   motivo enseña a ignorarlas todas. */
+.libreta-columna--futura .libreta-columna-avance {
+  color: var(--text-tertiary);
+  opacity: 0.55;
+}
+
+.libreta-columna-cuando {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-micro);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
 .libreta-avance--completa { color: var(--success-text); }
 .libreta-avance--a_medias { color: var(--warning-text); }
 .libreta-avance--vacia    { color: var(--danger-text); }

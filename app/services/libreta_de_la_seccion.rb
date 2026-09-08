@@ -57,6 +57,40 @@ class LibretaDeLaSeccion
 
       :a_medias
     end
+
+    # ── El MOMENTO de la evaluación, que es otra pregunta ─────────────────
+    #
+    # ⚠️ La fecha ORDENA y da FOCO. No cierra nada.
+    #
+    # Es la decisión 1 del spec, y la más fácil de leer al revés: «se activa
+    # conforme a la fecha y se desactivan las otras» suena razonable y deja
+    # fuera al profesor que carga tarde — que es el caso NORMAL, y lo descubre
+    # un domingo a las nueve de la noche. Daniel estuvo de acuerdo.
+    #
+    #     ATRASADA   ya pasó y le faltan notas  → lo que hay que hacer HOY
+    #     HOY        se aplica hoy              → resaltada
+    #     FUTURA     todavía no llega           → atenuada, PERO escribible
+    #
+    # ⚠️ Una evaluación pasada y COMPLETA no está atrasada: no hay nada
+    # pendiente en ella. Confundirlas pintaría media libreta de urgente en
+    # diciembre, y entonces el rojo deja de significar nada.
+    def momento(hoy = Date.current)
+      fecha = evaluacion.date_scheduled
+      return :sin_fecha if fecha.nil?
+      return :hoy       if fecha == hoy
+      return :futura    if fecha > hoy
+
+      completa? ? :cerrada : :atrasada
+    end
+
+    # Cuántos días faltan, para la futura. `nil` en todas las demás: en una
+    # columna que ya pasó, «hace 12 días» es un reproche, no un dato.
+    def dias_para(hoy = Date.current)
+      fecha = evaluacion.date_scheduled
+      return nil if fecha.nil? || fecha <= hoy
+
+      (fecha - hoy).to_i
+    end
   end
 
   def self.para(seccion:, materia:, lapso:)

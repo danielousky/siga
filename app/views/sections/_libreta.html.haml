@@ -37,7 +37,14 @@
         %tr
           %th.libreta-alumno= Student.model_name.human
           - @libreta[:columnas].each do |columna|
-            %th.libreta-columna
+            -# ⚠️ El MOMENTO de la evaluación, junto al avance pero distinto de
+            -# él: uno dice «cuántas llevo», el otro «cuándo era».
+            -#
+            -# La atrasada es la más visible porque es lo que hay que hacer hoy;
+            -# la futura se atenúa PERO se puede escribir — una evaluación se
+            -# puede adelantar, y un campo que se cierra por fecha deja fuera al
+            -# profesor que carga tarde, que es el caso normal.
+            %th.libreta-columna{ class: "libreta-columna--#{columna.momento}" }
               -# ⚠️ El encabezado es un ENLACE a su planilla: desde acá el
               -# profesor ve que faltan cinco y entra a ponerlas sin volver
               -# atrás. Daniel: *«al hacer clic me voy directamente a la
@@ -45,6 +52,16 @@
               = link_to evaluation_activity_notas_path(columna.evaluacion), class: "libreta-columna-enlace" do
                 %span.libreta-columna-nombre= columna.evaluacion.description
                 %span.libreta-columna-peso= "#{number_with_precision(columna.evaluacion.weight_percentage, precision: columna.evaluacion.weight_percentage.frac.zero? ? 0 : 2)} %"
+                %span.libreta-columna-cuando
+                  = l(columna.evaluacion.date_scheduled, format: :short) if columna.evaluacion.date_scheduled
+                  - case columna.momento
+                  - when :atrasada
+                    %span.libreta-cuando-marca ya pasó
+                  - when :hoy
+                    %span.libreta-cuando-marca hoy
+                  - when :futura
+                    %span.libreta-cuando-marca= "en #{contar(columna.dias_para, 'día', 'días')}"
+
                 %span.libreta-columna-avance{ class: "libreta-avance--#{columna.estado}" }
                   = "#{columna.puestas} de #{columna.total}"
 
