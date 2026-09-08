@@ -6,7 +6,19 @@
                        carga_notas_cargadas_value: @notas_por_alumno.size,
                        carga_notas_total_value: @inscripciones.size }}
   = render layout: "shared/cabecera", locals: { titulo: @evaluation_activity.description } do
-    = boton "Volver", @evaluation_activity, icono: :volver, tono: :secondary
+    -# ⚠️ Vuelve a la LIBRETA de su sección, no a la ficha de la evaluación.
+    -#
+    -# Daniel: *«el volver de evaluaciones debe llevarlo a
+    -# /secciones/ID?area=240»*. Y es la misma idea del resto de la tarde: el
+    -# profesor entró desde la columna de su libreta, y devolverlo a la ficha
+    -# suelta de la evaluación lo saca de la sección donde estaba trabajando.
+    -#
+    -# ⚠️ Con el LAPSO también: sin él la libreta abre en el que está en curso,
+    -# que en marzo no es el que acaba de calificar.
+    - a_la_libreta = section_path(@evaluation_activity.section,
+                                  area: @evaluation_activity.subject_id,
+                                  lapso: @evaluation_activity.evaluation_moment_id)
+    = boton "Volver", a_la_libreta, icono: :volver, tono: :secondary
 
   %p.carga-contexto
     = "#{@evaluation_activity.section.grade.name} – #{@evaluation_activity.section.name}"
