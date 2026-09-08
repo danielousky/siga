@@ -22,7 +22,11 @@
     %details.sidebar-grupo{open: grupo_abierto?(grupo), id: grupo.id,
                            data: { menu_target: "grupo", action: "toggle->menu#alTogglear" }}
       %summary.sidebar-section-title= grupo.titulo
-      = render "shared/menu_enlaces", enlaces: grupo.enlaces
+      -# Un grupo lleva una lista plana O un árbol, nunca los dos.
+      - if grupo.arbol?
+        - grupo.ramas.each { |rama| concat(render("shared/menu_rama", rama: rama)) }
+      - else
+        = render "shared/menu_enlaces", enlaces: grupo.enlaces
   - else
     -# Sin título: el Panel. No es una categoría, es el punto de partida.
     .sidebar-section

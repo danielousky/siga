@@ -6025,6 +6025,54 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 }
 
 
+/* ── El árbol del menú del profesor (etapa ③) ─────────────────────────────── */
+/* Área → nivel → grado → sección, con los escalones que no dividen nada ya
+   podados al construir. La profundidad REAL varía por profesor, así que el
+   sangrado se acumula solo: cada rama corre a sus hijos un poco más. */
+.sidebar-rama > .sidebar-nav,
+.sidebar-rama > .sidebar-rama { padding-left: var(--space-sm); }
+
+.sidebar-rama-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 6px var(--space-lg);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  list-style: none;
+  /* El nombre de un área es largo —«Grupo de Creación, Recreación y
+     Producción»— y el menú tiene 260 px: se parte en dos renglones antes que
+     desbordar, porque el sidebar recorta. */
+  line-height: 1.3;
+}
+
+.sidebar-rama-titulo::-webkit-details-marker { display: none; }
+.sidebar-rama-titulo::marker { content: ""; }
+
+/* La flecha: la dibuja el CSS y gira al abrir. Un icono más sería un SVG por
+   rama, y un profesor puede tener veinte. */
+.sidebar-rama-titulo::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 0;
+  height: 0;
+  border-left: 4px solid currentColor;
+  border-top: 3.5px solid transparent;
+  border-bottom: 3.5px solid transparent;
+  transition: transform var(--transition-fast);
+}
+
+.sidebar-rama[open] > .sidebar-rama-titulo::before { transform: rotate(90deg); }
+.sidebar-rama-titulo:hover { color: var(--text-primary); background: var(--surface-hover); }
+
+.sidebar-rama-titulo:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+}
+
+
 /* Tooltip propio (MOR-173).
    ───────────────────────
    Daniel: «mira el tooltip, es de HTML puro. Revisalos todos». El `title` del
