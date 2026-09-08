@@ -1,13 +1,12 @@
 # La vista del profesor · etapa ③
 
-> **Estado:** **borrador** — 8 de septiembre de 2026
+> **Estado:** **congelado** — 8 de septiembre de 2026
 > **PR:** —
 > **Depende de:** [`sistema-de-diseno.md`](sistema-de-diseno.md) (①, entregada) ·
 > [`cabecera-unica.md`](cabecera-unica.md) (②, entregada)
 >
-> ⚠️ **No se congela hasta que Daniel responda las cuatro preguntas abiertas de
-> la sección 3.** Todo lo demás ya está decidido en la conversación del 8 de
-> septiembre.
+> Las cuatro preguntas abiertas quedaron respondidas por Daniel el 8 de
+> septiembre; están en la tabla de decisiones con su número.
 
 ---
 
@@ -80,14 +79,25 @@ Hoy los dos ven la misma lista plana de quince o dieciséis renglones seguidos.
 | 5 | ¿Replicar a las hermanas? | **Sí.** Ya existe para competencias; falta para evaluaciones | Daniel |
 | 6 | ¿Documentos de identidad? | **Sí, y probablemente para los cuatro roles.** Docente: cédula, foto de perfil y **RIF**. Va en la etapa ④ | Daniel |
 
-### ⚠️ Abiertas — el spec no se congela sin estas
+### Las cuatro que faltaban, respondidas el 8 de septiembre
 
-| # | Pregunta | Por qué importa |
-|---|----------|-----------------|
-| A | ¿Cómo se llaman las dos ramas del sidebar? Propuesta: **«Soy guía de»** y **«Dicto»** | Son las dos palabras que el docente va a leer todos los días. «Mi grupo», «Mi sección», «Mis áreas» son alternativas |
-| B | Un profesor **sin ninguna sección guía** (Ochoa, Quintero, Silva) ¿ve la rama vacía, o no la ve? | Esconderla es un menú que cambia de forma entre dos docentes del mismo colegio; mostrarla vacía es un renglón que no lleva a nada |
-| C | Las pestañas de la sección: **Calificar · Asistencia\* · Planificación · Alumnos**. ¿Ese orden? ¿Falta alguna? | El orden es la frecuencia de uso, y la de asistencia solo aparece para el guía |
-| D | ¿El profesor puede ver **años anteriores** de sus secciones? | Hoy no tiene selector de año, y fue decisión tuya: *«los docentes no deberían necesitar ni siquiera ver algo anterior, solo lo que están calificando»*. Con el sidebar nuevo la pregunta vuelve |
+| # | Pregunta | Decisión | Quién |
+|---|----------|----------|-------|
+| 7 | ¿Cómo se llaman las dos ramas del sidebar? | **«Soy guía de»** y **«Dicto»** | Daniel |
+| 8 | Un profesor sin ninguna sección guía, ¿ve la rama vacía? | **No la ve.** Sin secciones que guiar, la rama no existe | Daniel |
+| 9 | ¿Qué orden llevan las pestañas de la sección? | **Planificar · Asistencia\* · Calificar · Alumnos** — el orden del CICLO, no el de la frecuencia. (\*solo el guía) | Daniel |
+| 10 | ¿El profesor puede mirar años anteriores? | **No, por ahora.** *«Si surge la necesidad lo evaluamos»* — sigue la razón de `MOR-165`: darle el control es darle una manera de cargar notas en el año equivocado sin enterarse | Daniel |
+
+⚠️ **De la 9 sale una consecuencia que conviene decir en voz alta:** si
+«Planificar» es la primera pestaña, es la que se abre por defecto — y el
+profesor que entra a cargar una nota cae en la pantalla que menos usa. Daniel
+mismo lo describió así: *«esa es menos frecuente, la uso sobre todo al inicio.
+Luego queda un poquito guardada»*.
+
+**Se resuelve sin cambiar el orden:** las pestañas se leen en el orden del
+ciclo y la **activa por defecto es Calificar**. El orden enseña; el default
+sirve. Si el profesor no tiene plan todavía, el default cae en Planificar,
+porque ahí sí es lo que toca.
 
 ## 4 · El dominio
 
@@ -160,9 +170,11 @@ ninguna nota · ▤ sin evaluaciones todavía.
   ┌──────────────────────────────────────────────────────────────────────┐
   │  Ed. Estética · 4to Grado – A            [ Volver ]  [ 22 alumnos ]  │
   │  ──────────────────────────────────────────────────────────────────  │
-  │   Calificar │ Asistencia │ Planificación │ Alumnos                   │
-  │   ─────────    ▲                                                     │
-  │                └── SOLO si soy guía de esta sección                  │
+  │   Planificar │ Asistencia │ Calificar │ Alumnos                     │
+  │                   ▲          ─────────                               │
+  │                   │          └── la ACTIVA por defecto: es a lo que  │
+  │                   │              el profesor entra todos los días    │
+  │                   └── SOLO si soy guía de esta sección               │
   │                                                                      │
   │   LAPSO   [ 1er Lapso ] 2do Lapso   3er Lapso                        │
   │                                                                      │
@@ -225,6 +237,12 @@ una columna lleve a la planilla de esa evaluación.
       pantalla llega con el área puesta y **no** vuelve a preguntarla.
 - [ ] Dado que no soy guía de una sección, entonces esa pantalla **no** tiene
       pestaña de Asistencia.
+- [ ] Dado un profesor que no guía ninguna sección, entonces el menú **no**
+      muestra la rama «Soy guía de» — ni siquiera vacía.
+- [ ] Dadas las pestañas de una sección, entonces se leen
+      **Planificar · Asistencia · Calificar · Alumnos** y la activa al entrar
+      es **Calificar** (o Planificar, si todavía no hay plan).
+- [ ] Dado un profesor, entonces **no** tiene selector de año escolar.
 - [ ] Dada una evaluación cuya fecha ya pasó y no está completa, entonces su
       columna es la más visible — y **se puede escribir en ella**.
 - [ ] Dada una evaluación futura, entonces su columna está atenuada y **se
