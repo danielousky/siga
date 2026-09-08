@@ -99,4 +99,20 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
       assert_selector ".pestana", count: 3
     end
   end
+
+  # ⚠️ Entrando por «Soy guía de» la URL NO trae área —la asistencia es de la
+  # sección entera— y las cuatro pestañas tienen que funcionar igual.
+  #
+  # Daniel: *«cuando intenté entrar en el enlace de planificación me devuelve y
+  # me sale el error: Elige primero un área»*. La libreta deducía la primera y
+  # «Planificar» no: dos deducciones paralelas para la misma pregunta.
+  test "sin área en la URL, planificar abre igual" do
+    con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: @a.registro_de_profesor) }
+    visit section_path(@a.seccion)
+
+    click_on "Planificar"
+
+    assert_selector ".pestana.activa", text: "Planificar"
+    assert_no_text "Elige primero un área"
+  end
 end

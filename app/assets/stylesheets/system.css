@@ -9094,16 +9094,13 @@ a.subject-avance:hover { filter: brightness(0.9); }
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+  /* ⚠️ Sin borde inferior propio: la FRANJA ya separa por contraste, y una
+     línea debajo de un bloque de color se lee como un subrayado suelto. El
+     margen es el que despega el contenido de la franja. */
   margin-bottom: var(--space-lg);
-  padding-bottom: var(--space-md);
-  border-bottom: 1px solid var(--border-subtle);
 }
 
-.cabecera-de-lista:last-child {
-  margin-bottom: 0;
-  padding-bottom: 0;
-  border-bottom: none;
-}
+.cabecera-de-lista:last-child { margin-bottom: 0; }
 
 /* Una sola línea cuando no hay controles que poner abajo (QA de Daniel).
    ─────────────────────────────────────────────────────────────────────
@@ -9157,9 +9154,18 @@ a.subject-avance:hover { filter: brightness(0.9); }
   justify-content: space-between;
   flex-wrap: wrap;
   gap: var(--space-sm) var(--space-md);
-  padding: var(--space-xs) var(--space-md);
+  padding: var(--space-sm) var(--space-lg);
+  /* ⚠️ SANGRA hasta el borde de la tarjeta, saliéndose de su relleno.
+     Daniel, sobre la franja: «así el title, sin padding». Con el relleno de la
+     `.card-academic` alrededor, la barra flotaba en el medio y se leía como un
+     bloque más; tocando los bordes se lee como el encabezado DE la tarjeta.
+     ⚠️ El margen negativo es exactamente `--space-lg`, el relleno de
+     `.card-academic`: si uno cambia, el otro tiene que cambiar con él. */
+  margin: calc(-1 * var(--space-lg)) calc(-1 * var(--space-lg)) 0;
   border-left: 3px solid var(--brand-primary);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  /* Las esquinas de arriba siguen a las de la tarjeta; las de abajo son rectas
+     porque ahí sigue el contenido. */
+  border-radius: 0 var(--radius-md) 0 0;
   background: var(--brand-subtle);
   /* ⚠️ `min-width: 0` o la franja NO se encoge por debajo de su contenido.
      Un flex item toma `min-width: auto` por defecto, así que el campo de alta

@@ -165,8 +165,21 @@ class SectionsController < ApplicationController
     can_manage_sections? || @section.leader_teacher_id == current_user.teacher&.id
   end
 
+  # ⚠️ Cae en la PRIMERA que califico cuando la URL no la trae.
+  #
+  # Entrando por «Soy guía de» el enlace va sin área —la asistencia es de la
+  # sección entera, sin área— y ahí «Planificar» rebotaba con «Elige primero un
+  # área» mientras la libreta de al lado mostraba Matemática tan campante: las
+  # dos deducían distinto.
+  #
+  # Es «no preguntemos lo deducible»: en una sección donde dicto una sola área
+  # no hay nada que elegir, y donde dicto dos la primera es tan buena como
+  # pedirla — las pestañas la llevan de ahí en adelante.
   def area_de_la_pestana
-    @area_de_la_pestana ||= areas_que_califico.find { |s| s.id.to_s == params[:area] }
+    return @area_de_la_pestana if defined?(@area_de_la_pestana)
+
+    @area_de_la_pestana = areas_que_califico.find { |s| s.id.to_s == params[:area] } ||
+                          areas_que_califico.first
   end
   helper_method :area_de_la_pestana
 
@@ -177,8 +190,9 @@ class SectionsController < ApplicationController
     @lapsos_de_la_libreta = EvaluationMoment
                             .where(academic_period_id: @section.academic_period_id)
                             .order(:starts_on, :id).to_a
-    @area_de_la_libreta = @areas_que_califico.find { |s| s.id.to_s == params[:area] } ||
-                          @areas_que_califico.first
+    # ⚠️ La MISMA que las pestañas, no una deducción paralela: cuando eran dos,
+    # la libreta abría en Matemática y «Planificar» decía que faltaba elegir.
+    @area_de_la_libreta = area_de_la_pestana
     @lapso_de_la_libreta = @lapsos_de_la_libreta.find { |l| l.id.to_s == params[:lapso] } ||
                            lapso_en_curso || @lapsos_de_la_libreta.first
     return if @lapso_de_la_libreta.nil?
