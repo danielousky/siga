@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 7 de septiembre de 2026 (09:57)
+# 🔖 Punto de retome — actualizado 8 de septiembre de 2026 (11:40)
 
 ## Producción limpia y resembrada (MOR-146 · MOR-224)
 
@@ -64,6 +64,92 @@ Producción sigue con **cuentas de administrador con contraseña conocida y
 públicamente documentada**. El día que entre un colegio de verdad esto es
 urgente otra vez — pero ya no por alumnos inventados, sino por las cuentas.
 `MOR-146` sigue abierto por esa mitad.
+
+---
+
+## Sesión del 8 de septiembre — el sistema de diseño deja de ser opcional
+
+`bin/ci` verde: **1.340 tests**, 6.234 aserciones. **Todo en LOCAL, sin subir.**
+
+```
+   11:05   ① tonos + catálogo vivo en /siga/estilo
+   11:33   ② una sola cabecera para las 128 pantallas
+   11:36   ③ spec de la vista del profesor, en BORRADOR
+```
+
+⚠️ **Nada se desplegó ni se empujó a origin.** Regla que Daniel tuvo que
+repetir: *«trabajemos en local y cuando te diga, desplegamos a prod y origin»*.
+Está en memoria.
+
+### De dónde salió
+
+> *«Ayer hice una captura de por lo menos cinco tipos de títulos principales.
+> Eso es inconcebible… un framework vale, nuestro propio framework, con las
+> bondades de Bootstrap pero no tan extenso»*
+
+Contó cinco. Había **siete** — y el diagnóstico no era que faltara el framework
+(709 clases en 9.548 líneas) sino que **era opcional**: la cabecera correcta
+existía desde `MOR-192` y la usaban **14 pantallas de 84**.
+
+### ① El verde significa «esto queda guardado»
+
+Decisión de Daniel: el alta va en verde, igual que el submit. Así
+`[Guardar cambios]` en una edición deja de ser una excepción incómoda.
+
+```
+   guardar     verde       queda guardado    [+ Agregar] [Crear] [Guardar]
+   accion      índigo      mucho de una vez  [Copiar de otro año]
+   documento   petróleo    algo sale         [Descargar] [Emitir]
+   ver         azul suave  mirar sin tocar   [Ver]
+   secondary   neutro      volver atrás      [Volver] [Cancelar]
+   danger      sin tono    destruye          [Eliminar]
+```
+
+⚠️ **`btn-primary` se retiró.** Se quedó sin trabajo, y «primario» nunca fue un
+trabajo. `boton` **exige `tono:`**: ese default era el agujero.
+
+**El catálogo vive en `/siga/estilo`**, tras la puerta del equipo de SIGA
+(`desarrollador@siga.edu` / `123123`), y se dibuja con los helpers de verdad.
+
+### ② Una sola cabecera
+
+```
+   43×  card-academic-header > %h2   ← título de TARJETA
+   32×  card-academic-header > %h1   ← título de PANTALLA
+   35×  … + acciones
+```
+
+La misma clase para dos cosas distintas, separadas solo por qué etiqueta
+escribió cada quien. Ahora es `nivel:`, que se pide.
+
+⚠️ **El partial NO emite la tarjeta** — eso es lo que lo hace componible.
+
+### Cinco cosas que aparecieron, y ninguna estaba en el plan
+
+1. **«Emitir el documento» estaba en el tono equivocado** (azul, siendo un
+   papel). Llevaba así desde que existe.
+2. **Un botón de dos palabras se desbordaba**: `line-height: 1` + alto fijo.
+   Se vio recién con los seis tonos apilados en el catálogo.
+3. **Un `%h2` VACÍO** en el panel del administrador: el icono y «Todo al día»
+   le quedaban de hermanos, no adentro.
+4. **`.dato-secundario` ya existía** y la redefiní — la colisión de
+   `.contexto-fijo`, otra vez.
+5. ⚠️ **La hoja tiene 108 selectores duplicados.** 98 con el mismo cuerpo, y 9
+   de los 10 restantes son refinamientos deliberados en cascada. **No se tocó:
+   es un PR propio.**
+
+### Y dos guardas avisaron, que es de lo que se trata
+
+`nombres_de_las_acciones_test` leía el título con `/%h1 (.+)/` y se quedó ciego
+al migrar. No pasó en silencio porque **ese test comprueba primero que esté
+comprobando algo**. Es la advertencia de la plantilla de specs, cumpliéndose.
+
+### ⚠️ Lo que espera a Daniel
+
+El spec de la **vista del profesor** está en borrador con **cuatro preguntas
+abiertas** que son suyas: cómo se llaman las dos ramas del sidebar, qué ve un
+profesor sin sección guía, el orden de las pestañas, y si puede mirar años
+anteriores. Sin esas cuatro no se congela.
 
 ---
 
