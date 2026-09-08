@@ -32,7 +32,7 @@
         ponderación —el 70/30 del Artículo 111—, no competencias. Lo que dictas
         se arma desde «Mis evaluaciones».
       .empty-state-acciones
-        = boton "Ir a mis evaluaciones", evaluation_activities_path, icono: :notas
+        = boton "Ir a mis evaluaciones", evaluation_activities_path, icono: :notas, tono: :ver
 
 - elsif mis_asignaciones.empty?
   .card-academic
@@ -116,7 +116,7 @@
           no se califican aparte.
         - if profesor?
           .empty-state-acciones
-            = boton "Registrar competencia", new_competency_path(contexto), icono: :agregar
+            = boton "Registrar competencia", new_competency_path(contexto), icono: :agregar, tono: :guardar
 
     - else
       = render "shared/escala", total: @competencias.size, singular: "competencia", plural: "competencias"

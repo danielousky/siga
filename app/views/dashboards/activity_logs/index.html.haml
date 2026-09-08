@@ -20,7 +20,7 @@
 
 - if params[:usuario_q].present? && @usuario_match&.any?
   .filter-pills
-    %span{style: "font-size: 13px; color: var(--text-secondary);"} Filtrando por:
+    %span.dato-secundario Filtrando por:
     - @usuario_match.each do |u|
       %span.filter-pill
         = u.apellidos_y_nombres
@@ -51,14 +51,14 @@
         %tbody
           - @logs.each do |log|
             %tr
-              %td{style: "white-space: nowrap; color: var(--text-secondary); font-size: 13px;"}
+              %td.celda-fecha
                 = log.created_at.strftime("%d/%m/%Y %H:%M")
               %td= log.user.apellidos_y_nombres
               %td
                 %span.activity-badge{class: "activity-badge--#{log.action.split('_').last}"}
                   = log.label
               %td= log.message
-              %td{style: "font-size: 12px; color: var(--text-tertiary);"}= log.ip_address || "—"
+              %td.dato-menor= log.ip_address || "—"
 
       .pagy-nav
         != pagy_nav(@pagy)
@@ -67,6 +67,6 @@
         %h3 Sin registros
         - if params[:usuario_q].present?
           %p No se encontraron usuarios con "#{params[:usuario_q]}"
-          %p{style: "font-size: 13px; color: var(--text-tertiary);"} Intente con el nombre completo, número de expediente o correo institucional
+          %p.nota-ayuda Intente con el nombre completo, número de expediente o correo institucional
         - else
           %p No hay actividad registrada con los filtros seleccionados.

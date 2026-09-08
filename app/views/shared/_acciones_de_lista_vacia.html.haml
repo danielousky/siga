@@ -15,6 +15,6 @@
     - if accion[:tipo]
       = boton_de_importar accion[:tipo]
     - else
-      = link_to accion[:ruta], class: "btn #{accion[:clase] || 'btn-primary'}" do
+      = link_to accion[:ruta], class: "btn #{accion[:clase] || 'btn-guardar'}" do
         = icono(accion[:icono], tamano: 16)
         %span= accion[:texto]

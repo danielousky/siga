@@ -27,6 +27,9 @@
           %li= link_to "Colegios", siga_colegios_path, class: "siga-menu-link #{'active' if siga_seccion_activa == 'colegios'}"
           %li= link_to "Cartera", siga_cartera_index_path, class: "siga-menu-link #{'active' if siga_seccion_activa == 'cartera'}"
           %li= link_to "Solicitudes", siga_solicitudes_path, class: "siga-menu-link #{'active' if siga_seccion_activa == 'solicitudes'}"
+          -# El catálogo del sistema de diseño. Va al final: se consulta antes
+             de escribir una pantalla, no todos los días.
+          %li= link_to "Catálogo", siga_estilo_path, class: "siga-menu-link #{'active' if siga_seccion_activa == 'estilo'}"
         .siga-sesion
           %span.siga-quien
             = current_user.first_name

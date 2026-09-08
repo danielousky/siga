@@ -77,7 +77,7 @@
       -# Sección, área, lapso y la competencia viajan en la URL: el formulario
       -# abre con las cuatro decididas y esta competencia ya marcada.
       = link_to new_evaluation_activity_path(contexto.merge(competencia: competencia.id)),
-                class: "btn btn-primary btn-sm btn-solo-icono",
+                class: "btn btn-guardar btn-sm btn-solo-icono",
                 data: { tooltip: "Registrar una evaluación que mida esta competencia" },
                 "aria-label": "Registrar una evaluación que mida esta competencia" do
         = icono(:agregar, tamano: 15)

@@ -150,6 +150,58 @@ no puede entrar hasta que el colegio se lo cargue.
 
 ## Conventions
 
+### 🎨 El sistema de diseño: un solo hilo para los cuatro roles
+
+**Antes de escribir una pantalla se mira `/siga/estilo`** — el catálogo vivo,
+tras la puerta de `SigaStaff`. Ahí está cada componente con su Haml al lado, y
+se dibuja con los helpers de verdad: si algo cambia, cambia primero ahí.
+
+Daniel, 8 de septiembre de 2026: *«hice una captura de por lo menos cinco tipos
+de títulos principales. Eso es inconcebible… un framework vale, nuestro propio
+framework»*. Había siete formas de título, y la cabecera correcta la usaban
+**14 pantallas de 84**. El problema no era que faltara el framework: era que
+**era opcional**.
+
+**Los seis tonos de botón, cada uno con su verbo** (`MOR-172`, revisado):
+
+```
+   guardar     verde       QUEDA GUARDADO    [+ Agregar] [Crear] [Guardar cambios]
+   accion      índigo      mucho de una vez  [Copiar de otro año] [Cargar notas]
+   documento   petróleo    algo SALE         [Descargar] [Emitir]
+   ver         azul suave  mirar sin tocar   [Ver]
+   secondary   neutro      volver atrás      [Volver] [Cancelar]
+   danger      sin tono    destruye          [Eliminar]
+```
+
+⚠️ **`btn-primary` SE RETIRÓ, y no volverá.** Al pasar el alta al verde, el azul
+se quedó sin trabajo — y «primario» nunca fue un trabajo: es jerarquía visual,
+justo lo que `MOR-172` reemplazó por *qué hace* el botón. Si estás por escribir
+`btn-primary`, la pregunta no es de qué color: es cuál de los seis verbos hace.
+
+⚠️ **El verde NO significa «crea»: significa «esto queda guardado».** Por eso lo
+llevan por igual el `[+ Agregar]` que va al formulario y el `[Crear]` que lo
+envía, y también `[Guardar cambios]` en una edición, que no crea nada. El `+` es
+lo único que dice «y además nace algo nuevo».
+
+⚠️ **`boton` exige `tono:` y no tiene default.** Ese default era el agujero:
+escribir un botón sin pensar qué hace daba un botón azul, y así el color volvía
+a no decir nada.
+
+**El botón de alta es idéntico en las 84 pantallas:** `[+ Agregar]` visible, el
+tooltip **«Registrar \<cosa\>» obligatorio** —en el teléfono no hay hover y
+«Agregar» a secas no dice de qué— y `aria-label` con el mismo texto.
+
+**Lo que hace `sistema_de_diseno_test` que falle:** un `btn-primary`, un `boton`
+sin tono, un `style=` inline con valor fijo (con interpolación sí se admite: el
+ancho de una barra es un dato), una `<table>` sin `.table-academic`.
+
+⚠️ **Los MAILERS quedan fuera de esas reglas**, y no por conveniencia: un correo
+HTML necesita estilos inline y `<table>` de maquetación, porque Gmail y Outlook
+descartan las hojas externas y no soportan flex ni grid.
+
+Spec en [`docs/specs/sistema-de-diseno.md`](docs/specs/sistema-de-diseno.md).
+Pendiente la etapa ②: **unificar las siete formas de título** en un solo partial.
+
 ### ⚠️ Inglés y español: dónde va cada uno (`MOR-162`)
 
 El criterio es uno y se dice en una línea: **inglés donde Rails DEDUCE un nombre

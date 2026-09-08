@@ -1,112 +1,170 @@
 require "test_helper"
 
-# El sistema de diseño (MOR-135).
+# El sistema de diseño, y lo que impide saltárselo.
 #
-# ## Por qué existe este test
+# ## Por qué existe este archivo
 #
-# Esta app **no carga Bootstrap**. Pero se generó con andamios de Rails, que
-# escriben clases de Bootstrap, y nadie las revisó: durante meses hubo
-# **44 botones** apuntando a variantes que ninguna hoja de estilo define.
+# Daniel, 8 de septiembre de 2026: *«ayer hice una captura de por lo menos cinco
+# tipos de títulos principales. Eso es inconcebible… todos los títulos deben ser
+# idénticos… un framework vale, nuestro propio framework»*.
 #
-#     btn-outline-primary    23 usos    ← "Volver", en todos los andamios
-#     btn-danger             15 usos    ← TODOS los botones de borrar
-#     btn-outline-secondary   6 usos    ← "Editar", en todos los andamios
+# La auditoría le dio la razón por más —había siete formas, más dos escritas a
+# mano con `style:` inline— y dejó claro que **el diagnóstico no era que faltara
+# el framework**: hay 709 clases en 9.548 líneas de CSS. El problema era que
+# **era opcional**. La cabecera correcta existía desde `MOR-192` y la usaban
+# catorce pantallas de ochenta y cuatro.
 #
-# Un botón así no explota: hereda `.btn` —que le da relleno y borde
-# transparente— y se dibuja como texto suelto. Se ve exactamente como una
-# pantalla a medio hacer, y por eso Daniel dijo que las vistas parecían de otro
-# sistema. Nada en el pipeline lo notaba, porque el HTML es válido y el test
-# de humo devuelve 200.
+# ⚠️ Nadie eligió divergir. La pieza correcta existía, no era obligatoria, y el
+# camino corto era escribir `%h1`. Un sistema de diseño que no falla cuando se
+# lo ignoran no es un sistema: es una sugerencia.
+#
+# Este proyecto ya sostiene tres reglas así —`nombres_de_las_acciones_test` los
+# verbos, `plural_en_espanol_test` los plurales, `hoja_de_estilos_test` las
+# variables— y funcionan **porque fallan**.
+#
+# Spec completo en `docs/specs/sistema-de-diseno.md`.
 class SistemaDeDisenoTest < ActiveSupport::TestCase
-  VISTAS = Rails.root.glob("app/views/**/*.haml").freeze
-  HOJA   = Rails.root.join("app/assets/stylesheets/system.css").freeze
+  HOJA = Rails.root.join("app/assets/stylesheets/system.css")
 
-  # Las clases de una vista Haml se escriben de DOS maneras, y hay que mirar las
-  # dos. Este test nació mirando solo la primera y se le escapó
-  # `%small.form-text.text-muted`, que es Bootstrap puro:
+  TONOS = %w[guardar accion documento ver secondary danger].freeze
+
+  # ⚠️ LOS MAILERS QUEDAN FUERA, y no es una excepción de conveniencia.
   #
-  #     class: "btn btn-danger"     ← atributo
-  #     %small.form-text            ← abreviatura de Haml
-  #     .card-academic              ← abreviatura, con %div implícito
+  # Un correo HTML **necesita** estilos inline y `<table>` de maquetación:
+  # Gmail y Outlook descartan las hojas externas y no soportan flex ni grid. La
+  # regla del correo es otra regla, no una versión relajada de ésta.
   #
-  # Se ignoran los comentarios (`-#`), para que una vista que EXPLICA una clase
-  # vieja no se confunda con una que la usa.
-  def self.clases_de(texto)
-    sin_comentarios = texto.lines.reject { |l| l.strip.start_with?("-#") }.join
+  # Los dos `%h1` con `style:` que encontró la auditoría son los dos de
+  # mailers — o sea que ahí estaban bien.
+  MAILERS = %r{app/views/(layouts/mailer|\w*_mailer)}
+  VISTAS  = Rails.root.glob("app/views/**/*.haml").reject { |v| v.to_s.match?(MAILERS) }.freeze
 
-    atributos = sin_comentarios.scan(/class[:=]\s*["']([^"']+)["']/).flatten.flat_map(&:split)
+  # Las tablas del panel de SIGA llevan `siga-tabla` a propósito: ese panel es
+  # deliberadamente distinto al del colegio, para que confundirlos sea imposible
+  # (`MOR-133`). Y la boleta y la constancia son papel, no pantalla.
+  TABLAS_VALIDAS = /table-academic|siga-tabla|table-boleta|table-constancia/
 
-    abreviadas = sin_comentarios.scan(/^\s*(?:%[a-z][a-z0-9]*)?((?:\.[a-zA-Z0-9_-]+)+)/)
-                                .flatten.flat_map { |c| c.split(".").reject(&:empty?) }
+  # ── Los seis tonos, y ninguno más ─────────────────────────────────────────
 
-    (atributos + abreviadas).to_set
-  end
-
-  test "toda clase de botón usada en una vista está definida en la hoja de estilo" do
-    definidas = HOJA.read.scan(/^\.(btn[a-z0-9-]*)/).flatten.to_set
-    usadas    = VISTAS.flat_map { |r| self.class.clases_de(r.read).to_a }.grep(/\Abtn/).to_set
-
-    huerfanas = usadas - definidas
-
-    assert_empty huerfanas,
-      "Estas clases de botón se usan en las vistas y no existen en system.css, " \
-      "así que se dibujan como texto suelto: #{huerfanas.to_a.sort.join(', ')}"
-  end
-
-  # Bootstrap no está cargado. Cualquiera de estas se dibuja como nada.
+  # ⚠️ `btn-primary` se retiró, y no es un renombre.
   #
-  # `d-flex`, `gap-1..3`, `align-items-center`, `justify-content-between|center`
-  # y `text-center` NO están en la lista: son utilidades que `system.css` define
-  # a propósito. Comparten nombre con Bootstrap y esa es toda la coincidencia.
-  #
-  # (Y el comentario va acá afuera y no adentro del `%w[]`, donde un `#` no
-  # comenta nada: se vuelve un elemento más del arreglo.)
-  BOOTSTRAP = %w[
-    card card-body card-title card-text
-    col-sm-3 col-sm-9 row
-    table-striped table-bordered
-    text-muted form-text
-    bg-success bg-warning bg-danger badge
-    justify-content-end
-  ].to_set.freeze
+  # Al pasar el alta al verde —«el verde significa: esto queda guardado»— el
+  # azul se quedó sin trabajo. Y «primario» nunca fue un trabajo: es jerarquía
+  # visual, justo lo que `MOR-172` reemplazó por QUÉ HACE el botón.
+  test "btn-primary no vuelve, ni al CSS ni a las vistas" do
+    en_el_css = HOJA.read.match?(/^\.btn-primary[\s{,]/)
+    assert_not en_el_css,
+      ".btn-primary volvió a la hoja. Los tonos se nombran por lo que HACEN: " \
+      "#{TONOS.join(' · ')}"
 
-  # `text-transform: capitalize` capitaliza CADA palabra. En inglés produce el
-  # Title Case que se espera de un título; en español produce "15 De Agosto De
-  # 2026", que es lo que decía la pantalla de asistencia. `uppercase` sí se
-  # usa a propósito, en etiquetas cortas.
-  test "ninguna regla capitaliza palabra por palabra" do
-    # Sin los comentarios: si no, el propio comentario que EXPLICA por qué se
-    # quitó la declaración hace fallar el test que lo comprueba.
-    css = HOJA.read.gsub(%r{/\*.*?\*/}m, "")
-    culpables = css.scan(/^(\.[^{\n]+)\{[^}]*text-transform:\s*capitalize/m).flatten
+    en_vistas = VISTAS.flat_map do |vista|
+      vista.read.lines.each_with_index.filter_map do |linea, n|
+        # Las líneas de comentario Haml explican la regla; no la rompen.
+        next if linea.strip.start_with?("-#", "#")
+        next unless linea.match?(/btn-primary/)
 
-    assert_empty culpables.map(&:strip),
-      "`text-transform: capitalize` produce Title Case inglés sobre texto en " \
-      "español —fechas, plurales, frases—. Reglas que lo usan: #{culpables.join(', ')}"
-  end
-
-  # `[hidden] { display: none }` vive en la hoja del NAVEGADOR, y cualquier
-  # `display` de autor le gana. Sin la regla global, un elemento marcado como
-  # oculto se dibuja igual y sin error de ningún tipo:
-  #
-  #   · los DOS ojos del campo de contraseña, superpuestos;
-  #   · una caja de aviso VACÍA con un botón "Reintentar", permanente, en la
-  #     planilla de notas.
-  test "el atributo hidden gana sobre cualquier display de autor" do
-    css = HOJA.read.gsub(%r{/\*.*?\*/}m, "")
-
-    assert_match(/\[hidden\]\s*\{[^}]*display:\s*none\s*!important/, css,
-      "falta `[hidden] { display: none !important }`. Sin esa regla, cualquier " \
-      "clase con `display` propio anula el atributo `hidden` en silencio.")
-  end
-
-  test "no quedan restos de Bootstrap en las vistas" do
-    encontrados = VISTAS.filter_map do |ruta|
-      sucias = self.class.clases_de(ruta.read) & BOOTSTRAP
-      "#{ruta.relative_path_from(Rails.root)}: #{sucias.to_a.sort.join(', ')}" if sucias.any?
+        "#{vista.relative_path_from(Rails.root)}:#{n + 1} → #{linea.strip[0, 80]}"
+      end
     end
 
-    assert_empty encontrados,
-      "Estas vistas usan clases de Bootstrap, que esta app no carga:\n  #{encontrados.join("\n  ")}"
+    assert_empty en_vistas,
+      "vistas que todavía usan btn-primary. La pregunta no es de qué color: es " \
+      "cuál de los seis verbos hace el botón (ver /siga/estilo):\n  " + en_vistas.join("\n  ")
+  end
+
+  # El tono no tiene default a propósito: escribir un botón sin pensar qué hace
+  # daba un botón azul, y así el color volvía a no decir nada.
+  test "el helper boton exige tono" do
+    parametros = ApplicationHelper.instance_method(:boton).parameters
+
+    assert_includes parametros, [ :keyreq, :tono ],
+      "`boton` volvió a tener un default de tono. Ese default es el agujero: " \
+      "un botón que no decide qué hace sale del color de todos los demás."
+  end
+
+  # ⚠️ La primera versión de este test buscaba `boton "` —con la comilla— y se
+  # le escapaban las tres llamadas que pasan una VARIABLE:
+  # `boton paso.verbo, …`. El CI las encontró igual, pero reventando en cinco
+  # tests de pantallas que no tenían nada que ver.
+  #
+  # Y el tono puede caer en la línea SIGUIENTE, porque la llamada se parte. Por
+  # eso se mira el bloque de la llamada, no el renglón.
+  test "todas las llamadas a boton dicen su tono" do
+    sin_tono = VISTAS.flat_map do |vista|
+      lineas = vista.read.lines
+      lineas.each_with_index.filter_map do |linea, n|
+        next if linea.strip.start_with?("-#", "#")
+        next unless linea.match?(/=\s*boton\s/)
+        # La llamada puede ocupar hasta tres renglones.
+        next if lineas[n, 3].join.match?(/tono:/)
+
+        "#{vista.relative_path_from(Rails.root)}:#{n + 1} → #{linea.strip[0, 80]}"
+      end
+    end
+
+    assert_empty sin_tono,
+      "botones sin tono; hay que elegir uno de los seis:\n  " + sin_tono.join("\n  ")
+  end
+
+  test "los seis tonos existen en la hoja de estilos" do
+    hoja = HOJA.read
+
+    TONOS.each do |tono|
+      assert_match(/^\.btn-#{tono}\s*[{,]/, hoja, "falta el tono .btn-#{tono}")
+    end
+  end
+
+  # ── Nada escrito a mano ───────────────────────────────────────────────────
+
+  # ⚠️ El caso más grave que encontró la auditoría: dos `%h1` con la tipografía
+  # y el color escritos dentro de la vista. Un color a mano no responde al tema
+  # oscuro, no se puede cambiar desde los tokens, y nadie lo encuentra.
+  test "ninguna vista lleva estilos escritos a mano" do
+    culpables = VISTAS.flat_map do |vista|
+      vista.read.lines.each_with_index.filter_map do |linea, n|
+        next if linea.strip.start_with?("-#", "#")
+        next unless linea.match?(/\bstyle:\s*["']|\bstyle=["']/)
+        # ⚠️ Un `style` con INTERPOLACIÓN es un dato, no un estilo: el ancho de
+        # una barra de progreso es «cuánto llevo cargado», y eso no cabe en una
+        # hoja de estilos. Lo que se prohíbe es el valor FIJO escrito a mano.
+        next if linea.match?(/style:\s*"[^"]*\#\{/)
+
+        "#{vista.relative_path_from(Rails.root)}:#{n + 1} → #{linea.strip[0, 90]}"
+      end
+    end
+
+    assert_empty culpables,
+      "estilos inline. Van a system.css con su clase, o no van:\n  " + culpables.join("\n  ")
+  end
+
+  # ⚠️ Una `<table>` suelta se ve distinta a las otras cuarenta, y la diferencia
+  # aparece recién cuando alguien abre esa pantalla. La clase la pone quien
+  # escribe la tabla, no el que la descubre después.
+  test "toda tabla lleva su clase" do
+    sueltas = VISTAS.flat_map do |vista|
+      vista.read.lines.each_with_index.filter_map do |linea, n|
+        next if linea.strip.start_with?("-#", "#")
+        next unless linea.match?(/^\s*%table/)
+        next if linea.match?(TABLAS_VALIDAS)
+
+        "#{vista.relative_path_from(Rails.root)}:#{n + 1} → #{linea.strip[0, 80]}"
+      end
+    end
+
+    assert_empty sueltas,
+      "tablas sin clase; la única es .table-academic:\n  " + sueltas.join("\n  ")
+  end
+
+  # ── El alta, idéntica en las 84 pantallas ─────────────────────────────────
+
+  # ⚠️ El tooltip no es decoración: en el teléfono NO HAY HOVER, y «Agregar» a
+  # secas no dice de qué se trata (`MOR-173`). Es el nombre del control.
+  test "el botón de alta de la cabecera lleva tooltip y aria-label" do
+    cabecera = Rails.root.join("app/views/shared/_cabecera_de_lista.html.haml").read
+
+    assert_match(/btn btn-guardar btn-agregar/, cabecera,
+                 "el alta va en verde: el verde significa «esto queda guardado»")
+    assert_match(/data: \{ tooltip: alta\[:nombre\] \}/, cabecera)
+    assert_match(/"aria-label": alta\[:nombre\]/, cabecera)
   end
 end

@@ -43,7 +43,7 @@
 
     = button_to "Leerla como #{@importacion.etiqueta_del_otro_tipo.downcase}",
                 importacion_path(@importacion), method: :patch,
-                params: { cambiar_tipo: "1" }, class: "btn btn-primary"
+                params: { cambiar_tipo: "1" }, class: "btn btn-guardar"
 
 - if @importacion.obligatorias_sin_mapear.any?
   .card-academic

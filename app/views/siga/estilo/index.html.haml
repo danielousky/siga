@@ -1,0 +1,179 @@
+-# El catálogo vivo del sistema de diseño.
+-#
+-# ⚠️ TODO acá se dibuja con los helpers de verdad —`boton`, `icono`,
+-# `table-academic`—, nunca con HTML copiado. Un catálogo copiado es una octava
+-# forma de hacer las cosas, y la peor: dice ser la buena mientras se queda
+-# viejo en silencio.
+-#
+-# ⚠️ Y el CHROME habla el idioma de SIGA, no el del colegio.
+-#
+-# El panel de SIGA es oscuro a propósito —para que confundirlo con el de un
+-# colegio sea imposible (MOR-133)— y los componentes del colegio viven sobre
+-# claro. La primera versión metió tarjetas blancas acá adentro y los títulos,
+-# que el layout de SIGA pinta claros, quedaron ilegibles sobre el blanco. La
+-# salida no es pelearle a la cascada: es separar las dos cosas.
+-#
+-#     fuera del marco   títulos y explicaciones   → idioma de SIGA
+-#     dentro del marco  las muestras              → «así se ve en el colegio»
+%h1 Catálogo
+%p.catalogo-nota
+  Todo lo que se ve acá está dibujado por los mismos helpers que usan las
+  pantallas del colegio: si un componente cambia, cambia primero en esta
+  página. Lo que va sobre fondo claro es cómo se ve en el colegio; el resto
+  habla el idioma de este panel.
+
+-# ── Los seis tonos ────────────────────────────────────────────────────────
+%h2 Los seis tonos de botón
+%p.catalogo-nota
+  Un botón se elige por
+  %strong lo que hace
+  \, nunca por su importancia. Si estás por escribir «primario», la pregunta no
+  es de qué color: es cuál de estos seis verbos hace el botón.
+
+.catalogo-muestra
+  %table.table-academic
+    %thead
+      %tr
+        %th Se ve así
+        %th Verbo
+        %th Cuándo
+        %th Cómo se escribe
+    %tbody
+      - @tonos.each do |t|
+        %tr
+          %td= boton t[:ejemplo], "#", icono: t[:icono], tono: t[:tono]
+          %td
+            %strong= t[:verbo]
+          %td= t[:cuando]
+          %td
+            %code.codigo-corto= "tono: :#{t[:tono]}"
+
+%p.catalogo-nota
+  %strong ⚠️ El verde no significa «crea»: significa «esto queda guardado».
+  Por eso lo llevan por igual el
+  %code.codigo-corto [+ Agregar]
+  que va al formulario y el
+  %code.codigo-corto [Crear]
+  que lo envía — y también
+  %code.codigo-corto [Guardar cambios]
+  en una edición, que no crea nada. El
+  %strong +
+  es lo único que dice «y además nace algo nuevo».
+
+-# ── El alta, idéntica en las 84 pantallas ─────────────────────────────────
+%h2 El botón de alta
+%p.catalogo-nota
+  Idéntico en las ochenta y cuatro pantallas, para los cuatro roles.
+
+.catalogo-muestra
+  %table.table-academic
+    %thead
+      %tr
+        %th Pieza
+        %th Siempre
+        %th Por qué
+    %tbody
+      %tr
+        %td Visible
+        %td
+          = link_to "#", class: "btn btn-guardar btn-agregar",
+                    data: { tooltip: "Registrar alumno" }, "aria-label": "Registrar alumno" do
+            = icono(:agregar, tamano: 18)
+            %span Agregar
+        %td
+          El verbo a secas. Lo que se agrega lo dice el tooltip: repetirlo en el
+          botón lo alarga sin agregar nada.
+      %tr
+        %td Tooltip
+        %td
+          %code.codigo-corto data-tooltip="Registrar alumno"
+        %td
+          %strong Obligatorio.
+          En el teléfono
+          %strong no hay hover
+          \, y «Agregar» a secas no dice de qué (MOR-173).
+      %tr
+        %td Lector de pantalla
+        %td
+          %code.codigo-corto aria-label="Registrar alumno"
+        %td El mismo texto del tooltip. Un icono no tiene nombre accesible propio.
+      %tr
+        %td Si no cabe
+        %td
+          = link_to "#", class: "btn btn-guardar btn-sm btn-solo-icono",
+                    data: { tooltip: "Registrar alumno" }, "aria-label": "Registrar alumno" do
+            = icono(:agregar, tamano: 16)
+        %td
+          Solo en pantallas angostas, y solo perdiendo la palabra —
+          %strong nunca el tooltip.
+
+-# ── Los títulos: el inventario de deuda ───────────────────────────────────
+%h2
+  Títulos
+  %span.estado.estado--atencion Pendiente · etapa ②
+%p.catalogo-nota
+  Daniel contó cinco formas de título principal. Hay
+  %strong siete
+  \. (Las dos escritas con
+  %code.codigo-corto style=
+  a mano son las de los correos, y ahí es correcto: Gmail descarta las hojas
+  externas.) Unificarlas es la etapa siguiente; esto es el inventario contra el
+  que se va a migrar.
+
+.catalogo-muestra
+  %table.table-academic
+    %thead
+      %tr
+        %th Forma
+        %th.columna-numero Usos
+        %th Qué es
+    %tbody
+      - @titulos.each do |t|
+        %tr
+          %td
+            %code.codigo-corto= t[:clase]
+          %td.columna-numero= t[:usos]
+          %td= t[:donde]
+
+-# ── Tablas ────────────────────────────────────────────────────────────────
+%h2 Tablas
+%p.catalogo-nota
+  Una sola clase:
+  %code.codigo-corto .table-academic
+  \. El encabezado se distingue por peso y espaciado, nunca por fondo gris — el
+  gris compite con las filas que sí llevan color por su estado.
+
+.catalogo-muestra
+  %table.table-academic
+    %thead
+      %tr
+        %th Alumno
+        %th.columna-numero Lapso 1
+        %th Estado
+        %th.columna-acciones
+    %tbody
+      %tr
+        %td Aponte Reyes, Eduardo
+        %td.columna-numero
+          %span.ficha-nota.ficha-nota--aprobada 19
+        %td
+          %span.estado.estado--al-dia Al día
+        %td.columna-acciones
+          = link_to "#", class: "btn btn-ver btn-sm btn-solo-icono",
+                    data: { tooltip: "Ver la ficha" }, "aria-label": "Ver la ficha" do
+            = icono(:ver, tamano: 15)
+      %tr
+        %td Colmenares Díaz, Gabriela
+        %td.columna-numero
+          %span.ficha-nota.ficha-nota--aplazada 08
+        %td
+          %span.estado.estado--grave Aplazada
+        %td.columna-acciones
+          = link_to "#", class: "btn btn-ver btn-sm btn-solo-icono",
+                    data: { tooltip: "Ver la ficha" }, "aria-label": "Ver la ficha" do
+            = icono(:ver, tamano: 15)
+
+%p.catalogo-nota
+  %strong ⚠️ El color de la nota es del DATO, no del control (MOR-135).
+  Un número en rojo es un niño aplazado: es la señal de más carga emocional del
+  producto, y aparece en la pantalla que mira una madre.

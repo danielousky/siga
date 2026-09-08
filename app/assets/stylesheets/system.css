@@ -407,24 +407,34 @@ a:hover {
   min-height: 36px;
   -webkit-appearance: none;
   appearance: none;
+
+  /* ⚠️ Y por eso mismo el texto NO se parte.
+     Con `line-height: 1` y un alto fijo de 36 px, un botón de dos palabras
+     —«Copiar de otro año», «Emitir y descargar»— partía en dos renglones y la
+     segunda línea se salía por debajo del borde. Se veía en el catálogo, en
+     cuanto los seis tonos quedaron uno encima del otro.
+     ⚠️ En el teléfono se revierte a `normal` más abajo, y ahí es correcto: el
+     botón mide 56 px de alto y sí puede envolver. */
+  white-space: nowrap;
 }
 
-.btn-primary {
-  background: var(--brand-primary);
-  color: white;
-  border-color: var(--brand-primary);
-}
+/* ⚠️ `.btn-primary` SE RETIRÓ, y no es un renombre.
+   ─────────────────────────────────────────────────
+   Al pasar el alta al verde —«el verde significa: esto queda guardado»—, el
+   azul se quedó sin trabajo. Y «primario» nunca fue un trabajo: es jerarquía
+   visual, justo lo que MOR-172 reemplazó por QUÉ HACE el botón.
 
-.btn-primary:hover {
-  background: var(--brand-hover);
-  border-color: var(--brand-hover);
-  color: white;
-}
+   Los seis que quedan, y cada uno con su verbo:
 
-.btn-primary:active {
-  background: var(--brand-active);
-  border-color: var(--brand-active);
-}
+       guardar     verde       queda guardado    [+ Agregar] [Crear] [Guardar]
+       accion      índigo      mucho de una vez  [Copiar de otro año]
+       documento   petróleo    algo sale         [Descargar] [Emitir]
+       ver         azul suave  mirar sin tocar   [Ver]
+       secondary   neutro      volver atrás      [Volver] [Cancelar]
+       danger      sin tono    destruye          [Eliminar]
+
+   Si estás por escribir `btn-primary`, la pregunta no es de qué color: es cuál
+   de esos seis verbos hace el botón. El catálogo vivo está en /siga/estilo. */
 
 .btn-secondary {
   background: var(--surface-elevated);
@@ -438,14 +448,14 @@ a:hover {
   color: var(--text-primary);
 }
 
-/* Cuatro tonos, uno por lo que el botón HACE (MOR-172).
-   ───────────────────────────────────────────────────
+/* SEIS tonos, uno por lo que el botón HACE (MOR-172, revisado el 8 sep 2026).
+   ─────────────────────────────────────────────────────────────────────────
    Daniel: «veo todo del mismo color, más inductivo sería un tono de azul para
    los create, otro para los show, otro para las descargas. Eso sería mejor
    cognitivamente». Tenía razón: con 59 botones azules y 57 grises, el color
    había dejado de decir nada.
 
-      btn-primary     azul sólido      la acción a la que vino: crear, guardar
+      btn-guardar     verde            QUEDA GUARDADO: alta, crear, guardar
       btn-accion      índigo sólido    lo que hace MUCHO de una vez
       btn-documento   petróleo sólido  lo que SALE: descargar, emitir
       btn-ver         azul suave       ir al detalle de algo
@@ -454,7 +464,12 @@ a:hover {
 
    ⚠️ La distinción que importa no es «primario vs secundario»: es **qué pasa
    al tocarlo**. «Copiar de otro año» crea ochenta filas y «Guardar» actualiza
-   una; los dos eran el mismo azul. */
+   una; los dos eran el mismo azul.
+
+   ⚠️ Y el verde NO significa «crea»: significa **queda guardado**. Por eso lo
+   llevan por igual el `[+ Agregar]` que va al formulario y el `[Crear]` que lo
+   envía — y también `[Guardar cambios]` en una edición, que no crea nada. El
+   `+` es lo único que dice «y además nace algo nuevo». */
 .btn-accion {
   background: var(--accion-primary);
   color: white;
@@ -503,7 +518,7 @@ a:hover {
 
    Lo destructivo se señala igual, pero por PESO y POSICIÓN:
 
-       btn-primary     azul sólido      la acción a la que vino
+       btn-guardar     verde sólido     la acción a la que vino
        btn-secondary   borde suave      todo lo demás
        btn-danger      borde fuerte     destructivo — y en hover se vuelve
                                         tinta sólida, que se lee como "en serio"
@@ -5939,6 +5954,80 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   opacity: 0.4;
   pointer-events: none;
 }
+
+/* ── Datos de apoyo ───────────────────────────────────────────────────────── */
+/* Lo que acompaña al dato principal sin competir con él: la fecha de una fila,
+   una IP, «inscrito el 12/09». Existían siete veces escritas a mano dentro de
+   la vista —`style="font-size: 13px; color: var(--text-secondary)"`— cada una
+   con su propio tamaño, y ninguna encontrable con un grep.
+
+   ⚠️ Nombradas por lo que SON, no por cómo se ven. `.dato-menor` sobrevive a
+   un cambio de tamaño; `.texto-13` obliga a renombrarlo o a mentir. */
+/* ⚠️ `.dato-secundario` NO se define acá: ya existe (MOR-161) y significa esto
+   mismo. Dos definiciones del mismo nombre en la misma hoja se pisan en
+   silencio — es la colisión de `.contexto-fijo`, y volvió a aparecer al
+   escribir estas clases. */
+.dato-menor {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* Una fecha en una celda: nunca se parte en dos renglones. */
+.celda-fecha {
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Un código corto dentro de una tabla —«MAT», «LEN»—. En la sans del sistema y
+   no en monoespaciada: es un identificador que un director lee, no código. */
+.codigo-corto {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--surface-canvas);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+
+/* ── El catálogo del sistema de diseño ────────────────────────────────────── */
+/* ⚠️ Una MUESTRA, no una tarjeta.
+   El panel de SIGA es oscuro a propósito —para que confundirlo con el panel de
+   un colegio sea imposible (MOR-133)— y los componentes del colegio viven sobre
+   claro. Meter un `.card-academic` blanco ahí adentro dejaba los títulos, que
+   son claros por el layout de SIGA, ilegibles sobre el blanco.
+
+   La salida no es pelearle a la cascada: es separar las dos cosas. El chrome
+   del catálogo —títulos, explicaciones— habla el idioma de SIGA; lo de adentro
+   de este marco es «así se ve en el colegio», y por eso lleva su fondo. */
+.catalogo-muestra {
+  background: var(--surface-canvas);
+  border: 1px solid var(--siga-borde);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  /* Una tabla ancha desborda antes de romper la página. */
+  overflow-x: auto;
+}
+
+/* Y adentro del marco manda el colegio, no SIGA: sin esto, `.siga-admin h2` y
+   `.siga-admin a` pintan el texto en el claro del panel oscuro. */
+.catalogo-muestra,
+.catalogo-muestra h1,
+.catalogo-muestra h2,
+.catalogo-muestra h3 { color: var(--text-primary); }
+
+.catalogo-muestra a:not(.btn) { color: var(--brand-primary); }
+
+.catalogo-nota {
+  color: var(--siga-tenue);
+  font-size: 14px;
+  margin-bottom: var(--space-md);
+  max-width: 68ch;
+}
+
 
 /* Tooltip propio (MOR-173).
    ───────────────────────

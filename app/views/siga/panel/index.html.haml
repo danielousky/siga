@@ -17,7 +17,7 @@
     -# El `if` va como bloque: como modificador se lleva el `do` y `link_to`
     -# toma la ruta como texto del enlace. Ver `siga/colegios/index`.
     - if siga_staff.puede_dar_de_alta_colegios?
-      = boton "Dar de alta", new_siga_colegio_path, icono: :agregar
+      = boton "Dar de alta", new_siga_colegio_path, icono: :agregar, tono: :guardar
 
   - if @colegios.empty?
     %p.siga-vacio Todavía no hay ningún colegio en la plataforma.

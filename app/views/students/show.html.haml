@@ -64,7 +64,7 @@
           la familia, hoy tiene que buscar el número por fuera del sistema.
         .empty-state-acciones
           - if can_manage_students?
-            = link_to new_representative_path(alumno_id: @student.id), class: "btn btn-primary" do
+            = link_to new_representative_path(alumno_id: @student.id), class: "btn btn-guardar" do
               = icono(:agregar, tamano: 16)
               %span= "Registrar a su representante"
 
@@ -158,9 +158,13 @@
         o
         %strong Constancia de Prosecución
         \, según el grado que cursó. Certifica el literal del año.
+      -# ⚠️ `documento` (petróleo), no el azul que tenía: de acá SALE un papel,
+      -# igual que «Emitir y descargar» del boletín. Lo destapó la auditoría de
+      -# tonos del 8 de septiembre — era el único de los dieciséis que estaba en
+      -# el tono equivocado, y llevaba así desde que existe.
       = link_to "Emitir el documento",
                 documento_de_primaria_path(enrollment_id: @inscripcion),
-                class: "btn btn-primary"
+                class: "btn btn-documento"
 
     - else
       %p.nota-pendiente

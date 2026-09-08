@@ -183,7 +183,7 @@ module ApplicationHelper
   # Estaba escrito a mano en cada vista, siempre igual y siempre con la
   # posibilidad de escribirlo distinto:
   #
-  #     = link_to ruta, class: "btn btn-primary" do
+  #     = link_to ruta, class: "btn btn-guardar" do
   #       = icono(:agregar, tamano: 16)
   #       %span Registrar alumno
   #
@@ -194,10 +194,26 @@ module ApplicationHelper
   # El tamaño del icono tampoco se pasa: 16 px es el de un botón y 15 el de uno
   # `btn-sm`, y tenerlo acá evita el botón con el icono de otro tamaño.
   #
-  #     = boton "Registrar alumno", new_student_path, icono: :agregar
+  # ## ⚠️ El TONO es obligatorio, y no tiene default
+  #
+  # Tenía `tono: :primary`, y ese default era el agujero: escribir un botón sin
+  # pensar qué hace daba un botón azul, y así el color volvió a no decir nada —
+  # que es el problema que MOR-172 vino a resolver.
+  #
+  # Los seis, cada uno con su verbo. El catálogo vivo está en `/siga/estilo`:
+  #
+  #     :guardar     verde       QUEDA GUARDADO: alta, crear, guardar
+  #     :accion      índigo      hace MUCHO de una vez
+  #     :documento   petróleo    algo SALE: descargar, emitir
+  #     :ver         azul suave  mirar sin tocar
+  #     :secondary   neutro      volver, cancelar
+  #     :danger      sin tono    destruye
+  #
+  #     = boton "Registrar alumno", new_student_path, icono: :agregar, tono: :guardar
   #     = boton "Copiar de otro año", ruta, icono: :copiar, tono: :accion, sm: true
-  #     = boton "Años escolares", ruta, icono: :calendario, tooltip: "Crear y editar"
-  def boton(nombre, ruta, icono:, tono: :primary, sm: false, tooltip: nil, **opciones)
+  #     = boton "Años escolares", ruta, icono: :calendario, tono: :ver,
+  #             tooltip: "Crear y editar"
+  def boton(nombre, ruta, icono:, tono:, sm: false, tooltip: nil, **opciones)
     clases = [ "btn", "btn-#{tono}", ("btn-sm" if sm) ].compact.join(" ")
     datos = opciones.delete(:data) || {}
     datos = datos.merge(tooltip: tooltip) if tooltip

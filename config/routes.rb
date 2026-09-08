@@ -134,6 +134,14 @@ Rails.application.routes.draw do
     resources :solicitudes, only: [:index, :show, :update]
     resources :cartera, only: [:index, :create, :update]
     resources :visitas, only: [:create, :destroy]
+
+    # El catálogo vivo del sistema de diseño.
+    #
+    # ⚠️ Vive DENTRO de `/siga` a propósito, no en `/estilo`. Decisión de
+    # Daniel: *«solo el equipo de SIGA»*. Colgando de `Siga::BaseController` la
+    # puerta ya está puesta y no hay una autorización nueva que escribir — un
+    # director rebota igual que en el resto del panel.
+    get "estilo", to: "estilo#index"
   end
 
   # Dashboards específicos por rol

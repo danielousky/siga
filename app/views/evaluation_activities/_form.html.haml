@@ -163,11 +163,12 @@
         -# El `href` lo escribe Stimulus: depende de la sección y el lapso, que se
         -# eligen en esta misma pantalla. Nace deshabilitado —sin `href`— porque
         -# sin sección elegida no hay plan al que agregarle nada.
-        -# ⚠️ AZUL, como el «Agregar» de la cabecera del plan, y no verde.
-        -# Daniel pidió *«un botón [+] como los otros new»*, y concordancia es
-        -# exactamente eso: en SIGA crear es `btn-primary` y el verde está
-        -# reservado para guardar (MOR-172).
-        %a.btn.btn-primary.btn-sm.btn-solo-icono{ data: { que_evalua_target: "nueva",
+        -# ⚠️ VERDE, como todo lo que queda guardado, y como el «Agregar» de
+        -# cualquier listado. Daniel pidió *«un botón [+] como los otros new»*, y
+        -# desde el 8 de septiembre los otros new son verdes: el verde ya no
+        -# significa «crea» sino «esto queda guardado», y el `+` es lo único que
+        -# agrega «y además nace algo nuevo».
+        %a.btn.btn-guardar.btn-sm.btn-solo-icono{ data: { que_evalua_target: "nueva",
                                                           tooltip: "Registrar una competencia en este plan" },
                                                   "aria-label": "Registrar una competencia en este plan" }
           = icono(:agregar, tamano: 16)

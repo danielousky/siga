@@ -62,7 +62,7 @@
               no se llega a ella desde ningún otro lado en un paso.
             %td
               - if profesor?
-                = boton "Cargar notas", evaluation_activity_notas_path(actividad), icono: :subir, sm: true
+                = boton "Cargar notas", evaluation_activity_notas_path(actividad), icono: :subir, tono: :accion, sm: true
 
   - else
     -# ⚠️ Esta pantalla se quedaba EN BLANCO (MOR-204).
@@ -95,7 +95,7 @@
             Antes hace falta
             %strong= paso.titulo.downcase
             \: una evaluación cuelga de un lapso, de una sección y de quien la dicta.
-          = boton paso.verbo, ruta_del_paso(paso, recorrido: true), icono: paso.icono
+          = boton paso.verbo, ruta_del_paso(paso, recorrido: true), icono: paso.icono, tono: :guardar
     - else
       .card-academic
         = render "shared/lista_vacia", clave: :evaluaciones,

@@ -155,14 +155,27 @@ class ReglaDeColorTest < ActiveSupport::TestCase
       "Colores escritos a mano, fuera del sistema de tokens:\n  #{culpables.join("\n  ")}"
   end
 
-  # El azul institucional NO es color semántico: es la afordancia del control
-  # principal, y esa convención se queda. La regla habla de verde/rojo/ámbar.
-  test "el botón principal sigue siendo azul de marca" do
-    regla = self.class.reglas_de(HOJA.read).find { |sel, _| sel == ".btn-primary" }
+  # ⚠️ `.btn-primary` SE RETIRÓ el 8 de septiembre de 2026, y este test lo
+  # cuida al revés de como lo cuidaba antes.
+  #
+  # Comprobaba que el azul institucional siguiera siendo la afordancia del
+  # control principal. Al pasar el alta al verde —«el verde significa: esto
+  # queda guardado»— el azul se quedó sin trabajo, y «primario» nunca fue un
+  # trabajo: es jerarquía visual, justo lo que MOR-172 reemplazó por qué HACE
+  # el botón.
+  #
+  # El azul de marca no desapareció: vive en `.btn-ver` (suave) y en los
+  # enlaces. Lo que desapareció es un tono cuyo nombre no decía nada.
+  test "btn-primary ya no existe: un tono sin verbo no es un tono" do
+    hoja = HOJA.read
 
-    assert regla, "falta .btn-primary"
-    assert regla[1].match?(/--brand-/), ".btn-primary debe usar el azul de marca"
-    assert_not regla[1].match?(SEMANTICO), ".btn-primary no debe usar color semántico"
+    assert_nil self.class.reglas_de(hoja).find { |sel, _| sel == ".btn-primary" },
+               ".btn-primary volvió a la hoja: los tonos se nombran por lo que HACEN"
+
+    %w[.btn-guardar .btn-accion .btn-documento .btn-ver .btn-secondary .btn-danger].each do |tono|
+      assert self.class.reglas_de(hoja).any? { |sel, _| sel == tono },
+             "falta el tono #{tono}"
+    end
   end
 
   # ── El alcance nuevo (MOR-207) ────────────────────────────────────────────
