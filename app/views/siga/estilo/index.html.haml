@@ -107,33 +107,36 @@
           Solo en pantallas angostas, y solo perdiendo la palabra —
           %strong nunca el tooltip.
 
--# ── Los títulos: el inventario de deuda ───────────────────────────────────
-%h2
-  Títulos
-  %span.estado.estado--atencion Pendiente · etapa ②
+-# ── Los títulos ───────────────────────────────────────────────────────────
+%h2 Títulos
 %p.catalogo-nota
-  Daniel contó cinco formas de título principal. Hay
-  %strong siete
-  \. (Las dos escritas con
-  %code.codigo-corto style=
-  a mano son las de los correos, y ahí es correcto: Gmail descarta las hojas
-  externas.) Unificarlas es la etapa siguiente; esto es el inventario contra el
-  que se va a migrar.
+  Una sola pieza:
+  %code.codigo-corto shared/cabecera
+  \. Había siete formas, y la mayoritaria servía para dos cosas distintas
+  separadas solo por qué etiqueta escribió cada quien. El
+  %code.codigo-corto nivel:
+  es ahora una decisión que se toma, no un descuido que se hereda.
 
 .catalogo-muestra
   %table.table-academic
     %thead
       %tr
-        %th Forma
-        %th.columna-numero Usos
-        %th Qué es
+        %th Nivel
+        %th Qué dice
+        %th Cómo se escribe
     %tbody
       - @titulos.each do |t|
         %tr
           %td
-            %code.codigo-corto= t[:clase]
-          %td.columna-numero= t[:usos]
-          %td= t[:donde]
+            %strong= t[:nivel]
+          %td= t[:que_dice]
+          %td
+            %code.codigo-corto= t[:como]
+
+%p.catalogo-nota
+  %strong ⚠️ Dos «h1» en la misma pantalla es un defecto que no se ve mirando.
+  Un lector de pantalla anuncia dos veces «encabezado de nivel 1» y quien
+  navega por encabezados pierde el mapa de la página. Por eso el nivel se pide.
 
 -# ── Tablas ────────────────────────────────────────────────────────────────
 %h2 Tablas

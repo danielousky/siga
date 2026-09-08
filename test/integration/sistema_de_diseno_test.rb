@@ -160,11 +160,64 @@ class SistemaDeDisenoTest < ActiveSupport::TestCase
   # ⚠️ El tooltip no es decoración: en el teléfono NO HAY HOVER, y «Agregar» a
   # secas no dice de qué se trata (`MOR-173`). Es el nombre del control.
   test "el botón de alta de la cabecera lleva tooltip y aria-label" do
-    cabecera = Rails.root.join("app/views/shared/_cabecera_de_lista.html.haml").read
+    cabecera = Rails.root.join("app/views/shared/_cabecera.html.haml").read
 
     assert_match(/btn btn-guardar btn-agregar/, cabecera,
                  "el alta va en verde: el verde significa «esto queda guardado»")
     assert_match(/data: \{ tooltip: alta\[:nombre\] \}/, cabecera)
     assert_match(/"aria-label": alta\[:nombre\]/, cabecera)
+  end
+
+  # ── Una sola cabecera, etapa ② ────────────────────────────────────────────
+
+  # ⚠️ Las tres que quedan fuera NO son deuda: son contextos distintos.
+  #
+  # Devise vive en el layout de acceso —sin barra, sin menú, centrado en una
+  # tarjeta—; el sitio público es marketing; la portada del boletín es PAPEL.
+  # Forzarlas al mismo partial sería el error inverso al que la etapa ②
+  # corrige.
+  # ⚠️ Y `siga/` también: el panel de la plataforma es deliberadamente distinto
+  # al del colegio —fondo oscuro, otra tipografía de menú— para que confundirlos
+  # sea imposible (`MOR-133`). Sus `%h1` hablan ese idioma, no el del colegio.
+  FUERA_DE_LA_CABECERA = %r{app/views/(devise|inicio|demo_requests|report_cards|constancias|documentos|siga/|verificaciones/no_encontrado)}
+
+  test "ninguna vista escribe su propia cabecera" do
+    culpables = VISTAS.flat_map do |vista|
+      vista.read.lines.each_with_index.filter_map do |linea, n|
+        next if linea.strip.start_with?("-#", "#")
+        next unless linea.match?(/card-academic-header/)
+
+        "#{vista.relative_path_from(Rails.root)}:#{n + 1}"
+      end
+    end
+
+    assert_empty culpables,
+      "cabeceras escritas a mano; la única es `shared/cabecera`:\n  " + culpables.join("\n  ")
+  end
+
+  # ⚠️ Un `%h1` suelto es cómo se llegó a siete formas de título: la pieza
+  # correcta existía y el camino corto era escribirlo.
+  test "el título de una pantalla sale del parcial, no de un %h1 suelto" do
+    sueltos = VISTAS.reject { |v| v.to_s.match?(FUERA_DE_LA_CABECERA) }.flat_map do |vista|
+      vista.read.lines.each_with_index.filter_map do |linea, n|
+        next if linea.strip.start_with?("-#", "#")
+        next unless linea.match?(/^\s*%h1[\s={]/)
+
+        "#{vista.relative_path_from(Rails.root)}:#{n + 1} → #{linea.strip[0, 70]}"
+      end
+    end
+
+    assert_empty sueltos,
+      "títulos escritos a mano. Van por `shared/cabecera` (ver docs/specs/" \
+      "cabecera-unica.md):\n  " + sueltos.join("\n  ")
+  end
+
+  # El parcial es el único que emite el título, así que tiene que saber emitir
+  # los dos niveles: `<h1>` para la pantalla, `<h2>` para una tarjeta.
+  test "la cabecera distingue el título de pantalla del de tarjeta" do
+    cabecera = Rails.root.join("app/views/shared/_cabecera.html.haml").read
+
+    assert_match(/nivel = local_assigns\.fetch\(:nivel, 1\)/, cabecera)
+    assert_match(/etiqueta_del_titulo = nivel == 2 \? :h2 : :h1/, cabecera)
   end
 end

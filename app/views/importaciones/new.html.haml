@@ -1,6 +1,5 @@
 .card-academic
-  .card-academic-header
-    %h1= "Subir #{@importacion.etiqueta_de_tipo.downcase}"
+  = render "shared/cabecera", titulo: "Subir #{@importacion.etiqueta_de_tipo.downcase}"
 
   = form_with(model: @importacion, url: importaciones_path) do |f|
     -# Qué se está subiendo viaja con el archivo: decide qué columnas se esperan
@@ -26,8 +25,7 @@
       = boton "Volver", importaciones_path, icono: :volver, tono: :secondary
 
 .card-academic
-  .card-academic-header
-    %h2 ¿No sabe qué columnas poner?
+  = render "shared/cabecera", titulo: "¿No sabe qué columnas poner?", nivel: 2
 
   %p
     Descargue la plantilla: trae los encabezados, tres filas de ejemplo y una

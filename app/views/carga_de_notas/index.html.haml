@@ -2,8 +2,7 @@
 - content_for :titulo, "Carga de notas"
 
 .card-academic
-  .card-academic-header
-    %h1 Carga de notas
+  = render layout: "shared/cabecera", locals: { titulo: "Carga de notas" } do
     - if @lapso
       .admin-info-badge
         = @lapso.name

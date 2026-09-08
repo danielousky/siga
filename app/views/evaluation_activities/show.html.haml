@@ -1,6 +1,5 @@
 .card-academic
-  .card-academic-header
-    %h1= @evaluation_activity.description
+  = render layout: "shared/cabecera", locals: { titulo: @evaluation_activity.description } do
     = boton "Volver", evaluation_activities_path, icono: :volver, tono: :secondary
 
   .detail-row

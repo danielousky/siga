@@ -1,6 +1,5 @@
 .card-academic
-  .card-academic-header
-    %h1 Registrar evaluación
+  = render layout: "shared/cabecera", locals: { titulo: "Registrar evaluación" } do
     = boton "Volver", evaluation_activities_path, icono: :volver, tono: :secondary
 
   = render "form", evaluation_activity: @evaluation_activity

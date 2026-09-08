@@ -1,7 +1,6 @@
 - if @grupos.any?
   .card-academic
-    .card-academic-header
-      %h1 Evaluaciones
+    = render "shared/cabecera", titulo: "Evaluaciones"
 
     %p.weight-meter-intro
       Cada lapso de un área tiene que cerrar en 100 %. Lo que falta todavía no
@@ -23,9 +22,10 @@
 -# ⚠️ El alta la ve SOLO el profesor: una evaluación la crea quien la va a
 -# calificar. La cabecera acepta que no haya `alta:` y no dibuja el botón.
 - alta = ({ ruta: new_evaluation_activity_path, nombre: "Registrar evaluación" } if profesor?)
-= render "shared/cabecera_de_lista",
-         titulo: (profesor? ? "Mis Evaluaciones" : "Evaluaciones del Colegio"),
-         alta: alta
+.card-academic
+  = render "shared/cabecera",
+           titulo: (profesor? ? "Mis Evaluaciones" : "Evaluaciones del Colegio"),
+           alta: alta
 
 .card-academic
   - if @lapsos_disponibles.many?

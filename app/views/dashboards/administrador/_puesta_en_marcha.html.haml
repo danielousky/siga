@@ -21,8 +21,7 @@
 - obligatorios = @pasos.reject(&:opcional?)
 
 .card-academic.puesta-en-marcha
-  .card-academic-header
-    %h2 Puesta en marcha
+  = render layout: "shared/cabecera", locals: { titulo: "Puesta en marcha", nivel: 2 } do
     .admin-info-badge= "#{listos} de #{@pasos.size} listos"
 
   %p.nota-ayuda

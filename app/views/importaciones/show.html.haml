@@ -1,6 +1,5 @@
 .card-academic
-  .card-academic-header
-    %h1 Qué columna es cuál
+  = render layout: "shared/cabecera", locals: { titulo: "Qué columna es cuál" } do
     = render "shared/borrar", registro: @importacion, aviso: "Se descarta la planilla subida.", alternativa: nil
 
   %dl.detalle
@@ -25,8 +24,7 @@
 -# es la del otro tipo, esa lista de faltantes no es el problema: es el síntoma.
 - if @importacion.parece_del_otro_tipo?
   .card-academic
-    .card-academic-header
-      %h2= "Esto parece una planilla de #{@importacion.etiqueta_del_otro_tipo.downcase}"
+    = render "shared/cabecera", titulo: "Esto parece una planilla de #{@importacion.etiqueta_del_otro_tipo.downcase}", nivel: 2
 
     %p
       Sus columnas encajan mucho mejor con
@@ -47,8 +45,7 @@
 
 - if @importacion.obligatorias_sin_mapear.any?
   .card-academic
-    .card-academic-header
-      %h2 Falta decir dónde están estas columnas
+    = render "shared/cabecera", titulo: "Falta decir dónde están estas columnas", nivel: 2
 
     %p
       Sin ellas no se puede cargar nada. No se rellenan solas: inventar el
@@ -61,8 +58,7 @@
           %span.dato-secundario= columna.formato
 
 .card-academic
-  .card-academic-header
-    %h2 Las columnas de su planilla
+  = render "shared/cabecera", titulo: "Las columnas de su planilla", nivel: 2
 
   %p.nota-ayuda
     El sistema ya propuso a qué corresponde cada una. Corrija lo que esté mal y
@@ -101,8 +97,7 @@
 
 - if @importacion.planilla.descartadas.any?
   .card-academic
-    .card-academic-header
-      %h2 Filas que se ignoraron
+    = render "shared/cabecera", titulo: "Filas que se ignoraron", nivel: 2
 
     %p.nota-ayuda
       Son las que no parecen un registro: el membrete de arriba, los subtotales

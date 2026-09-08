@@ -1,27 +1,60 @@
--# La cabecera de un listado: título, buscador y alta, en UNA línea (MOR-192).
+-# LA cabecera. Una sola, para las 128 pantallas de la app (etapa ②).
 -#
--# Daniel: *«el sección filtro ocupa demasiado espacio, vamos a fusionarlo con
--# el título, cabe todo: un text-field menos ancho con el botón de limpiar
--# pegado (group) y al final en la misma línea un botón [+] con un tooltip.
--# Elimina "Filtros" y "Buscar", es evidente pienso»*.
+-# ## Por qué existe
 -#
--# Y es evidente: un campo con la lupa y el texto «Nombre, apellido, cédula…»
--# adentro no necesita que le digan «Buscar» encima, ni que una tarjeta aparte
--# anuncie «Filtros». Eran DOS tarjetas con borde, dos títulos y una etiqueta
--# —unos 190 px de alto— para un campo de texto. En una laptop de 13" eso es
--# media pantalla de cromo antes de la primera fila de datos.
+-# Daniel: *«ayer hice una captura de por lo menos cinco tipos de títulos
+-# principales. Eso es inconcebible… todos los títulos deben ser idénticos»*.
 -#
--#     antes                              ahora
--#     ┌───────────────────────┐          ┌──────────────────────────────┐
--#     │ Representantes  [Registrar]      │ Representantes [buscar|✕] [+]│
--#     └───────────────────────┘          └──────────────────────────────┘
--#     ┌───────────────────────┐          ┌──────────────────────────────┐
--#     │ Filtros               │          │ 3 representantes             │
--#     │ Buscar                │          │ …                            │
--#     │ [                ] [Limpiar]     
--#     └───────────────────────┘
+-# Había siete formas. Y la mayoritaria —`card-academic-header`, 110 usos—
+-# servía para DOS cosas distintas, separadas solo por qué etiqueta escribió
+-# cada quien:
 -#
--# ## ⚠️ El alta pasa a ser un icono, y por eso el tooltip NO es opcional
+-#     43×  card-academic-header > %h2   ← título de TARJETA   (18 px)
+-#     32×  card-academic-header > %h1   ← título de PANTALLA  (26 px)
+-#
+-# Poner `%h2` donde iba `%h1` no fallaba, no se veía en revisión, y dejaba una
+-# pantalla con el título del tamaño de un subtítulo. Acá eso es `nivel:`, que
+-# es una decisión que se toma, no un descuido que se hereda.
+-#
+-# ## Los cuatro usos, de menos a más
+-#
+-#     = render "shared/cabecera", titulo: "Editar sección"
+-#     = render "shared/cabecera", titulo: "Asistencia", nivel: 2
+-#
+-#     = render layout: "shared/cabecera", locals: { titulo: @seccion.nombre } do
+-#       = boton "Volver", sections_path, icono: :volver, tono: :secondary
+-#
+-#     = render "shared/cabecera", titulo: "Alumnos", ruta: students_path,
+-#              pista: "Nombre, apellido, cédula…",
+-#              alta: { ruta: new_student_path, nombre: "Registrar alumno" }
+-#
+-# ## ⚠️ Antes se llamaba `_cabecera_de_lista`, y el renombre es el punto
+-#
+-# Con las dos conviviendo, la buena era una opción — y así se llegó a que la
+-# usaran 14 pantallas de 84. Nadie eligió divergir: la pieza correcta existía,
+-# no era obligatoria, y el camino corto era escribir `%h1`.
+-#
+-# Spec en `docs/specs/cabecera-unica.md`.
+-#
+-# ## Qué recibe
+-#
+-#     titulo              obligatorio
+-#     nivel               1 pantalla (por defecto) · 2 tarjeta
+-#     detalle             el contexto: «1er Grado A · Matemática»
+-#     detalle_destacado   invierte el peso: el detalle manda sobre el título
+-#     ── de acá abajo, solo los listados ────────────────────────────────
+-#     ruta                destino del buscador y de «Limpiar»
+-#     marco               el turbo_frame que se refresca
+-#     pista               el placeholder — lo único que explica qué se busca
+-#     extra               filtros: :select, :select_agrupado o :date
+-#     alta                { ruta:, nombre: } → el [+ Agregar]
+-#     importar            el tipo de planilla
+-#     alta_en_linea       para listas cortas: el campo va en la cabecera
+-#     campo               el parámetro de búsqueda (por defecto :q)
+-#     ── y el bloque ────────────────────────────────────────────────────
+-#     yield               las acciones de la derecha
+-#
+-# ## ⚠️ El alta es un icono, y por eso el tooltip NO es opcional
 -#
 -# Un control que es solo un icono no tiene nombre visible: el tooltip **es** su
 -# nombre. Por eso `data-tooltip` y `aria-label` con el mismo texto, y por eso
@@ -31,35 +64,46 @@
 -# El texto lo pone quien llama y sigue la regla de `MOR-175`: «Registrar
 -# <cosa>», nunca «Nuevo/Nueva» —que además obliga a acordar el género.
 -#
--# ## Qué recibe
--#
--#     titulo     "Representantes"
--#     ruta       la del listado; sirve de destino del form Y de «Limpiar»
--#     marco      el id del turbo_frame que se refresca
--#     pista      el placeholder — es lo único que explica qué se puede buscar
--#     alta       { ruta:, nombre: }  opcional: sin esto no se dibuja el [+]
--#     extra      filtros adicionales: :select, :select_agrupado o :date
--#     campo      el nombre del parámetro de búsqueda (por defecto `:q`)
--#
 -# ⚠️ Los extras ENVUELVEN a la línea siguiente cuando no caben, y eso es a
 -# propósito. El registro de actividad tiene cuatro —usuario, tipo de acción y
 -# un rango de dos fechas— y en una laptop de 13" no entran en el mismo renglón
 -# que el título. Forzarlos apretaría los cuatro; dejarlos caer conserva el
 -# orden de lectura y no rompe las otras seis pantallas, donde sí caben.
--# ⚠️ El BUSCADOR es opcional, y por eso esta cabecera sirve para las catorce
--# pantallas y no solo para las ocho que buscan (MOR-195).
--#
--# Grados, Lapsos, Años escolares y Administradores son listas cortas y cerradas
--# —quince grados, tres lapsos— donde buscar no significa nada. Pero su botón de
--# alta SÍ es el mismo botón, y quedarse con la cabecera vieja lo dejaba
--# diciendo «Registrar grado» al lado de siete que dicen «Agregar».
--#
--# Daniel: *«Grado, Año Escolar, Lapso y Administrador dicen Registrar en lugar
--# de Agregar en el botón New»*.
 - alta   = local_assigns[:alta]
 - extras = Array(local_assigns[:extra])
 - campo  = local_assigns.fetch(:campo, :q)
 - busca  = local_assigns[:pista].present?
+
+-# ⚠️ El NIVEL se pide, no se deduce de la etiqueta que alguien escribió.
+-#
+-#     1  el título de la PANTALLA — uno solo, y es un <h1>
+-#     2  el título de una TARJETA dentro de esa pantalla — <h2>
+-#
+-# Dos `<h1>` en la misma pantalla es un defecto de accesibilidad que no se ve
+-# mirando: un lector de pantalla anuncia dos veces «encabezado de nivel 1» y
+-# quien navega por encabezados pierde el mapa de la página.
+- nivel = local_assigns.fetch(:nivel, 1)
+- etiqueta_del_titulo = nivel == 2 ? :h2 : :h1
+
+-# ⚠️ El partial NO emite la tarjeta, y eso es lo que lo hace componible.
+-#
+-# La primera versión traía su propia `.card-academic`. Servía para los catorce
+-# listados, donde la cabecera vive sola en su franja — y no servía para nada
+-# más: migrar un `%h2` que estaba DENTRO de una tarjeta habría producido una
+-# `.card-academic` dentro de otra, con doble borde y doble padding.
+-#
+-# Emitiendo solo la cabecera, quien la quiera en franja propia la envuelve:
+-#
+-#     .card-academic
+-#       = render "shared/cabecera", titulo: "Alumnos", …
+-#
+-# y quien la quiera como título de una tarjeta que ya existe, la pone adentro
+-# y listo. Un envoltorio menos que adivinar.
+
+-# Las acciones de la derecha llegan como BLOQUE. Los 35 casos que las tienen
+-# llevan botones, chips, badges y formularios: enumerar sus formas sería
+-# reinventar el HTML.
+- acciones = capture { yield } if block_given?
 
 -# ⚠️ UNA línea cuando no hay nada que poner en la de abajo (QA de Daniel,
 -# señalando Grados: *«alto mínimo, espacio desaprovechado en este caso
@@ -80,9 +124,20 @@
 -# Se DEDUCE de lo que la vista pasa, no se pide: una pantalla que mañana gane
 -# un buscador vuelve a dos renglones sin tocar nada. Preguntarlo sería un
 -# `compacta: true` que se queda viejo.
+-# ⚠️ UNA sola línea cuando no hay nada que poner en la de abajo (QA de Daniel,
+-# señalando Grados: *«alto mínimo, espacio desaprovechado»*).
+-#
+-# Se DEDUCE de lo que la vista pasa, no se pide: una pantalla que mañana gane
+-# un buscador vuelve a dos renglones sin tocar nada.
+-#
+-# ⚠️ El ALTA y las ACCIONES no la rompen, y eso es deliberado: compacta pone
+-# título y controles en la MISMA fila, que es justo lo que hace falta para
+-# «Grados  ……  [+ Agregar]» o para «Editar sección  ……  [Volver]». Mirarlas acá
+-# devolvería esas pantallas a dos renglones — una regresión de sesenta píxeles
+-# de alto en todas.
 - compacta = !busca && extras.empty? && local_assigns[:alta_en_linea].nil? && local_assigns[:importar].nil?
 
-.card-academic.cabecera-de-lista{ class: ("cabecera-de-lista--compacta" if compacta) }
+.cabecera-de-lista{ class: ("cabecera-de-lista--compacta" if compacta) }
   -# ⚠️ DOS renglones, y una sola sección (MOR-194).
   -#
   -# Daniel: *«van a terminar siendo 2 líneas de la misma sección: arriba el
@@ -98,7 +153,7 @@
   -# Y separa dos cosas que no son la misma: arriba QUÉ estoy viendo, abajo qué
   -# le hago. El título deja de competir por el ancho con los controles.
   .cabecera-de-lista-titular
-    %h1.cabecera-de-lista-titulo= titulo
+    = content_tag etiqueta_del_titulo, titulo, class: "cabecera-de-lista-titulo"
     -# ⚠️ `detalle_destacado` invierte el peso del título y el detalle.
     -#
     -# En casi todas las pantallas el título manda —«Alumnos», «Secciones»— y el
@@ -226,6 +281,11 @@
     -# escribía su propio nombre — así fue como el pensum terminó con tres.
     - if local_assigns[:importar]
       = boton_de_importar importar
+
+    -# Las acciones que la vista pasó como bloque: [Volver], chips, badges.
+    -# Van ANTES del alta, que es la que cierra la fila a la derecha.
+    - if acciones.present?
+      = acciones
 
     - if alta
       -# ⚠️ Dice «Agregar», no solo [+] (MOR-194).

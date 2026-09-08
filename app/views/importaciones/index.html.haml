@@ -1,6 +1,5 @@
 .card-academic
-  .card-academic-header
-    %h1 Importar datos
+  = render layout: "shared/cabecera", locals: { titulo: "Importar datos" } do
     -# ⚠️ En ORDEN DE IMPORTACIÓN, y el primero es el pensum.
     -#
     -# Estaban al revés —matrícula primero— y no es una preferencia: `CargaDePensum`

@@ -1,5 +1,4 @@
 .card-academic
-  .card-academic-header
-    %h1 Registrar lapso
+  = render "shared/cabecera", titulo: "Registrar lapso"
 
   = render "form", evaluation_moment: @evaluation_moment, volver: evaluation_moments_path

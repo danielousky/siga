@@ -1,5 +1,6 @@
-= render "shared/cabecera_de_lista", titulo: "Años escolares",
-         alta: { ruta: new_academic_period_path, nombre: "Registrar año escolar" }
+.card-academic
+  = render "shared/cabecera", titulo: "Años escolares",
+           alta: { ruta: new_academic_period_path, nombre: "Registrar año escolar" }
 
 .card-academic
   - if @academic_periods.empty?

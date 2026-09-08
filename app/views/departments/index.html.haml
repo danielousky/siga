@@ -9,10 +9,11 @@
 -# ⚠️ Y por eso NO hay buscador ni paginación acá. Las dos existen para listas
 -# que no caben en una pantalla; con diez filas son controles que nadie toca y
 -# que además esconden el que sí se usa.
-= render "shared/cabecera_de_lista", titulo: "Departamentos",
-         alta_en_linea: { ruta: departments_path, campo: :nombre,
-                          nombre_del_campo: "department[name]", etiqueta: "Agregar nuevo departamento",
-                          placeholder: "Ciencias" }
+.card-academic
+  = render "shared/cabecera", titulo: "Departamentos",
+           alta_en_linea: { ruta: departments_path, campo: :nombre,
+                            nombre_del_campo: "department[name]", etiqueta: "Agregar nuevo departamento",
+                            placeholder: "Ciencias" }
 
 .card-academic
   -# ⚠️ El `turbo_frame` envuelve la LISTA ENTERA y no cada fila: al agregar hay

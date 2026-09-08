@@ -10,10 +10,11 @@
 -# pantalla es —lo mismo en las veinte veces que se abre— mientras que «1er
 -# Grado A · Matemática» dice DÓNDE ESTOY PARADO, que es lo que cambia y lo que
 -# se necesita confirmar de un vistazo antes de escribir algo.
-= render "shared/cabecera_de_lista", titulo: "Competencias e indicadores",
-         detalle: (asignacion ? "#{asignacion.section.grade.name} #{asignacion.section.name} · #{asignacion.subject.name}" : nil),
-         detalle_destacado: true,
-         alta: (asignacion && profesor? ? { ruta: new_competency_path(contexto), nombre: "Registrar competencia" } : nil)
+.card-academic
+  = render "shared/cabecera", titulo: "Competencias e indicadores",
+           detalle: (asignacion ? "#{asignacion.section.grade.name} #{asignacion.section.name} · #{asignacion.subject.name}" : nil),
+           detalle_destacado: true,
+           alta: (asignacion && profesor? ? { ruta: new_competency_path(contexto), nombre: "Registrar competencia" } : nil)
 
 -# ⚠️ Dos vacíos que se ven igual y no lo son.
 -#

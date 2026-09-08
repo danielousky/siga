@@ -1,5 +1,6 @@
-= render "shared/cabecera_de_lista", titulo: "Grados",
-         alta: { ruta: new_grade_path, nombre: "Registrar grado" }
+.card-academic
+  = render "shared/cabecera", titulo: "Grados",
+           alta: { ruta: new_grade_path, nombre: "Registrar grado" }
 
 .card-academic
   - if @grades.empty?

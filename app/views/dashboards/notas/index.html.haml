@@ -1,15 +1,13 @@
 - if @enrollment.nil?
   .card-academic
-    .card-academic-header
-      %h1 Mis notas
+    = render "shared/cabecera", titulo: "Mis notas"
     .empty-state
       %h3 Sin inscripción activa
       %p No tienes una inscripción vigente. Comunícate con la secretaría del colegio.
 
 - else
   .card-academic
-    .card-academic-header
-      %h1 Mis notas
+    = render layout: "shared/cabecera", locals: { titulo: "Mis notas" } do
       .admin-info-badge
         = "#{@seccion.grade.name} – #{@seccion.name}"
         %span.role-badge= @seccion.academic_period.name
@@ -34,8 +32,7 @@
 
   - if @vista_anual
     .card-academic
-      .card-academic-header
-        %h1 Calificaciones definitivas
+      = render "shared/cabecera", titulo: "Calificaciones definitivas"
       %table.table-academic.table-academic--tarjetas
         %thead
           %tr
@@ -80,8 +77,7 @@
   - else
     - @materias.each do |materia|
       .card-academic
-        .card-academic-header
-          %h2= materia.subject.name
+        = render layout: "shared/cabecera", locals: { titulo: materia.subject.name, nivel: 2 } do
           - if materia.nota_lapso
             .nota-cabecera
               %span.nota-valor{class: materia.nota_lapso >= 10 ? "nota-valor--aprobada" : "nota-valor--aplazada"}= materia.nota_lapso
@@ -120,8 +116,7 @@
 
     - if @sin_evaluaciones.any?
       .card-academic
-        .card-academic-header
-          %h2 Todavía sin evaluaciones
+        = render "shared/cabecera", titulo: "Todavía sin evaluaciones", nivel: 2
         %p.nota-ayuda
           El profesor no cargó evaluaciones de estas materias para
           = succeed "." do

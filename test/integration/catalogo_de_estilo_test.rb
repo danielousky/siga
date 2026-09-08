@@ -83,14 +83,18 @@ class CatalogoDeEstiloTest < ActionDispatch::IntegrationTest
                   "Registrar alumno", "Registrar alumno"
   end
 
-  # El inventario de las siete formas de título: es lo que Daniel vio en su
-  # captura, y verlo junto es la mitad del valor de la página.
-  test "lista las siete formas de título que hay hoy" do
+  # ⚠️ Hasta la etapa ② esta sección era un INVENTARIO DE DEUDA —las siete
+  # formas de título—. Ahora muestra los niveles de la única pieza que queda.
+  test "muestra los niveles de título, no el inventario viejo" do
     sign_in @del_equipo
 
     get siga_estilo_path
 
-    assert_select "code", text: "cabecera-de-lista-titulo"
-    assert_select "code", text: "card-academic-header > h1"
+    Siga::EstiloController::TITULOS.each do |t|
+      assert_select "td strong", text: t[:nivel]
+    end
+    # Y ya no puede quedar rastro del inventario: si vuelve, es que volvió la
+    # deuda.
+    assert_select "code", text: "card-academic-header > h1", count: 0
   end
 end

@@ -2649,13 +2649,9 @@ nav.pagy a.gap {
    pantalla y que no haya un solo control que no lleve a un dato.
 */
 
-.portal-cabecera {
-  padding: var(--space-lg) 0 var(--space-md);
-  border-bottom: 2px solid var(--border-standard);
-  margin-bottom: var(--space-lg);
-}
-
-.portal-cabecera h1 { margin-bottom: var(--space-micro); }
+/* `.portal-cabecera` se retiró en la etapa ②: el portal del representante usa
+   la misma cabecera que el resto de la app. Daniel: «un único tipo de títulos
+   tanto para administradores, profesores, estudiantes y representantes». */
 
 .portal-seccion {
   margin: 0;
@@ -9032,10 +9028,25 @@ a.subject-avance:hover { filter: brightness(0.9); }
    ya son cuatro— y con «Exportar» todavía por venir, el renglón se rompe igual,
    pero de una manera distinta en cada pantalla. Partirlo a propósito hace que
    las ocho se vean iguales tengan dos controles o seis. */
+/* ⚠️ La cabecera trae su propia separación del contenido, y ya no la hereda de
+   `.card-academic-header` (etapa ②).
+   Al volverla componible —el partial ya no emite la tarjeta— tiene que
+   funcionar igual sola en su franja que dentro de una tarjeta que ya existe.
+   Es el mismo borde y el mismo aire que daba `.card-academic-header`, con su
+   `:last-child` para cuando no hay nada debajo que separar. */
 .cabecera-de-lista {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.cabecera-de-lista:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 /* Una sola línea cuando no hay controles que poner abajo (QA de Daniel).

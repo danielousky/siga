@@ -5,8 +5,7 @@
 - content_for :titulo, "Boletines"
 
 .card-academic
-  .card-academic-header
-    %h1 Documentos
+  = render "shared/cabecera", titulo: "Documentos"
 
   = render "shared/pestanas", pestanas: pestanas_de_documentos, etiqueta: "Documentos que emite el colegio"
 
@@ -41,8 +40,7 @@
       = f.submit "Emitir y descargar", class: "btn btn-documento"
 
 .card-academic
-  .card-academic-header
-    %h2 Últimos boletines emitidos
+  = render "shared/cabecera", titulo: "Últimos boletines emitidos", nivel: 2
 
   %p.nota-ayuda
     Cada emisión guarda las notas

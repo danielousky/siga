@@ -1,6 +1,5 @@
 .card-academic
-  .card-academic-header
-    %h1= "#{@section.grade.name} – Sección #{@section.name}"
+  = render layout: "shared/cabecera", locals: { titulo: "#{@section.grade.name} – Sección #{@section.name}" } do
     -# ⚠️ Los informes descriptivos los escribe el GUÍA de la sección, o la
     -# dirección cuando no lo hay (MOR-216). El botón aparece exactamente para
     -# quien puede entrar: ofrecerlo a un profesor que no es guía lo manda a una

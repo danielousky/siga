@@ -1,8 +1,7 @@
 - datos = @boletin.snapshot
 
 .card-academic
-  .card-academic-header
-    %h1 Boletín verificado
+  = render layout: "shared/cabecera", locals: { titulo: "Boletín verificado" } do
     %span.verificacion-sello ✓ Auténtico
 
   %p.nota-ayuda
@@ -37,8 +36,7 @@
       .detail-value= "#{@boletin.titulo} · #{datos.dig('seccion', 'periodo')}"
 
 .card-academic
-  .card-academic-header
-    %h2 Calificaciones
+  = render "shared/cabecera", titulo: "Calificaciones", nivel: 2
 
   %table.table-academic
     %thead

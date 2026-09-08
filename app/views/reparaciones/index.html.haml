@@ -5,8 +5,7 @@
 -# aplazados en la mano. Sin esto, el profesor tendría que adivinar en cuáles de
 -# sus doce asignaciones quedó alguien.
 .card-academic
-  .card-academic-header
-    %h1 Reparaciones
+  = render layout: "shared/cabecera", locals: { titulo: "Reparaciones" } do
     - if anio_de_la_sesion
       %span.dato-secundario= anio_de_la_sesion.name
 

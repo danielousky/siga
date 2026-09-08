@@ -1,5 +1,6 @@
-= render "shared/cabecera_de_lista", titulo: "Lapsos",
-         alta: { ruta: new_evaluation_moment_path, nombre: "Registrar lapso" }
+.card-academic
+  = render "shared/cabecera", titulo: "Lapsos",
+           alta: { ruta: new_evaluation_moment_path, nombre: "Registrar lapso" }
 
 .card-academic
   - if @evaluation_moments.empty?

@@ -10,8 +10,7 @@
 - if @periodos.empty?
   - sugerido = ano_escolar_sugerido
   .card-academic
-    .card-academic-header
-      %h2 Primero hay que crear el año escolar
+    = render "shared/cabecera", titulo: "Primero hay que crear el año escolar", nivel: 2
 
     %p
       Este colegio todavía no tiene ninguno, y las secciones pertenecen a un año
@@ -37,8 +36,7 @@
         = submit_tag "Crear el año escolar", class: "btn btn-guardar"
 
 .card-academic
-  .card-academic-header
-    %h1 Qué se va a cargar
+  = render layout: "shared/cabecera", locals: { titulo: "Qué se va a cargar" } do
     = link_to "Cambiar el mapeo", importacion_path(@importacion), class: "btn btn-secondary"
 
   %p.nota-ayuda
@@ -81,8 +79,7 @@
 -# año, el de la importación.
 - if @importacion.historial? && @planilla.anos_que_faltan.any?
   .card-academic
-    .card-academic-header
-      %h2 Estos años escolares todavía no existen
+    = render "shared/cabecera", titulo: "Estos años escolares todavía no existen", nivel: 2
 
     %p
       La planilla trae notas de años que el colegio no tiene cargados. Créelos
@@ -112,8 +109,7 @@
 -# ── lo que hay que resolver antes ──────────────────────────────────────────
 - if faltan.any? && @periodos.any?
   .card-academic
-    .card-academic-header
-      %h2 Estas secciones todavía no existen
+    = render "shared/cabecera", titulo: "Estas secciones todavía no existen", nivel: 2
 
     %p
       La planilla las nombra y el colegio no las tiene. Créelas acá mismo, o
@@ -182,8 +178,7 @@
 -# ── lo que no entra ────────────────────────────────────────────────────────
 - if @planilla.rechazadas.any?
   .card-academic
-    .card-academic-header
-      %h2 Filas que no se van a cargar
+    = render "shared/cabecera", titulo: "Filas que no se van a cargar", nivel: 2
 
     %p.nota-ayuda
       Les falta algo sin lo cual el registro no existiría. Corrija la planilla y
@@ -209,8 +204,7 @@
 -# ── lo que entra con reparos ───────────────────────────────────────────────
 - if @planilla.con_avisos.any?
   .card-academic
-    .card-academic-header
-      %h2 Se cargan, pero conviene mirarlas
+    = render "shared/cabecera", titulo: "Se cargan, pero conviene mirarlas", nivel: 2
 
     .tabla-envoltura
       %table.table-academic
@@ -231,8 +225,7 @@
 
 -# ── confirmar ──────────────────────────────────────────────────────────────
 .card-academic
-  .card-academic-header
-    %h2 Confirmar la carga
+  = render "shared/cabecera", titulo: "Confirmar la carga", nivel: 2
 
   - if @periodos.empty?
     %p.nota-pendiente

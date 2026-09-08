@@ -7,8 +7,7 @@
                        carga_notas_url_base_value: nota_de_reparacion_path(@seccion, @materia, "STUDENT_ID"),
                        carga_notas_cargadas_value: @cargadas,
                        carga_notas_total_value: @aplazados.size }}
-  .card-academic-header
-    %h1 Reparación
+  = render layout: "shared/cabecera", locals: { titulo: "Reparación" } do
     = boton "Volver", reparaciones_path, icono: :volver, tono: :secondary
 
   %p.carga-contexto

@@ -13,8 +13,7 @@
       = boton "Editar", edit_subject_path(@subject), icono: :editar, tono: :secondary
 
   .card-academic
-    .card-academic-header
-      %h2 En qué grados se cursa
+    = render "shared/cabecera", titulo: "En qué grados se cursa", nivel: 2
 
     - if @grados.any?
       %ul.ficha-secciones
@@ -50,8 +49,7 @@
           = f.submit "Agregar", class: "btn btn-guardar"
 
   .card-academic
-    .card-academic-header
-      %h2 Quién la dicta
+    = render "shared/cabecera", titulo: "Quién la dicta", nivel: 2
 
     - if @quienes.any?
       %table.table-academic

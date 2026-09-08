@@ -6,8 +6,7 @@
 - content_for :titulo, "Inasistencias"
 
 .card-academic
-  .card-academic-header
-    %h1 Asistencia
+  = render "shared/cabecera", titulo: "Asistencia"
 
   -# La pestaña dice cuál de las dos vistas es esta, así que el encabezado no lo
   -# repite: dos rótulos para lo mismo hacen dudar de si son lo mismo.

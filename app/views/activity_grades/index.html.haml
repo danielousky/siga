@@ -5,8 +5,7 @@
                        carga_notas_url_base_value: evaluation_activity_nota_path(@evaluation_activity, "STUDENT_ID"),
                        carga_notas_cargadas_value: @notas_por_alumno.size,
                        carga_notas_total_value: @inscripciones.size }}
-  .card-academic-header
-    %h1= @evaluation_activity.description
+  = render layout: "shared/cabecera", locals: { titulo: @evaluation_activity.description } do
     = boton "Volver", @evaluation_activity, icono: :volver, tono: :secondary
 
   %p.carga-contexto

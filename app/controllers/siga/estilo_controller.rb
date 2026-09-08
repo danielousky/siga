@@ -55,33 +55,29 @@ module Siga
                                   "en SIGA un número en rojo es un niño aplazado (MOR-135)." }
     ].freeze
 
-    # ⚠️ Las SIETE formas de título que hay hoy. Es un inventario de deuda, no
-    # un catálogo aprobado — la unificación es la etapa ②, y meterla acá sería
-    # inventar clases que todavía no existen.
+    # Los cuatro niveles de encabezado, y qué dice cada uno.
     #
-    # Se lista igual porque es exactamente lo que Daniel vio en su captura, y
-    # verlo junto es lo que hace evidente el problema: siete maneras de decir
-    # «esto es esta pantalla».
-    TITULOS_DE_HOY = [
-      { clase: "card-academic-header > h1", usos: 110,
-        donde: "El mayoritario. Un h1 pelado dentro de un div: sin detalle, " \
-               "sin controles, sin nada." },
-      { clase: "cabecera-de-lista-titulo", usos: 14,
-        donde: "El bueno. Trae título, detalle, buscador, filtros, importador " \
-               "y el [+ Agregar] con su tooltip." },
-      { clase: "acceso-titulo", usos: 6, donde: "Las pantallas de Devise." },
-      { clase: "arranque-listo-titulo", usos: 5, donde: "El arranque de un colegio nuevo." },
-      { clase: "ficha-nombre", usos: 4, donde: "Las fichas de persona." },
-      { clase: "solicitud-titulo", usos: 2, donde: "El sitio público." },
-      { clase: "portada-tesis", usos: 1, donde: "La portada del PDF." },
-      { clase: "style= inline", usos: 2,
-        donde: "⚠️ Georgia y #1e4a7a escritos a mano dentro de la vista. " \
-               "El caso más grave, y son dos líneas." }
+    # ⚠️ Hasta la etapa ② esto era un INVENTARIO DE DEUDA: siete formas de
+    # título, y la mayoritaria servía para dos cosas distintas separadas solo
+    # por qué etiqueta escribió cada quien. Ahora hay una sola pieza —
+    # `shared/cabecera`— y `nivel:` es una decisión que se toma, no un descuido
+    # que se hereda.
+    TITULOS = [
+      { nivel: "H1", como: 'render "shared/cabecera", titulo: "Alumnos"',
+        que_dice: "Qué es esta PANTALLA. Una sola por pantalla, y es lo que un " \
+                  "lector de pantalla anuncia como encabezado de nivel 1." },
+      { nivel: "H2", como: 'render "shared/cabecera", titulo: "El colegio", nivel: 2',
+        que_dice: "Qué es esta TARJETA, dentro de una pantalla que ya tiene su H1." },
+      { nivel: "detalle", como: 'render "shared/cabecera", titulo: "…", detalle: "1er Grado A · Matemática"',
+        que_dice: "Dónde estoy parado. Acompaña al título sin competir con él." },
+      { nivel: "detalle destacado", como: "…, detalle_destacado: true",
+        que_dice: "Invierte el peso: en «Competencias e indicadores» el título dice " \
+                  "lo mismo siempre y el detalle es lo que hay que leer rápido." }
     ].freeze
 
     def index
       @tonos   = TONOS
-      @titulos = TITULOS_DE_HOY
+      @titulos = TITULOS
     end
   end
 end

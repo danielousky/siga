@@ -1,7 +1,8 @@
-= render "shared/cabecera_de_lista", titulo: "Profesores", ruta: teachers_path,
-         marco: "teachers-results", pista: "Nombre, apellido, cédula o correo…",
-         alta: { ruta: new_teacher_path, nombre: "Registrar profesor" },
-         importar: :pensum
+.card-academic
+  = render "shared/cabecera", titulo: "Profesores", ruta: teachers_path,
+           marco: "teachers-results", pista: "Nombre, apellido, cédula o correo…",
+           alta: { ruta: new_teacher_path, nombre: "Registrar profesor" },
+           importar: :pensum
 -# ⚠️ `target: "_top"`: sin él, cada enlace de adentro navega DENTRO del frame
 -# y Turbo pinta «Content missing», porque la página de destino no tiene un
 -# frame con este id. El buscador sigue actualizando el frame porque declara

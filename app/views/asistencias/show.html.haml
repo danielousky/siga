@@ -6,8 +6,7 @@
                       asistencia_url_value: seccion_asistencia_path(@seccion),
                       asistencia_dia_value: @dia.to_s,
                       asistencia_total_value: @inscripciones.size}}
-  .card-academic-header
-    %h1 Asistencia
+  = render layout: "shared/cabecera", locals: { titulo: "Asistencia" } do
     .admin-info-badge
       = "#{@seccion.grade.name} – #{@seccion.name}"
       %span.role-badge= l(@dia, format: :long)

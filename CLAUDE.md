@@ -199,8 +199,33 @@ ancho de una barra es un dato), una `<table>` sin `.table-academic`.
 HTML necesita estilos inline y `<table>` de maquetación, porque Gmail y Outlook
 descartan las hojas externas y no soportan flex ni grid.
 
-Spec en [`docs/specs/sistema-de-diseno.md`](docs/specs/sistema-de-diseno.md).
-Pendiente la etapa ②: **unificar las siete formas de título** en un solo partial.
+**UNA sola cabecera para las 128 pantallas** (etapa ②): `shared/cabecera`. Había
+siete formas de título, y la mayoritaria —`card-academic-header`, 110 usos—
+servía para **dos cosas distintas** separadas solo por qué etiqueta escribió
+cada quien. Ahora el `nivel:` se pide:
+
+```
+   = render "shared/cabecera", titulo: "Editar sección"
+   = render "shared/cabecera", titulo: "Asistencia", nivel: 2
+
+   = render layout: "shared/cabecera", locals: { titulo: @seccion.nombre } do
+     = boton "Volver", sections_path, icono: :volver, tono: :secondary
+
+   = render "shared/cabecera", titulo: "Alumnos", ruta: students_path,
+            pista: "Nombre, apellido, cédula…",
+            alta: { ruta: new_student_path, nombre: "Registrar alumno" }
+```
+
+⚠️ **El partial NO emite la tarjeta**, y eso es lo que lo hace componible: quien
+la quiera en franja propia la envuelve en `.card-academic`; quien la quiera como
+título de una tarjeta que ya existe, la pone adentro con `nivel: 2`.
+
+⚠️ **Quedan fuera cuatro contextos, y no son deuda:** Devise (otro layout), el
+sitio público, los documentos en PDF (son papel) y **el panel de `/siga`**, que
+es deliberadamente distinto al del colegio (`MOR-133`).
+
+Specs: [`sistema-de-diseno.md`](docs/specs/sistema-de-diseno.md) (①) y
+[`cabecera-unica.md`](docs/specs/cabecera-unica.md) (②).
 
 ### ⚠️ Inglés y español: dónde va cada uno (`MOR-162`)
 

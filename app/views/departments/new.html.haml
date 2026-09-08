@@ -1,5 +1,4 @@
 .card-academic
-  .card-academic-header
-    %h1 Registrar departamento
+  = render "shared/cabecera", titulo: "Registrar departamento"
 
   = render "form", department: @department, volver: departments_path

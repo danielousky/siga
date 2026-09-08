@@ -4,8 +4,9 @@
 -# veinticinco seguidos, y con una pantalla por alumno son cincuenta clics de
 -# navegación además de lo que escribe. Es lo mismo que resolvió la planilla de
 -# notas, con la misma solución.
-= render "shared/cabecera_de_lista", titulo: "Informes descriptivos",
-         detalle: "#{@seccion.grade.name} #{@seccion.name} · #{@seccion.academic_period.name}"
+.card-academic
+  = render "shared/cabecera", titulo: "Informes descriptivos",
+           detalle: "#{@seccion.grade.name} #{@seccion.name} · #{@seccion.academic_period.name}"
 
 .card-academic
   - if @lapsos.many?

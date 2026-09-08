@@ -17,8 +17,7 @@
   -# se deja de leer, y el día que dice otra cosa tampoco se lee.
   - if @pendientes.any?
     .card-academic
-      .card-academic-header
-        %h2 Para atender
+      = render "shared/cabecera", titulo: "Para atender", nivel: 2
 
       %ul.pendientes
         - @pendientes.each do |p|
@@ -34,16 +33,19 @@
 
   - else
     .card-academic
-      .card-academic-header
-        %h2
-        = icono(:ok, tamano: 20, clase: "titulo-ok")
-        Todo al día
+      -# ⚠️ El `%h2` estaba VACÍO y el icono y el texto le quedaban de hermanos,
+      -# no adentro: los tres al mismo nivel de indentación. O sea que la
+      -# pantalla decía «Todo al día» con un `<h2></h2>` vacío al lado, y un
+      -# lector de pantalla anunciaba un encabezado sin contenido.
+      -# Lo destapó la migración a `shared/cabecera`, al tener que decidir qué
+      -# era el título.
+      - al_dia = safe_join([ icono(:ok, tamano: 20, clase: "titulo-ok"), "Todo al día" ], " ")
+      = render "shared/cabecera", titulo: al_dia, nivel: 2
       %p.nota-ayuda
         No hay secciones sin profesor ni alumnos sin representante registrado.
 
   .card-academic
-    .card-academic-header
-      %h2 El colegio
+    = render "shared/cabecera", titulo: "El colegio", nivel: 2
 
     -# Cada cifra lleva el icono de SU sección del menú, no uno decorativo: es lo
     -# que enseña dónde se va a buscar eso mismo después.
@@ -59,8 +61,7 @@
 
   - if show_recent_activity?
     .card-academic
-      .card-academic-header
-        %h2 Últimas inscripciones
+      = render "shared/cabecera", titulo: "Últimas inscripciones", nivel: 2
 
       - if @recent_enrollments.any?
         %table.table-academic

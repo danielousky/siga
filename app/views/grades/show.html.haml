@@ -21,8 +21,7 @@
       = boton "Editar", edit_grade_path(@grade), icono: :editar, tono: :secondary
 
   .card-academic
-    .card-academic-header
-      %h2 Cómo se califica
+    = render "shared/cabecera", titulo: "Cómo se califica", nivel: 2
 
     .detail-row
       .detail-item
@@ -57,8 +56,7 @@
       muestra.
 
   .card-academic
-    .card-academic-header
-      %h2 Materias del grado
+    = render "shared/cabecera", titulo: "Materias del grado", nivel: 2
 
     - if @grade_subjects.any?
       %table.table-academic
@@ -96,8 +94,7 @@
 
   - if @grade.sections.any?
     .card-academic
-      .card-academic-header
-        %h2 Secciones
+      = render "shared/cabecera", titulo: "Secciones", nivel: 2
 
       -# ⚠️ Cada sección con SU guía (MOR-209), que es lo que este listado no podía
       -# mostrar cuando el guía colgaba del grado: era el mismo para todas.

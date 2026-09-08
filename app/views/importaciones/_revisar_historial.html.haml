@@ -5,8 +5,7 @@
 -# alumno una nota que no se sabe si sacó— pero el colegio tiene que enterarse.
 - if planilla.en_literal.positive?
   .card-academic
-    .card-academic-header
-      %h2 Notas en letra
+    = render "shared/cabecera", titulo: "Notas en letra", nivel: 2
 
     %p
       = contar(planilla.en_literal, "calificación viene", "calificaciones vienen")

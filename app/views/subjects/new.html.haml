@@ -1,5 +1,4 @@
 .card-academic
-  .card-academic-header
-    %h1 Registrar materia
+  = render "shared/cabecera", titulo: "Registrar materia"
 
   = render "form", subject: @subject, volver: subjects_path

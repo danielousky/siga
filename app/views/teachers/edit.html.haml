@@ -1,6 +1,5 @@
 .card-academic
-  .card-academic-header
-    %h1 Editar profesor
+  = render "shared/cabecera", titulo: "Editar profesor"
 
   = render "form", teacher: @teacher, volver: teachers_path
 

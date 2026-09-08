@@ -1,5 +1,4 @@
 .card-academic
-  .card-academic-header
-    %h1 Registrar grado
+  = render "shared/cabecera", titulo: "Registrar grado"
 
   = render "form", grade: @grade, volver: grades_path

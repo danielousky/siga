@@ -13,10 +13,11 @@
 - filtros << { type: :date, name: :from, label: "Desde" }
 - filtros << { type: :date, name: :to, label: "Hasta" }
 
-= render "shared/cabecera_de_lista", titulo: "Registro de actividad",
-         ruta: dashboards_activity_logs_path, marco: "activity-results",
-         campo: :usuario_q, pista: "Nombre, apellido, cédula o correo…",
-         extra: filtros
+.card-academic
+  = render "shared/cabecera", titulo: "Registro de actividad",
+           ruta: dashboards_activity_logs_path, marco: "activity-results",
+           campo: :usuario_q, pista: "Nombre, apellido, cédula o correo…",
+           extra: filtros
 
 - if params[:usuario_q].present? && @usuario_match&.any?
   .filter-pills
@@ -31,12 +32,11 @@
 -# del detalle del alumno. Un botón que no lleva a ningún lado.
 -#
 -# El buscador sigue actualizando el frame porque declara su destino explícito
--# (`data: { turbo_frame: … }` en shared/_cabecera_de_lista), y eso le gana al
+-# (`data: { turbo_frame: … }` en shared/_cabecera), y eso le gana al
 -# `target` del frame.
 = turbo_frame_tag "activity-results", target: "_top" do
   .card-academic
-    .card-academic-header
-      %h2 Actividad registrada
+    = render layout: "shared/cabecera", locals: { titulo: "Actividad registrada", nivel: 2 } do
       %span.role-badge= "#{@pagy.count} #{'registro'.then { |w| @pagy.count == 1 ? w : w + 's' }}"
 
     - if @logs.any?

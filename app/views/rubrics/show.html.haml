@@ -5,8 +5,7 @@
 -# y la pregunta que se hace es «¿esto les cambia las notas?». La respuesta es
 -# no, y decirla arriba es lo que hace que se anime a ajustarla.
 .card-academic
-  .card-academic-header
-    %h1 Rúbrica de evaluación
+  = render layout: "shared/cabecera", locals: { titulo: "Rúbrica de evaluación" } do
     - unless @propuesta
       = button_to "Volver a la propuesta de SIGA", restablecer_rubrica_path,
                   class: "btn btn-secondary",

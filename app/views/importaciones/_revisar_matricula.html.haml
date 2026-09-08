@@ -1,8 +1,7 @@
 -# ── la pregunta de las fechas ──────────────────────────────────────────────
 - if planilla.fechas_ambiguas.positive?
   .card-academic
-    .card-academic-header
-      %h2 Confirme el formato de las fechas
+    = render "shared/cabecera", titulo: "Confirme el formato de las fechas", nivel: 2
 
     %p
       = contar(planilla.fechas_ambiguas, "fecha se leería", "fechas se leerían")

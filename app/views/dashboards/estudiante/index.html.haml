@@ -1,7 +1,6 @@
 .dashboard-alumno
   .card-academic
-    .card-academic-header
-      %h1 Mi panel estudiantil
+    = render layout: "shared/cabecera", locals: { titulo: "Mi panel estudiantil" } do
       .admin-info-badge
         = current_user.first_name
         %span.role-badge= @student.school_card
@@ -9,8 +8,7 @@
   -# Lo primero: la nota. Es a lo que entra.
   - if @boletin
     .card-academic
-      .card-academic-header
-        %h2= "Mis notas de #{@lapso.name.downcase}"
+      = render layout: "shared/cabecera", locals: { titulo: "Mis notas de #{@lapso.name.downcase}", nivel: 2 } do
         = boton "Ver el detalle", dashboards_notas_path, icono: :ver, tono: :secondary
 
       - if @lapsos.many?
@@ -37,8 +35,7 @@
 
   - if @enrollments.any?
     .card-academic
-      .card-academic-header
-        %h2= pluralizar(@enrollments.size, "Mi sección", "Mis secciones")
+      = render "shared/cabecera", titulo: pluralizar(@enrollments.size, "Mi sección", "Mis secciones"), nivel: 2
 
       - @enrollments.each do |enrollment|
         - section = enrollment.section

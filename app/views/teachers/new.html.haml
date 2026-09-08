@@ -1,5 +1,4 @@
 .card-academic
-  .card-academic-header
-    %h1 Registrar profesor
+  = render "shared/cabecera", titulo: "Registrar profesor"
 
   = render "form", teacher: @teacher, volver: teachers_path
