@@ -89,8 +89,16 @@
                       class: "btn btn-accion" do
             = icono(:secciones, tamano: 16)
             %span= "Copiar a #{asignacion.section.grade.name} #{hermanas_sin_plan.map { |ts| ts.section.name }.to_sentence(two_words_connector: ' y ', last_word_connector: ' y ')}"
+          -# ⚠️ Se dice QUÉ se copia, y ya no es solo el texto de las
+          -# competencias: desde la etapa ③ van también las evaluaciones con su
+          -# peso, su fecha y qué competencia mide cada una. Es la mitad más
+          -# pesada del trabajo de septiembre, y quien toca el botón tiene que
+          -# saber que va a pasar.
           %p.nota-ayuda
-            Se copia el texto. Después cada sección es independiente: cambiar una no cambia la otra.
+            Van las competencias con sus indicadores
+            %strong y las evaluaciones
+            \, con su peso y su fecha. Las notas no: son de los alumnos de esta
+            sección. Después cada una es independiente: cambiar una no cambia la otra.
         - else
           -# Un botón apagado explicaría menos: se dice qué pasó y adónde ir.
           %p.nota-ayuda.plan-ya-copiado

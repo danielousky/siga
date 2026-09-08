@@ -87,7 +87,9 @@ class CompetenciesController < ApplicationController
   def sugerido
     return redirect_to(plan_path, alert: "Elige tu sección y el lapso.") if asignacion.nil? || lapso.nil?
 
-    copiadas = copiar_competencias(plan_del_ano_pasado, a: asignacion, lapso: lapso)
+    copiadas = ReplicarLaPlanificacion.solo_competencias(
+      origen: plan_del_ano_pasado, hacia: asignacion, lapso: lapso
+    ).competencias
 
     redirect_to plan_path,
                 notice: "Se trajeron #{contar(copiadas, 'competencia', 'competencias')}. " \
@@ -126,15 +128,21 @@ class CompetenciesController < ApplicationController
   # Copiar este plan a las otras secciones donde ESTE profesor dicta la misma
   # materia. Daniel: *«darle la opción de copiar el plan al resto de las
   # secciones que él dicta»*.
+  # ⚠️ Copia la planificación ENTERA, no solo las competencias.
+  #
+  # Daniel: *«él puede clonar o copiar esa planificación de esa sección… debería
+  # haber una opción de replicar a las otras secciones hermanas»*. Copiar solo
+  # las competencias dejaba la mitad del trabajo: un profesor con tres secciones
+  # hermanas escribía las mismas cuatro evaluaciones doce veces.
   def copiar
     return redirect_to(plan_path, alert: "Elige tu sección y el lapso.") if asignacion.nil? || lapso.nil?
 
-    plan = Competency.del_plan(asignacion.section_id, asignacion.subject_id, lapso.id)
-    hechas = otras_secciones.sum { |destino| copiar_competencias(plan, a: destino, lapso: lapso).size }
+    resultados = otras_secciones.map do |destino|
+      ReplicarLaPlanificacion.para(desde: asignacion, hacia: destino, lapso: lapso)
+    end
 
-    redirect_to plan_path,
-                notice: "Copiado a #{contar(otras_secciones.size, 'sección', 'secciones')} " \
-                        "(#{contar(hechas, 'competencia', 'competencias')})."
+    redirect_to plan_path, notice: resumen_de_la_copia(resultados),
+                           alert: resultados.flat_map(&:avisos).presence&.join(" ")
   end
 
   private
@@ -350,25 +358,23 @@ class CompetenciesController < ApplicationController
 
   # ⚠️ Idempotente: la que ya está en el plan se salta. Copiar dos veces no
   # duplica nada, que es la misma regla de `CopiarLaEstructura` (MOR-166).
-  def copiar_competencias(origen, a:, lapso:)
-    ya_estan = Competency.del_plan(a.section_id, a.subject_id, lapso.id)
-                         .pluck(:descripcion_canonica).to_set
+  # ⚠️ El resumen dice QUÉ QUEDÓ, no «copiado».
+  #
+  # «Listo» obliga a mirar la pantalla para saber qué pasó. Y separa las dos
+  # cosas que se copiaron, porque son dos trabajos distintos: el plan y las
+  # evaluaciones que lo miden.
+  def resumen_de_la_copia(resultados)
+    competencias = resultados.sum(&:competencias)
+    evaluaciones = resultados.sum(&:evaluaciones)
+    donde = helpers.contar(otras_secciones.size, "sección", "secciones")
 
-    origen.reject { |c| ya_estan.include?(c.descripcion_canonica) }.filter_map do |vieja|
-      nueva = Competency.new(section_id: a.section_id, subject_id: a.subject_id,
-                             evaluation_moment_id: lapso.id,
-                             descripcion: vieja.descripcion, orden: vieja.orden)
-      # ⚠️ Cada una en su SAVEPOINT: una que falle no puede tumbar las otras
-      # veinte. Es la lección de `CopiarLaEstructura`.
-      ActiveRecord::Base.transaction(requires_new: true) do
-        nueva.save!
-        vieja.indicators.each { |i| nueva.indicators.create!(descripcion: i.descripcion, orden: i.orden) }
-        ya_estan << nueva.descripcion_canonica
-        nueva
-      end
-    rescue ActiveRecord::RecordInvalid
-      nil
-    end
+    return "Nada que copiar: #{donde} ya tenían todo." if competencias.zero? && evaluaciones.zero?
+
+    partes = []
+    partes << helpers.contar(competencias, "competencia", "competencias") if competencias.positive?
+    partes << helpers.contar(evaluaciones, "evaluación", "evaluaciones") if evaluaciones.positive?
+
+    "Copiado a #{donde}: #{partes.join(' y ')}."
   end
 
   # ── Lo que llega del formulario ───────────────────────────────────────────
