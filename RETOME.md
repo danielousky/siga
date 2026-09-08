@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 8 de septiembre de 2026 (11:40)
+# 🔖 Punto de retome — actualizado 8 de septiembre de 2026 (14:35)
 
 ## Producción limpia y resembrada (MOR-146 · MOR-224)
 
@@ -64,6 +64,91 @@ Producción sigue con **cuentas de administrador con contraseña conocida y
 públicamente documentada**. El día que entre un colegio de verdad esto es
 urgente otra vez — pero ya no por alumnos inventados, sino por las cuentas.
 `MOR-146` sigue abierto por esa mitad.
+
+---
+
+## Sesión del 8 de septiembre, tarde — la vista del profesor (etapa ③)
+
+`bin/ci` verde: **1.348 tests**, 6.258 aserciones. **Todo en LOCAL, sin subir.**
+
+```
+   12:10   el sidebar es un árbol: área → nivel → grado → sección
+   12:39   las cuatro pestañas de la sección
+   13:47   las pestañas dejan de sacarte de la sección
+   14:29   los tres estados de columna
+```
+
+### El sidebar
+
+```
+   ▾ SOY GUÍA DE            ▾ DICTO
+       4to Grado – A  ✓         ▾ Castellano y Literatura
+                                    5to Grado – A
+                                  ▾ 6to Grado
+                                      6to Grado – A
+                                      6to Grado – B
+```
+
+**La regla que lo hace usable:** un escalón aparece solo si DIVIDE algo — la
+misma de las pastillas y del selector de nivel. Verificada contra los cuatro
+perfiles reales de los seeds, que son cuatro formas distintas del árbol.
+
+⚠️ La MISMA sección sale en las dos ramas, y no es un bug: son dos trabajos.
+Como guía entro a la sección (sin área, la asistencia es de todos); como
+docente del área, a una asignación.
+
+### Las cuatro pestañas, DENTRO de la sección
+
+```
+   Asistencia* · Calificar · Planificar · Alumnos      (*solo el guía)
+```
+
+Daniel rechazó que fueran URLs de otras pantallas: *«se descontextualiza todo,
+se supone que estoy en mi espacio de trabajo… no es solo "fingir" sino
+realmente estar en la sección»*. Las cuatro son acciones de
+`SectionsController`, y la planilla de asistencia y el plan son los MISMOS
+parciales que usan `/asistencia` y `/competencias` — vía `PreparaLaAsistencia`
+y `MuestraElPlan`, para que no se separen.
+
+⚠️ Y la ACTIVA por defecto sale de por dónde entró: por «Soy guía de» abre
+Asistencia; por «Dicto» abre Calificar. El árbol ya lo dice, no hay que
+preguntarlo.
+
+### Los cuatro momentos de una columna
+
+```
+   ALUMNO  │ Diagnóstica │ Taller       │ Examen    │ Proyecto
+           │ 19 de ago   │ 4 sep ya pasó│ 8 sep hoy │ 26 sep en 18 días
+           │ 2 de 2      │ 1 de 2       │ 0 de 2    │ 0 de 2
+           └ plana       └ ÁMBAR        └ azul      └ atenuada
+             (cerrada)     lo de HOY      en curso    y ESCRIBIBLE
+```
+
+⚠️ **La fecha ordena, no cierra.** Daniel lo había planteado como «se activa
+conforme a la fecha y se desactivan las otras»; eso deja fuera al profesor que
+carga tarde, que es el caso normal. Estuvo de acuerdo.
+
+### Lo transversal que se hizo en el camino
+
+- **La franja del título**: la misma marca del ítem activo del sidebar —barra
+  + fondo sutil— sangrando hasta el borde de la tarjeta, con los controles
+  DENTRO. Tres vueltas de QA hasta acertar. `--compacta` se retiró.
+- **«Mi trabajo» salió del menú del profesor**: sus tres entradas son pestañas
+  de la sección.
+- **El login de los tests de sistema era flaky** y fallaba una de cada cinco
+  corridas. Ahora reintenta. Un login flaky hace fallar cualquier test con un
+  mensaje que no menciona el login.
+
+### ⚠️ Lo que sigue abierto de la vista del profesor
+
+- **`MOR-230`** · la foto del alumno, actualizada cada año escolar. Lleva una
+  decisión de MODELO adentro: ¿la foto es del usuario, de la inscripción, o
+  las dos? Un boletín de 1er Grado no puede salir con la cara del muchacho de
+  5to Año.
+- **`MOR-231`** · la fila del alumno como acordeón, con la ficha adentro.
+- Replicar la planificación a las secciones hermanas (existe para
+  competencias, falta para evaluaciones).
+- Las estadísticas del lapso — Daniel las dejó de último, «es un plus».
 
 ---
 
