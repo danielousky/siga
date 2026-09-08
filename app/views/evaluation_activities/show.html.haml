@@ -1,6 +1,9 @@
 .card-academic
   = render layout: "shared/cabecera", locals: { titulo: @evaluation_activity.description } do
-    = boton "Volver", evaluation_activities_path, icono: :volver, tono: :secondary
+    -# ⚠️ A la LIBRETA de su sección, no al listado global: es de donde vino el
+    -# profesor, y `/evaluaciones` ya no es su pantalla.
+    - a_la_libreta = section_path(@evaluation_activity.section, area: @evaluation_activity.subject_id, lapso: @evaluation_activity.evaluation_moment_id)
+    = boton "Volver", a_la_libreta, icono: :volver, tono: :secondary
 
   .detail-row
     .detail-item

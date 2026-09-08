@@ -359,6 +359,7 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
     sign_in @a.profesor
     post cambiar_nivel_path, params: { nivel: "primaria" }
     get evaluation_activities_path
+    follow_redirect! while response.redirect?
 
     assert_response :success
     assert_select "body", { text: /#{de_media.grade.name}/, count: 0 },

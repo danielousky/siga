@@ -577,9 +577,16 @@ module MenuHelper
       enlaces << Enlace.new(nombre: "Inscripciones", icono: :inscripciones, ruta: enrollments_path)
     end
     enlaces << Enlace.new(nombre: Vocabulario::AREAS, icono: :materias, ruta: subjects_path)
-    # ⚠️ La dirección VE los planes y no los toca, por la misma razón que no
-    # toca la ponderación: es la decisión pedagógica de quien evalúa (MOR-136).
-    enlaces << Enlace.new(nombre: "Planes de evaluación", icono: :notas, ruta: competencies_path)
+    # ⚠️ «Planes de evaluación» se retiró del menú (etapa ③).
+    #
+    # Apuntaba a `/competencias`, que dejó de ser una pantalla: su escalera se
+    # alimentaba de `mis_asignaciones`, vacía para la dirección, así que un
+    # director que entraba veía «todavía no tienes secciones asignadas». O sea
+    # que el enlace llevaba a un estado vacío desde el día uno.
+    #
+    # La dirección ve el plan donde vive: entrando a la sección, pestaña
+    # «Planificar». Sigue sin poder tocarlo, por la misma razón que no toca la
+    # ponderación — es la decisión pedagógica de quien evalúa (MOR-136).
     enlaces << Enlace.new(nombre: "Departamentos", icono: :colegio, ruta: departments_path)
     enlaces
   end

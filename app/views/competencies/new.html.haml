@@ -1,4 +1,27 @@
-= render "shared/cabecera", titulo: "Registrar competencia"
+-# ⚠️ El DETALLE dice de qué sección, área y lapso es esta competencia.
+-#
+-# Daniel, mirando el formulario: *«acá no hay nada que me indique de qué
+-# sección es la competencia»*. Y los tres datos venían en la URL —
+-# `?asignacion=81:240&lapso=308`— así que la pantalla los tenía y no los
+-# decía.
+-#
+-# Es la misma regla del índice del plan: el título dice lo mismo las veinte
+-# veces que se abre, y el detalle dice DÓNDE ESTOY PARADO. Acá pesa más
+-# todavía, porque lo que se escribe queda pegado a esa sección y no hay manera
+-# de moverlo después.
+- donde = [ asignacion && "#{asignacion.section.grade.name} #{asignacion.section.name}",
+            asignacion&.subject&.name, lapso&.name ].compact.join(" · ")
 
-.card-academic
-  = render "form", competency: @competency
+-# ⚠️ El MISMO frame que el plan: entrando desde la pestaña, el formulario
+-# aterriza donde estaba la lista y al guardar la reemplaza — sin recargar la
+-# página ni perder el contexto de la sección.
+-#
+-# Fuera de un frame —un enlace directo, una pestaña nueva— Turbo ignora el
+-# `turbo_frame_tag` y la pantalla se ve entera, con su cabecera. Por eso la
+-# cabecera se queda: es lo que hace que la URL siga sirviendo sola.
+= render "shared/cabecera", titulo: "Registrar competencia",
+         detalle: donde.presence, detalle_destacado: true
+
+= turbo_frame_tag "plan" do
+  .card-academic
+    = render "form", competency: @competency

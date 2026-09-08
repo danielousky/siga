@@ -28,6 +28,7 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
     sign_in @a.profesor
 
     get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+    follow_redirect! while response.redirect?
 
     assert_select ".plan-medida-chip", /Examen/
     assert_select ".plan-medida-vacio", count: 0
@@ -41,6 +42,7 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
     sign_in @a.profesor
 
     get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+    follow_redirect! while response.redirect?
 
     assert_select ".plan-medida-vacio", text: /Ninguna evaluación todavía/
   end
@@ -56,7 +58,8 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
             params: { evaluation_activity_ids: [ examen.id ] }
     end
 
-    assert_redirected_to competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+    assert_redirected_to planificar_section_path(@a.seccion, area: @a.escenario.materia.id,
+                                                 lapso: @lapso.id)
     con_el_colegio(@a.colegio) do
       assert_equal [ examen.id ], @competencia.reload.evaluation_activity_ids
     end
@@ -118,10 +121,13 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
   test "sin evaluaciones en el lapso, se ofrece crear una con el contexto puesto" do
     sign_in @a.profesor
     get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+    follow_redirect! while response.redirect?
 
     assert_select ".plan-conectar-panel", count: 0
-    assert_select "a[href=?]", new_evaluation_activity_path(asignacion: @asignacion, lapso: @lapso.id,
-                                                            competencia: @competencia.id)
+    # ⚠️ La ruta sale de `contexto`, que desde la etapa ③ incluye `desde` — el
+    # test la arma igual que la vista para no fijar el orden de los parámetros.
+    assert_select "a[href*=?]", "competencia=#{@competencia.id}"
+    assert_select "a[href*=?]", "/evaluaciones/new"
   end
 
   # La competencia de otro profesor no se toca: `set_competency` la busca

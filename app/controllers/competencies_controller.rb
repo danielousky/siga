@@ -22,19 +22,36 @@
 # aparece, así que pedirlo por id da 404 y no 403.
 class CompetenciesController < ApplicationController
   include MuestraElPlan
+  include VuelveALaSeccion
 
   before_action :require_acceso!
   before_action :require_profesor!, except: [ :index ]
   before_action :set_competency, only: [ :edit, :update, :destroy, :conectar ]
 
+  # ⚠️ `/competencias` DEJÓ DE SER UNA PANTALLA (etapa ③).
+  #
+  # Daniel, al caer acá cancelando un formulario: *«cancelar me lleva a
+  # competencias solo… esa vista ya no debe estar»*.
+  #
+  # Y al ir a arreglarlo apareció la razón de fondo: esta pantalla **solo
+  # funcionaba para profesores**. Su escalera —grado → área → sección → lapso—
+  # se alimenta de `mis_asignaciones`, que para la dirección está vacía: un
+  # director que entraba veía «todavía no tienes secciones asignadas».
+  #
+  # O sea que, con el profesor entrando por el árbol del menú —que ya trae las
+  # cuatro cosas—, la pantalla no le servía a nadie. Lo que queda es un
+  # redirector:
+  #
+  #     PROFESOR    → la pestaña «Planificar» de su sección
+  #     DIRECCIÓN   → el listado de secciones, para elegir a cuál entrar
+  #
+  # ⚠️ Las OTRAS acciones de este controller siguen vivas —crear, editar,
+  # copiar, traer, conectar—: lo que se retira es el índice, no el plan.
   def index
-    return if asignacion.nil? || lapso.nil?
+    return redirect_to(ruta_de_planificar(asignacion, lapso)) if asignacion
 
-    @competencias = Competency.del_plan(asignacion.section_id, asignacion.subject_id, lapso.id)
-                              .includes(:indicators, :evaluation_activities)
-    # ⚠️ Solo se ofrece traer el plan viejo si NO hay uno. Ofrecerlo con el plan
-    # escrito invita a duplicarlo, y el índice único lo rechazaría a la mitad.
-    @sugerido = plan_del_ano_pasado if @competencias.empty? && profesor?
+    redirect_to sections_path,
+                notice: "El plan de evaluación se abre desde su sección, en la pestaña «Planificar»."
   end
 
   def new
@@ -343,15 +360,17 @@ class CompetenciesController < ApplicationController
     "Listo: #{helpers.contar(cuantas, 'evaluación mide', 'evaluaciones miden')} esta competencia."
   end
 
-  # ⚠️ Vuelve a la PESTAÑA de la sección cuando el plan se dibujó ahí.
+  # ⚠️ Para un PROFESOR, siempre la pestaña de su sección.
   #
-  # `traer` y `copiar` son POST a este controller, y sin esto redirigían a
-  # `/competencias` — sacando al profesor de su sección justo después de una
-  # acción que hizo desde adentro.
+  # La primera versión miraba `params[:desde]`, y por eso «Cancelar» —que no lo
+  # llevaba— lo dejaba en `/competencias` a secas. Daniel: *«cancelar me lleva a
+  # competencias solo; esa vista ya no debe estar»*.
+  #
+  # La bandera sobraba: si el trabajo del profesor es por sección, no hay un
+  # caso en que quiera volver al listado global. La dirección sí, y ahí `plan_path`
+  # sigue siendo el listado.
   def plan_path
-    if params[:desde] == "seccion" && asignacion
-      return planificar_section_path(asignacion.section_id, area: asignacion.subject_id, lapso: lapso&.id)
-    end
+    return ruta_de_planificar(asignacion, lapso) if profesor? && asignacion
 
     competencies_path(asignacion: "#{asignacion&.section_id}:#{asignacion&.subject_id}",
                       lapso: lapso&.id)

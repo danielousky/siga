@@ -112,16 +112,30 @@ class MenuDelProfesorTest < ActionDispatch::IntegrationTest
     assert_select "a.sidebar-nav-link[data-nombre=?]", "Mis evaluaciones", count: 0
   end
 
-  # ⚠️ Pero las PANTALLAS no desaparecen: la dirección las usa desde su menú, y
-  # un enlace viejo tiene que seguir abriendo.
-  test "las pantallas que salieron del menú siguen respondiendo" do
+  # ⚠️ Y un enlace viejo a `/competencias` no da 404: REDIRIGE a la pestaña.
+  #
+  # La pantalla se retiró —su escalera solo funcionaba para profesores, y el
+  # profesor ahora entra por el árbol— pero un marcador, un correo o una URL
+  # copiada tienen que seguir llevando a algún lado que sirva. Daniel: *«esa
+  # vista ya no debe estar»*, no «esa URL debe romperse».
+  test "un enlace viejo a competencias lleva a la pestaña de su sección" do
     sign_in @a.profesor
 
-    get evaluation_activities_path
-    assert_response :success
+    get competencies_path(asignacion: "#{@a.seccion.id}:#{@a.escenario.materia.id}")
+
+    # ⚠️ Con el LAPSO también: sin él la pestaña abriría en el que está en
+    # curso, y quien guardó ese enlace lo guardó por un lapso en concreto.
+    assert_redirected_to planificar_section_path(@a.seccion, area: @a.escenario.materia.id,
+                                                 lapso: @a.escenario.lapso(1).id)
+  end
+
+  # Sin saber de qué sección, se lo manda a elegir en vez de adivinar.
+  test "sin asignación, competencias manda al listado de secciones" do
+    sign_in @a.profesor
 
     get competencies_path
-    assert_response :success
+
+    assert_response :redirect
   end
 
   # ⚠️ El resaltado marca UNA asignación, no todas las de la misma sección.

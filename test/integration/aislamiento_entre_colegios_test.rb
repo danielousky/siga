@@ -69,6 +69,11 @@ class AislamientoEntreColegiosTest < ActionDispatch::IntegrationTest
       entrar(config)
 
       get ruta_de(recurso)
+      # ⚠️ Se sigue el redirect: desde la etapa ③ un profesor que pide
+      # `/evaluaciones` va a la libreta de su sección, y el aislamiento hay que
+      # comprobarlo donde ATERRIZA. Sin esto el test miraba un 302 vacío y
+      # pasaba sin haber leído ninguna pantalla.
+      follow_redirect! while response.redirect?
 
       assert_response :success
       assert_no_match(/Colegio B/, response.body,

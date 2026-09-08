@@ -7,7 +7,49 @@
 = render layout: "sections/marco",
          locals: { seccion: @section, area: area_de_la_pestana, activa: :planificar,
                    inscritos: @enrollments.size } do
-  - opciones = lapsos.map { |l| [ l.name, planificar_section_path(@section, area: area_de_la_pestana&.id, lapso: l.id), l.id == lapso&.id ] }
-  = render "shared/pastillas", etiqueta: "Lapso", opciones: opciones
+  -# ⚠️ En Educación Media el plan de evaluación es OTRA COSA, y decirlo evita
+  -# una pantalla que solo puede rechazarlo.
+  -#
+  -# Estaba en `/competencias` —«las competencias son de primaria»— y al
+  -# retirarse esa pantalla se habría perdido: un profesor de 5to Año entraría a
+  -# «Planificar» y vería un plan vacío que nunca va a llenar, sin que nada le
+  -# diga por qué.
+  -#
+  -# Se pregunta por `Grade#por_competencias?` y no por «primaria» a mano: es la
+  -# misma pregunta que hacen el menú y el formulario de evaluación.
+  - if !@section.grade.por_competencias?
+    .empty-state
+      %h3 Las competencias son de primaria
+      %p
+        En Educación Media el plan de evaluación son las evaluaciones y su
+        ponderación —el 70/30 del Artículo 111—, no competencias. Lo tuyo se
+        arma en la pestaña «Calificar».
+      .empty-state-acciones
+        = boton "Ir a calificar", section_path(@section, area: area_de_la_pestana&.id),
+                icono: :notas, tono: :ver
 
-  = render "competencies/plan"
+  - else
+    - opciones = lapsos.map { |l| [ l.name, planificar_section_path(@section, area: area_de_la_pestana&.id, lapso: l.id), l.id == lapso&.id ] }
+    = render "shared/pastillas", etiqueta: "Lapso", opciones: opciones
+
+    -# ⚠️ TODO el plan en UN turbo_frame, y el formulario aterriza adentro.
+    -#
+    -# Daniel: *«vamos a cargar el formulario de las competencias en la misma
+    -# sección. Cuando la persona haga clic en Registrar competencia, con Turbo
+    -# te traes el form y lo levantas ahí mismo… vamos a explotar la velocidad y
+    -# ligereza de Stimulus»*.
+    -#
+    -# ⚠️ El frame envuelve el PLAN ENTERO, no solo el hueco del formulario, y
+    -# esa es la decisión que lo hace funcionar. Al guardar, el `redirect_to`
+    -# vuelve acá y Turbo reemplaza el frame completo: la competencia nueva
+    -# aparece en la lista Y el formulario desaparece, en una sola respuesta.
+    -# Con un frame solo para el form, la lista se quedaría vieja.
+    = turbo_frame_tag "plan" do
+      -# ⚠️ El FLASH viaja dentro del frame.
+      -#
+      -# El del layout está fuera, y un `turbo_frame` reemplaza solo su propio
+      -# contenido: copiar el plan a las hermanas o conectar una evaluación
+      -# funcionaba y no decía nada. Un aviso que no se ve es peor que no
+      -# tenerlo — el profesor toca otra vez y duplica lo que ya hizo.
+      = render "shared/flash"
+      = render "competencies/plan"

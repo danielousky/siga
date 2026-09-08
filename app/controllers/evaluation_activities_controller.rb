@@ -14,11 +14,24 @@
 #
 # Ver MOR-94.
 class EvaluationActivitiesController < ApplicationController
+  include VuelveALaSeccion
+
   before_action :require_acceso!
   before_action :require_profesor!, only: [:new, :create, :edit, :update, :destroy]
   before_action :set_evaluation_activity, only: [:show, :edit, :update, :destroy]
 
+  # ⚠️ Para un PROFESOR, `/evaluaciones` deja de ser destino (etapa ③).
+  #
+  # Daniel: *«esa vista ya no debe estar, al igual que evaluaciones; volver
+  # lleva a evaluaciones sin sección»*. Sus evaluaciones viven en la libreta de
+  # cada sección, y un listado que las mezcla todas no dice de cuál es ninguna.
+  #
+  # ⚠️ A diferencia de `/competencias`, esta pantalla SÍ le sirve a la
+  # dirección: es donde contesta «¿este profesor está al día?» sin abrir sus
+  # cinco planillas. Por eso redirige solo al profesor.
   def index
+    return redirect_to(ruta_de_calificar_su_primera)  if profesor? && mis_asignaciones.any?
+
     actividades = alcance
       .includes(:subject, :evaluation_moment, section: :grade)
       .order("sections.id", "subjects.name", "evaluation_activities.evaluation_moment_id", "evaluation_activities.date_scheduled")
@@ -63,7 +76,14 @@ class EvaluationActivitiesController < ApplicationController
 
     if @evaluation_activity.save
       etiquetar_lo_que_evalua(@evaluation_activity)
-      redirect_to @evaluation_activity, notice: "Evaluación creada."
+      # ⚠️ A la LIBRETA de su sección, no a la ficha suelta.
+      #
+      # Es lo que hace que el `turbo_frame` funcione: el redirect vuelve a la
+      # pantalla que contiene el frame «libreta», Turbo lo extrae, y la columna
+      # nueva aparece en la tabla mientras el formulario desaparece — todo en
+      # una respuesta. Redirigiendo a la ficha, el frame se reemplazaría por
+      # una pantalla que no es la libreta.
+      redirect_to ruta_de_calificar(@evaluation_activity), notice: "Evaluación creada."
     else
       render :new, status: :unprocessable_entity
     end
@@ -72,15 +92,19 @@ class EvaluationActivitiesController < ApplicationController
   def update
     if @evaluation_activity.update(evaluation_activity_params)
       etiquetar_lo_que_evalua(@evaluation_activity)
-      redirect_to @evaluation_activity, notice: "Evaluación actualizada."
+      redirect_to ruta_de_calificar(@evaluation_activity), notice: "Evaluación actualizada."
     else
       render :edit, status: :unprocessable_entity
     end
   end
 
   def destroy
+    @a_la_libreta = ruta_de_calificar(@evaluation_activity)
+
     if @evaluation_activity.destroy
-      redirect_to evaluation_activities_url, notice: "Evaluación eliminada."
+      # ⚠️ La ruta se arma ANTES de borrar: después el objeto ya no puede
+      # resolver su sección para armarla.
+      redirect_to @a_la_libreta, notice: "Evaluación eliminada."
     else
       redirect_to @evaluation_activity, alert: @evaluation_activity.errors.full_messages.to_sentence
     end
@@ -269,6 +293,15 @@ class EvaluationActivitiesController < ApplicationController
     del_plan = Competency.del_plan(actividad.section_id, actividad.subject_id,
                                    actividad.evaluation_moment_id).pluck(:id)
     actividad.competency_ids = pedidas & del_plan
+  end
+
+  # La libreta de la primera sección que dicta. Es a donde va un profesor que
+  # llegó a `/evaluaciones` por un enlace viejo: no hay una respuesta mejor que
+  # «tu primera sección», y desde el árbol del menú llega a las otras.
+  def ruta_de_calificar_su_primera
+    primera = mis_asignaciones.min_by { |ts| [ ts.section.grade.orden || 99, ts.section.name ] }
+
+    section_path(primera.section_id, area: primera.subject_id)
   end
 
   # Los lapsos de los años escolares que aparecen en el alcance del usuario.

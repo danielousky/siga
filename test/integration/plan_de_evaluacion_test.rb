@@ -6,6 +6,19 @@ require "test_helper"
 # **una vez** y se pueda reutilizar. Y las tres cosas que se rompen en silencio:
 # que el plan ajeno no aparezca, que traer el del año pasado no duplique, y que
 # copiar a otra sección no ate las dos.
+# ⚠️ LOS TESTS DE LA ESCALERA SE RETIRARON con la pantalla (etapa ③).
+#
+# Grado → área → sección → lapso existía para que el profesor eligiera de qué
+# plan hablaba. Desde que entra por el árbol del menú —que ya trae las cuatro
+# cosas— `/competencias` dejó de ser su destino, y al ir a arreglarlo apareció
+# la razón de fondo: esa escalera se alimenta de `mis_asignaciones`, vacía para
+# la dirección. La pantalla **solo funcionaba para profesores**, así que sin
+# ellos no le servía a nadie.
+#
+# Daniel: *«esa vista ya no debe estar»*. Lo que queda de `/competencias` es un
+# redirector, y eso se prueba en `menu_del_profesor_test`.
+#
+# El PLAN sigue probándose acá, en la pestaña donde ahora vive.
 class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
   setup do
     # ⚠️ PRIMARIA: la evaluación por competencias es de primaria, y en
@@ -18,9 +31,13 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
   test "el profesor ve el plan de la sección que dicta" do
     sign_in @a.profesor
     get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+    follow_redirect! while response.redirect?
 
     assert_response :success
-    assert_select "h1", /Competencias e indicadores/
+    # ⚠️ El título es el de la SECCIÓN: el plan vive en su pestaña, y ahí lo que
+    # hay que confirmar de un vistazo es dónde estoy parado.
+    assert_select "h1", /#{@a.seccion.grade.name}/
+    assert_select ".pestana.activa", text: "Planificar"
   end
 
   test "escribe una competencia con sus indicadores, uno por línea" do
@@ -35,7 +52,8 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
       end
     end
 
-    assert_redirected_to competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+    assert_redirected_to planificar_section_path(@a.seccion, area: @a.escenario.materia.id,
+                                                 lapso: @lapso.id)
     con_el_colegio(@a.colegio) do
       assert_equal [ "Suma con reagrupación", "Resuelve problemas de dos pasos", "Estima antes de calcular" ],
                    Competency.last.indicators.en_orden.map(&:descripcion),
@@ -154,6 +172,7 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     sign_in @a.profesor
 
     get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+    follow_redirect! while response.redirect?
     assert_select ".plan-acciones", false,
                   "sin secciones hermanas EN ESTE AÑO no hay nada que ofrecer copiar"
 
@@ -165,49 +184,25 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # La escalera de Cyndi: grado → área → lapso. Elegir solo el grado tiene que
-  # bastar — el área y la sección se deducen.
-  test "las pastillas de grado y área deducen la asignación" do
-    sign_in @a.profesor
-    get competencies_path(grado: @a.grado.id, area: @a.escenario.materia.id, lapso: @lapso.id)
-
-    assert_response :success
-    assert_select ".pastilla.activa", text: @a.grado.name
-    assert_select "h1 ~ *", /#{@a.seccion.name}/, false
-    assert_select ".cabecera-de-lista", /#{@a.escenario.materia.name.titleize}/
-  end
-
   # ⚠️ Bachillerato NO evalúa por competencias, y la pantalla tiene que decirlo
   # en vez de ofrecer un plan vacío.
   #
   # Daniel, en el QA: *«1er año de matemática no debería tener competencias ni
   # indicadores, es otro tipo de evaluación para educación media»*.
+  # ⚠️ El aviso vive ahora en la PESTAÑA, no en `/competencias`.
+  #
+  # Al retirarse esa pantalla se habría perdido, y es un mensaje que hace falta:
+  # sin él, un profesor de 5to Año entra a «Planificar» y ve un plan vacío que
+  # nunca va a llenar, sin que nada le diga por qué.
   test "un profesor de bachillerato no arma un plan por competencias" do
     media, = dos_colegios_completos(nivel: :secundaria)
     sign_in media.profesor
 
-    get competencies_path
+    get planificar_section_path(media.seccion, area: media.escenario.materia.id)
 
     assert_response :success
     assert_select "body", /competencias son de primaria/i
-    assert_select ".pastilla", count: 0, message: "no hay nada que elegir: ninguna sección aplica"
-  end
-
-  # ⚠️ Y el que da los DOS niveles ve solo sus grados de primaria.
-  test "el profesor que da primaria y bachillerato solo ve primaria en la escalera" do
-    con_el_colegio(@a.colegio) do
-      bachillerato = Grade.create!(name: "1er Año", school: @a.colegio)
-      s = Section.create!(grade: bachillerato, academic_period: @a.escenario.periodo, name: "A", capacity: 30)
-      TeacherSection.create!(teacher: @a.registro_de_profesor, section: s, subject: @a.escenario.materia)
-    end
-    sign_in @a.profesor
-
-    get competencies_path
-
-    grados = css_select(".pastillas").first.css(".pastilla").map { |n| n.text.strip }
-    assert_includes grados, @a.grado.name
-    assert_not_includes grados, "1er Año",
-                        "bachillerato no evalúa por competencias: no puede ofrecerse en la escalera"
+    assert_select ".pastilla", count: 0, message: "no hay lapsos que elegir: la pestaña no aplica"
   end
 
   # ⚠️ El plan ajeno no aparece: pedirlo por id da 404, no 403 — no se confirma
@@ -249,65 +244,16 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
   # El QA de Daniel del 7 de septiembre
   # ══════════════════════════════════════════════════════════════════════════
 
-  # ⚠️ Daniel: *«tampoco tengo desde acá la posibilidad de editar las
-  # competencias de la sección B. Me parece que la mejor opción son pestañas por
-  # cada Sección»*.
-  test "la sección se elige con pestañas, y se llega a la hermana" do
-    hermana = con_el_colegio(@a.colegio) do
-      s = Section.create!(grade: @a.grado, academic_period: @a.escenario.periodo,
-                          name: "B", capacity: 30)
-      TeacherSection.create!(teacher: @a.registro_de_profesor, section: s,
-                             subject: @a.escenario.materia)
-      s
-    end
-    con_el_colegio(@a.colegio) { competencia_con(1) }
-    sign_in @a.profesor
-
-    get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
-    assert_select ".pastilla", text: "A"
-    assert_select ".pastilla", text: "B"
-
-    # Y la pestaña de la hermana lleva a SU plan, que está vacío.
-    get competencies_path(grado: @a.grado.id, area: @a.escenario.materia.id,
-                          seccion: hermana.id, lapso: @lapso.id)
-    assert_response :success
-    assert_select ".cabecera-de-lista-detalle", /#{hermana.name}/
-    assert_select ".plan-competencia", count: 0
-  end
-
   # ⚠️ Con UNA sola sección no hay pestañas: un control de una opción no decide
   # nada. Misma regla que el área, el nivel y el año escolar.
   test "con una sola sección no aparecen las pestañas" do
     con_el_colegio(@a.colegio) { competencia_con(0) }
     sign_in @a.profesor
     get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+    follow_redirect! while response.redirect?
 
     etiquetas = css_select(".pastillas-etiqueta").map { |e| e.text.strip }
     assert_not_includes etiquetas, "Sección"
-  end
-
-  # ⚠️ Daniel: *«si es una sola materia que dicto, no debería aparecer la opción
-  # de selección sino ir directo al siguiente nivel, es redundante»*.
-  test "con una sola área tampoco aparece su fila" do
-    sign_in @a.profesor
-    get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
-
-    etiquetas = css_select(".pastillas-etiqueta").map { |e| e.text.strip }
-    assert_not_includes etiquetas, Vocabulario::AREA
-    assert_includes etiquetas, "Grado"
-  end
-
-  test "con dos áreas en el grado, la fila sí aparece" do
-    con_el_colegio(@a.colegio) do
-      otra = Subject.create!(department: @a.escenario.materia.department,
-                             code: "LEN", name: "Castellano")
-      GradeSubject.create!(grade: @a.grado, subject: otra)
-      TeacherSection.create!(teacher: @a.registro_de_profesor, section: @a.seccion, subject: otra)
-    end
-    sign_in @a.profesor
-    get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
-
-    assert_includes css_select(".pastillas-etiqueta").map { |e| e.text.strip }, Vocabulario::AREA
   end
 
   # ⚠️ Daniel: *«si la sección ya tiene competencia, se deshabilita esta opción
@@ -325,27 +271,18 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     sign_in @a.profesor
 
     get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+    follow_redirect! while response.redirect?
     assert_select ".plan-acciones form", 1, "con la hermana vacía, copiar tiene sentido"
 
     post copiar_a_competencies_path(asignacion: @asignacion, lapso: @lapso.id)
     get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+    follow_redirect! while response.redirect?
 
     assert_select ".plan-acciones form", 0
     # ⚠️ Empieza con «La», sin número delante: `contar` antepone el conteo
     # —«1 La otra sección»— y acá la frase ya trae su artículo.
     assert_select ".plan-ya-copiado", /\ALa otra sección de .* ya tiene su plan/
     assert hermana.present?
-  end
-
-  # ⚠️ Daniel: *«el título del Grado - Sección - Área hay que resaltarlo más,
-  # debe ser de rápida lectura»*. El título dice lo mismo las veinte veces que
-  # se abre; el detalle dice dónde estoy parado.
-  test "el detalle va destacado, no el título" do
-    sign_in @a.profesor
-    get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
-
-    assert_select ".cabecera-de-lista-detalle--destacado",
-                  text: "#{@a.grado.name} #{@a.seccion.name} · #{@a.escenario.materia.name}"
   end
 
   private

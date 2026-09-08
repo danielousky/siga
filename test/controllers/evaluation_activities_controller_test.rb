@@ -27,14 +27,24 @@ class EvaluationActivitiesControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # La libreta de la sección de una evaluación: a donde vuelven crear, editar y
+  # borrar desde la etapa ③.
+  def a_la_libreta_de(actividad)
+    section_url(actividad.section_id, area: actividad.subject_id,
+                lapso: actividad.evaluation_moment_id)
+  end
+
   # ════════════════════════════════════════════════════════════════════════
   # El límite
   # ════════════════════════════════════════════════════════════════════════
 
+  # ⚠️ `/evaluaciones` REDIRIGE al profesor desde la etapa ③ —su listado es la
+  # libreta de cada sección— así que hay que seguirlo para mirar lo que llega.
   test "un profesor lista solo las evaluaciones de las materias que dicta" do
     entrar_como @garcia
 
     get evaluation_activities_url
+    follow_redirect! while response.redirect?
 
     assert_response :success
     assert_match "Examen de Matemática", response.body
@@ -93,7 +103,7 @@ class EvaluationActivitiesControllerTest < ActionDispatch::IntegrationTest
     creada = EvaluationActivity.unscoped.order(:id).last
     assert_equal "Taller", creada.description
     assert_equal @esc.colegio.id, creada.school_id
-    assert_redirected_to evaluation_activity_url(creada)
+    assert_redirected_to a_la_libreta_de(creada)
   end
 
   test "pasarse de 100 % se rechaza diciendo cuánto queda" do
@@ -145,7 +155,7 @@ class EvaluationActivitiesControllerTest < ActionDispatch::IntegrationTest
     assert_difference -> { cantidad(EvaluationActivity) }, -1 do
       delete evaluation_activity_url(@de_garcia)
     end
-    assert_redirected_to evaluation_activities_url
+    assert_redirected_to a_la_libreta_de(@de_garcia)
   end
 
   test "una evaluación CON notas no se elimina, y el mensaje lo dice en español" do

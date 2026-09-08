@@ -26,9 +26,9 @@
       Cuando registres una evaluación de
       %strong= @area_de_la_libreta&.name
       aparece acá como una columna, y podrás ver a todos tus alumnos de una vez.
-    - if profesor?
-      .empty-state-acciones
-        = boton "Registrar evaluación", new_evaluation_activity_path, icono: :agregar, tono: :guardar
+    -# El botón de alta vive en las acciones de la pestaña, donde está siempre
+    -# —también con la libreta llena—: dentro del estado vacío, un profesor con
+    -# dos evaluaciones no tenía desde dónde crear la tercera.
 
 - else
   .libreta-marco

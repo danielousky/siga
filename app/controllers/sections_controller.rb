@@ -144,11 +144,18 @@ class SectionsController < ApplicationController
   end
   helper_method :asignacion
 
+  # ⚠️ TODAS las del profesor, no solo las de esta sección.
+  #
+  # Estaba filtrando sobre `@teacher_sections` —las de la sección abierta— y
+  # eso dejaba a `otras_secciones` y `hermanas_sin_plan` vacías: **la opción de
+  # copiar el plan a las hermanas desapareció de la pestaña sin que nada
+  # fallara**. Las hermanas son, por definición, de OTRA sección.
+  #
+  # Lo destapó un test que contaba el formulario de copiar, no la pantalla.
   def mis_asignaciones
-    @mis_asignaciones ||= begin
-      docente = current_user.teacher
-      docente ? @teacher_sections.select { |ts| ts.teacher_id == docente.id } : []
-    end
+    @mis_asignaciones ||= current_user.teacher&.teacher_sections
+                                      &.del_anio_de_la_sesion
+                                      &.includes(section: :grade, subject: {})&.to_a || []
   end
   helper_method :mis_asignaciones
 
