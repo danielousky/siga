@@ -100,4 +100,59 @@ class ElFrameSobreviveTest < ActionDispatch::IntegrationTest
       competency_conectar_evaluaciones_path(competencia, **@contexto),
       params: { evaluation_activity_ids: [ evaluacion.id ] }
   end
+
+  # ── Y las SALIDAS de cada formulario ──────────────────────────────────────
+  #
+  # ⚠️ Los tests de arriba miran los redirects; el cuarto caso entró por otra
+  # puerta: un ENLACE. «Cancelar» apuntaba a `/evaluaciones`, que no tiene
+  # ningún frame, y cancelar desde la pestaña dejaba el hueco.
+  #
+  # Así que se recorren todos los enlaces de la respuesta y se comprueba que
+  # cada uno, o bien sale del frame diciéndolo (`data-turbo-frame="_top"`), o
+  # bien lleva a algo que devuelve ese frame. No hay tercera opción que
+  # funcione: la que falta es la que escribe «Content missing».
+  def salidas_de(cuerpo)
+    Nokogiri::HTML(cuerpo).css("a[href]")
+                          # `_top` sale del frame diciéndolo: es la otra salida válida.
+                          .reject { |a| a["data-turbo-frame"] == "_top" }
+                          # ⚠️ Un `link_to` con `turbo_method` NO es navegación: Turbo lo
+                          # convierte en DELETE o PATCH y el `href` nunca se pide con GET.
+                          # Los cubren los tests de arriba, con su verbo de verdad.
+                          .reject { |a| a["data-turbo-method"] }
+                          .map { |a| a["href"] }
+                          .select { |href| href.start_with?("/") }
+                          .uniq
+  end
+
+  def revisar_las_salidas(frame, ruta)
+    get ruta, headers: { "Turbo-Frame" => frame }
+    huecos = salidas_de(response.body).reject do |destino|
+      get destino, headers: { "Turbo-Frame" => frame }
+      follow_redirect! while response.redirect?
+      response.body.include?(%(<turbo-frame id="#{frame}"))
+    end
+
+    assert_empty huecos,
+      "desde #{ruta} (frame «#{frame}»), estos enlaces dejan «Content missing» — " \
+      "o vuelven al frame, o salen con data-turbo-frame=\"_top\":\n  " + huecos.join("\n  ")
+  end
+
+  test "las salidas del alta de una evaluación vuelven al frame" do
+    revisar_las_salidas "plan",    new_evaluation_activity_path(**@contexto)
+    revisar_las_salidas "libreta", new_evaluation_activity_path(**@contexto)
+  end
+
+  test "las salidas de la edición de una evaluación vuelven al frame" do
+    evaluacion = con_el_colegio(@a.colegio) { actividad(@a.escenario, lapso: @lapso, peso: 40) }
+
+    revisar_las_salidas "plan",    edit_evaluation_activity_path(evaluacion, **@contexto)
+    revisar_las_salidas "libreta", edit_evaluation_activity_path(evaluacion, **@contexto)
+  end
+
+  test "las salidas de los formularios de competencia vuelven al plan" do
+    competencia = con_el_colegio(@a.colegio) { competencia_con(1, lapso: @lapso) }
+
+    revisar_las_salidas "plan", new_competency_path(**@contexto)
+    revisar_las_salidas "plan", edit_competency_path(competencia, **@contexto)
+  end
 end

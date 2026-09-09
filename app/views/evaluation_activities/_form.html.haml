@@ -182,6 +182,14 @@
     = f.submit class: "btn btn-guardar"
     -# ⚠️ DENTRO de `.form-acciones`. Estaba una indentación afuera, así que caía
     -# debajo del submit en vez de al lado — se vio en pantalla.
-    = link_to "Cancelar", evaluation_activities_path, class: "btn btn-secondary"
+    -# ⚠️ «Cancelar» vuelve A DONDE ESTABA, no al listado de evaluaciones.
+    -#
+    -# Iba a `/evaluaciones`, que no tiene ni el frame «plan» ni el «libreta»:
+    -# cancelar desde la pestaña dejaba «Content missing» donde estaba todo. Lo
+    -# reportó Daniel el 9 de septiembre, y es el mismo patrón que ya había
+    -# mordido en `new` y en el error de borrar — la tercera puerta del mismo
+    -# cuarto. Cancelar es una SALIDA más, y las salidas usan `ruta_de_vuelta`.
+    = link_to "Cancelar", (ruta_de_vuelta(evaluation_activity) || evaluation_activities_path),
+              class: "btn btn-secondary"
     - if local_assigns[:volver]
       = boton "Volver", volver, icono: :volver, tono: :secondary

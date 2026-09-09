@@ -361,6 +361,38 @@ y ahí escribir la URL en español ES la comprobación.
   explica QUÉ es un campo; `.nota-ayuda` visible solo para CONSECUENCIAS;
   `placeholder` para el formato
 
+### ⚠️ Dentro de un turbo_frame, TODA salida tiene que devolver ese frame
+
+Mordió **cuatro veces en dos días**, siempre con el mismo síntoma: la pantalla
+entera reemplazada por «Content missing».
+
+```
+   1 · un enlace que salía a otra pantalla     →  data-turbo-frame="_top"
+   2 · `new` con el frame escrito a mano       →  frame_que_pregunta
+   3 · el error de borrar, redirigiendo al show→  ruta_de_vuelta
+   4 · «Cancelar» apuntando al listado         →  ruta_de_vuelta
+```
+
+⚠️ **Ninguna falla por ningún lado.** La petición devuelve 200, el HTML es
+válido, el log no dice nada y los tests de integración pasan en verde: Turbo
+pide un frame, la respuesta no lo trae, y escribe el hueco. Solo se ve
+mirando esa pantalla.
+
+Las salidas son **tres y no hay una cuarta que funcione**: volver a algo que
+contiene el frame (`ruta_de_vuelta`), contestar en el que preguntó
+(`frame_que_pregunta`, que lee el encabezado `Turbo-Frame` contra una lista
+blanca), o salir diciéndolo (`data-turbo-frame="_top"`).
+
+Lo cuida `el_frame_sobrevive_test`, que pide como pide Turbo, sigue los
+redirects **y recorre los enlaces de cada formulario** — el cuarto caso entró
+justamente por ahí, que era el hueco de la guarda anterior.
+
+⚠️ Y una que no es de Turbo pero se paga igual: **Stimulus busca sus `target`
+DENTRO del elemento del controlador.** Con `data-controller` en la barra de
+ponderación y los campos en las filas de abajo, `pesoTargets` salía vacío —
+la barra se dibujaba bien al cargar y no se movía nunca. No falla nada:
+simplemente no pasa nada, y un test de integración lo ve todo correcto.
+
 ## ⚠️ Estado conocido — leer antes de tocar el modelo
 
 ### 1. ~~La app NO es multi-tenant~~ → resuelto, en las dos capas y también en los jobs.

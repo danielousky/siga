@@ -108,4 +108,46 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     assert_selector ".libreta-columna-nombre", text: "Prueba corta"
     assert_no_selector "input[name='evaluation_activity[description]']"
   end
+
+  # ── Salir del formulario sin guardar ──────────────────────────────────────
+  #
+  # Daniel, 9 de septiembre: *«al cancelar la evaluación o clic en atrás no
+  # retorna a la anterior»* — y lo que quedaba era «Content missing».
+  #
+  # «Cancelar» apuntaba a `/evaluaciones`, el listado, que no tiene ni el frame
+  # «plan» ni el «libreta». Cancelar desde la pestaña se llevaba la pantalla.
+  test "cancelar el alta de una evaluación devuelve el plan" do
+    visit planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
+    click_on "Agregar evaluación"
+    assert_selector "input[name='evaluation_activity[description]']"
+
+    click_on "Cancelar"
+
+    assert_no_text "Content missing"
+    assert_no_selector "input[name='evaluation_activity[description]']"
+    assert_selector ".plan-ponderacion"
+  end
+
+  test "cancelar desde la libreta devuelve la libreta" do
+    visit section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
+    click_on "Agregar evaluación"
+
+    click_on "Cancelar"
+
+    assert_no_text "Content missing"
+    assert_selector ".pestana.activa", text: "Calificar"
+  end
+
+  # ⚠️ Y el botón ATRÁS del navegador, que es la otra mitad de lo mismo: dentro
+  # de un frame la URL no cambia, así que «atrás» rebobina la página entera —
+  # con su frame restaurado del snapshot, no recargado.
+  test "el botón atrás del navegador deja la pantalla entera" do
+    visit planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
+    click_on "Agregar evaluación"
+    assert_selector "input[name='evaluation_activity[description]']"
+
+    page.go_back
+
+    assert_no_text "Content missing"
+  end
 end
