@@ -6858,13 +6858,23 @@ a.subject-avance:hover { filter: brightness(0.9); }
 
 /* Las filas se separan con el fondo del contenedor asomando por el `gap`: una
    sola regla en vez de un `border-bottom` con su excepción para la última. */
+/* ⚠️ `flex-wrap: wrap` es obligatorio, no una comodidad para el teléfono.
+   Los chips de «qué mide» piden `flex: 1 0 100%` para caer en su propio
+   renglón; sin envoltura ese 100 % no puede bajar, se queda en la misma línea
+   y comprime al nombre —que lleva `min-width: 0`— hasta dejarlo en un
+   rectángulo de diez píxeles. Se vio en pantalla el 9 de septiembre. */
 .plan-evaluacion {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-sm);
   padding: 6px var(--space-sm);
   background: var(--surface-elevated);
 }
+
+/* Y el nombre no baja de un ancho legible: comprimido, un `<input>` no se ve
+   vacío — se ve roto, que es lo que parecía. */
+.plan-evaluacion-campo--nombre { flex: 1 1 14rem; }
 
 /* ── Editar donde se lee (QA del 9 de septiembre) ────────────────────────── */
 /* Daniel: «al hacer clic en el elemento que deseo editar, como lo hace Linear».
@@ -6873,7 +6883,6 @@ a.subject-avance:hover { filter: brightness(0.9); }
    elemento, se lleva el foco a mitad de camino y hace saltar el texto cuando la
    caja no calca la tipografía. */
 .plan-evaluacion-campo { display: flex; align-items: center; min-width: 0; }
-.plan-evaluacion-campo--nombre { flex: 1; min-width: 0; }
 .plan-evaluacion-campo--peso { flex: 0 0 auto; gap: 2px; }
 
 .plan-evaluacion-nombre-campo,
@@ -10302,6 +10311,126 @@ a.subject-avance:hover { filter: brightness(0.9); }
   counter-increment: competencia;
   text-wrap: pretty;
   max-width: 80ch;
+}
+
+/* ── La competencia, editable en su sitio ────────────────────────────────── */
+/* Daniel: «elevar el modelo que aplicamos a evaluaciones a competencias e
+   indicadores». Misma regla que la fila de la evaluación: el campo ya es el
+   campo, y lo único que cambia al apuntarlo es que se le ve el borde. */
+.plan-competencia-campo { counter-increment: competencia; }
+
+/* ⚠️ `resize: none` y `overflow: hidden`: el alto lo lleva `campo-que-crece`
+   con el contenido. Dejando la manija de redimensionar, el profesor puede
+   encoger el campo hasta tapar su propio texto. */
+.plan-competencia-descripcion-campo {
+  display: block;
+  width: 100%;
+  max-width: 80ch;
+  padding: 2px 5px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  color: var(--text-primary);
+  text-wrap: pretty;
+  resize: none;
+  overflow: hidden;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.plan-competencia-descripcion-campo:hover {
+  border-color: var(--border-subtle);
+  background: var(--surface-elevated);
+}
+
+.plan-competencia-descripcion-campo:focus {
+  border-color: var(--brand-primary);
+  background: var(--surface-elevated);
+  outline: none;
+}
+
+.plan-competencia-error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--danger-text);
+}
+
+.plan-competencia--con-error { background: var(--danger-bg); }
+
+/* El mismo destello que la evaluación: en la edición en línea no hay botón que
+   se quede apretado ni flash que avise. */
+.plan-competencia--guardada { animation: plan-guardada 1.2s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-competencia--guardada { animation: none; background: var(--success-bg); }
+}
+
+/* ── Los indicadores, uno por uno ────────────────────────────────────────── */
+/* ⚠️ El último campo va VACÍO y escribir en él crea el siguiente, como en
+   cualquier lista donde uno escriba listas. Ahorra el botón «agregar» que
+   habría que ir a buscar cada vez. */
+.plan-indicador {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.plan-indicador-campo { flex: 1; min-width: 0; display: flex; }
+
+.plan-indicador-texto {
+  width: 100%;
+  padding: 1px 5px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text-secondary);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.plan-indicador-texto:hover {
+  border-color: var(--border-subtle);
+  background: var(--surface-elevated);
+}
+
+.plan-indicador-texto:focus {
+  border-color: var(--brand-primary);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  outline: none;
+}
+
+/* El campo del final se distingue en reposo: es una invitación, no un dato. */
+.plan-indicador--nuevo { list-style: none; }
+.plan-indicador--nuevo .plan-indicador-texto { color: var(--text-tertiary); font-style: italic; }
+.plan-indicador--nuevo .plan-indicador-texto:focus { color: var(--text-primary); font-style: normal; }
+
+/* La × aparece al apuntar la línea: siempre visible, tres indicadores son tres
+   controles compitiendo con su propio texto. */
+.plan-indicador-quitar {
+  flex: 0 0 auto;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.plan-indicador:hover .plan-indicador-quitar,
+.plan-indicador:focus-within .plan-indicador-quitar { opacity: 1; }
+.plan-indicador-quitar:hover { color: var(--danger-text); }
+
+@media (hover: none) {
+  .plan-indicador-quitar { opacity: 1; }
 }
 
 .plan-competencia-descripcion::before {

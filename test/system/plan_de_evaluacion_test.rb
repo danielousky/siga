@@ -64,9 +64,14 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
     # ⚠️ Con margen: crear redirige al plan DENTRO del frame, y desde que la
     # fila se edita en su sitio esa pantalla monta tres formularios y un
     # calendario por evaluación. Se puso intermitente al pasar de 2 s.
-    assert_text "Resuelve problemas de proporcionalidad directa", wait: 6
-    assert_text "Calcula porcentajes"
-    assert_text "Interpreta una tabla"
+    # ⚠️ Por el `value` de sus campos: desde el 9 de septiembre la competencia y
+    # sus indicadores se editan en su sitio, así que su texto ya no está en la
+    # página — está dentro de un `<input>`.
+    assert_selector ".plan-competencia-descripcion-campo", wait: 6
+    assert_equal "Resuelve problemas de proporcionalidad directa",
+                 find(".plan-competencia-descripcion-campo").value
+    assert_selector ".plan-indicador-texto[value='Calcula porcentajes']"
+    assert_selector ".plan-indicador-texto[value='Interpreta una tabla']"
   end
 
   # ── Conectar evaluaciones desde el plan (MOR-136, el enganche) ─────────────

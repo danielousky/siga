@@ -76,14 +76,24 @@ class CompetenciesController < ApplicationController
   # editar es la lista completa: si borró una línea, esa línea tiene que
   # desaparecer. Con `indicators_attributes` a secas se agregarían los tres de
   # nuevo y quedarían seis.
+  # ⚠️ Los indicadores se reemplazan SOLO si vienen en la petición.
+  #
+  # El `destroy_all` era incondicional, y desde que la competencia se edita en
+  # su sitio (9 de septiembre) llega una petición con la descripción sola —
+  # que le habría borrado los tres indicadores sin decir nada. El formulario
+  # completo sigue mandándolos todos y ahí sí se reemplazan enteros.
   def update
-    @competency.indicators.destroy_all
+    @competency.indicators.destroy_all if params[:competency].key?(:indicadores)
 
-    if @competency.update(datos_de_la_competencia)
-      redirect_to plan_path, notice: "Competencia actualizada."
-    else
-      render :edit, status: :unprocessable_entity
+    unless @competency.update(datos_de_la_competencia)
+      return en_linea? ? fila_con_el_error : render(:edit, status: :unprocessable_entity)
     end
+
+    return redirect_to(plan_path, notice: "Competencia actualizada.") unless en_linea?
+
+    render turbo_stream: turbo_stream.replace(helpers.dom_id(@competency),
+                                              partial: "competencies/competencia",
+                                              locals: bloque_de_la_competencia(guardada: true))
   end
 
   def destroy
@@ -161,6 +171,33 @@ class CompetenciesController < ApplicationController
   end
 
   private
+
+  # ── La edición en su sitio ────────────────────────────────────────────────
+  #
+  # Misma mecánica que la evaluación: lo dice el formulario con un parámetro y
+  # no se deduce del `Accept`, porque Turbo pide turbo_stream en TODO envío y el
+  # formulario completo entraría por acá.
+  def en_linea? = params[:en_linea].present?
+
+  def bloque_de_la_competencia(guardada: false)
+    { competencia: @competency, contexto: contexto,
+      competencias: competencias_del_lapso, guardada: guardada,
+      error: (@competency.errors.full_messages.to_sentence.presence unless guardada) }
+  end
+
+  # ⚠️ Vuelve el bloque con el valor VIEJO y el motivo. Sin esto el campo se
+  # queda con lo que el profesor escribió y él se va convencido de que quedó
+  # guardado: en la edición en línea no hay botón que se quede apretado para
+  # delatar que algo no pasó.
+  def fila_con_el_error
+    errores = @competency.errors.full_messages.to_sentence
+    @competency.reload
+
+    render turbo_stream: turbo_stream.replace(
+      helpers.dom_id(@competency), partial: "competencies/competencia",
+      locals: bloque_de_la_competencia.merge(error: errores)
+    ), status: :unprocessable_entity
+  end
 
   # ── El alcance: lo que este usuario puede siquiera nombrar ────────────────
 

@@ -181,6 +181,9 @@ class EvaluationActivitiesController < ApplicationController
   def fila_del_plan
     { evaluacion: @evaluation_activity,
       contexto: params.permit(:asignacion, :lapso, :desde).to_h.symbolize_keys,
+      # Bajo qué competencia está dibujada esta fila, para que su chip nombre
+      # LAS OTRAS y no repita la de arriba.
+      competencia: @evaluation_activity.competencies.find { |c| c.id.to_s == params[:bajo].to_s },
       competencias: Competency.del_plan(@evaluation_activity.section_id,
                                         @evaluation_activity.subject_id,
                                         @evaluation_activity.evaluation_moment_id).to_a }

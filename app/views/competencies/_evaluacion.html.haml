@@ -22,6 +22,10 @@
 -# edición en línea no hay botón que se quede apretado ni flash que avise. Un
 -# aviso por campo tocado —tres por evaluación— sería una alarma.
 - guardada = local_assigns[:guardada]
+-# ⚠️ Viaja en la URL de cada formulario: la fila que vuelve por turbo_stream
+-# tiene que saber bajo QUÉ competencia está dibujada, o su chip repite la de
+-# arriba en vez de nombrar la otra.
+- aqui = contexto.merge(en_linea: true, bajo: local_assigns[:competencia]&.id).compact
 %li.plan-evaluacion{ id: dom_id(evaluacion),
                      class: [ ("plan-evaluacion--con-error" if error),
                               ("plan-evaluacion--guardada" if guardada) ].compact }
@@ -33,7 +37,7 @@
     = icono(:siguiente, tamano: 14)
 
   - if profesor?
-    = form_with model: evaluacion, url: evaluation_activity_path(evaluacion, contexto.merge(en_linea: true)),
+    = form_with model: evaluacion, url: evaluation_activity_path(evaluacion, aqui),
                 method: :patch, class: "plan-evaluacion-campo plan-evaluacion-campo--nombre",
                 data: { controller: "edicion-en-linea" } do |f|
       = f.text_field :description, class: "plan-evaluacion-nombre-campo",
@@ -48,7 +52,7 @@
     -# atributos step=1, min=1 y max=100 (o el valor máximo que corresponda)».
     -# El máximo que corresponde lo pone el controlador `reparto` en vivo, porque
     -# depende de lo que valgan las otras evaluaciones en este momento.
-    = form_with model: evaluacion, url: evaluation_activity_path(evaluacion, contexto.merge(en_linea: true)),
+    = form_with model: evaluacion, url: evaluation_activity_path(evaluacion, aqui),
                 method: :patch, class: "plan-evaluacion-campo plan-evaluacion-campo--peso",
                 data: { controller: "edicion-en-linea", turbo_stream: true } do |f|
       = f.number_field :weight_percentage, value: entero_si_lo_es(evaluacion.weight_percentage),

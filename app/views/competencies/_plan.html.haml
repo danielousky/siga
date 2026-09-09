@@ -80,48 +80,8 @@
           = boton "Agregar competencia", new_competency_path(contexto), icono: :agregar, tono: :guardar
   - else
     %ol.plan-competencias
-      - @competencias.each do |c|
-        - suyas = evaluaciones_de(c)
-        %li.plan-competencia{ class: ("plan-competencia--sin-evaluar" if suyas.empty?) }
-          .plan-competencia-cabecera
-            .plan-competencia-texto
-              %p.plan-competencia-descripcion= c.descripcion
-              - if c.indicators.any?
-                %ul.plan-indicadores
-                  - c.indicators.en_orden.each do |i|
-                    %li= i.descripcion
-            - if profesor?
-              .columna-acciones
-                = link_to edit_competency_path(c, contexto),
-                          class: "btn btn-secondary btn-sm btn-solo-icono",
-                          data: { tooltip: "Editar la competencia" }, "aria-label": "Editar la competencia" do
-                  = icono(:editar, tamano: 15)
-                = button_to competency_path(c, contexto),
-                            method: :delete, class: "btn btn-danger btn-sm btn-solo-icono",
-                            form: { data: { turbo_confirm: "¿Borrar «#{c.descripcion.truncate(50)}» del plan?" } },
-                            data: { tooltip: "Borrar" }, "aria-label": "Borrar" do
-                  = icono(:borrar, tamano: 15)
-          - if suyas.any?
-            %ul.plan-evaluaciones
-              = render partial: "competencies/evaluacion", collection: suyas, as: :evaluacion,
-                       locals: { contexto: contexto, competencia: c,
-                                 competencias: competencias_del_lapso }
-          - else
-            -# ⚠️ Es un AVISO, no un error: el plan se guarda igual. Pero dice la
-            -# consecuencia y no el síntoma — «sin evaluaciones» no significa
-            -# nada, «no tendrá nivel en la boleta» sí (`MOR-229`).
-            %p.plan-sin-evaluar
-              = icono(:alerta, tamano: 15)
-              %span Sin evaluaciones — esta competencia saldrá sin nivel en la boleta.
-          - if profesor?
-            -# ⚠️ Sin «Cambiar cuáles la miden»: el enganche vive AHORA en la
-            -# fila de cada evaluación, con sus chips. Preguntaba al revés —de
-            -# la competencia hacia las evaluaciones— cuando lo que uno mira es
-            -# la evaluación.
-            .plan-competencia-acciones
-              = boton "Agregar evaluación",
-                      new_evaluation_activity_path(contexto.merge(competencia: c.id)),
-                      icono: :agregar, tono: :guardar, sm: true
+      = render partial: "competencies/competencia", collection: @competencias, as: :competencia,
+               locals: { contexto: contexto, competencias: competencias_del_lapso }
     - if evaluaciones_sueltas.any?
       -# ⚠️ Las que no miden ninguna competencia. Cuentan para el promedio igual
       -# —el peso es el peso— pero no describen nada, así que la boleta las suma
@@ -132,7 +92,7 @@
           %span= "#{contar(evaluaciones_sueltas.size, 'evaluación', 'evaluaciones')} sin competencia"
         %p.nota-ayuda
           Cuentan para el promedio, pero no miden ninguna competencia del plan.
-          Engánchalas desde el botón de cada competencia, o edítalas.
+          Engánchalas con el ⟨+⟩ de su fila.
         %ul.plan-evaluaciones
           = render partial: "competencies/evaluacion", collection: evaluaciones_sueltas, as: :evaluacion,
                      locals: { contexto: contexto, competencias: competencias_del_lapso }

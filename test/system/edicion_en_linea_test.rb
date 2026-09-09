@@ -157,4 +157,44 @@ class EdicionEnLineaSystemTest < ApplicationSystemTestCase
     assert_selector ".plan-evaluacion--guardada", wait: 5
     assert_equal Date.current, recargado.date_scheduled
   end
+
+  # ── Lo que se vio en pantalla el 9 de septiembre ──────────────────────────
+  #
+  # ⚠️ Sin `flex-wrap`, los chips de «qué mide» piden `flex: 1 0 100%`, ese
+  # 100 % no puede bajar de renglón, se queda en la misma línea y COMPRIME al
+  # nombre —que lleva `min-width: 0`— hasta dejarlo en diez píxeles. El campo no
+  # se veía vacío: se veía roto.
+  test "el nombre conserva un ancho legible al lado de sus chips" do
+    otra = con_el_colegio(@a.colegio) { competencia_con(1, "Interpreta gráficos", lapso: @lapso) }
+    con_el_colegio(@a.colegio) { @taller.competencies = [ otra ] }
+    visit planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
+
+    assert_operator nombre.evaluate_script("this.offsetWidth"), :>, 120,
+                    "el campo del nombre quedó aplastado por los chips"
+  end
+
+  # ⚠️ La fila que vuelve por turbo_stream tiene que saber bajo QUÉ competencia
+  # está dibujada. Sin eso su chip repite la de arriba —«mide ⟨esta⟩ ⟨la otra⟩»
+  # en vez de «también mide ⟨la otra⟩»— y una fila recién guardada dice distinto
+  # que sus vecinas.
+  test "al guardar, el chip sigue nombrando la OTRA competencia" do
+    otra = con_el_colegio(@a.colegio) { competencia_con(1, "Interpreta gráficos", lapso: @lapso) }
+    propia = con_el_colegio(@a.colegio) { competencia_con(1, "Resuelve problemas", lapso: @lapso) }
+    con_el_colegio(@a.colegio) { @taller.competencies = [ propia, otra ] }
+    visit planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
+
+    # ⚠️ Por el TÍTULO de la competencia, no por el texto de la tarjeta: el chip
+    # de la otra también nombra «Resuelve problemas», así que buscar por texto
+    # encuentra las dos.
+    def bloque_de(titulo)
+      all(".plan-competencia").find { |c| c.find(".plan-competencia-descripcion-campo").value == titulo }
+    end
+
+    bloque_de("Resuelve problemas").find(".plan-evaluacion-nombre-campo").set("Taller corregido")
+    find(".plan-ponderacion-titulo").click
+
+    assert_selector ".plan-evaluacion--guardada", wait: 5
+    assert_equal "también mide",
+                 bloque_de("Resuelve problemas").find(".plan-evaluacion-chips-etiqueta").text
+  end
 end

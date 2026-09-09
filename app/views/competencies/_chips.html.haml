@@ -27,7 +27,7 @@
     - otras.each do |competencia|
       -# Un chip es un botón que QUITA ese enganche: se ve lo que hay y se
       -# deshace donde se ve, sin abrir nada.
-      = form_with url: evaluation_activity_path(evaluacion, contexto.merge(en_linea: true)),
+      = form_with url: evaluation_activity_path(evaluacion, contexto.merge(en_linea: true, bajo: actual&.id).compact),
                   method: :patch, class: "plan-evaluacion-chip-form" do
         = hidden_field_tag "evaluation_activity[competency_ids][]", ""
         - (evaluacion.competencies - [ competencia ]).each do |queda|
@@ -49,7 +49,7 @@
         = icono(:agregar, tamano: 12)
       .plan-evaluacion-mas-panel
         - libres.each do |competencia|
-          = form_with url: evaluation_activity_path(evaluacion, contexto.merge(en_linea: true)),
+          = form_with url: evaluation_activity_path(evaluacion, contexto.merge(en_linea: true, bajo: actual&.id).compact),
                       method: :patch do
             = hidden_field_tag "evaluation_activity[competency_ids][]", ""
             - (evaluacion.competencies + [ competencia ]).each do |queda|

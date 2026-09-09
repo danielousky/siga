@@ -45,28 +45,9 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     click_on "Crear"
 
     assert_text "Resuelve problemas de proporcionalidad"
-    assert_text "Calcula porcentajes"
-    assert_no_selector "textarea[name='competency[descripcion]']"
+    assert_selector ".plan-indicador-texto[value='Calcula porcentajes']"
+    assert_no_selector ".form-actions"
     assert_current_path(/planificar/)
-  end
-
-  test "editar también se levanta ahí mismo" do
-    competencia = con_el_colegio(@a.colegio) do
-      Competency.create!(section: @a.seccion, subject: @area, evaluation_moment: @lapso,
-                         descripcion: "Reconoce figuras geométricas")
-    end
-    visit planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
-
-    find("a[href*='/competencias/#{competencia.id}/edit']").click
-
-    assert_current_path planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
-    assert_selector "textarea[name='competency[descripcion]']"
-
-    fill_in "competency[descripcion]", with: "Reconoce y compara figuras"
-    click_on "Guardar cambios"
-
-    assert_text "Reconoce y compara figuras"
-    assert_no_selector "textarea[name='competency[descripcion]']"
   end
 
   # ⚠️ Cancelar devuelve la lista, no navega a `/competencias`. Es el mismo
@@ -76,7 +57,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     click_on "Cancelar"
 
     assert_current_path planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
-    assert_no_selector "textarea[name='competency[descripcion]']"
+    assert_no_selector ".form-actions"
   end
 
   # ── Y lo mismo con las EVALUACIONES, desde la libreta ─────────────────────

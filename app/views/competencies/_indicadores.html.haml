@@ -1,0 +1,41 @@
+-# Los indicadores de una competencia, uno por uno (QA del 9 de septiembre).
+-#
+-# Describen qué significa la competencia. Se imprimen en la boleta para que el
+-# representante entienda, pero NO se califican aparte: la nota es de la
+-# competencia.
+-#
+-# ⚠️ El último campo va VACÍO, y escribir en él crea el siguiente. Es cómo se
+-# escribe una lista en cualquier sitio donde uno escriba listas, y ahorra el
+-# botón «agregar indicador» que habría que buscar cada vez.
+%ul.plan-indicadores
+  - competencia.indicators.en_orden.each do |indicador|
+    %li.plan-indicador
+      - if profesor?
+        = form_with model: indicador,
+                    url: competency_indicator_path(competencia, indicador, contexto),
+                    method: :patch, class: "plan-indicador-campo",
+                    data: { controller: "edicion-en-linea" } do |f|
+          = f.text_field :descripcion, class: "plan-indicador-texto",
+                         "aria-label": "Indicador",
+                         data: { edicion_en_linea_target: "campo",
+                                 action: "keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }
+        = button_to competency_indicator_path(competencia, indicador, contexto),
+                    method: :delete, class: "plan-indicador-quitar",
+                    data: { tooltip: "Quitar este indicador" }, "aria-label": "Quitar este indicador" do
+          ×
+      - else
+        %span= indicador.descripcion
+
+  - if profesor?
+    %li.plan-indicador.plan-indicador--nuevo
+      -# ⚠️ Nace vacío en CADA render, no con lo que se acaba de escribir: la
+      -# respuesta trae el indicador ya creado arriba, y si el campo conservara
+      -# el texto habría dos.
+      = form_with url: competency_indicators_path(competencia, contexto),
+                  method: :post, class: "plan-indicador-campo",
+                  data: { controller: "edicion-en-linea" } do
+        = text_field_tag "indicator[descripcion]", nil, class: "plan-indicador-texto",
+                         placeholder: "escribe un indicador…",
+                         "aria-label": "Agregar un indicador",
+                         data: { edicion_en_linea_target: "campo",
+                                 action: "keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }

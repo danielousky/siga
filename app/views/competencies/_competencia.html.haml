@@ -1,0 +1,75 @@
+-# UNA competencia del plan, editable EN SU SITIO (QA del 9 de septiembre).
+-#
+-# Daniel: *«elevar el modelo que aplicamos a evaluaciones a competencias e
+-# indicadores»*. Misma regla que la fila de la evaluación: el input está
+-# siempre en el DOM sin aspecto de caja, Enter guarda, Escape descarta, salir
+-# guarda — y solo si cambió.
+-#
+-#     1. │Resuelve problemas de adición y sustracción▌│              🗑
+-#          ∘ │Suma con reagrupación▌│                            ×
+-#          ∘ │Resuelve problemas de dos pasos▌│                   ×
+-#          ∘ │escribe un indicador…▌│      ← escribir crea el siguiente
+-#
+-# ⚠️ Los indicadores van UNO POR UNO y no en un textarea con saltos de línea.
+-# El formulario completo los sigue recibiendo juntos —para escribir el plan de
+-# cero o pegar los que uno ya tiene— pero eso REEMPLAZA los tres: corregir una
+-# tilde en el tercero volvía a escribir los otros dos.
+- suyas    = evaluaciones_de(competencia)
+- error    = local_assigns[:error]
+- guardada = local_assigns[:guardada]
+%li.plan-competencia{ id: dom_id(competencia),
+                      class: [ ("plan-competencia--sin-evaluar" if suyas.empty?),
+                               ("plan-competencia--con-error" if error),
+                               ("plan-competencia--guardada" if guardada) ].compact }
+  .plan-competencia-cabecera
+    .plan-competencia-texto
+      - if profesor?
+        = form_with model: competencia, url: competency_path(competencia, contexto.merge(en_linea: true)),
+                    method: :patch, class: "plan-competencia-campo",
+                    data: { controller: "edicion-en-linea" } do |f|
+          -# ⚠️ `text_area` y no `text_field`: una competencia son dos renglones
+          -# largos —«Resuelve problemas de proporcionalidad directa en
+          -# contextos de la vida cotidiana»— y en una línea sola se lee por una
+          -# ventanita. Crece con lo que se escribe.
+          = f.text_area :descripcion, rows: 1, class: "plan-competencia-descripcion-campo",
+                        "aria-label": "Descripción de la competencia",
+                        data: { edicion_en_linea_target: "campo",
+                                controller: "campo-que-crece",
+                                action: "input->campo-que-crece#crecer keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }
+      - else
+        %p.plan-competencia-descripcion= competencia.descripcion
+
+      = render "competencies/indicadores", competencia: competencia, contexto: contexto
+
+    - if profesor?
+      .columna-acciones
+        -# ⚠️ Sin lápiz: los dos campos se editan arriba. Queda borrar, que es
+        -# lo único que no se puede hacer escribiendo encima.
+        = button_to competency_path(competencia, contexto),
+                    method: :delete, class: "btn btn-danger btn-sm btn-solo-icono",
+                    form: { data: { turbo_confirm: "¿Borrar «#{competencia.descripcion.truncate(50)}» del plan?" } },
+                    data: { tooltip: "Borrar la competencia" }, "aria-label": "Borrar la competencia" do
+          = icono(:borrar, tamano: 15)
+
+  - if error
+    %p.plan-competencia-error
+      = icono(:alerta, tamano: 13)
+      %span= error
+
+  - if suyas.any?
+    %ul.plan-evaluaciones
+      = render partial: "competencies/evaluacion", collection: suyas, as: :evaluacion,
+               locals: { contexto: contexto, competencia: competencia, competencias: competencias }
+  - else
+    -# ⚠️ Es un AVISO, no un error: el plan se guarda igual. Pero dice la
+    -# consecuencia y no el síntoma — «sin evaluaciones» no significa nada,
+    -# «no tendrá nivel en la boleta» sí (`MOR-229`).
+    %p.plan-sin-evaluar
+      = icono(:alerta, tamano: 15)
+      %span Sin evaluaciones — esta competencia saldrá sin nivel en la boleta.
+
+  - if profesor?
+    .plan-competencia-acciones
+      = boton "Agregar evaluación",
+              new_evaluation_activity_path(contexto.merge(competencia: competencia.id)),
+              icono: :agregar, tono: :guardar, sm: true

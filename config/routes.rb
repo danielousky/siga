@@ -226,6 +226,14 @@ Rails.application.routes.draw do
       post "copiar",   to: "competencies#copiar",   as: :copiar_a
     end
 
+    # ⚠️ Los indicadores se editan UNO POR UNO, en su sitio (9 de septiembre).
+    #
+    # El formulario completo los sigue recibiendo todos juntos —separados por
+    # líneas, para escribir el plan de cero o pegar los que uno ya tiene— y los
+    # reemplaza enteros. Esto es la otra mitad: corregir una palabra en el
+    # tercero sin volver a escribir los otros dos.
+    resources :indicators, path: "indicadores", only: [ :create, :update, :destroy ]
+
     # ⚠️ El enganche se retiró de acá y vive en la EVALUACIÓN (9 de septiembre).
     #
     # Preguntaba al revés —de la competencia hacia las evaluaciones— cuando lo
