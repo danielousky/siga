@@ -29,14 +29,14 @@ class IndicatorsController < ApplicationController
   # El campo vacío del final: escribir en él crea uno nuevo, como en una lista
   # de tareas. No hay botón «agregar» porque no hace falta uno.
   def create
-    @competency.indicators.create(descripcion: params.dig(:indicator, :descripcion),
-                                  orden: siguiente_orden)
-    devolver_la_competencia
+    nuevo = @competency.indicators.create(descripcion: params.dig(:indicator, :descripcion),
+                                          orden: siguiente_orden)
+    devolver_la_competencia(nuevo)
   end
 
   def update
     @indicator.update(descripcion: params.dig(:indicator, :descripcion))
-    devolver_la_competencia
+    devolver_la_competencia(@indicator)
   end
 
   def destroy
@@ -51,12 +51,21 @@ class IndicatorsController < ApplicationController
   # Agregar uno cambia la lista, borrarlo también, y hasta corregir el texto
   # puede cambiar el alto del bloque. Devolver solo el indicador obligaría a
   # tres respuestas distintas para lo mismo; el bloque es una sola.
-  def devolver_la_competencia
+  # ⚠️ Y con el motivo si algo no se guardó.
+  #
+  # `create`/`update` sin `!` devuelven false en silencio, así que un indicador
+  # repetido desaparecía sin dejar rastro —o reventaba con la excepción de
+  # PostgreSQL, según lo que fallara primero—. El bloque vuelve con el error
+  # escrito, que es la única señal que hay en la edición en línea.
+  def devolver_la_competencia(registro = nil)
+    error = registro&.errors&.full_messages&.to_sentence.presence
+
     render turbo_stream: turbo_stream.replace(
       helpers.dom_id(@competency), partial: "competencies/competencia",
       locals: { competencia: @competency.reload, contexto: contexto,
-                competencias: competencias_del_lapso, guardada: true }
-    )
+                competencias: competencias_del_lapso,
+                guardada: error.nil?, error: error }
+    ), status: (error ? :unprocessable_entity : :ok)
   end
 
   # ⚠️ El alcance es `del_plan`, que ya filtra por sección, área y lapso de ESTE

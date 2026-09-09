@@ -31,10 +31,17 @@
       -# ⚠️ El ancho va inline y con interpolación: es un DATO —el peso de esta
       -# evaluación— y no una decisión de estilo. Lo admite el test del sistema
       -# de diseño justamente por eso.
+      -# ⚠️ El tramo NO lleva tooltip. Mide hasta 400 px, y el globo sale
+      -# centrado bajo él: aparecía a doscientos píxeles del cursor, en medio de
+      -# la pantalla y sin relación visible con nada. Daniel: *«parece que fueran
+      -# sitios distintos»*.
+      -#
+      -# No se pierde nada: el nombre y el peso de cada evaluación están en la
+      -# lista de abajo, enteros y sin tener que apuntar.
       %span.plan-ponderacion-tramo{ class: "plan-ponderacion-tramo--#{i % 5}",
                                     style: "width: #{[ evaluacion.weight_percentage.to_f, 100 ].min}%",
-                                    data: { reparto_target: "tramo", id: evaluacion.id,
-                                            tooltip: "#{evaluacion.description} · #{porcentaje(evaluacion.weight_percentage)}" } }
+                                    "aria-hidden": true,
+                                    data: { reparto_target: "tramo", id: evaluacion.id } }
     %span.plan-ponderacion-hueco{ data: { reparto_target: "hueco" },
                                   style: "width: #{[ 100 - usado, 0 ].max}%" }
 

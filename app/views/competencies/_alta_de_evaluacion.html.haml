@@ -1,0 +1,51 @@
+-# El alta de una evaluación, SIN salir del plan (QA del 9 de septiembre).
+-#
+-# Daniel: *«el "+ agregar evaluación" no debe ir a otra vista, puede agregarse
+-# ahí mismo desplazando hacia abajo un panel con los campos faltantes: título,
+-# % y fecha. No hace falta perderse a otra vista totalmente independiente»*.
+-#
+-# ## ⚠️ Los campos FALTANTES, y solo esos
+-#
+-# La sección, el área y el lapso ya están elegidos —es la pestaña donde uno
+-# está— y la competencia también, porque el botón cuelga de ella. Volver a
+-# preguntarlos sería «no preguntemos lo deducible» al revés, y de paso daría la
+-# oportunidad de crear la evaluación en otra sección sin darse cuenta.
+-#
+-# El formulario completo sigue existiendo para quien llega desde `/evaluaciones`
+-# sin contexto ninguno: ahí sí hay que preguntar las tres cosas.
+-# ⚠️ El ENVÍO va al frame «plan», no al del alta.
+-#
+-# El formulario vive en su propio frame —desplegado bajo el botón— pero al
+-# guardar hay que refrescar el PLAN entero: la fila nueva aparece en la lista y
+-# la barra de ponderación cambia. Sin esto, el `redirect_to plan_path` caería
+-# en el frame del alta, que no contiene el plan, y Turbo escribiría «Content
+-# missing» — el mismo patrón que ya mordió cuatro veces.
+= form_with model: @evaluation_activity, url: evaluation_activities_path(contexto),
+             class: "alta-en-linea", data: { controller: "reparto", turbo_frame: "plan" } do |f|
+  = render "shared/errors", object: @evaluation_activity
+  = f.hidden_field :asignacion, value: "#{@evaluation_activity.section_id}:#{@evaluation_activity.subject_id}"
+  = f.hidden_field :evaluation_moment_id
+  - Array(competencias_marcadas).each do |id|
+    = hidden_field_tag "evaluation_activity[competency_ids][]", id
+
+  .alta-en-linea-campos
+    .alta-en-linea-campo.alta-en-linea-campo--titulo
+      = f.label :description, "Qué se evalúa", class: "form-label"
+      = f.text_field :description, class: "form-control", autofocus: true,
+                     placeholder: "Examen del primer lapso"
+    .alta-en-linea-campo
+      = f.label :weight_percentage, "Peso (%)", class: "form-label"
+      -# ⚠️ Nace con lo que FALTA para cerrar el lapso, y el tope es ese mismo
+      -# número: el profesor casi siempre reparte lo que queda, y pedirle una
+      -# resta que el sistema ya tiene hecha es hacerle la cuenta a mano.
+      = f.number_field :weight_percentage, value: entero_si_lo_es(peso_libre),
+                       step: 1, min: 1, max: entero_si_lo_es(peso_libre),
+                       class: "form-control"
+    .alta-en-linea-campo
+      = f.label :date_scheduled, "Fecha", class: "form-label"
+      = f.date_field :date_scheduled, class: "form-control",
+                     min: periodo_del_plan.start_date, max: periodo_del_plan.end_date
+
+  .alta-en-linea-acciones
+    = f.submit "Agregar", class: "btn btn-guardar btn-sm"
+    = link_to "Cancelar", plan_path, class: "btn btn-secondary btn-sm"

@@ -46,13 +46,35 @@ module VuelveALaSeccion
   # atributo sin mirarlo.
   FRAMES = %w[plan libreta].freeze
 
-  def frame_que_pregunta(por_defecto)
-    pedido = request.headers["Turbo-Frame"]
+  # ⚠️ Y los frames del ALTA EN LÍNEA, que son uno por competencia.
+  #
+  # Daniel: *«el "+ agregar evaluación" no debe ir a otra vista, puede agregarse
+  # ahí mismo desplegando hacia abajo un panel»*. Cada botón carga su formulario
+  # en un frame propio, debajo de él, así que el id lleva el número de la
+  # competencia — o `nueva` para el del final, que no cuelga de ninguna.
+  #
+  # Se admite por PATRÓN y no por lista: los ids dependen de los datos. El
+  # patrón es cerrado, que es lo que importa — un id llegado del cliente no se
+  # copia a un atributo sin mirarlo.
+  ALTA = /\Aalta_(evaluacion|competencia)_(\d+|nueva)\z/
 
-    FRAMES.include?(pedido) ? pedido : por_defecto
+  def frame_que_pregunta(por_defecto)
+    pedido = request.headers["Turbo-Frame"].to_s
+
+    FRAMES.include?(pedido) || pedido.match?(ALTA) ? pedido : por_defecto
   end
 
-  def vengo_del_plan? = frame_que_pregunta(nil) == "plan"
+  # ⚠️ Los frames del ALTA cuentan como «vengo del plan»: viven dentro de él.
+  #
+  # Turbo manda en `Turbo-Frame` el frame CONTENEDOR del formulario, no el de
+  # destino que dice `data-turbo-frame`. Así que un alta desplegada bajo una
+  # competencia manda `alta_evaluacion_11`, y comparando con `"plan"` a secas
+  # la vuelta se iba a la LIBRETA — con el plan entero en «Content missing».
+  def vengo_del_plan?
+    pedido = frame_que_pregunta(nil).to_s
+
+    pedido == "plan" || pedido.match?(ALTA)
+  end
 
   # A dónde vuelve una evaluación: a la pestaña de donde salió.
   #

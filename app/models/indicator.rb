@@ -22,6 +22,23 @@ class Indicator < ApplicationRecord
   derives_school_from :competency
 
   validates :descripcion, presence: true
+
+  # ⚠️ La unicidad se valida ADEMÁS del índice único de la base.
+  #
+  # El índice estaba y la validación no, así que repetir un indicador reventaba
+  # con `ActiveRecord::RecordNotUnique` —una pantalla roja de Rails— en vez de
+  # decirlo. Daniel: *«está bien, pero no debería explotar sino decirme que está
+  # duplicado»*.
+  #
+  # El índice se queda: es lo que lo hace imposible de verdad, también para lo
+  # que entre por otra puerta. La validación es para poder CONTARLO.
+  #
+  # Va sobre la canónica y no sobre el texto: «Suma con reagrupación» y «suma
+  # con reagrupacion» son el mismo indicador escrito dos veces, y el índice de
+  # la base también los cuenta como uno.
+  validates :descripcion_canonica, uniqueness: {
+    scope: :competency_id, message: "ya está en esta competencia"
+  }
   before_validation :calcular_la_canonica
 
   scope :en_orden, -> { order(:orden, :id) }

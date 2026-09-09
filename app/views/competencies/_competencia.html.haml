@@ -88,7 +88,15 @@
         %span Sin evaluaciones — esta competencia saldrá sin nivel en la boleta.
 
     - if profesor?
+      -# ⚠️ El formulario se despliega EN SU SITIO, en un frame propio debajo del
+      -# botón. Daniel: *«no hace falta perderse a otra vista totalmente
+      -# independiente»*. El frame lleva el número de la competencia porque hay
+      -# uno por cada una — con un frame compartido, pulsar el botón de la
+      -# segunda abriría el formulario debajo de la primera.
+      - marco = "alta_evaluacion_#{competencia.id}"
       .plan-competencia-acciones
         = boton "Agregar evaluación",
                 new_evaluation_activity_path(contexto.merge(competencia: competencia.id)),
-                icono: :agregar, tono: :guardar, sm: true
+                icono: :agregar, tono: :guardar, sm: true,
+                data: { turbo_frame: marco }
+      = turbo_frame_tag marco

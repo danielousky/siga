@@ -35,20 +35,11 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     assert_selector ".pestana.activa", text: "Planificar"
   end
 
-  # ⚠️ Al guardar, el frame se reemplaza por la LISTA con la nueva adentro —en
-  # una sola respuesta— y el formulario desaparece. Es lo que se gana con
-  # envolver el plan entero y no solo el hueco del form.
-  test "al guardar, la competencia aparece en la lista y el formulario se va" do
-    click_on "Agregar competencia"
-    fill_in "competency[descripcion]", with: "Resuelve problemas de proporcionalidad"
-    fill_in "competency[indicadores]", with: "Calcula porcentajes\nInterpreta una tabla"
-    click_on "Crear"
-
-    assert_text "Resuelve problemas de proporcionalidad"
-    assert_includes all(".plan-indicador-texto").map(&:value), "Calcula porcentajes"
-    assert_no_selector ".form-actions"
-    assert_current_path(/planificar/)
-  end
+  # ⚠️ El alta desde el plan ya no es esta pantalla: desde el 9 de septiembre se
+  # despliega un panel debajo del botón y pide solo la descripción —los
+  # indicadores se escriben después, uno por uno—. Lo cubre entero
+  # `alta_en_linea_test`; acá quedaría probando un formulario que ese camino no
+  # muestra.
 
   # ⚠️ Cancelar devuelve la lista, no navega a `/competencias`. Es el mismo
   # frame: se pide el plan y reemplaza al formulario.

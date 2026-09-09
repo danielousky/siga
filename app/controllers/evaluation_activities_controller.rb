@@ -60,7 +60,7 @@ class EvaluationActivitiesController < ApplicationController
   # volver a preguntárselas no es prudencia, es hacerle repetir. Y peor: puede
   # elegir mal y crear la evaluación en otra sección.
   def new
-    @evaluation_activity = EvaluationActivity.new(date_scheduled: Date.current,
+    @evaluation_activity = EvaluationActivity.new(date_scheduled: fecha_propuesta,
                                                   **atributos_del_enlace)
   end
 
@@ -129,6 +129,23 @@ class EvaluationActivitiesController < ApplicationController
   end
 
   private
+
+  # ⚠️ La fecha nace DENTRO del año escolar, no en «hoy».
+  #
+  # Nacía en `Date.current`, y en septiembre de 2026 eso cae FUERA del año
+  # 2025-2026 —que terminó el 31 de julio—: el campo la rechazaba con «el valor
+  # debe ser igual o anterior a 31/07/2026» y el alta no se podía guardar sin
+  # tocar la fecha primero. Se ve entrando a un año escolar ya cerrado, que es
+  # exactamente lo que hace un profesor al revisar lo del año pasado.
+  #
+  # Hoy si cabe, y si no el primer día del año: es la misma regla con la que el
+  # calendario del plan elige por dónde abrirse.
+  def fecha_propuesta
+    periodo = asignacion_del_enlace&.section&.academic_period
+    return Date.current if periodo.nil?
+
+    Date.current.clamp(periodo.start_date, periodo.end_date)
+  end
 
   # ── Contestar a quien preguntó ────────────────────────────────────────────
   #

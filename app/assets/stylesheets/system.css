@@ -7017,6 +7017,13 @@ a.subject-avance:hover { filter: brightness(0.9); }
 }
 
 .plan-evaluacion-mas-abrir::-webkit-details-marker { display: none; }
+
+/* ⚠️ Con el menú ABIERTO, su tooltip sobra y estorba: sale hacia abajo, justo
+   encima de la primera opción, y hay que apartar el ratón para poder elegir.
+   Daniel: «el tooltip tapa la opción a seleccionar». Abierto, el panel ya dice
+   lo que el tooltip explicaba. */
+.plan-evaluacion-mas[open] > .plan-evaluacion-mas-abrir::after,
+.plan-evaluacion-mas[open] > .plan-evaluacion-mas-abrir::before { display: none; }
 .plan-evaluacion-mas-abrir:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
 
 .plan-evaluacion-mas-panel {
@@ -10341,6 +10348,37 @@ a.subject-avance:hover { filter: brightness(0.9); }
   margin: 0;
   text-wrap: pretty;
   max-width: 80ch;
+}
+
+/* ── El alta desplegada en su sitio ──────────────────────────────────────── */
+/* Daniel: «no hace falta perderse a otra vista totalmente independiente». El
+   formulario cae debajo del botón que lo pidió, con los campos que faltan y
+   nada más: la sección, el área, el lapso y la competencia ya están elegidos. */
+.alta-en-linea {
+  margin-top: var(--space-sm);
+  padding: var(--space-md);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+}
+
+/* El título manda y los otros dos son cortos: una fila que envuelve sola en el
+   teléfono, sin un `@media` que mantener. */
+.alta-en-linea-campos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.alta-en-linea-campo { flex: 0 0 auto; }
+.alta-en-linea-campo--titulo { flex: 1 1 16rem; }
+.alta-en-linea-campo .form-label { display: block; margin-bottom: 2px; }
+.alta-en-linea-campo .form-control { width: 100%; }
+
+.alta-en-linea-acciones {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
 }
 
 /* ── Los rótulos: qué es cada cosa ───────────────────────────────────────── */

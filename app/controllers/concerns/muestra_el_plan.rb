@@ -29,7 +29,8 @@ module MuestraElPlan
     helper_method :lapsos, :lapso, :otras_secciones, :contexto,
                   :hermanas_con_plan, :hermanas_sin_plan, :evaluaciones_del_lapso,
                   :evaluaciones_de, :evaluaciones_sueltas, :peso_del_lapso,
-                  :competencias_del_lapso
+                  :competencias_del_lapso,
+                  :peso_libre, :periodo_del_plan
   end
 
   private
@@ -177,6 +178,15 @@ module MuestraElPlan
 
     @competencias_del_lapso ||= Competency.del_plan(seccion_del_plan.id, area_del_plan.id, lapso.id).to_a
   end
+
+  # Lo que falta para cerrar el lapso: es lo que el alta propone, porque el
+  # profesor casi siempre reparte lo que queda. Pedirle una resta que el sistema
+  # ya tiene hecha es hacerle la cuenta a mano.
+  def peso_libre = [ 100 - peso_del_lapso.to_f, 1 ].max
+
+  # El año escolar de la sección: acota el calendario del alta a sus meses, como
+  # ya hace la fecha de una evaluación existente.
+  def periodo_del_plan = seccion_del_plan&.academic_period
 
   def por_competencia
     @por_competencia ||= evaluaciones_del_lapso.each_with_object(Hash.new { |h, k| h[k] = [] }) do |e, mapa|

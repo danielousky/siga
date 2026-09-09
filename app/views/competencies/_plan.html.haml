@@ -77,7 +77,9 @@
         no se califican aparte— y las evaluaciones que la miden.
       - if profesor?
         .empty-state-acciones
-          = boton "Agregar competencia", new_competency_path(contexto), icono: :agregar, tono: :guardar
+          = boton "Agregar competencia", new_competency_path(contexto), icono: :agregar,
+                  tono: :guardar, data: { turbo_frame: "alta_competencia_nueva" }
+        = turbo_frame_tag "alta_competencia_nueva"
   - else
     -# ⚠️ Los tres rótulos son del MISMO nivel visual —competencias, indicadores
     -# y evaluaciones— aunque uno esté dentro de otro. No son una jerarquía de
@@ -106,9 +108,14 @@
       -# una y copiar treinta— y mezclarlas rompió un test que usaba
       -# `.plan-acciones` para preguntar «¿hay algo que copiar?».
       .plan-altas
-        = boton "Agregar competencia", new_competency_path(contexto), icono: :agregar, tono: :guardar
+        = boton "Agregar competencia", new_competency_path(contexto), icono: :agregar,
+                tono: :guardar, data: { turbo_frame: "alta_competencia_nueva" }
         = boton "Agregar evaluación", new_evaluation_activity_path(contexto),
-                icono: :agregar, tono: :accion
+                icono: :agregar, tono: :accion, data: { turbo_frame: "alta_evaluacion_nueva" }
+      -# Los dos frames del final: no cuelgan de ninguna competencia, por eso
+      -# `nueva` en vez de un número.
+      = turbo_frame_tag "alta_competencia_nueva"
+      = turbo_frame_tag "alta_evaluacion_nueva"
     - if profesor? && otras_secciones.any?
       -# ⚠️ Copiar es un ATAJO, no un vínculo: después de copiar, cada sección
       -# es independiente y admite sus propias modificaciones.

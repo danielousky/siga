@@ -44,7 +44,7 @@
       %span no mide ninguna competencia
 
   - if libres.any?
-    %details.plan-evaluacion-mas
+    %details.plan-evaluacion-mas{ data: { controller: "menu-flotante" } }
       %summary.plan-evaluacion-mas-abrir{ data: { tooltip: "Agregar una competencia que esta evaluación mide" } }
         = icono(:agregar, tamano: 12)
       .plan-evaluacion-mas-panel
