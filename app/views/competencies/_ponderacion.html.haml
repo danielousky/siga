@@ -24,10 +24,7 @@
     %span.plan-ponderacion-titulo
       Ponderación
       %span.dato-secundario= "· #{lapso&.name}"
-    %span.plan-ponderacion-cuenta{ data: { reparto_target: "cuenta" } }
-      = porcentaje(usado)
-      - if usado < 100
-        %span.plan-ponderacion-resto= "· #{porcentaje(100 - usado)} sin repartir"
+    = render "competencies/cuenta", usado: usado
 
   .plan-ponderacion-barra{ data: { reparto_target: "barra" } }
     - evaluaciones_del_lapso.each_with_index do |evaluacion, i|
@@ -41,14 +38,9 @@
     %span.plan-ponderacion-hueco{ data: { reparto_target: "hueco" },
                                   style: "width: #{[ 100 - usado, 0 ].max}%" }
 
-  - if profesor? && evaluaciones_del_lapso.any?
-    = form_with url: reparto_evaluation_activities_path(contexto), method: :patch,
-                id: "reparto-del-lapso", class: "plan-ponderacion-guardar",
-                data: { reparto_target: "formulario" } do
-      -# Aparece solo cuando algo cambió: un botón que no tiene nada que guardar
-      -# invita a apretarlo para averiguar qué hace.
-      %button.btn.btn-guardar.btn-sm{ type: "submit", hidden: true,
-                                      data: { reparto_target: "boton" } }
-        = icono(:guardar, tamano: 14)
-        %span Guardar el reparto
-      %span.plan-ponderacion-exceso{ hidden: true, data: { reparto_target: "exceso" } }
+  -# ⚠️ Ya no hay botón «Guardar el reparto»: desde el 9 de septiembre cada peso
+  -# se guarda al salir de su campo, en la fila. Daniel eligió esa forma sabiendo
+  -# el costo: intercambiar 40/60 por 60/40 obliga a bajar uno primero.
+  -#
+  -# Lo que hace que ese costo no duela es el `max` dinámico del campo, que no
+  -# deja escribir de más — el error no se rechaza, se vuelve imposible.

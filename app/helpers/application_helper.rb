@@ -329,4 +329,18 @@ module ApplicationHelper
 
     "#{number_with_precision(numero, precision: numero.frac.zero? ? 0 : 2)} %"
   end
+
+  # El número de un peso, para meterlo en un `value` de formulario.
+  #
+  # ⚠️ `25.0` en un campo es lo que hizo dudar a Daniel de que fuera editable:
+  # un decimal donde nadie escribió un decimal se lee como un dato del sistema,
+  # no como algo que uno pueda tocar. Se ve «25», y «33.33» solo si de verdad
+  # lo es.
+  #
+  # Es hermano de `porcentaje`, sin el signo: uno pinta, el otro rellena.
+  def entero_si_lo_es(valor)
+    numero = valor.to_d
+
+    numero.frac.zero? ? numero.to_i : numero
+  end
 end

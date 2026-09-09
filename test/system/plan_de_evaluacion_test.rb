@@ -61,7 +61,10 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
     fill_in "competency[indicadores]", with: "Calcula porcentajes\nInterpreta una tabla"
     click_on "Crear"
 
-    assert_text "Resuelve problemas de proporcionalidad directa"
+    # ⚠️ Con margen: crear redirige al plan DENTRO del frame, y desde que la
+    # fila se edita en su sitio esa pantalla monta tres formularios y un
+    # calendario por evaluación. Se puso intermitente al pasar de 2 s.
+    assert_text "Resuelve problemas de proporcionalidad directa", wait: 6
     assert_text "Calcula porcentajes"
     assert_text "Interpreta una tabla"
   end
@@ -98,7 +101,7 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
     assert_text "Listo: 1 evaluación mide esta competencia."
     # Enganchada, la evaluación pasa a colgar DENTRO de la competencia y el
     # aviso de la boleta desaparece: es el mismo hecho contado en un solo sitio.
-    assert_selector ".plan-competencia .plan-evaluacion-descripcion", text: evaluacion.description
+    assert_selector ".plan-competencia .plan-evaluacion-nombre-campo[value='#{evaluacion.description}']"
     assert_no_selector ".plan-competencia--sin-evaluar"
   end
 end

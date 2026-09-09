@@ -35,6 +35,8 @@ import PasswordVisibilityController from "controllers/password_visibility_contro
 import PanelesController from "controllers/paneles_controller"
 import PonderacionController from "controllers/ponderacion_controller"
 import RepartoController from "controllers/reparto_controller"
+import EdicionEnLineaController from "controllers/edicion_en_linea_controller"
+import CalendarioEscolarController from "controllers/calendario_escolar_controller"
 import QueEvaluaController from "controllers/que_evalua_controller"
 import MenuController from "controllers/menu_controller"
 import SidebarController from "controllers/sidebar_controller"
@@ -57,6 +59,8 @@ application.register("password-visibility", PasswordVisibilityController)
 application.register("paneles", PanelesController)
 application.register("ponderacion", PonderacionController)
 application.register("reparto", RepartoController)
+application.register("edicion-en-linea", EdicionEnLineaController)
+application.register("calendario-escolar", CalendarioEscolarController)
 application.register("que-evalua", QueEvaluaController)
 application.register("menu", MenuController)
 application.register("sidebar", SidebarController)

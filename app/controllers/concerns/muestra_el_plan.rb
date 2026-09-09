@@ -28,8 +28,7 @@ module MuestraElPlan
   included do
     helper_method :lapsos, :lapso, :otras_secciones, :contexto,
                   :hermanas_con_plan, :hermanas_sin_plan, :evaluaciones_del_lapso,
-                  :evaluaciones_de, :evaluaciones_sueltas, :peso_del_lapso,
-                  :notas_cargadas_en
+                  :evaluaciones_de, :evaluaciones_sueltas, :peso_del_lapso
   end
 
   private
@@ -170,22 +169,6 @@ module MuestraElPlan
   # evaluación de dos competencias está dos veces y el 40 % se contaría 80.
   def peso_del_lapso = evaluaciones_del_lapso.sum(&:weight_percentage)
 
-  # ⚠️ Cuántas notas tiene cada evaluación, en UNA consulta para todo el plan.
-  #
-  # No es adorno: una evaluación con notas NO se puede borrar
-  # (`restrict_with_error`), y el aviso de confirmación decía «se borran también
-  # las notas cargadas» — que es lo contrario de lo que pasa. Prometer un
-  # borrado que el modelo va a rechazar es peor que no ofrecerlo: quien lo lee
-  # acepta creyendo otra cosa.
-  def notas_cargadas_en(evaluacion)
-    notas_del_lapso[evaluacion.id].to_i
-  end
-
-  def notas_del_lapso
-    @notas_del_lapso ||= ActivityGrade.where(evaluation_activity_id: evaluaciones_del_lapso.map(&:id))
-                                      .group(:evaluation_activity_id).count
-  end
-
   def por_competencia
     @por_competencia ||= evaluaciones_del_lapso.each_with_object(Hash.new { |h, k| h[k] = [] }) do |e, mapa|
       e.competencies.each { |c| mapa[c.id] << e }
@@ -199,7 +182,12 @@ module MuestraElPlan
                                 .where(section_id: seccion_del_plan.id,
                                        subject_id: area_del_plan.id,
                                        evaluation_moment_id: lapso.id)
-                                .includes(:competencies)
+                                # ⚠️ `activity_grades` va precargada porque la
+                                # fila pregunta cuántas notas tiene —una
+                                # evaluación con notas NO se puede borrar— y
+                                # sin esto son treinta consultas en un plan de
+                                # treinta evaluaciones.
+                                .includes(:competencies, :activity_grades)
                                 .order(:date_scheduled, :id)
                                 .to_a
   end

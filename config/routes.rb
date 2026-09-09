@@ -240,18 +240,6 @@ Rails.application.routes.draw do
   end
 
   resources :evaluation_activities, path: "evaluaciones" do
-    # ⚠️ El reparto se guarda de UNA VEZ, no evaluación por evaluación.
-    #
-    # Daniel: *«ese porcentaje debería estar directamente aquí y moverse
-    # dinámicamente unos con otros, de modo que vea cuánto % llevo y cuánto %
-    # me queda… no ver el porcentaje aislado sino como un todo»*.
-    #
-    # Y es una acción de COLECCIÓN porque el 100 % es del lapso, no de ninguna
-    # evaluación: guardando de a una, pasar de 40/60 a 60/40 obliga a bajar
-    # primero —o el modelo rechaza el paso intermedio de 60/60— y el profesor
-    # tiene que resolver a mano un orden que el sistema ya sabe.
-    patch "reparto", on: :collection, to: "evaluation_activities#repartir"
-
     # La planilla de carga. `notas/:student_id` hace upsert y borrado: mandar el
     # campo vacío devuelve al alumno a "sin nota", que NO es lo mismo que un 1.
     get   "notas",             to: "activity_grades#index",  as: :notas

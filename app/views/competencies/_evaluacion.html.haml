@@ -1,49 +1,74 @@
--# UNA evaluación, dentro del plan (etapa ③).
+-# UNA evaluación, editable EN SU SITIO (QA del 9 de septiembre).
 -#
--# La misma fila sirve colgada de su competencia y en el bloque de las sueltas,
--# porque es el mismo objeto contestando la misma pregunta: qué se evalúa,
--# cuánto pesa y cuándo.
+-# Daniel: *«para editar dicha evaluación lo haremos desde allí mismo, al hacer
+-# clic en el elemento que deseo editar, como lo hace Linear»*. Y con eso el
+-# lápiz se retiró — lo que confundía era justamente él: *«pensé que para
+-# editar, a juro había que hacerlo por esa vía»*.
 -#
--# ⚠️ El nombre es un ENLACE a su planilla de notas, no al `show`. Desde el plan
--# lo que sigue es CARGAR: el detalle de la evaluación no le dice nada al
--# profesor que ya la escribió él mismo. Y `_top` porque sale del frame «plan».
-%li.plan-evaluacion
+-#     Graficar en la pizarra              25 %   7 sep   🗑
+-#     ▲ clic y escribe                    ▲      ▲
+-#                                         │      └─ calendario del año escolar
+-#                                         └─ sube y baja de 1 en 1
+-#
+-# ## ⚠️ El input está SIEMPRE en el DOM, sin aspecto de caja
+-#
+-# La alternativa —cambiar el `<span>` por un `<input>` al hacer clic— obliga a
+-# recrear el elemento, se lleva el foco a mitad de camino y hace saltar el texto
+-# un píxel cuando la caja no calca la tipografía. Acá el campo ya es el campo;
+-# lo único que cambia es que se le ve el borde. Y de regalo funciona con el
+-# tabulador y con un lector de pantalla, que es como se editaría sin ratón.
+- error = local_assigns[:error]
+-# ⚠️ `guardada` es la confirmación, y es todo el feedback que hay: en la
+-# edición en línea no hay botón que se quede apretado ni flash que avise. Un
+-# aviso por campo tocado —tres por evaluación— sería una alarma.
+- guardada = local_assigns[:guardada]
+%li.plan-evaluacion{ id: dom_id(evaluacion),
+                     class: [ ("plan-evaluacion--con-error" if error),
+                              ("plan-evaluacion--guardada" if guardada) ].compact }
+  -# El nombre ya no puede ser el enlace a la planilla —ahora se escribe encima—
+  -# así que el enlace se muda al margen, donde no compite con nada.
   = link_to evaluation_activity_notas_path(evaluacion, desde: contexto[:desde]),
-            class: "plan-evaluacion-nombre", data: { turbo_frame: "_top" } do
-    %span.plan-evaluacion-descripcion= evaluacion.description
-    -# El peso se lee acá y se EDITA acá: es donde está la pregunta («¿cuánto
-    -# vale este taller?») y donde se ve la respuesta de las otras tres.
-    -# Fuera del enlace, o teclear dentro navegaría.
+            class: "plan-evaluacion-ir", data: { turbo_frame: "_top", tooltip: "Cargar las notas" },
+            "aria-label": "Cargar las notas de #{evaluacion.description}" do
+    = icono(:siguiente, tamano: 14)
+
   - if profesor?
-    -# ⚠️ `form:` ata el campo al formulario de la barra, que está ARRIBA y
-    -# fuera de esta lista. Es HTML estándar y es la única salida: un `<form>`
-    -# que envolviera el plan anidaría los `button_to` de borrar.
-    .plan-evaluacion-peso
-      = number_field_tag "pesos[#{evaluacion.id}]", evaluacion.weight_percentage,
-                         form: "reparto-del-lapso", step: 0.01, min: 0.01, max: 100,
-                         class: "plan-evaluacion-peso-campo",
-                         "aria-label": "Peso de #{evaluacion.description}, en porcentaje",
-                         data: { reparto_target: "peso", id: evaluacion.id,
-                                 action: "input->reparto#recalcular blur->reparto#ajustar" }
+    = form_with model: evaluacion, url: evaluation_activity_path(evaluacion, contexto.merge(en_linea: true)),
+                method: :patch, class: "plan-evaluacion-campo plan-evaluacion-campo--nombre",
+                data: { controller: "edicion-en-linea" } do |f|
+      = f.text_field :description, class: "plan-evaluacion-nombre-campo",
+                     "aria-label": "Nombre de la evaluación",
+                     data: { edicion_en_linea_target: "campo",
+                             action: "keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }
+  - else
+    %span.plan-evaluacion-descripcion= evaluacion.description
+
+  - if profesor?
+    -# ⚠️ `step: 1` y `max` con lo que QUEDA, no 100. Daniel: «el % editable con
+    -# atributos step=1, min=1 y max=100 (o el valor máximo que corresponda)».
+    -# El máximo que corresponde lo pone el controlador `reparto` en vivo, porque
+    -# depende de lo que valgan las otras evaluaciones en este momento.
+    = form_with model: evaluacion, url: evaluation_activity_path(evaluacion, contexto.merge(en_linea: true)),
+                method: :patch, class: "plan-evaluacion-campo plan-evaluacion-campo--peso",
+                data: { controller: "edicion-en-linea", turbo_stream: true } do |f|
+      = f.number_field :weight_percentage, value: entero_si_lo_es(evaluacion.weight_percentage),
+                       step: 1, min: 1, max: 100, class: "plan-evaluacion-peso-campo",
+                       "aria-label": "Peso de #{evaluacion.description}, en porcentaje",
+                       data: { edicion_en_linea_target: "campo", reparto_target: "peso",
+                               id: evaluacion.id,
+                               action: "input->reparto#recalcular keydown->edicion-en-linea#tecla blur->reparto#ajustar blur->edicion-en-linea#salir" }
       %span.plan-evaluacion-peso-signo %
   - else
     %span.plan-evaluacion-peso-fijo= porcentaje(evaluacion.weight_percentage)
-  %span.plan-evaluacion-fecha
-    - if evaluacion.date_scheduled
-      = l(evaluacion.date_scheduled, format: :short)
-    - else
-      %span.dato-vacio sin fecha
+
+  = render "competencies/fecha", evaluacion: evaluacion, contexto: contexto
+
   - if profesor?
     .plan-evaluacion-acciones
-      = link_to edit_evaluation_activity_path(evaluacion, contexto),
-                class: "btn btn-secondary btn-sm btn-solo-icono",
-                data: { tooltip: "Editar la evaluación" }, "aria-label": "Editar la evaluación" do
-        = icono(:editar, tamano: 14)
-      -# ⚠️ El aviso decía «se borran también las notas cargadas», y es al revés:
-      -# con notas, el modelo RECHAZA el borrado. Prometer lo que no va a pasar
-      -# es peor que no ofrecerlo — quien lo lee acepta creyendo otra cosa, y lo
-      -# que recibe es un error.
-      - notas = notas_cargadas_en(evaluacion)
+      -# ⚠️ `.size` y no `.count`: con la asociación precargada por el plan no
+      -# consulta, y en el turbo_stream de UNA fila hace la única que hace falta.
+      -# `.count` iría a la base siempre, treinta veces en un plan de treinta.
+      - notas = evaluacion.activity_grades.size
       - aviso = notas.zero? ? "¿Borrar «#{evaluacion.description}»? Deja de contar en el promedio del lapso." : "«#{evaluacion.description}» tiene #{contar(notas, 'nota cargada', 'notas cargadas')} y no se puede borrar hasta que se vacíen desde su planilla."
       = button_to evaluation_activity_path(evaluacion, contexto),
                   method: :delete, class: "btn btn-danger btn-sm btn-solo-icono",
@@ -51,3 +76,14 @@
                   data: { tooltip: (notas.zero? ? "Borrar" : "Tiene notas cargadas") },
                   "aria-label": "Borrar" do
         = icono(:borrar, tamano: 14)
+
+  -# ⚠️ El error se dice EN LA FILA y el campo vuelve a su valor viejo.
+  -#
+  -# Sin esto el campo se queda con lo que el profesor escribió y él se va
+  -# convencido de que quedó guardado: es la falla clásica de la edición en
+  -# línea, donde no hay botón que se quede apretado para delatar que algo
+  -# no pasó.
+  - if error
+    %p.plan-evaluacion-error
+      = icono(:alerta, tamano: 13)
+      %span= error

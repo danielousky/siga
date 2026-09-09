@@ -124,7 +124,10 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     click_on "Cancelar"
 
     assert_no_text "Content missing"
-    assert_no_selector "input[name='evaluation_activity[description]']"
+    # ⚠️ Por la CLASE, no por el `name`: desde que la fila se edita en su sitio,
+    # su campo y el del formulario se llaman igual —los dos salen de
+    # `form_with model: evaluacion`— y el selector por nombre encuentra los dos.
+    assert_no_selector ".form-acciones"
     assert_selector ".plan-ponderacion"
   end
 

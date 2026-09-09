@@ -32,7 +32,7 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
 
     # ⚠️ DENTRO de la competencia. Desde el 8 de septiembre el plan va anidado
     # y las evaluaciones cuelgan de lo que miden; antes eran chips al lado.
-    assert_select ".plan-competencia .plan-evaluacion-descripcion", "Examen"
+    assert_select ".plan-competencia .plan-evaluacion-nombre-campo[value=?]", "Examen"
     assert_select ".plan-sin-evaluar", count: 0
   end
 

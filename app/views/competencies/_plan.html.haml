@@ -103,7 +103,8 @@
                   = icono(:borrar, tamano: 15)
           - if suyas.any?
             %ul.plan-evaluaciones
-              = render partial: "competencies/evaluacion", collection: suyas, as: :evaluacion
+              = render partial: "competencies/evaluacion", collection: suyas, as: :evaluacion,
+                       locals: { contexto: contexto }
           - else
             -# ⚠️ Es un AVISO, no un error: el plan se guarda igual. Pero dice la
             -# consecuencia y no el síntoma — «sin evaluaciones» no significa
@@ -130,7 +131,8 @@
           Cuentan para el promedio, pero no miden ninguna competencia del plan.
           Engánchalas desde el botón de cada competencia, o edítalas.
         %ul.plan-evaluaciones
-          = render partial: "competencies/evaluacion", collection: evaluaciones_sueltas, as: :evaluacion
+          = render partial: "competencies/evaluacion", collection: evaluaciones_sueltas, as: :evaluacion,
+                     locals: { contexto: contexto }
     - if profesor?
       -# ⚠️ Las altas van en su PROPIO contenedor, no en `.plan-acciones`, que es
       -# el de replicar a las secciones hermanas. Son dos cosas distintas —crear

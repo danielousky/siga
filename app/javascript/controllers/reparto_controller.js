@@ -16,11 +16,9 @@ import { Controller } from "@hotwired/stimulus"
 // cargadas, y con ellas los promedios de la sección entera. Lo que sí se hace
 // es que VEA el efecto antes de guardar.
 export default class extends Controller {
-  static targets = ["peso", "tramo", "hueco", "cuenta", "boton", "exceso", "barra"]
-  static values  = { total: Number }
+  static targets = ["peso", "tramo", "hueco", "cuenta", "barra"]
 
   connect() {
-    this.inicial = this.#pesos()
     this.recalcular()
   }
 
@@ -30,7 +28,20 @@ export default class extends Controller {
 
     this.#pintarLosTramos(pesos, total)
     this.#pintarLaCuenta(total)
-    this.#pintarElBoton(pesos, total)
+    this.#toparLosCampos(pesos)
+  }
+
+  // ⚠️ El `max` de cada campo es lo que QUEDA contando a los otros, no 100.
+  //
+  // Daniel: «el % editable con atributos step=1, min=1 y max=100 (o el valor
+  // máximo que corresponda)». El que corresponde depende de lo que valgan las
+  // demás en este momento, así que se recalcula al escribir: el error no se
+  // rechaza al guardar, se vuelve imposible de teclear.
+  #toparLosCampos(pesos) {
+    pesos.forEach(({ campo, valor }) => {
+      const otros = pesos.reduce((suma, p) => suma + (p.campo === campo ? 0 : p.valor), 0)
+      campo.max = Math.max(100 - otros, valor, 1)
+    })
   }
 
   // ⚠️ El exceso se recorta al SALIR del campo, no al escribir: recortando
@@ -91,25 +102,6 @@ export default class extends Controller {
     span.className = `plan-ponderacion-resto plan-ponderacion-resto--${tono}`
     span.textContent = texto
     this.cuentaTarget.appendChild(span)
-  }
-
-  // El botón aparece solo cuando algo cambió: uno que no tiene nada que
-  // guardar invita a apretarlo para averiguar qué hace.
-  #pintarElBoton(pesos, total) {
-    if (!this.hasBotonTarget) return
-
-    const cambio = pesos.some(({ id, valor }) => valor !== this.#inicialDe(id))
-    this.botonTarget.hidden = !cambio || total > 100
-
-    if (!this.hasExcesoTarget) return
-    this.excesoTarget.hidden = total <= 100
-    this.excesoTarget.textContent = total > 100
-      ? `Quita ${this.#numero(total - 100)} % de algún lado para poder guardar.`
-      : ""
-  }
-
-  #inicialDe(id) {
-    return (this.inicial.find((p) => p.id === id) || { valor: 0 }).valor
   }
 
   #numero(valor) {

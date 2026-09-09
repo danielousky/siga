@@ -42,36 +42,35 @@ class RepartoEnVivoSystemTest < ApplicationSystemTestCase
     assert_selector ".plan-ponderacion-cuenta", text: "90 %"
   end
 
-  test "cerrar en 100 lo dice, y ahí sí se puede guardar" do
+  test "cerrar en 100 lo dice, y el peso queda guardado al salir del campo" do
     ir_al_plan
     campo_de(@taller).set("60")
 
     assert_text "cierra en 100 %"
-    click_on "Guardar el reparto"
+    find(".plan-ponderacion-titulo").click
 
-    assert_text "El lapso cierra en 100 %"
+    assert_selector ".plan-evaluacion--guardada", wait: 5
     assert_equal 60, con_el_colegio(@a.colegio) { @taller.reload.weight_percentage.to_i }
   end
 
-  # ⚠️ El botón no está mientras nada cambió: uno que no tiene nada que guardar
-  # invita a apretarlo para averiguar qué hace.
-  test "el botón de guardar aparece solo cuando algo cambió" do
+  # ⚠️ No hay botón de guardar: desde el 9 de septiembre cada peso se guarda al
+  # salir de su campo, como el nombre y la fecha. Daniel eligió esa forma
+  # sabiendo el costo — intercambiar 40/60 por 60/40 obliga a bajar uno primero.
+  test "no hay botón de guardar: cada peso va por su cuenta" do
     ir_al_plan
-    assert_no_selector "button", text: "Guardar el reparto"
 
-    campo_de(@taller).set("35")
-    assert_selector "button", text: "Guardar el reparto"
+    assert_no_selector "button", text: "Guardar el reparto"
   end
 
-  # Pasarse no se puede guardar, y se dice cuánto sobra: el profesor tiene que
-  # poder VER el exceso para saber de dónde quitarlo.
-  test "pasarse de 100 esconde el botón y dice cuánto sobra" do
+  # ⚠️ Y lo que hace que ese costo no duela: el `max` de cada campo es lo que
+  # QUEDA contando a los otros. El error no se rechaza al guardar — no se puede
+  # teclear.
+  test "el campo no deja escribir más de lo que queda" do
     ir_al_plan
-    campo_de(@taller).set("90")
 
-    assert_text "se pasa por 30 %"
-    assert_text "Quita 30 % de algún lado"
-    assert_no_selector "button", text: "Guardar el reparto"
+    # 30 del taller + 40 del examen: al taller le caben 60 como mucho.
+    assert_equal "60", campo_de(@taller)[:max]
+    assert_equal "70", campo_de(@examen)[:max]
   end
 
   # ⚠️ El recorte va al SALIR del campo, no al escribir: recortando mientras se
@@ -81,7 +80,9 @@ class RepartoEnVivoSystemTest < ApplicationSystemTestCase
     campo_de(@taller).set("95")
     find(".plan-ponderacion-titulo").click   # sacar el foco
 
-    assert_equal "60", campo_de(@taller).value, "60 + 40 = 100"
+    assert_selector ".plan-evaluacion--guardada", wait: 5
+    assert_equal 60, con_el_colegio(@a.colegio) { @taller.reload.weight_percentage.to_i },
+                 "60 + 40 = 100: se recorta a lo que cabe y se guarda eso"
   end
 
   # ── Y el deslizador del formulario ──────────────────────────────────────

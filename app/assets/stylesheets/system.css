@@ -6845,8 +6845,16 @@ a.subject-avance:hover { filter: brightness(0.9); }
   background: var(--border-subtle);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  overflow: hidden;
 }
+
+/* ⚠️ SIN `overflow: hidden`. Estaba, para que las filas no se salieran de las
+   esquinas redondeadas, y desde que la fila tiene calendario eso lo RECORTA: el
+   panel se abre hacia abajo, fuera de la lista, y quedaba cortado a la mitad —
+   Capybara ni siquiera lo veía. Las esquinas se resuelven en la primera y la
+   última fila, que es donde el problema existe de verdad. */
+.plan-evaluacion:first-child { border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+.plan-evaluacion:last-child  { border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
+.plan-evaluacion:only-child  { border-radius: var(--radius-sm); }
 
 /* Las filas se separan con el fondo del contenedor asomando por el `gap`: una
    sola regla en vez de un `border-bottom` con su excepción para la última. */
@@ -6858,19 +6866,96 @@ a.subject-avance:hover { filter: brightness(0.9); }
   background: var(--surface-elevated);
 }
 
-.plan-evaluacion-nombre {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-sm);
-  color: inherit;
-  text-decoration: none;
+/* ── Editar donde se lee (QA del 9 de septiembre) ────────────────────────── */
+/* Daniel: «al hacer clic en el elemento que deseo editar, como lo hace Linear».
+   El input está SIEMPRE en el DOM; lo único que cambia es que se le ve el
+   borde. Cambiar un `<span>` por un `<input>` al hacer clic obliga a recrear el
+   elemento, se lleva el foco a mitad de camino y hace saltar el texto cuando la
+   caja no calca la tipografía. */
+.plan-evaluacion-campo { display: flex; align-items: center; min-width: 0; }
+.plan-evaluacion-campo--nombre { flex: 1; min-width: 0; }
+.plan-evaluacion-campo--peso { flex: 0 0 auto; gap: 2px; }
+
+.plan-evaluacion-nombre-campo,
+.plan-evaluacion-peso-campo {
+  padding: 2px 5px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
-.plan-evaluacion-nombre:hover .plan-evaluacion-descripcion {
-  color: var(--brand-primary);
-  text-decoration: underline;
+.plan-evaluacion-nombre-campo {
+  width: 100%;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.plan-evaluacion-peso-campo {
+  width: 4.5ch;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-secondary);
+}
+
+/* ⚠️ La afordancia aparece al apuntar el CAMPO, no la fila entera. Encendiendo
+   los tres a la vez la fila se convierte en un formulario y deja de leerse como
+   una lista — y esto se lee mucho más de lo que se edita. */
+.plan-evaluacion-nombre-campo:hover,
+.plan-evaluacion-peso-campo:hover {
+  border-color: var(--border-subtle);
+  background: var(--surface-elevated);
+}
+
+.plan-evaluacion-nombre-campo:focus,
+.plan-evaluacion-peso-campo:focus {
+  border-color: var(--brand-primary);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  outline: none;
+}
+
+/* El enlace a la planilla se muda al margen: el nombre ya no puede ser enlace
+   —ahora se escribe encima— y acá no compite con nada. */
+.plan-evaluacion-ir {
+  flex: 0 0 auto;
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+}
+
+.plan-evaluacion-ir:hover { color: var(--brand-primary); background: var(--surface-hover); }
+
+.plan-evaluacion-error {
+  flex: 1 0 100%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--danger-text);
+}
+
+.plan-evaluacion--con-error { background: var(--danger-bg); }
+
+/* ⚠️ El destello ES la confirmación: en la edición en línea no hay botón que se
+   quede apretado ni flash que avise, y sin ninguna señal el profesor no sabe si
+   su cambio llegó. Un aviso por campo tocado —tres por evaluación, treinta por
+   plan— sería una alarma. */
+@keyframes plan-guardada {
+  from { background: var(--success-bg); }
+  to   { background: transparent; }
+}
+
+.plan-evaluacion--guardada { animation: plan-guardada 1.2s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-evaluacion--guardada { animation: none; background: var(--success-bg); }
 }
 
 .plan-evaluacion-descripcion {
@@ -6890,16 +6975,133 @@ a.subject-avance:hover { filter: brightness(0.9); }
   color: var(--text-secondary);
 }
 
-.plan-evaluacion-fecha {
-  flex: 0 0 auto;
+/* ── El calendario del año escolar ───────────────────────────────────────── */
+/* Daniel: «el año es un elemento distractor — no se va a hacer una evaluación
+   fuera del año y meses escolares». Once meses en fila, sin año en ninguna
+   parte: un colegio venezolano cruza dos años calendario, y mostrarlos obliga a
+   leer cuál toca en cada mes. */
+.plan-evaluacion-fecha { position: relative; flex: 0 0 auto; }
+
+.plan-evaluacion-fecha-abrir {
+  padding: 2px 5px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   color: var(--text-tertiary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.plan-evaluacion-fecha-abrir:hover,
+.plan-evaluacion-fecha-abrir:focus-visible {
+  border-color: var(--border-subtle);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
 }
 
 /* «sin fecha» no es un dato menor: es un dato que NO está, y se escribe en
    letras por lo mismo que la libreta escribe «Pendiente» en vez de un cero. */
 .plan-evaluacion-fecha .dato-vacio { font-style: italic; }
+
+.plan-calendario {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 40;
+  width: 244px;
+  padding: var(--space-sm);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+.plan-calendario-meses {
+  display: flex;
+  gap: 1px;
+  margin-bottom: var(--space-xs);
+  padding-bottom: var(--space-xs);
+  border-bottom: 1px solid var(--border-subtle);
+  overflow-x: auto;
+}
+
+/* ⚠️ La versalita la pone el CSS y no el texto: escrito «SEP», un lector de
+   pantalla lo deletrea «S-E-P». */
+.plan-calendario-mes {
+  flex: 0 0 auto;
+  padding: 3px 5px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.plan-calendario-mes:hover { background: var(--surface-hover); color: var(--text-primary); }
+.plan-calendario-mes--activo { background: var(--brand-primary); color: #fff; font-weight: 600; }
+
+.plan-calendario-semana,
+.plan-calendario-dias {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+}
+
+.plan-calendario-dia-nombre {
+  padding: 2px 0;
+  font-size: 10px;
+  text-align: center;
+  color: var(--text-tertiary);
+}
+
+.plan-calendario-dia {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.plan-calendario-dia:hover:not(:disabled) { background: var(--surface-hover); }
+
+/* Fuera del año escolar: se ve, pero no se toca. Esconderlo dejaría un mes con
+   un agujero, que se lee como un error de la pantalla. */
+.plan-calendario-dia--fuera { color: var(--text-tertiary); opacity: 0.35; cursor: not-allowed; }
+.plan-calendario-dia--hoy { box-shadow: inset 0 0 0 1px var(--border-strong); }
+.plan-calendario-dia--elegido { background: var(--brand-primary); color: #fff; font-weight: 600; }
+
+.plan-calendario-pie {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+  padding-top: var(--space-xs);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.plan-calendario-atajo {
+  padding: 2px 5px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  color: var(--brand-primary);
+  cursor: pointer;
+}
+
+.plan-calendario-atajo:hover { background: var(--surface-hover); }
 
 .plan-evaluacion-acciones {
   flex: 0 0 auto;
@@ -7078,47 +7280,6 @@ a.subject-avance:hover { filter: brightness(0.9); }
   color: var(--danger-text);
 }
 
-/* ── El peso, editable en su fila ──────────────────────────────────────── */
-/* Se lee y se edita en el mismo sitio: es donde está la pregunta («¿cuánto
-   vale este taller?») y donde se ve la respuesta de las otras tres. */
-.plan-evaluacion-peso {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.plan-evaluacion-peso-campo {
-  width: 4.5ch;
-  padding: 2px 4px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  color: var(--text-secondary);
-}
-
-/* ⚠️ El borde aparece al pasar por encima y al enfocar, y NO antes: cuatro
-   cajas de formulario dentro de una lista la convierten en una planilla, y
-   esto se lee mucho más de lo que se edita. Pero tiene que verse que se puede
-   tocar, o nadie lo intenta. */
-.plan-evaluacion:hover .plan-evaluacion-peso-campo,
-.plan-evaluacion-peso-campo:hover {
-  border-color: var(--border-subtle);
-  background: var(--surface-elevated);
-}
-
-.plan-evaluacion-peso-campo:focus {
-  border-color: var(--brand-primary);
-  background: var(--surface-elevated);
-  color: var(--text-primary);
-  outline: none;
-}
-
 /* Las flechitas del `number` roban la mitad del ancho en un campo de 4ch. */
 .plan-evaluacion-peso-campo::-webkit-outer-spin-button,
 .plan-evaluacion-peso-campo::-webkit-inner-spin-button { appearance: none; margin: 0; }
@@ -7129,7 +7290,10 @@ a.subject-avance:hover { filter: brightness(0.9); }
   color: var(--text-tertiary);
 }
 
-.plan-evaluacion-peso-fijo {
+/* La dirección lee el plan pero no lo escribe: ve los mismos números, sin las
+   cajas. */
+.plan-evaluacion-peso-fijo,
+.plan-evaluacion-fecha-fija {
   flex: 0 0 auto;
   font-size: 12px;
   font-weight: 600;

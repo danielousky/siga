@@ -52,7 +52,7 @@ class BorrarDesdeElPlanSystemTest < ApplicationSystemTestCase
     accept_confirm { find(".plan-evaluacion [aria-label='Borrar']").click }
 
     assert_no_text "Content missing"
-    assert_no_text "Examen del lapso"
+    assert_no_selector ".plan-evaluacion-nombre-campo[value='Examen del lapso']"
     assert_selector ".plan-competencia--sin-evaluar"
   end
 
@@ -64,7 +64,9 @@ class BorrarDesdeElPlanSystemTest < ApplicationSystemTestCase
 
     assert_no_text "Content missing"
     # Sigue ahí, y se dice por qué: el mensaje se pinta DENTRO del frame.
-    assert_text "Examen del lapso"
+    # ⚠️ El nombre ya no es texto de la página sino el `value` de un campo,
+    # desde que la fila se edita en su sitio.
+    assert_selector ".plan-evaluacion-nombre-campo[value='Examen del lapso']"
     assert_text(/no se puede eliminar|Notas de la evaluación/i)
   end
 

@@ -17,7 +17,7 @@ class EvaluationActivitiesController < ApplicationController
   include VuelveALaSeccion
 
   before_action :require_acceso!
-  before_action :require_profesor!, only: [:new, :create, :edit, :update, :destroy, :repartir]
+  before_action :require_profesor!, only: [:new, :create, :edit, :update, :destroy]
   before_action :set_evaluation_activity, only: [:show, :edit, :update, :destroy]
 
   # ⚠️ Para un PROFESOR, `/evaluaciones` deja de ser destino (etapa ③).
@@ -89,13 +89,22 @@ class EvaluationActivitiesController < ApplicationController
     end
   end
 
+  # ⚠️ La misma acción sirve al formulario COMPLETO y a la edición EN LÍNEA.
+  #
+  # Daniel, 9 de septiembre: *«para editar dicha evaluación lo haremos desde
+  # allí mismo, al hacer clic en el elemento que deseo editar, como lo hace
+  # Linear»*. Y con eso el lápiz se retiró: ya no hay una segunda manera.
+  #
+  # Lo que cambia es la RESPUESTA, no la escritura. Desde el plan llega un solo
+  # campo y hay que devolver un pedacito; desde el formulario llegan todos y hay
+  # que volver a la pantalla. Un `respond_to` y la misma línea de guardado.
   def update
-    if @evaluation_activity.update(evaluation_activity_params)
-      etiquetar_lo_que_evalua(@evaluation_activity)
-      redirect_to ruta_de_vuelta(@evaluation_activity), notice: "Evaluación actualizada."
-    else
-      render :edit, status: :unprocessable_entity
+    unless @evaluation_activity.update(evaluation_activity_params)
+      return responder_al_fallo
     end
+
+    etiquetar_lo_que_evalua(@evaluation_activity) if params[:evaluation_activity].key?(:competency_ids)
+    responder_al_exito
   end
 
   # ⚠️ El fallo vuelve al MISMO sitio, no a la ficha de la evaluación.
@@ -119,77 +128,75 @@ class EvaluationActivitiesController < ApplicationController
     end
   end
 
-  # ⚠️ El reparto del lapso se guarda ENTERO, de una vez.
-  #
-  # Daniel: *«no ver el porcentaje aislado sino como un todo»*. Guardando de a
-  # una, pasar de 40/60 a 60/40 es imposible sin un paso intermedio de 60/60
-  # que el modelo rechaza — el profesor tendría que bajar una, guardar, subir
-  # la otra, guardar. Acá se escriben las dos y se valida la SUMA al final.
-  #
-  # ⚠️ Todo en una transacción con `validate: false` + una comprobación propia,
-  # y no `update!` uno por uno: la validación de cada evaluación mira el total
-  # del lapso, así que la primera en guardarse chocaría contra el reparto
-  # viejo de las demás. La suma se comprueba una vez, sobre lo que va a quedar.
-  def repartir
-    reparto = pesos_pedidos
-    return redirect_to(volver_del_reparto, alert: "No hay nada que repartir.") if reparto.empty?
-
-    total = reparto.values.sum
-    if total > 100
-      return redirect_to volver_del_reparto,
-                         alert: "El reparto suma #{helpers.porcentaje(total)}: el lapso no puede pasar de 100 %."
-    end
-
-    aplicar_el_reparto(reparto)
-    redirect_to volver_del_reparto, notice: mensaje_del_reparto(reparto, total)
-  end
-
   private
 
-  # Solo las evaluaciones del profesor, del MISMO lapso, y solo las que llegaron
-  # con un número válido. Un id de otra sección se ignora sin ruido: el filtro
-  # es el `alcance`, no la confianza en el formulario.
-  def pesos_pedidos
-    return @pesos_pedidos if defined?(@pesos_pedidos)
+  # ── Contestar a quien preguntó ────────────────────────────────────────────
+  #
+  # ⚠️ Editando en línea NO se recarga el plan entero: se devuelven la FILA y la
+  # cuenta de la ponderación, que son las dos cosas que cambiaron. Recargar todo
+  # se lleva el foco del teclado —y el profesor está tabulando entre campos—,
+  # además de cerrar el calendario que acaba de abrir.
+  #
+  # ⚠️ Y NO se manda un flash. Un aviso por cada campo tocado —tres por
+  # evaluación, treinta por plan— convierte la pantalla en una alarma. Acá el
+  # feedback es que el valor quedó: la fila vuelve con un destello y la barra
+  # ya se movió sola mientras se escribía. Un flash es para lo que no se ve.
+  def responder_al_exito
+    return redirect_to(ruta_de_vuelta(@evaluation_activity), notice: "Evaluación actualizada.") unless en_linea?
 
-    @pesos_pedidos = calcular_pesos_pedidos
+    render turbo_stream: [
+      turbo_stream.replace(helpers.dom_id(@evaluation_activity), partial: "competencies/evaluacion",
+                                                                locals: fila_del_plan.merge(guardada: true)),
+      turbo_stream.replace("cuenta-de-la-ponderacion", partial: "competencies/cuenta",
+                                                            locals: { usado: peso_repartido })
+    ]
   end
 
-  def calcular_pesos_pedidos
-    pedidos = params.fetch(:pesos, {}).to_unsafe_h
-    return {} if pedidos.blank?
+  # ⚠️ El fallo devuelve la MISMA fila, con el valor viejo y el motivo.
+  #
+  # Sin esto el campo se queda con lo que el profesor escribió y él se va
+  # convencido de que quedó guardado — que es la falla clásica de la edición en
+  # línea: no hay botón que se quede apretado para delatar que algo no pasó.
+  def responder_al_fallo
+    return render(:edit, status: :unprocessable_entity) unless en_linea?
 
-    del_lapso = alcance.where(id: pedidos.keys).to_a
-    return {} if del_lapso.empty?
-
-    lapso = del_lapso.first.evaluation_moment_id
-    del_lapso.select { |e| e.evaluation_moment_id == lapso }
-             .index_with { |e| BigDecimal(pedidos[e.id.to_s].to_s.tr(",", ".")) rescue nil }
-             .compact
-             .reject { |_, peso| peso <= 0 }
+    @evaluation_activity.reload
+    render turbo_stream: turbo_stream.replace(
+      helpers.dom_id(@evaluation_activity),
+      partial: "competencies/evaluacion",
+      locals: fila_del_plan.merge(error: errores_de_la_fila)
+    ), status: :unprocessable_entity
   end
 
-  def aplicar_el_reparto(reparto)
-    EvaluationActivity.transaction do
-      reparto.each do |evaluacion, peso|
-        evaluacion.weight_percentage = peso
-        evaluacion.save!(validate: false) if evaluacion.changed?
-      end
-    end
+  # ⚠️ El contexto se arma de los PARÁMETROS, no del helper del plan.
+  #
+  # `contexto` es un `helper_method` de `MuestraElPlan`, que este controller no
+  # incluye —ni debe: arrastraría `asignacion`, las hermanas y el año pasado—.
+  # La URL ya trae las tres piezas, porque el propio formulario las puso ahí.
+  def fila_del_plan
+    { evaluacion: @evaluation_activity,
+      contexto: params.permit(:asignacion, :lapso, :desde).to_h.symbolize_keys }
   end
 
-  # Se vuelve a donde estaba: el reparto se toca desde el plan y desde la
-  # libreta, y las dos son frames distintos (ver `VuelveALaSeccion`).
-  def volver_del_reparto
-    ruta_de_vuelta(pesos_pedidos.keys.first) || evaluation_activities_path
+  # Lo que suma el lapso DESPUÉS de guardar: es lo que la cuenta tiene que
+  # confirmar. La barra ya se movió sola con Stimulus mientras se escribía.
+  def peso_repartido
+    EvaluationActivity.peso_usado(
+      section_id: @evaluation_activity.section_id,
+      subject_id: @evaluation_activity.subject_id,
+      evaluation_moment_id: @evaluation_activity.evaluation_moment_id
+    ).to_f
   end
 
-  def mensaje_del_reparto(reparto, total)
-    hecho = "Reparto guardado: #{helpers.contar(reparto.size, 'evaluación', 'evaluaciones')}."
-    return "#{hecho} El lapso cierra en 100 %." if total == 100
+  def errores_de_la_fila = @evaluation_activity.errors.full_messages.to_sentence.presence
 
-    "#{hecho} Faltan #{helpers.porcentaje(100 - total)} por repartir."
-  end
+  # ⚠️ Lo dice el FORMULARIO, con un parámetro, y no se deduce del `Accept`.
+  #
+  # `request.format.turbo_stream?` parecía suficiente y no lo es: Turbo pide
+  # turbo_stream en TODO envío, así que el formulario completo del `edit`
+  # entraría por acá y contestaría reemplazando una fila que esa pantalla no
+  # tiene. Quien sabe de dónde viene es quien lo manda.
+  def en_linea? = params[:en_linea].present?
 
 
   # El conjunto que este usuario puede siquiera nombrar. `find` sale de acá, así

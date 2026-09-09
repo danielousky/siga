@@ -33,9 +33,12 @@ class PlanAnidadoTest < ActionDispatch::IntegrationTest
 
     # Dentro: el selector exige que la evaluación esté BAJO la competencia y no
     # en cualquier parte de la página, que es justamente lo que cambió.
-    assert_select ".plan-competencia .plan-evaluaciones .plan-evaluacion-descripcion",
+    assert_select ".plan-competencia .plan-evaluaciones .plan-evaluacion-nombre-campo[value=?]",
                   "Examen del lapso"
-    assert_select ".plan-competencia .plan-evaluacion-peso-campo[value=?]", "40.0"
+    # ⚠️ «40», no «40.0»: el decimal donde nadie escribió un decimal fue lo que
+    # hizo dudar a Daniel de que el campo fuera editable.
+    assert_select ".plan-competencia .plan-evaluacion-peso-campo[value=?]", "40"
+    assert_select ".plan-evaluacion-peso-campo[step=?]", "1"
   end
 
   test "una competencia sin evaluaciones avisa lo que le va a pasar en la boleta" do
@@ -56,7 +59,7 @@ class PlanAnidadoTest < ActionDispatch::IntegrationTest
 
     plan
 
-    assert_select ".plan-sueltas .plan-evaluacion-descripcion", "Participación"
+    assert_select ".plan-sueltas .plan-evaluacion-nombre-campo[value=?]", "Participación"
     assert_select ".plan-sueltas-titulo", /1 evaluación sin competencia/
   end
 
@@ -72,7 +75,7 @@ class PlanAnidadoTest < ActionDispatch::IntegrationTest
     plan
 
     # Dos veces en la lista —una bajo cada competencia— y una sola en la suma.
-    assert_select ".plan-evaluacion-descripcion", count: 2, text: "Examen"
+    assert_select ".plan-evaluacion-nombre-campo[value=?]", "Examen", count: 2
     assert_select ".plan-ponderacion-cuenta", /\A\s*40 %/
     assert_select ".plan-ponderacion-resto", /60 % sin repartir/
     # Un tramo por evaluación, no uno por aparición en el anidado.
