@@ -22,6 +22,12 @@
                                ("plan-competencia--con-error" if error),
                                ("plan-competencia--guardada" if guardada) ].compact }
   .plan-competencia-cabecera
+    -# ⚠️ El número va en su propio elemento y NO como `::before` del título.
+    -# Desde que la descripción es un `<textarea>` no hay dónde ponerlo: un
+    -# campo de formulario es un elemento reemplazado y no admite
+    -# pseudoelementos. Lo pinta el contador CSS, que se recalcula solo cuando
+    -# una competencia se borra o vuelve por turbo_stream.
+    %span.plan-competencia-numero{ "aria-hidden": true }
     .plan-competencia-texto
       - if profesor?
         = form_with model: competencia, url: competency_path(competencia, contexto.merge(en_linea: true)),
@@ -43,9 +49,6 @@
       -# qué se espera del campo de abajo. Escondiéndolo cuando no hay ninguno,
       -# el único renglón que queda es un «escribe un indicador…» que no dice
       -# indicador de qué.
-      %h5.plan-rotulo Indicadores
-      = render "competencies/indicadores", competencia: competencia, contexto: contexto
-
     - if profesor?
       .columna-acciones
         -# ⚠️ Sin lápiz: los dos campos se editan arriba. Queda borrar, que es
@@ -56,26 +59,36 @@
                     data: { tooltip: "Borrar la competencia" }, "aria-label": "Borrar la competencia" do
           = icono(:borrar, tamano: 15)
 
-  - if error
-    %p.plan-competencia-error
-      = icono(:alerta, tamano: 13)
-      %span= error
+  -# ⚠️ Indicadores y evaluaciones van SANGRADOS, en su propio contenedor.
+  -#
+  -# Daniel: *«la segunda competencia está suelta y confunde… un poco más
+  -# evidente el contenido que va dentro»*. Al mismo nivel que el título, la
+  -# lista se leía como una sucesión de bloques sin dueño: dónde terminaba una
+  -# competencia y empezaba la siguiente había que deducirlo del renglón gris.
+  .plan-competencia-cuerpo
+    - if error
+      %p.plan-competencia-error
+        = icono(:alerta, tamano: 13)
+        %span= error
 
-  %h5.plan-rotulo Evaluaciones
-  - if suyas.any?
-    %ul.plan-evaluaciones
-      = render partial: "competencies/evaluacion", collection: suyas, as: :evaluacion,
-               locals: { contexto: contexto, competencia: competencia, competencias: competencias }
-  - else
-    -# ⚠️ Es un AVISO, no un error: el plan se guarda igual. Pero dice la
-    -# consecuencia y no el síntoma — «sin evaluaciones» no significa nada,
-    -# «no tendrá nivel en la boleta» sí (`MOR-229`).
-    %p.plan-sin-evaluar
-      = icono(:alerta, tamano: 15)
-      %span Sin evaluaciones — esta competencia saldrá sin nivel en la boleta.
+    %h5.plan-rotulo Indicadores
+    = render "competencies/indicadores", competencia: competencia, contexto: contexto
 
-  - if profesor?
-    .plan-competencia-acciones
-      = boton "Agregar evaluación",
-              new_evaluation_activity_path(contexto.merge(competencia: competencia.id)),
-              icono: :agregar, tono: :guardar, sm: true
+    %h5.plan-rotulo Evaluaciones
+    - if suyas.any?
+      %ul.plan-evaluaciones
+        = render partial: "competencies/evaluacion", collection: suyas, as: :evaluacion,
+                 locals: { contexto: contexto, competencia: competencia, competencias: competencias }
+    - else
+      -# ⚠️ Es un AVISO, no un error: el plan se guarda igual. Pero dice la
+      -# consecuencia y no el síntoma — «sin evaluaciones» no significa nada,
+      -# «no tendrá nivel en la boleta» sí (`MOR-229`).
+      %p.plan-sin-evaluar
+        = icono(:alerta, tamano: 15)
+        %span Sin evaluaciones — esta competencia saldrá sin nivel en la boleta.
+
+    - if profesor?
+      .plan-competencia-acciones
+        = boton "Agregar evaluación",
+                new_evaluation_activity_path(contexto.merge(competencia: competencia.id)),
+                icono: :agregar, tono: :guardar, sm: true

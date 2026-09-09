@@ -10275,6 +10275,37 @@ a.subject-avance:hover { filter: brightness(0.9); }
 .plan-competencia {
   padding: var(--space-md) 0;
   border-top: 1px solid var(--border-subtle);
+  counter-increment: competencia;
+}
+
+/* ── El número, y lo que va DENTRO ───────────────────────────────────────── */
+/* Daniel: «la segunda competencia está suelta y confunde: deben ir enumeradas
+   las competencias en el título y un poco más evidente el contenido que va
+   dentro».
+
+   ⚠️ El número va en su propio elemento y NO como `::before` del título: desde
+   que la descripción es un `<textarea>` no hay dónde ponerlo — un campo de
+   formulario es un elemento reemplazado y no admite pseudoelementos. */
+.plan-competencia-numero {
+  flex: 0 0 auto;
+  min-width: 1.5rem;
+  padding-top: 2px;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+.plan-competencia-numero::before { content: counter(competencia) "."; }
+
+/* Indicadores y evaluaciones, sangrados a la altura del título: al mismo nivel,
+   dónde terminaba una competencia y empezaba la siguiente había que deducirlo
+   del renglón gris. */
+.plan-competencia-cuerpo { padding-left: 1.5rem; }
+
+@media (max-width: 700px) {
+  /* A 390 px, kilo y medio de sangría se come el ancho de los indicadores. */
+  .plan-competencia-cuerpo { padding-left: var(--space-sm); }
 }
 
 .plan-competencia:first-child { border-top: 0; }
@@ -10308,7 +10339,6 @@ a.subject-avance:hover { filter: brightness(0.9); }
    tercera es el trabajo que este issue viene a quitar. */
 .plan-competencia-descripcion {
   margin: 0;
-  counter-increment: competencia;
   text-wrap: pretty;
   max-width: 80ch;
 }
@@ -10338,7 +10368,7 @@ a.subject-avance:hover { filter: brightness(0.9); }
 /* Daniel: «elevar el modelo que aplicamos a evaluaciones a competencias e
    indicadores». Misma regla que la fila de la evaluación: el campo ya es el
    campo, y lo único que cambia al apuntarlo es que se le ve el borde. */
-.plan-competencia-campo { counter-increment: competencia; }
+.plan-competencia-campo { flex: 1; min-width: 0; }
 
 /* ⚠️ `resize: none` y `overflow: hidden`: el alto lo lleva `campo-que-crece`
    con el contenido. Dejando la manija de redimensionar, el profesor puede
@@ -10454,11 +10484,6 @@ a.subject-avance:hover { filter: brightness(0.9); }
   .plan-indicador-quitar { opacity: 1; }
 }
 
-.plan-competencia-descripcion::before {
-  content: counter(competencia) ". ";
-  color: var(--text-tertiary);
-  font-variant-numeric: tabular-nums;
-}
 
 /* Los indicadores DESCRIBEN: van en segundo plano, sin nivel al lado, porque no
    se califican. Que se vean subordinados es la mitad de decir eso. */
