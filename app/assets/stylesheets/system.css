@@ -10373,10 +10373,15 @@ a.subject-avance:hover { filter: brightness(0.9); }
 /* ⚠️ `resize: none` y `overflow: hidden`: el alto lo lleva `campo-que-crece`
    con el contenido. Dejando la manija de redimensionar, el profesor puede
    encoger el campo hasta tapar su propio texto. */
+/* ⚠️ SIN `max-width`. Lo tenía en 80ch —heredado del párrafo de solo lectura,
+   donde una medida corta ayuda a leer— y en el campo editable eso lo cortaba a
+   media pantalla, con el resto en blanco: el texto se plegaba en una columna
+   mientras sus indicadores, que no lo llevan, ocupaban el ancho entero. Dos
+   campos del mismo bloque midiendo distinto se lee como un defecto, no como
+   una decisión tipográfica. */
 .plan-competencia-descripcion-campo {
   display: block;
   width: 100%;
-  max-width: 80ch;
   padding: 2px 5px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
