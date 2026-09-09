@@ -197,4 +197,63 @@ class EdicionEnLineaSystemTest < ApplicationSystemTestCase
     assert_equal "también mide",
                  bloque_de("Resuelve problemas").find(".plan-evaluacion-chips-etiqueta").text
   end
+
+  # ── La evaluación que mide DOS competencias (QA del 9 de septiembre) ──────
+  #
+  # Daniel: *«si uso la misma evaluación y la cambio en una de las competencias
+  # no se actualiza la otra y la barra queda también desincronizada»*, con una
+  # captura de 27 % arriba, 22 % abajo y la barra en 77 %.
+  #
+  # Eran dos fallas con la misma raíz: la evaluación sale DOS VECES —a propósito—
+  # y sus dos filas llevaban el mismo `id` DOM. Turbo reemplaza el primero que
+  # encuentra y deja el otro con el valor viejo; y el controlador de la barra
+  # sumaba los CAMPOS, así que un 28 % contaba 56.
+  # El taller (30 %) mide DOS competencias, así que sale dos veces. El examen
+  # (40 %) mide una: es el testigo de que la suma no cuenta apariciones.
+  def con_dos_competencias
+    con_el_colegio(@a.colegio) do
+      a = competencia_con(0, "El niño debe graficar funciones", lapso: @lapso)
+      b = competencia_con(0, "Otra competencia de Historia", lapso: @lapso)
+      @taller.competencies = [ a, b ]
+      actividad(@a.escenario, lapso: @lapso, peso: 40, descripcion: "Examen").competencies = [ a ]
+    end
+    visit planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
+  end
+
+  def copias_del_peso = all(".plan-evaluacion-peso-campo[data-id='#{@taller.id}']")
+
+  test "sale dos veces, y cada aparición tiene su propio id" do
+    con_dos_competencias
+
+    assert_equal 2, copias_del_peso.size
+    ids = all(".plan-evaluacion").map { |fila| fila[:id] }
+    assert_equal ids.uniq.size, ids.size, "dos elementos con el mismo id: Turbo solo cambia uno"
+  end
+
+  # ⚠️ Escribir en una copia mueve la otra: son el MISMO dato, y ninguno de los
+  # dos números era mentira por sí solo.
+  test "cambiar el peso en una competencia lo cambia en la otra" do
+    con_dos_competencias
+
+    copias_del_peso.first.set("45")
+    find(".plan-ponderacion-titulo").click
+
+    assert_selector ".plan-evaluacion--guardada", wait: 5
+    assert_equal [ "45", "45" ], copias_del_peso.map(&:value)
+    assert_equal 45, con_el_colegio(@a.colegio) { @taller.reload.weight_percentage.to_i }
+  end
+
+  # ⚠️ La barra cuenta la EVALUACIÓN, no sus apariciones: sumando los campos, un
+  # 28 % contaba 56 y la barra decía 128 % con el lapso cerrado en 100.
+  test "la barra cuenta la evaluación una sola vez" do
+    con_dos_competencias
+
+    # 30 del taller (en dos sitios) + 40 del examen = 70, no 100.
+    assert_selector ".plan-ponderacion-cuenta", text: "70 %"
+
+    copias_del_peso.first.set("60")
+
+    # Y al escribir, en vivo: 60 + 40 = 100, no 160.
+    assert_text "cierra en 100 %"
+  end
 end

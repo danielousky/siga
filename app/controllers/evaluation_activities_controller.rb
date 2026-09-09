@@ -149,9 +149,7 @@ class EvaluationActivitiesController < ApplicationController
     # una competencia que ya no mide. Eso se recarga entero.
     return redirect_to(ruta_de_vuelta(@evaluation_activity)) if cambio_el_enganche?
 
-    render turbo_stream: [
-      turbo_stream.replace(helpers.dom_id(@evaluation_activity), partial: "competencies/evaluacion",
-                                                                locals: fila_del_plan.merge(guardada: true)),
+    render turbo_stream: filas_a_refrescar + [
       turbo_stream.replace("cuenta-de-la-ponderacion", partial: "competencies/cuenta",
                                                             locals: { usado: peso_repartido })
     ]
@@ -167,7 +165,7 @@ class EvaluationActivitiesController < ApplicationController
 
     @evaluation_activity.reload
     render turbo_stream: turbo_stream.replace(
-      helpers.dom_id(@evaluation_activity),
+      helpers.id_de_la_fila(@evaluation_activity, fila_del_plan[:competencia]),
       partial: "competencies/evaluacion",
       locals: fila_del_plan.merge(error: errores_de_la_fila)
     ), status: :unprocessable_entity
@@ -197,6 +195,25 @@ class EvaluationActivitiesController < ApplicationController
       subject_id: @evaluation_activity.subject_id,
       evaluation_moment_id: @evaluation_activity.evaluation_moment_id
     ).to_f
+  end
+
+  # ⚠️ TODAS las apariciones de la evaluación, no solo la que se tocó.
+  #
+  # Una que mide dos competencias sale dos veces, y las dos son el mismo dato:
+  # cambiar su peso arriba dejaba el de abajo con el valor viejo —27 % y 22 % en
+  # la misma pantalla— sin que ninguno fuera mentira por sí solo.
+  #
+  # Si no mide ninguna, su única aparición es la del bloque de las sueltas, que
+  # no cuelga de ninguna competencia.
+  def filas_a_refrescar
+    donde = @evaluation_activity.competencies.to_a
+    donde = [ nil ] if donde.empty?
+
+    donde.map do |competencia|
+      turbo_stream.replace(helpers.id_de_la_fila(@evaluation_activity, competencia),
+                           partial: "competencies/evaluacion",
+                           locals: fila_del_plan.merge(competencia: competencia, guardada: true))
+    end
   end
 
   def errores_de_la_fila = @evaluation_activity.errors.full_messages.to_sentence.presence

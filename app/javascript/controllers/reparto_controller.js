@@ -26,9 +26,26 @@ export default class extends Controller {
     const pesos = this.#pesos()
     const total = pesos.reduce((suma, { valor }) => suma + valor, 0)
 
+    this.#sincronizarLasCopias()
     this.#pintarLosTramos(pesos, total)
     this.#pintarLaCuenta(total)
     this.#toparLosCampos(pesos)
+  }
+
+  // ⚠️ Escribir en una copia mueve la otra: son el MISMO dato.
+  //
+  // Con la evaluación bajo dos competencias, cambiar su peso arriba dejaba el
+  // campo de abajo con el valor viejo —27 y 22 en la misma pantalla— y ninguno
+  // de los dos era mentira por sí solo: los dos decían lo que tenían escrito.
+  #sincronizarLasCopias() {
+    const activo = document.activeElement
+
+    this.#todosLosCampos().forEach(({ id, campo }) => {
+      if (campo === activo) return
+
+      const fuente = this.#todosLosCampos().find((otro) => otro.id === id && otro.campo === activo)
+      if (fuente) campo.value = fuente.campo.value
+    })
   }
 
   // ⚠️ El `max` de cada campo es lo que QUEDA contando a los otros, no 100.
@@ -58,7 +75,28 @@ export default class extends Controller {
     this.recalcular()
   }
 
+  // ⚠️ Una evaluación cuenta UNA VEZ, aunque tenga varios campos.
+  //
+  // Una que mide dos competencias se dibuja dos veces —a propósito— y con ella
+  // su campo de peso. Sumando los campos, su 28 % contaba 56 y la barra decía
+  // 128 % con el lapso cerrado en 100. Lo encontró Daniel el 9 de septiembre.
+  //
+  // Se agrupa por el id de la EVALUACIÓN, que es de lo que el 100 % está hecho:
+  // los campos son cuántas veces se ve, no cuántas evaluaciones hay.
   #pesos() {
+    const vistos = new Set()
+
+    return this.#todosLosCampos().filter(({ id }) => {
+      if (vistos.has(id)) return false
+
+      vistos.add(id)
+      return true
+    })
+  }
+
+  // Todas las apariciones, sin agrupar: lo que hay que MOVER al pintar, porque
+  // cada copia tiene su propio tramo y su propio tope.
+  #todosLosCampos() {
     return this.pesoTargets.map((campo) => ({
       id: campo.dataset.id,
       campo,
@@ -73,6 +111,8 @@ export default class extends Controller {
     const escala = total > 100 ? 100 / total : 1
 
     pesos.forEach(({ id, valor }) => {
+      // Un tramo por EVALUACIÓN, no por campo: la barra mide el reparto del
+      // lapso, no cuántas veces se ve cada evaluación en la lista.
       const tramo = this.tramoTargets.find((t) => t.dataset.id === id)
       if (!tramo) return
 

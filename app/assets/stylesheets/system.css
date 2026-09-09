@@ -10313,6 +10313,27 @@ a.subject-avance:hover { filter: brightness(0.9); }
   max-width: 80ch;
 }
 
+/* ── Los rótulos: qué es cada cosa ───────────────────────────────────────── */
+/* Daniel: «coloca subtítulos de secciones para identificar Competencias,
+   Indicadores y Evaluaciones».
+
+   ⚠️ Los tres son del MISMO peso visual aunque uno esté dentro de otro: no son
+   una jerarquía de importancia, son tres cosas distintas que había que poder
+   nombrar. Un rótulo más grande arriba haría leer «indicadores» y
+   «evaluaciones» como subordinados de la competencia, y la evaluación no es
+   parte de la competencia — la mide. */
+.plan-rotulo {
+  margin: var(--space-md) 0 var(--space-xs);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+/* El de más arriba abre la lista, así que no lleva el margen superior. */
+.plan-rotulo--seccion { margin-top: 0; }
+
 /* ── La competencia, editable en su sitio ────────────────────────────────── */
 /* Daniel: «elevar el modelo que aplicamos a evaluaciones a competencias e
    indicadores». Misma regla que la fila de la evaluación: el campo ya es el

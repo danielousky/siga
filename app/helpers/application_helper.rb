@@ -343,4 +343,18 @@ module ApplicationHelper
 
     numero.frac.zero? ? numero.to_i : numero
   end
+
+  # El id DOM de una fila del plan.
+  #
+  # ⚠️ Lleva la competencia bajo la que está dibujada, y no puede llevar solo el
+  # de la evaluación: una que mide dos competencias sale dos veces —a propósito—
+  # y con `dom_id(evaluacion)` a secas quedaban DOS elementos con el mismo `id`.
+  #
+  # Eso es HTML inválido, pero lo que se rompe es concreto: Turbo reemplaza el
+  # primero que encuentra y deja el otro con el valor viejo. En pantalla, la
+  # misma evaluación decía 27 % arriba y 22 % abajo. Lo encontró Daniel el 9 de
+  # septiembre.
+  def id_de_la_fila(evaluacion, competencia = nil)
+    [ dom_id(evaluacion), ("bajo_#{competencia.id}" if competencia) ].compact.join("_")
+  end
 end

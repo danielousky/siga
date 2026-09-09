@@ -39,6 +39,11 @@
       - else
         %p.plan-competencia-descripcion= competencia.descripcion
 
+      -# ⚠️ El rótulo va SIEMPRE, también con la lista vacía: es lo que explica
+      -# qué se espera del campo de abajo. Escondiéndolo cuando no hay ninguno,
+      -# el único renglón que queda es un «escribe un indicador…» que no dice
+      -# indicador de qué.
+      %h5.plan-rotulo Indicadores
       = render "competencies/indicadores", competencia: competencia, contexto: contexto
 
     - if profesor?
@@ -56,6 +61,7 @@
       = icono(:alerta, tamano: 13)
       %span= error
 
+  %h5.plan-rotulo Evaluaciones
   - if suyas.any?
     %ul.plan-evaluaciones
       = render partial: "competencies/evaluacion", collection: suyas, as: :evaluacion,

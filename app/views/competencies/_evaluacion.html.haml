@@ -26,7 +26,7 @@
 -# tiene que saber bajo QUÉ competencia está dibujada, o su chip repite la de
 -# arriba en vez de nombrar la otra.
 - aqui = contexto.merge(en_linea: true, bajo: local_assigns[:competencia]&.id).compact
-%li.plan-evaluacion{ id: dom_id(evaluacion),
+%li.plan-evaluacion{ id: id_de_la_fila(evaluacion, local_assigns[:competencia]),
                      class: [ ("plan-evaluacion--con-error" if error),
                               ("plan-evaluacion--guardada" if guardada) ].compact }
   -# El nombre ya no puede ser el enlace a la planilla —ahora se escribe encima—

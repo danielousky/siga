@@ -79,6 +79,10 @@
         .empty-state-acciones
           = boton "Agregar competencia", new_competency_path(contexto), icono: :agregar, tono: :guardar
   - else
+    -# ⚠️ Los tres rótulos son del MISMO nivel visual —competencias, indicadores
+    -# y evaluaciones— aunque uno esté dentro de otro. No son una jerarquía de
+    -# importancia: son tres cosas distintas que había que poder nombrar.
+    %h4.plan-rotulo.plan-rotulo--seccion Competencias
     %ol.plan-competencias
       = render partial: "competencies/competencia", collection: @competencias, as: :competencia,
                locals: { contexto: contexto, competencias: competencias_del_lapso }
@@ -87,7 +91,7 @@
       -# —el peso es el peso— pero no describen nada, así que la boleta las suma
       -# sin poder explicarlas.
       .plan-sueltas
-        %h4.plan-sueltas-titulo
+        %h5.plan-sueltas-titulo
           = icono(:alerta, tamano: 15)
           %span= "#{contar(evaluaciones_sueltas.size, 'evaluación', 'evaluaciones')} sin competencia"
         %p.nota-ayuda
