@@ -6931,6 +6931,116 @@ a.subject-avance:hover { filter: brightness(0.9); }
 
 .plan-evaluacion-ir:hover { color: var(--brand-primary); background: var(--surface-hover); }
 
+/* ── Qué mide esta evaluación, en su fila ────────────────────────────────── */
+/* ⚠️ El chip dice las OTRAS competencias, no todas: en el plan anidado la
+   evaluación ya está debajo de la que mide, y repetirlo es decir dos veces lo
+   mismo en el mismo renglón. Lo que la posición no puede decir es que además
+   mide otra — ahí la evaluación sale dos veces, y sin el chip las dos
+   apariciones se ven idénticas y sin relación. */
+.plan-evaluacion-chips {
+  flex: 1 0 100%;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 3px;
+  padding-left: 22px;
+}
+
+.plan-evaluacion-chips-etiqueta,
+.plan-evaluacion-chips-vacio {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.plan-evaluacion-chips-vacio {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--warning-text);
+}
+
+.plan-evaluacion-chip-form { display: contents; }
+
+/* Un chip es un botón que QUITA ese enganche: se ve lo que hay y se deshace
+   donde se ve, sin abrir nada. La × aparece al apuntarlo, para que el chip se
+   lea como dato y no como un control a medio apretar. */
+.plan-evaluacion-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+  padding: 1px 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--surface-elevated);
+  font: inherit;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.plan-evaluacion-chip:hover {
+  border-color: var(--danger-text);
+  color: var(--danger-text);
+}
+
+.plan-evaluacion-chip-quitar { opacity: 0; font-weight: 600; }
+.plan-evaluacion-chip:hover .plan-evaluacion-chip-quitar,
+.plan-evaluacion-chip:focus-visible .plan-evaluacion-chip-quitar { opacity: 1; }
+
+/* En el táctil no hay «apuntar», así que la × se queda puesta. */
+@media (hover: none) {
+  .plan-evaluacion-chip-quitar { opacity: 1; }
+}
+
+.plan-evaluacion-mas { position: relative; }
+
+.plan-evaluacion-mas-abrir {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 5px;
+  border: 1px dashed var(--border-subtle);
+  border-radius: 999px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  list-style: none;
+}
+
+.plan-evaluacion-mas-abrir::-webkit-details-marker { display: none; }
+.plan-evaluacion-mas-abrir:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+
+.plan-evaluacion-mas-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  width: 260px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+.plan-evaluacion-mas-opcion {
+  display: block;
+  width: 100%;
+  padding: 5px 7px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.plan-evaluacion-mas-opcion:hover { background: var(--surface-hover); }
+
 .plan-evaluacion-error {
   flex: 1 0 100%;
   display: flex;
@@ -7308,106 +7418,10 @@ a.subject-avance:hover { filter: brightness(0.9); }
   color: var(--text-tertiary);
 }
 
-/* ── Conectar, en un `<details>` ─────────────────────────────────────────── */
-/* Nativo: abre y cierra sin JavaScript. Si Stimulus muriera —ya pasó— el
-   profesor sigue pudiendo conectar sus evaluaciones. */
-.plan-conectar { position: relative; margin-left: auto; }
-
-.plan-conectar-abrir {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px var(--space-xs);
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  color: var(--brand-primary);
-  cursor: pointer;
-  text-decoration: none;
-  list-style: none;
-  white-space: nowrap;
-}
-
-.plan-conectar-abrir::-webkit-details-marker { display: none; }
-.plan-conectar-abrir::marker { content: ""; }
-.plan-conectar-abrir:hover { background: var(--surface-hover); }
-
-.plan-conectar-abrir:focus-visible {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 2px;
-}
-
-/* ⚠️ Con el panel ABIERTO, el tooltip se calla.
-   El puntero sigue encima del `summary` después del clic, así que el globo se
-   dibuja justo sobre el panel que acaba de abrirse y tapa su título — se ve el
-   recuadro y no se lee qué pide. Es la misma queja de Daniel sobre los
-   tooltips que se montan encima de lo que hay que leer. Y una vez abierto ya
-   no explica nada: lo que iba a pasar, pasó. */
-.plan-conectar[open] > .plan-conectar-abrir::after,
-.plan-conectar[open] > .plan-conectar-abrir::before { content: none; }
-
-/* ⚠️ Escondido explícitamente cuando el `<details>` está cerrado.
-   Tercera aparición de esta trampa —ya pasó con el panel de contexto y con el
-   menú—: `position: absolute` fuerza un `display` calculado y el navegador
-   pierde su ocultamiento. El panel seguiría midiendo y corriendo la página. */
-.plan-conectar:not([open]) .plan-conectar-panel { display: none; }
-
-.plan-conectar-panel {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  z-index: 20;
-  min-width: 18rem;
-  max-width: min(24rem, calc(100vw - 2rem));
-  padding: var(--space-sm);
-  border: 1px solid var(--border-standard);
-  border-radius: var(--radius-md);
-  background: var(--surface-elevated);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-}
-
-.plan-conectar-titulo {
-  margin: 0 0 var(--space-xs);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-}
-
-.plan-conectar-opcion {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  /* 40px de objetivo táctil: esto se marca desde un teléfono. */
-  min-height: 40px;
-  padding: 0 var(--space-micro);
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.plan-conectar-opcion:hover { background: var(--surface-hover); }
-
-.plan-conectar-opcion input {
-  flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-  accent-color: var(--brand-primary);
-}
-
-.plan-conectar-nombre {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.plan-conectar-acciones {
-  margin-top: var(--space-xs);
-  padding-top: var(--space-xs);
-  border-top: 1px solid var(--border-subtle);
-}
+/* ⚠️ El `<details>` de «Cambiar cuáles la miden» se retiró el 9 de septiembre.
+   El enganche vive ahora en la FILA de cada evaluación, con sus chips: aquel
+   preguntaba al revés —de la competencia hacia las evaluaciones— cuando lo
+   que uno mira en el plan es la evaluación. Ver `.plan-evaluacion-chips`. */
 
 /* ---- Qué evalúa una evaluación (MOR-136) ---- */
 /* El enganche entre el plan y la nota. Se marcan COMPETENCIAS; los indicadores

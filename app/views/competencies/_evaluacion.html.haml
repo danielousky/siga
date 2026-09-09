@@ -77,6 +77,9 @@
                   "aria-label": "Borrar" do
         = icono(:borrar, tamano: 14)
 
+  = render "competencies/chips", evaluacion: evaluacion, contexto: contexto,
+           competencia: local_assigns[:competencia], competencias: competencias
+
   -# ⚠️ El error se dice EN LA FILA y el campo vuelve a su valor viejo.
   -#
   -# Sin esto el campo se queda con lo que el profesor escribió y él se va

@@ -104,7 +104,8 @@
           - if suyas.any?
             %ul.plan-evaluaciones
               = render partial: "competencies/evaluacion", collection: suyas, as: :evaluacion,
-                       locals: { contexto: contexto }
+                       locals: { contexto: contexto, competencia: c,
+                                 competencias: competencias_del_lapso }
           - else
             -# ⚠️ Es un AVISO, no un error: el plan se guarda igual. Pero dice la
             -# consecuencia y no el síntoma — «sin evaluaciones» no significa
@@ -113,12 +114,14 @@
               = icono(:alerta, tamano: 15)
               %span Sin evaluaciones — esta competencia saldrá sin nivel en la boleta.
           - if profesor?
+            -# ⚠️ Sin «Cambiar cuáles la miden»: el enganche vive AHORA en la
+            -# fila de cada evaluación, con sus chips. Preguntaba al revés —de
+            -# la competencia hacia las evaluaciones— cuando lo que uno mira es
+            -# la evaluación.
             .plan-competencia-acciones
               = boton "Agregar evaluación",
                       new_evaluation_activity_path(contexto.merge(competencia: c.id)),
                       icono: :agregar, tono: :guardar, sm: true
-              - if evaluaciones_sueltas.any? || suyas.any?
-                = render "competencies/medida_por", competencia: c
     - if evaluaciones_sueltas.any?
       -# ⚠️ Las que no miden ninguna competencia. Cuentan para el promedio igual
       -# —el peso es el peso— pero no describen nada, así que la boleta las suma
@@ -132,7 +135,7 @@
           Engánchalas desde el botón de cada competencia, o edítalas.
         %ul.plan-evaluaciones
           = render partial: "competencies/evaluacion", collection: evaluaciones_sueltas, as: :evaluacion,
-                     locals: { contexto: contexto }
+                     locals: { contexto: contexto, competencias: competencias_del_lapso }
     - if profesor?
       -# ⚠️ Las altas van en su PROPIO contenedor, no en `.plan-acciones`, que es
       -# el de replicar a las secciones hermanas. Son dos cosas distintas —crear

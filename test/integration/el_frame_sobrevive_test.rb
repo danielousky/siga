@@ -91,14 +91,16 @@ class ElFrameSobreviveTest < ActionDispatch::IntegrationTest
     dentro_del_frame "plan", :delete, competency_path(competencia, **@contexto)
   end
 
-  # Enganchar y desenganchar evaluaciones también contesta dentro del plan.
-  test "conectar evaluaciones a una competencia" do
+  # ⚠️ Enganchar MUEVE la fila de sitio —el plan agrupa por competencia— así que
+  # esta vuelve al plan entero, no a la fila. Se pide desde la EVALUACIÓN: la
+  # acción de la competencia se retiró el 9 de septiembre.
+  test "enganchar una competencia a una evaluación" do
     competencia = con_el_colegio(@a.colegio) { competencia_con(1, lapso: @lapso) }
     evaluacion  = con_el_colegio(@a.colegio) { actividad(@a.escenario, lapso: @lapso, peso: 40) }
 
     dentro_del_frame "plan", :patch,
-      competency_conectar_evaluaciones_path(competencia, **@contexto),
-      params: { evaluation_activity_ids: [ evaluacion.id ] }
+      evaluation_activity_path(evaluacion, **@contexto, en_linea: true),
+      params: { evaluation_activity: { competency_ids: [ competencia.id.to_s, "" ] } }
   end
 
   # ── Y las SALIDAS de cada formulario ──────────────────────────────────────

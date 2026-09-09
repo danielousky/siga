@@ -28,7 +28,8 @@ module MuestraElPlan
   included do
     helper_method :lapsos, :lapso, :otras_secciones, :contexto,
                   :hermanas_con_plan, :hermanas_sin_plan, :evaluaciones_del_lapso,
-                  :evaluaciones_de, :evaluaciones_sueltas, :peso_del_lapso
+                  :evaluaciones_de, :evaluaciones_sueltas, :peso_del_lapso,
+                  :competencias_del_lapso
   end
 
   private
@@ -168,6 +169,14 @@ module MuestraElPlan
   # ⚠️ Se suma sobre `evaluaciones_del_lapso`, NUNCA sobre el anidado: ahí una
   # evaluación de dos competencias está dos veces y el 40 % se contaría 80.
   def peso_del_lapso = evaluaciones_del_lapso.sum(&:weight_percentage)
+
+  # Todas las del plan, para ofrecer las que una evaluación TODAVÍA no mide.
+  # Es la misma lista que dibuja el plan, así que se lee una vez.
+  def competencias_del_lapso
+    return [] if seccion_del_plan.nil? || area_del_plan.nil? || lapso.nil?
+
+    @competencias_del_lapso ||= Competency.del_plan(seccion_del_plan.id, area_del_plan.id, lapso.id).to_a
+  end
 
   def por_competencia
     @por_competencia ||= evaluaciones_del_lapso.each_with_object(Hash.new { |h, k| h[k] = [] }) do |e, mapa|

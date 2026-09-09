@@ -53,134 +53,139 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
     assert_select ".plan-sin-evaluar", /sin nivel en la boleta/
   end
 
-  test "conectar una evaluación desde el plan" do
+  # ── Enganchar, desde la evaluación ────────────────────────────────────────
+  #
+  # ⚠️ Cambió de puerta el 9 de septiembre. Antes se pedía desde la COMPETENCIA
+  # (`PATCH /competencias/:id/evaluaciones`) y esa acción se retiró: preguntaba
+  # al revés —de la competencia hacia las evaluaciones— cuando lo que uno mira
+  # en el plan es la evaluación, con sus chips en la fila.
+  #
+  # Las reglas de dominio son las mismas y por eso los tests siguen: solo se
+  # engancha lo del MISMO plan —misma sección, misma área, mismo lapso— y el
+  # filtro es una lista que no incluye lo ajeno, no una excepción a mitad de un
+  # guardado.
+  def enganchar(evaluacion, competencias)
+    patch evaluation_activity_path(evaluacion, asignacion: @asignacion, lapso: @lapso.id,
+                                               en_linea: true),
+          params: { evaluation_activity: { competency_ids: Array(competencias).map(&:to_s) + [ "" ] } },
+          headers: { "Turbo-Frame" => "plan" }
+  end
+
+  def competencias_de(evaluacion)
+    con_el_colegio(@a.colegio) { evaluacion.reload.competency_ids }
+  end
+
+  test "enganchar una evaluación a una competencia" do
     examen = con_el_colegio(@a.colegio) do
       actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen")
     end
     sign_in @a.profesor
 
     assert_difference "Current.sin_aislamiento { ActivityCompetency.unscoped.count }", 1 do
-      patch competency_conectar_evaluaciones_path(@competencia, asignacion: @asignacion, lapso: @lapso.id),
-            params: { evaluation_activity_ids: [ examen.id ] }
+      enganchar(examen, [ @competencia.id ])
     end
 
+    assert_equal [ @competencia.id ], competencias_de(examen)
+    # Vuelve al plan entero: el enganche MUEVE la fila de sitio.
     assert_redirected_to planificar_section_path(@a.seccion, area: @a.escenario.materia.id,
                                                  lapso: @lapso.id)
-    con_el_colegio(@a.colegio) do
-      assert_equal [ examen.id ], @competencia.reload.evaluation_activity_ids
-    end
   end
 
-  # ⚠️ REEMPLAZA, no suma: la persona ve todas las casillas, así que desmarcar
-  # tiene que quitar. Es lo mismo que hacen los indicadores al editar.
-  test "desconectar todas deja la competencia sin evaluaciones" do
-    con_el_colegio(@a.colegio) do
-      examen = actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen")
-      ActivityCompetency.create!(competency: @competencia, evaluation_activity: examen)
+  test "desenganchar todas deja la evaluación sin competencias" do
+    examen = con_el_colegio(@a.colegio) do
+      e = actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen")
+      ActivityCompetency.create!(competency: @competencia, evaluation_activity: e)
+      e
     end
     sign_in @a.profesor
 
-    # El campo vacío es lo que manda el formulario cuando no hay ninguna
-    # marcada: sin él, Rails no distingue «ninguna» de «no me preguntes».
-    patch competency_conectar_evaluaciones_path(@competencia, asignacion: @asignacion, lapso: @lapso.id),
-          params: { evaluation_activity_ids: [ "" ] }
+    enganchar(examen, [])
 
-    con_el_colegio(@a.colegio) do
-      assert_empty @competencia.reload.evaluation_activity_ids
-    end
+    assert_empty competencias_de(examen)
   end
 
-  # ⚠️ Solo las evaluaciones del MISMO plan: misma sección, misma área, mismo
-  # lapso. Lo cruzado no da error, no se ve, y aparece meses después en una
-  # boleta diciendo algo que nadie escribió ahí.
-  test "no se puede conectar una evaluación de otro lapso" do
+  # ⚠️ El campo vacío es lo que permite desenganchar TODAS: sin él, un
+  # formulario sin ninguna casilla no manda la clave y el controller no se
+  # entera de que hay que desenganchar.
+  test "sin la clave, el enganche no se toca" do
+    examen = con_el_colegio(@a.colegio) do
+      e = actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen")
+      ActivityCompetency.create!(competency: @competencia, evaluation_activity: e)
+      e
+    end
+    sign_in @a.profesor
+
+    patch evaluation_activity_path(examen, asignacion: @asignacion, lapso: @lapso.id, en_linea: true),
+          params: { evaluation_activity: { description: "Otro nombre" } }
+
+    assert_equal [ @competencia.id ], competencias_de(examen), "cambiar el nombre no desengancha"
+  end
+
+  test "no se engancha una competencia de otro lapso" do
     de_otro_lapso = con_el_colegio(@a.colegio) do
-      actividad(@a.escenario, lapso: @a.escenario.lapso(3), peso: 100, descripcion: "De otro lapso")
+      Competency.create!(section: @a.seccion, subject: @a.escenario.materia,
+                         evaluation_moment: @a.escenario.lapso(3), descripcion: "De otro lapso")
     end
+    examen = con_el_colegio(@a.colegio) { actividad(@a.escenario, lapso: @lapso, peso: 100) }
     sign_in @a.profesor
 
-    patch competency_conectar_evaluaciones_path(@competencia, asignacion: @asignacion, lapso: @lapso.id),
-          params: { evaluation_activity_ids: [ de_otro_lapso.id ] }
+    enganchar(examen, [ de_otro_lapso.id ])
 
-    con_el_colegio(@a.colegio) do
-      assert_empty @competencia.reload.evaluation_activity_ids
-    end
+    assert_empty competencias_de(examen)
   end
 
   test "ni una de otro colegio" do
-    ajena = con_el_colegio(@b.colegio) { @b.actividad }
-    sign_in @a.profesor
-
-    patch competency_conectar_evaluaciones_path(@competencia, asignacion: @asignacion, lapso: @lapso.id),
-          params: { evaluation_activity_ids: [ ajena.id ] }
-
-    con_el_colegio(@a.colegio) { assert_empty @competencia.reload.evaluation_activity_ids }
-  end
-
-  # ⚠️ Sin evaluaciones en el lapso no hay nada que conectar, y un panel vacío
-  # no explica nada: se dice qué falta y se ofrece el camino.
-  #
-  # ⚠️ Y el camino va CON el contexto puesto: sección, área, lapso y la propia
-  # competencia. Daniel: *«este enlace puede llevar ya todas estas
-  # características, ¿para qué repedírselas al usuario?»*. Que el destino sea
-  # `/evaluaciones/new` a secas era exactamente el problema.
-  test "sin evaluaciones en el lapso, se ofrece crear una con el contexto puesto" do
-    sign_in @a.profesor
-    get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
-    follow_redirect! while response.redirect?
-
-    assert_select ".plan-conectar-panel", count: 0
-    # ⚠️ La ruta sale de `contexto`, que desde la etapa ③ incluye `desde` — el
-    # test la arma igual que la vista para no fijar el orden de los parámetros.
-    assert_select "a[href*=?]", "competencia=#{@competencia.id}"
-    assert_select "a[href*=?]", "/evaluaciones/new"
-  end
-
-  # La competencia de otro profesor no se toca: `set_competency` la busca
-  # dentro de su alcance, así que pedirla por id da 404 y no 403.
-  test "no se conecta la competencia de otro colegio" do
     ajena = con_el_colegio(@b.colegio) do
       Competency.create!(section: @b.seccion, subject: @b.escenario.materia,
                          evaluation_moment: @b.escenario.lapso(1), descripcion: "Del colegio B")
     end
+    examen = con_el_colegio(@a.colegio) { actividad(@a.escenario, lapso: @lapso, peso: 100) }
     sign_in @a.profesor
 
-    patch competency_conectar_evaluaciones_path(ajena, asignacion: @asignacion, lapso: @lapso.id),
-          params: { evaluation_activity_ids: [] }
+    enganchar(examen, [ ajena.id ])
+
+    assert_empty competencias_de(examen)
+  end
+
+  test "no se toca una evaluación de otro colegio" do
+    ajena = con_el_colegio(@b.colegio) { @b.actividad }
+    sign_in @a.profesor
+
+    enganchar(ajena, [ @competencia.id ])
 
     assert_response :not_found
   end
 
-  # ── La otra mitad: desde la libreta ────────────────────────────────────────
-  #
-  # ⚠️ La libreta era la única pantalla del profesor donde el plan no existía —
-  # y es la que más mira. Ahora cada columna dice cuántas competencias mide.
-  test "la libreta dice qué mide cada evaluación" do
+  # ── Lo que se ve en la fila ───────────────────────────────────────────────
+  test "la fila ofrece las competencias que la evaluación TODAVÍA no mide" do
     con_el_colegio(@a.colegio) do
-      examen = actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen")
-      ActivityCompetency.create!(competency: @competencia, evaluation_activity: examen)
-      @a.seccion.update!(leader_teacher: @a.registro_de_profesor)
+      competencia_con(1, "Interpreta gráficos de barras", lapso: @lapso)
+      e = actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen")
+      e.competencies = [ @competencia ]
     end
     sign_in @a.profesor
 
-    get section_path(@a.seccion, lapso: @lapso.id)
+    get planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
 
-    assert_select ".libreta-columna-mide", text: /Mide 1/
-    assert_select ".libreta-columna-mide[data-tooltip=?]", @competencia.descripcion
+    # La que ya mide no se ofrece otra vez; la otra sí.
+    assert_select ".plan-evaluacion-mas-opcion", "Interpreta gráficos de barras"
+    assert_select ".plan-evaluacion-mas-opcion", { count: 1 }, "no se ofrece la que ya mide"
   end
 
-  # Una evaluación que no mide ninguna competencia no lleva el indicador: un
-  # «0» ahí sería ruido en todas las columnas de un colegio sin plan.
-  test "sin competencias, la columna no muestra nada" do
+  # ⚠️ El chip dice las OTRAS, no todas: en el anidado la evaluación ya está
+  # DEBAJO de la que mide, y repetirlo es decir dos veces lo mismo.
+  test "el chip nombra la otra competencia, no la de arriba" do
+    otra = con_el_colegio(@a.colegio) { competencia_con(1, "Interpreta gráficos", lapso: @lapso) }
     con_el_colegio(@a.colegio) do
-      actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Suelta")
-      @a.seccion.update!(leader_teacher: @a.registro_de_profesor)
+      e = actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen")
+      e.competencies = [ @competencia, otra ]
     end
     sign_in @a.profesor
 
-    get section_path(@a.seccion, lapso: @lapso.id)
+    get planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
 
-    assert_select ".libreta-columna-nombre", /Suelta/
-    assert_select ".libreta-columna-mide", count: 0
+    # Sale dos veces —una bajo cada competencia— y cada una nombra a la otra.
+    assert_select ".plan-evaluacion-chip", 2
+    assert_select ".plan-evaluacion-chips-etiqueta", "también mide"
   end
 end

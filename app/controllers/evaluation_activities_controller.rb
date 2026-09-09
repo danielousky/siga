@@ -144,6 +144,11 @@ class EvaluationActivitiesController < ApplicationController
   def responder_al_exito
     return redirect_to(ruta_de_vuelta(@evaluation_activity), notice: "Evaluación actualizada.") unless en_linea?
 
+    # ⚠️ Cambiar QUÉ MIDE mueve la fila de sitio —el plan agrupa por
+    # competencia— así que devolver la fila en su lugar viejo la dejaría bajo
+    # una competencia que ya no mide. Eso se recarga entero.
+    return redirect_to(ruta_de_vuelta(@evaluation_activity)) if cambio_el_enganche?
+
     render turbo_stream: [
       turbo_stream.replace(helpers.dom_id(@evaluation_activity), partial: "competencies/evaluacion",
                                                                 locals: fila_del_plan.merge(guardada: true)),
@@ -175,7 +180,10 @@ class EvaluationActivitiesController < ApplicationController
   # La URL ya trae las tres piezas, porque el propio formulario las puso ahí.
   def fila_del_plan
     { evaluacion: @evaluation_activity,
-      contexto: params.permit(:asignacion, :lapso, :desde).to_h.symbolize_keys }
+      contexto: params.permit(:asignacion, :lapso, :desde).to_h.symbolize_keys,
+      competencias: Competency.del_plan(@evaluation_activity.section_id,
+                                        @evaluation_activity.subject_id,
+                                        @evaluation_activity.evaluation_moment_id).to_a }
   end
 
   # Lo que suma el lapso DESPUÉS de guardar: es lo que la cuenta tiene que
@@ -197,6 +205,8 @@ class EvaluationActivitiesController < ApplicationController
   # entraría por acá y contestaría reemplazando una fila que esa pantalla no
   # tiene. Quien sabe de dónde viene es quien lo manda.
   def en_linea? = params[:en_linea].present?
+
+  def cambio_el_enganche? = params[:evaluation_activity].key?(:competency_ids)
 
 
   # El conjunto que este usuario puede siquiera nombrar. `find` sale de acá, así

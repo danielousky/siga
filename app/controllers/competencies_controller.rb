@@ -26,7 +26,7 @@ class CompetenciesController < ApplicationController
 
   before_action :require_acceso!
   before_action :require_profesor!, except: [ :index ]
-  before_action :set_competency, only: [ :edit, :update, :destroy, :conectar ]
+  before_action :set_competency, only: [ :edit, :update, :destroy ]
 
   # ⚠️ `/competencias` DEJÓ DE SER UNA PANTALLA (etapa ③).
   #
@@ -46,7 +46,7 @@ class CompetenciesController < ApplicationController
   #     DIRECCIÓN   → el listado de secciones, para elegir a cuál entrar
   #
   # ⚠️ Las OTRAS acciones de este controller siguen vivas —crear, editar,
-  # copiar, traer, conectar—: lo que se retira es el índice, no el plan.
+  # copiar, traer—: lo que se retira es el índice, no el plan.
   def index
     return redirect_to(ruta_de_planificar(asignacion, lapso)) if asignacion
 
@@ -140,19 +140,6 @@ class CompetenciesController < ApplicationController
   # ⚠️ Reemplaza, no suma: la lista que llega es la lista completa. Es lo mismo
   # que hacen los indicadores al editar una competencia, y por la misma razón —
   # la persona ve todas las casillas, así que desmarcar tiene que quitar.
-  def conectar
-    pedidas = Array(params[:evaluation_activity_ids]).compact_blank.map(&:to_i)
-
-    # ⚠️ Se filtra contra las evaluaciones de ESTE plan —misma sección, misma
-    # área, mismo lapso—. El modelo ya lo valida, pero ahí es una excepción a
-    # mitad de un guardado; acá es una lista que simplemente no incluye lo
-    # ajeno.
-    del_plan = evaluaciones_que_pueden_medir(@competency).map(&:id)
-    @competency.evaluation_activity_ids = pedidas & del_plan
-
-    redirect_to plan_path, notice: mensaje_de_conexion(@competency)
-  end
-
   # Copiar este plan a las otras secciones donde ESTE profesor dicta la misma
   # materia. Daniel: *«darle la opción de copiar el plan al resto de las
   # secciones que él dicta»*.
@@ -177,15 +164,9 @@ class CompetenciesController < ApplicationController
 
   # ── El alcance: lo que este usuario puede siquiera nombrar ────────────────
 
-  # ⚠️ `id` o `competency_id`, y hacen falta los dos.
-  #
-  # `edit`, `update` y `destroy` cuelgan de `resources` y traen `:id`;
-  # `conectar` es una ruta ANIDADA —`/competencias/:competency_id/evaluaciones`—
-  # y trae `:competency_id`. Con solo `params[:id]`, `find(nil)` devolvía 404 en
-  # una acción que existía y estaba bien escrita.
   def set_competency
     @competency = Competency.del_plan(asignacion&.section_id, asignacion&.subject_id, lapso&.id)
-                            .find(params[:id] || params[:competency_id])
+                            .find(params[:id])
   end
 
   # Las asignaciones del profesor: cada par sección–materia que dicta.
@@ -340,25 +321,6 @@ class CompetenciesController < ApplicationController
 
 
 
-
-  def evaluaciones_que_pueden_medir(competencia)
-    EvaluationActivity.where(section_id: competencia.section_id,
-                             subject_id: competencia.subject_id,
-                             evaluation_moment_id: competencia.evaluation_moment_id)
-                      .order(:date_scheduled, :id)
-                      .to_a
-  end
-
-  # ⚠️ El mensaje dice QUÉ QUEDÓ, no «guardado».
-  #
-  # «Listo» obliga a mirar la pantalla para saber qué pasó; «la miden 2
-  # evaluaciones» lo dice y de paso confirma que se entendió lo que se marcó.
-  def mensaje_de_conexion(competencia)
-    cuantas = competencia.evaluation_activities.size
-    return "Esta competencia ya no la mide ninguna evaluación." if cuantas.zero?
-
-    "Listo: #{helpers.contar(cuantas, 'evaluación mide', 'evaluaciones miden')} esta competencia."
-  end
 
   # ⚠️ Para un PROFESOR, siempre la pestaña de su sección.
   #
