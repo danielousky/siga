@@ -256,4 +256,29 @@ class EdicionEnLineaSystemTest < ApplicationSystemTestCase
     # Y al escribir, en vivo: 60 + 40 = 100, no 160.
     assert_text "cierra en 100 %"
   end
+
+  # ⚠️ Al guardar, Turbo reemplaza las FILAS y con ellas sus campos — pero la
+  # barra vive fuera de la fila y sus tramos se quedaban con el ancho de antes.
+  # La cuenta de la derecha sí cambiaba (la manda el servidor), y ver el número
+  # nuevo sobre una barra vieja es peor que no verlo: parece que solo una de las
+  # dos entendió lo que se escribió.
+  test "al guardar un peso, el tramo de la barra se mueve con él" do
+    con_el_colegio(@a.colegio) do
+      actividad(@a.escenario, lapso: @lapso, peso: 40, descripcion: "Examen")
+    end
+    visit planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
+
+    def ancho_del_tramo
+      find(".plan-ponderacion-tramo[data-id='#{@taller.id}']")[:style][/width: ([\d.]+)%/, 1].to_f
+    end
+
+    assert_equal 30.0, ancho_del_tramo
+
+    find(".plan-evaluacion-peso-campo[data-id='#{@taller.id}']").set("50")
+    find(".plan-ponderacion-titulo").click
+
+    assert_selector ".plan-evaluacion--guardada", wait: 5
+    assert_equal 50.0, ancho_del_tramo, "el tramo se quedó con el ancho viejo"
+    assert_selector ".plan-ponderacion-cuenta", text: "90 %"
+  end
 end

@@ -10423,15 +10423,23 @@ a.subject-avance:hover { filter: brightness(0.9); }
 /* ⚠️ El último campo va VACÍO y escribir en él crea el siguiente, como en
    cualquier lista donde uno escriba listas. Ahorra el botón «agregar» que
    habría que ir a buscar cada vez. */
+/* ⚠️ `flex-start` y no `center`: desde que el indicador es un `<textarea>` que
+   crece, un párrafo de tres líneas dejaba su × flotando a media altura, lejos
+   del renglón donde empieza lo que borra. */
 .plan-indicador {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 2px;
 }
 
 .plan-indicador-campo { flex: 1; min-width: 0; display: flex; }
 
+/* ⚠️ Es un `<textarea>`: un indicador puede ser un párrafo, y en una línea sola
+   se lee por una ventanita. El alto lo lleva `campo-que-crece` con el
+   contenido; `resize: none` porque con la manija puesta el profesor puede
+   encoger el campo hasta tapar su propio texto. */
 .plan-indicador-texto {
+  display: block;
   width: 100%;
   padding: 1px 5px;
   border: 1px solid transparent;
@@ -10439,7 +10447,10 @@ a.subject-avance:hover { filter: brightness(0.9); }
   background: transparent;
   font: inherit;
   font-size: 14px;
+  line-height: 1.55;
   color: var(--text-secondary);
+  resize: none;
+  overflow: hidden;
   transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 

@@ -70,8 +70,8 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
     assert_selector ".plan-competencia-descripcion-campo", wait: 6
     assert_equal "Resuelve problemas de proporcionalidad directa",
                  find(".plan-competencia-descripcion-campo").value
-    assert_selector ".plan-indicador-texto[value='Calcula porcentajes']"
-    assert_selector ".plan-indicador-texto[value='Interpreta una tabla']"
+    assert_includes all(".plan-indicador-texto").map(&:value), "Calcula porcentajes"
+    assert_includes all(".plan-indicador-texto").map(&:value), "Interpreta una tabla"
   end
 
   # ── Conectar evaluaciones desde el plan (MOR-136, el enganche) ─────────────

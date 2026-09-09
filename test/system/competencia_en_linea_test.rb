@@ -121,4 +121,35 @@ class CompetenciaEnLineaSystemTest < ApplicationSystemTestCase
     assert_equal 2, con_el_colegio(@a.colegio) { recargada.indicators.count },
                  "borrar tiene su × propia, con su tooltip"
   end
+
+  # ⚠️ Daniel: «las competencias e indicadores usualmente son textos largos,
+  # párrafos», así que los dos campos son `<textarea>` y crecen con lo escrito.
+  # En un `text_field` un párrafo se lee por una ventanita, desplazándolo con el
+  # cursor.
+  test "un indicador largo se ve entero, no por una ventanita" do
+    largo = "Identifica la recta real y ubica en ella los números naturales, los " \
+            "enteros y los racionales, reconociendo el orden entre ellos"
+    indicadores.first.set(largo)
+    find(".plan-ponderacion-titulo").click
+
+    assert_selector ".plan-competencia--guardada", wait: 5
+    campo = all(".plan-indicador-texto").first
+    assert_equal "textarea", campo.tag_name
+    assert_operator campo.evaluate_script("this.offsetHeight"), :>=,
+                    campo.evaluate_script("this.scrollHeight"),
+                    "el campo se quedó de una línea y recorta el párrafo"
+  end
+
+  # Enter sigue guardando: un indicador es una frase, y el salto de línea
+  # partiría en dos lo que la boleta imprime como uno.
+  test "Enter guarda el indicador en vez de saltar de línea" do
+    indicadores.first.set("Suma con reagrupación de decenas")
+    indicadores.first.send_keys(:enter)
+
+    assert_selector ".plan-competencia--guardada", wait: 5
+    con_el_colegio(@a.colegio) do
+      assert_equal "Suma con reagrupación de decenas",
+                   recargada.indicators.en_orden.first.descripcion
+    end
+  end
 end

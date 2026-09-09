@@ -22,6 +22,19 @@ export default class extends Controller {
     this.recalcular()
   }
 
+  // ⚠️ Al guardar, Turbo reemplaza las FILAS y con ellas sus campos — pero la
+  // barra vive fuera de la fila, así que sus tramos se quedan con el ancho de
+  // antes. La cuenta de la derecha sí cambiaba (la manda el servidor), y ver el
+  // número nuevo sobre una barra vieja es peor que no verlo: parece que solo
+  // una de las dos entendió lo que se escribió. Lo encontró Daniel el 9 de
+  // septiembre, cambiando un 20 % por un 25 %.
+  //
+  // `pesoTargetConnected` es la API de Stimulus para justo esto: se dispara con
+  // cada campo que entra al DOM, también los que llegan por turbo_stream.
+  pesoTargetConnected() {
+    this.recalcular()
+  }
+
   recalcular() {
     const pesos = this.#pesos()
     const total = pesos.reduce((suma, { valor }) => suma + valor, 0)

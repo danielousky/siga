@@ -15,10 +15,20 @@
                     url: competency_indicator_path(competencia, indicador, contexto),
                     method: :patch, class: "plan-indicador-campo",
                     data: { controller: "edicion-en-linea" } do |f|
-          = f.text_field :descripcion, class: "plan-indicador-texto",
-                         "aria-label": "Indicador",
-                         data: { edicion_en_linea_target: "campo",
-                                 action: "keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }
+          -# ⚠️ `text_area` y no `text_field`. Daniel: *«las competencias e
+          -# indicadores usualmente son textos largos, párrafos»* — y en una
+          -# línea sola un párrafo se lee por una ventanita, desplazándolo con
+          -# el cursor. Crece con lo que tiene escrito.
+          -#
+          -# ⚠️ Enter sigue GUARDANDO, no saltando de línea: lo intercepta
+          -# `edicion-en-linea#tecla`. Un indicador es una frase, no un texto
+          -# con párrafos, y el salto de línea partiría en dos lo que la boleta
+          -# imprime como uno.
+          = f.text_area :descripcion, rows: 1, class: "plan-indicador-texto",
+                        "aria-label": "Indicador",
+                        data: { edicion_en_linea_target: "campo",
+                                controller: "campo-que-crece",
+                                action: "input->campo-que-crece#crecer keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }
         = button_to competency_indicator_path(competencia, indicador, contexto),
                     method: :delete, class: "plan-indicador-quitar",
                     data: { tooltip: "Quitar este indicador" }, "aria-label": "Quitar este indicador" do
@@ -34,8 +44,9 @@
       = form_with url: competency_indicators_path(competencia, contexto),
                   method: :post, class: "plan-indicador-campo",
                   data: { controller: "edicion-en-linea" } do
-        = text_field_tag "indicator[descripcion]", nil, class: "plan-indicador-texto",
-                         placeholder: "escribe un indicador…",
-                         "aria-label": "Agregar un indicador",
-                         data: { edicion_en_linea_target: "campo",
-                                 action: "keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }
+        = text_area_tag "indicator[descripcion]", nil, rows: 1, class: "plan-indicador-texto",
+                        placeholder: "escribe un indicador…",
+                        "aria-label": "Agregar un indicador",
+                        data: { edicion_en_linea_target: "campo",
+                                controller: "campo-que-crece",
+                                action: "input->campo-que-crece#crecer keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }

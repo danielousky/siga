@@ -45,7 +45,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     click_on "Crear"
 
     assert_text "Resuelve problemas de proporcionalidad"
-    assert_selector ".plan-indicador-texto[value='Calcula porcentajes']"
+    assert_includes all(".plan-indicador-texto").map(&:value), "Calcula porcentajes"
     assert_no_selector ".form-actions"
     assert_current_path(/planificar/)
   end
