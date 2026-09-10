@@ -27,7 +27,7 @@ class ActivacionDelAccesoTest < ActionDispatch::IntegrationTest
     sign_in @a.director
     post codigo_representative_path(representante)
     follow_redirect!
-    flash[:codigo]
+    session[:codigo_a_la_vista]&.dig("codigo")
   end
 
   # ── el código es de la PERSONA, no de su rol ──────────────────────────────
@@ -46,8 +46,8 @@ class ActivacionDelAccesoTest < ActionDispatch::IntegrationTest
     end
     follow_redirect!
 
-    assert_not_nil flash[:codigo]
-    assert_select "p.codigo-de-acceso-enlace", text: /#{Regexp.escape(flash[:codigo])}/
+    assert_not_nil session[:codigo_a_la_vista]
+    assert_select "p.codigo-de-acceso-enlace", text: /#{Regexp.escape(session[:codigo_a_la_vista]["codigo"])}/
   end
 
   test "un administrador recibe su código igual, desde el listado" do
@@ -57,15 +57,15 @@ class ActivacionDelAccesoTest < ActionDispatch::IntegrationTest
     follow_redirect!
 
     assert_response :success
-    assert_not_nil flash[:codigo]
-    assert_select "p.codigo-de-acceso-enlace", text: /#{Regexp.escape(flash[:codigo])}/
+    assert_not_nil session[:codigo_a_la_vista]
+    assert_select "p.codigo-de-acceso-enlace", text: /#{Regexp.escape(session[:codigo_a_la_vista]["codigo"])}/
   end
 
   # Y el código sirve para lo mismo: no es un enlace decorativo por rol.
   test "el profesor entra con su código y elige su contraseña" do
     sign_in @a.director
     post codigo_teacher_path(@a.registro_de_profesor)
-    codigo = flash[:codigo]
+    codigo = session[:codigo_a_la_vista]&.dig("codigo")
     sign_out @a.director
 
     get activar_path(codigo)
@@ -90,7 +90,7 @@ class ActivacionDelAccesoTest < ActionDispatch::IntegrationTest
     post codigo_teacher_path(@b.registro_de_profesor)
 
     assert_response :not_found
-    assert_nil flash[:codigo]
+    assert_nil session[:codigo_a_la_vista]&.dig("codigo")
 
     # ⚠️ Lo que de verdad hay que probar es que NO SE ESCRIBIÓ NADA. Un 404 con
     # el token ya generado sería el peor de los dos mundos: la pantalla no lo
@@ -137,7 +137,7 @@ class ActivacionDelAccesoTest < ActionDispatch::IntegrationTest
     post codigo_representative_path(@con_correo)
 
     assert_redirected_to dashboard_path_for_user_de_prueba
-    assert_nil flash[:codigo]
+    assert_nil session[:codigo_a_la_vista]&.dig("codigo")
   end
 
   # ── canjearlo ─────────────────────────────────────────────────────────────
@@ -389,4 +389,70 @@ class ActivacionDelAccesoTest < ActionDispatch::IntegrationTest
 
   # El dashboard al que redirige el guard de `RepresentativesController`.
   def dashboard_path_for_user_de_prueba = dashboards_estudiante_path
+
+  # ── La regresión que Daniel reportó DOS veces ─────────────────────────────
+  #
+  # «Antes se visualizaba en pantalla el código para entregárselo al
+  # representante, ahora solo va al correo».
+  #
+  # ⚠️ El código vivía en el `flash`, que dura UN render — y acá llegan dos.
+  # `button_to` envía con Turbo, el redirect se sigue con
+  # `Accept: text/vnd.turbo-stream.html`, y como no hay plantilla `.turbo_stream`
+  # Rails contesta HTML; Turbo no sabe aplicarlo y repite la visita como
+  # navegación normal. El primer render mostraba el enlace y el segundo lo
+  # repintaba sin él:
+  #
+  #     POST /representantes/411/codigo
+  #       └─► GET /representantes/411   as TURBO_STREAM   ← el flash sale acá
+  #           └─► GET /representantes/411   as HTML       ← y acá ya no está
+  #
+  # Se vio en el log del servidor de Daniel, no razonando: las dos peticiones
+  # están ahí, en el mismo segundo.
+  test "el enlace sigue a la vista si la pantalla se vuelve a pedir" do
+    sign_in @a.director
+    post codigo_representative_path(@con_correo)
+    follow_redirect!
+
+    assert_select "p.codigo-de-acceso-enlace"
+
+    # El segundo render —el que hace Turbo— ya no encontraba el flash.
+    get representative_path(@con_correo)
+
+    # El enlace se ve una sola vez y no se puede recuperar: no puede depender
+    # de que el navegador no vuelva a pedir la página.
+    assert_select "p.codigo-de-acceso-enlace"
+  end
+
+  test "y sobrevive a una recarga entera" do
+    sign_in @a.director
+    post codigo_teacher_path(@a.registro_de_profesor)
+    follow_redirect!
+    get teacher_path(@a.registro_de_profesor)
+
+    assert_select "p.codigo-de-acceso-enlace"
+  end
+
+  # ⚠️ Con dos fichas abiertas, el enlace de una no puede salir en la otra.
+  test "el enlace solo se ve en la ficha de su dueño" do
+    sign_in @a.director
+    post codigo_representative_path(@con_correo)
+    follow_redirect!
+
+    get teacher_path(@a.registro_de_profesor)
+
+    assert_select "p.codigo-de-acceso-enlace", count: 0
+  end
+
+  test "«Ya lo copié» lo retira" do
+    sign_in @a.director
+    post codigo_representative_path(@con_correo)
+    follow_redirect!
+
+    delete codigo_a_la_vista_path,
+           headers: { "HTTP_REFERER" => representative_path(@con_correo) }
+    follow_redirect!
+
+    assert_nil session[:codigo_a_la_vista]
+    assert_select "p.codigo-de-acceso-enlace", count: 0
+  end
 end

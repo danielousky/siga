@@ -8,7 +8,7 @@
 -# Y no es un detalle de gusto: el código **se ve una sola vez**. Si se pierde de
 -# vista, la única salida es generar otro — que invalida el que se acaba de
 -# mandar por correo.
-= render "shared/codigo_generado"
+= render "shared/codigo_generado", usuario: @teacher.user
 
 -# La ficha del profesor (MOR-135). Ver `TeachersController#show`.
 - persona = @teacher.user

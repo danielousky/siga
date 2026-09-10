@@ -53,10 +53,35 @@ module GeneraCodigosDeAcceso
 
     enviar_el_codigo(usuario, codigo)
 
-    redirect_to volver_del_codigo, flash: { codigo: codigo, notice: aviso_del_codigo(usuario) }
+    guardar_para_mostrar(usuario, codigo)
+
+    redirect_to volver_del_codigo, notice: aviso_del_codigo(usuario)
   end
 
   private
+
+  # ⚠️ El código va en la SESIÓN, no en el `flash`, y esa es la corrección.
+  #
+  # El flash vive UN render, y acá llegan dos: `button_to` envía con Turbo, el
+  # redirect se sigue con `Accept: text/vnd.turbo-stream.html`, y como no hay
+  # plantilla `.turbo_stream` Rails contesta HTML — que Turbo no sabe aplicar,
+  # así que repite la visita como navegación normal. El primer render mostraba
+  # el enlace y el segundo, medio segundo después, repintaba la pantalla sin él.
+  #
+  #     POST /representantes/411/codigo
+  #       └─► GET /representantes/411   as TURBO_STREAM   ← el flash sale acá
+  #           └─► GET /representantes/411   as HTML       ← y acá ya no está
+  #
+  # Daniel lo reportó DOS veces. La primera se movió el bloque arriba del todo
+  # —creyendo que era posición— y siguió pasando, porque la causa era otra.
+  #
+  # ⚠️ Y de paso arregla algo que era malo de por sí: un enlace que se ve una
+  # sola vez y NO SE PUEDE RECUPERAR no debe depender de que el navegador no
+  # recargue. Ahora sobrevive a la recarga, y se va cuando la secretaria dice
+  # que ya lo copió o cuando se genera otro.
+  def guardar_para_mostrar(usuario, codigo)
+    session[:codigo_a_la_vista] = { "user_id" => usuario.id, "codigo" => codigo }
+  end
 
   # Si tiene correo se lo mandamos, y ADEMÁS queda en pantalla: el correo puede
   # tardar, caer en spam o rebotar, y la secretaria tiene a la persona delante.

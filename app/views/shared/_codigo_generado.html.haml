@@ -4,10 +4,26 @@
 -# pantalla ni ninguna otra puede volver a leerlo. Que no quede visible de forma
 -# permanente es la propiedad que se quiere, no una limitación — una pantalla con
 -# el código vigente de cualquiera sería una lista de llaves de todas las casas.
-- if flash[:codigo].present?
-  .codigo-de-acceso{"data-controller": "copiar"}
+-# ⚠️ De la SESIÓN, no del `flash`. El flash vive UN render y acá llegan dos:
+-# el redirect de Turbo se sigue como turbo_stream, Rails contesta HTML, Turbo
+-# no sabe aplicarlo y repite la visita — y en ese segundo render el flash ya
+-# se consumió. Daniel lo reportó dos veces.
+-#
+-# ⚠️ Y se muestra solo si es de la persona que se está viendo: con dos fichas
+-# abiertas en dos pestañas, el enlace de una no puede aparecer en la otra.
+-# `usuario:` es opcional: en la ficha de una persona se comprueba que el código
+-# sea suyo —con dos pestañas abiertas, el de una no puede salir en la otra— y en
+-# un listado se muestra sin más, porque ahí no hay una sola persona.
+- guardado = session[:codigo_a_la_vista]
+- de_quien = local_assigns[:usuario]
+- if guardado.present? && (de_quien.nil? || guardado["user_id"] == de_quien.id)
+  .codigo-de-acceso{ data: { controller: "copiar" } }
     %p.codigo-de-acceso-aviso
-      Este enlace se ve una sola vez. Sirve por 72 horas y para un solo uso.
-    %p.codigo-de-acceso-enlace{"data-copiar-target": "fuente"}= activar_url(flash[:codigo])
-    = button_tag "Copiar el enlace", type: "button", class: "btn btn-secondary",
-                 "data-action": "copiar#copiar", "data-copiar-target": "boton"
+      Este enlace sirve por 72 horas y para un solo uso. Queda a la vista hasta
+      que digas que ya lo copiaste.
+    %p.codigo-de-acceso-enlace{ data: { copiar_target: "fuente" } }= activar_url(guardado["codigo"])
+    .codigo-de-acceso-acciones
+      = button_tag "Copiar el enlace", type: "button", class: "btn btn-secondary",
+                   data: { action: "copiar#copiar", copiar_target: "boton" }
+      = button_to "Ya lo copié", codigo_a_la_vista_path, method: :delete,
+                  class: "btn btn-secondary btn-sm"

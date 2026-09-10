@@ -329,6 +329,14 @@ Rails.application.routes.draw do
   # `set_x` del controller, con el `default_scope` del rol, es el que decide si
   # esa persona es de este colegio. `User` no es `SchoolScoped` —una persona es
   # de la plataforma— y resolverlo a mano acá sería un IDOR que reparte llaves.
+  # ⚠️ «Ya lo copié»: el enlace queda a la vista hasta que se descarta, y no un
+  # solo render. Vive en la SESIÓN —no en el `flash`— porque el redirect de
+  # Turbo produce DOS renders y el flash se consumía en el primero.
+  #
+  # Una sola ruta y no una por rol: en la sesión hay UN código, sea de un
+  # representante, un profesor o un administrador.
+  delete "codigo-a-la-vista", to: "codigos_a_la_vista#destroy", as: :codigo_a_la_vista
+
   concern :con_codigo_de_acceso do
     post :codigo, on: :member, action: :generar_codigo
   end
