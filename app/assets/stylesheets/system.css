@@ -4617,13 +4617,37 @@ body:has(.portada) .barra-superior { display: none; }
 
    Sin color semántico: no es un éxito ni un peligro, es algo que hay que
    copiar ahora. Lo que lo destaca es el marco y la tipografía, no el tono. */
+/* ⚠️ Fondo VERDE pastel, no gris. Daniel: «el fondo puede ser verde o azul
+   pastel para hacerlo notar un poco».
+
+   Y el verde es el correcto de los dos: es el único momento en que esta
+   pantalla tiene algo que entregar —un enlace que se ve una sola vez y no se
+   puede recuperar— y en SIGA el verde es «esto queda guardado». El azul del
+   sistema es de los controles.
+
+   El borde punteado se queda: dice que el bloque es temporal, que se va en
+   cuanto se descarte. */
 .codigo-de-acceso {
   margin-bottom: var(--space-lg);
   padding: var(--space-md);
-  border: 1px dashed var(--border-strong);
+  border: 1px dashed var(--success-border, var(--border-strong));
   border-radius: var(--radius-md);
-  background: var(--surface-input);
+  background: var(--success-bg);
 }
+
+/* Los dos botones en FILA y a la misma altura: uno debajo del otro se leían
+   como dos pasos, y son alternativas — copio, o digo que ya lo copié. */
+.codigo-de-acceso-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+/* ⚠️ `button_to` envuelve su botón en un `<form>`, que es `block`: sin esto el
+   segundo caía debajo del primero aunque el contenedor fuera flex. */
+.codigo-de-acceso-acciones form { display: contents; }
 
 .codigo-de-acceso-aviso {
   margin: 0 0 var(--space-sm);

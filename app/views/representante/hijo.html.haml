@@ -80,9 +80,19 @@
                       - competencia[:indicadores].each do |indicador|
                         %li= indicador
 
-    -# La leyenda de la rúbrica del colegio. Sin ella, «PA» es una sigla que la
-    -# familia tiene que adivinar.
-    - if !@anual && rubricas_del_colegio.any?
+    -# ⚠️ La leyenda de la rúbrica está OCULTA por ahora (Daniel, 10 de sept:
+    -# «de momento, vamos a ocultar ese panel»).
+    -#
+    -# El argumento para tenerla sigue en pie —sin ella, «PA» es una sigla que la
+    -# familia tiene que adivinar— así que no se borra: se apaga en un solo sitio
+    -# y vuelve cambiando este `false`. Borrarla obligaría a reescribir la
+    -# rúbrica del colegio, que es de donde salen los cinco niveles.
+    -#
+    -# Y hay una razón para que estorbe hoy: con las notas en «Pendiente» —que es
+    -# como está el lapso recién abierto— la leyenda es lo ÚNICO con contenido en
+    -# la tarjeta, así que ocupa el centro de una pantalla que no tiene nada que
+    -# decir todavía.
+    - if false && !@anual && rubricas_del_colegio.any?
       = mas_detalle "Qué significa cada nivel" do
         %ul.portal-leyenda
           - rubricas_del_colegio.each do |nivel|
