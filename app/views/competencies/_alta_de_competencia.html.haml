@@ -21,6 +21,7 @@
     .alta-en-linea-campo.alta-en-linea-campo--titulo
       = f.label :descripcion, "Competencia", class: "form-label"
       = f.text_area :descripcion, rows: 2, class: "form-control", autofocus: true,
+                    autocomplete: "off",
                     placeholder: "Resuelve problemas de proporcionalidad directa…"
   .alta-en-linea-acciones
     = f.submit "Agregar", class: "btn btn-guardar btn-sm"

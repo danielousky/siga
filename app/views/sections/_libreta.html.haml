@@ -20,16 +20,32 @@
            opciones: @lapsos_de_la_libreta.map { |l| [ l.name, ruta.(lapso: l.id), l.id == @lapso_de_la_libreta&.id ] }
 
 - if @libreta[:columnas].empty?
+  -# ⚠️ El vacío enseña el PASO PREVIO, no solo avisa que no hay nada.
+  -#
+  -# Daniel, 9 de septiembre: *«cuando esté vacío, evidenciando el paso previo
+  -# que corresponde para calificar»*. Retirado el botón de alta de la cabecera,
+  -# esta pantalla decía que faltan evaluaciones y no ofrecía dónde crearlas.
+  -#
+  -# Es el mismo molde que `shared/precondicion` —«antes hace falta X», y el
+  -# botón que lleva ahí—, con sus mismas palabras. Aquel cuelga de
+  -# `PasosDeArranque`, que son los pasos del COLEGIO; este es el orden del
+  -# trabajo del profesor y no está en esa lista, pero se lee igual porque es lo
+  -# mismo contado en otra escala.
+  -#
+  -# ⚠️ Y manda a la pestaña en vez de abrir un formulario acá: una evaluación
+  -# nace COLGADA de una competencia, y creada desde la libreta nacería sin medir
+  -# ninguna — justo el aviso que el plan pinta en ámbar.
   .empty-state
     %h3= "Todavía no hay evaluaciones en #{@lapso_de_la_libreta&.name.to_s.downcase}"
     %p
-      Cuando registres una evaluación de
-      %strong= @area_de_la_libreta&.name
-      aparece acá como una columna, y podrás ver a todos tus alumnos de una vez.
-    -# El botón de alta vive en las acciones de la pestaña, donde está siempre
-    -# —también con la libreta llena—: dentro del estado vacío, un profesor con
-    -# dos evaluaciones no tenía desde dónde crear la tercera.
-
+      Antes hace falta
+      %strong planificar
+      \: las evaluaciones se arman en el plan, colgadas de la competencia que
+      miden. Acá se cargan sus notas.
+    - if profesor?
+      .empty-state-acciones
+        - a_planificar = planificar_section_path(@section, area: @area_de_la_libreta&.id, lapso: @lapso_de_la_libreta&.id)
+        = boton "Ir a planificar", a_planificar, icono: :siguiente, tono: :accion, data: { turbo_frame: "_top" }
 - else
   .libreta-marco
     %table.table-academic.libreta

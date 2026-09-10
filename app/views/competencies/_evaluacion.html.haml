@@ -41,7 +41,7 @@
                 method: :patch, class: "plan-evaluacion-campo plan-evaluacion-campo--nombre",
                 data: { controller: "edicion-en-linea" } do |f|
       = f.text_field :description, class: "plan-evaluacion-nombre-campo",
-                     "aria-label": "Nombre de la evaluación",
+                     "aria-label": "Nombre de la evaluación", autocomplete: "off",
                      data: { edicion_en_linea_target: "campo",
                              action: "keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }
   - else

@@ -31,8 +31,19 @@
   .alta-en-linea-campos
     .alta-en-linea-campo.alta-en-linea-campo--titulo
       = f.label :description, "Qué se evalúa", class: "form-label"
+      -# ⚠️ `autocomplete: "off"`: lo que se ve al escribir NO es un tooltip nuestro.
+      -#
+      -# Daniel, 9 de septiembre, señalando dos globos con estilos distintos: el de
+      -# arriba es el de SIGA y el de abajo es el AUTOCOMPLETADO DE CHROME, que
+      -# sugiere valores ya escritos en un campo con el mismo `name`. Medidos en el
+      -# navegador, los quince tooltips de la pantalla son idénticos —3 px de radio,
+      -# 12,5 px, mismo padding— y no hay un solo `title` nativo.
+      -#
+      -# Y no es solo estética: la sugerencia cae encima de lo que hay debajo y tapa
+      -# la interfaz. En un campo de dominio —«Examen del primer lapso»— tampoco
+      -# aporta: el profesor no está repitiendo un dato suyo, está nombrando otra cosa.
       = f.text_field :description, class: "form-control", autofocus: true,
-                     placeholder: "Examen del primer lapso"
+                     autocomplete: "off", placeholder: "Examen del primer lapso"
     .alta-en-linea-campo
       = f.label :weight_percentage, "Peso (%)", class: "form-label"
       -# ⚠️ Nace con lo que FALTA para cerrar el lapso, y el tope es ese mismo

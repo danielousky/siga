@@ -51,19 +51,22 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     assert_no_selector ".form-actions"
   end
 
-  # ── Y lo mismo con las EVALUACIONES, desde la libreta ─────────────────────
+  # ── Y lo mismo con las EVALUACIONES ───────────────────────────────────────
   #
-  # Daniel: *«igual para todo: el pivot es la sección y de allí todo se carga
-  # con Turbo y Stimulus»*.
-  test "registrar una evaluación se levanta en la libreta" do
+  # ⚠️ Con la libreta VACÍA lo que se ofrece es el paso previo —planificar— y no
+  # un alta suelta: una evaluación nace colgada de una competencia, y creada
+  # desde la libreta nacería sin medir ninguna. El botón de la cabecera se
+  # retiró el 9 de septiembre; Daniel: «este botón no va, ya quedaría todo en la
+  # pestaña de planificación».
+  test "la libreta vacía enseña el paso previo" do
     visit section_path(@a.seccion, area: @area.id, lapso: @a.escenario.lapso(2).id)
 
-    click_on "Agregar evaluación"
+    assert_text "Antes hace falta"
+    assert_no_selector "a", text: "Agregar evaluación"
 
-    # La URL no cambia: el frame hizo su trabajo.
-    assert_current_path(/secciones/)
-    assert_selector "input[name='evaluation_activity[description]']"
-    assert_selector ".pestana.activa", text: "Calificar"
+    click_on "Ir a planificar"
+
+    assert_selector ".pestana.activa", text: "Planificar"
   end
 
   # ⚠️ Al guardar, el frame se reemplaza por la LIBRETA con su columna nueva.
@@ -71,11 +74,15 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
   # habría llenado con una pantalla que no es la libreta.
   test "al guardar, la columna aparece en la libreta" do
     lapso = @a.escenario.lapso(2)
-    visit section_path(@a.seccion, area: @area.id, lapso: lapso.id)
-    click_on "Agregar evaluación"
+    con_el_colegio(@a.colegio) { competencia_con(0, "Resuelve problemas", lapso: lapso) }
+    visit planificar_section_path(@a.seccion, area: @area.id, lapso: lapso.id)
+    all("a", text: "Agregar evaluación").first.click
 
-    fill_in "evaluation_activity[description]", with: "Prueba corta"
-    click_on "Crear"
+    within(".alta-en-linea") do
+      fill_in "evaluation_activity[description]", with: "Prueba corta"
+      click_on "Agregar"
+    end
+    visit section_path(@a.seccion, area: @area.id, lapso: lapso.id)
 
     assert_selector ".libreta-columna-nombre", text: "Prueba corta"
     assert_no_selector "input[name='evaluation_activity[description]']"
@@ -103,14 +110,14 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     assert_selector ".plan-ponderacion"
   end
 
-  test "cancelar desde la libreta devuelve la libreta" do
-    visit section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
-    click_on "Agregar evaluación"
+  test "cancelar el alta devuelve el plan" do
+    visit planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
+    all("a", text: "Agregar evaluación").first.click
 
-    click_on "Cancelar"
+    within(".alta-en-linea") { click_on "Cancelar" }
 
     assert_no_text "Content missing"
-    assert_selector ".pestana.activa", text: "Calificar"
+    assert_selector ".pestana.activa", text: "Planificar"
   end
 
   # ⚠️ Y el botón ATRÁS del navegador, que es la otra mitad de lo mismo: dentro

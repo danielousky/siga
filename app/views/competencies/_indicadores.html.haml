@@ -25,7 +25,7 @@
           -# con párrafos, y el salto de línea partiría en dos lo que la boleta
           -# imprime como uno.
           = f.text_area :descripcion, rows: 1, class: "plan-indicador-texto",
-                        "aria-label": "Indicador",
+                        "aria-label": "Indicador", autocomplete: "off",
                         data: { edicion_en_linea_target: "campo",
                                 controller: "campo-que-crece",
                                 action: "input->campo-que-crece#crecer keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }
@@ -45,7 +45,7 @@
                   method: :post, class: "plan-indicador-campo",
                   data: { controller: "edicion-en-linea" } do
         = text_area_tag "indicator[descripcion]", nil, rows: 1, class: "plan-indicador-texto",
-                        placeholder: "escribe un indicador…",
+                        placeholder: "escribe un indicador…", autocomplete: "off",
                         "aria-label": "Agregar un indicador",
                         data: { edicion_en_linea_target: "campo",
                                 controller: "campo-que-crece",

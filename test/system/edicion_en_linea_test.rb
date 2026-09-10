@@ -150,12 +150,19 @@ class EdicionEnLineaSystemTest < ApplicationSystemTestCase
     visit planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
     find(".plan-evaluacion-fecha-abrir").click
 
-    mes = I18n.l(Date.current, format: "%b").downcase.delete(".")
-    assert_selector ".plan-calendario-atajo", text: "Hoy · #{Date.current.day} #{mes}"
-    find(".plan-calendario-atajo", text: "Hoy").click
+    # ⚠️ Se compara el atajo CONSIGO MISMO, no contra `Date.current`.
+    #
+    # El día lo pone el navegador y la aserción salía del reloj de Ruby: son dos
+    # relojes, y cruzada la medianoche —o con el navegador en otro huso— dan
+    # días distintos. El test fallaba solo a esa hora, que es la peor forma de
+    # fallar. Lo que hay que probar es que el atajo GUARDA el día que muestra.
+    atajo = find(".plan-calendario-atajo", text: /Hoy/)
+    dia = atajo.text[/(\d+)/, 1].to_i
+
+    atajo.click
 
     assert_selector ".plan-evaluacion--guardada", wait: 5
-    assert_equal Date.current, recargado.date_scheduled
+    assert_equal dia, recargado.date_scheduled.day
   end
 
   # ── Lo que se vio en pantalla el 9 de septiembre ──────────────────────────

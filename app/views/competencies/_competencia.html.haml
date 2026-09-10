@@ -38,7 +38,7 @@
           -# contextos de la vida cotidiana»— y en una línea sola se lee por una
           -# ventanita. Crece con lo que se escribe.
           = f.text_area :descripcion, rows: 1, class: "plan-competencia-descripcion-campo",
-                        "aria-label": "Descripción de la competencia",
+                        "aria-label": "Descripción de la competencia", autocomplete: "off",
                         data: { edicion_en_linea_target: "campo",
                                 controller: "campo-que-crece",
                                 action: "input->campo-que-crece#crecer keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }

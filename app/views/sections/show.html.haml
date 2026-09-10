@@ -3,29 +3,16 @@
 -# ⚠️ Es una de las cuatro pestañas de la sección, no «la pantalla de la
 -# sección». Las otras tres —Asistencia, Planificar, Alumnos— son pantallas de
 -# verdad con su propio controller, y las cuatro comparten el encabezado.
+-# ⚠️ En la cabecera NO va «Agregar evaluación».
+-#
+-# Daniel, 9 de septiembre: *«este botón no va, ya quedaría todo en la pestaña
+-# de planificación»*. Desde que el alta se despliega bajo cada competencia —con
+-# su contexto puesto y sin salir de la vista— este botón abría el MISMO
+-# formulario desde otro sitio, y encima uno peor: en la cabecera no se sabe a
+-# qué competencia pertenece, así que nacía sin medir ninguna.
+-#
+-# Dos puertas a lo mismo es como se llegó a siete formas de título.
 - acciones = capture do
-  -# ⚠️ «Agregar evaluación» SIEMPRE, no solo cuando la libreta está vacía.
-  -#
-  -# Vivía dentro del estado vacío, así que un profesor con dos evaluaciones no
-  -# tenía desde dónde crear la tercera: tenía que salir a «Mis evaluaciones»
-  -# —la pantalla que la etapa ③ retiró— o escribir la URL. Lo destapó un test
-  -# que intentó crear una desde la libreta con datos cargados.
-  -#
-  -# Con el contexto puesto: la asignación y el lapso que la pestaña ya sabe.
-  - if profesor? && area_de_la_pestana
-    - nueva = new_evaluation_activity_path(asignacion: "#{@section.id}:#{area_de_la_pestana.id}", lapso: @lapso_de_la_libreta&.id)
-    -# ⚠️ `data-turbo-frame` porque el botón está FUERA del frame.
-    -#
-    -# Vive en las acciones de la cabecera, y Turbo solo usa el frame ancestro:
-    -# desde acá navegaba la página entera y se llevaba puestas las pestañas.
-    -# Nombrarlo es lo que lo devuelve adentro.
-    = boton "Agregar evaluación", nueva, icono: :agregar, tono: :guardar,
-            data: { turbo_frame: "libreta" }
-
-  -# ⚠️ Los informes descriptivos los escribe el GUÍA de la sección, o la
-  -# dirección cuando no lo hay (MOR-216). El botón aparece exactamente para
-  -# quien puede entrar: ofrecerlo a un profesor que no es guía lo manda a una
-  -# pantalla que solo puede rechazarlo.
   - if can_manage_sections? || guio?(@section)
     = boton "Informes descriptivos", section_informes_path(@section), icono: :notas, tono: :secondary
   - if administrador?
