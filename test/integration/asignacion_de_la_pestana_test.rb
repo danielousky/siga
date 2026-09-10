@@ -54,7 +54,7 @@ class AsignacionDeLaPestanaTest < ActionDispatch::IntegrationTest
 
     plan_de @otro_grado
 
-    assert_select ".plan-acciones button", /Copiar a 5to Grado B/
+    assert_select ".plan-acciones button", /Duplicar en 5to Grado B/
     assert_equal "B", con_el_colegio(@a.colegio) { hermana.name }
   end
 
@@ -72,6 +72,6 @@ class AsignacionDeLaPestanaTest < ActionDispatch::IntegrationTest
 
     plan_de hermana
 
-    assert_select ".plan-acciones button", /Copiar a 5to Grado A/
+    assert_select ".plan-acciones button", /Duplicar en 5to Grado A/
   end
 end

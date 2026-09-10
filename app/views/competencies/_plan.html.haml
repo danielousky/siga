@@ -52,7 +52,15 @@
       %strong y las evaluaciones
       \, con su peso y la misma fecha corrida al año actual.
 
-    = button_to "Traerlo para revisarlo",
+    -# ⚠️ «Duplicar» y no «Copiar» ni «Traer». Daniel: *«creo que el término no
+    -# es Copiar, puede ser confuso»*.
+    -#
+    -# Es el único verbo que dice que van a existir DOS, que es la parte que hay
+    -# que entender antes de tocar el botón: el plan nuevo queda INDEPENDIENTE
+    -# del viejo. «Extender», «Aplicar» y «Usar también en» sugieren que es el
+    -# mismo plan en dos sitios, y el día que el profesor cambie uno y vea que el
+    -# otro no cambió, la palabra le habría mentido.
+    = button_to "Duplicar el plan de #{@sugerido.first.section.academic_period.name}",
                 traer_competencies_path(contexto),
                 class: "btn btn-accion"
 
@@ -132,7 +140,7 @@
           = button_to copiar_a_competencies_path(contexto),
                       class: "btn btn-accion" do
             = icono(:secciones, tamano: 16)
-            %span= "Copiar a #{asignacion.section.grade.name} #{hermanas_sin_plan.map { |ts| ts.section.name }.to_sentence(two_words_connector: ' y ', last_word_connector: ' y ')}"
+            %span= "Duplicar en #{asignacion.section.grade.name} #{hermanas_sin_plan.map { |ts| ts.section.name }.to_sentence(two_words_connector: ' y ', last_word_connector: ' y ')}"
           -# ⚠️ Se dice QUÉ se copia, y ya no es solo el texto de las
           -# competencias: desde la etapa ③ van también las evaluaciones con su
           -# peso, su fecha y qué competencia mide cada una. Es la mitad más
