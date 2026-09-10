@@ -143,10 +143,26 @@ class SectionsController < ApplicationController
   # La asignación de la que habla esta pantalla: esta sección, el área que trajo
   # el árbol del menú. ⚠️ Se busca entre las de ESTE profesor, y eso es lo que
   # autoriza: un área que no dicta no está en la lista y devuelve nil.
+  # ⚠️ La asignación de ESTA sección, no la primera del profesor con esa área.
+  #
+  # Buscaba solo por materia, y `mis_asignaciones` son TODAS las del profesor
+  # —eso es a propósito: las hermanas viven en otras secciones—. Un profesor de
+  # Matemática en doce secciones recibía siempre la primera, 1er Grado A, mirara
+  # la sección que mirara.
+  #
+  # Lo destapó Daniel preguntando dónde quedó el botón de copiar a la hermana:
+  # en 6to Grado A —que no tiene hermana— la pantalla decía «la otra sección de
+  # **1er Grado** ya tiene su plan», y en 2do Grado A lo mismo. El botón no
+  # había desaparecido: estaba mirando el grado equivocado.
+  #
+  # Cuelgan de acá `otras_secciones`, `hermanas_sin_plan` y el plan del año
+  # pasado, así que el error alcanzaba a todo lo que compara grados.
   def asignacion
     return @asignacion if defined?(@asignacion)
 
-    @asignacion = mis_asignaciones.find { |ts| ts.subject_id == area_de_la_pestana&.id }
+    @asignacion = mis_asignaciones.find do |ts|
+      ts.section_id == @section&.id && ts.subject_id == area_de_la_pestana&.id
+    end
   end
   helper_method :asignacion
 

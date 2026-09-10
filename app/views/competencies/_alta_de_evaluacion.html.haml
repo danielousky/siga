@@ -44,7 +44,7 @@
       -# aporta: el profesor no está repitiendo un dato suyo, está nombrando otra cosa.
       = f.text_field :description, class: "form-control", autofocus: true,
                      autocomplete: "off", placeholder: "Examen del primer lapso"
-    .alta-en-linea-campo
+    .alta-en-linea-campo.alta-en-linea-campo--peso
       = f.label :weight_percentage, "Peso (%)", class: "form-label"
       -# ⚠️ Nace con lo que FALTA para cerrar el lapso, y el tope es ese mismo
       -# número: el profesor casi siempre reparte lo que queda, y pedirle una

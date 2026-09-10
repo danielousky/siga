@@ -10372,6 +10372,13 @@ a.subject-avance:hover { filter: brightness(0.9); }
 
 .alta-en-linea-campo { flex: 0 0 auto; }
 .alta-en-linea-campo--titulo { flex: 1 1 16rem; }
+
+/* ⚠️ El peso necesita ancho PROPIO: las flechitas del `number` ocupan lo suyo
+   y dejaban «20» pegado contra ellas, sin sitio para escribir tres cifras.
+   Acá sí se quedan —a diferencia de la fila del plan, donde se ocultan— porque
+   en un campo de formulario con su etiqueta encima son la manera natural de
+   subir y bajar de uno en uno. */
+.alta-en-linea-campo--peso .form-control { width: 6.5rem; }
 .alta-en-linea-campo .form-label { display: block; margin-bottom: 2px; }
 .alta-en-linea-campo .form-control { width: 100%; }
 
