@@ -30,7 +30,7 @@ module MuestraElPlan
                   :hermanas_con_plan, :hermanas_sin_plan, :evaluaciones_del_lapso,
                   :evaluaciones_de, :evaluaciones_sueltas, :peso_del_lapso,
                   :competencias_del_lapso,
-                  :peso_libre, :periodo_del_plan
+                  :peso_libre, :periodo_del_plan, :con_competencias?
   end
 
   private
@@ -49,6 +49,21 @@ module MuestraElPlan
   # Los dos controllers llegan a lo mismo por caminos distintos —el profesor
   # por su asignación, la dirección por la sección que abrió— así que lo que se
   # comparte es el DESTINO, y cada uno dice cómo llega.
+  # ⚠️ Si este grado planifica CON competencias, o solo con evaluaciones.
+  #
+  # En Educación Media el plan de evaluación son las evaluaciones y su
+  # ponderación —el 70/30 del Artículo 111—, y no hay competencias. La pantalla
+  # es la misma: lo que cambia es que no se dibuja esa lista.
+  #
+  # Antes, «Planificar» rebotaba a Media con «esto es de primaria, ve a
+  # Calificar» — y allá el botón de alta se había retirado el 10 de septiembre,
+  # así que las dos pestañas se mandaban la una a la otra y un profesor de
+  # bachillerato no podía crear ninguna evaluación.
+  #
+  # Se pregunta por `Grade#por_competencias?` y no por «primaria» a mano: es la
+  # misma pregunta que hacen el menú y el formulario de evaluación.
+  def con_competencias? = seccion_del_plan&.grade&.por_competencias?
+
   def seccion_del_plan = asignacion&.section
 
   def area_del_plan = asignacion&.subject

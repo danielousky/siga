@@ -184,25 +184,23 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # ⚠️ Bachillerato NO evalúa por competencias, y la pantalla tiene que decirlo
-  # en vez de ofrecer un plan vacío.
+  # ⚠️ Cambió el 10 de septiembre: en Educación Media «Planificar» ya NO rebota
+  # a Calificar. Es la misma pantalla sin competencias — las evaluaciones, su
+  # peso y su fecha, que es lo que el Artículo 111 llama plan de evaluación.
   #
-  # Daniel, en el QA: *«1er año de matemática no debería tener competencias ni
-  # indicadores, es otro tipo de evaluación para educación media»*.
-  # ⚠️ El aviso vive ahora en la PESTAÑA, no en `/competencias`.
-  #
-  # Al retirarse esa pantalla se habría perdido, y es un mensaje que hace falta:
-  # sin él, un profesor de 5to Año entra a «Planificar» y ve un plan vacío que
-  # nunca va a llenar, sin que nada le diga por qué.
-  test "un profesor de bachillerato no arma un plan por competencias" do
+  # Rebotaba, y allá el botón de alta se había retirado ese mismo día: las dos
+  # pestañas se mandaban la una a la otra y un profesor de bachillerato no podía
+  # crear ninguna evaluación. Lo cubre entero `plan_de_media_test`.
+  test "un profesor de bachillerato planifica SIN competencias" do
     media, = dos_colegios_completos(nivel: :secundaria)
     sign_in media.profesor
 
     get planificar_section_path(media.seccion, area: media.escenario.materia.id)
 
     assert_response :success
-    assert_select "body", /competencias son de primaria/i
-    assert_select ".pastilla", count: 0, message: "no hay lapsos que elegir: la pestaña no aplica"
+    assert_no_match(/competencias son de primaria/i, response.body)
+    assert_select "a[href*=?]", "/competencias/new", count: 0
+    assert_select "a[href*=?]", "/evaluaciones/new"
   end
 
   # ⚠️ El plan ajeno no aparece: pedirlo por id da 404, no 403 — no se confirma

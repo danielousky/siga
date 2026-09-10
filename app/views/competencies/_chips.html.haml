@@ -36,7 +36,7 @@
                                       data: { tooltip: "Ya no mide «#{competencia.descripcion.truncate(60)}»" } }
           %span= competencia.descripcion.truncate(38)
           %span.plan-evaluacion-chip-quitar ×
-  - elsif actual.nil?
+  - elsif actual.nil? && competencias.any?
     -# Sin competencia y sin posición que lo diga: cuenta para el promedio y no
     -# describe nada, así que la boleta la suma sin poder explicarla.
     %span.plan-evaluacion-chips-vacio

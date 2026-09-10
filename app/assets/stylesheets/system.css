@@ -7327,6 +7327,16 @@ a.subject-avance:hover { filter: brightness(0.9); }
 
 .plan-sueltas .nota-ayuda { margin: var(--space-xs) 0 0; }
 
+/* ⚠️ En Educación Media todas las evaluaciones están «sueltas» por definición
+   —no hay competencias— así que el bloque es LA lista, no una advertencia: sin
+   marco ámbar y sin sangría, como cualquier otra sección del plan. */
+.plan-sueltas--normal {
+  margin-top: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
 /* Las altas: crear una competencia o una evaluación. Separadas de
    `.plan-acciones`, que es replicar a las secciones hermanas. */
 .plan-altas {

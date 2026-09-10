@@ -79,20 +79,33 @@
   - if @competencias.blank? && evaluaciones_sueltas.empty?
     .empty-state
       %h3 Todavía no hay nada planificado en este lapso
-      %p
-        Empieza por las competencias: son lo que vas a evaluar. Cada una lleva
-        sus indicadores —que describen qué significa, se imprimen en la boleta y
-        no se califican aparte— y las evaluaciones que la miden.
+      - if con_competencias?
+        %p
+          Empieza por las competencias: son lo que vas a evaluar. Cada una lleva
+          sus indicadores —que describen qué significa, se imprimen en la boleta y
+          no se califican aparte— y las evaluaciones que la miden.
+      - else
+        -# ⚠️ En Educación Media el plan son las evaluaciones y su ponderación
+        -# —el 70/30 del Artículo 111—, sin competencias. Ver `planificar`.
+        %p
+          Empieza por las evaluaciones: cada una con su peso y su fecha. Entre
+          todas tienen que repartir el 100 % del lapso.
       - if profesor?
         .empty-state-acciones
-          = boton "Agregar competencia", new_competency_path(contexto), icono: :agregar,
-                  tono: :guardar, data: { turbo_frame: "alta_competencia_nueva" }
+          - if con_competencias?
+            = boton "Agregar competencia", new_competency_path(contexto), icono: :agregar,
+                    tono: :guardar, data: { turbo_frame: "alta_competencia_nueva" }
+          = boton "Agregar evaluación", new_evaluation_activity_path(contexto), icono: :agregar,
+                  tono: (con_competencias? ? :accion : :guardar),
+                  data: { turbo_frame: "alta_evaluacion_nueva" }
         = turbo_frame_tag "alta_competencia_nueva"
+        = turbo_frame_tag "alta_evaluacion_nueva"
   - else
     -# ⚠️ Los tres rótulos son del MISMO nivel visual —competencias, indicadores
     -# y evaluaciones— aunque uno esté dentro de otro. No son una jerarquía de
     -# importancia: son tres cosas distintas que había que poder nombrar.
-    %h4.plan-rotulo.plan-rotulo--seccion Competencias
+    - if con_competencias?
+      %h4.plan-rotulo.plan-rotulo--seccion Competencias
     %ol.plan-competencias
       = render partial: "competencies/competencia", collection: @competencias, as: :competencia,
                locals: { contexto: contexto, competencias: competencias_del_lapso }
@@ -100,13 +113,20 @@
       -# ⚠️ Las que no miden ninguna competencia. Cuentan para el promedio igual
       -# —el peso es el peso— pero no describen nada, así que la boleta las suma
       -# sin poder explicarlas.
-      .plan-sueltas
-        %h5.plan-sueltas-titulo
-          = icono(:alerta, tamano: 15)
-          %span= "#{contar(evaluaciones_sueltas.size, 'evaluación', 'evaluaciones')} sin competencia"
-        %p.nota-ayuda
-          Cuentan para el promedio, pero no miden ninguna competencia del plan.
-          Engánchalas con el ⟨+⟩ de su fila.
+      -# ⚠️ En Media esto NO es un aviso: es LA lista. Sin competencias, todas
+      -# las evaluaciones están «sueltas» por definición, y pintar el bloque en
+      -# ámbar le decía a un profesor de bachillerato que su plan entero está
+      -# mal hecho.
+      .plan-sueltas{ class: ("plan-sueltas--normal" unless con_competencias?) }
+        - if con_competencias?
+          %h5.plan-sueltas-titulo
+            = icono(:alerta, tamano: 15)
+            %span= "#{contar(evaluaciones_sueltas.size, 'evaluación', 'evaluaciones')} sin competencia"
+          %p.nota-ayuda
+            Cuentan para el promedio, pero no miden ninguna competencia del plan.
+            Engánchalas con el ⟨+⟩ de su fila.
+        - else
+          %h5.plan-rotulo Evaluaciones
         %ul.plan-evaluaciones
           = render partial: "competencies/evaluacion", collection: evaluaciones_sueltas, as: :evaluacion,
                      locals: { contexto: contexto, competencias: competencias_del_lapso }
@@ -116,10 +136,12 @@
       -# una y copiar treinta— y mezclarlas rompió un test que usaba
       -# `.plan-acciones` para preguntar «¿hay algo que copiar?».
       .plan-altas
-        = boton "Agregar competencia", new_competency_path(contexto), icono: :agregar,
-                tono: :guardar, data: { turbo_frame: "alta_competencia_nueva" }
+        - if con_competencias?
+          = boton "Agregar competencia", new_competency_path(contexto), icono: :agregar,
+                  tono: :guardar, data: { turbo_frame: "alta_competencia_nueva" }
         = boton "Agregar evaluación", new_evaluation_activity_path(contexto),
-                icono: :agregar, tono: :accion, data: { turbo_frame: "alta_evaluacion_nueva" }
+                icono: :agregar, tono: (con_competencias? ? :accion : :guardar),
+                data: { turbo_frame: "alta_evaluacion_nueva" }
       -# Los dos frames del final: no cuelgan de ninguna competencia, por eso
       -# `nueva` en vez de un número.
       = turbo_frame_tag "alta_competencia_nueva"
@@ -147,10 +169,15 @@
           -# pesada del trabajo de septiembre, y quien toca el botón tiene que
           -# saber que va a pasar.
           %p.nota-ayuda
-            Van las competencias con sus indicadores
-            %strong y las evaluaciones
-            \, con su peso y su fecha. Las notas no: son de los alumnos de esta
-            sección. Después cada una es independiente: cambiar una no cambia la otra.
+            - if con_competencias?
+              Van las competencias con sus indicadores
+              %strong y las evaluaciones
+              \, con su peso y su fecha.
+            - else
+              Van las evaluaciones con su peso y su fecha.
+              %strong Las notas no
+              \: son de los alumnos de esta sección. Después cada una es
+              independiente: cambiar una no cambia la otra.
         - else
           -# Un botón apagado explicaría menos: se dice qué pasó y adónde ir.
           %p.nota-ayuda.plan-ya-copiado
