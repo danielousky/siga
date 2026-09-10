@@ -1,8 +1,7 @@
 - content_for :titulo, "Asistencia"
 
 .card-academic
-  .card-academic-header
-    %h1 Asistencia
+  = render layout: "shared/cabecera", locals: { titulo: "Asistencia" } do
     .admin-info-badge= l(Date.current, format: :long)
 
   = render "shared/pestanas", pestanas: pestanas_de_asistencia, etiqueta: "Vistas de la asistencia"

@@ -134,6 +134,14 @@ Rails.application.routes.draw do
     resources :solicitudes, only: [:index, :show, :update]
     resources :cartera, only: [:index, :create, :update]
     resources :visitas, only: [:create, :destroy]
+
+    # El catálogo vivo del sistema de diseño.
+    #
+    # ⚠️ Vive DENTRO de `/siga` a propósito, no en `/estilo`. Decisión de
+    # Daniel: *«solo el equipo de SIGA»*. Colgando de `Siga::BaseController` la
+    # puerta ya está puesta y no hay una autorización nueva que escribir — un
+    # director rebota igual que en el resto del panel.
+    get "estilo", to: "estilo#index"
   end
 
   # Dashboards específicos por rol
@@ -218,17 +226,21 @@ Rails.application.routes.draw do
       post "copiar",   to: "competencies#copiar",   as: :copiar_a
     end
 
-    # Qué evaluaciones MIDEN esta competencia (MOR-136).
+    # ⚠️ Los indicadores se editan UNO POR UNO, en su sitio (9 de septiembre).
     #
-    # ⚠️ El enganche ya existía —al crear una evaluación se marca qué evalúa—
-    # pero solo en esa dirección, y el orden real del trabajo es el contrario:
-    # el profesor escribe su plan, arma sus evaluaciones, y si se olvidó de
-    # marcar no tenía forma de arreglarlo salvo editando una por una.
+    # El formulario completo los sigue recibiendo todos juntos —separados por
+    # líneas, para escribir el plan de cero o pegar los que uno ya tiene— y los
+    # reemplaza enteros. Esto es la otra mitad: corregir una palabra en el
+    # tercero sin volver a escribir los otros dos.
+    resources :indicators, path: "indicadores", only: [ :create, :update, :destroy ]
+
+    # ⚠️ El enganche se retiró de acá y vive en la EVALUACIÓN (9 de septiembre).
     #
-    # Daniel: *«no sé cómo asociamos las evaluaciones con los indicadores.
-    # RECUERDA UX, debe ser un proceso fácil y fluido»*. Lo fluido es verlo
-    # donde ya se está trabajando.
-    patch "evaluaciones", to: "competencies#conectar", as: :conectar_evaluaciones
+    # Preguntaba al revés —de la competencia hacia las evaluaciones— cuando lo
+    # que uno mira en el plan es la evaluación. Hoy son los chips de su fila, y
+    # los guarda `evaluation_activities#update` con `competency_ids`. Una sola
+    # puerta: dos maneras de hacer lo mismo es como se llegó a siete formas de
+    # título.
   end
 
   resources :evaluation_activities, path: "evaluaciones" do
@@ -356,6 +368,27 @@ Rails.application.routes.draw do
     end
   end
   resources :sections, path: "secciones" do
+    # ⚠️ «Alumnos» es una PESTAÑA de la sección, con su propia URL (etapa ③).
+    #
+    # Era un panel que alternaba con `hidden`, y las otras tres —asistencia,
+    # calificar, planificar— son pantallas de verdad con su controller. Media
+    # fila de pestañas que navega y media que alterna no se puede explicar: el
+    # botón de atrás funcionaría en unas y en otras no.
+    # ⚠️ Las cuatro vistas de la sección viven EN la sección (etapa ③).
+    #
+    # Daniel: *«no me gustan ni Asistencia ni Planificación como URL, se
+    # descontextualiza todo, se supone que estoy en mi espacio de trabajo —la
+    # Sección— no para salir de él… no es solo "fingir" sino realmente estar en
+    # la sección»*. Y tenía razón: una pestaña que te expulsa no divide nada.
+    #
+    # `/asistencia/:seccion_id` y `/competencias` siguen existiendo: son la
+    # entrada por el MENÚ, para quien no viene de una sección.
+    member do
+      get "alumnos"
+      get "asistencia"
+      get "planificar"
+    end
+
     resources :teacher_sections, path: "profesores", only: [:create, :destroy]
 
     # Los informes descriptivos del lapso (MOR-216). Cuelgan de la SECCIÓN

@@ -1,0 +1,28 @@
+-# El alta de una competencia, SIN salir del plan (QA del 9 de septiembre).
+-#
+-# Daniel: *«lo mismo con las competencias, si quiero agregar una nueva lo hago
+-# allí mismo»*.
+-#
+-# ⚠️ Los indicadores NO están acá, y no es un olvido: se escriben uno por uno
+-# en la competencia una vez creada, con el campo vacío del final. Pedirlos en
+-# el alta obligaría a tenerlos pensados antes de escribir la competencia, que
+-# es al revés de como se planifica.
+-# ⚠️ El ENVÍO va al frame «plan», no al del alta.
+-#
+-# El formulario vive en su propio frame —desplegado bajo el botón— pero al
+-# guardar hay que refrescar el PLAN entero: la fila nueva aparece en la lista y
+-# la barra de ponderación cambia. Sin esto, el `redirect_to plan_path` caería
+-# en el frame del alta, que no contiene el plan, y Turbo escribiría «Content
+-# missing» — el mismo patrón que ya mordió cuatro veces.
+= form_with model: @competency, url: competencies_path(contexto),
+             class: "alta-en-linea", data: { turbo_frame: "plan" } do |f|
+  = render "shared/errors", object: @competency
+  .alta-en-linea-campos
+    .alta-en-linea-campo.alta-en-linea-campo--titulo
+      = f.label :descripcion, "Competencia", class: "form-label"
+      = f.text_area :descripcion, rows: 2, class: "form-control", autofocus: true,
+                    autocomplete: "off",
+                    placeholder: "Resuelve problemas de proporcionalidad directa…"
+  .alta-en-linea-acciones
+    = f.submit "Agregar", class: "btn btn-guardar btn-sm"
+    = link_to "Cancelar", plan_path, class: "btn btn-secondary btn-sm"

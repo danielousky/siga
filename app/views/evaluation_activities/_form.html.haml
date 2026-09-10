@@ -11,69 +11,129 @@
                     ponderacion_asignaciones_value: ponderacion_de_mis_asignaciones.to_json,
                     que_evalua_planes_value: competencias_de_mis_asignaciones.to_json,
                     que_evalua_marcadas_value: competencias_marcadas.to_json,
+                    que_evalua_ruta_nueva_value: new_competency_path,
                     area_secciones_value: secciones_por_area.to_json }) do |f|
   = render "shared/errors", object: evaluation_activity
 
-  -# ⚠️ DOS selects, área primero y sección después (MOR-223).
+  -# ⚠️ Lo que ya viene decidido NO se vuelve a preguntar (QA del 7 de sept.).
   -#
-  -# Daniel: *«esto lo separamos en 2 selects: si el profe solo da una materia
-  -# pues vamos directo, pero si dicta más de una, le colocamos el select
-  -# previo»*.
+  -# Daniel, marcando con una equis los dos primeros desplegables: *«vienen del
+  -# enlace»* — *«¿para qué repedírselas al usuario si vengo de una
+  -# especificación?»*.
   -#
-  -# Con uno solo, el profesor de Matemática con dieciséis secciones abría un
-  -# desplegable de dieciséis renglones donde tenía que LEER cada uno para
-  -# elegir. Partido, la primera lista tiene un renglón para él y la segunda
-  -# tiene solo las suyas.
+  -# Quien llega desde el plan de «1er Grado B · Matemática · 1er Lapso» ya
+  -# eligió las tres cosas. Repreguntárselas no es prudencia: es hacerle repetir,
+  -# y darle la oportunidad de equivocarse y crear la evaluación en otra sección.
   -#
-  -# ⚠️ Con UNA sola área el primer select no aparece: es un control que no
-  -# decide nada y le agrega un paso a quien no tiene nada que elegir. Misma
-  -# regla que el selector de nivel y el de año escolar.
-  - if hay_area_que_elegir?
-    .form-group
-      = f.label :area, Vocabulario::AREA, class: "form-label"
-      = f.select :area,
-        mis_areas.map { |s| [ s.name, s.id ] },
-        { selected: area_elegida&.id },
-        class: "form-select", data: { area_target: "area", action: "change->area#cambio" }
+  -# ⚠️ Los campos siguen viajando, en oculto, y el «Cambiar» devuelve el
+  -# formulario completo: mostrar el contexto no puede volverlo una jaula.
+  - if contexto_del_enlace?
+    .contexto-del-enlace
+      %span.contexto-del-enlace-etiqueta Para
+      %strong= "#{asignacion_del_enlace.section.grade.name} – #{asignacion_del_enlace.section.name}"
+      %span.contexto-del-enlace-separador ·
+      %strong= asignacion_del_enlace.subject.name
+      %span.contexto-del-enlace-separador ·
+      %strong= lapso_del_enlace.name
+      = link_to "Cambiar", new_evaluation_activity_path, class: "contexto-del-enlace-cambiar",
+                data: { tooltip: "Elegir otra sección o lapso" }
+
+    = f.hidden_field :area, value: asignacion_del_enlace.subject_id
+    = f.hidden_field :asignacion, value: "#{asignacion_del_enlace.section_id}:#{asignacion_del_enlace.subject_id}",
+      data: { ponderacion_target: "asignacion", que_evalua_target: "asignacion" }
+    = f.hidden_field :evaluation_moment_id, value: lapso_del_enlace.id,
+      data: { ponderacion_target: "lapso", que_evalua_target: "lapso" }
+
   - else
-    -# El área viaja igual, porque `asignacion` la necesita para armarse.
-    = f.hidden_field :area, value: area_elegida&.id
+    -# ⚠️ DOS selects, área primero y sección después (MOR-223).
+    -#
+    -# Daniel: *«esto lo separamos en 2 selects: si el profe solo da una materia
+    -# pues vamos directo, pero si dicta más de una, le colocamos el select
+    -# previo»*.
+    -#
+    -# Con uno solo, el profesor de Matemática con dieciséis secciones abría un
+    -# desplegable de dieciséis renglones donde tenía que LEER cada uno para
+    -# elegir. Partido, la primera lista tiene un renglón para él y la segunda
+    -# tiene solo las suyas.
+    -#
+    -# ⚠️ Con UNA sola área el primer select no aparece: es un control que no
+    -# decide nada y le agrega un paso a quien no tiene nada que elegir. Misma
+    -# regla que el selector de nivel y el de año escolar.
+    - if hay_area_que_elegir?
+      .form-group
+        = f.label :area, Vocabulario::AREA, class: "form-label"
+        = f.select :area,
+          mis_areas.map { |s| [ s.name, s.id ] },
+          { selected: area_elegida&.id },
+          class: "form-select", data: { area_target: "area", action: "change->area#cambio" }
+    - else
+      -# El área viaja igual, porque `asignacion` la necesita para armarse.
+      = f.hidden_field :area, value: area_elegida&.id
 
-  .form-group
-    = f.label :asignacion, Section.model_name.human, class: "form-label"
-    = f.select :asignacion,
-      mis_secciones_del_area.map { |ts| [ "#{ts.section.grade.name} – #{ts.section.name}", "#{ts.section_id}:#{ts.subject_id}" ] },
-      { include_blank: "Elige una de tus secciones...", selected: ("#{evaluation_activity.section_id}:#{evaluation_activity.subject_id}" if evaluation_activity.section_id) },
-      class: "form-select", data: { ponderacion_target: "asignacion", que_evalua_target: "asignacion",
-                                    area_target: "seccion",
-                                    action: "change->ponderacion#asignacionCambio change->que-evalua#actualizar" }
+    .form-group
+      = f.label :asignacion, Section.model_name.human, class: "form-label"
+      = f.select :asignacion,
+        mis_secciones_del_area.map { |ts| [ "#{ts.section.grade.name} – #{ts.section.name}", "#{ts.section_id}:#{ts.subject_id}" ] },
+        { include_blank: "Elige una de tus secciones...", selected: ("#{evaluation_activity.section_id}:#{evaluation_activity.subject_id}" if evaluation_activity.section_id) },
+        class: "form-select", data: { ponderacion_target: "asignacion", que_evalua_target: "asignacion",
+                                      area_target: "seccion",
+                                      action: "change->ponderacion#asignacionCambio change->que-evalua#actualizar" }
 
-  .form-group
-    = con_pista "Solo aparecen los lapsos del año escolar de la sección que elegiste arriba." do
-      = f.label :evaluation_moment_id, class: "form-label"
-    = f.select :evaluation_moment_id, [], { include_blank: "Elige el lapso..." },
-      class: "form-select", data: { ponderacion_target: "lapso", que_evalua_target: "lapso",
-                                    action: "change->ponderacion#lapsoCambio change->que-evalua#actualizar" }
+    .form-group
+      = con_pista "Solo aparecen los lapsos del año escolar de la sección que elegiste arriba." do
+        = f.label :evaluation_moment_id, class: "form-label"
+      = f.select :evaluation_moment_id, [], { include_blank: "Elige el lapso..." },
+        class: "form-select", data: { ponderacion_target: "lapso", que_evalua_target: "lapso",
+                                      action: "change->ponderacion#lapsoCambio change->que-evalua#actualizar" }
 
   .form-group
     = f.label :description, "Qué se evalúa", class: "form-label"
     = f.text_field :description, class: "form-control", placeholder: "Examen del primer lapso"
 
+  -# ⚠️ La FECHA va antes que el peso (QA del 7 de septiembre).
+  -#
+  -# Es el orden en que se decide: qué evaluación es, cuándo la aplico, y recién
+  -# ahí cuánto vale dentro del lapso. Y el peso arrastra su medidor, que es el
+  -# bloque más alto del formulario: tenerlo en el medio partía la lectura en
+  -# dos.
+  .form-group
+    = f.label :date_scheduled, "Fecha", class: "form-label"
+    = f.date_field :date_scheduled, class: "form-control"
+
+  -# ⚠️ El peso se ARRASTRA, no se teclea (QA del 7 de septiembre).
+  -#
+  -# Daniel pidió un «range value», con los ejemplos de Bootstrap al lado. Y
+  -# tiene razón: un porcentaje es una porción de algo, y arrastrarla es la
+  -# manera natural de repartir. Escribir «30» en una caja de texto obliga a
+  -# imaginarse la proporción; el control la muestra.
+  -#
+  -# ⚠️ Van los DOS, y ninguno sobra:
+  -#
+  -#     el deslizador   para REPARTIR   ← se arrastra, se ve la porción
+  -#     el número       para PRECISAR   ← 33,33 no se arrastra jamás
+  -#
+  -# El que viaja al servidor es el número; el deslizador no tiene `name`. Con
+  -# los dos llamándose igual, Rails recibiría dos valores y se quedaría con el
+  -# último del DOM — que sería el redondeado a entero.
   .form-group
     = con_pista "Cuánto vale esta evaluación dentro del lapso. SIGA propone lo que falta para cerrar en 100 %; escriba otra cosa encima si reparte distinto. El Reglamento sugiere 70 % en evaluaciones parciales y 30 % en una final de lapso (Art. 111)." do
       = f.label :weight_percentage, "Peso dentro del lapso (%)", class: "form-label"
-    = f.number_field :weight_percentage, class: "form-control", step: 0.01, min: 0.01, max: 100,
-      data: { ponderacion_target: "peso", action: "input->ponderacion#recalcular" }
+
+    .campo-rango
+      -# ⚠️ El `max` lo pone el controlador con lo que QUEDA del lapso, no 100:
+      -# arrastrarlo hasta el final tiene que proponer un reparto válido.
+      = range_field_tag nil, evaluation_activity.weight_percentage, min: 1, max: 100, step: 1,
+        class: "campo-rango-barra", "aria-label": "Peso dentro del lapso, deslizador",
+        data: { ponderacion_target: "rango", action: "input->ponderacion#desdeElRango" }
+      = f.number_field :weight_percentage, class: "campo-rango-valor", step: 0.01, min: 0.01, max: 100,
+        data: { ponderacion_target: "peso", action: "input->ponderacion#desdeElNumero blur->ponderacion#ajustarAlSalir" }
+      %span.campo-rango-signo %
 
     .weight-meter{data: { ponderacion_target: "medidor" }, hidden: true}
       .weight-meter-bar
         .weight-meter-fill{data: { ponderacion_target: "barraUsado" }}
         .weight-meter-fill.weight-meter-fill--nuevo{data: { ponderacion_target: "barraNuevo" }}
       .weight-meter-value{data: { ponderacion_target: "leyenda" }}
-
-  .form-group
-    = f.label :date_scheduled, "Fecha", class: "form-label"
-    = f.date_field :date_scheduled, class: "form-control"
 
   -# ⚠️ Qué evalúa: el enganche entre el PLAN y la NOTA (MOR-136).
   -#
@@ -83,10 +143,38 @@
   -# El bloque entero se esconde solo cuando no hay plan que ofrecer: un profesor
   -# de bachillerato no evalúa por competencias, y un titulito sobre un vacío
   -# permanente le enseña a ignorar esa zona del formulario.
-  - if competencias_de_mis_asignaciones.any?
-    .form-group.que-evalua{ data: { que_evalua_target: "bloque" } }
-      = con_pista "Se marca la COMPETENCIA. Sus indicadores se imprimen debajo en la boleta con el mismo nivel — no se califican aparte." do
-        %span.form-label Qué evalúa, del plan de esta sección
+  -# ⚠️ La condición es «¿este profesor evalúa por competencias?», NO «¿ya tiene
+  -# alguna escrita?». Con la segunda, el maestro que estrena su primer plan no
+  -# veía el bloque —ni el [+] para crearla— justo cuando iba a escribirla.
+  - if asignaciones_por_competencias.any?
+    .form-group.que-evalua
+      .que-evalua-cabecera
+        = con_pista "Se marca la COMPETENCIA. Sus indicadores se imprimen debajo en la boleta con el mismo nivel — no se califican aparte." do
+          %span.form-label Qué evalúa, del plan de esta sección
+
+        -# ⚠️ Registrar una competencia SIN salir a buscarla (QA del 7 de sept.).
+        -#
+        -# Daniel: *«nueva competencia (con los datos, directo a la competencia
+        -# específica de la sección)»*.
+        -#
+        -# El profesor que está armando su evaluación y descubre que le falta una
+        -# competencia tenía que abandonar el formulario, ir al plan, elegir grado
+        -# – área – sección – lapso otra vez, escribirla, y volver a empezar. Acá
+        -# el destino lleva los cuatro puestos.
+        -#
+        -# El `href` lo escribe Stimulus: depende de la sección y el lapso, que se
+        -# eligen en esta misma pantalla. Nace deshabilitado —sin `href`— porque
+        -# sin sección elegida no hay plan al que agregarle nada.
+        -# ⚠️ VERDE, como todo lo que queda guardado, y como el «Agregar» de
+        -# cualquier listado. Daniel pidió *«un botón [+] como los otros new»*, y
+        -# desde el 8 de septiembre los otros new son verdes: el verde ya no
+        -# significa «crea» sino «esto queda guardado», y el `+` es lo único que
+        -# agrega «y además nace algo nuevo».
+        %a.btn.btn-guardar.btn-sm.btn-solo-icono{ data: { que_evalua_target: "nueva",
+                                                          tooltip: "Registrar una competencia en este plan" },
+                                                  "aria-label": "Registrar una competencia en este plan" }
+          = icono(:agregar, tamano: 16)
+
       %p.nota-ayuda{ data: { que_evalua_target: "vacio" }, hidden: true }
       %ul.que-evalua-lista{ data: { que_evalua_target: "lista" } }
 
@@ -94,6 +182,14 @@
     = f.submit class: "btn btn-guardar"
     -# ⚠️ DENTRO de `.form-acciones`. Estaba una indentación afuera, así que caía
     -# debajo del submit en vez de al lado — se vio en pantalla.
-    = link_to "Cancelar", evaluation_activities_path, class: "btn btn-secondary"
+    -# ⚠️ «Cancelar» vuelve A DONDE ESTABA, no al listado de evaluaciones.
+    -#
+    -# Iba a `/evaluaciones`, que no tiene ni el frame «plan» ni el «libreta»:
+    -# cancelar desde la pestaña dejaba «Content missing» donde estaba todo. Lo
+    -# reportó Daniel el 9 de septiembre, y es el mismo patrón que ya había
+    -# mordido en `new` y en el error de borrar — la tercera puerta del mismo
+    -# cuarto. Cancelar es una SALIDA más, y las salidas usan `ruta_de_vuelta`.
+    = link_to "Cancelar", (ruta_de_vuelta(evaluation_activity) || evaluation_activities_path),
+              class: "btn btn-secondary"
     - if local_assigns[:volver]
       = boton "Volver", volver, icono: :volver, tono: :secondary

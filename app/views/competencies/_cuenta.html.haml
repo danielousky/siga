@@ -1,0 +1,7 @@
+-# Cuánto del 100 % está repartido. Va aparte de la barra porque es lo que se
+-# reemplaza al guardar un peso desde su fila: la barra ya se movió sola con
+-# Stimulus mientras se escribía, y esto CONFIRMA lo que quedó guardado.
+%span.plan-ponderacion-cuenta#cuenta-de-la-ponderacion{ data: { reparto_target: "cuenta" } }
+  = porcentaje(usado)
+  - if usado < 100
+    %span.plan-ponderacion-resto= "· #{porcentaje(100 - usado)} sin repartir"

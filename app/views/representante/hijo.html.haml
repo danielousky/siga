@@ -4,13 +4,19 @@
 -# cosa. No es un tablero: es una respuesta. Por eso la nota está arriba de todo
 -# y todo lo demás viene después.
 .portal-hijo
-  .portal-cabecera
-    %h1= @hijo[:student].user.nombre_completo
-    - if @inscripcion
-      %p.portal-seccion
-        = "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
-        %span.portal-punto ·
-        = @inscripcion.section.academic_period.name
+  -# ⚠️ La misma cabecera que el resto de la app, también acá.
+  -# Daniel: *«un único tipo de títulos tanto para administradores, profesores,
+  -# estudiantes y representantes»*. El portal tenía la suya —`.portal-cabecera`,
+  -# con su borde de 2 px— y era otra de las siete formas. El nombre del hijo es
+  -# el título; su sección y su año escolar son el detalle, que es exactamente
+  -# para lo que existe `detalle:`.
+  - donde_estudia = [ "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}",
+                      @inscripcion.section.academic_period.name ].join(" · ") if @inscripcion
+  -# ⚠️ En su propia tarjeta, como en el resto de la app: sin ella la
+  -# franja del título quedaba pegada al borde de la pantalla.
+  .card-academic
+    = render "shared/cabecera", titulo: @hijo[:student].user.nombre_completo,
+             detalle: donde_estudia
 
 - if @inscripcion.nil?
   .card-academic
@@ -30,8 +36,7 @@
     = link_to "Año completo", hijo_representante_path(@hijo[:student], lapso: "anual"), class: "filter-pill #{'active' if @anual}"
 
   .card-academic
-    .card-academic-header
-      %h2= @anual ? "Calificaciones del año" : "Calificaciones de #{@lapso&.name&.downcase}"
+    = render "shared/cabecera", titulo: @anual ? "Calificaciones del año" : "Calificaciones de #{@lapso&.name&.downcase}", nivel: 2
 
     %ul.portal-materias
       - @materias.each do |fila|
@@ -111,8 +116,7 @@
         %p.informe-descriptivo-cuerpo= @informe.cuerpo
 
   .card-academic
-    .card-academic-header
-      %h2 Asistencia
+    = render "shared/cabecera", titulo: "Asistencia", nivel: 2
 
     .stats-grid
       .stat-card
@@ -148,8 +152,7 @@
 
   - if @boletines.any?
     .card-academic
-      .card-academic-header
-        %h2 Boletines
+      = render "shared/cabecera", titulo: "Boletines", nivel: 2
       %ul.portal-boletines
         - @boletines.each do |boletin|
           %li

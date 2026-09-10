@@ -1,0 +1,53 @@
+-# El reparto del lapso, COMPLETO y editable (QA del 8 de septiembre).
+-#
+-# Daniel: *«ese porcentaje debería estar directamente aquí y moverse
+-# dinámicamente unos con otros, de modo que vea cuánto % llevo y cuánto % me
+-# queda… no ver el porcentaje aislado sino como un todo»*.
+-#
+-# La barra tiene un TRAMO POR EVALUACIÓN, no una sola franja llena: el peso de
+-# una evaluación no significa nada sola —«40 %» no dice si es mucho— y sí al
+-# lado de las otras tres. El hueco del final es lo que queda por repartir.
+-#
+-#     ████████ Taller 30 ██ Part. 5 ███████████ Examen 40 ░░ queda 25 ░░
+-#
+-# ⚠️ Los campos viven en las FILAS del plan, no acá, y se atan a este
+-# formulario con el atributo `form=`. Un `<form>` que envolviera el plan
+-# entero anidaría los `button_to` de borrar, y un formulario dentro de otro es
+-# HTML inválido: el navegador cierra el primero donde se le ocurre y el botón
+-# deja de enviar lo que dice.
+-#
+-# ⚠️ Y se guarda TODO DE UNA VEZ. Guardando de a una, pasar de 40/60 a 60/40
+-# es imposible sin un paso intermedio de 60/60 que el modelo rechaza.
+- usado = peso_del_lapso.to_f
+.plan-ponderacion
+  .plan-ponderacion-cabecera
+    %span.plan-ponderacion-titulo
+      Ponderación
+      %span.dato-secundario= "· #{lapso&.name}"
+    = render "competencies/cuenta", usado: usado
+
+  .plan-ponderacion-barra{ data: { reparto_target: "barra" } }
+    - evaluaciones_del_lapso.each_with_index do |evaluacion, i|
+      -# ⚠️ El ancho va inline y con interpolación: es un DATO —el peso de esta
+      -# evaluación— y no una decisión de estilo. Lo admite el test del sistema
+      -# de diseño justamente por eso.
+      -# ⚠️ El tramo NO lleva tooltip. Mide hasta 400 px, y el globo sale
+      -# centrado bajo él: aparecía a doscientos píxeles del cursor, en medio de
+      -# la pantalla y sin relación visible con nada. Daniel: *«parece que fueran
+      -# sitios distintos»*.
+      -#
+      -# No se pierde nada: el nombre y el peso de cada evaluación están en la
+      -# lista de abajo, enteros y sin tener que apuntar.
+      %span.plan-ponderacion-tramo{ class: "plan-ponderacion-tramo--#{i % 5}",
+                                    style: "width: #{[ evaluacion.weight_percentage.to_f, 100 ].min}%",
+                                    "aria-hidden": true,
+                                    data: { reparto_target: "tramo", id: evaluacion.id } }
+    %span.plan-ponderacion-hueco{ data: { reparto_target: "hueco" },
+                                  style: "width: #{[ 100 - usado, 0 ].max}%" }
+
+  -# ⚠️ Ya no hay botón «Guardar el reparto»: desde el 9 de septiembre cada peso
+  -# se guarda al salir de su campo, en la fila. Daniel eligió esa forma sabiendo
+  -# el costo: intercambiar 40/60 por 60/40 obliga a bajar uno primero.
+  -#
+  -# Lo que hace que ese costo no duela es el `max` dinámico del campo, que no
+  -# deja escribir de más — el error no se rechaza, se vuelve imposible.

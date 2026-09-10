@@ -10,17 +10,33 @@ import { Controller } from "@hotwired/stimulus"
 // al servidor en cada cambio. Un profesor tiene pocas secciones, así que el mapa
 // es chico — y así el medidor responde al instante y sin conexión.
 export default class extends Controller {
-  static targets = ["asignacion", "lapso", "peso", "medidor", "barraUsado", "barraNuevo", "leyenda"]
+  static targets = ["asignacion", "lapso", "peso", "rango", "medidor", "barraUsado", "barraNuevo", "leyenda"]
   static values  = { asignaciones: Object }
 
   connect() {
     this.asignacionCambio({ conservarLapso: true })
+
+    // ⚠️ Y el deslizador se pone donde el número, también al EDITAR.
+    // `asignacionCambio` llega hasta `proponerElPeso`, que sale en la primera
+    // línea cuando el campo ya trae un valor —justo el caso de editar— así que
+    // el deslizador se quedaba en 1 sobre una evaluación que vale 40.
+    this.#moverElRango()
   }
 
   // Al cambiar de sección/materia, los lapsos disponibles son otros: son los del
   // año escolar de ESA sección.
   asignacionCambio({ conservarLapso = false } = {}) {
     const datos = this.#asignacionActual()
+
+    // ⚠️ Con el contexto fijado desde el enlace, el lapso es un `hidden` y no
+    // hay lista que repoblar — ya está decidido. Repoblarlo sería, además,
+    // `appendChild` sobre un `<input>`, que es un elemento vacío.
+    if (this.lapsoTarget.tagName !== "SELECT") {
+      this.proponerElPeso()
+      this.recalcular()
+      return
+    }
+
     const elegido = conservarLapso ? this.lapsoTarget.value : ""
 
     this.lapsoTarget.innerHTML = ""
@@ -58,6 +74,78 @@ export default class extends Controller {
 
     const libre = 100 - Number(datos.usado[lapso] ?? 0)
     if (libre > 0) this.pesoTarget.value = Number(libre.toFixed(2))
+    this.#moverElRango()
+  }
+
+  // ⚠️ El deslizador topa en LO QUE QUEDA, no en 100.
+  //
+  // Daniel: *«no me debería permitir pasar del porcentaje que supere los
+  // 100 %, eso es un error, debería poder jugar con lo que me queda»*.
+  //
+  // Con `max="100"` fijo, arrastrarlo hasta el final proponía un reparto que el
+  // modelo iba a rechazar — el profesor descubría el tope al guardar, después
+  // de haber escrito todo lo demás. El deslizador es justamente el control que
+  // debe hacer imposible lo imposible: no hay forma de teclear de más.
+  //
+  // ⚠️ Editando, `libre` YA descuenta la evaluación que se está tocando
+  // (`peso_usado(..., excepto:)`), o cambiarle el 40 % a 45 sería imposible con
+  // el lapso cerrado en 100.
+  #toparElRango() {
+    if (!this.hasRangoTarget) return
+
+    const libre = this.#loQueQueda()
+    // El lapso ya está en 100: el deslizador no tiene rango que ofrecer y se
+    // apaga. La leyenda de abajo explica por qué, que es lo que hace falta.
+    this.rangoTarget.disabled = libre <= 0
+    this.rangoTarget.max = Math.max(libre, 1)
+  }
+
+  #loQueQueda() {
+    const datos = this.#asignacionActual()
+    const lapso = this.lapsoTarget.value
+    if (!datos || !lapso) return 100
+
+    return 100 - Number(datos.usado[lapso] ?? 0)
+  }
+
+  #moverElRango() {
+    if (!this.hasRangoTarget) return
+
+    this.#toparElRango()
+    const tope = Number(this.rangoTarget.max)
+    const valor = Number(this.pesoTarget.value)
+    this.rangoTarget.value = Number.isFinite(valor) ? Math.min(Math.max(valor, 1), tope) : 1
+  }
+
+  // ⚠️ El deslizador y el número son DOS caras del mismo valor, y hay que
+  // moverlas juntas. El que viaja al servidor es el número; el deslizador no
+  // tiene `name`.
+  //
+  // Del deslizador al número: el valor entero se escribe tal cual. Del número
+  // al deslizador: se recorta al rango 1–100 —el campo admite 33,33 y el
+  // deslizador solo enteros— y el número NO se toca, o escribir «33,33» se
+  // volvería «33» debajo de los dedos.
+  desdeElRango() {
+    this.pesoTarget.value = this.rangoTarget.value
+    this.recalcular()
+  }
+
+  desdeElNumero() {
+    this.#moverElRango()
+    this.recalcular()
+  }
+
+  // Al salir del campo se corrige el exceso tecleado. ⚠️ Se hace en `blur` y no
+  // en `input`: recortando mientras se escribe, teclear «40» en un hueco de 25
+  // convierte el 4 en 25 y el resultado es «254».
+  ajustarAlSalir() {
+    const tope = this.#loQueQueda()
+    const valor = Number(this.pesoTarget.value)
+    if (!Number.isFinite(valor) || valor <= tope) return
+
+    this.pesoTarget.value = Number(tope.toFixed(2))
+    this.#moverElRango()
+    this.recalcular()
   }
 
   recalcular() {
@@ -73,6 +161,7 @@ export default class extends Controller {
     const nuevo = Number(this.pesoTarget.value) || 0
     const total = usado + nuevo
     const libre = 100 - usado
+    this.#toparElRango()
 
     this.medidorTarget.hidden = false
     this.barraUsadoTarget.style.width = `${Math.min(usado, 100)}%`

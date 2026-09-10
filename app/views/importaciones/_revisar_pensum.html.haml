@@ -6,8 +6,7 @@
 -# identifica a la materia dentro del colegio y aparece en boletines y horarios.
 - if planilla.codigos_generados.any?
   .card-academic
-    .card-academic-header
-      %h2 Códigos que SIGA le puso a las materias
+    = render "shared/cabecera", titulo: "Códigos que SIGA le puso a las materias", nivel: 2
 
     %p
       Estas materias vinieron sin código en la planilla, así que se les armó uno.

@@ -1,8 +1,7 @@
 -# El panel del profesor (MOR-135). Ver el controller para el porqué del orden.
 .dashboard-profesor
   .card-academic
-    .card-academic-header
-      %h1 Panel del profesor
+    = render layout: "shared/cabecera", locals: { titulo: "Panel del profesor" } do
       .admin-info-badge
         = current_user.first_name
         - if @led_sections.any?
@@ -12,8 +11,7 @@
   -# profesor entra a esto, no a mirar cuántas secciones tiene.
   - if @sin_corregir.any?
     .card-academic
-      .card-academic-header
-        %h2 Te falta cargar notas
+      = render "shared/cabecera", titulo: "Te falta cargar notas", nivel: 2
 
       %ul.por-corregir
         - @sin_corregir.each do |fila|
@@ -29,15 +27,14 @@
               -# El avance en letras y no una barra: "12 de 20" dice cuántas
               -# faltan, que es la pregunta. Una barra dice "60 %", que no.
               %span.por-corregir-cuenta= "#{fila.puestas} de #{fila.total}"
-              = boton "Cargar notas", evaluation_activity_notas_path(e), icono: :subir, sm: true
+              = boton "Cargar notas", evaluation_activity_notas_path(e), icono: :subir, tono: :accion, sm: true
 
       %p.nota-ayuda
         Se listan las evaluaciones cuya fecha ya pasó y a las que les falta
         alguna nota.
 
   .card-academic
-    .card-academic-header
-      %h2 Mis secciones
+    = render "shared/cabecera", titulo: "Mis secciones", nivel: 2
 
     -# ⚠️ Cada área con su AVANCE, y el número enlaza a lo que falta (MOR-223).
     -#
@@ -83,8 +80,7 @@
 
   - if @led_sections.any?
     .card-academic
-      .card-academic-header
-        %h2= pluralizar(@led_sections.size, "Sección que guías", "Secciones que guías")
+      = render layout: "shared/cabecera", locals: { titulo: pluralizar(@led_sections.size, "Sección que guías", "Secciones que guías"), nivel: 2 } do
         -# El guía es quien pasa lista, así que el atajo va acá y no en el menú.
         = boton "Pasar lista", asistencias_path, icono: :asistencia, tono: :secondary
 

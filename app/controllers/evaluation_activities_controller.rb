@@ -14,11 +14,24 @@
 #
 # Ver MOR-94.
 class EvaluationActivitiesController < ApplicationController
+  include VuelveALaSeccion
+
   before_action :require_acceso!
   before_action :require_profesor!, only: [:new, :create, :edit, :update, :destroy]
   before_action :set_evaluation_activity, only: [:show, :edit, :update, :destroy]
 
+  # ⚠️ Para un PROFESOR, `/evaluaciones` deja de ser destino (etapa ③).
+  #
+  # Daniel: *«esa vista ya no debe estar, al igual que evaluaciones; volver
+  # lleva a evaluaciones sin sección»*. Sus evaluaciones viven en la libreta de
+  # cada sección, y un listado que las mezcla todas no dice de cuál es ninguna.
+  #
+  # ⚠️ A diferencia de `/competencias`, esta pantalla SÍ le sirve a la
+  # dirección: es donde contesta «¿este profesor está al día?» sin abrir sus
+  # cinco planillas. Por eso redirige solo al profesor.
   def index
+    return redirect_to(ruta_de_calificar_su_primera)  if profesor? && mis_asignaciones.any?
+
     actividades = alcance
       .includes(:subject, :evaluation_moment, section: :grade)
       .order("sections.id", "subjects.name", "evaluation_activities.evaluation_moment_id", "evaluation_activities.date_scheduled")
@@ -36,8 +49,19 @@ class EvaluationActivitiesController < ApplicationController
     @inscritos      = @evaluation_activity.section.enrollments.count
   end
 
+  # ⚠️ Nace CON el contexto puesto cuando viene de un enlace (QA del 7 de sept.).
+  #
+  # Daniel, señalando los dos primeros desplegables: *«vienen del enlace»* —
+  # *«este enlace puede llevar ya todas estas características, ¿para qué
+  # repedírselas al usuario si vengo de una especificación?»*.
+  #
+  # Es «no preguntemos lo deducible» en su forma más literal: quien llega desde
+  # el plan de 1er Grado B · Matemática · 1er Lapso ya eligió las tres cosas, y
+  # volver a preguntárselas no es prudencia, es hacerle repetir. Y peor: puede
+  # elegir mal y crear la evaluación en otra sección.
   def new
-    @evaluation_activity = EvaluationActivity.new(date_scheduled: Date.current)
+    @evaluation_activity = EvaluationActivity.new(date_scheduled: fecha_propuesta,
+                                                  **atributos_del_enlace)
   end
 
   def edit; end
@@ -52,30 +76,175 @@ class EvaluationActivitiesController < ApplicationController
 
     if @evaluation_activity.save
       etiquetar_lo_que_evalua(@evaluation_activity)
-      redirect_to @evaluation_activity, notice: "Evaluación creada."
+      # ⚠️ A la LIBRETA de su sección, no a la ficha suelta.
+      #
+      # Es lo que hace que el `turbo_frame` funcione: el redirect vuelve a la
+      # pantalla que contiene el frame «libreta», Turbo lo extrae, y la columna
+      # nueva aparece en la tabla mientras el formulario desaparece — todo en
+      # una respuesta. Redirigiendo a la ficha, el frame se reemplazaría por
+      # una pantalla que no es la libreta.
+      redirect_to ruta_de_vuelta(@evaluation_activity), notice: "Evaluación creada."
     else
       render :new, status: :unprocessable_entity
     end
   end
 
+  # ⚠️ La misma acción sirve al formulario COMPLETO y a la edición EN LÍNEA.
+  #
+  # Daniel, 9 de septiembre: *«para editar dicha evaluación lo haremos desde
+  # allí mismo, al hacer clic en el elemento que deseo editar, como lo hace
+  # Linear»*. Y con eso el lápiz se retiró: ya no hay una segunda manera.
+  #
+  # Lo que cambia es la RESPUESTA, no la escritura. Desde el plan llega un solo
+  # campo y hay que devolver un pedacito; desde el formulario llegan todos y hay
+  # que volver a la pantalla. Un `respond_to` y la misma línea de guardado.
   def update
-    if @evaluation_activity.update(evaluation_activity_params)
-      etiquetar_lo_que_evalua(@evaluation_activity)
-      redirect_to @evaluation_activity, notice: "Evaluación actualizada."
-    else
-      render :edit, status: :unprocessable_entity
+    unless @evaluation_activity.update(evaluation_activity_params)
+      return responder_al_fallo
     end
+
+    etiquetar_lo_que_evalua(@evaluation_activity) if params[:evaluation_activity].key?(:competency_ids)
+    responder_al_exito
   end
 
+  # ⚠️ El fallo vuelve al MISMO sitio, no a la ficha de la evaluación.
+  #
+  # Una evaluación con notas cargadas no se borra (`restrict_with_error`), y el
+  # error redirigía al `show` — una pantalla que NO tiene el frame «plan». Turbo
+  # pedía «plan», recibía una respuesta sin él, y escribía «Content missing»
+  # donde estaba la planificación entera. Lo reportó Daniel el 8 de septiembre.
+  #
+  # Es la misma lección que el frame fijo de `new`, del otro lado: dentro de un
+  # frame, el destino de un redirect tiene que contener ese frame.
   def destroy
+    # ⚠️ La ruta se arma ANTES de borrar: después el objeto ya no puede
+    # resolver su sección para armarla.
+    volver_a = ruta_de_vuelta(@evaluation_activity) || evaluation_activities_path
+
     if @evaluation_activity.destroy
-      redirect_to evaluation_activities_url, notice: "Evaluación eliminada."
+      redirect_to volver_a, notice: "Evaluación eliminada."
     else
-      redirect_to @evaluation_activity, alert: @evaluation_activity.errors.full_messages.to_sentence
+      redirect_to volver_a, alert: @evaluation_activity.errors.full_messages.to_sentence
     end
   end
 
   private
+
+  # ⚠️ La fecha nace DENTRO del año escolar, no en «hoy».
+  #
+  # Nacía en `Date.current`, y en septiembre de 2026 eso cae FUERA del año
+  # 2025-2026 —que terminó el 31 de julio—: el campo la rechazaba con «el valor
+  # debe ser igual o anterior a 31/07/2026» y el alta no se podía guardar sin
+  # tocar la fecha primero. Se ve entrando a un año escolar ya cerrado, que es
+  # exactamente lo que hace un profesor al revisar lo del año pasado.
+  #
+  # Hoy si cabe, y si no el primer día del año: es la misma regla con la que el
+  # calendario del plan elige por dónde abrirse.
+  def fecha_propuesta
+    periodo = asignacion_del_enlace&.section&.academic_period
+    return Date.current if periodo.nil?
+
+    Date.current.clamp(periodo.start_date, periodo.end_date)
+  end
+
+  # ── Contestar a quien preguntó ────────────────────────────────────────────
+  #
+  # ⚠️ Editando en línea NO se recarga el plan entero: se devuelven la FILA y la
+  # cuenta de la ponderación, que son las dos cosas que cambiaron. Recargar todo
+  # se lleva el foco del teclado —y el profesor está tabulando entre campos—,
+  # además de cerrar el calendario que acaba de abrir.
+  #
+  # ⚠️ Y NO se manda un flash. Un aviso por cada campo tocado —tres por
+  # evaluación, treinta por plan— convierte la pantalla en una alarma. Acá el
+  # feedback es que el valor quedó: la fila vuelve con un destello y la barra
+  # ya se movió sola mientras se escribía. Un flash es para lo que no se ve.
+  def responder_al_exito
+    return redirect_to(ruta_de_vuelta(@evaluation_activity), notice: "Evaluación actualizada.") unless en_linea?
+
+    # ⚠️ Cambiar QUÉ MIDE mueve la fila de sitio —el plan agrupa por
+    # competencia— así que devolver la fila en su lugar viejo la dejaría bajo
+    # una competencia que ya no mide. Eso se recarga entero.
+    return redirect_to(ruta_de_vuelta(@evaluation_activity)) if cambio_el_enganche?
+
+    render turbo_stream: filas_a_refrescar + [
+      turbo_stream.replace("cuenta-de-la-ponderacion", partial: "competencies/cuenta",
+                                                            locals: { usado: peso_repartido })
+    ]
+  end
+
+  # ⚠️ El fallo devuelve la MISMA fila, con el valor viejo y el motivo.
+  #
+  # Sin esto el campo se queda con lo que el profesor escribió y él se va
+  # convencido de que quedó guardado — que es la falla clásica de la edición en
+  # línea: no hay botón que se quede apretado para delatar que algo no pasó.
+  def responder_al_fallo
+    return render(:edit, status: :unprocessable_entity) unless en_linea?
+
+    @evaluation_activity.reload
+    render turbo_stream: turbo_stream.replace(
+      helpers.id_de_la_fila(@evaluation_activity, fila_del_plan[:competencia]),
+      partial: "competencies/evaluacion",
+      locals: fila_del_plan.merge(error: errores_de_la_fila)
+    ), status: :unprocessable_entity
+  end
+
+  # ⚠️ El contexto se arma de los PARÁMETROS, no del helper del plan.
+  #
+  # `contexto` es un `helper_method` de `MuestraElPlan`, que este controller no
+  # incluye —ni debe: arrastraría `asignacion`, las hermanas y el año pasado—.
+  # La URL ya trae las tres piezas, porque el propio formulario las puso ahí.
+  def fila_del_plan
+    { evaluacion: @evaluation_activity,
+      contexto: params.permit(:asignacion, :lapso, :desde).to_h.symbolize_keys,
+      # Bajo qué competencia está dibujada esta fila, para que su chip nombre
+      # LAS OTRAS y no repita la de arriba.
+      competencia: @evaluation_activity.competencies.find { |c| c.id.to_s == params[:bajo].to_s },
+      competencias: Competency.del_plan(@evaluation_activity.section_id,
+                                        @evaluation_activity.subject_id,
+                                        @evaluation_activity.evaluation_moment_id).to_a }
+  end
+
+  # Lo que suma el lapso DESPUÉS de guardar: es lo que la cuenta tiene que
+  # confirmar. La barra ya se movió sola con Stimulus mientras se escribía.
+  def peso_repartido
+    EvaluationActivity.peso_usado(
+      section_id: @evaluation_activity.section_id,
+      subject_id: @evaluation_activity.subject_id,
+      evaluation_moment_id: @evaluation_activity.evaluation_moment_id
+    ).to_f
+  end
+
+  # ⚠️ TODAS las apariciones de la evaluación, no solo la que se tocó.
+  #
+  # Una que mide dos competencias sale dos veces, y las dos son el mismo dato:
+  # cambiar su peso arriba dejaba el de abajo con el valor viejo —27 % y 22 % en
+  # la misma pantalla— sin que ninguno fuera mentira por sí solo.
+  #
+  # Si no mide ninguna, su única aparición es la del bloque de las sueltas, que
+  # no cuelga de ninguna competencia.
+  def filas_a_refrescar
+    donde = @evaluation_activity.competencies.to_a
+    donde = [ nil ] if donde.empty?
+
+    donde.map do |competencia|
+      turbo_stream.replace(helpers.id_de_la_fila(@evaluation_activity, competencia),
+                           partial: "competencies/evaluacion",
+                           locals: fila_del_plan.merge(competencia: competencia, guardada: true))
+    end
+  end
+
+  def errores_de_la_fila = @evaluation_activity.errors.full_messages.to_sentence.presence
+
+  # ⚠️ Lo dice el FORMULARIO, con un parámetro, y no se deduce del `Accept`.
+  #
+  # `request.format.turbo_stream?` parecía suficiente y no lo es: Turbo pide
+  # turbo_stream en TODO envío, así que el formulario completo del `edit`
+  # entraría por acá y contestaría reemplazando una fila que esa pantalla no
+  # tiene. Quien sabe de dónde viene es quien lo manda.
+  def en_linea? = params[:en_linea].present?
+
+  def cambio_el_enganche? = params[:evaluation_activity].key?(:competency_ids)
+
 
   # El conjunto que este usuario puede siquiera nombrar. `find` sale de acá, así
   # que pedir el id de una evaluación ajena da 404 y no 403: no se confirma que
@@ -174,6 +343,51 @@ class EvaluationActivitiesController < ApplicationController
   end
   helper_method :secciones_por_area
 
+  # ── Lo que llega por el enlace, ya decidido ───────────────────────────────
+  #
+  # `asignacion` («seccion:materia») y `lapso`, más `competencia` para dejarla
+  # marcada. Los tres son opcionales: entrar por «Mis evaluaciones» sigue dando
+  # el formulario completo.
+  #
+  # ⚠️ Se busca ENTRE LAS DEL PROFESOR, igual que `asignacion_elegida`, y eso es
+  # lo que autoriza: un id de la sección de otro simplemente no aparece y queda
+  # en nil, sin 403 que confirme que existe.
+  def asignacion_del_enlace
+    return @asignacion_del_enlace if defined?(@asignacion_del_enlace)
+
+    seccion, materia = params[:asignacion].to_s.split(":")
+    @asignacion_del_enlace = mis_asignaciones.find do |ts|
+      ts.section_id.to_s == seccion && ts.subject_id.to_s == materia
+    end
+  end
+  helper_method :asignacion_del_enlace
+
+  # ⚠️ El lapso se valida contra el AÑO ESCOLAR de esa sección, no contra los del
+  # colegio. Un lapso del año que viene sobre una sección de este año crea una
+  # evaluación que no existe para nadie.
+  def lapso_del_enlace
+    return @lapso_del_enlace if defined?(@lapso_del_enlace)
+
+    return @lapso_del_enlace = nil unless asignacion_del_enlace && params[:lapso].present?
+
+    @lapso_del_enlace =
+      EvaluationMoment.find_by(id: params[:lapso],
+                               academic_period_id: asignacion_del_enlace.section.academic_period_id)
+  end
+  helper_method :lapso_del_enlace
+
+  # Si el contexto viene entero, la pantalla no lo pregunta: lo muestra.
+  def contexto_del_enlace? = asignacion_del_enlace.present? && lapso_del_enlace.present?
+  helper_method :contexto_del_enlace?
+
+  def atributos_del_enlace
+    return {} unless contexto_del_enlace?
+
+    { section_id: asignacion_del_enlace.section_id,
+      subject_id: asignacion_del_enlace.subject_id,
+      evaluation_moment_id: lapso_del_enlace.id }
+  end
+
   # La asignación que viene en el formulario, **buscada entre las del profesor**.
   # Que la búsqueda esté acotada a `current_user.teacher` es lo que autoriza: un
   # id de otra sección simplemente no aparece y devuelve nil.
@@ -213,6 +427,15 @@ class EvaluationActivitiesController < ApplicationController
     del_plan = Competency.del_plan(actividad.section_id, actividad.subject_id,
                                    actividad.evaluation_moment_id).pluck(:id)
     actividad.competency_ids = pedidas & del_plan
+  end
+
+  # La libreta de la primera sección que dicta. Es a donde va un profesor que
+  # llegó a `/evaluaciones` por un enlace viejo: no hay una respuesta mejor que
+  # «tu primera sección», y desde el árbol del menú llega a las otras.
+  def ruta_de_calificar_su_primera
+    primera = mis_asignaciones.min_by { |ts| [ ts.section.grade.orden || 99, ts.section.name ] }
+
+    section_path(primera.section_id, area: primera.subject_id)
   end
 
   # Los lapsos de los años escolares que aparecen en el alcance del usuario.
@@ -269,12 +492,9 @@ class EvaluationActivitiesController < ApplicationController
   # mantiene chico el JSON — un maestro de primaria tiene dos o tres secciones,
   # no diecinueve.
   def competencias_de_mis_asignaciones
-    return {} unless profesor?
+    return {} if asignaciones_por_competencias.empty?
 
-    de_primaria = mis_asignaciones.select { |ts| ts.section.grade.por_competencias? }
-    return {} if de_primaria.empty?
-
-    planes = Competency.where(section_id: de_primaria.map(&:section_id))
+    planes = Competency.where(section_id: asignaciones_por_competencias.map(&:section_id))
                        .includes(:indicators).order(:orden, :id)
 
     planes.each_with_object({}) do |competencia, mapa|
@@ -288,11 +508,51 @@ class EvaluationActivitiesController < ApplicationController
   end
   helper_method :competencias_de_mis_asignaciones
 
-  # Las que esta evaluación ya tiene marcadas.
+  # Las asignaciones de este profesor que SE EVALÚAN POR COMPETENCIAS.
+  #
+  # ⚠️ Es la pregunta que decide si el bloque «Qué evalúa» aparece, y **no** es
+  # «¿ya tiene competencias escritas?». Con esa otra, el maestro que estrena su
+  # primer plan no veía el bloque —ni su botón [+]— justamente cuando iba a
+  # escribir la primera. Es el caso del colegio nuevo, que es el caso normal.
+  #
+  # Un profesor de bachillerato sigue sin verlo: su grado no evalúa por
+  # competencias, y un titulito sobre un vacío permanente le enseña a ignorar
+  # esa zona del formulario.
+  #
+  # Se pregunta por `Grade#por_competencias?` y no por «primaria» a mano: es la
+  # misma pregunta que hacen `CompetenciesController` y el menú.
+  def asignaciones_por_competencias
+    return [] unless profesor?
+
+    @asignaciones_por_competencias ||= mis_asignaciones.select { |ts| ts.section.grade.por_competencias? }
+  end
+  helper_method :asignaciones_por_competencias
+
+  # Las que esta evaluación ya tiene marcadas — más la que trajo el enlace.
+  #
+  # ⚠️ Quien llega desde «Resuelve problemas de adición… + Registrar una
+  # evaluación» viene a medir ESA competencia. Que llegue desmarcada le pide
+  # buscarla de nuevo en una lista donde ya sabe cuál es, y si se olvida de
+  # marcarla la evaluación no mide nada — que es exactamente el agujero que
+  # `MOR-229` vino a tapar.
+  #
+  # Se filtra contra el plan real, igual que al guardar: un id de la competencia
+  # de otro simplemente no está en la lista.
   def competencias_marcadas
-    @competencias_marcadas ||= @evaluation_activity&.competency_ids || []
+    @competencias_marcadas ||= begin
+      ya = @evaluation_activity&.competency_ids || []
+      ya | competencia_del_enlace
+    end
   end
   helper_method :competencias_marcadas
+
+  def competencia_del_enlace
+    return [] unless contexto_del_enlace? && params[:competencia].present?
+
+    Competency.del_plan(asignacion_del_enlace.section_id, asignacion_del_enlace.subject_id,
+                        lapso_del_enlace.id)
+              .where(id: params[:competencia]).pluck(:id)
+  end
 
   def require_acceso!
     return if profesor? || puede_supervisar?

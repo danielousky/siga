@@ -3,8 +3,7 @@
 -# ── lo que no entró ────────────────────────────────────────────────────────
 - if fallidas.any?
   .card-academic
-    .card-academic-header
-      %h2 Filas que no se pudieron guardar
+    = render "shared/cabecera", titulo: "Filas que no se pudieron guardar", nivel: 2
 
     %p.nota-ayuda
       El resto sí se cargó. El caso más común es que la misma materia aparezca
@@ -26,8 +25,7 @@
               %td= fila["motivo"]
 
 .card-academic
-  .card-academic-header
-    %h2 Qué sigue
+  = render "shared/cabecera", titulo: "Qué sigue", nivel: 2
 
   %ul.lista
     %li

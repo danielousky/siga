@@ -21,8 +21,7 @@
 - obligatorios = @pasos.reject(&:opcional?)
 
 .card-academic.puesta-en-marcha
-  .card-academic-header
-    %h2 Puesta en marcha
+  = render layout: "shared/cabecera", locals: { titulo: "Puesta en marcha", nivel: 2 } do
     .admin-info-badge= "#{listos} de #{@pasos.size} listos"
 
   %p.nota-ayuda
@@ -100,11 +99,11 @@
               -# de año escolar es más grande».
               .paso-acciones
                 = boton falta.verbo, ruta_del_paso(falta, recorrido: true),
-                        icono: falta.icono, sm: true
+                        icono: falta.icono, tono: :guardar, sm: true
             - else
               .paso-acciones
                 = boton paso.verbo, ruta_del_paso(paso, recorrido: true),
-                        icono: paso.icono, sm: true
+                        icono: paso.icono, tono: :guardar, sm: true
                 - if paso.opcional?
                   = button_to "Este colegio no lo usa", omitir_paso_path(paso.clave),
                               method: :post, class: "btn btn-secondary btn-sm"

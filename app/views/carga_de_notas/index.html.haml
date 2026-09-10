@@ -2,8 +2,7 @@
 - content_for :titulo, "Carga de notas"
 
 .card-academic
-  .card-academic-header
-    %h1 Carga de notas
+  = render layout: "shared/cabecera", locals: { titulo: "Carga de notas" } do
     - if @lapso
       .admin-info-badge
         = @lapso.name
@@ -15,7 +14,7 @@
       %h3 Todavía no hay año escolar
       %p
         Sin un año escolar cargado no hay evaluaciones que revisar.
-      = link_to "Crear el año escolar", academic_periods_path, class: "btn btn-primary"
+      = link_to "Crear el año escolar", academic_periods_path, class: "btn btn-guardar"
 
   - elsif @atrasados.empty?
     .empty-state

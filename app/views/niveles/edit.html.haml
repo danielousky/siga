@@ -4,8 +4,7 @@
 - content_for :titulo, "Niveles del colegio"
 
 .card-academic
-  .card-academic-header
-    %h1 Qué niveles dicta el colegio
+  = render "shared/cabecera", titulo: "Qué niveles dicta el colegio"
 
   %p.nota-ayuda
     -# El número sale del catálogo y no escrito a mano: decía «catorce» y con la

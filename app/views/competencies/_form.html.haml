@@ -36,4 +36,8 @@
 
   .form-actions
     = f.submit class: "btn btn-guardar"
-    = link_to "Cancelar", competencies_path(contexto), class: "btn btn-secondary"
+    -# ⚠️ `plan_path` y no `competencies_path`: el primero respeta el
+    -# `desde=seccion` y devuelve a la PESTAÑA. Con el segundo, cancelar desde
+    -# la sección expulsaba a `/competencias` — la misma salida indeseada que ya
+    -# se cerró en «Copiar» y en «Traer», en un tercer botón.
+    = link_to "Cancelar", plan_path, class: "btn btn-secondary"

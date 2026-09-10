@@ -44,6 +44,10 @@ class ImportarDesdeLaListaTest < ActionDispatch::IntegrationTest
 
     assert css_select(".cabecera-de-lista a.btn-accion[href*='importaciones/new']").any?,
            "el importador tiene que ir en el tono de las acciones masivas"
-    assert css_select(".cabecera-de-lista a.btn-primary[href*='alumnos/new']").any?
+    # ⚠️ `btn-guardar` y ya no `btn-primary`: desde el 8 de septiembre el alta
+    # es verde, porque el verde significa «esto queda guardado» y lo llevan por
+    # igual el enlace que va al formulario y el submit que lo envía.
+    assert css_select(".cabecera-de-lista a.btn-guardar[href*='alumnos/new']").any?,
+           "el alta va en el tono de guardar"
   end
 end

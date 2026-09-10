@@ -32,8 +32,7 @@
       = boton "Editar", edit_teacher_path(@teacher), icono: :editar, tono: :secondary
 
   .card-academic
-    .card-academic-header
-      %h2 Qué dicta
+    = render "shared/cabecera", titulo: "Qué dicta", nivel: 2
 
     - if @asignaciones.any?
       %table.table-academic
@@ -56,8 +55,7 @@
           hacen desde la sección.
 
   .card-academic
-    .card-academic-header
-      %h2 Datos
+    = render "shared/cabecera", titulo: "Datos", nivel: 2
 
     .detail-row
       .detail-item

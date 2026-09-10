@@ -1,0 +1,61 @@
+-# La DESCRIPCIÓN de la sección: quién es, y nada más (etapa ③).
+-#
+-# ⚠️ Las pestañas NO van acá: van encabezando el panel del CONTENIDO.
+-#
+-# Daniel: *«también las pestañas van en un panel inferior. Debería ser un panel
+-# para la descripción y otro para contenidos, separados por cada pestaña»*.
+-#
+-# Y es la división correcta: esta tarjeta contesta «¿qué sección es?» —y no
+-# cambia al moverse entre pestañas— mientras que la de abajo contesta «¿qué
+-# estoy haciendo con ella?». Tenerlas juntas hacía que la fila de pestañas
+-# pareciera parte de la identidad de la sección.
+-#
+-# ⚠️ El título lleva el ÁREA cuando se entró por ella. «4to Grado – Sección A»
+-# no dice cuál de las dos que dicto ahí es, y eso es justo lo que el árbol del
+-# menú vino a resolver: repetirlo acá es confirmarlo, no adornarlo.
+-# ⚠️ Las acciones llegan como LOCAL, no como bloque: quien las pasa es
+-# `sections/_marco`, y un parcial no puede reenviar el bloque que recibió.
+- acciones = local_assigns[:acciones]
+- area = local_assigns[:area]
+- inscritos = local_assigns.fetch(:inscritos, seccion.enrollments.where(status: :regular).size)
+-# ⚠️ El área va DENTRO del título, no al lado como detalle gris.
+-#
+-# Daniel lo dibujó así encima de una captura: «4to Grado · Sección A ·
+-# Matemáticas» en una sola franja. Y es correcto — el área no es contexto de la
+-# sección, es la mitad de la identidad: «4to Grado – A» no dice cuál de las dos
+-# que dicto ahí estoy calificando, que es justo lo que el árbol vino a
+-# resolver.
+- titulo = [ "#{seccion.grade.name} · Sección #{seccion.name}", area&.name ].compact.join(" · ")
+
+.card-academic
+  = render layout: "shared/cabecera", locals: { titulo: titulo } do
+    - if acciones.present?
+      = acciones
+
+  -# ⚠️ Los cuatro datos de la sección van ACÁ, en el encabezado compartido, y
+  -# no en la pestaña de calificar. Al mover la cabecera a este parcial se
+  -# quedaron atrás por descuido, y tres tests lo dijeron: quién es el guía es
+  -# un dato de la SECCIÓN, no de una de sus cuatro vistas.
+  .detail-row
+    .detail-item
+      %span.detail-label Período Académico
+      %p.detail-value= seccion.academic_period.name
+    .detail-item
+      %span.detail-label Capacidad
+      %p.detail-value= "#{inscritos} / #{seccion.capacity} alumnos"
+    -# Se muestra también cuando NO hay guía: sin él la asistencia solo la puede
+    -# tomar la dirección, y eso hay que enterarse mirando la sección, no
+    -# descubriéndolo un lunes a las siete.
+    .detail-item
+      %span.detail-label Profesor guía
+      - if seccion.leader_teacher
+        -# ⚠️ Enlazado solo para quien puede abrir la ficha (`nombre_de_profesor`):
+        -# evitar el error es mejor que anunciarlo.
+        %p.detail-value= nombre_de_profesor(seccion.leader_teacher)
+      - else
+        %p.detail-value.dato-secundario Sin asignar
+    - if seccion.classroom.present?
+      .detail-item
+        %span.detail-label Aula
+        %p.detail-value= seccion.classroom
+

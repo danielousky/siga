@@ -1,5 +1,4 @@
 .card-academic
-  .card-academic-header
-    %h1 Registrar año escolar
+  = render "shared/cabecera", titulo: "Registrar año escolar"
 
   = render "form", academic_period: @academic_period, volver: academic_periods_path

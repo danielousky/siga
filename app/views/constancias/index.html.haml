@@ -4,8 +4,7 @@
 - content_for :titulo, "Constancias de estudio"
 
 .card-academic
-  .card-academic-header
-    %h1 Documentos
+  = render "shared/cabecera", titulo: "Documentos"
 
   = render "shared/pestanas", pestanas: pestanas_de_documentos, etiqueta: "Documentos que emite el colegio"
 

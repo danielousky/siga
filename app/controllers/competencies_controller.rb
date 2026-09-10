@@ -21,18 +21,37 @@
 # materias que dicta, en las secciones que tiene asignadas. Un plan ajeno no
 # aparece, así que pedirlo por id da 404 y no 403.
 class CompetenciesController < ApplicationController
+  include MuestraElPlan
+  include VuelveALaSeccion
+
   before_action :require_acceso!
   before_action :require_profesor!, except: [ :index ]
-  before_action :set_competency, only: [ :edit, :update, :destroy, :conectar ]
+  before_action :set_competency, only: [ :edit, :update, :destroy ]
 
+  # ⚠️ `/competencias` DEJÓ DE SER UNA PANTALLA (etapa ③).
+  #
+  # Daniel, al caer acá cancelando un formulario: *«cancelar me lleva a
+  # competencias solo… esa vista ya no debe estar»*.
+  #
+  # Y al ir a arreglarlo apareció la razón de fondo: esta pantalla **solo
+  # funcionaba para profesores**. Su escalera —grado → área → sección → lapso—
+  # se alimenta de `mis_asignaciones`, que para la dirección está vacía: un
+  # director que entraba veía «todavía no tienes secciones asignadas».
+  #
+  # O sea que, con el profesor entrando por el árbol del menú —que ya trae las
+  # cuatro cosas—, la pantalla no le servía a nadie. Lo que queda es un
+  # redirector:
+  #
+  #     PROFESOR    → la pestaña «Planificar» de su sección
+  #     DIRECCIÓN   → el listado de secciones, para elegir a cuál entrar
+  #
+  # ⚠️ Las OTRAS acciones de este controller siguen vivas —crear, editar,
+  # copiar, traer—: lo que se retira es el índice, no el plan.
   def index
-    return if asignacion.nil? || lapso.nil?
+    return redirect_to(ruta_de_planificar(asignacion, lapso)) if asignacion
 
-    @competencias = Competency.del_plan(asignacion.section_id, asignacion.subject_id, lapso.id)
-                              .includes(:indicators, :evaluation_activities)
-    # ⚠️ Solo se ofrece traer el plan viejo si NO hay uno. Ofrecerlo con el plan
-    # escrito invita a duplicarlo, y el índice único lo rechazaría a la mitad.
-    @sugerido = plan_del_ano_pasado if @competencias.empty? && profesor?
+    redirect_to sections_path,
+                notice: "El plan de evaluación se abre desde su sección, en la pestaña «Planificar»."
   end
 
   def new
@@ -57,14 +76,24 @@ class CompetenciesController < ApplicationController
   # editar es la lista completa: si borró una línea, esa línea tiene que
   # desaparecer. Con `indicators_attributes` a secas se agregarían los tres de
   # nuevo y quedarían seis.
+  # ⚠️ Los indicadores se reemplazan SOLO si vienen en la petición.
+  #
+  # El `destroy_all` era incondicional, y desde que la competencia se edita en
+  # su sitio (9 de septiembre) llega una petición con la descripción sola —
+  # que le habría borrado los tres indicadores sin decir nada. El formulario
+  # completo sigue mandándolos todos y ahí sí se reemplazan enteros.
   def update
-    @competency.indicators.destroy_all
+    @competency.indicators.destroy_all if params[:competency].key?(:indicadores)
 
-    if @competency.update(datos_de_la_competencia)
-      redirect_to plan_path, notice: "Competencia actualizada."
-    else
-      render :edit, status: :unprocessable_entity
+    unless @competency.update(datos_de_la_competencia)
+      return en_linea? ? fila_con_el_error : render(:edit, status: :unprocessable_entity)
     end
+
+    return redirect_to(plan_path, notice: "Competencia actualizada.") unless en_linea?
+
+    render turbo_stream: turbo_stream.replace(helpers.dom_id(@competency),
+                                              partial: "competencies/competencia",
+                                              locals: bloque_de_la_competencia(guardada: true))
   end
 
   def destroy
@@ -82,14 +111,27 @@ class CompetenciesController < ApplicationController
   # ⚠️ Se COPIA el texto, no se referencia. El plan de 2025 tiene que poder
   # corregirse este año sin reescribir la boleta que ya salió — es la misma
   # razón por la que el boletín guarda un snapshot.
+  #
+  # ⚠️ Y viene TODO: competencias, indicadores y evaluaciones, con la fecha
+  # corrida un año. Daniel: *«copiamos competencias, indicadores y evaluaciones,
+  # se le coloca el mismo mes y día del año pasado pero con el año actual»*.
+  #
+  # Es lo que pedía Cyndi, que es de donde sale MOR-136: *«nosotros todos los
+  # lapsos tenemos que estar cargando competencias e indicadores… es de verdad
+  # una pérdida de tiempo muy grande»*.
   def sugerido
     return redirect_to(plan_path, alert: "Elige tu sección y el lapso.") if asignacion.nil? || lapso.nil?
 
-    copiadas = copiar_competencias(plan_del_ano_pasado, a: asignacion, lapso: lapso)
+    origen = origen_del_ano_pasado
+    return redirect_to(plan_path, alert: "No hay un plan del año pasado que traer.") if origen.nil?
 
-    redirect_to plan_path,
-                notice: "Se trajeron #{contar(copiadas, 'competencia', 'competencias')}. " \
-                        "Revísalas y ajusta lo que haga falta."
+    hecho = ReplicarLaPlanificacion.del_ano_pasado(
+      desde: origen[:asignacion], lapso_de_origen: origen[:lapso],
+      hacia: asignacion, lapso: lapso
+    )
+
+    redirect_to plan_path, notice: resumen_de_lo_traido(hecho),
+                           alert: hecho.avisos.presence&.join(" ")
   end
 
   # Qué evaluaciones MIDEN esta competencia (MOR-136).
@@ -108,46 +150,60 @@ class CompetenciesController < ApplicationController
   # ⚠️ Reemplaza, no suma: la lista que llega es la lista completa. Es lo mismo
   # que hacen los indicadores al editar una competencia, y por la misma razón —
   # la persona ve todas las casillas, así que desmarcar tiene que quitar.
-  def conectar
-    pedidas = Array(params[:evaluation_activity_ids]).compact_blank.map(&:to_i)
-
-    # ⚠️ Se filtra contra las evaluaciones de ESTE plan —misma sección, misma
-    # área, mismo lapso—. El modelo ya lo valida, pero ahí es una excepción a
-    # mitad de un guardado; acá es una lista que simplemente no incluye lo
-    # ajeno.
-    del_plan = evaluaciones_que_pueden_medir(@competency).map(&:id)
-    @competency.evaluation_activity_ids = pedidas & del_plan
-
-    redirect_to plan_path, notice: mensaje_de_conexion(@competency)
-  end
-
   # Copiar este plan a las otras secciones donde ESTE profesor dicta la misma
   # materia. Daniel: *«darle la opción de copiar el plan al resto de las
   # secciones que él dicta»*.
+  # ⚠️ Copia la planificación ENTERA, no solo las competencias.
+  #
+  # Daniel: *«él puede clonar o copiar esa planificación de esa sección… debería
+  # haber una opción de replicar a las otras secciones hermanas»*. Copiar solo
+  # las competencias dejaba la mitad del trabajo: un profesor con tres secciones
+  # hermanas escribía las mismas cuatro evaluaciones doce veces.
   def copiar
     return redirect_to(plan_path, alert: "Elige tu sección y el lapso.") if asignacion.nil? || lapso.nil?
 
-    plan = Competency.del_plan(asignacion.section_id, asignacion.subject_id, lapso.id)
-    hechas = otras_secciones.sum { |destino| copiar_competencias(plan, a: destino, lapso: lapso).size }
+    resultados = otras_secciones.map do |destino|
+      ReplicarLaPlanificacion.para(desde: asignacion, hacia: destino, lapso: lapso)
+    end
 
-    redirect_to plan_path,
-                notice: "Copiado a #{contar(otras_secciones.size, 'sección', 'secciones')} " \
-                        "(#{contar(hechas, 'competencia', 'competencias')})."
+    redirect_to plan_path, notice: resumen_de_la_copia(resultados),
+                           alert: resultados.flat_map(&:avisos).presence&.join(" ")
   end
 
   private
 
+  # ── La edición en su sitio ────────────────────────────────────────────────
+  #
+  # Misma mecánica que la evaluación: lo dice el formulario con un parámetro y
+  # no se deduce del `Accept`, porque Turbo pide turbo_stream en TODO envío y el
+  # formulario completo entraría por acá.
+  def en_linea? = params[:en_linea].present?
+
+  def bloque_de_la_competencia(guardada: false)
+    { competencia: @competency, contexto: contexto,
+      competencias: competencias_del_lapso, guardada: guardada,
+      error: (@competency.errors.full_messages.to_sentence.presence unless guardada) }
+  end
+
+  # ⚠️ Vuelve el bloque con el valor VIEJO y el motivo. Sin esto el campo se
+  # queda con lo que el profesor escribió y él se va convencido de que quedó
+  # guardado: en la edición en línea no hay botón que se quede apretado para
+  # delatar que algo no pasó.
+  def fila_con_el_error
+    errores = @competency.errors.full_messages.to_sentence
+    @competency.reload
+
+    render turbo_stream: turbo_stream.replace(
+      helpers.dom_id(@competency), partial: "competencies/competencia",
+      locals: bloque_de_la_competencia.merge(error: errores)
+    ), status: :unprocessable_entity
+  end
+
   # ── El alcance: lo que este usuario puede siquiera nombrar ────────────────
 
-  # ⚠️ `id` o `competency_id`, y hacen falta los dos.
-  #
-  # `edit`, `update` y `destroy` cuelgan de `resources` y traen `:id`;
-  # `conectar` es una ruta ANIDADA —`/competencias/:competency_id/evaluaciones`—
-  # y trae `:competency_id`. Con solo `params[:id]`, `find(nil)` devolvía 404 en
-  # una acción que existía y estaba bien escrita.
   def set_competency
     @competency = Competency.del_plan(asignacion&.section_id, asignacion&.subject_id, lapso&.id)
-                            .find(params[:id] || params[:competency_id])
+                            .find(params[:id])
   end
 
   # Las asignaciones del profesor: cada par sección–materia que dicta.
@@ -242,33 +298,8 @@ class CompetenciesController < ApplicationController
                                       .find { |g| g.id.to_s == params[:grado] }
   end
 
-  def lapsos
-    return [] if asignacion.nil?
 
-    @lapsos ||= EvaluationMoment.where(academic_period_id: asignacion.section.academic_period_id)
-                                .order(:id)
-  end
-  helper_method :lapsos
 
-  def lapso
-    @lapso ||= lapsos.find { |l| l.id.to_s == params[:lapso] } || lapsos.first
-  end
-  helper_method :lapso
-
-  # Las secciones HERMANAS: mismo grado, misma materia, otra sección.
-  #
-  # ⚠️ El grado también, y faltaba: sin él, «copiar a mis otras secciones»
-  # ofrecía las DIECINUEVE donde este profesor dicta Matemática, de 1er a 5to
-  # Año. Una competencia de 1er Año no tiene nada que hacer en 5to, y copiarla
-  # allá es basura que después alguien tiene que borrar a mano.
-  def otras_secciones
-    @otras_secciones ||= mis_asignaciones.select do |ts|
-      ts.subject_id == asignacion.subject_id &&
-        ts.section.grade_id == asignacion.section.grade_id &&
-        ts.section_id != asignacion.section_id
-    end
-  end
-  helper_method :otras_secciones
 
   # ── Los tres niveles de la elección, en pastillas ────────────────────────
   #
@@ -292,20 +323,6 @@ class CompetenciesController < ApplicationController
   end
   helper_method :grado
 
-  # Las secciones de ESTE grado donde dicto ESTA materia. Es lo que decide si
-  # hay hermanas a las que copiar.
-  # El contexto de la pantalla, para los enlaces que tienen que volver acá.
-  #
-  # ⚠️ Sale de `asignacion`, no de `params`. Con las pastillas, la asignación se
-  # DEDUCE de grado+área, así que `params[:asignacion]` viene vacío la primera
-  # vez y todos los enlaces perdían la sección — «Registrar competencia» abría
-  # el formulario de otra.
-  def contexto
-    return {} if asignacion.nil?
-
-    { asignacion: "#{asignacion.section_id}:#{asignacion.subject_id}", lapso: lapso&.id }
-  end
-  helper_method :contexto
 
   def mis_areas
     @mis_areas ||= mis_asignaciones.select { |ts| ts.section.grade_id == grado&.id }
@@ -339,73 +356,55 @@ class CompetenciesController < ApplicationController
   def hay_seccion_que_elegir? = mis_secciones_del_area.many?
   helper_method :hay_seccion_que_elegir?
 
-  # Cuáles de las hermanas YA tienen plan en este lapso.
+
+
+
+  # ⚠️ Para un PROFESOR, siempre la pestaña de su sección.
   #
-  # ⚠️ Es lo que apaga el botón de copiar. Daniel: *«si la sección ya tiene
-  # competencia, se deshabilita esta opción con mensaje indicativo»* — y tenía
-  # razón por partida doble: copiar dos veces no duplicaba nada (la copia es
-  # idempotente) pero el botón seguía ahí, invitando a una acción que ya no
-  # hacía nada. Un control que no hace nada al tocarlo enseña a desconfiar del
-  # resto.
-  def hermanas_con_plan
-    @hermanas_con_plan ||= begin
-      ids = otras_secciones.map(&:section_id)
-      Competency.where(section_id: ids, subject_id: asignacion&.subject_id,
-                       evaluation_moment_id: lapso&.id)
-                .distinct.pluck(:section_id).to_set
-    end
-  end
-  helper_method :hermanas_con_plan
-
-  # Las que todavía no lo tienen: a esas sí se puede copiar.
-  def hermanas_sin_plan
-    @hermanas_sin_plan ||= otras_secciones.reject { |ts| hermanas_con_plan.include?(ts.section_id) }
-  end
-  helper_method :hermanas_sin_plan
-
-  # Las evaluaciones que pueden medir una competencia: las de su mismo plan.
+  # La primera versión miraba `params[:desde]`, y por eso «Cancelar» —que no lo
+  # llevaba— lo dejaba en `/competencias` a secas. Daniel: *«cancelar me lleva a
+  # competencias solo; esa vista ya no debe estar»*.
   #
-  # ⚠️ Se carga UNA vez para toda la pantalla, no una por competencia. Un lapso
-  # con cinco competencias y cinco evaluaciones son veinticinco consultas si se
-  # pregunta por fila.
-  def evaluaciones_del_lapso
-    return [] if asignacion.nil? || lapso.nil?
-
-    @evaluaciones_del_lapso ||= EvaluationActivity
-                                .where(section_id: asignacion.section_id,
-                                       subject_id: asignacion.subject_id,
-                                       evaluation_moment_id: lapso.id)
-                                .order(:date_scheduled, :id)
-                                .to_a
-  end
-  helper_method :evaluaciones_del_lapso
-
-  def evaluaciones_que_pueden_medir(competencia)
-    EvaluationActivity.where(section_id: competencia.section_id,
-                             subject_id: competencia.subject_id,
-                             evaluation_moment_id: competencia.evaluation_moment_id)
-                      .order(:date_scheduled, :id)
-                      .to_a
-  end
-
-  # ⚠️ El mensaje dice QUÉ QUEDÓ, no «guardado».
-  #
-  # «Listo» obliga a mirar la pantalla para saber qué pasó; «la miden 2
-  # evaluaciones» lo dice y de paso confirma que se entendió lo que se marcó.
-  def mensaje_de_conexion(competencia)
-    cuantas = competencia.evaluation_activities.size
-    return "Esta competencia ya no la mide ninguna evaluación." if cuantas.zero?
-
-    "Listo: #{helpers.contar(cuantas, 'evaluación mide', 'evaluaciones miden')} esta competencia."
-  end
-
+  # La bandera sobraba: si el trabajo del profesor es por sección, no hay un
+  # caso en que quiera volver al listado global. La dirección sí, y ahí `plan_path`
+  # sigue siendo el listado.
   def plan_path
+    return ruta_de_planificar(asignacion, lapso) if profesor? && asignacion
+
     competencies_path(asignacion: "#{asignacion&.section_id}:#{asignacion&.subject_id}",
                       lapso: lapso&.id)
   end
   helper_method :plan_path
 
   # ── El plan del año pasado ────────────────────────────────────────────────
+
+  # De dónde sale el plan del año pasado: su sección y su lapso.
+  #
+  # ⚠️ `plan_del_ano_pasado` devuelve COMPETENCIAS, y para traer también sus
+  # evaluaciones hace falta saber de qué (sección, lapso) vienen. Sale de la
+  # primera —vienen ordenadas por año descendente, así que es la más reciente—
+  # y se arma una asignación de solo lectura con lo que el servicio necesita:
+  # `section_id` y `subject_id`.
+  def origen_del_ano_pasado
+    primera = plan_del_ano_pasado.first
+    return nil if primera.nil?
+
+    { asignacion: Struct.new(:section_id, :subject_id).new(primera.section_id, primera.subject_id),
+      lapso: primera.evaluation_moment }
+  end
+
+  # ⚠️ Dice qué llegó, separando las dos cosas: el plan y las evaluaciones que
+  # lo miden. «Se trajeron 3 competencias» callaba que además vinieron cuatro
+  # evaluaciones con su peso y su fecha, que es la mitad del ahorro.
+  def resumen_de_lo_traido(hecho)
+    return "El plan del año pasado ya estaba completo acá." if hecho.nada?
+
+    partes = []
+    partes << helpers.contar(hecho.competencias, "competencia", "competencias") if hecho.competencias.positive?
+    partes << helpers.contar(hecho.evaluaciones, "evaluación", "evaluaciones") if hecho.evaluaciones.positive?
+
+    "Se trajo #{partes.join(' y ')} del año pasado. Revisa las fechas y ajusta lo que haga falta."
+  end
 
   def plan_del_ano_pasado
     return Competency.none if asignacion.nil? || lapso.nil?
@@ -416,25 +415,23 @@ class CompetenciesController < ApplicationController
 
   # ⚠️ Idempotente: la que ya está en el plan se salta. Copiar dos veces no
   # duplica nada, que es la misma regla de `CopiarLaEstructura` (MOR-166).
-  def copiar_competencias(origen, a:, lapso:)
-    ya_estan = Competency.del_plan(a.section_id, a.subject_id, lapso.id)
-                         .pluck(:descripcion_canonica).to_set
+  # ⚠️ El resumen dice QUÉ QUEDÓ, no «copiado».
+  #
+  # «Listo» obliga a mirar la pantalla para saber qué pasó. Y separa las dos
+  # cosas que se copiaron, porque son dos trabajos distintos: el plan y las
+  # evaluaciones que lo miden.
+  def resumen_de_la_copia(resultados)
+    competencias = resultados.sum(&:competencias)
+    evaluaciones = resultados.sum(&:evaluaciones)
+    donde = helpers.contar(otras_secciones.size, "sección", "secciones")
 
-    origen.reject { |c| ya_estan.include?(c.descripcion_canonica) }.filter_map do |vieja|
-      nueva = Competency.new(section_id: a.section_id, subject_id: a.subject_id,
-                             evaluation_moment_id: lapso.id,
-                             descripcion: vieja.descripcion, orden: vieja.orden)
-      # ⚠️ Cada una en su SAVEPOINT: una que falle no puede tumbar las otras
-      # veinte. Es la lección de `CopiarLaEstructura`.
-      ActiveRecord::Base.transaction(requires_new: true) do
-        nueva.save!
-        vieja.indicators.each { |i| nueva.indicators.create!(descripcion: i.descripcion, orden: i.orden) }
-        ya_estan << nueva.descripcion_canonica
-        nueva
-      end
-    rescue ActiveRecord::RecordInvalid
-      nil
-    end
+    return "Nada que copiar: #{donde} ya tenían todo." if competencias.zero? && evaluaciones.zero?
+
+    partes = []
+    partes << helpers.contar(competencias, "competencia", "competencias") if competencias.positive?
+    partes << helpers.contar(evaluaciones, "evaluación", "evaluaciones") if evaluaciones.positive?
+
+    "Copiado a #{donde}: #{partes.join(' y ')}."
   end
 
   # ── Lo que llega del formulario ───────────────────────────────────────────

@@ -1,6 +1,5 @@
 .card-academic
-  .card-academic-header
-    %h1= @importacion.titulo_del_reporte
+  = render layout: "shared/cabecera", locals: { titulo: @importacion.titulo_del_reporte } do
     = boton "Volver a importaciones", importaciones_path, icono: :volver, tono: :secondary
 
   %p.dato-secundario

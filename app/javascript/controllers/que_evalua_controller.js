@@ -16,8 +16,8 @@ import { Controller } from "@hotwired/stimulus"
 // boleta es el de su competencia. Marcarlos prometería una precisión que el
 // modelo no tiene.
 export default class extends Controller {
-  static targets = ["asignacion", "lapso", "lista", "vacio", "bloque"]
-  static values  = { planes: Object, marcadas: Array }
+  static targets = ["asignacion", "lapso", "lista", "vacio", "nueva"]
+  static values  = { planes: Object, marcadas: Array, rutaNueva: String }
 
   connect() {
     this.actualizar()
@@ -26,10 +26,16 @@ export default class extends Controller {
   actualizar() {
     const plan = this.#planActual()
 
-    // Todo el bloque desaparece cuando no hay nada que ofrecer: un titulito
-    // «Qué evalúa» sobre un vacío permanente le enseña al profesor a ignorar
-    // esa zona del formulario.
-    if (this.hasBloqueTarget) this.bloqueTarget.hidden = plan.length === 0 && !this.#faltaElegir()
+    // ⚠️ El bloque YA NO se esconde desde acá.
+    //
+    // Escondía el bloque entero cuando el plan del lapso venía vacío, y eso
+    // ahora se lleva puesto el botón [+] que crea la primera competencia —
+    // justo cuando más hace falta. Quién ve este bloque lo decide el SERVIDOR,
+    // por el grado: un profesor de bachillerato no lo recibe en el HTML.
+    //
+    // Con el plan vacío se escribe el mensaje que lo explica, y el [+] queda al
+    // lado para resolverlo.
+    this.#apuntarElBotonDeNueva()
 
     if (this.#faltaElegir()) return this.#pedirQueElija()
     if (plan.length === 0) return this.#planVacio()
@@ -38,6 +44,34 @@ export default class extends Controller {
   }
 
   // ── privados ──────────────────────────────────────────────────────────────
+
+  // El botón [+] lleva a registrar una competencia CON el contexto puesto.
+  //
+  // Daniel: *«nueva competencia (con los datos, directo a la competencia
+  // específica de la sección)»*. El profesor que está armando su evaluación y
+  // descubre que le falta una competencia tenía que abandonar el formulario, ir
+  // al plan y elegir grado – área – sección – lapso otra vez.
+  //
+  // ⚠️ Sin `href` mientras falte elegir, y no `disabled`: un `<a>` no tiene
+  // `disabled`, y un enlace que navega a `/competencias/new` sin contexto abre
+  // un formulario que no sabe a qué plan pertenece. El CSS lo pinta apagado.
+  #apuntarElBotonDeNueva() {
+    if (!this.hasNuevaTarget) return
+
+    if (this.#faltaElegir()) {
+      this.nuevaTarget.removeAttribute("href")
+      this.nuevaTarget.setAttribute("aria-disabled", "true")
+      return
+    }
+
+    const parametros = new URLSearchParams({
+      asignacion: this.asignacionTarget.value,
+      lapso: this.lapsoTarget.value
+    })
+    this.nuevaTarget.href = `${this.rutaNuevaValue}?${parametros}`
+    this.nuevaTarget.removeAttribute("aria-disabled")
+  }
+
 
   #planActual() {
     const seccion = (this.asignacionTarget.value || "").split(":")[0]

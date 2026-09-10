@@ -1,0 +1,15 @@
+-# ASISTENCIA, dentro de la sección (etapa ③).
+-#
+-# ⚠️ Es la MISMA planilla de `/asistencia/:seccion_id`: el parcial y la
+-# preparación son compartidos, para que las dos no se separen. Lo único que
+-# cambia es el marco — acá el profesor sigue estando en su sección.
+= render layout: "sections/marco",
+         locals: { seccion: @section, area: area_de_la_pestana, activa: :asistencia,
+                   inscritos: @enrollments.size } do
+  .asistencia-marco{ data: { controller: "asistencia",
+                             asistencia_url_value: seccion_asistencia_path(@section),
+                             asistencia_dia_value: @dia.to_s,
+                             asistencia_total_value: @inscripciones.size } }
+    -# La ruta de los días vuelve a ESTA pestaña, no a `/asistencia`.
+    = render "asistencias/planilla",
+             ruta_del_dia: ->(dia) { asistencia_section_path(@section, area: area_de_la_pestana&.id, dia: dia) }

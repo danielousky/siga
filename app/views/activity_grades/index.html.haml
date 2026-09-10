@@ -5,9 +5,20 @@
                        carga_notas_url_base_value: evaluation_activity_nota_path(@evaluation_activity, "STUDENT_ID"),
                        carga_notas_cargadas_value: @notas_por_alumno.size,
                        carga_notas_total_value: @inscripciones.size }}
-  .card-academic-header
-    %h1= @evaluation_activity.description
-    = boton "Volver", @evaluation_activity, icono: :volver, tono: :secondary
+  = render layout: "shared/cabecera", locals: { titulo: @evaluation_activity.description } do
+    -# ⚠️ Vuelve a la LIBRETA de su sección, no a la ficha de la evaluación.
+    -#
+    -# Daniel: *«el volver de evaluaciones debe llevarlo a
+    -# /secciones/ID?area=240»*. Y es la misma idea del resto de la tarde: el
+    -# profesor entró desde la columna de su libreta, y devolverlo a la ficha
+    -# suelta de la evaluación lo saca de la sección donde estaba trabajando.
+    -#
+    -# ⚠️ Con el LAPSO también: sin él la libreta abre en el que está en curso,
+    -# que en marzo no es el que acaba de calificar.
+    - a_la_libreta = section_path(@evaluation_activity.section,
+                                  area: @evaluation_activity.subject_id,
+                                  lapso: @evaluation_activity.evaluation_moment_id)
+    = boton "Volver", a_la_libreta, icono: :volver, tono: :secondary
 
   %p.carga-contexto
     = "#{@evaluation_activity.section.grade.name} – #{@evaluation_activity.section.name}"
@@ -19,7 +30,7 @@
     -# que en una del 70 %— y en negrita se perdía dentro de la misma frase que
     -# el grado, la sección y el lapso.
     - peso = @evaluation_activity.weight_percentage
-    %span.carga-peso= "#{number_with_precision(peso, precision: peso.frac.zero? ? 0 : 2)} % del lapso"
+    %span.carga-peso= "#{porcentaje(peso)} del lapso"
 
   .carga-progreso
     .carga-progreso-barra

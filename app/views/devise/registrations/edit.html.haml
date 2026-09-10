@@ -2,8 +2,7 @@
 -# usuario se cambie la contraseña estando adentro; el alta la hace el colegio
 -# desde su panel y no hay forma de darse de baja solo. Ver MOR-101.
 .card-academic
-  .card-academic-header
-    %h1 Mi cuenta
+  = render layout: "shared/cabecera", locals: { titulo: "Mi cuenta" } do
     = link_to "Volver", dashboard_path_for_user, class: "btn btn-secondary"
 
   = form_for(resource, as: resource_name, url: user_registration_path, html: { method: :put }) do |f|

@@ -1,6 +1,5 @@
 .card-academic
-  .card-academic-header
-    %h1= @inscripcion.student.user.apellidos_y_nombres
+  = render layout: "shared/cabecera", locals: { titulo: @inscripcion.student.user.apellidos_y_nombres } do
     .admin-info-badge
       = "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
 

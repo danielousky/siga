@@ -1,6 +1,5 @@
 .card-academic
-  .card-academic-header
-    %h1= "Copiar la estructura a #{@destino.name}"
+  = render "shared/cabecera", titulo: "Copiar la estructura a #{@destino.name}"
 
   - if @origenes.empty?
     .empty-state

@@ -96,4 +96,48 @@ class AvanceDeCalificacionTest < ActionDispatch::IntegrationTest
     # Con un área al día y otra en cero, el menú tiene que mostrar la peor.
     assert_select ".seccion-estado--vacio"
   end
+
+  # ── El estado del menú es un ICONO, y son CUATRO (QA del 7 de septiembre) ──
+  #
+  # Daniel: *«check o icon-check verde. Si no está completado, otro ícono
+  # descriptivo. Incluso si no tiene evaluación, el ícono debe indicarlo»*.
+  test "cada estado del menú lleva su propio icono, no un punto de color" do
+    sign_in @profesor
+
+    # 1 · Sin ninguna evaluación todavía — el caso NORMAL de septiembre, que
+    # antes no se dibujaba: `estado_de_calificacion` devolvía nil.
+    get dashboards_profesor_path
+    assert_select ".seccion-estado--sin_evaluaciones svg", count: 1
+    assert_select ".seccion-estado[aria-label=?]", "Todavía sin evaluaciones"
+
+    examen = con_el_colegio(@esc.colegio) do
+      actividad(@esc, lapso: @lapso, peso: 100, descripcion: "Examen")
+    end
+
+    # 2 · Con la evaluación creada y ninguna nota.
+    get dashboards_profesor_path
+    assert_select ".seccion-estado--vacio svg", count: 1
+
+    # 3 · Con una de tres.
+    alumnos = con_el_colegio(@esc.colegio) { Enrollment.where(section: @esc.seccion).map(&:student) }
+    con_el_colegio(@esc.colegio) { nota(examen, alumnos.first, 15) }
+    get dashboards_profesor_path
+    assert_select ".seccion-estado--a_medias svg", count: 1
+
+    # 4 · Con las tres.
+    con_el_colegio(@esc.colegio) { alumnos.drop(1).each { |a| nota(examen, a, 15) } }
+    get dashboards_profesor_path
+    assert_select ".seccion-estado--completo svg", count: 1
+    assert_select ".seccion-estado[aria-label=?]", "Notas al día"
+  end
+
+  # ⚠️ El sidebar tiene `overflow-y: auto`, que arrastra el eje X: un globo
+  # centrado sobre un icono pegado al borde derecho se corta al ras. Se veía
+  # «Notas al dí…».
+  test "el tooltip del estado se ancla a la derecha para no cortarse" do
+    sign_in @profesor
+    get dashboards_profesor_path
+
+    assert_select ".seccion-estado[data-tooltip-izquierda]"
+  end
 end

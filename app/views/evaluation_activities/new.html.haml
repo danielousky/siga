@@ -1,6 +1,24 @@
-.card-academic
-  .card-academic-header
-    %h1 Registrar evaluación
-    = boton "Volver", evaluation_activities_path, icono: :volver, tono: :secondary
-
-  = render "form", evaluation_activity: @evaluation_activity
+-# El alta de una evaluación. Dos formas, según de dónde se llegue.
+-#
+-# ⚠️ Desde el PLAN, el formulario se despliega en el sitio del botón —un frame
+-# por competencia— y pide solo lo que falta: título, % y fecha. Daniel: *«no
+-# hace falta perderse a otra vista totalmente independiente»*.
+-#
+-# Desde `/evaluaciones`, sin contexto ninguno, sigue siendo la pantalla entera:
+-# ahí hay que preguntar la sección, el área y el lapso.
+- frame = frame_que_pregunta("libreta")
+- if frame.start_with?("alta_")
+  - seccion = asignacion_del_enlace.section
+  = turbo_frame_tag frame do
+    = render "competencies/alta_de_evaluacion",
+             contexto: { asignacion: params[:asignacion], lapso: params[:lapso], desde: params[:desde] }.compact,
+             peso_libre: [ 100 - EvaluationActivity.peso_usado(section_id: seccion.id, subject_id: asignacion_del_enlace.subject_id, evaluation_moment_id: lapso_del_enlace.id).to_f, 1 ].max,
+             periodo_del_plan: seccion.academic_period,
+             plan_path: planificar_section_path(seccion, area: asignacion_del_enlace.subject_id, lapso: lapso_del_enlace.id)
+- else
+  = turbo_frame_tag frame do
+    .card-academic
+      = render layout: "shared/cabecera", locals: { titulo: "Registrar evaluación" } do
+        - volver_a = ruta_de_vuelta(@evaluation_activity)
+        = boton "Volver", (volver_a || evaluation_activities_path), icono: :volver, tono: :secondary
+      = render "form", evaluation_activity: @evaluation_activity

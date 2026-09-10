@@ -13,8 +13,7 @@
 - content_for :titulo, "Crear una cuenta"
 
 .card-academic.registro
-  .card-academic-header
-    %h1 Cree su cuenta
+  = render "shared/cabecera", titulo: "Cree su cuenta"
 
   %p.nota-ayuda
     En un solo paso queda su cuenta y su colegio, con sus grados, sus materias y

@@ -1,0 +1,19 @@
+-# Una rama del árbol del menú (etapa ③).
+-#
+-# ⚠️ Se renderiza A SÍ MISMA. El árbol del profesor es área → nivel → grado →
+-# sección, pero la profundidad REAL depende de cuánto colapsó la poda: Belkis
+-# Ochoa ve dos escalones donde Sofía Moreno ve tres. Un partial por nivel
+-# obligaría a saber de antemano cuántos hay.
+-#
+-# ⚠️ Y los nodos van EN ORDEN, mezclando ramas y hojas. «1er Grado» (dos
+-# secciones) y «3er Grado – A» (una sola) son vecinos en el orden pedagógico,
+-# y separarlos en dos listas rompía justo eso.
+- rama.nodos.each do |nodo|
+  - if nodo.is_a?(MenuHelper::Rama)
+    -# Nace ABIERTO si adentro está la pantalla en la que estoy: esconder dónde
+    -# estoy parado es peor que un menú largo (misma regla que MOR-203).
+    %details.sidebar-rama{ open: rama_activa?(nodo), id: nodo.id }
+      %summary.sidebar-rama-titulo= nodo.titulo
+      = render "shared/menu_rama", rama: nodo
+  - else
+    = render "shared/menu_enlaces", enlaces: [ nodo ]

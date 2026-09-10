@@ -47,7 +47,29 @@ module MenuHelper
   NOMBRES_DE_ESTADO = {
     completo: "Notas al día",
     a_medias: "Le faltan notas por cargar",
-    vacio: "Sin ninguna nota cargada"
+    vacio: "Sin ninguna nota cargada",
+    sin_evaluaciones: "Todavía sin evaluaciones"
+  }.freeze
+
+  # ⚠️ Un ICONO por estado, no un punto de color.
+  #
+  # QA de Daniel: *«check o icon-check verde. Si no está completado, otro ícono
+  # descriptivo. Incluso si no tiene evaluación, el ícono debe indicarlo»*.
+  #
+  # El punto obligaba a leer el tooltip para saber CUÁL de los tres estados era
+  # —los tres eran el mismo círculo de 8 px— así que el color cargaba solo con
+  # todo el significado. Un check, un reloj y un signo de admiración se
+  # distinguen sin color, que es exactamente lo que pide la regla: el color
+  # acompaña al dato, nunca lo sustituye.
+  #
+  # Y «sin evaluaciones» ahora se DIBUJA. Antes devolvía `nil` y la sección
+  # aparecía sin nada, indistinguible de una sección cuyo avance no se pudo
+  # calcular — que es el estado NORMAL de un colegio en septiembre.
+  ICONOS_DE_ESTADO = {
+    completo: :ok,
+    a_medias: :pendiente,
+    vacio: :error,
+    sin_evaluaciones: :notas
   }.freeze
 
   # Un grupo plegable, que nace PLEGADO (MOR-203).
@@ -68,8 +90,79 @@ module MenuHelper
   # Un grupo SIN título no se pliega: es el «Panel» suelto de arriba. Se
   # representa así, y no con un caso aparte en la plantilla, para que el menú
   # tenga UNA forma y el renderizador un solo camino.
-  Grupo = Data.define(:titulo, :enlaces, :abierto_por_defecto) do
-    def initialize(titulo: nil, enlaces:, abierto_por_defecto: false) = super
+  # Un nodo del árbol del menú: puede tener hijas y hojas (MOR-③).
+  #
+  # ## Por qué hace falta un árbol y no bastan Grupo → Enlace
+  #
+  # El profesor navega **área → grado → sección**, y eso son tres niveles. Con
+  # la estructura plana anterior, Sofía Moreno —tres áreas, diecinueve
+  # asignaciones— veía quince renglones seguidos donde el área no aparecía por
+  # ningún lado, así que «1er Año – B» no decía cuál de sus dos áreas era.
+  #
+  # ## ⚠️ La regla que lo hace usable: un escalón aparece solo si DIVIDE algo
+  #
+  # Es la misma de las pastillas y del selector de nivel, subida al menú. Y acá
+  # es lo que hace que el mismo árbol le sirva a los cuatro perfiles reales:
+  #
+  #     Colmenares  1 sección, 3 áreas    →  todo colapsa: un renglón
+  #     Ochoa       5 asignac., 2 áreas   →  divide el ÁREA
+  #     García      16 asignac., 1 área   →  el área colapsa; divide el GRADO
+  #     Moreno      19 asignac., 3 áreas  →  divide el área Y el grado
+  #
+  # Sin la regla, Carlos García leería una rama «Matemática» con las dieciséis
+  # secciones adentro: un renglón que no decide nada y hay que abrir igual.
+  Rama = Data.define(:titulo, :nodos) do
+    def initialize(titulo: nil, nodos: []) = super
+
+    def id = "rama-#{titulo.to_s.parameterize}"
+
+    # ⚠️ UNA lista de nodos, y no `hijas` + `enlaces` por separado.
+    #
+    # La primera versión los tenía aparte, y las hojas sueltas caían todas al
+    # final: Educación Estética se leía «1er Grado, 2do Grado, 4to Grado» y
+    # después «3er Grado – A, 5to, 6to». El orden pedagógico es lo único que
+    # hace legible una lista de doce grados, y así se perdía.
+    def ramas   = nodos.grep(Rama)
+    def enlaces = nodos.reject { |n| n.is_a?(Rama) }
+
+    # ⚠️ Un escalón que no DIVIDE nada se salta, en sus dos formas.
+    #
+    #   · con un solo nodo y ese nodo es una rama → sus nietos suben
+    #   · una rama con un solo enlace → se vuelve ese enlace
+    #
+    # Sin lo segundo, un grado con una sección se leía «Ciencias Naturales ›
+    # 1er Grado › 1er Grado – A», con el grado escrito dos veces seguidas.
+    #
+    # Se hace al construir y no al dibujar, para que la vista no decida nada.
+    def podada
+      podados = nodos.map { |n| n.is_a?(Rama) ? n.podada : n }
+      return podados.first.with(titulo: titulo) if podados.one? && podados.first.is_a?(Rama)
+
+      with(nodos: podados.map { |n| n.is_a?(Rama) && n.redundante? ? n.nodos.first : n })
+    end
+
+    # Una rama que es, en realidad, un enlace: un solo destino y nada que abrir.
+    def hoja_suelta? = nodos.one? && !nodos.first.is_a?(Rama)
+
+    # ⚠️ Y solo se colapsa si el enlace YA DICE lo que dice la rama.
+    #
+    # «3er Grado › 3er Grado – A» es redundante y se colapsa. Pero
+    # «Comunicación y Representación › 1er Nivel – U» NO: el área es lo único
+    # que distingue ese destino de los otros dos de la misma sección, y
+    # colapsarla dejaba tres renglones llamados «1er Nivel – U», idénticos e
+    # inútiles. Costó ver: la poda parecía correcta en el profesor de primaria
+    # y rompía justo en el de preescolar, que dicta tres áreas en una sección.
+    def redundante? = hoja_suelta? && nodos.first.nombre.start_with?(titulo.to_s)
+  end
+
+  # ⚠️ Un grupo lleva enlaces (una lista plana) O ramas (un árbol), nunca los
+  # dos: «Día a día» es una lista de pantallas y «Dicto» es área → grado →
+  # sección. Mezclarlos en el mismo grupo dejaría media lista antes del árbol y
+  # media después, sin nada que explique por qué.
+  Grupo = Data.define(:titulo, :enlaces, :ramas, :abierto_por_defecto) do
+    def initialize(titulo: nil, enlaces: [], ramas: [], abierto_por_defecto: false) = super
+
+    def arbol? = ramas.any?
 
     def plegable? = titulo.present?
 
@@ -107,40 +200,123 @@ module MenuHelper
     ].reject { |grupo| grupo.enlaces.empty? }
   end
 
+  # El menú del profesor: sus secciones, y nada más (etapa ③).
+  #
+  # ## ⚠️ «Mi trabajo» se retiró, y era medio menú
+  #
+  # Tenía tres entradas —«Competencias e indicadores», «Mis evaluaciones» y
+  # «Asistencia»— y las tres pasaron a ser pestañas DENTRO de la sección.
+  #
+  # Daniel, tachando ese grupo: *«al final esta parte tiende a desaparecer»*. Y
+  # es la consecuencia de la decisión anterior: si el trabajo del profesor es
+  # por sección, un renglón que lleva a «todas mis competencias» sin decir de
+  # cuál sección es exactamente la descontextualización que las pestañas vienen
+  # a evitar — con el agravante de que ahí hay que volver a elegir grado, área,
+  # sección y lapso, que el árbol ya sabe.
+  #
+  #     ANTES                        AHORA
+  #     ▾ MI TRABAJO                 ▾ SOY GUÍA DE
+  #         Competencias e indic.        4to Grado – A
+  #         Mis evaluaciones         ▾ DICTO
+  #         Asistencia                   …
+  #     ▾ MIS SECCIONES
+  #         …quince renglones
+  #
+  # ⚠️ Las pantallas NO desaparecen: `/competencias`, `/evaluaciones` y
+  # `/asistencia` siguen respondiendo, y la dirección las usa desde su propio
+  # menú. Lo que se quita es la entrada que le ofrecía al profesor entrar por el
+  # camino largo.
   def menu_del_profesor
-    trabajo = []
-
-    # ⚠️ «Competencias e indicadores», NO «Plan de evaluación» — y solo a quien
-    # dicta primaria.
-    #
-    # QA de Daniel: *«no deberíamos asociar directamente Plan de Evaluación a
-    # Competencias. Para Educación Media tenemos también plan de evaluación… si
-    # el profesor no tiene secciones de primaria, para qué mostrarle esa vista,
-    # sobra»*.
-    #
-    # Tiene las dos mitades. Un plan de evaluación de bachillerato es la lista
-    # de evaluaciones con su ponderación —el 70/30 del Art. 111— y eso vive en
-    # «Mis evaluaciones»: llamar «Plan de evaluación» a la pantalla de primaria
-    # se apropia de un nombre que ya significa otra cosa. Y ofrecérsela a un
-    # profesor de 5to Año es mandarlo a una pantalla que solo puede decirle que
-    # no es para él.
-    #
-    # ⚠️ Va antes de las evaluaciones, y es el orden del trabajo real: primero
-    # se decide QUÉ se evalúa en el lapso, después se arman las evaluaciones que
-    # lo miden (MOR-136).
-    if dicta_primaria?
-      trabajo << Enlace.new(nombre: "Competencias e indicadores", icono: :materias,
-                            ruta: competencies_path)
-    end
-
-    trabajo << Enlace.new(nombre: "Mis evaluaciones", icono: :notas, ruta: evaluation_activities_path)
-    trabajo << Enlace.new(nombre: "Asistencia", icono: :asistencia, ruta: asistencias_path)
-
     [
       Grupo.new(enlaces: [ Enlace.new(nombre: "Inicio", icono: :panel, ruta: dashboards_profesor_path) ]),
-      Grupo.new(titulo: "Mi trabajo", enlaces: trabajo),
-      *grupo_de_mis_secciones
+      *grupo_de_lo_que_guio,
+      *grupo_de_lo_que_dicto
     ]
+  end
+
+  # ── Las dos ramas del profesor ────────────────────────────────────────────
+  #
+  # Daniel: *«creo que la siguiente división natural es el área y la guía. Una
+  # cosa es las áreas que yo dicto y otra cosa es la guía: las secciones que yo
+  # guío. Creo que tienen comportamientos distintos»*.
+  #
+  # ## ⚠️ La misma sección aparece en las dos, y no es un bug
+  #
+  # Sofía Moreno guía 1er Grado A **y además dicta ahí**. Se pregunta si eso
+  # confunde, y la respuesta de Daniel fue *«no importa que se dupliquen, es
+  # entendible y no se siente como un bug»* — porque son **dos trabajos**:
+  #
+  #     SOY GUÍA DE › 1er Grado – A      la SECCIÓN: asistencia, boletín,
+  #                                      informe. Sin área: la asistencia es
+  #                                      de todos.
+  #     DICTO › Ed. Estética › 1er Grado A   una ASIGNACIÓN: planificar y
+  #                                          calificar ESA área.
+  #
+  # Y eso resuelve de paso una ambigüedad vieja: `/secciones/76` no dice qué
+  # área, así que la libreta tenía que volver a preguntarlo con pastillas.
+  # Entrando por la rama de áreas, el clic ya trae las dos cosas.
+  def grupo_de_lo_que_guio
+    secciones = sections_que_guio
+    return [] if secciones.empty?
+
+    [ Grupo.new(titulo: "Soy guía de",
+                enlaces: secciones.map { |s| enlace_a_seccion(s) }) ]
+  end
+
+  # ⚠️ Sin secciones que guiar, la rama NO se dibuja — ni vacía.
+  # Decisión de Daniel: *«no se ve si no es guía»*. Un renglón que no lleva a
+  # ningún lado enseña a ignorar esa zona del menú.
+  def sections_que_guio
+    @sections_que_guio ||= begin
+      docente = current_user.teacher
+      docente ? mis_secciones.select { |s| s.leader_teacher_id == docente.id } : []
+    end
+  end
+
+  # El árbol de lo que dicta: área → grado → sección.
+  def grupo_de_lo_que_dicto
+    raiz = Rama.new(nodos: ramas_por_area).podada
+    return [] if raiz.nodos.empty?
+
+    [ Grupo.new(titulo: "Dicto", ramas: [ raiz ]) ]
+  end
+
+  # ⚠️ El orden: las áreas por nombre, los grados por su ORDEN OFICIAL.
+  # Alfabéticamente «1er Año» va antes que «6to Grado» y el árbol mezcla
+  # primaria con media; `grades.orden` es el del catálogo del Reglamento, que
+  # es el que un profesor tiene en la cabeza.
+  def ramas_por_area
+    mis_asignaciones_del_menu.group_by(&:subject)
+                             .sort_by { |area, _| area.name }
+                             .map { |area, filas| Rama.new(titulo: area.name, nodos: ramas_por_nivel(filas, area)) }
+  end
+
+  # ⚠️ El NIVEL sigue dividiendo, aunque ya no sea un encabezado suelto.
+  #
+  # Antes el menú agrupaba las secciones por nivel —«lo mismo con ese chorrero
+  # de secciones, hay que dividirlas por nivel»— y al pasar al árbol por área
+  # eso se perdió: Carlos García, que da Matemática de 1er Grado a 6to Año,
+  # habría visto sus doce grados seguidos con primaria y media mezcladas.
+  #
+  # Va como un escalón más y la poda se encarga del resto: con un nivel
+  # elegido en la barra, o con un profesor de un solo nivel, desaparece solo.
+  def ramas_por_nivel(asignaciones, area)
+    asignaciones.map(&:section).uniq
+                .group_by { |s| GradoOficial.se_elige_como(s.grade.level) }
+                .sort_by { |nivel, _| GradoOficial::ABARCA.keys.index(nivel) || 99 }
+                .map do |nivel, secciones|
+      Rama.new(titulo: GradoOficial.etiqueta(nivel, corto: true),
+               nodos: ramas_por_grado(secciones, area))
+    end
+  end
+
+  def ramas_por_grado(secciones, area)
+    secciones.group_by(&:grade)
+             .sort_by { |grado, _| [ grado.orden || 99, grado.name ] }
+             .map do |grado, del_grado|
+      hojas = del_grado.sort_by(&:name).map { |s| enlace_a_seccion(s, area: area) }
+      Rama.new(titulo: grado.name, nodos: hojas)
+    end
   end
 
   # Si este profesor tiene alguna sección que se evalúe por competencias.
@@ -189,6 +365,62 @@ module MenuHelper
       [ "Inasistencias", reporte_asistencia_path, action_name == "reporte" ]
     ]
   end
+
+  # Las cuatro vistas de una sección, para el profesor (etapa ③).
+  #
+  # Daniel fijó el orden: **Asistencia · Calificar · Planificar · Alumnos**.
+  #
+  #     ASISTENCIA    solo el GUÍA, y es lo diario
+  #     CALIFICAR     la libreta del área que dicto acá
+  #     PLANIFICAR    competencias, indicadores y evaluaciones
+  #     ALUMNOS       quiénes son
+  #
+  # ## ⚠️ Las cuatro viven EN la sección
+  #
+  # Daniel: *«no me gustan ni Asistencia ni Planificación como URL, se
+  # descontextualiza todo, se supone que estoy en mi espacio de trabajo —la
+  # Sección— no para salir de él, ese es todo el fin de esta división: no es
+  # solo "fingir" sino realmente estar en la sección»*.
+  #
+  # Y tenía razón: una pestaña que te expulsa no divide nada, solo mueve el
+  # problema. Las cuatro son acciones de `SectionsController` y comparten el
+  # encabezado; la planilla de asistencia y el plan son los MISMOS parciales que
+  # usan `/asistencia` y `/competencias`, vía `PreparaLaAsistencia` y
+  # `MuestraElPlan`, para que no se separen.
+  #
+  # Esas dos rutas siguen existiendo: son la entrada por el MENÚ, para quien no
+  # viene de una sección.
+  #
+  # ## ⚠️ Y la ACTIVA por defecto sale de POR DÓNDE ENTRÓ
+  #
+  # Daniel puso «Asistencia» primera y notó la consecuencia: *«no había pensado
+  # en la pestaña de default»*. Con las pestañas leyéndose en ese orden, la
+  # primera es la que abre — y quien viene de «Dicto › Matemática › 4to A» no
+  # viene a pasar lista, viene a calificar esa área.
+  #
+  # No hace falta preguntarlo: el árbol ya lo dice.
+  #
+  #     entró por «Soy guía de»  (sin área)  →  Asistencia
+  #     entró por «Dicto»        (con área)  →  Calificar
+  def pestanas_de_la_seccion(seccion, area: nil, activa: nil)
+    contexto = { area: area&.id }
+    pestanas = []
+
+    if guio?(seccion) || can_manage_sections?
+      pestanas << [ "Asistencia", asistencia_section_path(seccion, contexto), activa == :asistencia ]
+    end
+
+    pestanas << [ "Calificar", section_path(seccion, contexto), activa == :calificar ]
+    pestanas << [ "Planificar", planificar_section_path(seccion, contexto), activa == :planificar ]
+    pestanas << [ "Alumnos", alumnos_section_path(seccion, contexto), activa == :alumnos ]
+    pestanas
+  end
+
+  def guio?(seccion)
+    docente = current_user.teacher
+    docente.present? && seccion.leader_teacher_id == docente.id
+  end
+  helper_method :guio? if respond_to?(:helper_method)
 
   # Los papeles que emite el colegio. Los dos son «elegir sección, elegir alumno,
   # emitir»: la misma tarea con distinto papel al final.
@@ -254,18 +486,58 @@ module MenuHelper
   # `recognize_path` recorre las rutas al revés y puede levantar si la ruta no
   # existe —un enlace roto—, así que el rescate evita que un menú tumbe la página
   # entera por un enlace mal armado.
+  # ⚠️ El controller NO alcanza cuando el enlace apunta a UNO en concreto.
+  #
+  # QA de Daniel: *«el resaltado absorbe todas las secciones en el side»*. Y era
+  # literal: las nueve secciones del menú apuntan a `sections#show`, así que
+  # estando en `/secciones/78` las nueve daban `controller == "sections"` y las
+  # nueve se pintaban activas. El menú decía «estás en todas partes», que es lo
+  # mismo que no decir nada.
+  #
+  # Con `:id` en el destino se compara también el id. Sin él —`students_path`,
+  # `asistencias_path`, todo el menú de arriba— la comparación por controller
+  # sigue siendo la correcta: son listados, y cualquier pantalla de ese
+  # controller cuenta como «estás acá».
   def enlace_activo?(enlace)
     return true if enlace.tambien_en.include?(controller_path)
 
     destino = Rails.application.routes.recognize_path(enlace.ruta)
-    destino[:controller] == controller_path
+    return false unless destino[:controller] == controller_path
+    return true if destino[:id].blank?
+    return false unless destino[:id].to_s == params[:id].to_s
+
+    # ⚠️ Y el ÁREA, que viaja en la query y `recognize_path` no devuelve.
+    #
+    # Desde el árbol del profesor, la misma sección aparece una vez por cada
+    # área que dicta ahí —«Castellano › 6to Grado – A» y «Ciencias › 6to Grado
+    # – A»— más otra en «Soy guía de», sin área. Comparando solo el id se
+    # marcaban las tres. Es la misma trampa del 7 de septiembre, un escalón más
+    # abajo: lo que identifica el destino ya no es la sección, es la asignación.
+    area_del_enlace(enlace) == params[:area].presence
   rescue ActionController::RoutingError, ActionController::UrlGenerationError
     false
   end
 
+  def area_del_enlace(enlace)
+    consulta = enlace.ruta.to_s.split("?", 2).last
+    return nil unless consulta
+
+    Rack::Utils.parse_nested_query(consulta)["area"].presence
+  end
+
   def grupo_activo?(grupo)
+    return grupo.ramas.any? { |rama| rama_activa?(rama) } if grupo.arbol?
+
     grupo.enlaces.any? { |enlace| enlace_activo?(enlace) }
   end
+
+  # ⚠️ Una rama está activa si la pantalla actual está EN CUALQUIER PARTE de
+  # ella, por hondo que sea. Sin esto, abrir «Arte y Patrimonio › 1er Año › B»
+  # dejaría las dos ramas de arriba cerradas y el menú no diría dónde estoy.
+  def rama_activa?(rama)
+    rama.nodos.any? { |n| n.is_a?(Rama) ? rama_activa?(n) : enlace_activo?(n) }
+  end
+  helper_method :rama_activa? if respond_to?(:helper_method)
 
   # Un grupo se dibuja abierto si estás adentro —esconder dónde estás parado es
   # peor que un menú largo— o si la persona lo dejó abierto.
@@ -305,9 +577,16 @@ module MenuHelper
       enlaces << Enlace.new(nombre: "Inscripciones", icono: :inscripciones, ruta: enrollments_path)
     end
     enlaces << Enlace.new(nombre: Vocabulario::AREAS, icono: :materias, ruta: subjects_path)
-    # ⚠️ La dirección VE los planes y no los toca, por la misma razón que no
-    # toca la ponderación: es la decisión pedagógica de quien evalúa (MOR-136).
-    enlaces << Enlace.new(nombre: "Planes de evaluación", icono: :notas, ruta: competencies_path)
+    # ⚠️ «Planes de evaluación» se retiró del menú (etapa ③).
+    #
+    # Apuntaba a `/competencias`, que dejó de ser una pantalla: su escalera se
+    # alimentaba de `mis_asignaciones`, vacía para la dirección, así que un
+    # director que entraba veía «todavía no tienes secciones asignadas». O sea
+    # que el enlace llevaba a un estado vacío desde el día uno.
+    #
+    # La dirección ve el plan donde vive: entrando a la sección, pestaña
+    # «Planificar». Sigue sin poder tocarlo, por la misma razón que no toca la
+    # ponderación — es la decisión pedagógica de quien evalúa (MOR-136).
     enlaces << Enlace.new(nombre: "Departamentos", icono: :colegio, ruta: departments_path)
     enlaces
   end
@@ -391,33 +670,10 @@ module MenuHelper
   # —«Asistencia» de «Boletines»—. Diez secciones son diez cosas del MISMO tipo,
   # y el mismo símbolo repetido diez veces no agrega información, agrega ruido.
   # Lo que las distingue es su nombre, que ya está.
-  def grupo_de_mis_secciones
-    secciones = mis_secciones
-    return [] if secciones.empty?
-
-    por_nivel = secciones.group_by { |s| GradoOficial.se_elige_como(s.grade.level) }
-
-    # ⚠️ Un solo nivel NO lleva encabezado propio.
-    #
-    # Un profesor de primaria y nada más leería «PRIMARIA» arriba de sus tres
-    # secciones, y ese rótulo no distingue nada: solo agrega un renglón. El
-    # agrupamiento aparece cuando hay algo que separar, que es el caso del
-    # profesor de Matemática que da primaria Y bachillerato.
-    return [ Grupo.new(titulo: "Mis secciones", enlaces: secciones.map { |s| enlace_a_seccion(s) }) ] if por_nivel.one?
-
-    # En orden pedagógico —preescolar, primaria, bachillerato— y no por cuántas
-    # secciones tenga cada uno: el orden de los niveles es el mismo siempre, y
-    # un menú que se reordena solo obliga a leerlo cada vez.
-    GradoOficial::ABARCA.keys.filter_map do |nivel|
-      del_nivel = por_nivel[nivel]
-      next if del_nivel.blank?
-
-      # ⚠️ Forma CORTA: el menú tiene 200 px y «Educación Primaria» los llena.
-      # Acá solo se confirma dónde estoy parado, no se decide nada (MOR-212).
-      Grupo.new(titulo: GradoOficial.etiqueta(nivel, corto: true),
-                enlaces: del_nivel.map { |s| enlace_a_seccion(s) })
-    end
-  end
+  # `grupo_de_mis_secciones` se retiró: era la lista plana por nivel, y la
+  # reemplazaron `grupo_de_lo_que_guio` y `grupo_de_lo_que_dicto`. Con quince
+  # renglones seguidos, el área no aparecía por ningún lado — así que «1er Año
+  # – B» no decía cuál de las dos que Sofía dicta ahí era.
 
   # ⚠️ Ordenadas por el ORDEN OFICIAL del grado, no por su nombre.
   #
@@ -437,10 +693,16 @@ module MenuHelper
                 .sort_by { |s| [ s.grade.orden || 99, s.grade.name, s.name ] }
   end
 
-  def enlace_a_seccion(seccion)
+  # ⚠️ La hoja de «Dicto» lleva su ÁREA; la de «Soy guía de», no.
+  #
+  # Es la diferencia entre los dos trabajos, puesta en la URL: como guía entro
+  # a la sección entera —la asistencia es de todos— y como docente entro a una
+  # asignación. Sin el área, `/secciones/76` obliga a la pantalla a volver a
+  # preguntarla con pastillas, que es exactamente lo que este árbol evita.
+  def enlace_a_seccion(seccion, area: nil)
     Enlace.new(nombre: "#{seccion.grade.name} – #{seccion.name}",
-               icono: nil, ruta: section_path(seccion),
-               estado: estado_de_calificacion(seccion))
+               icono: nil, ruta: section_path(seccion, area: area&.id),
+               estado: estado_de_calificacion(seccion, area: area))
   end
 
   # Cómo va la carga de notas de esta sección, para pintarla en el menú.
@@ -451,14 +713,29 @@ module MenuHelper
   # ⚠️ El peor de sus áreas manda. Un profesor que da dos áreas en la misma
   # sección y tiene una al día y otra sin empezar necesita ver que le falta —
   # promediarlas diría «a medias» y esconde que una está en cero.
-  def estado_de_calificacion(seccion)
-    avance = avances_del_profesor.select { |ts, _| ts.section_id == seccion.id }.values
+  # ⚠️ Con ÁREA, el estado es el de ESA asignación; sin ella, el peor de todas.
+  #
+  # En «Soy guía de» la pregunta es «¿me falta algo en esta sección?» y ahí el
+  # peor manda: una al día y otra sin empezar tiene que verse como que falta.
+  # En «Dicto → Matemática → 4to A» la pregunta es otra —«¿me falta en ESTA
+  # área?»— y responderla con el estado de otra sería mentir en el renglón.
+  def estado_de_calificacion(seccion, area: nil)
+    avance = avances_del_profesor.select do |ts, _|
+      ts.section_id == seccion.id && (area.nil? || ts.subject_id == area.id)
+    end.values
     return nil if avance.empty?
 
     estados = avance.map(&:estado)
     return :vacio    if estados.include?(:vacio)
     return :a_medias if estados.include?(:a_medias)
-    return nil       if estados.all? { |e| e == :sin_evaluaciones }
+
+    # ⚠️ Devuelve `:sin_evaluaciones`, NO `nil`.
+    #
+    # Con `nil` la sección se dibujaba sin marca ninguna, igual que si el avance
+    # no se hubiera podido calcular. Y ese es el estado normal de un colegio en
+    # septiembre: el profesor todavía no armó sus evaluaciones. Callarlo lo deja
+    # sin saber si el sistema no tiene nada o si no lo está mirando.
+    return :sin_evaluaciones if estados.all? { |e| e == :sin_evaluaciones }
 
     :completo
   end

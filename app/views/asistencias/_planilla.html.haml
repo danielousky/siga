@@ -1,0 +1,75 @@
+-# La planilla de asistencia de un día (MOR-111).
+-#
+-# ⚠️ Extraída de `asistencias/show` para que la SECCIÓN pueda mostrarla en su
+-# pestaña (etapa ③). Daniel: *«no me gustan ni Asistencia ni Planificación como
+-# URL, se descontextualiza todo: se supone que estoy en mi espacio de trabajo
+-# —la Sección— no para salir de él… no es solo "fingir" sino realmente estar en
+-# la sección»*.
+-#
+-# Y tenía razón: si tocar una pestaña te saca de la pantalla, la división no
+-# divide nada — solo mueve el problema.
+-#
+-# ⚠️ Por eso la ruta de los días llega como LOCAL y no se escribe acá: desde
+-# `/asistencia` vuelve a `/asistencia` y desde la pestaña vuelve a la pestaña.
+-# Escribirla adentro devolvía a `/asistencia/:id` desde las dos, y elegir «Ayer»
+-# expulsaba de la sección — el mismo problema, un clic más adelante.
+- if @ya_tomada
+  .alert.alert-success
+    Ya se tomó la asistencia de este día. Puedes corregirla y volver a guardar.
+
+-# El día se elige acá y no en la URL: el caso normal es hoy, y hacer que el
+   profesor escriba una fecha para lo que hace todos los días es fricción pura.
+.asistencia-dias
+  - (0..4).each do |atras|
+    - dia = Date.current - atras
+    = link_to ruta_del_dia.(dia), class: "filter-pill #{'active' if dia == @dia}" do
+      - if atras.zero?
+        Hoy
+      - elsif atras == 1
+        Ayer
+      - else
+        = l(dia, format: :short)
+
+- if @inscripciones.empty?
+  .empty-state
+    %h3 Sección sin alumnos
+    %p No hay inscripciones en esta sección todavía.
+
+- else
+  %p.nota-ayuda
+    Todos empiezan
+    %strong presentes.
+    Toca solamente a quien faltó o llegó tarde, y guarda.
+
+  %ul.asistencia-lista
+    - @inscripciones.each do |inscripcion|
+      - registro = @asistencias[inscripcion.id]
+      - estado = registro&.status || "presente"
+      %li.asistencia-alumno{data: {asistencia_target: "alumno", inscripcion: inscripcion.id, estado: estado}}
+        %button.asistencia-boton{type: "button", data: {action: "click->asistencia#alternar"}}
+          -# ⚠️ Los TRES iconos viven en el HTML y el CSS muestra el del estado
+          -# actual.
+          -#
+          -# Alternar es un toque que NO va al servidor —se guardan todos
+          -# juntos al final— así que el marcador tiene que poder cambiar sin
+          -# volver a dibujar la fila. Dibujar solo el icono actual obligaría
+          -# a que el controlador de Stimulus supiera de rutas SVG.
+          %span.asistencia-icono{"data-para": "presente"}= icono(:ok, tamano: 20)
+          %span.asistencia-icono{"data-para": "ausente"}= icono(:cerrar, tamano: 20)
+          %span.asistencia-icono{"data-para": "tarde"}= icono(:pendiente, tamano: 20)
+
+          = avatar(inscripcion.student.user, tamano: :chico)
+          %span.asistencia-nombre
+            = inscripcion.student.user.apellidos_y_nombres
+          %span.asistencia-estado{data: {asistencia_target: "etiqueta"}}
+            = Attendance::ETIQUETAS[estado]
+
+  .asistencia-pie
+    .asistencia-resumen{data: {asistencia_target: "resumen"}}
+      = "#{@inscripciones.size} presentes"
+    %button.btn.btn-guardar.asistencia-guardar{type: "button", data: {action: "click->asistencia#guardar", asistencia_target: "guardar"}}
+      = icono(:guardar, tamano: 16)
+      %span Guardar asistencia
+
+  .alert.alert-danger{hidden: true, data: {asistencia_target: "aviso"}}
+    %span{data: {asistencia_target: "avisoTexto"}}

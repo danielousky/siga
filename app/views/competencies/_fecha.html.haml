@@ -1,0 +1,63 @@
+-# La fecha de una evaluación, acotada al AÑO ESCOLAR (QA del 9 de septiembre).
+-#
+-# Daniel: *«debe desplegar y permitir seleccionar una fecha válida dentro de
+-# los meses asociados al Año Escolar… el año es un elemento distractor: no se
+-# va a hacer una evaluación fuera del año y meses escolares»*.
+-#
+-#     SEP  oct  nov  dic  ene  feb  mar  abr  may  jun  jul
+-#     ───
+-#      L   M   M   J   V   S   D
+-#      1   2   3   4   5   6   7      ← en gris: el año arranca el 15
+-#      8   9  10  11  12  13  14
+-#     15  16  17  18  19  20  21
+-#
+-# ⚠️ El año NO aparece en ninguna parte, y no es solo por limpieza: un colegio
+-# venezolano cruza dos años calendario —septiembre de 2025 a julio de 2026— y
+-# mostrarlos obliga a leer cuál toca en cada mes. Los once meses en fila lo
+-# dicen sin decirlo: después de diciembre viene enero, y todos saben cuál.
+-#
+-# ⚠️ Y los días de fuera se dibujan APAGADOS, no se esconden. Una cuadrícula a
+-# la que le faltan los primeros catorce días de septiembre se lee como un mes
+-# roto; con ellos en gris, se lee como lo que es — el año todavía no empezaba.
+- periodo = evaluacion.section.academic_period
+.plan-evaluacion-fecha{ data: { controller: "calendario-escolar",
+                                calendario_escolar_desde_value: periodo.start_date.iso8601,
+                                calendario_escolar_hasta_value: periodo.end_date.iso8601,
+                                calendario_escolar_valor_value: evaluacion.date_scheduled&.iso8601 } }
+  - if profesor?
+    %button.plan-evaluacion-fecha-abrir{ type: "button",
+                                         data: { calendario_escolar_target: "boton",
+                                                 action: "calendario-escolar#alternar",
+                                                 tooltip: "Cambiar la fecha" } }
+      - if evaluacion.date_scheduled
+        = l(evaluacion.date_scheduled, format: :short)
+      - else
+        %span.dato-vacio sin fecha
+
+    -# El formulario se envía solo al elegir un día: la fecha no tiene «Enter».
+    = form_with model: evaluacion, url: evaluation_activity_path(evaluacion, contexto.merge(en_linea: true)),
+                method: :patch, data: { calendario_escolar_target: "formulario" } do |f|
+      = f.hidden_field :date_scheduled, data: { calendario_escolar_target: "campo" }
+
+    .plan-calendario{ hidden: true, data: { calendario_escolar_target: "panel" } }
+      .plan-calendario-meses{ data: { calendario_escolar_target: "meses" } }
+      .plan-calendario-semana
+        - %w[L M M J V S D].each_with_index do |dia, i|
+          %span.plan-calendario-dia-nombre{ "aria-hidden": true }= dia
+      .plan-calendario-dias{ data: { calendario_escolar_target: "dias" } }
+      -# ⚠️ NO hay «Quitar la fecha»: el modelo la exige (`validates :presence`)
+      -# y el botón habría fallado siempre. Es el mismo error que el aviso de
+      -# borrar que prometía llevarse las notas — ofrecer lo que el modelo va a
+      -# rechazar es peor que no ofrecerlo.
+      -#
+      -# El estado «sin fecha» que la fila sabe dibujar es para lo que llega del
+      -# importador, que trae planillas viejas sin ese dato.
+      .plan-calendario-pie
+        %button.plan-calendario-atajo{ type: "button", data: { calendario_escolar_target: "hoy",
+                                                               action: "calendario-escolar#hoy" } }
+  - else
+    %span.plan-evaluacion-fecha-fija
+      - if evaluacion.date_scheduled
+        = l(evaluacion.date_scheduled, format: :short)
+      - else
+        %span.dato-vacio sin fecha

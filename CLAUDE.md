@@ -150,6 +150,83 @@ no puede entrar hasta que el colegio se lo cargue.
 
 ## Conventions
 
+### 🎨 El sistema de diseño: un solo hilo para los cuatro roles
+
+**Antes de escribir una pantalla se mira `/siga/estilo`** — el catálogo vivo,
+tras la puerta de `SigaStaff`. Ahí está cada componente con su Haml al lado, y
+se dibuja con los helpers de verdad: si algo cambia, cambia primero ahí.
+
+Daniel, 8 de septiembre de 2026: *«hice una captura de por lo menos cinco tipos
+de títulos principales. Eso es inconcebible… un framework vale, nuestro propio
+framework»*. Había siete formas de título, y la cabecera correcta la usaban
+**14 pantallas de 84**. El problema no era que faltara el framework: era que
+**era opcional**.
+
+**Los seis tonos de botón, cada uno con su verbo** (`MOR-172`, revisado):
+
+```
+   guardar     verde       QUEDA GUARDADO    [+ Agregar] [Crear] [Guardar cambios]
+   accion      índigo      mucho de una vez  [Copiar de otro año] [Cargar notas]
+   documento   petróleo    algo SALE         [Descargar] [Emitir]
+   ver         azul suave  mirar sin tocar   [Ver]
+   secondary   neutro      volver atrás      [Volver] [Cancelar]
+   danger      sin tono    destruye          [Eliminar]
+```
+
+⚠️ **`btn-primary` SE RETIRÓ, y no volverá.** Al pasar el alta al verde, el azul
+se quedó sin trabajo — y «primario» nunca fue un trabajo: es jerarquía visual,
+justo lo que `MOR-172` reemplazó por *qué hace* el botón. Si estás por escribir
+`btn-primary`, la pregunta no es de qué color: es cuál de los seis verbos hace.
+
+⚠️ **El verde NO significa «crea»: significa «esto queda guardado».** Por eso lo
+llevan por igual el `[+ Agregar]` que va al formulario y el `[Crear]` que lo
+envía, y también `[Guardar cambios]` en una edición, que no crea nada. El `+` es
+lo único que dice «y además nace algo nuevo».
+
+⚠️ **`boton` exige `tono:` y no tiene default.** Ese default era el agujero:
+escribir un botón sin pensar qué hace daba un botón azul, y así el color volvía
+a no decir nada.
+
+**El botón de alta es idéntico en las 84 pantallas:** `[+ Agregar]` visible, el
+tooltip **«Registrar \<cosa\>» obligatorio** —en el teléfono no hay hover y
+«Agregar» a secas no dice de qué— y `aria-label` con el mismo texto.
+
+**Lo que hace `sistema_de_diseno_test` que falle:** un `btn-primary`, un `boton`
+sin tono, un `style=` inline con valor fijo (con interpolación sí se admite: el
+ancho de una barra es un dato), una `<table>` sin `.table-academic`.
+
+⚠️ **Los MAILERS quedan fuera de esas reglas**, y no por conveniencia: un correo
+HTML necesita estilos inline y `<table>` de maquetación, porque Gmail y Outlook
+descartan las hojas externas y no soportan flex ni grid.
+
+**UNA sola cabecera para las 128 pantallas** (etapa ②): `shared/cabecera`. Había
+siete formas de título, y la mayoritaria —`card-academic-header`, 110 usos—
+servía para **dos cosas distintas** separadas solo por qué etiqueta escribió
+cada quien. Ahora el `nivel:` se pide:
+
+```
+   = render "shared/cabecera", titulo: "Editar sección"
+   = render "shared/cabecera", titulo: "Asistencia", nivel: 2
+
+   = render layout: "shared/cabecera", locals: { titulo: @seccion.nombre } do
+     = boton "Volver", sections_path, icono: :volver, tono: :secondary
+
+   = render "shared/cabecera", titulo: "Alumnos", ruta: students_path,
+            pista: "Nombre, apellido, cédula…",
+            alta: { ruta: new_student_path, nombre: "Registrar alumno" }
+```
+
+⚠️ **El partial NO emite la tarjeta**, y eso es lo que lo hace componible: quien
+la quiera en franja propia la envuelve en `.card-academic`; quien la quiera como
+título de una tarjeta que ya existe, la pone adentro con `nivel: 2`.
+
+⚠️ **Quedan fuera cuatro contextos, y no son deuda:** Devise (otro layout), el
+sitio público, los documentos en PDF (son papel) y **el panel de `/siga`**, que
+es deliberadamente distinto al del colegio (`MOR-133`).
+
+Specs: [`sistema-de-diseno.md`](docs/specs/sistema-de-diseno.md) (①) y
+[`cabecera-unica.md`](docs/specs/cabecera-unica.md) (②).
+
 ### ⚠️ Inglés y español: dónde va cada uno (`MOR-162`)
 
 El criterio es uno y se dice en una línea: **inglés donde Rails DEDUCE un nombre
@@ -283,6 +360,38 @@ y ahí escribir la URL en español ES la comprobación.
 - **La ayuda va bajo demanda** (`MOR-161`): `etiqueta_con_pista` para lo que
   explica QUÉ es un campo; `.nota-ayuda` visible solo para CONSECUENCIAS;
   `placeholder` para el formato
+
+### ⚠️ Dentro de un turbo_frame, TODA salida tiene que devolver ese frame
+
+Mordió **cuatro veces en dos días**, siempre con el mismo síntoma: la pantalla
+entera reemplazada por «Content missing».
+
+```
+   1 · un enlace que salía a otra pantalla     →  data-turbo-frame="_top"
+   2 · `new` con el frame escrito a mano       →  frame_que_pregunta
+   3 · el error de borrar, redirigiendo al show→  ruta_de_vuelta
+   4 · «Cancelar» apuntando al listado         →  ruta_de_vuelta
+```
+
+⚠️ **Ninguna falla por ningún lado.** La petición devuelve 200, el HTML es
+válido, el log no dice nada y los tests de integración pasan en verde: Turbo
+pide un frame, la respuesta no lo trae, y escribe el hueco. Solo se ve
+mirando esa pantalla.
+
+Las salidas son **tres y no hay una cuarta que funcione**: volver a algo que
+contiene el frame (`ruta_de_vuelta`), contestar en el que preguntó
+(`frame_que_pregunta`, que lee el encabezado `Turbo-Frame` contra una lista
+blanca), o salir diciéndolo (`data-turbo-frame="_top"`).
+
+Lo cuida `el_frame_sobrevive_test`, que pide como pide Turbo, sigue los
+redirects **y recorre los enlaces de cada formulario** — el cuarto caso entró
+justamente por ahí, que era el hueco de la guarda anterior.
+
+⚠️ Y una que no es de Turbo pero se paga igual: **Stimulus busca sus `target`
+DENTRO del elemento del controlador.** Con `data-controller` en la barra de
+ponderación y los campos en las filas de abajo, `pesoTargets` salía vacío —
+la barra se dibujaba bien al cargar y no se movía nunca. No falla nada:
+simplemente no pasa nada, y un test de integración lo ve todo correcto.
 
 ## ⚠️ Estado conocido — leer antes de tocar el modelo
 

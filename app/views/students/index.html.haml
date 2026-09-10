@@ -46,10 +46,11 @@
       = link_to students_path(sin_representante: 1), class: "btn btn-secondary btn-sm" do
         %span Ver quiénes son
 
-= render "shared/cabecera_de_lista", titulo: "Alumnos", ruta: students_path,
-         marco: "students-results", pista: "Nombre, apellido, cédula o carnet…",
-         alta: { ruta: new_student_path, nombre: "Registrar alumno" },
-         importar: :matricula
+.card-academic
+  = render "shared/cabecera", titulo: "Alumnos", ruta: students_path,
+           marco: "students-results", pista: "Nombre, apellido, cédula o carnet…",
+           alta: { ruta: new_student_path, nombre: "Registrar alumno" },
+           importar: :matricula
 
 -# `target: "_top"` no es un detalle: sin él, TODO enlace de adentro del frame
 -# —Ver, Editar, Eliminar— navega DENTRO del frame. Y como ninguna de esas
@@ -57,7 +58,7 @@
 -# del detalle del alumno. Un botón que no lleva a ningún lado.
 -#
 -# El buscador sigue actualizando el frame porque declara su destino explícito
--# (`data: { turbo_frame: … }` en shared/_cabecera_de_lista), y eso le gana al
+-# (`data: { turbo_frame: … }` en shared/_cabecera), y eso le gana al
 -# `target` del frame.
 = turbo_frame_tag "students-results", target: "_top" do
   -# El estado vacío sale de `PasosDeArranque`, o sea del MISMO lugar que el

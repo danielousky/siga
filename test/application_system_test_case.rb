@@ -94,10 +94,25 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # Y esperar el resultado no es opcional: `visit` no espera a que el submit
   # termine, así que sin esto la primera medición sale sobre la página vieja.
   def entrar_como(usuario, clave = "123123")
-    visit new_user_session_path
-    fill_in "user_email", with: usuario.email
-    fill_in "user_password", with: clave
-    find(".acceso-enviar").click
+    # ⚠️ REINTENTA el envío, y no es paranoia: fallaba una de cada cinco
+    # corridas con «expected "/users/sign_in" not to equal "/users/sign_in"».
+    #
+    # El clic puede llegar mientras el navegador todavía está asentando la
+    # página —Capybara lo da por hecho y sigue— y entonces el formulario nunca
+    # se envía. No es un bug de la app: la app no llegó a recibir nada.
+    #
+    # Y un login flaky es el peor de todos: hace fallar CUALQUIER test, en un
+    # punto cualquiera, con un mensaje que no menciona el login. Enseña a
+    # volver a correr en vez de a mirar.
+    3.times do |intento|
+      visit new_user_session_path
+      fill_in "user_email", with: usuario.email
+      fill_in "user_password", with: clave
+      tocando { find(".acceso-enviar").click }
+
+      break if page.has_no_current_path?(new_user_session_path, wait: 5)
+      raise "no se pudo entrar como #{usuario.email}" if intento == 2
+    end
 
     assert_no_current_path new_user_session_path, wait: 5
   end

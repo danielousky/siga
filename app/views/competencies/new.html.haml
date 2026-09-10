@@ -1,4 +1,17 @@
-%h1 Registrar competencia
-
-.card-academic
-  = render "form", competency: @competency
+-# El alta de una competencia. Dos formas, como la evaluación.
+-#
+-# ⚠️ Desde el PLAN se despliega en el sitio del botón y pide solo su
+-# descripción; los indicadores se escriben después, uno por uno, en la
+-# competencia ya creada.
+- frame = frame_que_pregunta("plan")
+- if frame.start_with?("alta_")
+  = turbo_frame_tag frame do
+    = render "competencies/alta_de_competencia", contexto: contexto, plan_path: plan_path
+- else
+  - donde = [ asignacion && "#{asignacion.section.grade.name} #{asignacion.section.name}",
+              asignacion&.subject&.name, lapso&.name ].compact.join(" · ")
+  = render "shared/cabecera", titulo: "Registrar competencia",
+           detalle: donde.presence, detalle_destacado: true
+  = turbo_frame_tag "plan" do
+    .card-academic
+      = render "form", competency: @competency

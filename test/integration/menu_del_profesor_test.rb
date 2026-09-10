@@ -11,83 +11,151 @@ class MenuDelProfesorTest < ActionDispatch::IntegrationTest
     @a, = dos_colegios_completos(nivel: :primaria)
   end
 
-  # ⚠️ Con un solo nivel NO aparece encabezado: sería un rótulo que no separa
-  # nada. El agrupamiento es para quien tiene algo que separar.
-  test "un profesor de un solo nivel ve sus secciones sin encabezado de nivel" do
+  # ── Las dos ramas, y la regla de poda (etapa ③) ───────────────────────────
+  #
+  # Daniel: *«creo que la siguiente división natural es el área y la guía»*, y
+  # sobre el menú viejo: *«lo mismo con ese chorrero de secciones»*.
+  #
+  # ⚠️ Lo que hace usable al árbol es que **un escalón aparece solo si divide
+  # algo** — la misma regla de las pastillas y del selector de nivel. Sin ella,
+  # un profesor de una sola área leería una rama con su nombre y las dieciséis
+  # secciones adentro: un renglón que no decide nada y hay que abrir igual.
+  test "el área NO aparece cuando el profesor dicta una sola" do
     sign_in @a.profesor
     get dashboards_profesor_path
 
-    assert_select ".sidebar-section-title", text: "Mis secciones"
-    assert_select ".sidebar-section-title", text: "Primaria", count: 0
-    assert_select ".sidebar-section-title", text: "Bachillerato", count: 0
+    assert_select ".sidebar-section-title", text: "Dicto"
+    # Con una sola área y un solo grado, todo colapsa hasta la sección.
+    assert_select ".sidebar-rama-titulo", text: @a.escenario.materia.name, count: 0
   end
 
-  test "un profesor de dos niveles las ve separadas y en orden pedagógico" do
-    con_el_colegio(@a.colegio) do
-      otro_nivel = Grade.create!(name: "1er Año", school: @a.colegio)
-      seccion = Section.create!(grade: otro_nivel, academic_period: @a.escenario.periodo,
-                                name: "A", capacity: 30)
-      TeacherSection.create!(teacher: @a.registro_de_profesor, section: seccion,
-                             subject: @a.escenario.materia)
+  test "con dos áreas, cada una es una rama" do
+    otra = con_el_colegio(@a.colegio) do
+      materia = Subject.create!(name: "Ciencias Naturales", code: "CNA", school: @a.colegio)
+      seccion = Section.create!(grade: @a.seccion.grade, academic_period: @a.escenario.periodo,
+                                name: "B", capacity: 30)
+      TeacherSection.create!(teacher: @a.registro_de_profesor, section: seccion, subject: materia)
+      materia
     end
 
     sign_in @a.profesor
     get dashboards_profesor_path
 
-    titulos = css_select(".sidebar-section-title").map { |n| n.text.strip }
-    assert_includes titulos, GradoOficial.etiqueta(:primaria, corto: true)
-    assert_includes titulos, GradoOficial.etiqueta(:secundaria, corto: true)
-    assert_not_includes titulos, "Mis secciones",
-                        "con dos niveles el encabezado genérico sobra: cada grupo dice cuál es"
-    assert titulos.index(GradoOficial.etiqueta(:primaria, corto: true)) <
-           titulos.index(GradoOficial.etiqueta(:secundaria, corto: true)),
-           "el orden es el pedagógico, no el de cuántas secciones tenga cada nivel"
+    assert_select ".sidebar-rama-titulo", text: @a.escenario.materia.name
+    assert_select ".sidebar-rama-titulo", text: otra.name
   end
 
-  # ⚠️ «Competencias e indicadores» solo a quien dicta PRIMARIA.
-  #
-  # QA de Daniel: *«si el profesor no tiene secciones de primaria, para qué
-  # mostrarle esa vista, sobra»*. Y el nombre importa igual: un plan de
-  # evaluación de bachillerato existe —las evaluaciones y su ponderación— y
-  # vive en «Mis evaluaciones».
-  test "un profesor de bachillerato no ve la entrada de competencias" do
-    media, = dos_colegios_completos(nivel: :secundaria)
-    sign_in media.profesor
-    get dashboards_profesor_path
-
-    enlaces = css_select(".sidebar-nav-link span").map { |n| n.text.strip }
-    assert_not_includes enlaces, "Competencias e indicadores"
-    assert_includes enlaces, "Mis evaluaciones"
-  end
-
-  test "un profesor de primaria sí la ve" do
+  # ⚠️ Sin secciones que guiar, la rama NO se dibuja — ni vacía.
+  # Decisión de Daniel: *«no se ve si no es guía»*.
+  test "sin sección guía, la rama no aparece" do
     sign_in @a.profesor
     get dashboards_profesor_path
 
-    assert_select ".sidebar-nav-link span", text: "Competencias e indicadores"
+    assert_select ".sidebar-section-title", text: "Soy guía de", count: 0
+
+    con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: @a.registro_de_profesor) }
+    get dashboards_profesor_path
+
+    assert_select ".sidebar-section-title", text: "Soy guía de"
   end
 
-  # ⚠️ El 6to Año de la Media Técnica va en BACHILLERATO, no en un grupo suyo.
-  #
-  # Es la trampa que ya está anotada en el modelo: `media_tecnica` es un valor
-  # distinto del enum, así que agrupar por `grade.level` a secas le abre al
-  # sexto año un encabezado propio con una sola sección adentro. Lo que decide
-  # el grupo es `se_elige_como`, que es la misma pregunta que hace la barra.
-  test "el 6to Año de Media Técnica cae bajo Bachillerato" do
-    con_el_colegio(@a.colegio) do
-      sexto = Grade.create!(name: "6to Año", school: @a.colegio)
-      assert_equal "media_tecnica", sexto.level, "el nivel se deduce del nombre"
+  # ⚠️ La MISMA sección en las dos ramas, y no es un bug: son dos trabajos.
+  # Como guía entro a la sección —la asistencia es de todos—; como docente del
+  # área, a una asignación. Por eso solo la segunda lleva el área en la URL.
+  test "la sección que guío y dicto sale en las dos, con destinos distintos" do
+    con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: @a.registro_de_profesor) }
+    sign_in @a.profesor
+    get dashboards_profesor_path
 
-      s = Section.create!(grade: sexto, academic_period: @a.escenario.periodo, name: "U", capacity: 30)
-      TeacherSection.create!(teacher: @a.registro_de_profesor, section: s, subject: @a.escenario.materia)
+    destinos = css_select("a.sidebar-nav-link").map { |a| a["href"] }.select { |h| h.include?("/secciones/") }
+
+    assert_includes destinos, section_path(@a.seccion)
+    assert_includes destinos, section_path(@a.seccion, area: @a.escenario.materia.id)
+  end
+
+  # ── El resaltado marca UNA sección, no todas (QA del 7 de septiembre) ──────
+  #
+  # Daniel: *«el resaltado absorbe todas las secciones en el side»*. Y era
+  # literal: las nueve secciones apuntan a `sections#show`, así que
+  # `enlace_activo?` —que solo comparaba el CONTROLLER— las daba todas por
+  # activas. Un menú que dice «estás en todas partes» no dice nada.
+  # ⚠️ Con el árbol, la MISMA sección tiene dos destinos y se marcan distinto:
+  # sin área es «Soy guía de» (la sección entera, para pasar lista) y con área
+  # es la asignación (para planificar y calificar ESA).
+  test "cada destino de la misma sección marca su propia entrada" do
+    con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: @a.registro_de_profesor) }
+    sign_in @a.profesor
+
+    get section_path(@a.seccion)
+    assert_equal [ section_path(@a.seccion) ],
+                 css_select("a.sidebar-nav-link.active").map { |a| a["href"] }
+
+    get section_path(@a.seccion, area: @a.escenario.materia.id)
+    assert_equal [ section_path(@a.seccion, area: @a.escenario.materia.id) ],
+                 css_select("a.sidebar-nav-link.active").map { |a| a["href"] }
+  end
+
+  # ⚠️ «Mi trabajo» se retiró: sus tres entradas son pestañas de la sección.
+  #
+  # Daniel, tachando ese grupo: *«al final esta parte tiende a desaparecer»*. Es
+  # la consecuencia de que el trabajo sea por sección — un renglón que lleva a
+  # «todas mis competencias» sin decir de cuál es justo lo que las pestañas
+  # evitan, y encima obliga a elegir grado, área, sección y lapso otra vez.
+  test "el menú del profesor son sus secciones, y nada más" do
+    sign_in @a.profesor
+    get dashboards_profesor_path
+
+    titulos = css_select(".sidebar-section-title").map(&:text)
+
+    assert_equal [ "Dicto" ], titulos
+    assert_select "a.sidebar-nav-link[data-nombre=?]", "Competencias e indicadores", count: 0
+    assert_select "a.sidebar-nav-link[data-nombre=?]", "Mis evaluaciones", count: 0
+  end
+
+  # ⚠️ Y un enlace viejo a `/competencias` no da 404: REDIRIGE a la pestaña.
+  #
+  # La pantalla se retiró —su escalera solo funcionaba para profesores, y el
+  # profesor ahora entra por el árbol— pero un marcador, un correo o una URL
+  # copiada tienen que seguir llevando a algún lado que sirva. Daniel: *«esa
+  # vista ya no debe estar»*, no «esa URL debe romperse».
+  test "un enlace viejo a competencias lleva a la pestaña de su sección" do
+    sign_in @a.profesor
+
+    get competencies_path(asignacion: "#{@a.seccion.id}:#{@a.escenario.materia.id}")
+
+    # ⚠️ Con el LAPSO también: sin él la pestaña abriría en el que está en
+    # curso, y quien guardó ese enlace lo guardó por un lapso en concreto.
+    assert_redirected_to planificar_section_path(@a.seccion, area: @a.escenario.materia.id,
+                                                 lapso: @a.escenario.lapso(1).id)
+  end
+
+  # Sin saber de qué sección, se lo manda a elegir en vez de adivinar.
+  test "sin asignación, competencias manda al listado de secciones" do
+    sign_in @a.profesor
+
+    get competencies_path
+
+    assert_response :redirect
+  end
+
+  # ⚠️ El resaltado marca UNA asignación, no todas las de la misma sección.
+  #
+  # Con el árbol, «6to Grado – A» aparece una vez por cada área que dicto ahí,
+  # más otra en «Soy guía de». Comparando solo el id de la sección se marcaban
+  # las tres: es la trampa del 7 de septiembre un escalón más abajo, porque lo
+  # que identifica el destino ya no es la sección sino la asignación.
+  test "abierta un área de una sección, solo esa entrada se resalta" do
+    otra = con_el_colegio(@a.colegio) do
+      materia = Subject.create!(name: "Ciencias Naturales", code: "CNA2", school: @a.colegio)
+      TeacherSection.create!(teacher: @a.registro_de_profesor, section: @a.seccion, subject: materia)
+      @a.seccion.update!(leader_teacher: @a.registro_de_profesor)
+      materia
     end
 
     sign_in @a.profesor
-    get dashboards_profesor_path
+    get section_path(@a.seccion, area: otra.id)
 
-    titulos = css_select(".sidebar-section-title").map { |n| n.text.strip }
-    assert_not_includes titulos, GradoOficial.etiqueta(:media_tecnica, corto: true),
-                        "la Media Técnica no es un grupo aparte: su 6to Año es bachillerato"
-    assert_select ".sidebar-nav-link span", text: /6to Año/
+    marcadas = css_select("a.sidebar-nav-link.active").map { |a| a["href"] }
+    assert_equal [ section_path(@a.seccion, area: otra.id) ], marcadas
   end
 end

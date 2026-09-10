@@ -1,15 +1,13 @@
 - if @enrollment.nil?
   .card-academic
-    .card-academic-header
-      %h1 Mis notas
+    = render "shared/cabecera", titulo: "Mis notas"
     .empty-state
       %h3 Sin inscripción activa
       %p No tienes una inscripción vigente. Comunícate con la secretaría del colegio.
 
 - else
   .card-academic
-    .card-academic-header
-      %h1 Mis notas
+    = render layout: "shared/cabecera", locals: { titulo: "Mis notas" } do
       .admin-info-badge
         = "#{@seccion.grade.name} – #{@seccion.name}"
         %span.role-badge= @seccion.academic_period.name
@@ -34,8 +32,7 @@
 
   - if @vista_anual
     .card-academic
-      .card-academic-header
-        %h1 Calificaciones definitivas
+      = render "shared/cabecera", titulo: "Calificaciones definitivas"
       %table.table-academic.table-academic--tarjetas
         %thead
           %tr
@@ -80,13 +77,12 @@
   - else
     - @materias.each do |materia|
       .card-academic
-        .card-academic-header
-          %h2= materia.subject.name
+        = render layout: "shared/cabecera", locals: { titulo: materia.subject.name, nivel: 2 } do
           - if materia.nota_lapso
             .nota-cabecera
               %span.nota-valor{class: materia.nota_lapso >= 10 ? "nota-valor--aprobada" : "nota-valor--aplazada"}= materia.nota_lapso
               - if materia.parcial?
-                %span.nota-parcial= "parcial · sobre #{number_with_precision(materia.peso_cargado, precision: materia.peso_cargado.to_d.frac.zero? ? 0 : 2)} % corregido"
+                %span.nota-parcial= "parcial · sobre #{porcentaje(materia.peso_cargado)} corregido"
           - else
             .nota-cabecera
               %span.nota-pendiente Sin nota todavía
@@ -104,7 +100,7 @@
                 %td= fila[:actividad].description
                 %td= l(fila[:actividad].date_scheduled, format: :long)
                 - peso = fila[:actividad].weight_percentage
-                %td= "#{number_with_precision(peso, precision: peso.frac.zero? ? 0 : 2)} %"
+                %td= porcentaje(peso)
                 %td
                   - if fila[:nota]
                     %span.nota-valor{class: fila[:nota] >= 10 ? "nota-valor--aprobada" : "nota-valor--aplazada"}= fila[:nota]
@@ -115,13 +111,12 @@
         - if materia.peso_definido < 100
           %p.dato-secundario
             El profesor definió el
-            = "#{number_with_precision(materia.peso_definido, precision: materia.peso_definido.frac.zero? ? 0 : 2)} %"
+            = porcentaje(materia.peso_definido)
             de este lapso. Falta definir el resto.
 
     - if @sin_evaluaciones.any?
       .card-academic
-        .card-academic-header
-          %h2 Todavía sin evaluaciones
+        = render "shared/cabecera", titulo: "Todavía sin evaluaciones", nivel: 2
         %p.nota-ayuda
           El profesor no cargó evaluaciones de estas materias para
           = succeed "." do

@@ -1,0 +1,69 @@
+-# ALUMNOS: quiénes están en la sección, y quién dicta qué (etapa ③).
+-#
+-# ⚠️ Antes eran dos paneles que alternaban con `hidden` dentro de la pantalla
+-# de la sección. Pasaron a una pestaña con URL propia porque las otras tres
+-# —Asistencia, Calificar, Planificar— son pantallas de verdad: media fila de
+-# pestañas que navega y media que alterna no se le puede explicar a nadie.
+- acciones = capture do
+  - if administrador?
+    = boton "Editar", edit_section_path(@section), icono: :editar, tono: :secondary
+
+= render layout: "sections/marco",
+         locals: { seccion: @section, area: area_de_la_pestana, activa: :alumnos,
+                   inscritos: @enrollments.size, acciones: acciones } do
+  .card-academic
+    = render "shared/cabecera", nivel: 2,
+             titulo: contar(@enrollments.size, "alumno inscrito", "alumnos inscritos")
+
+    - if @enrollments.any?
+      %table.table-academic
+        %thead
+          %tr
+            %th.columna-numero #
+            %th= Section.human_attribute_name(:name)
+            %th Apellido
+            %th Nro. expediente
+        %tbody
+          - @enrollments.each_with_index do |enrollment, i|
+            %tr
+              %td.columna-numero= i + 1
+              %td= enrollment.student.user.first_name
+              %td= enrollment.student.user.apellidos
+              %td= enrollment.student.school_card
+    - else
+      .empty-state
+        %h3 Sin alumnos inscritos
+        %p Esta sección aún no tiene alumnos inscritos.
+
+  -# ⚠️ «Áreas y profesores» solo para la DIRECCIÓN, por ahora.
+  -#
+  -# Daniel, mirando la pestaña: *«vamos a ocultar por ahora la ficha de los
+  -# profes al final; creo que por ahora no la veo allí. Será para otra
+  -# vuelta»*.
+  -#
+  -# Y tiene sentido: el profesor abre «Alumnos» para ver a SUS alumnos, y
+  -# quiénes dictan las otras ocho áreas es una lista que no usa. La dirección
+  -# sí la usa —es quien asigna—, así que se queda para ella.
+  - if can_manage_sections?
+    .card-academic
+      = render "shared/cabecera", nivel: 2, titulo: "#{Vocabulario::AREAS_CORTAS} y profesores"
+
+      - if @teacher_sections.any?
+        %table.table-academic
+          %thead
+            %tr
+              %th= Vocabulario::AREA_CORTA
+              %th= Teacher.model_name.human
+          %tbody
+            - @teacher_sections.each do |ts|
+              %tr
+                %td= ts.subject.name
+                %td
+                  - if ts.teacher.user_id == current_user.id
+                    %strong= ts.teacher.user.nombre_completo
+                    %span.seccion-soy-yo (tú)
+                  - else
+                    = ts.teacher.user.nombre_completo
+      - else
+        .empty-state
+          %p= "Todavía no hay #{Vocabulario::LAS_AREAS} asignadas."

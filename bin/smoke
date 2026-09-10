@@ -193,8 +193,14 @@ if login "prof.garcia@bolivar.edu" "123123" "$JAR"; then
   check "mis evaluaciones"    "/evaluaciones"      200 "$JAR"
   check "nueva evaluación"    "/evaluaciones/new"  200 "$JAR"
 
-  # La planilla de carga cuelga de una actividad, así que el id sale del listado.
-  PLANILLA="$(curl -s -b "$JAR" "${BASE}/evaluaciones" \
+  # La planilla de carga cuelga de una actividad, así que el id sale de la
+  # LIBRETA de su sección.
+  #
+  # ⚠️ Salía de `/evaluaciones`, y desde la etapa ③ esa ruta REDIRIGE al
+  # profesor: `curl` sin `-L` recibía el 302 vacío y el humo decía «no se
+  # encontró ninguna planilla». La libreta es donde el profesor las ve ahora,
+  # así que es el lugar honesto de buscarlas.
+  PLANILLA="$(curl -sL -b "$JAR" "${BASE}/evaluaciones" \
     | grep -o '/evaluaciones/[0-9]*/notas' | head -1)"
   if [ -n "$PLANILLA" ]; then
     check "planilla de notas"  "$PLANILLA"                   200 "$JAR"

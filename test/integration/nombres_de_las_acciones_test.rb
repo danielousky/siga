@@ -50,7 +50,7 @@ class NombresDeLasAccionesTest < ActiveSupport::TestCase
       indice = nueva.dirname.join("index.html.haml")
       next unless indice.exist?
 
-      titulo = nueva.read[/^\s*%h1 (.+)$/, 1]&.strip
+      titulo = titulo_de(nueva)
       boton = boton_de_cabecera(indice)
       next if titulo.nil? || boton.nil?
 
@@ -242,6 +242,28 @@ class NombresDeLasAccionesTest < ActiveSupport::TestCase
   # Ahora el nombre vive en un solo lugar del marcado, así que se lee de ahí. El
   # botón MUESTRA «Agregar»; el nombre completo —«Registrar inscripción»— es el
   # del tooltip, que es lo que esta regla cuida.
+  # ⚠️ El título de una pantalla ya no es un `%h1` suelto: desde la etapa ② lo
+  # pone `shared/cabecera` (`docs/specs/cabecera-unica.md`).
+  #
+  # Y por eso este método existe en vez de un regex suelto: es exactamente la
+  # clase de guarda que «deja de guardar en silencio» cuando el marcado cambia
+  # debajo. Acá no fue silencio porque el test de arriba comprueba primero que
+  # esté comprobando algo — y fue lo que avisó.
+  def titulo_de(vista)
+    texto = vista.read
+
+    # Las dos formas de llamar al parcial: la simple y la que lleva bloque de
+    # acciones —`render layout: … locals: { titulo: … }`—, que es la que usan
+    # las pantallas con un [Volver] a la derecha.
+    simple = texto[/= render "shared\/cabecera",\s*titulo: "([^"]+)"/, 1]
+    return simple.strip if simple
+
+    con_bloque = texto[/render layout: "shared\/cabecera".*?titulo: "([^"]+)"/m, 1]
+    return con_bloque.strip if con_bloque
+
+    texto[/^\s*%h1 (.+)$/, 1]&.strip
+  end
+
   def boton_de_cabecera(indice)
     texto = indice.read
 
@@ -249,23 +271,9 @@ class NombresDeLasAccionesTest < ActiveSupport::TestCase
     nombre = texto[/nombre: "([^"]+)"/, 1]
     return nombre if nombre
 
-    # ⚠️ Y la vieja, que sigue viva en los seis listados SIN buscador —grados,
-    # lapsos, años escolares, administradores, evaluaciones, importaciones—.
-    # Leer solo una de las dos formas es lo que dejó este test ciego.
-    # ⚠️ La cabecera que TIENE el enlace al alta, no la primera del archivo.
-    # En Evaluaciones hay dos `card-academic-header` y el botón está en la
-    # segunda: quedarse con la primera devolvía `nil` y salteaba la vista.
-    lineas = texto.lines
-    lineas.each_index do |i|
-      next unless lineas[i].include?("card-academic-header")
-
-      bloque = lineas[i + 1, 8].to_a
-      next unless bloque.any? { |l| l.include?("new_") && l.include?("_path") }
-
-      nombre = bloque.filter_map { |l| l[/^\s*%span ([A-ZÁÉÍÓÚ].+)$/, 1]&.strip }.first
-      return nombre if nombre
-    end
-
-    nil
+    # ⚠️ Y el alta que va como BOTÓN dentro del bloque de acciones, en vez de
+    # como `alta:`. Antes esta rama leía `card-academic-header`, que desde la
+    # etapa ② ya no existe en ninguna vista: `shared/cabecera` es la única.
+    texto[/boton "(Registrar [^"]+)", *new_/, 1]
   end
 end

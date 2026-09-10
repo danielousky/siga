@@ -1,7 +1,13 @@
 class SectionsController < ApplicationController
-  before_action :require_admin_access!, except: [:show]
-  before_action :require_read_access!, only: [:show]
-  before_action :set_section, only: [:show, :edit, :update, :destroy]
+  include PreparaLaAsistencia
+  include MuestraElPlan
+
+  PESTANAS = [ :show, :alumnos, :asistencia, :planificar ].freeze
+
+  before_action :require_admin_access!, except: PESTANAS
+  before_action :require_read_access!, only: PESTANAS
+  before_action :set_section, only: PESTANAS + [ :edit, :update, :destroy ]
+  before_action :cargar_la_seccion, only: PESTANAS
 
   # Por el nombre del grado o el de la sección: quien escribe «1er» quiere todas
   # las de primer año, y quien escribe «A» quiere las secciones A.
@@ -24,18 +30,44 @@ class SectionsController < ApplicationController
     @grades_options = helpers.grados_por_nivel
   end
 
+  # `show` es la pestaña CALIFICAR (etapa ③). Las otras tres son
+  # `alumnos` acá al lado, `asistencias#show` y `competencies#index`.
   def show
-    @teacher_sections = @section.teacher_sections.includes(teacher: :user, subject: {})
-    @enrollments = @section.enrollments.where(status: :regular).includes(student: :user).order("users.last_name")
-
-    # Solo los admins necesitan los datos de gestión
-    if administrador?
-      assigned_subject_ids = @teacher_sections.pluck(:subject_id)
-      @available_subjects = @section.grade.subjects.where.not(id: assigned_subject_ids).order(:name)
-      @available_teachers = Teacher.includes(:user).order("users.last_name")
-    end
-
     preparar_la_libreta
+  end
+
+  # ⚠️ «Alumnos» dejó de ser un panel que alterna con `hidden` y pasó a tener
+  # su URL. Las otras tres pestañas son pantallas de verdad, y media fila que
+  # navega y media que alterna no se le puede explicar a nadie: el botón de
+  # atrás funcionaría en unas y en otras no.
+  def alumnos; end
+
+  # ⚠️ La asistencia DENTRO de la sección, no en otra pantalla.
+  #
+  # Es la misma planilla de `/asistencia/:seccion_id` —el parcial y la
+  # preparación son compartidos (`PreparaLaAsistencia`)— para que las dos no se
+  # separen: la de allá ordenaría por apellido y la de acá no, y nadie se
+  # enteraría hasta que un profesor comparara las dos.
+  def asistencia
+    return redirect_to(section_path(@section), alert: "Solo el profesor guía toma asistencia.") unless puede_tomar_asistencia?
+
+    preparar_la_asistencia(@section)
+  end
+
+  # Y el plan de evaluación, igual: mismo parcial, misma preparación
+  # (`MuestraElPlan`). La diferencia con `/competencias` es que acá la sección y
+  # el área ya vienen del árbol del menú, así que la escalera se reduce al lapso.
+  # ⚠️ Se entra con el ÁREA, no con la asignación del profesor.
+  #
+  # Pedía `asignacion`, que sale de `current_user.teacher`, así que la dirección
+  # rebotaba de la pestaña con «Elige primero un área» **teniendo el área
+  # elegida**. El plan es de la sección; quién lo escribe es otra pregunta, y ya
+  # la contesta `profesor?` en cada botón.
+  def planificar
+    return redirect_to(section_path(@section), alert: "Elige primero un área.") if area_del_plan.nil?
+
+    @competencias = Competency.del_plan(@section.id, area_del_plan.id, lapso&.id)
+                              .includes(:indicators, :evaluation_activities)
   end
 
   def new
@@ -90,6 +122,87 @@ class SectionsController < ApplicationController
   # Incluso el guía… ¿cómo sabes cuáles califica? guía + áreas asignadas»*.
   #
   # La dirección las ve todas: no califica, supervisa.
+  # Lo que las dos pestañas de esta pantalla necesitan siempre: quiénes dictan
+  # acá y quiénes están inscritos.
+  def cargar_la_seccion
+    @teacher_sections = @section.teacher_sections.includes(teacher: :user, subject: {})
+    @enrollments = @section.enrollments.where(status: :regular)
+                           .includes(student: :user).order("users.last_name")
+
+    return unless administrador?
+
+    asignadas = @teacher_sections.pluck(:subject_id)
+    @available_subjects = @section.grade.subjects.where.not(id: asignadas).order(:name)
+    @available_teachers = Teacher.includes(:user).order("users.last_name")
+  end
+
+  # El área por la que entré, que es la que el árbol del menú trajo en la URL.
+  # Es lo que decide qué libreta se abre y a qué plan lleva «Planificar».
+  # ── Lo que `MuestraElPlan` y `PreparaLaAsistencia` necesitan ──────────────
+
+  # La asignación de la que habla esta pantalla: esta sección, el área que trajo
+  # el árbol del menú. ⚠️ Se busca entre las de ESTE profesor, y eso es lo que
+  # autoriza: un área que no dicta no está en la lista y devuelve nil.
+  def asignacion
+    return @asignacion if defined?(@asignacion)
+
+    @asignacion = mis_asignaciones.find { |ts| ts.subject_id == area_de_la_pestana&.id }
+  end
+  helper_method :asignacion
+
+  # ⚠️ Acá el plan se ve por la SECCIÓN que se abrió, no por lo que dicta quien
+  # mira: la dirección no tiene asignaciones y estaba viendo el plan sin sus
+  # evaluaciones, con la ponderación en 0 %.
+  def seccion_del_plan = @section
+
+  def area_del_plan = area_de_la_pestana
+
+  # ⚠️ TODAS las del profesor, no solo las de esta sección.
+  #
+  # Estaba filtrando sobre `@teacher_sections` —las de la sección abierta— y
+  # eso dejaba a `otras_secciones` y `hermanas_sin_plan` vacías: **la opción de
+  # copiar el plan a las hermanas desapareció de la pestaña sin que nada
+  # fallara**. Las hermanas son, por definición, de OTRA sección.
+  #
+  # Lo destapó un test que contaba el formulario de copiar, no la pantalla.
+  def mis_asignaciones
+    @mis_asignaciones ||= current_user.teacher&.teacher_sections
+                                      &.del_anio_de_la_sesion
+                                      &.includes(section: :grade, subject: {})&.to_a || []
+  end
+  helper_method :mis_asignaciones
+
+  def desde_donde = "seccion"
+
+  # Los formularios del plan vuelven a la pestaña, no a `/competencias`.
+  def plan_path
+    planificar_section_path(@section, area: area_de_la_pestana&.id, lapso: lapso&.id)
+  end
+  helper_method :plan_path
+
+  # Quién puede pasar lista: el guía de la sección, o la dirección.
+  def puede_tomar_asistencia?
+    can_manage_sections? || @section.leader_teacher_id == current_user.teacher&.id
+  end
+
+  # ⚠️ Cae en la PRIMERA que califico cuando la URL no la trae.
+  #
+  # Entrando por «Soy guía de» el enlace va sin área —la asistencia es de la
+  # sección entera, sin área— y ahí «Planificar» rebotaba con «Elige primero un
+  # área» mientras la libreta de al lado mostraba Matemática tan campante: las
+  # dos deducían distinto.
+  #
+  # Es «no preguntemos lo deducible»: en una sección donde dicto una sola área
+  # no hay nada que elegir, y donde dicto dos la primera es tan buena como
+  # pedirla — las pestañas la llevan de ahí en adelante.
+  def area_de_la_pestana
+    return @area_de_la_pestana if defined?(@area_de_la_pestana)
+
+    @area_de_la_pestana = areas_que_califico.find { |s| s.id.to_s == params[:area] } ||
+                          areas_que_califico.first
+  end
+  helper_method :area_de_la_pestana
+
   def preparar_la_libreta
     @areas_que_califico = areas_que_califico
     return if @areas_que_califico.empty?
@@ -97,8 +210,9 @@ class SectionsController < ApplicationController
     @lapsos_de_la_libreta = EvaluationMoment
                             .where(academic_period_id: @section.academic_period_id)
                             .order(:starts_on, :id).to_a
-    @area_de_la_libreta = @areas_que_califico.find { |s| s.id.to_s == params[:area] } ||
-                          @areas_que_califico.first
+    # ⚠️ La MISMA que las pestañas, no una deducción paralela: cuando eran dos,
+    # la libreta abría en Matemática y «Planificar» decía que faltaba elegir.
+    @area_de_la_libreta = area_de_la_pestana
     @lapso_de_la_libreta = @lapsos_de_la_libreta.find { |l| l.id.to_s == params[:lapso] } ||
                            lapso_en_curso || @lapsos_de_la_libreta.first
     return if @lapso_de_la_libreta.nil?

@@ -1,6 +1,5 @@
 .card-academic
-  .card-academic-header
-    %h1 No encontramos ese boletín
+  = render "shared/cabecera", titulo: "No encontramos ese boletín"
 
   .alert.alert-warning
     El código
@@ -13,4 +12,4 @@
     una <strong>I</strong>. Si lo escribiste tal cual figura en el papel y sigue
     sin aparecer, ese documento no lo emitió este sistema.
 
-  = link_to "Probar con otro código", verificar_path, class: "btn btn-primary"
+  = link_to "Probar con otro código", verificar_path, class: "btn btn-secondary"

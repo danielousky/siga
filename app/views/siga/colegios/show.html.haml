@@ -1,6 +1,6 @@
 .siga-bloque-cab
   %h1= @colegio.name
-  = button_to "Entrar al colegio", siga_visitas_path, params: { school_id: @colegio.id }, class: "btn btn-primary"
+  = button_to "Entrar al colegio", siga_visitas_path, params: { school_id: @colegio.id }, class: "btn btn-accion"
 %p.siga-subtitulo
   = @colegio.location
   %span.apagado= "· Código DEA #{@colegio.dea_code}"

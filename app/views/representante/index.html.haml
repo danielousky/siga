@@ -1,8 +1,10 @@
 -# Elegir hijo. Solo aparece cuando hay más de uno: con uno solo se entra
 -# directo a su pantalla, que es un paso menos para el caso más común.
 .portal-hijo
-  .portal-cabecera
-    %h1 Mis representados
+  -# ⚠️ En su propia tarjeta, como en el resto de la app: sin ella la
+  -# franja del título quedaba pegada al borde de la pantalla.
+  .card-academic
+    = render "shared/cabecera", titulo: "Mis representados"
 
 - if colegios_del_representante.many?
   -# Hijos en colegios distintos: su usuario es uno, sus inquilinos son dos.

@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 7 de septiembre de 2026 (09:57)
+# 🔖 Punto de retome — actualizado 8 de septiembre de 2026 (14:35)
 
 ## Producción limpia y resembrada (MOR-146 · MOR-224)
 
@@ -64,6 +64,177 @@ Producción sigue con **cuentas de administrador con contraseña conocida y
 públicamente documentada**. El día que entre un colegio de verdad esto es
 urgente otra vez — pero ya no por alumnos inventados, sino por las cuentas.
 `MOR-146` sigue abierto por esa mitad.
+
+---
+
+## Sesión del 8 de septiembre, tarde — la vista del profesor (etapa ③)
+
+`bin/ci` verde: **1.348 tests**, 6.258 aserciones. **Todo en LOCAL, sin subir.**
+
+```
+   12:10   el sidebar es un árbol: área → nivel → grado → sección
+   12:39   las cuatro pestañas de la sección
+   13:47   las pestañas dejan de sacarte de la sección
+   14:29   los tres estados de columna
+```
+
+### El sidebar
+
+```
+   ▾ SOY GUÍA DE            ▾ DICTO
+       4to Grado – A  ✓         ▾ Castellano y Literatura
+                                    5to Grado – A
+                                  ▾ 6to Grado
+                                      6to Grado – A
+                                      6to Grado – B
+```
+
+**La regla que lo hace usable:** un escalón aparece solo si DIVIDE algo — la
+misma de las pastillas y del selector de nivel. Verificada contra los cuatro
+perfiles reales de los seeds, que son cuatro formas distintas del árbol.
+
+⚠️ La MISMA sección sale en las dos ramas, y no es un bug: son dos trabajos.
+Como guía entro a la sección (sin área, la asistencia es de todos); como
+docente del área, a una asignación.
+
+### Las cuatro pestañas, DENTRO de la sección
+
+```
+   Asistencia* · Calificar · Planificar · Alumnos      (*solo el guía)
+```
+
+Daniel rechazó que fueran URLs de otras pantallas: *«se descontextualiza todo,
+se supone que estoy en mi espacio de trabajo… no es solo "fingir" sino
+realmente estar en la sección»*. Las cuatro son acciones de
+`SectionsController`, y la planilla de asistencia y el plan son los MISMOS
+parciales que usan `/asistencia` y `/competencias` — vía `PreparaLaAsistencia`
+y `MuestraElPlan`, para que no se separen.
+
+⚠️ Y la ACTIVA por defecto sale de por dónde entró: por «Soy guía de» abre
+Asistencia; por «Dicto» abre Calificar. El árbol ya lo dice, no hay que
+preguntarlo.
+
+### Los cuatro momentos de una columna
+
+```
+   ALUMNO  │ Diagnóstica │ Taller       │ Examen    │ Proyecto
+           │ 19 de ago   │ 4 sep ya pasó│ 8 sep hoy │ 26 sep en 18 días
+           │ 2 de 2      │ 1 de 2       │ 0 de 2    │ 0 de 2
+           └ plana       └ ÁMBAR        └ azul      └ atenuada
+             (cerrada)     lo de HOY      en curso    y ESCRIBIBLE
+```
+
+⚠️ **La fecha ordena, no cierra.** Daniel lo había planteado como «se activa
+conforme a la fecha y se desactivan las otras»; eso deja fuera al profesor que
+carga tarde, que es el caso normal. Estuvo de acuerdo.
+
+### Lo transversal que se hizo en el camino
+
+- **La franja del título**: la misma marca del ítem activo del sidebar —barra
+  + fondo sutil— sangrando hasta el borde de la tarjeta, con los controles
+  DENTRO. Tres vueltas de QA hasta acertar. `--compacta` se retiró.
+- **«Mi trabajo» salió del menú del profesor**: sus tres entradas son pestañas
+  de la sección.
+- **El login de los tests de sistema era flaky** y fallaba una de cada cinco
+  corridas. Ahora reintenta. Un login flaky hace fallar cualquier test con un
+  mensaje que no menciona el login.
+
+### ⚠️ Lo que sigue abierto de la vista del profesor
+
+- **`MOR-230`** · la foto del alumno, actualizada cada año escolar. Lleva una
+  decisión de MODELO adentro: ¿la foto es del usuario, de la inscripción, o
+  las dos? Un boletín de 1er Grado no puede salir con la cara del muchacho de
+  5to Año.
+- **`MOR-231`** · la fila del alumno como acordeón, con la ficha adentro.
+- Replicar la planificación a las secciones hermanas (existe para
+  competencias, falta para evaluaciones).
+- Las estadísticas del lapso — Daniel las dejó de último, «es un plus».
+
+---
+
+## Sesión del 8 de septiembre — el sistema de diseño deja de ser opcional
+
+`bin/ci` verde: **1.340 tests**, 6.234 aserciones. **Todo en LOCAL, sin subir.**
+
+```
+   11:05   ① tonos + catálogo vivo en /siga/estilo
+   11:33   ② una sola cabecera para las 128 pantallas
+   11:36   ③ spec de la vista del profesor, en BORRADOR
+```
+
+⚠️ **Nada se desplegó ni se empujó a origin.** Regla que Daniel tuvo que
+repetir: *«trabajemos en local y cuando te diga, desplegamos a prod y origin»*.
+Está en memoria.
+
+### De dónde salió
+
+> *«Ayer hice una captura de por lo menos cinco tipos de títulos principales.
+> Eso es inconcebible… un framework vale, nuestro propio framework, con las
+> bondades de Bootstrap pero no tan extenso»*
+
+Contó cinco. Había **siete** — y el diagnóstico no era que faltara el framework
+(709 clases en 9.548 líneas) sino que **era opcional**: la cabecera correcta
+existía desde `MOR-192` y la usaban **14 pantallas de 84**.
+
+### ① El verde significa «esto queda guardado»
+
+Decisión de Daniel: el alta va en verde, igual que el submit. Así
+`[Guardar cambios]` en una edición deja de ser una excepción incómoda.
+
+```
+   guardar     verde       queda guardado    [+ Agregar] [Crear] [Guardar]
+   accion      índigo      mucho de una vez  [Copiar de otro año]
+   documento   petróleo    algo sale         [Descargar] [Emitir]
+   ver         azul suave  mirar sin tocar   [Ver]
+   secondary   neutro      volver atrás      [Volver] [Cancelar]
+   danger      sin tono    destruye          [Eliminar]
+```
+
+⚠️ **`btn-primary` se retiró.** Se quedó sin trabajo, y «primario» nunca fue un
+trabajo. `boton` **exige `tono:`**: ese default era el agujero.
+
+**El catálogo vive en `/siga/estilo`**, tras la puerta del equipo de SIGA
+(`desarrollador@siga.edu` / `123123`), y se dibuja con los helpers de verdad.
+
+### ② Una sola cabecera
+
+```
+   43×  card-academic-header > %h2   ← título de TARJETA
+   32×  card-academic-header > %h1   ← título de PANTALLA
+   35×  … + acciones
+```
+
+La misma clase para dos cosas distintas, separadas solo por qué etiqueta
+escribió cada quien. Ahora es `nivel:`, que se pide.
+
+⚠️ **El partial NO emite la tarjeta** — eso es lo que lo hace componible.
+
+### Cinco cosas que aparecieron, y ninguna estaba en el plan
+
+1. **«Emitir el documento» estaba en el tono equivocado** (azul, siendo un
+   papel). Llevaba así desde que existe.
+2. **Un botón de dos palabras se desbordaba**: `line-height: 1` + alto fijo.
+   Se vio recién con los seis tonos apilados en el catálogo.
+3. **Un `%h2` VACÍO** en el panel del administrador: el icono y «Todo al día»
+   le quedaban de hermanos, no adentro.
+4. **`.dato-secundario` ya existía** y la redefiní — la colisión de
+   `.contexto-fijo`, otra vez.
+5. ⚠️ **La hoja tiene 108 selectores duplicados.** 98 con el mismo cuerpo, y 9
+   de los 10 restantes son refinamientos deliberados en cascada. **No se tocó:
+   es un PR propio.**
+
+### Y dos guardas avisaron, que es de lo que se trata
+
+`nombres_de_las_acciones_test` leía el título con `/%h1 (.+)/` y se quedó ciego
+al migrar. No pasó en silencio porque **ese test comprueba primero que esté
+comprobando algo**. Es la advertencia de la plantilla de specs, cumpliéndose.
+
+### ⚠️ Lo que espera a Daniel
+
+El spec de la **vista del profesor** está en borrador con **cuatro preguntas
+abiertas** que son suyas: cómo se llaman las dos ramas del sidebar, qué ve un
+profesor sin sección guía, el orden de las pestañas, y si puede mirar años
+anteriores. Sin esas cuatro no se congela.
 
 ---
 

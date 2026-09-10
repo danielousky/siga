@@ -1,0 +1,57 @@
+-# Qué competencias mide esta evaluación, en su propia fila (QA del 9 de sept).
+-#
+-# Daniel eligió retirar el lápiz y que «las competencias se enganchan en la
+-# fila». Antes vivía en un `<details>` colgado de la competencia —«Cambiar
+-# cuáles la miden»— que preguntaba al revés: desde la competencia hacia las
+-# evaluaciones, cuando lo que uno mira es la evaluación.
+-#
+-# ## ⚠️ El chip dice las OTRAS, no todas
+-#
+-# En el plan anidado la evaluación ya está DEBAJO de la competencia que mide:
+-# repetirlo en un chip es decir dos veces lo mismo en el mismo renglón. Lo que
+-# la posición NO puede decir es que además mide otra —ahí la evaluación sale
+-# dos veces, y sin el chip las dos apariciones se ven idénticas y sin relación.
+-#
+-#     1 ▸ Resuelve problemas de adición
+-#           Taller en clase   30 %   12 nov
+-#             también mide ⟨Interpreta gráficos⟩ ⟨+⟩
+-#
+-# En el bloque de las sueltas no hay posición que diga nada, así que el chip
+-# es lo único que hay — y el aviso, lo que falta.
+- actual = local_assigns[:competencia]
+- otras  = evaluacion.competencies.reject { |c| c == actual }
+- libres = competencias - evaluacion.competencies
+.plan-evaluacion-chips
+  - if otras.any?
+    %span.plan-evaluacion-chips-etiqueta= actual ? "también mide" : "mide"
+    - otras.each do |competencia|
+      -# Un chip es un botón que QUITA ese enganche: se ve lo que hay y se
+      -# deshace donde se ve, sin abrir nada.
+      = form_with url: evaluation_activity_path(evaluacion, contexto.merge(en_linea: true, bajo: actual&.id).compact),
+                  method: :patch, class: "plan-evaluacion-chip-form" do
+        = hidden_field_tag "evaluation_activity[competency_ids][]", ""
+        - (evaluacion.competencies - [ competencia ]).each do |queda|
+          = hidden_field_tag "evaluation_activity[competency_ids][]", queda.id
+        %button.plan-evaluacion-chip{ type: "submit",
+                                      data: { tooltip: "Ya no mide «#{competencia.descripcion.truncate(60)}»" } }
+          %span= competencia.descripcion.truncate(38)
+          %span.plan-evaluacion-chip-quitar ×
+  - elsif actual.nil?
+    -# Sin competencia y sin posición que lo diga: cuenta para el promedio y no
+    -# describe nada, así que la boleta la suma sin poder explicarla.
+    %span.plan-evaluacion-chips-vacio
+      = icono(:alerta, tamano: 12)
+      %span no mide ninguna competencia
+
+  - if libres.any?
+    %details.plan-evaluacion-mas{ data: { controller: "menu-flotante" } }
+      %summary.plan-evaluacion-mas-abrir{ data: { tooltip: "Agregar una competencia que esta evaluación mide" } }
+        = icono(:agregar, tamano: 12)
+      .plan-evaluacion-mas-panel
+        - libres.each do |competencia|
+          = form_with url: evaluation_activity_path(evaluacion, contexto.merge(en_linea: true, bajo: actual&.id).compact),
+                      method: :patch do
+            = hidden_field_tag "evaluation_activity[competency_ids][]", ""
+            - (evaluacion.competencies + [ competencia ]).each do |queda|
+              = hidden_field_tag "evaluation_activity[competency_ids][]", queda.id
+            %button.plan-evaluacion-mas-opcion{ type: "submit" }= competencia.descripcion

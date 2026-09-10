@@ -11,8 +11,7 @@
 = render "shared/codigo_generado"
 
 .card-academic
-  .card-academic-header
-    %h1= @representative.nombre_completo
+  = render layout: "shared/cabecera", locals: { titulo: @representative.nombre_completo } do
     -# ⚠️ El acceso al sistema, AL LADO DEL NOMBRE (MOR-187). Era una tarjeta
     -# entera —título, una fila de `dl` y un párrafo— para decir dos cosas: si
     -# puede entrar y un botón. Daniel lo marcó en pantalla.
@@ -88,8 +87,7 @@
 -# ahí «qué le escribimos a la mamá de Eduardo» es leer trescientas filas.
 - if can_manage_students? && @mensajes.present?
   .card-academic
-    .card-academic-header
-      %h2 Correos enviados
+    = render "shared/cabecera", titulo: "Correos enviados", nivel: 2
 
     %ul.mensajes
       - @mensajes.each do |mensaje|
@@ -102,8 +100,7 @@
             = "Lo escribió #{mensaje.remitente.nombre_completo} · se envió a #{mensaje.correo}"
 
 .card-academic
-  .card-academic-header
-    %h2 Alumnos que representa
+  = render "shared/cabecera", titulo: "Alumnos que representa", nivel: 2
 
   - if @vinculos.empty?
     .empty-state

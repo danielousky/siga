@@ -1,6 +1,5 @@
 .card-academic
-  .card-academic-header
-    %h1 Registrar sección
+  = render "shared/cabecera", titulo: "Registrar sección"
 
   = render "shared/precondicion", clave: :secciones, titulo: "Todavía no se puede crear una sección" do
     = render "form", section: @section, volver: sections_path

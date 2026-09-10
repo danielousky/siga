@@ -57,8 +57,7 @@
           = boton "Ver los años", academic_periods_path, icono: :calendario, tono: :secondary, sm: true
 
 .card-academic
-  .card-academic-header
-    %h2 Lo que sigue
+  = render "shared/cabecera", titulo: "Lo que sigue", nivel: 2
   %p.paso-explicacion
     Lo que falta es lo que solo usted sabe: sus alumnos, sus secciones y quién
     dicta qué. Si ya lo tiene en un Excel, súbalo y queda todo de una vez.

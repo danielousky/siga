@@ -407,24 +407,34 @@ a:hover {
   min-height: 36px;
   -webkit-appearance: none;
   appearance: none;
+
+  /* ⚠️ Y por eso mismo el texto NO se parte.
+     Con `line-height: 1` y un alto fijo de 36 px, un botón de dos palabras
+     —«Copiar de otro año», «Emitir y descargar»— partía en dos renglones y la
+     segunda línea se salía por debajo del borde. Se veía en el catálogo, en
+     cuanto los seis tonos quedaron uno encima del otro.
+     ⚠️ En el teléfono se revierte a `normal` más abajo, y ahí es correcto: el
+     botón mide 56 px de alto y sí puede envolver. */
+  white-space: nowrap;
 }
 
-.btn-primary {
-  background: var(--brand-primary);
-  color: white;
-  border-color: var(--brand-primary);
-}
+/* ⚠️ `.btn-primary` SE RETIRÓ, y no es un renombre.
+   ─────────────────────────────────────────────────
+   Al pasar el alta al verde —«el verde significa: esto queda guardado»—, el
+   azul se quedó sin trabajo. Y «primario» nunca fue un trabajo: es jerarquía
+   visual, justo lo que MOR-172 reemplazó por QUÉ HACE el botón.
 
-.btn-primary:hover {
-  background: var(--brand-hover);
-  border-color: var(--brand-hover);
-  color: white;
-}
+   Los seis que quedan, y cada uno con su verbo:
 
-.btn-primary:active {
-  background: var(--brand-active);
-  border-color: var(--brand-active);
-}
+       guardar     verde       queda guardado    [+ Agregar] [Crear] [Guardar]
+       accion      índigo      mucho de una vez  [Copiar de otro año]
+       documento   petróleo    algo sale         [Descargar] [Emitir]
+       ver         azul suave  mirar sin tocar   [Ver]
+       secondary   neutro      volver atrás      [Volver] [Cancelar]
+       danger      sin tono    destruye          [Eliminar]
+
+   Si estás por escribir `btn-primary`, la pregunta no es de qué color: es cuál
+   de esos seis verbos hace el botón. El catálogo vivo está en /siga/estilo. */
 
 .btn-secondary {
   background: var(--surface-elevated);
@@ -438,14 +448,14 @@ a:hover {
   color: var(--text-primary);
 }
 
-/* Cuatro tonos, uno por lo que el botón HACE (MOR-172).
-   ───────────────────────────────────────────────────
+/* SEIS tonos, uno por lo que el botón HACE (MOR-172, revisado el 8 sep 2026).
+   ─────────────────────────────────────────────────────────────────────────
    Daniel: «veo todo del mismo color, más inductivo sería un tono de azul para
    los create, otro para los show, otro para las descargas. Eso sería mejor
    cognitivamente». Tenía razón: con 59 botones azules y 57 grises, el color
    había dejado de decir nada.
 
-      btn-primary     azul sólido      la acción a la que vino: crear, guardar
+      btn-guardar     verde            QUEDA GUARDADO: alta, crear, guardar
       btn-accion      índigo sólido    lo que hace MUCHO de una vez
       btn-documento   petróleo sólido  lo que SALE: descargar, emitir
       btn-ver         azul suave       ir al detalle de algo
@@ -454,7 +464,12 @@ a:hover {
 
    ⚠️ La distinción que importa no es «primario vs secundario»: es **qué pasa
    al tocarlo**. «Copiar de otro año» crea ochenta filas y «Guardar» actualiza
-   una; los dos eran el mismo azul. */
+   una; los dos eran el mismo azul.
+
+   ⚠️ Y el verde NO significa «crea»: significa **queda guardado**. Por eso lo
+   llevan por igual el `[+ Agregar]` que va al formulario y el `[Crear]` que lo
+   envía — y también `[Guardar cambios]` en una edición, que no crea nada. El
+   `+` es lo único que dice «y además nace algo nuevo». */
 .btn-accion {
   background: var(--accion-primary);
   color: white;
@@ -503,7 +518,7 @@ a:hover {
 
    Lo destructivo se señala igual, pero por PESO y POSICIÓN:
 
-       btn-primary     azul sólido      la acción a la que vino
+       btn-guardar     verde sólido     la acción a la que vino
        btn-secondary   borde suave      todo lo demás
        btn-danger      borde fuerte     destructivo — y en hover se vuelve
                                         tinta sólida, que se lee como "en serio"
@@ -2025,6 +2040,11 @@ nav.pagy a.gap {
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-micro);
   margin-bottom: var(--space-md);
+  /* ⚠️ Separado del deslizador, que ahora está justo encima. Son dos barras
+     horizontales y a dos píxeles se leen como una sola cosa partida: el
+     deslizador es el CONTROL —cuánto vale esta— y el medidor es el ESTADO del
+     lapso entero. */
+  margin-top: var(--space-sm);
 }
 
 .weight-meter-label {
@@ -2629,13 +2649,9 @@ nav.pagy a.gap {
    pantalla y que no haya un solo control que no lleve a un dato.
 */
 
-.portal-cabecera {
-  padding: var(--space-lg) 0 var(--space-md);
-  border-bottom: 2px solid var(--border-standard);
-  margin-bottom: var(--space-lg);
-}
-
-.portal-cabecera h1 { margin-bottom: var(--space-micro); }
+/* `.portal-cabecera` se retiró en la etapa ②: el portal del representante usa
+   la misma cabecera que el resto de la app. Daniel: «un único tipo de títulos
+   tanto para administradores, profesores, estudiantes y representantes». */
 
 .portal-seccion {
   margin: 0;
@@ -5772,6 +5788,291 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   outline-offset: 2px;
 }
 
+/* ── Lo que ya viene decidido, mostrado y no preguntado ───────────────────── */
+/* QA de Daniel, sobre los dos primeros desplegables del formulario de
+   evaluación: «vienen del enlace». No es un campo: es el encabezado que dice a
+   qué plan pertenece lo que se está por crear. Y su «Cambiar», porque mostrar
+   el contexto no puede volverlo una jaula.
+
+   ⚠️ NO se llama `.contexto-fijo`: ese nombre ya es del año escolar en la barra
+   superior, y dos definiciones del mismo nombre en la misma hoja se pisan en
+   silencio —gana la de más abajo, y la otra se aplica a medias—. */
+.contexto-del-enlace {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--brand-primary);
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.contexto-del-enlace-etiqueta {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-right: var(--space-micro);
+}
+
+.contexto-del-enlace-separador { color: var(--text-tertiary); }
+
+.contexto-del-enlace-cambiar {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+
+.contexto-del-enlace-cambiar:hover { text-decoration: underline; }
+
+/* ── El peso, arrastrado y escrito ────────────────────────────────────────── */
+/* Daniel pidió un «range value». Un porcentaje es una porción de algo, y
+   arrastrarla es la manera natural de repartir; escribir «30» en una caja
+   obliga a imaginarse la proporción.
+
+   ⚠️ Van los DOS controles: el deslizador REPARTE, el número PRECISA — 33,33
+   no se arrastra jamás. El que viaja al servidor es el número. */
+.campo-rango {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.campo-rango-barra {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  /* `appearance: none` es lo que permite estilar la pista y el pulgar; sin él
+     el control queda con la piel del sistema operativo, distinta en cada uno. */
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.campo-rango-barra::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border-standard);
+}
+
+.campo-rango-barra::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border-standard);
+}
+
+.campo-rango-barra::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  /* El pulgar mide 18 y la pista 6: hay que subirlo 6 px para centrarlo. */
+  margin-top: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--surface-elevated);
+  background: var(--brand-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.campo-rango-barra::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--surface-elevated);
+  background: var(--brand-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.campo-rango-barra:focus-visible { outline: none; }
+
+.campo-rango-barra:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.campo-rango-barra:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* El número, angosto: son tres dígitos y una coma, no un campo de texto. */
+.campo-rango-valor {
+  flex: 0 0 auto;
+  width: 5.5rem;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-primary);
+}
+
+/* Los mismos tokens de foco que `.form-control`: es un campo del formulario y
+   tiene que responder igual que los de al lado. */
+.campo-rango-valor:focus {
+  outline: none;
+  border-color: var(--control-focus-border);
+  box-shadow: 0 0 0 3px var(--control-focus-ring);
+}
+
+.campo-rango-signo {
+  flex: 0 0 auto;
+  font-size: 14px;
+  color: var(--text-tertiary);
+}
+
+/* ── La cabecera de «Qué evalúa», con su [+] ──────────────────────────────── */
+.que-evalua-cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.que-evalua-cabecera .btn { margin-left: auto; }
+
+/* ⚠️ Sin sección elegida no hay plan al que agregar, así que el [+] queda
+   apagado. Un `<a>` no tiene `disabled`: se le quita el `href` y esto lo
+   muestra. `pointer-events: none` impide además el clic en el hueco. */
+.que-evalua-cabecera .btn[aria-disabled="true"] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* ── Datos de apoyo ───────────────────────────────────────────────────────── */
+/* Lo que acompaña al dato principal sin competir con él: la fecha de una fila,
+   una IP, «inscrito el 12/09». Existían siete veces escritas a mano dentro de
+   la vista —`style="font-size: 13px; color: var(--text-secondary)"`— cada una
+   con su propio tamaño, y ninguna encontrable con un grep.
+
+   ⚠️ Nombradas por lo que SON, no por cómo se ven. `.dato-menor` sobrevive a
+   un cambio de tamaño; `.texto-13` obliga a renombrarlo o a mentir. */
+/* ⚠️ `.dato-secundario` NO se define acá: ya existe (MOR-161) y significa esto
+   mismo. Dos definiciones del mismo nombre en la misma hoja se pisan en
+   silencio — es la colisión de `.contexto-fijo`, y volvió a aparecer al
+   escribir estas clases. */
+.dato-menor {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* Una fecha en una celda: nunca se parte en dos renglones. */
+.celda-fecha {
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Un código corto dentro de una tabla —«MAT», «LEN»—. En la sans del sistema y
+   no en monoespaciada: es un identificador que un director lee, no código. */
+.codigo-corto {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--surface-canvas);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+
+/* ── El catálogo del sistema de diseño ────────────────────────────────────── */
+/* ⚠️ Una MUESTRA, no una tarjeta.
+   El panel de SIGA es oscuro a propósito —para que confundirlo con el panel de
+   un colegio sea imposible (MOR-133)— y los componentes del colegio viven sobre
+   claro. Meter un `.card-academic` blanco ahí adentro dejaba los títulos, que
+   son claros por el layout de SIGA, ilegibles sobre el blanco.
+
+   La salida no es pelearle a la cascada: es separar las dos cosas. El chrome
+   del catálogo —títulos, explicaciones— habla el idioma de SIGA; lo de adentro
+   de este marco es «así se ve en el colegio», y por eso lleva su fondo. */
+.catalogo-muestra {
+  background: var(--surface-canvas);
+  border: 1px solid var(--siga-borde);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  /* Una tabla ancha desborda antes de romper la página. */
+  overflow-x: auto;
+}
+
+/* Y adentro del marco manda el colegio, no SIGA: sin esto, `.siga-admin h2` y
+   `.siga-admin a` pintan el texto en el claro del panel oscuro. */
+.catalogo-muestra,
+.catalogo-muestra h1,
+.catalogo-muestra h2,
+.catalogo-muestra h3 { color: var(--text-primary); }
+
+.catalogo-muestra a:not(.btn) { color: var(--brand-primary); }
+
+.catalogo-nota {
+  color: var(--siga-tenue);
+  font-size: 14px;
+  margin-bottom: var(--space-md);
+  max-width: 68ch;
+}
+
+
+/* ── El árbol del menú del profesor (etapa ③) ─────────────────────────────── */
+/* Área → nivel → grado → sección, con los escalones que no dividen nada ya
+   podados al construir. La profundidad REAL varía por profesor, así que el
+   sangrado se acumula solo: cada rama corre a sus hijos un poco más. */
+.sidebar-rama > .sidebar-nav,
+.sidebar-rama > .sidebar-rama { padding-left: var(--space-sm); }
+
+.sidebar-rama-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 6px var(--space-lg);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  list-style: none;
+  /* El nombre de un área es largo —«Grupo de Creación, Recreación y
+     Producción»— y el menú tiene 260 px: se parte en dos renglones antes que
+     desbordar, porque el sidebar recorta. */
+  line-height: 1.3;
+}
+
+.sidebar-rama-titulo::-webkit-details-marker { display: none; }
+.sidebar-rama-titulo::marker { content: ""; }
+
+/* La flecha: la dibuja el CSS y gira al abrir. Un icono más sería un SVG por
+   rama, y un profesor puede tener veinte. */
+.sidebar-rama-titulo::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 0;
+  height: 0;
+  border-left: 4px solid currentColor;
+  border-top: 3.5px solid transparent;
+  border-bottom: 3.5px solid transparent;
+  transition: transform var(--transition-fast);
+}
+
+.sidebar-rama[open] > .sidebar-rama-titulo::before { transform: rotate(90deg); }
+.sidebar-rama-titulo:hover { color: var(--text-primary); background: var(--surface-hover); }
+
+.sidebar-rama-titulo:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: -2px;
+}
+
+
 /* Tooltip propio (MOR-173).
    ───────────────────────
    Daniel: «mira el tooltip, es de HTML puro. Revisalos todos». El `title` del
@@ -5843,6 +6144,23 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
 [data-tooltip]:focus-visible::before {
   opacity: 1;
   visibility: visible;
+}
+
+/* ⚠️ Anclado a la DERECHA, creciendo hacia adentro.
+   Para un control pegado al borde de un contenedor que recorta. El caso que lo
+   trajo: el estado de cada sección en el menú lateral, que tiene
+   `overflow-y: auto` — y el CSS convierte el eje X en `auto` en cuanto el otro
+   no es `visible`, así que un globo centrado se corta al ras del sidebar. */
+[data-tooltip][data-tooltip-izquierda]::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+[data-tooltip][data-tooltip-izquierda]::before {
+  left: auto;
+  right: 4px;
+  transform: none;
 }
 
 [data-tooltip][data-tooltip-arriba]::after {
@@ -5944,9 +6262,17 @@ a.stat-card:hover .stat-card-icono { color: var(--brand-primary); }
   border-bottom-color: var(--border-standard);
 }
 
+/* ⚠️ La activa lleva además un fondo pastel, no solo la línea de abajo.
+   Daniel: «la pestaña activa un poco más resaltada, pudiera ser agregarle un
+   sutil bg pastel». Con la línea sola, en una fila de cuatro hay que buscar
+   cuál está subrayada; con el fondo se ve sin leer.
+   Es el mismo `--brand-subtle` de la franja del título y del ítem activo del
+   sidebar: las tres marcas de «estás acá» son la misma. */
 .pestana.activa {
   color: var(--brand-primary);
   border-bottom-color: var(--brand-primary);
+  background: var(--brand-subtle);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
 .pestana:focus-visible {
@@ -6004,17 +6330,23 @@ a.subject-avance:hover { filter: brightness(0.9); }
    ⚠️ Acá el color SÍ es del dato —cuántas notas faltan es un hecho de la
    sección, no la afordancia de un control— y por eso puede llevarlo. Pero
    nunca SOLO color: el nombre va en el tooltip y en el `aria-label`. */
+/* ⚠️ Un ICONO, no un punto de color (QA del 7 de septiembre).
+   Los tres estados eran el MISMO círculo de 8 px y solo cambiaba el color, así
+   que el color cargaba con todo el significado y había que leer el tooltip
+   para saber cuál era. Un check, un reloj y un «!» se distinguen sin color. */
 .seccion-estado {
   flex: 0 0 auto;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  display: inline-flex;
   margin-left: auto;
 }
 
-.seccion-estado--completo { background: var(--success-text); }
-.seccion-estado--a_medias { background: var(--warning-text); }
-.seccion-estado--vacio    { background: var(--danger-text); }
+.seccion-estado--completo { color: var(--success-text); }
+.seccion-estado--a_medias { color: var(--warning-text); }
+.seccion-estado--vacio    { color: var(--danger-text); }
+
+/* Sin evaluaciones todavía: es un HECHO, no un problema. Va en el gris de lo
+   secundario — un ámbar acá le pondría urgencia a septiembre. */
+.seccion-estado--sin_evaluaciones { color: var(--text-tertiary); }
 
 /* ---- La libreta de la sección (MOR-223) ---- */
 /* Todas las notas del lapso en una tabla: alumno × evaluación. Daniel: «ten
@@ -6103,6 +6435,60 @@ a.subject-avance:hover { filter: brightness(0.9); }
   color: var(--text-tertiary);
   text-transform: none;
   letter-spacing: 0;
+}
+
+/* ── El MOMENTO de cada columna (etapa ③) ─────────────────────────────────── */
+/* ⚠️ La fecha ORDENA y da FOCO. No cierra nada.
+   Daniel lo había planteado como «se activa conforme a la fecha y se
+   desactivan las otras», y suena razonable hasta que se piensa quién queda
+   afuera: el profesor que carga tarde, que es el caso NORMAL y lo descubre un
+   domingo a las nueve. Quedó en que la fecha jerarquiza, y él estuvo de
+   acuerdo.
+
+   Las tres columnas se escriben igual; lo que cambia es cuánto pesan. */
+
+/* ATRASADA: ya pasó y le faltan notas. Es lo que hay que hacer HOY, así que
+   es la única con fondo — el resto de la fila de encabezados es plana. */
+.libreta-columna--atrasada {
+  background: var(--warning-bg);
+  box-shadow: inset 0 -2px 0 var(--warning-text);
+}
+
+.libreta-columna--atrasada .libreta-cuando-marca {
+  color: var(--warning-text);
+  font-weight: 600;
+}
+
+/* HOY: se aplica hoy. Se marca, sin alarmar: todavía no falta nada. */
+.libreta-columna--hoy { box-shadow: inset 0 -2px 0 var(--brand-primary); }
+.libreta-columna--hoy .libreta-cuando-marca { color: var(--brand-primary); font-weight: 600; }
+
+/* FUTURA: atenuada, pero ESCRIBIBLE. Una evaluación se puede adelantar, y una
+   columna apagada que igual acepta notas es más honesta que una cerrada. */
+.libreta-columna--futura .libreta-columna-nombre,
+.libreta-columna--futura .libreta-columna-peso,
+.libreta-columna--futura .libreta-columna-cuando { opacity: 0.55; }
+
+/* ⚠️ Y su «0 de 22» pierde el rojo.
+   El rojo del avance significa «no has cargado ninguna», y en una evaluación
+   que todavía no se aplicó eso no es un problema: es lo esperado. Dejarlo
+   rojo pone una alarma sobre algo que no pasó, y una alarma que suena sin
+   motivo enseña a ignorarlas todas. */
+.libreta-columna--futura .libreta-columna-avance {
+  color: var(--text-tertiary);
+  opacity: 0.55;
+}
+
+.libreta-columna-cuando {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-micro);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .libreta-avance--completa { color: var(--success-text); }
@@ -6219,7 +6605,13 @@ a.subject-avance:hover { filter: brightness(0.9); }
   gap: var(--space-sm);
 }
 
+/* ⚠️ El margen de abajo, y su excepción en la última.
+   En la libreta la fila de lapsos quedaba PEGADA a la tabla —«sigue sin
+   espacio entre los filtros de lapsos y la lista»—. Donde las pastillas son lo
+   último de su tarjeta (la escalera del plan) el margen sobraría, así que se
+   quita con `:last-child` en vez de escribirlo a mano en cada pantalla. */
 .pastillas {
+  margin-bottom: var(--space-md);
   display: flex;
   /* ⚠️ `center`, NUNCA `baseline`.
      Con `baseline`, el navegador alinea la línea de texto de la etiqueta de
@@ -6234,6 +6626,8 @@ a.subject-avance:hover { filter: brightness(0.9); }
 /* La etiqueta ancla la fila, así que necesita ancho FIJO: sin él, «Lapso» y
    «Área de aprendizaje» empiezan sus pastillas en columnas distintas y las
    tres filas se leen como tres controles sueltos en vez de una escalera. */
+.pastillas:last-child { margin-bottom: 0; }
+
 .pastillas-etiqueta {
   flex: 0 0 auto;
   min-width: 9.5rem;
@@ -6437,53 +6831,600 @@ a.subject-avance:hover { filter: brightness(0.9); }
 .portal-leyenda strong { margin-right: var(--space-xs); }
 .portal-leyenda .dato-secundario { margin-left: var(--space-xs); }
 
-/* ---- Qué evaluaciones miden una competencia (MOR-136) ---- */
-/* El enganche existía solo al CREAR la evaluación, y el orden real del trabajo
-   es el contrario: el profesor escribe su plan, arma sus evaluaciones, y si se
-   olvidó de marcar no tenía forma de arreglarlo. Daniel: «no sé cómo asociamos
-   las evaluaciones con los indicadores… debe ser un proceso fácil y fluido».
-   Lo fluido es verlo donde ya se está trabajando. */
-.plan-medida {
+/* ---- El plan ANIDADO: la evaluación cuelga de su competencia ---- */
+/* Decisión de Daniel, 8 de septiembre: «¿será que colocamos las competencias y
+   evaluaciones juntas?». Eran dos pantallas, y qué evalúa qué era una lista de
+   chips que había que ir a buscar. */
+
+.plan-evaluaciones {
+  list-style: none;
+  margin: var(--space-sm) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--border-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+/* ⚠️ SIN `overflow: hidden`. Estaba, para que las filas no se salieran de las
+   esquinas redondeadas, y desde que la fila tiene calendario eso lo RECORTA: el
+   panel se abre hacia abajo, fuera de la lista, y quedaba cortado a la mitad —
+   Capybara ni siquiera lo veía. Las esquinas se resuelven en la primera y la
+   última fila, que es donde el problema existe de verdad. */
+.plan-evaluacion:first-child { border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+.plan-evaluacion:last-child  { border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
+.plan-evaluacion:only-child  { border-radius: var(--radius-sm); }
+
+/* Las filas se separan con el fondo del contenedor asomando por el `gap`: una
+   sola regla en vez de un `border-bottom` con su excepción para la última. */
+/* ⚠️ `flex-wrap: wrap` es obligatorio, no una comodidad para el teléfono.
+   Los chips de «qué mide» piden `flex: 1 0 100%` para caer en su propio
+   renglón; sin envoltura ese 100 % no puede bajar, se queda en la misma línea
+   y comprime al nombre —que lleva `min-width: 0`— hasta dejarlo en un
+   rectángulo de diez píxeles. Se vio en pantalla el 9 de septiembre. */
+.plan-evaluacion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 6px var(--space-sm);
+  background: var(--surface-elevated);
+}
+
+/* Y el nombre no baja de un ancho legible: comprimido, un `<input>` no se ve
+   vacío — se ve roto, que es lo que parecía. */
+.plan-evaluacion-campo--nombre { flex: 1 1 14rem; }
+
+/* ── Editar donde se lee (QA del 9 de septiembre) ────────────────────────── */
+/* Daniel: «al hacer clic en el elemento que deseo editar, como lo hace Linear».
+   El input está SIEMPRE en el DOM; lo único que cambia es que se le ve el
+   borde. Cambiar un `<span>` por un `<input>` al hacer clic obliga a recrear el
+   elemento, se lleva el foco a mitad de camino y hace saltar el texto cuando la
+   caja no calca la tipografía. */
+.plan-evaluacion-campo { display: flex; align-items: center; min-width: 0; }
+.plan-evaluacion-campo--peso { flex: 0 0 auto; gap: 2px; }
+
+.plan-evaluacion-nombre-campo,
+.plan-evaluacion-peso-campo {
+  padding: 2px 5px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.plan-evaluacion-nombre-campo {
+  width: 100%;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.plan-evaluacion-peso-campo {
+  width: 4.5ch;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-secondary);
+}
+
+/* ⚠️ La afordancia aparece al apuntar el CAMPO, no la fila entera. Encendiendo
+   los tres a la vez la fila se convierte en un formulario y deja de leerse como
+   una lista — y esto se lee mucho más de lo que se edita. */
+.plan-evaluacion-nombre-campo:hover,
+.plan-evaluacion-peso-campo:hover {
+  border-color: var(--border-subtle);
+  background: var(--surface-elevated);
+}
+
+.plan-evaluacion-nombre-campo:focus,
+.plan-evaluacion-peso-campo:focus {
+  border-color: var(--brand-primary);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  outline: none;
+}
+
+/* El enlace a la planilla se muda al margen: el nombre ya no puede ser enlace
+   —ahora se escribe encima— y acá no compite con nada. */
+.plan-evaluacion-ir {
+  flex: 0 0 auto;
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+}
+
+.plan-evaluacion-ir:hover { color: var(--brand-primary); background: var(--surface-hover); }
+
+/* ── Qué mide esta evaluación, en su fila ────────────────────────────────── */
+/* ⚠️ El chip dice las OTRAS competencias, no todas: en el plan anidado la
+   evaluación ya está debajo de la que mide, y repetirlo es decir dos veces lo
+   mismo en el mismo renglón. Lo que la posición no puede decir es que además
+   mide otra — ahí la evaluación sale dos veces, y sin el chip las dos
+   apariciones se ven idénticas y sin relación. */
+.plan-evaluacion-chips {
+  flex: 1 0 100%;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--space-xs);
-  margin-top: var(--space-sm);
-  padding-top: var(--space-sm);
-  border-top: 1px dashed var(--border-subtle);
+  gap: 4px;
+  margin-top: 3px;
+  padding-left: 22px;
 }
 
-.plan-medida-etiqueta {
+.plan-evaluacion-chips-etiqueta,
+.plan-evaluacion-chips-vacio {
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--text-tertiary);
-  margin-right: var(--space-micro);
 }
 
-/* Cada evaluación que la mide, enlazada a su ficha: desde el plan se llega a
-   la evaluación, que es el otro lado del mismo trabajo. */
-.plan-medida-chip {
+.plan-evaluacion-chips-vacio {
   display: inline-flex;
-  align-items: baseline;
-  gap: var(--space-micro);
-  padding: 2px var(--space-sm);
+  align-items: center;
+  gap: 3px;
+  color: var(--warning-text);
+}
+
+.plan-evaluacion-chip-form { display: contents; }
+
+/* Un chip es un botón que QUITA ese enganche: se ve lo que hay y se deshace
+   donde se ve, sin abrir nada. La × aparece al apuntarlo, para que el chip se
+   lea como dato y no como un control a medio apretar. */
+.plan-evaluacion-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+  padding: 1px 6px;
   border: 1px solid var(--border-subtle);
   border-radius: 999px;
-  background: var(--surface-hover);
-  font-size: 12px;
+  background: var(--surface-elevated);
+  font: inherit;
+  font-size: 11px;
   color: var(--text-secondary);
-  text-decoration: none;
-  max-width: 18rem;
+  cursor: pointer;
 }
 
-.plan-medida-chip:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+.plan-evaluacion-chip:hover {
+  border-color: var(--danger-text);
+  color: var(--danger-text);
+}
 
-.plan-medida-chip > span:first-child {
+.plan-evaluacion-chip-quitar { opacity: 0; font-weight: 600; }
+.plan-evaluacion-chip:hover .plan-evaluacion-chip-quitar,
+.plan-evaluacion-chip:focus-visible .plan-evaluacion-chip-quitar { opacity: 1; }
+
+/* En el táctil no hay «apuntar», así que la × se queda puesta. */
+@media (hover: none) {
+  .plan-evaluacion-chip-quitar { opacity: 1; }
+}
+
+.plan-evaluacion-mas { position: relative; }
+
+.plan-evaluacion-mas-abrir {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 5px;
+  border: 1px dashed var(--border-subtle);
+  border-radius: 999px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  list-style: none;
+}
+
+.plan-evaluacion-mas-abrir::-webkit-details-marker { display: none; }
+
+/* ⚠️ Con el menú ABIERTO, su tooltip sobra y estorba: sale hacia abajo, justo
+   encima de la primera opción, y hay que apartar el ratón para poder elegir.
+   Daniel: «el tooltip tapa la opción a seleccionar». Abierto, el panel ya dice
+   lo que el tooltip explicaba. */
+.plan-evaluacion-mas[open] > .plan-evaluacion-mas-abrir::after,
+.plan-evaluacion-mas[open] > .plan-evaluacion-mas-abrir::before { display: none; }
+.plan-evaluacion-mas-abrir:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+
+.plan-evaluacion-mas-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  width: 260px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+.plan-evaluacion-mas-opcion {
+  display: block;
+  width: 100%;
+  padding: 5px 7px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.plan-evaluacion-mas-opcion:hover { background: var(--surface-hover); }
+
+.plan-evaluacion-error {
+  flex: 1 0 100%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--danger-text);
+}
+
+.plan-evaluacion--con-error { background: var(--danger-bg); }
+
+/* ⚠️ El destello ES la confirmación: en la edición en línea no hay botón que se
+   quede apretado ni flash que avise, y sin ninguna señal el profesor no sabe si
+   su cambio llegó. Un aviso por campo tocado —tres por evaluación, treinta por
+   plan— sería una alarma. */
+@keyframes plan-guardada {
+  from { background: var(--success-bg); }
+  to   { background: transparent; }
+}
+
+.plan-evaluacion--guardada { animation: plan-guardada 1.2s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-evaluacion--guardada { animation: none; background: var(--success-bg); }
+}
+
+.plan-evaluacion-descripcion {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 13px;
+}
+
+/* El peso es el dato que se compara entre filas, así que va tabular y en su
+   propio ancho: alineado, la suma se lee de arriba abajo sin sumar. */
+.plan-evaluacion-peso {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+/* ── El calendario del año escolar ───────────────────────────────────────── */
+/* Daniel: «el año es un elemento distractor — no se va a hacer una evaluación
+   fuera del año y meses escolares». Once meses en fila, sin año en ninguna
+   parte: un colegio venezolano cruza dos años calendario, y mostrarlos obliga a
+   leer cuál toca en cada mes. */
+.plan-evaluacion-fecha { position: relative; flex: 0 0 auto; }
+
+.plan-evaluacion-fecha-abrir {
+  padding: 2px 5px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.plan-evaluacion-fecha-abrir:hover,
+.plan-evaluacion-fecha-abrir:focus-visible {
+  border-color: var(--border-subtle);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+/* «sin fecha» no es un dato menor: es un dato que NO está, y se escribe en
+   letras por lo mismo que la libreta escribe «Pendiente» en vez de un cero. */
+.plan-evaluacion-fecha .dato-vacio { font-style: italic; }
+
+.plan-calendario {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 40;
+  width: 244px;
+  padding: var(--space-sm);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+.plan-calendario-meses {
+  display: flex;
+  gap: 1px;
+  margin-bottom: var(--space-xs);
+  padding-bottom: var(--space-xs);
+  border-bottom: 1px solid var(--border-subtle);
+  overflow-x: auto;
+}
+
+/* ⚠️ La versalita la pone el CSS y no el texto: escrito «SEP», un lector de
+   pantalla lo deletrea «S-E-P». */
+.plan-calendario-mes {
+  flex: 0 0 auto;
+  padding: 3px 5px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.plan-calendario-mes:hover { background: var(--surface-hover); color: var(--text-primary); }
+.plan-calendario-mes--activo { background: var(--brand-primary); color: #fff; font-weight: 600; }
+
+.plan-calendario-semana,
+.plan-calendario-dias {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+}
+
+.plan-calendario-dia-nombre {
+  padding: 2px 0;
+  font-size: 10px;
+  text-align: center;
+  color: var(--text-tertiary);
+}
+
+.plan-calendario-dia {
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.plan-calendario-dia:hover:not(:disabled) { background: var(--surface-hover); }
+
+/* Fuera del año escolar: se ve, pero no se toca. Esconderlo dejaría un mes con
+   un agujero, que se lee como un error de la pantalla. */
+.plan-calendario-dia--fuera { color: var(--text-tertiary); opacity: 0.35; cursor: not-allowed; }
+.plan-calendario-dia--hoy { box-shadow: inset 0 0 0 1px var(--border-strong); }
+.plan-calendario-dia--elegido { background: var(--brand-primary); color: #fff; font-weight: 600; }
+
+.plan-calendario-pie {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+  padding-top: var(--space-xs);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.plan-calendario-atajo {
+  padding: 2px 5px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  color: var(--brand-primary);
+  cursor: pointer;
+}
+
+.plan-calendario-atajo:hover { background: var(--surface-hover); }
+
+.plan-evaluacion-acciones {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 2px;
+}
+
+/* Los botones de la fila aparecen al pasar por encima —son tres por fila y
+   siempre visibles compiten con el nombre— pero NUNCA se esconden del teclado
+   ni del táctil, donde no hay «pasar por encima». */
+.plan-evaluacion-acciones { opacity: 0.45; transition: opacity var(--transition-fast); }
+.plan-evaluacion:hover .plan-evaluacion-acciones,
+.plan-evaluacion:focus-within .plan-evaluacion-acciones { opacity: 1; }
+
+@media (hover: none) {
+  .plan-evaluacion-acciones { opacity: 1; }
+}
+
+@media (max-width: 700px) {
+  .plan-evaluacion { flex-wrap: wrap; }
+  .plan-evaluacion-nombre { flex: 1 0 100%; }
+}
+
+/* ⚠️ El aviso va en ÁMBAR, no en gris: una competencia que ninguna evaluación
+   mide sale en la boleta SIN nivel, y eso hay que poder verlo antes de
+   emitirla. Acá el color es del dato —es un hecho del plan, no una afordancia—
+   así que puede llevarlo (regla de color, MOR-135).
+
+   Y dice la CONSECUENCIA, no el síntoma: «sin evaluaciones» no significa nada
+   para quien está armando su plan; «saldrá sin nivel en la boleta» sí. */
+.plan-sin-evaluar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: var(--space-sm) 0 0;
+  padding: 6px var(--space-sm);
+  border-radius: var(--radius-sm);
+  background: var(--warning-bg);
+  color: var(--warning-text);
+  font-size: 12.5px;
+}
+
+.plan-sin-evaluar svg { flex: 0 0 auto; }
+
+.plan-competencia-acciones {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+/* ── Las evaluaciones que no miden ninguna competencia ──────────────────── */
+/* No es un error —el profesor puede querer una suelta— pero cuentan para el
+   promedio sin describir nada, así que la boleta las suma sin explicarlas. */
+.plan-sueltas {
+  margin-top: var(--space-lg);
+  padding: var(--space-md);
+  border: 1px solid var(--warning-border);
+  border-radius: var(--radius-md);
+  background: var(--warning-bg);
+}
+
+.plan-sueltas-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--warning-text);
+}
+
+.plan-sueltas .nota-ayuda { margin: var(--space-xs) 0 0; }
+
+/* Las altas: crear una competencia o una evaluación. Separadas de
+   `.plan-acciones`, que es replicar a las secciones hermanas. */
+.plan-altas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ── El reparto del lapso, como un TODO ──────────────────────────────────── */
+/* Daniel: «no ver el porcentaje aislado sino como un todo». La barra tiene un
+   tramo por evaluación, no una franja llena: «40 %» no dice si es mucho, y al
+   lado de las otras tres sí. El hueco del final es lo que queda por repartir. */
+.plan-ponderacion {
+  margin-bottom: var(--space-lg);
+  display: grid;
+  gap: 6px;
+}
+
+.plan-ponderacion-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.plan-ponderacion-titulo {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.plan-ponderacion-cuenta {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.plan-ponderacion-cuenta--excedida { color: var(--danger-text); }
+
+.plan-ponderacion-resto {
+  margin-left: 4px;
+  font-weight: 400;
+  color: var(--text-tertiary);
+}
+
+.plan-ponderacion-resto--ok     { color: var(--success-text); }
+.plan-ponderacion-resto--exceso { color: var(--danger-text); font-weight: 600; }
+
+.plan-ponderacion-barra {
+  display: flex;
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-hover);
+}
+
+/* Un tono por tramo, rotando: los tramos vecinos tienen que distinguirse, y
+   los colores NO significan nada —no hay una evaluación «buena» y otra «mala»—
+   así que son variaciones del mismo azul y no una escala de semáforo. */
+.plan-ponderacion-tramo {
+  min-width: 2px;
+  transition: width var(--transition-fast);
+  border-right: 1px solid var(--surface-elevated);
+}
+
+.plan-ponderacion-tramo--0 { background: var(--brand-primary); }
+.plan-ponderacion-tramo--1 { background: color-mix(in srgb, var(--brand-primary) 72%, white); }
+.plan-ponderacion-tramo--2 { background: color-mix(in srgb, var(--brand-primary) 52%, white); }
+.plan-ponderacion-tramo--3 { background: color-mix(in srgb, var(--brand-primary) 86%, black); }
+.plan-ponderacion-tramo--4 { background: color-mix(in srgb, var(--brand-primary) 36%, white); }
+
+/* Pasado el 100 % los tramos se dibujan proporcionales a la SUMA, así que el
+   color es lo único que queda para decir que algo está mal. */
+.plan-ponderacion-tramo--excedido { background: var(--danger-text); }
+
+.plan-ponderacion-hueco {
+  transition: width var(--transition-fast);
+  background: repeating-linear-gradient(
+    45deg, transparent, transparent 4px,
+    var(--border-subtle) 4px, var(--border-subtle) 8px
+  );
+}
+
+.plan-ponderacion-guardar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.plan-ponderacion-exceso {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--danger-text);
+}
+
+/* Las flechitas del `number` roban la mitad del ancho en un campo de 4ch. */
+.plan-evaluacion-peso-campo::-webkit-outer-spin-button,
+.plan-evaluacion-peso-campo::-webkit-inner-spin-button { appearance: none; margin: 0; }
+.plan-evaluacion-peso-campo { appearance: textfield; }
+
+.plan-evaluacion-peso-signo {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+/* La dirección lee el plan pero no lo escribe: ve los mismos números, sin las
+   cajas. */
+.plan-evaluacion-peso-fijo,
+.plan-evaluacion-fecha-fija {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
 }
 
 .plan-medida-peso {
@@ -6493,115 +7434,10 @@ a.subject-avance:hover { filter: brightness(0.9); }
   color: var(--text-tertiary);
 }
 
-/* ⚠️ «Ninguna todavía» en ÁMBAR, no en gris: una competencia que ninguna
-   evaluación mide sale en la boleta SIN nivel, y eso hay que poder verlo antes
-   de emitirla. Acá el color es del dato —es un hecho del plan, no una
-   afordancia— así que puede llevarlo (regla de color, MOR-135). */
-.plan-medida-vacio {
-  font-size: 12px;
-  color: var(--warning-text);
-}
-
-/* ── Conectar, en un `<details>` ─────────────────────────────────────────── */
-/* Nativo: abre y cierra sin JavaScript. Si Stimulus muriera —ya pasó— el
-   profesor sigue pudiendo conectar sus evaluaciones. */
-.plan-conectar { position: relative; margin-left: auto; }
-
-.plan-conectar-abrir {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px var(--space-xs);
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  color: var(--brand-primary);
-  cursor: pointer;
-  text-decoration: none;
-  list-style: none;
-  white-space: nowrap;
-}
-
-.plan-conectar-abrir::-webkit-details-marker { display: none; }
-.plan-conectar-abrir::marker { content: ""; }
-.plan-conectar-abrir:hover { background: var(--surface-hover); }
-
-.plan-conectar-abrir:focus-visible {
-  outline: 2px solid var(--brand-primary);
-  outline-offset: 2px;
-}
-
-/* ⚠️ Con el panel ABIERTO, el tooltip se calla.
-   El puntero sigue encima del `summary` después del clic, así que el globo se
-   dibuja justo sobre el panel que acaba de abrirse y tapa su título — se ve el
-   recuadro y no se lee qué pide. Es la misma queja de Daniel sobre los
-   tooltips que se montan encima de lo que hay que leer. Y una vez abierto ya
-   no explica nada: lo que iba a pasar, pasó. */
-.plan-conectar[open] > .plan-conectar-abrir::after,
-.plan-conectar[open] > .plan-conectar-abrir::before { content: none; }
-
-/* ⚠️ Escondido explícitamente cuando el `<details>` está cerrado.
-   Tercera aparición de esta trampa —ya pasó con el panel de contexto y con el
-   menú—: `position: absolute` fuerza un `display` calculado y el navegador
-   pierde su ocultamiento. El panel seguiría midiendo y corriendo la página. */
-.plan-conectar:not([open]) .plan-conectar-panel { display: none; }
-
-.plan-conectar-panel {
-  position: absolute;
-  top: calc(100% + 4px);
-  right: 0;
-  z-index: 20;
-  min-width: 18rem;
-  max-width: min(24rem, calc(100vw - 2rem));
-  padding: var(--space-sm);
-  border: 1px solid var(--border-standard);
-  border-radius: var(--radius-md);
-  background: var(--surface-elevated);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-}
-
-.plan-conectar-titulo {
-  margin: 0 0 var(--space-xs);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-}
-
-.plan-conectar-opcion {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  /* 40px de objetivo táctil: esto se marca desde un teléfono. */
-  min-height: 40px;
-  padding: 0 var(--space-micro);
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.plan-conectar-opcion:hover { background: var(--surface-hover); }
-
-.plan-conectar-opcion input {
-  flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-  accent-color: var(--brand-primary);
-}
-
-.plan-conectar-nombre {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.plan-conectar-acciones {
-  margin-top: var(--space-xs);
-  padding-top: var(--space-xs);
-  border-top: 1px solid var(--border-subtle);
-}
+/* ⚠️ El `<details>` de «Cambiar cuáles la miden» se retiró el 9 de septiembre.
+   El enganche vive ahora en la FILA de cada evaluación, con sus chips: aquel
+   preguntaba al revés —de la competencia hacia las evaluaciones— cuando lo
+   que uno mira en el plan es la evaluación. Ver `.plan-evaluacion-chips`. */
 
 /* ---- Qué evalúa una evaluación (MOR-136) ---- */
 /* El enganche entre el plan y la nota. Se marcan COMPETENCIAS; los indicadores
@@ -8744,10 +9580,36 @@ a.subject-avance:hover { filter: brightness(0.9); }
    ya son cuatro— y con «Exportar» todavía por venir, el renglón se rompe igual,
    pero de una manera distinta en cada pantalla. Partirlo a propósito hace que
    las ocho se vean iguales tengan dos controles o seis. */
+/* ⚠️ La cabecera trae su propia separación del contenido, y ya no la hereda de
+   `.card-academic-header` (etapa ②).
+   Al volverla componible —el partial ya no emite la tarjeta— tiene que
+   funcionar igual sola en su franja que dentro de una tarjeta que ya existe.
+   Es el mismo borde y el mismo aire que daba `.card-academic-header`, con su
+   `:last-child` para cuando no hay nada debajo que separar. */
 .cabecera-de-lista {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+  /* ⚠️ Sin borde inferior propio: la FRANJA ya separa por contraste, y una
+     línea debajo de un bloque de color se lee como un subrayado suelto. El
+     margen es el que despega el contenido de la franja. */
+  margin-bottom: var(--space-lg);
+}
+
+.cabecera-de-lista:last-child { margin-bottom: 0; }
+
+/* ⚠️ Cuando la franja es LO ÚNICO de la tarjeta, la tarjeta no lleva relleno
+   abajo: quedaba una banda blanca de veinte píxeles debajo del color, que se
+   lee como una tarjeta a medio dibujar. Se ve en el portal del representante,
+   donde el título vive solo en su tarjeta.
+   `:has()` y no una clase a mano: la vista no tiene por qué saber si es la
+   única, y una clase `--sola` se queda vieja el día que alguien agregue algo
+   debajo. */
+.card-academic:has(> .cabecera-de-lista:only-child) { padding-bottom: 0; }
+
+.card-academic:has(> .cabecera-de-lista:only-child) > .cabecera-de-lista > .cabecera-de-lista-franja {
+  margin-bottom: calc(-1 * var(--space-lg));
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
 
 /* Una sola línea cuando no hay controles que poner abajo (QA de Daniel).
@@ -8761,20 +9623,9 @@ a.subject-avance:hover { filter: brightness(0.9); }
    que apila TODO a propósito: en un teléfono el título y el botón compartiendo
    renglón dejan al botón de 90 px, que es donde se falla al tocarlo. */
 @media (min-width: 701px) {
-  .cabecera-de-lista--compacta {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-md);
-  }
 
-  /* Se come el sobrante para que el botón quede pegado a la derecha aunque el
-     título sea corto. */
-  .cabecera-de-lista--compacta .cabecera-de-lista-titular { flex: 1; min-width: 0; }
-  .cabecera-de-lista--compacta .cabecera-de-lista-controles { flex: 0 0 auto; }
 
   /* Con una sola línea, el aire de arriba y abajo también sobra. */
-  .cabecera-de-lista--compacta { padding-block: var(--space-md); }
 }
 
 .cabecera-de-lista-titular {
@@ -8784,7 +9635,79 @@ a.subject-avance:hover { filter: brightness(0.9); }
   gap: var(--space-xs) var(--space-md);
 }
 
-.cabecera-de-lista-titulo { margin: 0; }
+/* ⚠️ El título de la pantalla se ve como el ítem ACTIVO del sidebar, y eso es
+   una asociación deliberada.
+   QA de Daniel: «los títulos deberían ser similares a los ítems activos del
+   sidebar: pipe con fondo de color sutil, habría una asociación y referencia».
+   El ojo va del renglón marcado en el menú al título y reconoce la misma
+   marca: es el mismo «estás acá», dicho dos veces.
+   Mismos tokens que `.sidebar-nav-link.active`, para que sigan iguales el día
+   que cambie la marca. */
+.cabecera-de-lista-titulo {
+  margin: 0;
+  color: var(--brand-primary);
+}
+
+/* ⚠️ LA FRANJA: el título y los controles, en una sola barra de borde a borde.
+   ─────────────────────────────────────────────────────────────────────────
+   Daniel, en dos pasos. Primero: «que el título no se detenga ni en el botón
+   ni en filtros, completo siempre, elementos adicionales sobre él». Y al ver
+   el botón en un renglón aparte: «el botón quedó arriba, es dentro».
+
+   Juntos dan esto — una barra completa con el título a la izquierda y lo que
+   se hace con la pantalla a la derecha. Lleva la MISMA marca que el ítem
+   activo del sidebar («habría una asociación y referencia»), con sus mismos
+   tokens para que sigan iguales el día que cambie. */
+.cabecera-de-lista-franja {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+  padding: var(--space-sm) var(--space-lg);
+  /* ⚠️ SANGRA hasta el borde de la tarjeta, saliéndose de su relleno.
+     Daniel, sobre la franja: «así el title, sin padding». Con el relleno de la
+     `.card-academic` alrededor, la barra flotaba en el medio y se leía como un
+     bloque más; tocando los bordes se lee como el encabezado DE la tarjeta.
+     ⚠️ El margen negativo es exactamente `--space-lg`, el relleno de
+     `.card-academic`: si uno cambia, el otro tiene que cambiar con él. */
+  margin: calc(-1 * var(--space-lg)) calc(-1 * var(--space-lg)) 0;
+  border-left: 3px solid var(--brand-primary);
+  /* Las esquinas de arriba siguen a las de la tarjeta; las de abajo son rectas
+     porque ahí sigue el contenido. */
+  border-radius: 0 var(--radius-md) 0 0;
+  background: var(--brand-subtle);
+  /* ⚠️ `min-width: 0` o la franja NO se encoge por debajo de su contenido.
+     Un flex item toma `min-width: auto` por defecto, así que el campo de alta
+     en línea de Departamentos —etiqueta + input + botón— la empujaba 1 px más
+     allá de los 390 px de un teléfono. Lo destapó el test de desborde: un
+     píxel es scroll horizontal igual. */
+  min-width: 0;
+}
+
+/* ⚠️ El título de una TARJETA (nivel 2) no lleva franja: lleva su línea.
+   Con la franja en los dos, el portal del representante salía con cuatro
+   barras azules apiladas y el H1 dejaba de distinguirse de los H2. La marca de
+   «esto es la pantalla» solo sirve si aparece una vez. */
+.cabecera-de-lista-titular-simple {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm) var(--space-md);
+  min-width: 0;
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.cabecera-de-lista-titular-simple > .cabecera-de-lista-titular { flex: 1 1 auto; min-width: 0; }
+.cabecera-de-lista-titular-simple .cabecera-de-lista-titulo { color: var(--text-primary); }
+
+/* El titular se come el sobrante para que los controles queden pegados a la
+   derecha aunque el título sea corto. */
+.cabecera-de-lista-franja > .cabecera-de-lista-titular { flex: 1 1 auto; min-width: 0; }
+.cabecera-de-lista-franja > .cabecera-de-lista-controles { flex: 0 1 auto; min-width: 0; }
+.cabecera-de-lista-titular-simple > .cabecera-de-lista-controles { flex: 0 1 auto; min-width: 0; }
 
 .cabecera-de-lista-detalle {
   margin: 0;
@@ -8824,7 +9747,15 @@ a.subject-avance:hover { filter: brightness(0.9); }
   align-items: center;
   gap: var(--space-sm);
   flex-wrap: wrap;
+  /* Los controles van ARRIBA del título desde el 8 de septiembre — Daniel:
+     «que el título no se detenga ni en el botón ni en filtros, completo
+     siempre, elementos adicionales sobre él». */
+  justify-content: flex-end;
 }
+
+/* Sin controles no hay fila: el `:empty` evita el hueco sin tener que envolver
+   ciento cuarenta líneas de Haml en un `if`. */
+.cabecera-de-lista-controles:empty { display: none; }
 
 .cabecera-de-lista-filtros {
   display: flex;
@@ -8912,6 +9843,38 @@ a.subject-avance:hover { filter: brightness(0.9); }
 
   .cabecera-de-lista .campo-con-boton { width: 100%; }
   .cabecera-de-lista .search-input-wrap { flex: 1; width: auto; }
+
+  /* ⚠️ Y el INPUT de adentro también tiene que poder encogerse.
+     `min-width: 0` en el `.search-input-wrap` no alcanza: un `<input>` trae su
+     propio ancho intrínseco de la UA (~180 px), y con el padre a `width: 100%`
+     los hijos se desbordan sin que el rect del padre crezca — el botón de al
+     lado terminaba 1 px fuera del viewport. Un píxel es scroll horizontal
+     igual, y lo destapó el test de desborde, no el ojo. */
+  .cabecera-de-lista .search-input-wrap > .form-control { width: 100%; min-width: 0; }
+
+  /* ⚠️ Y el rótulo pegado adelante se sube a su propio renglón.
+     «Agregar nuevo departamento» mide 222 px con `flex: 0 0 auto` —no encoge—
+     así que en 390 px se comía el campo entero y empujaba al botón fuera del
+     viewport. En el teléfono el rótulo va ENCIMA: el grupo sigue siendo uno
+     solo, con los bordes redondeados de arriba en el rótulo. */
+  .cabecera-de-lista .campo-con-boton { flex-wrap: wrap; }
+
+  .cabecera-de-lista .campo-con-boton > .campo-con-boton-inicio {
+    flex: 1 1 100%;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    border-right-width: 1px;
+  }
+
+  .cabecera-de-lista .campo-con-boton > .search-input-wrap > .form-control {
+    border-radius: 0 0 0 var(--radius-sm);
+    border-top-width: 0;
+  }
+
+  .cabecera-de-lista .campo-con-boton > .campo-con-boton-final {
+    border-radius: 0 0 var(--radius-sm) 0;
+    border-top-width: 0;
+    margin-left: 0;
+  }
   .cabecera-de-lista-select { width: 100%; }
 
   /* Con los controles apilados, el botón ya no va «al final de la fila»: es
@@ -9182,9 +10145,34 @@ a.subject-avance:hover { filter: brightness(0.9); }
    eso el `margin-left: auto` no hace nada: un ítem que crece ya ocupa todo el
    sobrante, así que no queda margen que repartir. Se veía como «el cambio no se
    aplicó». */
+/* ⚠️ `1 1 auto` y no `0 0 auto`: dentro de la franja tiene que poder
+   ENCOGERSE. El alta en línea de Departamentos —«Agregar nuevo departamento» +
+   campo + botón— desbordaba un teléfono por 1 px con `0 0 auto`, y un píxel es
+   scroll horizontal igual. */
 .cabecera-de-lista-alta {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
   margin-left: auto;
+}
+
+.cabecera-de-lista-alta .campo-con-boton { min-width: 0; }
+.cabecera-de-lista-alta .search-input-wrap { min-width: 0; }
+
+/* ⚠️ En el teléfono la franja APILA, y no es cosmética: es lo que impide el
+   scroll horizontal.
+   Con título y controles compartiendo renglón, el alta en línea de
+   Departamentos —etiqueta larga + campo + botón— no cabe en 390 px, y un flex
+   item no encoge por debajo de su contenido aunque le pongan `min-width: 0`
+   si sus hijos tampoco lo hacen. Apilar resuelve la causa en vez de pelearle
+   a la cadena entera. */
+@media (max-width: 640px) {
+  .cabecera-de-lista-franja {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cabecera-de-lista-franja > .cabecera-de-lista-controles { justify-content: flex-start; }
+  .cabecera-de-lista-alta { margin-left: 0; width: 100%; }
 }
 
 /* Y el campo se queda con un ancho cómodo en vez de estirarse: el nombre de un
@@ -9292,14 +10280,53 @@ a.subject-avance:hover { filter: brightness(0.9); }
 }
 
 .plan-competencia {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-md);
   padding: var(--space-md) 0;
   border-top: 1px solid var(--border-subtle);
+  counter-increment: competencia;
+}
+
+/* ── El número, y lo que va DENTRO ───────────────────────────────────────── */
+/* Daniel: «la segunda competencia está suelta y confunde: deben ir enumeradas
+   las competencias en el título y un poco más evidente el contenido que va
+   dentro».
+
+   ⚠️ El número va en su propio elemento y NO como `::before` del título: desde
+   que la descripción es un `<textarea>` no hay dónde ponerlo — un campo de
+   formulario es un elemento reemplazado y no admite pseudoelementos. */
+.plan-competencia-numero {
+  flex: 0 0 auto;
+  min-width: 1.5rem;
+  padding-top: 2px;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-tertiary);
+}
+
+.plan-competencia-numero::before { content: counter(competencia) "."; }
+
+/* Indicadores y evaluaciones, sangrados a la altura del título: al mismo nivel,
+   dónde terminaba una competencia y empezaba la siguiente había que deducirlo
+   del renglón gris. */
+.plan-competencia-cuerpo { padding-left: 1.5rem; }
+
+@media (max-width: 700px) {
+  /* A 390 px, kilo y medio de sangría se come el ancho de los indicadores. */
+  .plan-competencia-cuerpo { padding-left: var(--space-sm); }
 }
 
 .plan-competencia:first-child { border-top: 0; }
+
+/* ⚠️ El flex es la CABECERA, no la competencia entera. Desde que las
+   evaluaciones van anidadas debajo (8 de septiembre), tener el flex arriba
+   ponía la lista de evaluaciones como una tercera columna al lado de los
+   botones, con veinte píxeles de ancho. */
+.plan-competencia-cabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+}
+
 .plan-competencia-texto { flex: 1; min-width: 0; }
 
 /* ⚠️ `.columna-acciones` trae `width: 1%` —sirve en una TABLA, donde el 1 % lo
@@ -9311,7 +10338,7 @@ a.subject-avance:hover { filter: brightness(0.9); }
 @media (max-width: 700px) {
   /* Con el texto de una competencia —cuarenta palabras— y dos botones al lado,
      a 390 px no hay ancho para las dos cosas. Los botones bajan a su renglón. */
-  .plan-competencia { flex-wrap: wrap; }
+  .plan-competencia-cabecera { flex-wrap: wrap; }
   .plan-competencia .columna-acciones { width: 100%; }
 }
 
@@ -9319,16 +10346,198 @@ a.subject-avance:hover { filter: brightness(0.9); }
    tercera es el trabajo que este issue viene a quitar. */
 .plan-competencia-descripcion {
   margin: 0;
-  counter-increment: competencia;
   text-wrap: pretty;
   max-width: 80ch;
 }
 
-.plan-competencia-descripcion::before {
-  content: counter(competencia) ". ";
-  color: var(--text-tertiary);
-  font-variant-numeric: tabular-nums;
+/* ── El alta desplegada en su sitio ──────────────────────────────────────── */
+/* Daniel: «no hace falta perderse a otra vista totalmente independiente». El
+   formulario cae debajo del botón que lo pidió, con los campos que faltan y
+   nada más: la sección, el área, el lapso y la competencia ya están elegidos. */
+.alta-en-linea {
+  margin-top: var(--space-sm);
+  padding: var(--space-md);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
 }
+
+/* El título manda y los otros dos son cortos: una fila que envuelve sola en el
+   teléfono, sin un `@media` que mantener. */
+.alta-en-linea-campos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.alta-en-linea-campo { flex: 0 0 auto; }
+.alta-en-linea-campo--titulo { flex: 1 1 16rem; }
+.alta-en-linea-campo .form-label { display: block; margin-bottom: 2px; }
+.alta-en-linea-campo .form-control { width: 100%; }
+
+.alta-en-linea-acciones {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+/* ── Los rótulos: qué es cada cosa ───────────────────────────────────────── */
+/* Daniel: «coloca subtítulos de secciones para identificar Competencias,
+   Indicadores y Evaluaciones».
+
+   ⚠️ Los tres son del MISMO peso visual aunque uno esté dentro de otro: no son
+   una jerarquía de importancia, son tres cosas distintas que había que poder
+   nombrar. Un rótulo más grande arriba haría leer «indicadores» y
+   «evaluaciones» como subordinados de la competencia, y la evaluación no es
+   parte de la competencia — la mide. */
+.plan-rotulo {
+  margin: var(--space-md) 0 var(--space-xs);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+}
+
+/* El de más arriba abre la lista, así que no lleva el margen superior. */
+.plan-rotulo--seccion { margin-top: 0; }
+
+/* ── La competencia, editable en su sitio ────────────────────────────────── */
+/* Daniel: «elevar el modelo que aplicamos a evaluaciones a competencias e
+   indicadores». Misma regla que la fila de la evaluación: el campo ya es el
+   campo, y lo único que cambia al apuntarlo es que se le ve el borde. */
+.plan-competencia-campo { flex: 1; min-width: 0; }
+
+/* ⚠️ `resize: none` y `overflow: hidden`: el alto lo lleva `campo-que-crece`
+   con el contenido. Dejando la manija de redimensionar, el profesor puede
+   encoger el campo hasta tapar su propio texto. */
+/* ⚠️ SIN `max-width`. Lo tenía en 80ch —heredado del párrafo de solo lectura,
+   donde una medida corta ayuda a leer— y en el campo editable eso lo cortaba a
+   media pantalla, con el resto en blanco: el texto se plegaba en una columna
+   mientras sus indicadores, que no lo llevan, ocupaban el ancho entero. Dos
+   campos del mismo bloque midiendo distinto se lee como un defecto, no como
+   una decisión tipográfica. */
+.plan-competencia-descripcion-campo {
+  display: block;
+  width: 100%;
+  padding: 2px 5px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  color: var(--text-primary);
+  text-wrap: pretty;
+  resize: none;
+  overflow: hidden;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.plan-competencia-descripcion-campo:hover {
+  border-color: var(--border-subtle);
+  background: var(--surface-elevated);
+}
+
+.plan-competencia-descripcion-campo:focus {
+  border-color: var(--brand-primary);
+  background: var(--surface-elevated);
+  outline: none;
+}
+
+.plan-competencia-error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--danger-text);
+}
+
+.plan-competencia--con-error { background: var(--danger-bg); }
+
+/* El mismo destello que la evaluación: en la edición en línea no hay botón que
+   se quede apretado ni flash que avise. */
+.plan-competencia--guardada { animation: plan-guardada 1.2s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-competencia--guardada { animation: none; background: var(--success-bg); }
+}
+
+/* ── Los indicadores, uno por uno ────────────────────────────────────────── */
+/* ⚠️ El último campo va VACÍO y escribir en él crea el siguiente, como en
+   cualquier lista donde uno escriba listas. Ahorra el botón «agregar» que
+   habría que ir a buscar cada vez. */
+/* ⚠️ `flex-start` y no `center`: desde que el indicador es un `<textarea>` que
+   crece, un párrafo de tres líneas dejaba su × flotando a media altura, lejos
+   del renglón donde empieza lo que borra. */
+.plan-indicador {
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.plan-indicador-campo { flex: 1; min-width: 0; display: flex; }
+
+/* ⚠️ Es un `<textarea>`: un indicador puede ser un párrafo, y en una línea sola
+   se lee por una ventanita. El alto lo lleva `campo-que-crece` con el
+   contenido; `resize: none` porque con la manija puesta el profesor puede
+   encoger el campo hasta tapar su propio texto. */
+.plan-indicador-texto {
+  display: block;
+  width: 100%;
+  padding: 1px 5px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  resize: none;
+  overflow: hidden;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.plan-indicador-texto:hover {
+  border-color: var(--border-subtle);
+  background: var(--surface-elevated);
+}
+
+.plan-indicador-texto:focus {
+  border-color: var(--brand-primary);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  outline: none;
+}
+
+/* El campo del final se distingue en reposo: es una invitación, no un dato. */
+.plan-indicador--nuevo { list-style: none; }
+.plan-indicador--nuevo .plan-indicador-texto { color: var(--text-tertiary); font-style: italic; }
+.plan-indicador--nuevo .plan-indicador-texto:focus { color: var(--text-primary); font-style: normal; }
+
+/* La × aparece al apuntar la línea: siempre visible, tres indicadores son tres
+   controles compitiendo con su propio texto. */
+.plan-indicador-quitar {
+  flex: 0 0 auto;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.plan-indicador:hover .plan-indicador-quitar,
+.plan-indicador:focus-within .plan-indicador-quitar { opacity: 1; }
+.plan-indicador-quitar:hover { color: var(--danger-text); }
+
+@media (hover: none) {
+  .plan-indicador-quitar { opacity: 1; }
+}
+
 
 /* Los indicadores DESCRIBEN: van en segundo plano, sin nivel al lado, porque no
    se califican. Que se vean subordinados es la mitad de decir eso. */

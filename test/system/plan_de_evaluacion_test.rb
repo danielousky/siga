@@ -61,18 +61,30 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
     fill_in "competency[indicadores]", with: "Calcula porcentajes\nInterpreta una tabla"
     click_on "Crear"
 
-    assert_text "Resuelve problemas de proporcionalidad directa"
-    assert_text "Calcula porcentajes"
-    assert_text "Interpreta una tabla"
+    # ⚠️ Con margen: crear redirige al plan DENTRO del frame, y desde que la
+    # fila se edita en su sitio esa pantalla monta tres formularios y un
+    # calendario por evaluación. Se puso intermitente al pasar de 2 s.
+    # ⚠️ Por el `value` de sus campos: desde el 9 de septiembre la competencia y
+    # sus indicadores se editan en su sitio, así que su texto ya no está en la
+    # página — está dentro de un `<input>`.
+    assert_selector ".plan-competencia-descripcion-campo", wait: 6
+    assert_equal "Resuelve problemas de proporcionalidad directa",
+                 find(".plan-competencia-descripcion-campo").value
+    assert_includes all(".plan-indicador-texto").map(&:value), "Calcula porcentajes"
+    assert_includes all(".plan-indicador-texto").map(&:value), "Interpreta una tabla"
   end
 
   # ── Conectar evaluaciones desde el plan (MOR-136, el enganche) ─────────────
   #
-  # ⚠️ Se prueba en un navegador de verdad porque el panel es un `<details>`, y
+  # ⚠️ Se prueba en un navegador de verdad porque el menú es un `<details>`, y
   # este proyecto ya se tropezó TRES veces con lo mismo: un `<details>` cerrado
   # **no** esconde a un hijo con `position: absolute`. El marcado sale perfecto,
-  # el panel «cerrado» y sus casillas encima de la pantalla.
-  test "conecta una evaluación con una competencia desde el plan" do
+  # el panel «cerrado» y sus opciones encima de la pantalla.
+  #
+  # ⚠️ Cambió de puerta el 9 de septiembre: se engancha desde la EVALUACIÓN,
+  # con los chips de su fila. El `<details>` colgado de la competencia
+  # —«Cambiar cuáles la miden»— preguntaba al revés y se retiró.
+  test "engancha una competencia desde la fila de la evaluación" do
     # ⚠️ Se reusa la evaluación del escenario y no se crea otra: el lapso ya
     # tiene el 100 % de la ponderación repartido, y una segunda al 100 % la
     # rechaza el modelo — que es justo lo que tiene que hacer.
@@ -83,20 +95,23 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
                          descripcion: "Resuelve problemas de adición")
     end
 
-    visit competencies_path(asignacion: "#{@a.seccion.id}:#{@a.escenario.materia.id}",
-                            lapso: @a.escenario.lapso(1).id)
+    visit planificar_section_path(@a.seccion, area: @a.escenario.materia.id,
+                                  lapso: @a.escenario.lapso(1).id)
 
-    assert_text "Ninguna evaluación todavía"
+    # La evaluación no mide nada todavía, y la competencia lo dice.
+    assert_selector ".plan-competencia--sin-evaluar"
+    assert_text "no mide ninguna competencia"
 
-    # El panel viene cerrado: la casilla no se puede tocar hasta abrirlo.
-    assert_no_selector "#conectar-#{competencia.id}-#{evaluacion.id}", visible: true
+    # El menú viene cerrado: la opción no se puede tocar hasta abrirlo.
+    assert_no_selector ".plan-evaluacion-mas-opcion", visible: true
 
-    find(".plan-conectar-abrir").click
-    check "conectar-#{competencia.id}-#{evaluacion.id}"
-    click_on "Guardar"
+    find(".plan-evaluacion-mas-abrir").click
+    click_on competencia.descripcion
 
-    assert_text "Listo: 1 evaluación mide esta competencia."
-    assert_selector ".plan-medida-chip", text: evaluacion.description
-    assert_no_text "Ninguna evaluación todavía"
+    # Enganchada, la evaluación pasa a colgar DENTRO de la competencia y los dos
+    # avisos desaparecen: es el mismo hecho contado en un solo sitio.
+    assert_selector ".plan-competencia .plan-evaluacion-nombre-campo[value='#{evaluacion.description}']"
+    assert_no_selector ".plan-competencia--sin-evaluar"
+    assert_no_text "no mide ninguna competencia"
   end
 end

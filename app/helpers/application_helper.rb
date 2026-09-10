@@ -183,7 +183,7 @@ module ApplicationHelper
   # Estaba escrito a mano en cada vista, siempre igual y siempre con la
   # posibilidad de escribirlo distinto:
   #
-  #     = link_to ruta, class: "btn btn-primary" do
+  #     = link_to ruta, class: "btn btn-guardar" do
   #       = icono(:agregar, tamano: 16)
   #       %span Registrar alumno
   #
@@ -194,10 +194,26 @@ module ApplicationHelper
   # El tamaño del icono tampoco se pasa: 16 px es el de un botón y 15 el de uno
   # `btn-sm`, y tenerlo acá evita el botón con el icono de otro tamaño.
   #
-  #     = boton "Registrar alumno", new_student_path, icono: :agregar
+  # ## ⚠️ El TONO es obligatorio, y no tiene default
+  #
+  # Tenía `tono: :primary`, y ese default era el agujero: escribir un botón sin
+  # pensar qué hace daba un botón azul, y así el color volvió a no decir nada —
+  # que es el problema que MOR-172 vino a resolver.
+  #
+  # Los seis, cada uno con su verbo. El catálogo vivo está en `/siga/estilo`:
+  #
+  #     :guardar     verde       QUEDA GUARDADO: alta, crear, guardar
+  #     :accion      índigo      hace MUCHO de una vez
+  #     :documento   petróleo    algo SALE: descargar, emitir
+  #     :ver         azul suave  mirar sin tocar
+  #     :secondary   neutro      volver, cancelar
+  #     :danger      sin tono    destruye
+  #
+  #     = boton "Registrar alumno", new_student_path, icono: :agregar, tono: :guardar
   #     = boton "Copiar de otro año", ruta, icono: :copiar, tono: :accion, sm: true
-  #     = boton "Años escolares", ruta, icono: :calendario, tooltip: "Crear y editar"
-  def boton(nombre, ruta, icono:, tono: :primary, sm: false, tooltip: nil, **opciones)
+  #     = boton "Años escolares", ruta, icono: :calendario, tono: :ver,
+  #             tooltip: "Crear y editar"
+  def boton(nombre, ruta, icono:, tono:, sm: false, tooltip: nil, **opciones)
     clases = [ "btn", "btn-#{tono}", ("btn-sm" if sm) ].compact.join(" ")
     datos = opciones.delete(:data) || {}
     datos = datos.merge(tooltip: tooltip) if tooltip
@@ -299,4 +315,46 @@ module ApplicationHelper
 
   # El 20 del Artículo 108: es el techo de la escala, no una preferencia.
   NOTA_MAXIMA = 20
+
+  # ⚠️ El peso se escribe SIN decimales cuando no los tiene.
+  #
+  # «40 %» y no «40,00 %»: un profesor reparte en números redondos y la coma
+  # con ceros hace leer dos veces. Pero 33,33 % existe —tres evaluaciones
+  # iguales— y ahí los decimales son el dato.
+  #
+  # Estaba escrito a mano NUEVE veces, con tres variantes distintas del mismo
+  # `frac.zero?`, y una se olvidaba el `.to_d` sobre un float.
+  def porcentaje(valor)
+    numero = valor.to_d
+
+    "#{number_with_precision(numero, precision: numero.frac.zero? ? 0 : 2)} %"
+  end
+
+  # El número de un peso, para meterlo en un `value` de formulario.
+  #
+  # ⚠️ `25.0` en un campo es lo que hizo dudar a Daniel de que fuera editable:
+  # un decimal donde nadie escribió un decimal se lee como un dato del sistema,
+  # no como algo que uno pueda tocar. Se ve «25», y «33.33» solo si de verdad
+  # lo es.
+  #
+  # Es hermano de `porcentaje`, sin el signo: uno pinta, el otro rellena.
+  def entero_si_lo_es(valor)
+    numero = valor.to_d
+
+    numero.frac.zero? ? numero.to_i : numero
+  end
+
+  # El id DOM de una fila del plan.
+  #
+  # ⚠️ Lleva la competencia bajo la que está dibujada, y no puede llevar solo el
+  # de la evaluación: una que mide dos competencias sale dos veces —a propósito—
+  # y con `dom_id(evaluacion)` a secas quedaban DOS elementos con el mismo `id`.
+  #
+  # Eso es HTML inválido, pero lo que se rompe es concreto: Turbo reemplaza el
+  # primero que encuentra y deja el otro con el valor viejo. En pantalla, la
+  # misma evaluación decía 27 % arriba y 22 % abajo. Lo encontró Daniel el 9 de
+  # septiembre.
+  def id_de_la_fila(evaluacion, competencia = nil)
+    [ dom_id(evaluacion), ("bajo_#{competencia.id}" if competencia) ].compact.join("_")
+  end
 end

@@ -29,8 +29,7 @@
   -# y hasta hoy el dato no estaba acá: había que ir a Representantes y buscar
   -# al revés, alumno por alumno.
   .card-academic
-    .card-academic-header
-      %h2 A quién llamar
+    = render "shared/cabecera", titulo: "A quién llamar", nivel: 2
 
     - if @responsables.any?
       %ul.ficha-responsables
@@ -64,15 +63,14 @@
           la familia, hoy tiene que buscar el número por fuera del sistema.
         .empty-state-acciones
           - if can_manage_students?
-            = link_to new_representative_path(alumno_id: @student.id), class: "btn btn-primary" do
+            = link_to new_representative_path(alumno_id: @student.id), class: "btn btn-guardar" do
               = icono(:agregar, tamano: 16)
               %span= "Registrar a su representante"
 
   -# ── 2. Cómo va ───────────────────────────────────────────────────────────
   - if @inscripcion && @boletin
     .card-academic
-      .card-academic-header
-        %h2 Cómo va
+      = render "shared/cabecera", titulo: "Cómo va", nivel: 2
 
       - if @lapsos.many?
         .filter-pills
@@ -101,8 +99,7 @@
 
   -# ── 3. Los datos ─────────────────────────────────────────────────────────
   .card-academic
-    .card-academic-header
-      %h2 Datos
+    = render "shared/cabecera", titulo: "Datos", nivel: 2
 
     .detail-row
       .detail-item
@@ -130,8 +127,7 @@
   -# Van en la ficha del alumno y no en un menú aparte porque se piden de a uno:
   -# la mamá llega a la secretaría por el papel de SU hijo.
   .card-academic
-    .card-academic-header
-      %h2 Documentos oficiales
+    = render "shared/cabecera", titulo: "Documentos oficiales", nivel: 2
 
     - if @inscripcion&.section&.grade&.media?
       %p
@@ -158,9 +154,13 @@
         o
         %strong Constancia de Prosecución
         \, según el grado que cursó. Certifica el literal del año.
+      -# ⚠️ `documento` (petróleo), no el azul que tenía: de acá SALE un papel,
+      -# igual que «Emitir y descargar» del boletín. Lo destapó la auditoría de
+      -# tonos del 8 de septiembre — era el único de los dieciséis que estaba en
+      -# el tono equivocado, y llevaba así desde que existe.
       = link_to "Emitir el documento",
                 documento_de_primaria_path(enrollment_id: @inscripcion),
-                class: "btn btn-primary"
+                class: "btn btn-documento"
 
     - else
       %p.nota-pendiente

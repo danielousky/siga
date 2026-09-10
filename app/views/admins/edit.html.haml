@@ -1,6 +1,5 @@
 .card-academic
-  .card-academic-header
-    %h1 Editar administrador
+  = render "shared/cabecera", titulo: "Editar administrador"
 
   = render "form", admin: @admin, volver: admins_path
 

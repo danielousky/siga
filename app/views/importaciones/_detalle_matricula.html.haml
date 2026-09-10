@@ -4,9 +4,8 @@
 -# ── lo que la secretaria imprime ───────────────────────────────────────────
 - if sin_correo.any?
   .card-academic
-    .card-academic-header
-      %h2
-        = contar(sin_correo.size, "representante sin correo", "representantes sin correo")
+    = render "shared/cabecera", nivel: 2,
+             titulo: contar(sin_correo.size, "representante sin correo", "representantes sin correo")
 
     %p
       Están cargados y vinculados a sus alumnos, pero
@@ -37,8 +36,7 @@
 -# ── lo que no entró ────────────────────────────────────────────────────────
 - if fallidas.any?
   .card-academic
-    .card-academic-header
-      %h2 Filas que no se pudieron guardar
+    = render "shared/cabecera", titulo: "Filas que no se pudieron guardar", nivel: 2
 
     %p.nota-ayuda
       El resto sí se cargó. Corrija estas en la planilla y vuelva a subirla:
@@ -60,8 +58,7 @@
               %td= fila["motivo"]
 
 .card-academic
-  .card-academic-header
-    %h2 Qué sigue
+  = render "shared/cabecera", titulo: "Qué sigue", nivel: 2
 
   %ul.lista
     %li
