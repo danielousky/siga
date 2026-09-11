@@ -1,4 +1,4 @@
-# 🔖 Punto de retome — actualizado 8 de septiembre de 2026 (14:35)
+# 🔖 Punto de retome — actualizado 11 de septiembre de 2026 (00:50)
 
 ## Producción limpia y resembrada (MOR-146 · MOR-224)
 
@@ -64,6 +64,90 @@ Producción sigue con **cuentas de administrador con contraseña conocida y
 públicamente documentada**. El día que entre un colegio de verdad esto es
 urgente otra vez — pero ya no por alumnos inventados, sino por las cuentas.
 `MOR-146` sigue abierto por esa mitad.
+
+---
+
+## Sesión del 10 al 11 de septiembre — Educación Inicial, la foto y la ficha del alumno
+
+`bin/ci` verde: **1.437 tests**, 6.562 aserciones + 91 de sistema. **Tres
+commits en LOCAL, sin desplegar** — falta que Daniel lo pida.
+
+```
+   03:49   Educación Inicial no califica, describe          3f71206
+   04:35   la foto de perfil se sube, y el docente tiene RIF 2166284
+   05:20   el profesor abre la ficha de su alumno           190b5af
+```
+
+### Educación Inicial
+
+Daniel: *«los niños en Inicial no sacan ni A, ni B, ni C, ni PC, ni AP, ni 5,
+ni 20, entonces la calificación es descriptiva»*. Y el resultado del año es
+«aprobó», directo —«prácticamente con asistir al colegio»—; si hay una
+condición particular, la maestra la sugiere en ese mismo texto.
+
+```
+   PRIMARIA / MEDIA          INICIAL
+   ────────────────          ───────
+   Planificar · Calificar    Calificar
+   evaluaciones con peso     — no hay nada que ponderar
+   un número del 1 al 20     un párrafo por área
+```
+
+Las tres capas decían que no se podía: `final_moment_score` era `NOT NULL`,
+el modelo exigía número, y «Planificar» pedía una ponderación inexistente.
+Ahora la columna admite `NULL`, nace `descripcion`, y un `CHECK` exige una
+cosa **o** la otra — nunca las dos ni ninguna.
+
+⚠️ `Grade#califica_con_texto?` es una pregunta PROPIA y no un
+`unless primaria?`: `por_competencias?` YA es `primaria?`, así que Inicial y
+Media caen juntas en el mismo `false` y todo lo que diga «no es primaria»
+asume bachillerato.
+
+SPEC congelado en [`docs/specs/educacion-inicial.md`](docs/specs/educacion-inicial.md).
+
+### La foto de perfil y el RIF
+
+`has_one_attached :foto` existía desde MOR-149 y `AvataresHelper` la dibujaba:
+faltaba el CAMPO, así que la única forma de tener foto era la consola. Va en
+`shared/_datos_de_la_persona`, o sea en los cuatro formularios de una vez, y
+la ficha del alumno y la del profesor ahora la muestran junto al nombre.
+
+El RIF es columna propia en `users` —no un `document_type` más: un profesor
+tiene los DOS— y solo se le pide al docente, que es quien cobra. Se guarda sin
+guiones y se muestra con ellos.
+
+⚠️ `User::CAMPOS_DEL_FORMULARIO` / `CAMPOS_ANIDADOS` reemplazan tres `permit`
+idénticos. `:id` va SOLO en la anidada: donde el formulario escribe el usuario
+directo —el representante— permitirlo deja cambiar la clave primaria.
+
+### La ficha del alumno, para el profesor
+
+`/secciones/:id/alumnos/:enrollment_id`. La pestaña «Alumnos» era una tabla
+muerta y el teléfono de la mamá vivía solo en la ficha de la dirección.
+
+⚠️ NO es `students/show` —esa trae boletín, documentos oficiales y edición de
+la familia— y cuelga de la sección para que el permiso quede resuelto por
+construcción.
+
+### Lo que sigue pendiente
+
+```
+   ▸ desplegar los tres commits           ← lo primero, cuando Daniel diga
+   ▸ el boletín de Inicial en PDF          fuera del alcance del SPEC
+   ▸ el portal del representante dice
+     «Calificaciones» para un niño de
+     Inicial, donde no hay notas
+   ▸ promover deja a Inicial en «SIN DATOS»
+   ▸ MOR-230 foto del alumno + almanaque · MOR-231 fila acordeón
+   ▸ deuda de CSS: 11 clases sin regla (lista congelada), 108 selectores
+     duplicados
+```
+
+⚠️ **Para probar los tres niveles hacen falta DOS ingresos**, no uno: ningún
+docente de los seeds dicta en Inicial y en primaria a la vez —y en un colegio
+real tampoco—. `prof.garcia@bolivar.edu` cubre primaria, bachillerato y media
+técnica; `maestra.colmenares@bolivar.edu` es la guía de 1er Nivel – U, con
+16 niños. Las dos con `123123`.
 
 ---
 
