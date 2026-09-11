@@ -4905,6 +4905,51 @@ body:has(.portada) .barra-superior { display: none; }
   gap: var(--space-sm);
 }
 
+/* ── el número de orden de una fila ────────────────────────────────────────
+
+   Una planilla se recorre alumno por alumno, y sin numerar no hay forma de
+   contestar «¿por dónde iba?» al volver de una interrupción — que en un aula es
+   cada tres minutos. Tampoco de decir «el doce todavía no tiene nota» por
+   teléfono, ni de cotejar contra la lista en papel, que es lo que el colegio ya
+   tiene.
+
+   ⚠️ Es un ÍNDICE, no un dato del alumno: gris, chico y alineado a la derecha,
+   para que se lea de un barrido vertical sin competir con el nombre.
+
+   ⚠️ `tabular-nums` no es refinamiento: sin él, el «9» y el «10» no alinean y
+   la columna se ve chueca justo donde tiene que servir de guía. */
+
+.columna-orden,
+.fila-orden {
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  user-select: none;
+}
+
+/* En una tabla es una columna angosta. */
+th.columna-orden,
+td.columna-orden { width: 2.5rem; }
+
+/* En una lista es un marcador de ancho fijo antes del avatar. `inline-block`
+   para que el ancho valga también donde la fila NO es flex —el nombre del niño
+   en la planilla de Inicial es un `<h4>`. */
+.fila-orden {
+  flex: 0 0 auto;
+  display: inline-block;
+  min-width: 1.75rem;
+}
+
+/* Una columna cuyo CONTENIDO es un número —una nota, un total— y no el orden
+   de la fila. Comparte el `tabular-nums` y nada más: no es gris ni angosta,
+   porque ahí el número SÍ es el dato. */
+.columna-numero {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── el avatar ─────────────────────────────────────────────────────────────
 
    `--avatar-lado` viene del helper y no de una clase por tamaño: son cinco

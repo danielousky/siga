@@ -44,12 +44,18 @@
     %button.btn.btn-secondary.btn-sm{type: "button", data: { action: "carga-notas#reintentarTodo" }} Reintentar
 
   - if @inscripciones.any?
-    %ul.carga-lista
-      - @inscripciones.each do |inscripcion|
+    -# ⚠️ `%ol` y no `%ul`: es una lista ORDENADA —la de la clase, por apellido—
+    -# y el lector de pantalla dice «elemento 12 de 30», que es la misma
+    -# pregunta que contesta el número a la vista.
+    %ol.carga-lista
+      - @inscripciones.each_with_index do |inscripcion, i|
         - alumno = inscripcion.student
         - nota   = @notas_por_alumno[alumno.id]
         - promedio = @promedios[inscripcion.id]
         %li.carga-fila{data: { carga_notas_target: "fila", alumno: alumno.id }}
+          -# ⚠️ El número ANTES de la cara: es el índice de la fila, y va donde
+          -# el ojo baja en línea recta buscando «¿por dónde iba?».
+          %span.fila-orden{ "aria-hidden": "true" }= i + 1
           -# La cara antes que el nombre: en una sección de treinta, el profesor
           -# reconoce al alumno antes de terminar de leer el apellido.
           = avatar(alumno.user, tamano: :chico)

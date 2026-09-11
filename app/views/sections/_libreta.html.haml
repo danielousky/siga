@@ -51,6 +51,9 @@
     %table.table-academic.libreta
       %thead
         %tr
+          -# ⚠️ El número va DENTRO de esta celda, no en una columna aparte: la
+          -# del alumno está pegada a la izquierda (`position: sticky`) y una
+          -# columna delante se le metería debajo al desplazar la tabla.
           %th.libreta-alumno= Student.model_name.human
           - @libreta[:columnas].each do |columna|
             -# ⚠️ El MOMENTO de la evaluación, junto al avance pero distinto de
@@ -108,9 +111,11 @@
           %th.libreta-promedio= @lapso_de_la_libreta&.name
 
       %tbody
-        - @libreta[:filas].each do |fila|
+        - @libreta[:filas].each_with_index do |fila, i|
           %tr
-            %td.libreta-alumno= fila.alumno.user.apellidos_y_nombres
+            %td.libreta-alumno
+              %span.fila-orden{ "aria-hidden": "true" }= i + 1
+              = fila.alumno.user.apellidos_y_nombres
             - @libreta[:columnas].each do |columna|
               - nota = fila.notas[columna.evaluacion.id]
               %td.libreta-nota

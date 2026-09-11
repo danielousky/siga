@@ -27,11 +27,12 @@
 - else
   .card-academic{ data: { controller: "carga-informes",
                           carga_informes_url_base_value: section_informes_path(@seccion, lapso: @lapso&.id) } }
-    %ul.informes-lista
-      - @inscripciones.each do |inscripcion|
+    %ol.informes-lista
+      - @inscripciones.each_with_index do |inscripcion, i|
         - informe = @informes[inscripcion.id]
         %li.informe-fila{ data: { carga_informes_target: "fila" } }
           .informe-cabecera
+            %span.fila-orden{ "aria-hidden": "true" }= i + 1
             %span.informe-alumno= inscripcion.student.user.apellidos_y_nombres
             -# ⚠️ El promedio al lado del nombre, y no es decorado: escribiendo
             -# veinticinco informes seguidos hay que poder recordar de quién se

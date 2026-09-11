@@ -1,8 +1,18 @@
 .card-academic
-  = render "shared/cabecera", titulo: "Secciones", ruta: sections_path,
+  = render layout: "shared/cabecera", locals: { titulo: "Secciones", ruta: sections_path,
            marco: "sections-results", pista: "Grado o sección…",
            alta: { ruta: new_section_path, nombre: "Registrar sección" },
-           extra: [ { type: :select_agrupado, name: :grade_id, label: "Grado", options: @grades_options, blanco: "Todos los grados" } ]
+           extra: [ { type: :select_agrupado, name: :grade_id, label: "Grado", options: @grades_options, blanco: "Todos los grados" } ] } do
+    -# ⚠️ Baja las secciones QUE SE ESTÁN VIENDO —con el grado, el nivel y el año
+    -# ya filtrados— y no la página: Pagy corta de a veinte y quien filtró
+    -# «Primaria» espera los seis grados, no los primeros veinte renglones.
+    -#
+    -# Una hoja por sección: en una sola, ordenar por apellido mezcla los quince
+    -# grados del colegio y la lista deja de servir para lo que se pidió.
+    - if can_manage_sections?
+      = boton "Descargar las listas", sections_path(request.query_parameters.merge(format: :xlsx)),
+              icono: :descargar, tono: :documento, data: { turbo: false },
+              tooltip: "Un Excel con la lista de cada sección"
 -# ⚠️ Acá había DOS selectores y ahora hay uno (MOR-165).
 -#
 -# El de año escolar se fue arriba, a la barra de contexto: es la misma pregunta

@@ -5,6 +5,17 @@
 -# —Asistencia, Calificar, Planificar— son pantallas de verdad: media fila de
 -# pestañas que navega y media que alterna no se le puede explicar a nadie.
 - acciones = capture do
+  -# ⚠️ Tono `documento` (petróleo): algo SALE del sistema. No es `guardar`, que
+  -# es verde porque algo QUEDA, ni `accion`, que es lo que hace mucho de una vez
+  -# adentro (MOR-172).
+  -#
+  -# ⚠️ Y `data-turbo: false`: Turbo intercepta el clic, pide el `.xlsx` por
+  -# `fetch` y se queda con el binario en memoria — el archivo nunca se
+  -# descarga y el botón parece no hacer nada.
+  - if @enrollments.any?
+    = boton "Descargar la lista", alumnos_section_path(@section, format: :xlsx),
+            icono: :descargar, tono: :documento, data: { turbo: false },
+            tooltip: "La lista de esta sección en Excel"
   - if administrador?
     = boton "Editar", edit_section_path(@section), icono: :editar, tono: :secondary
 
@@ -31,13 +42,13 @@
       %table.table-academic
         %thead
           %tr
-            %th.columna-numero #
+            %th.columna-orden #
             %th= Student.model_name.human
             %th Nro. expediente
         %tbody
           - @enrollments.each_with_index do |enrollment, i|
             %tr
-              %td.columna-numero= i + 1
+              %td.columna-orden= i + 1
               %td= link_to persona_con_avatar(enrollment.student.user), alumno_section_path(@section, enrollment_id: enrollment.id)
               %td= enrollment.student.school_card
     - else

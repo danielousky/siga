@@ -40,7 +40,7 @@ class ClasesSinEstiloTest < ActiveSupport::TestCase
   # La lista está aquí para CONGELAR esa deuda, no para tolerarla: lo que
   # importa es que no crezca, y lo que se limpie sale de acá y no vuelve.
   YA_ESTABAN = %w[
-    arranque-listo atrasado-dato carga-rapida columna-numero contexto-anio-gestionar
+    arranque-listo atrasado-dato carga-rapida contexto-anio-gestionar
     lista lista-errores portal-competencia que-evalua siga-form
   ].freeze
 

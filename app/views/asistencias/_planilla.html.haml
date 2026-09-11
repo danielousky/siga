@@ -41,8 +41,8 @@
     %strong presentes.
     Toca solamente a quien faltó o llegó tarde, y guarda.
 
-  %ul.asistencia-lista
-    - @inscripciones.each do |inscripcion|
+  %ol.asistencia-lista
+    - @inscripciones.each_with_index do |inscripcion, i|
       - registro = @asistencias[inscripcion.id]
       - estado = registro&.status || "presente"
       %li.asistencia-alumno{data: {asistencia_target: "alumno", inscripcion: inscripcion.id, estado: estado}}
@@ -58,6 +58,10 @@
           %span.asistencia-icono{"data-para": "ausente"}= icono(:cerrar, tamano: 20)
           %span.asistencia-icono{"data-para": "tarde"}= icono(:pendiente, tamano: 20)
 
+          -# ⚠️ DENTRO del botón: la fila entera es el área que se toca para
+          -# alternar el estado, y un número por fuera partiría ese blanco justo
+          -# donde el dedo apunta.
+          %span.fila-orden{ "aria-hidden": "true" }= i + 1
           = avatar(inscripcion.student.user, tamano: :chico)
           %span.asistencia-nombre
             = inscripcion.student.user.apellidos_y_nombres

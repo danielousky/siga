@@ -106,7 +106,7 @@
     .detail-row
       .detail-item
         %span.detail-label= User.human_attribute_name(:cedula_escolar)
-        %p.detail-value= persona.cedula_escolar.presence || persona.document.presence || "—"
+        %p.detail-value= persona.cedula_escolar.presence || persona.documento_a_la_vista || "—"
       .detail-item
         %span.detail-label= User.human_attribute_name(:birth_date)
         %p.detail-value

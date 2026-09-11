@@ -24,6 +24,13 @@ class SectionsController < ApplicationController
     # El campo de texto se suma al selector de grado, no lo reemplaza: buscar
     # «1er» y además acotar a un grado son dos preguntas distintas.
     scope = scope.where(*BusquedaSinAcentos.condicion(CAMPOS_DE_BUSQUEDA, params[:q])) if params[:q].present?
+    # ⚠️ El Excel lleva TODAS las secciones que cumplen el filtro, no la página.
+    #
+    # Pagy corta de a veinte, y un director que filtró «Primaria» y baja la
+    # lista espera los seis grados — no los primeros veinte renglones de la
+    # pantalla. El orden sí es el mismo.
+    return enviar_el_libro_del_colegio(scope) if request.format.xlsx?
+
     @pagy, @sections = pagy(scope.order("grades.name, sections.name"))
     # Agrupados por nivel: `order(:name)` intercala las tres escaleras
     # («1er Año · 1er Grado · 1er Nivel · 2do Año…») y no hay quien lo lea.
@@ -48,7 +55,18 @@ class SectionsController < ApplicationController
   # su URL. Las otras tres pestañas son pantallas de verdad, y media fila que
   # navega y media que alterna no se le puede explicar a nadie: el botón de
   # atrás funcionaría en unas y en otras no.
-  def alumnos; end
+  # La pestaña «Alumnos», y la MISMA lista en Excel.
+  #
+  # ⚠️ `format.xlsx` sobre la acción que ya existe, y no una ruta aparte: lo que
+  # se baja es exactamente lo que se está viendo. Con una ruta propia, el día
+  # que la pantalla cambie de criterio —incluir retirados, otro orden— el
+  # archivo seguiría diciendo otra cosa y nadie se enteraría.
+  def alumnos
+    respond_to do |formato|
+      formato.html
+      formato.xlsx { enviar_la_lista(ListaDeAlumnosXlsx.new(secciones: @section)) }
+    end
+  end
 
   # La ficha del alumno COMO LA VE SU PROFESOR (etapa ③).
   #
@@ -188,6 +206,29 @@ class SectionsController < ApplicationController
   # La dirección las ve todas: no califica, supervisa.
   # Lo que las dos pestañas de esta pantalla necesitan siempre: quiénes dictan
   # acá y quiénes están inscritos.
+  # El libro con TODAS las secciones que se están viendo.
+  #
+  # ⚠️ Es de la DIRECCIÓN, y quien lo impide es `require_admin_access!` sobre
+  # `index` —`administrador? && can_manage_sections?`—, no una guarda acá.
+  # Escribí una por las dudas y era letra muerta: nunca llegaba a correr, y una
+  # guarda que no dispara da la falsa impresión de ser LA protección el día que
+  # alguien afloje el `before_action`.
+  #
+  # Al profesor le queda la de SU sección, en `alumnos`. Trescientos sesenta
+  # alumnos con el teléfono de cada familia es otra cosa.
+  def enviar_el_libro_del_colegio(scope)
+    secciones = scope.order("grades.name, sections.name").to_a
+    return redirect_to(sections_path, alert: "No hay secciones que listar.") if secciones.empty?
+
+    enviar_la_lista(ListaDeAlumnosXlsx.new(secciones: secciones))
+  end
+
+  EXCEL = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".freeze
+
+  def enviar_la_lista(lista)
+    send_data lista.to_stream.read, filename: lista.nombre_de_archivo, type: EXCEL
+  end
+
   # Las áreas de las que este alumno es «mi alumno».
   #
   # ⚠️ El GUÍA las ve todas: es quien responde por el niño ante la familia, y

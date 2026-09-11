@@ -195,6 +195,26 @@ class User < ApplicationRecord
     [ apellidos, Normaliza.titulo(first_name) ].compact_blank.join(", ")
   end
 
+  # La cédula como se escribe y como se dice: «V-12345678».
+  #
+  # ⚠️ En la base vive SOLO el número. La nacionalidad es `document_type` y
+  # `normalizar_documento` le quita todo lo demás para poder buscarla, así que
+  # mostrar la columna cruda deja «17078125» — que no es una cédula venezolana,
+  # es un número suelto.
+  #
+  # ⚠️ El pasaporte y el carné NO llevan sigla: su valor ya es alfanumérico y
+  # la letra sería inventada.
+  def documento_a_la_vista
+    return nil if document.blank?
+
+    sigla = SIGLA_DE_DOCUMENTO[document_type]
+    sigla ? "#{sigla}-#{document}" : document
+  end
+
+  # Y lo mismo con la salida del MPPE: quien no tiene cédula se identifica con
+  # la escolar (ver `#identificador`).
+  def identificador_a_la_vista = documento_a_la_vista || cedula_escolar
+
   # Cómo se identifica esta persona, con lo que tenga.
   #
   # El MPPE resuelve esto igual: en sus planillas, "en el espacio correspondiente

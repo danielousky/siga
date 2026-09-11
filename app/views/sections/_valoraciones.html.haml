@@ -35,9 +35,11 @@
         valorar.
   - else
     %ol.valoraciones
-      - @valoraciones[:filas].each do |fila|
+      - @valoraciones[:filas].each_with_index do |fila, i|
         %li.valoracion-alumno
-          %h4.valoracion-nombre= fila[:inscripcion].student.user.apellidos_y_nombres
+          %h4.valoracion-nombre
+            %span.fila-orden{ "aria-hidden": "true" }= i + 1
+            = fila[:inscripcion].student.user.apellidos_y_nombres
           - fila[:casillas].each do |casilla|
             .valoracion-area{ id: casilla.id,
                               class: ("valoracion-area--guardada" if guardada == casilla.id) }
