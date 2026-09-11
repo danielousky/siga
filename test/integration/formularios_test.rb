@@ -87,11 +87,26 @@ class FormulariosTest < ActionDispatch::IntegrationTest
   # existe el atributo `style`; las reglas siguen en la hoja de estilos.
   SOLO_LA_ANCLA = /\Astyle="--ancla: --pista-[0-9a-f]+"\z/
 
+  # ⚠️ La segunda excepción: el AVATAR, y es la misma idea que `--ancla`.
+  #
+  # `--avatar-lado` y `--avatar-color` no pintan apariencia elegida a mano: el
+  # lado sale del tamaño que pidió quien llama y el color se DERIVA del nombre
+  # de la persona (`AvataresHelper#color_de`), así que es un dato distinto por
+  # cada fila. Las reglas siguen en la hoja de estilos; acá viaja el valor.
+  #
+  # Entró al formulario con el alta de inscripción, que muestra la cara de cada
+  # alumno: en una lista de trescientos, el profesor reconoce al niño antes de
+  # terminar de leer el apellido.
+  SOLO_EL_AVATAR = /\Astyle="--avatar-lado: \d+px(; --avatar-color: \#[0-9A-Fa-f]{6})?"\z/
+
+  PERMITIDOS = [ SOLO_LA_ANCLA, SOLO_EL_AVATAR ].freeze
+
   test "ningún formulario escribe estilo en línea" do
     ALTAS.each_value do |ruta|
       get send(ruta)
       formulario = response.body[%r{<form.*</form>}m].to_s
-      estilos = formulario.scan(/style="[^"]*"/).reject { |e| "style=#{e[6..]}" =~ SOLO_LA_ANCLA }
+      estilos = formulario.scan(/style="[^"]*"/)
+                          .reject { |e| PERMITIDOS.any? { |regla| "style=#{e[6..]}" =~ regla } }
 
       assert_empty estilos, "#{ruta} tiene `style=` dentro del formulario: #{estilos.join(' ')}"
     end

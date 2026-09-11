@@ -148,7 +148,7 @@ class User < ApplicationRecord
   # el modelo la aceptaba desde MOR-149 y ningún formulario la mandaba.
   CAMPOS_DEL_FORMULARIO = %i[
     first_name last_name second_last_name
-    document document_type cedula_escolar rif
+    document document_type cedula_escolar identificador rif
     birth_date sex birth_place
     foto quitar_foto
   ].freeze
@@ -231,6 +231,45 @@ class User < ApplicationRecord
   def clave_alfabetica
     nombre = apellidos_y_nombres
     [ Normaliza.para_comparar(nombre).to_s, nombre, id.to_i ]
+  end
+
+  # UN campo para las DOS cédulas, y la decide el formato.
+  #
+  #     12345678       ──►  document        (cédula de identidad)
+  #     V-12.345.678   ──►  document        y `document_type` = V
+  #     V20140000012   ──►  cedula_escolar  (la que asigna el MPPE)
+  #
+  # ## ⚠️ Por qué un solo campo
+  #
+  # Son dos columnas porque son dos documentos —y eso no cambia—, pero quien
+  # carga un alumno no piensa en dos: piensa «con qué se identifica este niño».
+  # Pedirlas por separado obliga a leer dos rótulos, entender la diferencia y
+  # elegir, para escribir UN número. La diferencia la sabe el sistema.
+  #
+  # ## ⚠️ Cómo se distinguen, y por qué así
+  #
+  # La cédula venezolana llega hasta nueve dígitos; la escolar son doce
+  # caracteres que empiezan por la nacionalidad —«V20140000001»—. Quitando los
+  # separadores y la letra inicial, lo que queda las separa sin ambigüedad.
+  #
+  # ⚠️ La letra inicial NO se puede usar sola para decidir: «V-12345678» y
+  # «V20140000012» empiezan igual. Es el LARGO lo que distingue.
+  DIGITOS_DE_CEDULA = 9
+
+  def identificador=(valor)
+    crudo = valor.to_s.gsub(/[^A-Za-z0-9]/, "").upcase
+    return if crudo.blank?
+
+    sigla, numero = crudo.match?(/\A[A-Z]/) ? [ crudo[0], crudo[1..] ] : [ nil, crudo ]
+
+    if numero.match?(/\A\d{1,#{DIGITOS_DE_CEDULA}}\z/)
+      self.document = numero
+      self.document_type = (sigla == "E" ? :cedula_e : :cedula_v) if sigla
+    else
+      # ⚠️ NO se toca `document`: una cédula escolar mal tecleada no puede
+      # borrar la cédula de identidad que ya estaba (ver `#identificador`).
+      self.cedula_escolar = crudo
+    end
   end
 
   # Cómo se identifica esta persona, con lo que tenga.

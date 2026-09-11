@@ -14,6 +14,19 @@ import { contieneSinAcentos } from "lib/sin_acentos"
 export default class extends Controller {
   static targets = ["buscar", "item", "vacio"]
 
+  // ⚠️ Enter en el buscador NO envía el formulario.
+  //
+  // Un campo de texto dentro de un `<form>` dispara el «envío implícito» del
+  // navegador al pulsar Enter, y eso acá es grave: en el alta de inscripción el
+  // primer botón de la lista es «Inscribir», así que buscar un apellido y
+  // pulsar Enter —el gesto más natural del mundo— inscribía al primer alumno de
+  // la pantalla.
+  //
+  // El buscador filtra mientras se escribe: Enter no tiene nada que hacer.
+  sinEnviar(evento) {
+    if (evento.key === "Enter") evento.preventDefault()
+  }
+
   filtrar() {
     const q = this.buscarTarget.value.trim()
     let visibles = 0

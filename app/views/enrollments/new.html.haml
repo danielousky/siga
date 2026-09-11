@@ -1,5 +1,86 @@
+-# Inscribir es UNA decisión: a quién.
+-#
+-#     ANTES                       AHORA
+-#     Alumno   [Seleccione… ▾]    🔍 escriba el apellido
+-#     Sección  [Seleccione… ▾]    ╭──╮ López Medina, Álvaro   [+ Inscribir]
+-#     Estado   (Regular)(Retir.)  ╰──╯ V20140000012 · sin inscripción
+-#     Fecha    [11/09/2026]
+-#
+-# ⚠️ Un `<select>` de trescientos alumnos ordenados por apellido obliga a
+-# recordar cómo se escribe el apellido ANTES de poder buscarlo. Y no dice nada
+-# de cada uno: ni quién es, ni si ya está inscrito.
+-#
+-# ⚠️ El estado y la fecha salieron del formulario. Ver `EnrollmentsController#new`.
 .card-academic
-  = render "shared/cabecera", titulo: "Registrar inscripción"
+  -# ⚠️ «Registrar inscripción» y no «Inscribir alumnos», aunque acá se
+  -# inscriban veinte seguidos: el botón que trae a esta pantalla dice
+  -# «Registrar inscripción», y `MOR-175` exige que el título lo repita. Un
+  -# botón es una promesa y el título dice si se cumplió.
+  = render "shared/cabecera", titulo: "Registrar inscripción",
+           detalle: (@seccion ? "#{@seccion.grade.name} – #{@seccion.name}" : nil)
 
   = render "shared/precondicion", clave: :alumnos, titulo: "Todavía no se puede inscribir a nadie" do
-    = render "form", enrollment: @enrollment, volver: enrollments_path
+    = render "shared/errors", object: @enrollment
+
+    .lista-filtrable{ data: { controller: "filtro-local" } }
+      = form_with model: @enrollment do |f|
+        - if @seccion
+          = f.hidden_field :section_id, value: @seccion.id
+          %p.nota-ayuda
+            = "Se inscriben en #{@seccion.grade.name} – #{@seccion.name}."
+            = link_to "Cambiar de sección", new_enrollment_path
+        - else
+          .form-group
+            = f.label :section_id, class: "form-label"
+            - secciones = Section.del_anio_de_la_sesion.del_nivel_de_la_sesion.includes(:grade).to_a
+            - secciones = secciones.sort_by { |s| [ s.grade.name, s.name ] }
+            = f.select :section_id, secciones.map { |s| [ "#{s.grade.name} – #{s.name}", s.id ] }, { include_blank: "Seleccione…" }, class: "form-select", required: true
+
+        -# ⚠️ El buscador va DESPUÉS de la sección: primero se decide dónde y
+        -# después a quién, que es el orden en que se piensa.
+        -#
+        -# ⚠️ Y `keydown->filtro-local#sinEnviar` no sobra: un campo de texto
+        -# dentro de un `<form>` dispara el envío implícito al pulsar Enter, y
+        -# acá el primer botón de la lista es «Inscribir». Buscar un apellido y
+        -# pulsar Enter inscribía al primer alumno de la pantalla.
+        .form-group.lista-filtrable-buscar
+          = label_tag :filtro_alumnos, "Buscar", class: "form-label"
+          = text_field_tag nil, nil, id: "filtro_alumnos", class: "form-control", autocomplete: "off",
+                           placeholder: "Apellido, nombre o cédula",
+                           data: { filtro_local_target: "buscar",
+                                   action: "input->filtro-local#filtrar keydown->filtro-local#sinEnviar" }
+
+        %ul.inscribir-lista
+          - @alumnos.each do |alumno|
+            - ya = @donde_esta[alumno.id]
+            %li.inscribir-alumno{ class: ("inscribir-alumno--ya" if ya), data: { filtro_local_target: "item" } }
+              = avatar(alumno.user, tamano: :chico)
+              .inscribir-quien
+                %span.inscribir-nombre= alumno.user.apellidos_y_nombres
+                %span.inscribir-detalle
+                  = alumno.user.identificador_a_la_vista || "sin cédula"
+                  - if ya
+                    %span.inscribir-punto ·
+                    = "ya inscrito en #{ya.section.grade.name} – #{ya.section.name}"
+
+              - if ya
+                -# Sin botón: no es un permiso que falte, es que ya está hecho.
+                %span.dato-secundario Inscrito
+              - else
+                -# ⚠️ UN formulario con N botones de envío: cada botón manda su
+                -# propio `student_id`. Así la sección se elige una vez arriba y
+                -# vale para todos, sin repetir el `<select>` trescientas veces.
+                %button.btn.btn-guardar.btn-sm{ type: "submit", name: "enrollment[student_id]", value: alumno.id }
+                  = icono(:agregar, tamano: 15)
+                  %span Inscribir
+
+        %p.lista-filtrable-vacio{ hidden: true, data: { filtro_local_target: "vacio" } }
+          Ningún alumno de este colegio coincide con lo que escribió.
+
+    %p.nota-ayuda
+      ¿No está en la lista?
+      = link_to "Regístrelo primero", new_student_path
+      \.
+
+    .form-acciones
+      = boton "Volver", enrollments_path, icono: :volver, tono: :secondary

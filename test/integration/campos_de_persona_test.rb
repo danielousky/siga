@@ -69,8 +69,13 @@ class CamposDePersonaTest < ActionDispatch::IntegrationTest
     assert_includes entrada["data-action"], "input->campo-filtrado#filtrar"
   end
 
+  # ⚠️ El ALUMNO queda afuera, y no es una excepción a la regla: es que ahí el
+  # campo es otro. Su formulario fusiona la cédula de identidad y la escolar en
+  # un solo «Se identifica con» —quien carga un alumno no piensa en dos
+  # documentos— y ese campo tiene que aceptar las dos formas. Ver
+  # `identificador_del_alumno_test`.
   test "la cédula solo acepta dígitos" do
-    sin_filtro = ALTAS.filter_map do |quien, ruta|
+    sin_filtro = ALTAS.except("alumno").filter_map do |quien, ruta|
       get send(ruta)
       entrada = css_select("input[name*='[document]']").first
       next "#{quien}: no está" if entrada.nil?
@@ -80,16 +85,21 @@ class CamposDePersonaTest < ActionDispatch::IntegrationTest
     end
 
     assert_empty sin_filtro, "la cédula acepta algo más que dígitos:\n  " + sin_filtro.join("\n  ")
+    assert_operator ALTAS.except("alumno").size, :>=, 3, "se esperaban al menos los otros tres roles"
   end
 
   # ⚠️ La cédula ESCOLAR no se filtra como la de identidad: su formato lo fija
   # el MPPE y los guiones son parte del dato.
+  #
+  # En el alta de alumno las dos viven en un campo fusionado, así que el filtro
+  # tiene que ser el más permisivo de los dos: letras, dígitos y guiones.
   test "la cédula escolar sí admite guiones" do
     get new_student_path
 
-    entrada = css_select("input[name*='[cedula_escolar]']").first
+    entrada = css_select("input[name*='[identificador]']").first
     assert entrada, "el alumno tiene que poder cargar su cédula escolar"
     assert_includes entrada["data-campo-filtrado-permite-value"], "-"
+    assert_includes entrada["data-campo-filtrado-permite-value"], "A-Za-z"
   end
 
   # ══════════════════════════════════════════════════════════════════════════

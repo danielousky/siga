@@ -55,7 +55,10 @@ class PistasTest < ActionDispatch::IntegrationTest
   test "el texto de la pista está en la página, no se pide después" do
     get new_student_path
 
-    assert_match(/La asigna el MPPE/, response.body)
+    # ⚠️ La frase exacta cambió cuando las dos cédulas se fusionaron en un solo
+    # campo. Lo que el test cuida no es la redacción: es que el texto de la
+    # pista VIAJE en el HTML y no se pida por JavaScript.
+    assert_match(/asigna el MPPE/i, response.body)
   end
 
   # ⚠️ Cada pista se ancla a SU botón (MOR-196).

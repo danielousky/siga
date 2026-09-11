@@ -81,14 +81,37 @@ class EditarInscripcionTest < ActionDispatch::IntegrationTest
   # inscripción quedaba apuntando a otra persona —o a ninguna— sin que nada
   # avisara. Es el mismo error que tenía el conteo del panel (MOR-180).
 
+  # ⚠️ El alta dejó de ser un `<select>` de trescientos: ahora es un buscador
+  # con un botón por alumno (`enrollments/new`). El invariante no cambió —lo que
+  # viaja tiene que ser el id del ALUMNO— pero ahora viaja en el `value` del
+  # botón que se toca.
   test "el alta ofrece el id del alumno, no el de su usuario" do
+    # ⚠️ Uno SIN inscribir: los del escenario ya lo están, y a esos la pantalla
+    # les muestra dónde en vez de un botón — que es lo que evita inscribirlos
+    # dos veces.
+    nuevo = con_el_colegio(@a.colegio) do
+      usuario = User.create!(first_name: "SIN", last_name: "INSCRIBIR",
+                             cedula_escolar: "V#{@a.colegio.id}90000001")
+      Student.create!(user: usuario, school: @a.colegio, school_card: "SI-#{@a.colegio.id}")
+    end
+
     get new_enrollment_path
 
-    valores = css_select("select[name*='[student_id]'] option").map { |o| o["value"] }.compact_blank.map(&:to_i)
-    ids_de_alumno = con_el_colegio(@a.colegio) { Student.pluck(:id) }
+    boton = css_select("button[name='enrollment[student_id]']").first
 
-    assert_equal ids_de_alumno.sort, valores.sort,
-                 "el desplegable manda el id del usuario donde va el del alumno"
+    assert_equal nuevo.id.to_s, boton["value"],
+                 "el botón manda el id del usuario donde va el del alumno"
+    assert_not_equal nuevo.user_id.to_s, boton["value"]
+  end
+
+  # ⚠️ Y quien YA está inscrito se lista igual, con su sección y sin botón. Es
+  # lo que evita el error de septiembre: inscribir dos veces al mismo niño
+  # porque no se sabía que ya estaba.
+  test "el alta muestra a los ya inscritos, apagados y con dónde" do
+    get new_enrollment_path
+
+    assert_select ".inscribir-alumno--ya", 2
+    assert_select ".inscribir-detalle", /ya inscrito en #{@a.seccion.grade.name}/
   end
 
   test "y por eso el alta inscribe a quien se eligió" do

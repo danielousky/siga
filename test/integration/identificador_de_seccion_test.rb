@@ -90,18 +90,41 @@ class IdentificadorDeSeccionTest < ActionDispatch::IntegrationTest
 
     get new_section_path
     assert_response :success
-    assert_select "datalist#identificadores-usados option[value=?]", @a.seccion.name
+    assert_select "[data-valor=?]", @a.seccion.name
   end
 
+  # ⚠️ Pastillas, no un `datalist` — y por la misma razón que antes NO era un
+  # `select`: el colegio que abre su primera sección «D» tiene que poder
+  # escribirla. Lo que cambió es dónde se ve: en un teléfono el `datalist` no
+  # aparece hasta que se empieza a teclear, así que el «autoaprendizaje» que lo
+  # justificaba no existía justo para quien arma las secciones desde el
+  # teléfono en septiembre.
   test "el formulario ofrece las sugerencias sin encerrar" do
     sign_in @a.director
 
     get new_section_path
 
-    # Un `input` con `datalist`, no un `select`: el colegio que abre su primera
-    # sección «D» tiene que poder escribirla.
-    assert_select "input[name='section[name]'][list=?]", "identificadores-usados"
+    # Las que ya usa, tocables.
+    assert_select "[data-identificadores-usados-target=pastilla]", minimum: 1
+    # Y el campo libre, que sigue siendo el valor: sin él no habría dónde
+    # escribir la «D» que el colegio todavía no usa.
+    assert_select "input[name='section[name]']"
     assert_select "select[name='section[name]']", count: 0
+  end
+
+  # ⚠️ Guía, cupo y aula NO hacen falta para crear una sección: son tres
+  # decisiones de tres personas distintas, en tres momentos distintos. Se
+  # difieren, pero se abren solas al editar una sección que ya los tiene —
+  # esconder lo que está lleno obliga a buscarlo para ver qué dice.
+  test "guía, cupo y aula se difieren, y se abren si ya tienen algo" do
+    sign_in @a.director
+
+    get new_section_path
+    assert_select "details.form-avanzado:not([open])"
+
+    con_el_colegio(@a.colegio) { @a.seccion.update!(classroom: "Aula 1-4A") }
+    get edit_section_path(@a.seccion)
+    assert_select "details.form-avanzado[open]"
   end
 
   # ⚠️ Las tres capas, y las tres hacen falta. Sin `pattern`, el error llega

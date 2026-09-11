@@ -4982,6 +4982,106 @@ td.columna-orden { width: 2.5rem; }
   font-variant-numeric: tabular-nums;
 }
 
+/* ── inscribir: un buscador y una fila por alumno ──────────────────────────
+
+   Reemplaza a un `<select>` de trescientos nombres. Cada fila dice quién es
+   —cara, nombre, cédula— y EN QUÉ SITUACIÓN está, que es lo que evita
+   inscribir dos veces al mismo niño en septiembre. */
+
+.inscribir-lista {
+  list-style: none;
+  margin: var(--space-md) 0 0;
+  padding: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.inscribir-alumno {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* Quien ya está inscrito se ve APAGADO, no escondido: esconderlo dejaría a
+   quien lo busca pensando que el alumno no existe. */
+.inscribir-alumno--ya { opacity: 0.55; }
+
+.inscribir-quien {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.inscribir-nombre {
+  font-size: 15px;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inscribir-detalle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.inscribir-punto { margin: 0 var(--space-micro); }
+
+/* ── el identificador fusionado y las pastillas del formulario ───────────── */
+
+/* Las pastillas de un identificador son cortas —«A», «B», «U1»— así que no
+   tienen por qué ocupar 110 px como las de «Femenino / Masculino». */
+.opciones-compactas .opcion-boton {
+  flex: 0 0 auto;
+  min-width: 3.5rem;
+}
+
+/* «Otra…» no es una opción más: es la puerta al campo libre. Se distingue
+   porque elegirla no elige nada — abre dónde escribir. */
+.opcion-boton--otra {
+  font-style: italic;
+  color: var(--text-tertiary);
+}
+
+.opcion-boton.elegida {
+  border-color: var(--control-focus-border);
+  background: var(--control-focus-ring);
+  font-weight: 600;
+}
+
+/* ── «Guía, cupo y aula»: lo que no hace falta para crear ────────────────── */
+
+.form-avanzado {
+  margin: var(--space-md) 0;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-md);
+}
+
+.form-avanzado-titulo {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  list-style: none;
+}
+
+/* La flechita de `<details>`, dibujada por nosotros: la nativa cambia de forma
+   entre navegadores y en Safari ni se puede ocultar con `list-style`. */
+.form-avanzado-titulo::-webkit-details-marker { display: none; }
+
+.form-avanzado-titulo::before {
+  content: "▸";
+  font-size: 11px;
+  color: var(--text-tertiary);
+  transition: transform var(--transition-fast);
+}
+
+.form-avanzado[open] > .form-avanzado-titulo::before { transform: rotate(90deg); }
+
 /* ── el avatar ─────────────────────────────────────────────────────────────
 
    `--avatar-lado` viene del helper y no de una clase por tamaño: son cinco
