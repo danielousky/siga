@@ -1,6 +1,6 @@
 # Educación Inicial: se describe, no se califica
 
-> **Estado:** **propuesto** — 10 de septiembre de 2026
+> **Estado:** **congelado** — 10 de septiembre de 2026
 > **Depende de:** `MOR-216` (informe descriptivo, implementado) · la vista del
 > profesor (implementada)
 > **Pedido por Daniel:** *«vamos con la vista de evaluación de Educación Media e
@@ -59,7 +59,8 @@ que la maestra pueda REGISTRAR. Sin registro, el papel no tiene qué imprimir.
 | # | Pregunta | Decisión | Quién |
 |---|----------|----------|-------|
 | 1 | ¿Cómo se evalúa? | **Solo informe descriptivo.** Sin notas, sin ponderación, sin promedio | Daniel |
-| 2 | ¿El informe es uno por alumno o uno por área? | **Uno por ÁREA** — ver § 4 | ⚠️ falta |
+| 2 | ¿El informe es uno por alumno o uno por área? | **Uno por ÁREA** — ver § 4 | Daniel |
+| 2.b | ¿Y en Primaria y Media? | **El área es OPCIONAL**: Inicial por área, los otros uno del alumno entero | Daniel |
 | 3 | ¿Qué pestañas tiene la sección? | **Informes · Asistencia · Alumnos.** Desaparecen Calificar y Planificar | Daniel |
 | 4 | ¿Quién lo escribe? | La maestra de la sección y la dirección, como en `MOR-216` | Claude |
 | 5 | ¿Y el menú del profesor? | Una sección de Inicial lleva a Informes, no a Calificar | Claude |
@@ -75,38 +76,43 @@ del colegio ya las trae cargadas:
    COMUNICACIÓN Y REPRESENTACIÓN
 ```
 
-⚠️ **Acá está la única decisión abierta, y es la que ordena el modelo.**
-
 El `Informe` de hoy (`MOR-216`) es **uno por (inscripción, lapso)** — hay un
-índice único que lo garantiza. Nació para primaria y bachillerato, donde el
-informe lo escribe el **guía**, que es uno solo y ve al alumno entero.
+índice único que lo garantiza. Nació para primaria y bachillerato, donde lo
+escribe el **guía**, que es uno solo y ve al alumno entero.
 
-En Inicial la maestra escribe sobre las tres áreas, y hay dos formas:
+**La decisión: el informe gana un `area_id`, y puede ir vacío.**
 
 ```
-   A · UNO SOLO, como hoy              B · UNO POR ÁREA
-   ────────────────────                ────────────────
-   «Valeria se integró al grupo        Formación Personal y Social
-    con facilidad, reconoce los          «Valeria se integró al grupo…»
-    colores primarios y…»              Relación con el Ambiente
-                                         «Reconoce los colores…»
-   un texto, tres áreas mezcladas      Comunicación y Representación
-   el modelo NO cambia                   «Se expresa con frases de…»
+   INICIAL    3 informes por niño · uno por área      area_id OBLIGATORIO
+              los escribe la maestra de la sección
 
-                                       el modelo cambia: el índice único
-                                       pasa a (inscripción, lapso, área)
+   PRIMARIA   1 informe del alumno entero             area_id = nil
+   MEDIA      lo escribe el guía, como hoy
 ```
 
-⚠️ **La boleta del MPPE tiene las tres áreas separadas.** Con la opción A, al
-imprimir hay que partir un texto que nadie escribió para ser partido — o
-imprimir el mismo párrafo tres veces.
+⚠️ **Los 29 informes que ya existen no se tocan**: quedan con `area_id` nulo,
+que es exactamente lo que son —del alumno entero— y no lo que serían si
+hubiera que inventarles un área. La migración no adivina nada.
 
-⚠️ Y al revés: con la opción B son **tres campos por niño y lapso**, o sea
-**setenta y cinco textos** por sección y lapso en vez de veinticinco. Es lo que
-la ley pide y es mucho trabajo; la planilla de `MOR-216` está pensada para eso
-—todos en una pantalla, guardado incremental— pero no lo hace menos.
+⚠️ Y el índice único pasa a `(enrollment_id, evaluation_moment_id, area_id)`.
+En PostgreSQL **un índice único NO impide dos filas con `NULL`** —dos nulos no
+son iguales entre sí— así que hacen falta **dos** índices: el de tres columnas
+para los informes con área, y uno parcial `WHERE area_id IS NULL` para que siga
+habiendo uno solo por alumno donde no la hay. Sin el segundo, el guía podría
+escribir dos informes generales del mismo niño en el mismo lapso.
 
-**La decisión es de Daniel** porque depende de qué boleta emite su colegio.
+**Por qué por área y no un texto largo:** la boleta del MPPE tiene las tres
+áreas separadas. Con un texto único habría que partir al imprimir algo que
+nadie escribió para ser partido — o imprimir el mismo párrafo tres veces.
+
+**Lo que cuesta:** tres campos por niño y lapso, o sea **setenta y cinco
+textos** por sección en vez de veinticinco. Es lo que la ley pide, y la planilla
+de `MOR-216` está pensada justo para eso —todos en una pantalla, guardado
+incremental— pero no lo hace menos.
+
+**Y la puerta queda abierta:** el día que un colegio de bachillerato quiera que
+cada profesor escriba el informe de su materia, el modelo ya lo admite sin
+cambiar nada.
 
 ## 5 · Cómo se ve
 
