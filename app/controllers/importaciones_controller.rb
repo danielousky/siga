@@ -44,9 +44,8 @@ class ImportacionesController < ApplicationController
   def plantilla
     hoja = PLANTILLAS.fetch(tipo_pedido).new(colegio: Current.school)
 
-    send_data hoja.to_stream.read,
-              filename: hoja.nombre_de_archivo,
-              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    # `:xlsx` lo registra `config/initializers/mime_types.rb`.
+    send_data hoja.to_stream.read, filename: hoja.nombre_de_archivo, type: :xlsx
   end
 
   def new

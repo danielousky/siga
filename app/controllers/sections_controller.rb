@@ -223,10 +223,9 @@ class SectionsController < ApplicationController
     enviar_la_lista(ListaDeAlumnosXlsx.new(secciones: secciones))
   end
 
-  EXCEL = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet".freeze
-
+  # `:xlsx` lo registra `config/initializers/mime_types.rb`.
   def enviar_la_lista(lista)
-    send_data lista.to_stream.read, filename: lista.nombre_de_archivo, type: EXCEL
+    send_data lista.to_stream.read, filename: lista.nombre_de_archivo, type: :xlsx
   end
 
   # Las áreas de las que este alumno es «mi alumno».

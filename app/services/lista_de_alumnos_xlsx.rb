@@ -32,25 +32,33 @@
 # hoja por sección es además la forma en que el colegio ya piensa: una lista es
 # de una sección.
 class ListaDeAlumnosXlsx
-  # El ancho de cada columna, en caracteres. La primera es ancha a propósito:
-  # ahí va el escudo, y un escudo de 64 px no cabe en una columna de «#».
+  # Cada columna dice su título, su ancho en caracteres y con qué estilo se
+  # pinta. Los tres juntos y no en tres listas paralelas: separados, agregar una
+  # columna son tres ediciones que tienen que quedar alineadas POR POSICIÓN, y
+  # el día que una se desfase el Excel sale con las fechas alineadas a la
+  # izquierda y el correo centrado, sin que falle nada.
+  #
+  # ⚠️ La primera es ancha a propósito: ahí va el escudo, y uno de 64 px no
+  # cabe en una columna de «#».
+  Columna = Data.define(:titulo, :ancho, :estilo)
+
   COLUMNAS = [
-    [ "#",                    9 ],
-    [ "Apellidos",            24 ],
-    [ "Nombres",              20 ],
-    [ "Cédula",               15 ],
-    [ "Cédula escolar",       17 ],
-    [ "Sexo",                 8 ],
-    [ "Fecha de nacimiento",  14 ],
-    [ "Edad",                 7 ],
-    [ "Nro. de expediente",   14 ],
-    [ "Representante",        28 ],
-    [ "Parentesco",           17 ],
-    [ "Teléfono",             15 ],
-    [ "Correo",               30 ],
-    [ "Inscrito el",          13 ],
-    [ "Estado",               11 ]
-  ].freeze
+    [ "#",                    9, :orden ],
+    [ "Apellidos",           24, :texto ],
+    [ "Nombres",             20, :texto ],
+    [ "Cédula",              15, :centrado ],
+    [ "Cédula escolar",      17, :centrado ],
+    [ "Sexo",                 8, :centrado ],
+    [ "Fecha de nacimiento", 14, :fecha ],
+    [ "Edad",                 7, :centrado ],
+    [ "Nro. de expediente",  14, :centrado ],
+    [ "Representante",       28, :texto ],
+    [ "Parentesco",          17, :texto ],
+    [ "Teléfono",            15, :centrado ],
+    [ "Correo",              30, :texto ],
+    [ "Inscrito el",         13, :fecha ],
+    [ "Estado",              11, :centrado ]
+  ].map { |datos| Columna.new(*datos) }.freeze
 
   FILAS_DEL_MEMBRETE = 5
 
@@ -148,7 +156,7 @@ class ListaDeAlumnosXlsx
 
     libro.add_worksheet(name: nombre_de_hoja(seccion)) do |hoja|
       membrete(hoja, seccion, inscripciones.size)
-      hoja.add_row COLUMNAS.map(&:first), style: @cabecera, height: 30
+      hoja.add_row COLUMNAS.map(&:titulo), style: @cabecera, height: 30
       inscripciones.each_with_index { |inscripcion, i| fila(hoja, inscripcion, i) }
       ajustar(hoja, inscripciones.size)
       escudo(hoja)
@@ -203,13 +211,19 @@ class ListaDeAlumnosXlsx
   def dea = @colegio&.dea_code.presence && "DEA #{@colegio.dea_code}"
 
   def fila(hoja, inscripcion, indice)
+    juego = indice.even? ? @normal : @cebra
+
+    hoja.add_row valores_de(inscripcion, indice),
+                 style: COLUMNAS.map { |columna| juego[columna.estilo] }
+  end
+
+  # Los quince valores, en el orden de `COLUMNAS`.
+  def valores_de(inscripcion, indice)
     persona = inscripcion.student.user
     vinculo = responsables[inscripcion.student_id]
     responsable = vinculo&.representative
-    e = indice.even? ? @normal : @cebra
 
-    hoja.add_row [
-      indice + 1,
+    [ indice + 1,
       persona.apellidos,
       Normaliza.titulo(persona.first_name),
       persona.documento_a_la_vista,
@@ -223,10 +237,7 @@ class ListaDeAlumnosXlsx
       responsable&.phone,
       responsable&.user&.email,
       inscripcion.enrollment_date,
-      inscripcion.status.to_s.capitalize
-    ], style: [ e[:orden], e[:texto], e[:texto], e[:centrado], e[:centrado], e[:centrado],
-                e[:fecha], e[:centrado], e[:centrado], e[:texto], e[:texto], e[:centrado],
-                e[:texto], e[:fecha], e[:centrado] ]
+      inscripcion.status.to_s.capitalize ]
   end
 
   # ⚠️ La edad AL INICIO DEL AÑO ESCOLAR, no la de hoy.
@@ -246,7 +257,7 @@ class ListaDeAlumnosXlsx
   def ultima_columna = ("A".."Z").to_a[COLUMNAS.size - 1]
 
   def ajustar(hoja, inscritos)
-    hoja.column_widths(*COLUMNAS.map(&:last))
+    hoja.column_widths(*COLUMNAS.map(&:ancho))
 
     # Los encabezados se quedan a la vista al bajar por treinta filas, y con el
     # número y el apellido pegados a la izquierda al correr hasta «Correo».

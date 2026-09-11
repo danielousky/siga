@@ -67,9 +67,13 @@ class DocumentosOficialesController < ApplicationController
     send_data documento.render, filename: nombre, type: "application/pdf", disposition: "inline"
   end
 
+  # ⚠️ `type: :xlsx` y no el MIME escrito a mano: lo registra
+  # `config/initializers/mime_types.rb`, y esa cadena de setenta caracteres
+  # estaba copiada en tres controllers — con una letra distinta, el navegador
+  # ofrece «abrir con…» en vez de guardar, y nadie lo nota hasta que un colegio
+  # lo reporta.
   def enviar_xlsx(documento)
-    send_data documento.to_stream.read, filename: documento.nombre_de_archivo,
-              type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    send_data documento.to_stream.read, filename: documento.nombre_de_archivo, type: :xlsx
   end
 
   def apellido(alumno) = alumno.user.apellidos.to_s.parameterize.presence || alumno.id.to_s

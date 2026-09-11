@@ -51,7 +51,7 @@ class ListaDeAlumnosEnExcelTest < ActionDispatch::IntegrationTest
 
     # Los encabezados, en la fila 6, que es donde empieza la tabla.
     encabezados = (1..ListaDeAlumnosXlsx::COLUMNAS.size).map { |c| hoja.cell(6, c) }
-    assert_equal ListaDeAlumnosXlsx::COLUMNAS.map(&:first), encabezados
+    assert_equal ListaDeAlumnosXlsx::COLUMNAS.map(&:titulo), encabezados
 
     # Y el alumno, con su número de orden.
     assert_equal 1, hoja.cell(7, 1)
