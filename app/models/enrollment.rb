@@ -20,6 +20,37 @@ class Enrollment < ApplicationRecord
     joins(section: :academic_period).order("academic_periods.start_date DESC")
   }
 
+  # La LISTA DE CLASE: los inscritos regulares, en el orden en que se pasa lista.
+  #
+  #     Enrollment.en_orden_de_lista(seccion.enrollments)
+  #     Enrollment.en_orden_de_lista(Enrollment.where(section_id: ids))
+  #
+  # ## ⚠️ Estaba escrita CINCO veces, y en DOS órdenes distintos
+  #
+  #     pestaña «Alumnos»    ORDER BY users.last_name    ← SQL, PRIMER apellido
+  #     informes             sort_by apellidos_y_nombres ← Ruby, LOS DOS
+  #     la libreta                    ídem
+  #     Educación Inicial             ídem
+  #     el Excel de la lista          ídem
+  #
+  # El primero no tenía desempate, y los apellidos repetidos abundan: «3er Grado
+  # A» tiene cinco pares. Con eso, la pantalla y el Excel que se baja DE esa
+  # pantalla podían numerar distinto al mismo niño — «la número 12» no era la
+  # misma niña en los dos papeles.
+  #
+  # ## ⚠️ El orden va en RUBY y no en SQL, y es a propósito
+  #
+  # `apellidos_y_nombres` es un método —arma «López Medina, Álvaro» con los dos
+  # apellidos— y no una columna, así que no hay `ORDER BY` que lo produzca. Y el
+  # `ORDER BY` de PostgreSQL usa el `collation` de la base, que en un contenedor
+  # suele ser `C`: byte a byte, con todos los acentos al final.
+  def self.en_orden_de_lista(desde = all)
+    desde.where(status: :regular)
+         .includes(student: :user)
+         .to_a
+         .sort_by { |inscripcion| inscripcion.student.user.clave_alfabetica }
+  end
+
   derives_school_from :student
   validates_same_school :section
 

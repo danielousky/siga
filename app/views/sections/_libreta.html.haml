@@ -114,7 +114,7 @@
         - @libreta[:filas].each_with_index do |fila, i|
           %tr
             %td.libreta-alumno
-              %span.fila-orden{ "aria-hidden": "true" }= i + 1
+              = numero_de_fila(i)
               = fila.alumno.user.apellidos_y_nombres
             - @libreta[:columnas].each do |columna|
               - nota = fila.notas[columna.evaluacion.id]

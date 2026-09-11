@@ -32,7 +32,12 @@ class FormularioEnviableTest < ApplicationSystemTestCase
 
     find(".form-acciones input[type=submit]").click
 
-    assert_current_path arranque_listo_path, wait: 5
+    # ⚠️ La espera es LARGA a propósito. Registrarse no es guardar una fila:
+    # crea el colegio, su año escolar, sus lapsos, los grados del nivel marcado
+    # y la cuenta del director. Con cinco segundos, este test fallaba de a
+    # ratos cuando la suite entera corría en paralelo y la máquina iba cargada
+    # — y el síntoma («sigue en /registrarse») se lee como un formulario roto.
+    assert_current_path arranque_listo_path, wait: 20
     assert_text "quedó en orden"
   end
 

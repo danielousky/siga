@@ -55,7 +55,7 @@
         %li.carga-fila{data: { carga_notas_target: "fila", alumno: alumno.id }}
           -# ⚠️ El número ANTES de la cara: es el índice de la fila, y va donde
           -# el ojo baja en línea recta buscando «¿por dónde iba?».
-          %span.fila-orden{ "aria-hidden": "true" }= i + 1
+          = numero_de_fila(i)
           -# La cara antes que el nombre: en una sección de treinta, el profesor
           -# reconoce al alumno antes de terminar de leer el apellido.
           = avatar(alumno.user, tamano: :chico)

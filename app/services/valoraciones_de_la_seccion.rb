@@ -56,11 +56,7 @@ class ValoracionesDeLaSeccion
   def areas = @areas ||= seccion.grade.subjects.order(:name).to_a
 
   def inscripciones
-    @inscripciones ||= seccion.enrollments
-                              .where(status: :regular)
-                              .includes(student: :user)
-                              .to_a
-                              .sort_by { |i| i.student.user.apellidos_y_nombres }
+    @inscripciones ||= Enrollment.en_orden_de_lista(seccion.enrollments)
   end
 
   def filas

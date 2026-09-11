@@ -38,7 +38,7 @@
       - @valoraciones[:filas].each_with_index do |fila, i|
         %li.valoracion-alumno
           %h4.valoracion-nombre
-            %span.fila-orden{ "aria-hidden": "true" }= i + 1
+            = numero_de_fila(i)
             = fila[:inscripcion].student.user.apellidos_y_nombres
           - fila[:casillas].each do |casilla|
             .valoracion-area{ id: casilla.id,

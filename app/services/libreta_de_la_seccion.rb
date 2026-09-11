@@ -145,10 +145,7 @@ class LibretaDeLaSeccion
   # ⚠️ Solo los REGULARES. Un alumno retirado no tiene que calificarse, y
   # contarlo dejaría la evaluación en «29 de 30» para siempre.
   def inscripciones
-    @inscripciones ||= Enrollment.where(section_id: @seccion.id, status: :regular)
-                                 .includes(student: :user)
-                                 .to_a
-                                 .sort_by { |i| i.student.user.apellidos_y_nombres }
+    @inscripciones ||= Enrollment.en_orden_de_lista(Enrollment.where(section_id: @seccion.id))
   end
 
   # ⚠️ UNA consulta para todas las notas, no una por celda. Una sección de

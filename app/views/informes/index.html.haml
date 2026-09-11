@@ -32,7 +32,7 @@
         - informe = @informes[inscripcion.id]
         %li.informe-fila{ data: { carga_informes_target: "fila" } }
           .informe-cabecera
-            %span.fila-orden{ "aria-hidden": "true" }= i + 1
+            = numero_de_fila(i)
             %span.informe-alumno= inscripcion.student.user.apellidos_y_nombres
             -# ⚠️ El promedio al lado del nombre, y no es decorado: escribiendo
             -# veinticinco informes seguidos hay que poder recordar de quién se

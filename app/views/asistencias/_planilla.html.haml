@@ -61,7 +61,7 @@
           -# ⚠️ DENTRO del botón: la fila entera es el área que se toca para
           -# alternar el estado, y un número por fuera partiría ese blanco justo
           -# donde el dedo apunta.
-          %span.fila-orden{ "aria-hidden": "true" }= i + 1
+          = numero_de_fila(i)
           = avatar(inscripcion.student.user, tamano: :chico)
           %span.asistencia-nombre
             = inscripcion.student.user.apellidos_y_nombres

@@ -215,6 +215,24 @@ class User < ApplicationRecord
   # la escolar (ver `#identificador`).
   def identificador_a_la_vista = documento_a_la_vista || cedula_escolar
 
+  # La clave con que se ORDENA una lista de personas.
+  #
+  # ⚠️ `sort_by` compara punto de código por punto de código, y «Á» (U+00C1) es
+  # MAYOR que «Z» (U+005A): Álvarez quedaba después de Zambrano en las cinco
+  # listas de clase del sistema. No es un caso raro —Álvarez, Ángel, Ávila,
+  # Óscar son apellidos y nombres venezolanos corrientes— y en una lista
+  # impresa se lee como un error del colegio.
+  #
+  # ⚠️ Son TRES elementos y el tercero no sobra. `para_comparar` aplana la Ñ,
+  # así que «Peña» y «Pena» dan la misma clave; y `sort_by` en Ruby **no es
+  # estable**, así que dos personas empatadas saldrían en distinto orden en
+  # cada consulta — que es justo la inestabilidad que esto vino a arreglar. El
+  # id desempata siempre igual.
+  def clave_alfabetica
+    nombre = apellidos_y_nombres
+    [ Normaliza.para_comparar(nombre).to_s, nombre, id.to_i ]
+  end
+
   # Cómo se identifica esta persona, con lo que tenga.
   #
   # El MPPE resuelve esto igual: en sus planillas, "en el espacio correspondiente

@@ -255,8 +255,7 @@ class SectionsController < ApplicationController
 
   def cargar_la_seccion
     @teacher_sections = @section.teacher_sections.includes(teacher: :user, subject: {})
-    @enrollments = @section.enrollments.where(status: :regular)
-                           .includes(student: :user).order("users.last_name")
+    @enrollments = Enrollment.en_orden_de_lista(@section.enrollments)
 
     return unless administrador?
 

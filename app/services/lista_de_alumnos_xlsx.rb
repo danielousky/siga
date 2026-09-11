@@ -90,11 +90,11 @@ class ListaDeAlumnosXlsx
   # ⚠️ Uno por uno serían quince consultas para el libro del colegio entero, más
   # una por alumno para su representante. Acá son dos.
   def inscripciones_por_seccion
-    @inscripciones_por_seccion ||= Enrollment
-                                   .where(section_id: @secciones.map(&:id), status: :regular)
-                                   .includes(student: :user)
-                                   .group_by(&:section_id)
-                                   .transform_values { |i| i.sort_by { |e| e.student.user.apellidos_y_nombres } }
+    # ⚠️ Se ordena ANTES de agrupar: `group_by` conserva el orden de entrada,
+    # así que una sola pasada deja cada sección en orden de lista.
+    @inscripciones_por_seccion ||=
+      Enrollment.en_orden_de_lista(Enrollment.where(section_id: @secciones.map(&:id)))
+                .group_by(&:section_id)
   end
 
   # El representante PRINCIPAL de cada alumno.

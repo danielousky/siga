@@ -21,10 +21,7 @@ class InformesController < ApplicationController
   before_action :set_lapso
 
   def index
-    @inscripciones = Enrollment.where(section_id: @seccion.id, status: :regular)
-                               .includes(student: :user)
-                               .to_a
-                               .sort_by { |i| i.student.user.apellidos_y_nombres }
+    @inscripciones = Enrollment.en_orden_de_lista(Enrollment.where(section_id: @seccion.id))
 
     @informes = Informe.del_lapso(@lapso&.id)
                        .where(enrollment_id: @inscripciones.map(&:id))

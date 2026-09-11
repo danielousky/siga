@@ -213,6 +213,21 @@ module ApplicationHelper
   #     = boton "Copiar de otro año", ruta, icono: :copiar, tono: :accion, sm: true
   #     = boton "Años escolares", ruta, icono: :calendario, tono: :ver,
   #             tooltip: "Crear y editar"
+  # El número de orden de una fila en una planilla.
+  #
+  #     %li= numero_de_fila(i)
+  #
+  # Una planilla se recorre alumno por alumno, y sin numerar no hay cómo
+  # contestar «¿por dónde iba?» al volver de una interrupción — que en un aula
+  # es cada tres minutos. Tampoco decir «el doce no tiene nota» por teléfono.
+  #
+  # ⚠️ `aria-hidden`, y no es un descuido: la posición YA la dice la estructura
+  # —un `<ol>` anuncia «elemento 12 de 30», una `<tr>` anuncia «fila 12 de 30»—
+  # así que leerla otra vez duplica el número en voz alta.
+  def numero_de_fila(indice)
+    tag.span(indice + 1, class: "fila-orden", "aria-hidden": "true")
+  end
+
   def boton(nombre, ruta, icono:, tono:, sm: false, tooltip: nil, **opciones)
     clases = [ "btn", "btn-#{tono}", ("btn-sm" if sm) ].compact.join(" ")
     datos = opciones.delete(:data) || {}
