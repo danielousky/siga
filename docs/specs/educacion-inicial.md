@@ -58,131 +58,140 @@ que la maestra pueda REGISTRAR. Sin registro, el papel no tiene qué imprimir.
 
 | # | Pregunta | Decisión | Quién |
 |---|----------|----------|-------|
-| 1 | ¿Cómo se evalúa? | **Solo informe descriptivo.** Sin notas, sin ponderación, sin promedio | Daniel |
-| 2 | ¿El informe es uno por alumno o uno por área? | **Uno por ÁREA** — ver § 4 | Daniel |
-| 2.b | ¿Y en Primaria y Media? | **El área es OPCIONAL**: Inicial por área, los otros uno del alumno entero | Daniel |
-| 3 | ¿Qué pestañas tiene la sección? | **Informes · Asistencia · Alumnos.** Desaparecen Calificar y Planificar | Daniel |
-| 4 | ¿Quién lo escribe? | La maestra de la sección y la dirección, como en `MOR-216` | Claude |
-| 5 | ¿Y el menú del profesor? | Una sección de Inicial lleva a Informes, no a Calificar | Claude |
+| 1 | ¿Cómo se evalúa? | **La calificación de cada área es un TEXTO.** Ni 1–20, ni A/B/C, ni la rúbrica PC/PA/PI | Daniel |
+| 2 | ¿Hay que planificar? | **No.** No hay evaluaciones ni ponderación: se califica directo | Daniel |
+| 3 | ¿Y el resultado del año? | **Aprobó, directo.** «Prácticamente con asistir al colegio» | Daniel |
+| 4 | Si hay una condición particular, ¿dónde se dice? | **En el mismo texto.** El docente lo sugiere ahí; no hay marca aparte | Daniel |
+| 5 | ¿Qué pestañas tiene la sección? | **Asistencia · Calificar · Alumnos.** Desaparece Planificar | Daniel |
+| 6 | ¿Se sigue llamando «Calificar»? | **Sí por ahora** | Daniel |
+| 7 | ¿Dónde se guarda ese texto? | **En `moment_grades`**, con la nota numérica nullable — ver § 4 | Daniel |
+| 8 | ¿Y el informe descriptivo de la boleta? | **No se toca.** Uno por inscripción y lapso, opcional, sin área | Daniel |
 
 ## 4 · El dominio
 
-**El currículo de Educación Inicial de Venezuela tiene tres áreas**, y el pensum
-del colegio ya las trae cargadas:
+**En Educación Inicial la calificación es descriptiva.** Daniel, 10 de
+septiembre: *«los niños en Inicial no sacan ni A, ni B, ni C, ni PC, ni AP, ni
+5, ni 20, entonces la calificación es descriptiva»*.
 
 ```
-   FORMACIÓN PERSONAL Y SOCIAL
-   RELACIÓN CON EL AMBIENTE
-   COMUNICACIÓN Y REPRESENTACIÓN
+   LO QUE NO HAY                      LO QUE SÍ HAY
+   ─────────────                      ─────────────
+   ponderación                        un TEXTO por área y lapso
+   evaluaciones con peso              el resultado del año: aprobó
+   escala de ningún tipo                ▲ directo, «prácticamente con
+   promedio                               asistir al colegio»
 ```
 
-El `Informe` de hoy (`MOR-216`) es **uno por (inscripción, lapso)** — hay un
-índice único que lo garantiza. Nació para primaria y bachillerato, donde lo
-escribe el **guía**, que es uno solo y ve al alumno entero.
+⚠️ **Y el informe descriptivo de la boleta es OTRA cosa, y ya existe.** Es uno
+por `(inscripción, lapso)`, opcional, sin área, escrito por el guía — el mismo
+para los tres niveles, tal como está desde `MOR-216`. Lo confirmó Daniel: *«es
+un campo por inscripción por lapso el cual NO ESTÁ ASOCIADO AL ÁREA»*.
 
-**La decisión: el informe gana un `area_id`, y puede ir vacío.**
+Su origen es una boleta real de Cyndi, de primaria, donde ese bloque ya existe.
 
 ```
-   INICIAL    3 informes por niño · uno por área      area_id OBLIGATORIO
-              los escribe la maestra de la sección
+   informes ──  enrollment · lapso · cuerpo        ← NO SE TOCA
+                  ▲ el general, opcional, de la boleta
 
-   PRIMARIA   1 informe del alumno entero             area_id = nil
-   MEDIA      lo escribe el guía, como hoy
+   moment_grades ──  enrollment · lapso · área · …  ← acá va lo de Inicial
 ```
 
-⚠️ **Los 29 informes que ya existen no se tocan**: quedan con `area_id` nulo,
-que es exactamente lo que son —del alumno entero— y no lo que serían si
-hubiera que inventarles un área. La migración no adivina nada.
+### El texto vive en `moment_grades`, con la nota nullable
 
-⚠️ Y el índice único pasa a `(enrollment_id, evaluation_moment_id, area_id)`.
-En PostgreSQL **un índice único NO impide dos filas con `NULL`** —dos nulos no
-son iguales entre sí— así que hacen falta **dos** índices: el de tres columnas
-para los informes con área, y uno parcial `WHERE area_id IS NULL` para que siga
-habiendo uno solo por alumno donde no la hay. Sin el segundo, el guía podría
-escribir dos informes generales del mismo niño en el mismo lapso.
+```
+   HOY                                   QUEDA
+   ───                                   ─────
+   final_moment_score  NOT NULL          final_moment_score  nullable   1..20
+                                         descripcion         nullable   texto
+                                           ▲ uno u otro, según el nivel
+```
 
-**Por qué por área y no un texto largo:** la boleta del MPPE tiene las tres
-áreas separadas. Con un texto único habría que partir al imprimir algo que
-nadie escribió para ser partido — o imprimir el mismo párrafo tres veces.
+⚠️ **Una sola tabla y no una aparte para Inicial**, porque la boleta, el
+historial, la promoción y la certificación 31059 leen `moment_grades`: con dos
+tablas, cada una de esas pantallas tendría que preguntar de qué nivel es el
+alumno antes de saber dónde mirar.
 
-**Lo que cuesta:** tres campos por niño y lapso, o sea **setenta y cinco
-textos** por sección en vez de veinticinco. Es lo que la ley pide, y la planilla
-de `MOR-216` está pensada justo para eso —todos en una pantalla, guardado
-incremental— pero no lo hace menos.
+⚠️ **El precio, y es el riesgo real:** una columna que hoy NUNCA es nula pasa a
+poder serlo. Todo lo que hace cuentas con `final_moment_score` sin comprobar
+que existe se rompe con el primer alumno de Inicial. Es grepeable, y está en § 7.
 
-**Y la puerta queda abierta:** el día que un colegio de bachillerato quiera que
-cada profesor escriba el informe de su materia, el modelo ya lo admite sin
-cambiar nada.
+⚠️ Curiosidad del esquema que conviene saber: el `CHECK` **ya contempla el
+nulo** —`score IS NULL OR score BETWEEN 1 AND 20`— y era la columna la que lo
+prohibía. La migración solo quita el `NOT NULL`.
 
 ## 5 · Cómo se ve
 
 ```
-   ┌─ 1er Nivel · Sección A ───────────────────────── Educación Inicial ─┐
-   │  Informes · Asistencia · Alumnos                                    │
-   │   ▲ sin Calificar ni Planificar: en Inicial no hay notas            │
-   │                                                                     │
-   │  LAPSO   [1er Lapso] 2do Lapso  3er Lapso                           │
-   │                                                                     │
-   │  ┌───────────────────────────────────────────────────────────────┐ │
-   │  │ Bastidas Bermúdez, Valeria                                    │ │
-   │  │                                                               │ │
-   │  │ FORMACIÓN PERSONAL Y SOCIAL                                   │ │
-   │  │ ┌───────────────────────────────────────────────────────────┐ │ │
-   │  │ │ Valeria se integró al grupo con facilidad y comparte los  │ │ │
-   │  │ │ materiales sin que haya que pedírselo.                    │ │ │
-   │  │ └───────────────────────────────────────────────────────────┘ │ │
-   │  │ RELACIÓN CON EL AMBIENTE                                      │ │
-   │  │ ┌───────────────────────────────────────────────────────────┐ │ │
-   │  │ │ escribe el informe…                                       │ │ │
-   │  │ └───────────────────────────────────────────────────────────┘ │ │
-   │  └───────────────────────────────────────────────────────────────┘ │
-   │  guardado automático · 25 niños en una pantalla                     │
-   └─────────────────────────────────────────────────────────────────────┘
+   ┌─ 1er Nivel · Sección U ─────────────────────── Educación Inicial ──┐
+   │  Asistencia · Calificar · Alumnos                                  │
+   │   ▲ sin Planificar: no hay nada que ponderar                       │
+   │                                                                    │
+   │  LAPSO   [1er Lapso] 2do Lapso  3er Lapso                          │
+   │                                                                    │
+   │  Bastidas Bermúdez, Valeria                                        │
+   │    FORMACIÓN PERSONAL Y SOCIAL                                     │
+   │    ┌─────────────────────────────────────────────────────────────┐│
+   │    │ Se integró al grupo con facilidad y comparte los materiales.││
+   │    └─────────────────────────────────────────────────────────────┘│
+   │    RELACIÓN CON EL AMBIENTE                                        │
+   │    ┌─────────────────────────────────────────────────────────────┐│
+   │    │ escribe la valoración…                                      ││
+   │    └─────────────────────────────────────────────────────────────┘│
+   │    COMUNICACIÓN Y REPRESENTACIÓN                                   │
+   │    ┌─────────────────────────────────────────────────────────────┐│
+   │    │ …                                                           ││
+   │    └─────────────────────────────────────────────────────────────┘│
+   │                                                                    │
+   │  Blanco Mendoza, Diego                                             │
+   │    …                                                               │
+   │  guardado automático · 16 niños en una pantalla                    │
+   └────────────────────────────────────────────────────────────────────┘
 ```
 
-Y el vacío de una sección de Inicial a la que se llegue por otra vía:
-
-```
-   Todavía no hay informes en 1er lapso
-
-   En Educación Inicial no hay calificaciones: lo que queda registrado es
-   un informe descriptivo por área.  [→ Escribir los informes]
-```
+⚠️ **Todos los niños en UNA pantalla**, como la planilla de notas y la de
+informes. Con una pantalla por niño son treinta y dos clics de navegación
+además de lo que escribe, y el trabajo se abandona a la mitad.
 
 ## 6 · Criterios de aceptación
 
 - [ ] Dada una sección de Educación Inicial, cuando un profesor la abre,
-      entonces ve **Informes · Asistencia · Alumnos** y ninguna pestaña de
-      notas.
-- [ ] Dada esa sección, cuando alguien pide `/secciones/:id/planificar` o
-      `/secciones/:id` a mano, entonces va a Informes — no a una pantalla que
-      pide ponderación.
+      entonces ve **Asistencia · Calificar · Alumnos** y ninguna pestaña de
+      planificación.
+- [ ] Dada esa sección, cuando alguien pide `/secciones/:id/planificar` a mano,
+      entonces va a Calificar — no a una pantalla que pide ponderación.
 - [ ] Dada una sección de Inicial, entonces **no se puede crear una evaluación**
       en ella, ni desde la pantalla ni por POST directo.
-- [ ] Dado el menú del profesor, cuando dicta en Inicial, entonces su sección
-      lleva a Informes.
-- [ ] Dado un grado de Inicial, entonces su `escala` deja de ofrecerse: no se
-      califica, así que no hay escala que elegir.
+- [ ] Dada la pestaña Calificar de Inicial, entonces se ve **un campo de texto
+      por alumno y por área**, y ningún campo numérico.
+- [ ] Dada una valoración escrita, cuando se recarga la pantalla, entonces sigue
+      ahí — guardado incremental, como la planilla de notas.
+- [ ] Dado un grado que NO es de Inicial, entonces su nota sigue siendo
+      obligatoria y entre 1 y 20.
 - [ ] Dadas primaria y Media, entonces **nada cambia**.
 
 ## 7 · Lo que se puede romper
 
 ⚠️ **La sección que más tiempo ahorra.**
 
-- **`Grade#por_competencias?` es `primaria?`**, así que hoy Inicial y Media
-  caen juntas en el mismo `false`. Cualquier `if` que hoy diga «no es primaria»
-  y asuma bachillerato **se equivoca con Inicial**. Hace falta una pregunta
-  propia —`solo_descriptivo?`— y no un `unless primaria?`.
-- **El boletín y la certificación 31059 leen `MomentGrade`**, que en Inicial no
-  va a existir. Hay que comprobar qué hacen esas pantallas con una sección sin
-  ninguna nota: si revientan, el colegio no puede emitir NADA del año.
+- **`final_moment_score` pasa a ser nullable**, y hoy NUNCA lo es. Todo lo que
+  haga cuentas con esa columna sin comprobar que existe se rompe con el primer
+  alumno de Inicial: `GradeCalculator`, el boletín, la certificación 31059, el
+  panel del alumno, «quién no cargó notas» y la promoción. Es grepeable y hay
+  que recorrerlo entero.
+- **`Grade#por_competencias?` es `primaria?`**, así que Inicial y Media caen
+  juntas en el mismo `false`. Cualquier `if` que diga «no es primaria» y asuma
+  bachillerato **se equivoca con Inicial**. Hace falta una pregunta propia
+  —`califica_con_texto?`— y no un `unless primaria?`. Esa misma trampa mordió
+  dos veces el 10 de septiembre, con el filtro de competencias.
+- **El promedio del lapso y el del año** no deben calcularse en Inicial. Un job
+  que intente promediar textos debe no hacer nada, no fallar.
 - **`Subscription.matricula_de` cuenta inscripciones**, y las de Inicial cuentan
   igual: esto no puede tocar la facturación.
-- **Los promedios y `GradeCalculator`** no deben correr para Inicial. Un job que
-  intente calcular un promedio sin notas debe no hacer nada, no fallar.
-- **El portal del representante** muestra «Calificaciones de 1er lapso». Para un
-  niño de Inicial ese título es falso: no hay calificaciones. Queda fuera del
-  alcance (§ 2) pero **hay que verificar que no reviente**.
+- **El portal del representante** dice «Calificaciones de 1er lapso». Para un
+  niño de Inicial hay que ver qué muestra ahí: queda fuera del alcance (§ 2)
+  pero **no puede reventar**.
+- **La promoción al año siguiente** deduce de las notas definitivas. En Inicial
+  aprueban todos: hay que comprobar que no queden en «SIN DATOS» para siempre.
 
 ## 8 · Cómo se verifica
 
