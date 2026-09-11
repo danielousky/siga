@@ -85,8 +85,16 @@ module MuestraElPlan
   # ofrecía las DIECINUEVE donde este profesor dicta Matemática, de 1er a 5to
   # Año. Una competencia de 1er Año no tiene nada que hacer en 5to, y copiarla
   # allá es basura que después alguien tiene que borrar a mano.
+  # ⚠️ Las hermanas salen de `asignaciones_del_plan`, no de `mis_asignaciones`.
+  #
+  # En `CompetenciesController`, `mis_asignaciones` filtra los grados que evalúan
+  # POR COMPETENCIAS —es la lista de la escalera— y con eso una sección de
+  # Educación Media no tenía hermanas: «Duplicar en 1er Año B» respondía bien y
+  # no copiaba nada. Es el mismo filtro que dejaba `asignacion` en nil.
+  def asignaciones_del_plan = mis_asignaciones
+
   def otras_secciones
-    @otras_secciones ||= mis_asignaciones.select do |ts|
+    @otras_secciones ||= asignaciones_del_plan.select do |ts|
       ts.subject_id == asignacion.subject_id &&
         ts.section.grade_id == asignacion.section.grade_id &&
         ts.section_id != asignacion.section_id

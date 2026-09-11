@@ -80,4 +80,54 @@ class PlanDeMediaTest < ActionDispatch::IntegrationTest
 
     assert_select "a[href*=?]", "/competencias/new"
   end
+
+  # ── Duplicar en la hermana (QA del 10 de septiembre) ──────────────────────
+  #
+  # Daniel: «intenté duplicar la sección y me dio error» → «Content missing».
+  #
+  # ⚠️ `CompetenciesController#asignacion` buscaba contra `mis_asignaciones`,
+  # que filtra los grados que EVALÚAN POR COMPETENCIAS. Ese filtro es de la
+  # escalera de `/competencias` —lo que se ofrece elegir, que es primaria— y no
+  # del alcance. Desde que Media planifica en la misma pantalla, su botón
+  # apuntaba acá con una sección que la lista filtrada no contiene:
+  #
+  #     POST /competencias/copiar?asignacion=85:240&lapso=306
+  #       └─► asignacion = nil
+  #           └─► Redirected to /competencias?asignacion=:   ← sin ids
+  #               └─► Redirected to /secciones  →  «Content missing»
+  #
+  # Se leyó en el log del servidor de Daniel, no se dedujo.
+  test "duplicar en la hermana vuelve al plan, no a /secciones" do
+    hermana = con_el_colegio(@a.colegio) do
+      s = Section.create!(grade: @a.seccion.grade, academic_period: @a.seccion.academic_period,
+                          name: "Z", capacity: 30)
+      TeacherSection.create!(teacher: @a.registro_de_profesor, section: s,
+                             subject: @a.escenario.materia)
+      actividad(@a.escenario, lapso: @lapso, peso: 40, descripcion: "Examen")
+      s
+    end
+
+    post copiar_a_competencies_path(asignacion: "#{@a.seccion.id}:#{@a.escenario.materia.id}",
+                                    lapso: @lapso.id, desde: "seccion"),
+         headers: { "Turbo-Frame" => "plan" }
+
+    assert_redirected_to planificar_section_path(@a.seccion, area: @a.escenario.materia.id,
+                                                 lapso: @lapso.id)
+    # ⚠️ Con llaves: un `do…end` se lo lleva `assert_equal`, no `con_el_colegio`.
+    copiadas = con_el_colegio(@a.colegio) {
+      EvaluationActivity.where(section_id: hermana.id, evaluation_moment_id: @lapso.id).count
+    }
+    assert_equal 1, copiadas
+  end
+
+  # ⚠️ Lo que AUTORIZA sigue siendo la lista del profesor: lo que se quitó es el
+  # filtro por nivel de evaluación, que nunca fue una regla de permisos.
+  test "la sección de otro profesor sigue sin encontrarse" do
+    _, b = dos_colegios_completos(nivel: :secundaria)
+
+    post copiar_a_competencies_path(asignacion: "#{b.seccion.id}:#{b.escenario.materia.id}",
+                                    lapso: @lapso.id)
+
+    assert_redirected_to competencies_path(asignacion: ":")
+  end
 end

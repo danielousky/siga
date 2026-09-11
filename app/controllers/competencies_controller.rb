@@ -262,15 +262,53 @@ class CompetenciesController < ApplicationController
   # ⚠️ La búsqueda va SIEMPRE contra `mis_asignaciones`, y eso es lo que
   # autoriza: un id de la sección de otro profesor no está en la lista y
   # devuelve nil, así que no hace falta comprobar permisos aparte.
+  # ⚠️ La búsqueda va contra TODO lo que el profesor dicta, no contra
+  # `mis_asignaciones`, que además filtra los grados que evalúan POR
+  # COMPETENCIAS.
+  #
+  # Ese filtro es de la ESCALERA —lo que se ofrece elegir en `/competencias`,
+  # que es primaria— y nunca fue una regla de permisos. Desde que Educación
+  # Media planifica en la misma pantalla (10 de septiembre), su botón «Duplicar
+  # en 1er Año B» apuntaba acá con una sección que la lista filtrada NO
+  # contiene:
+  #
+  #     POST /competencias/copiar?asignacion=85:240&lapso=306
+  #       └─► asignacion = nil
+  #           └─► Redirected to /competencias?asignacion=:   ← sin ids
+  #               └─► Redirected to /secciones  →  «Content missing»
+  #
+  # Se leyó en el log del servidor de Daniel.
+  #
+  # ⚠️ Lo que AUTORIZA sigue siendo la lista: es la de ESTE profesor, así que un
+  # id de la sección de otro no está y devuelve nil.
   def asignacion
     return @asignacion if defined?(@asignacion)
 
     seccion, materia = params[:asignacion].to_s.split(":")
-    @asignacion = mis_asignaciones.find do |ts|
+    @asignacion = todo_lo_que_dicta.find do |ts|
       ts.section_id.to_s == seccion && ts.subject_id.to_s == materia
     end
+
     @asignacion ||= por_pastillas
   end
+
+  # El plan —y sus hermanas— trabajan sobre TODO lo que dicta, no sobre la lista
+  # filtrada de la escalera. Sin esto, una sección de Media no tenía hermanas y
+  # «Duplicar en 1er Año B» respondía bien sin copiar nada.
+  def asignaciones_del_plan = todo_lo_que_dicta
+
+  # Todo lo que dicta, del año y el nivel de la sesión — sin el filtro de
+  # competencias, que es de la escalera.
+  def todo_lo_que_dicta
+    return [] unless profesor?
+
+    @todo_lo_que_dicta ||= current_user.teacher.teacher_sections
+                                       .del_anio_de_la_sesion
+                                       .del_nivel_de_la_sesion
+                                       .includes(:subject, section: [ :grade, :academic_period ])
+                                       .to_a
+  end
+
   helper_method :asignacion
 
   # ⚠️ La SECCIÓN también entra en la deducción (QA de Daniel).
