@@ -130,10 +130,7 @@ class StudentsController < ApplicationController
   def student_params
     # `school_id` NO se permite: el colegio sale de la sesión, nunca del request (MOR-86).
     params.require(:student).permit(:school_card,
-      user_attributes: [:id, :first_name, :last_name, :second_last_name,
-                        :document, :document_type, :cedula_escolar,
-                        :birth_date, :sex, :birth_place,
-                        :email, :password, :password_confirmation])
+      user_attributes: User::CAMPOS_ANIDADOS)
           .merge(school_id: Current.school_id)
   end
 

@@ -1909,7 +1909,8 @@ CREATE TABLE public.users (
     birth_place character varying,
     birth_country character varying,
     birth_state character varying,
-    birth_municipality character varying
+    birth_municipality character varying,
+    rif character varying
 );
 
 
@@ -3826,6 +3827,13 @@ CREATE UNIQUE INDEX index_users_on_reset_password_token ON public.users USING bt
 
 
 --
+-- Name: index_users_on_rif; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_users_on_rif ON public.users USING btree (rif) WHERE (rif IS NOT NULL);
+
+
+--
 -- Name: student_representatives fk_rails_08e2b9969f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4979,6 +4987,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260911042145'),
 ('20260911034912'),
 ('20260905003000'),
 ('20260904150000'),

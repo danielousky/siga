@@ -28,6 +28,14 @@
 - letras = Normaliza::LETRAS_DE_NOMBRE
 - filtro_de_nombre = { controller: "campo-filtrado", campo_filtrado_permite_value: letras, campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar" }
 
+-# ⚠️ La foto va PRIMERO, y no al final como «un extra».
+-#
+-# Es lo que identifica a la persona de un vistazo en los listados, y ponerla
+-# después de la cédula la convierte en un trámite más de un formulario largo.
+-# Arriba, junto al nombre, se entiende que es la ficha de alguien.
+- if local_assigns.fetch(:foto, true)
+  = render "shared/foto_de_perfil", u: u
+
 .form-group
   = u.label :first_name, class: "form-label"
   = u.text_field :first_name, class: "form-control", placeholder: local_assigns[:ejemplo_nombre], required: requerido?(User, :first_name), data: filtro_de_nombre
@@ -60,6 +68,19 @@
       -# Solo dígitos: la nacionalidad ya está en el select pegado, así que
       -# escribir «V-» acá la duplicaría. Menos tecleo y menos error.
       = u.text_field :document, class: "form-control", inputmode: "numeric", placeholder: "12345678", data: { controller: "campo-filtrado", campo_filtrado_permite_value: "0-9", action: "input->campo-filtrado#filtrar" }
+
+-# ⚠️ El RIF solo se le pide a quien cobra.
+-#
+-# Es el número de la nómina y del recibo, no un dato de identidad: a un alumno
+-# de primaria no se le pide y a su representante tampoco. Se enciende donde hace
+-# falta —hoy, el formulario del docente— y no aparece en las otras tres
+-# pantallas, que ya son largas.
+- if local_assigns[:rif]
+  .form-group
+    = con_pista "El del SENIAT, para la nómina y el recibo de pago. Una letra y nueve dígitos." do
+      = u.label :rif, class: "form-label"
+    = u.text_field :rif, class: "form-control", placeholder: "V123456789",
+                   data: { controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9", campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
 
 - if local_assigns[:cedula_escolar]
   .form-group

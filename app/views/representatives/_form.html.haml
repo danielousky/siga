@@ -8,7 +8,14 @@
 - parentescos = representative.persisted? ? representative.student_representatives.pluck(:parentesco).uniq : []
 - parentesco_elegido = parentescos.one? ? parentescos.first : "representante"
 
-= form_with url: (representative.persisted? ? representative_path(representative) : representatives_path), method: (representative.persisted? ? :patch : :post) do
+-# ⚠️ `multipart: true` escrito a mano, y en ningún otro formulario hace falta.
+-#
+-# Rails lo pone solo cuando el campo de archivo sale del constructor del
+-# formulario. Acá los campos de la persona los emite `fields_for :user` —el
+-# helper de la vista, no `f.fields_for`, porque `form_with url:` no lleva
+-# modelo— así que no hay constructor padre a quien avisarle, y sin `enctype` el
+-# archivo llega como una cadena con el nombre del archivo.
+= form_with url: (representative.persisted? ? representative_path(representative) : representatives_path), method: (representative.persisted? ? :patch : :post), multipart: true do
   = render "shared/errors", object: usuario
   = render "shared/errors", object: representative
 

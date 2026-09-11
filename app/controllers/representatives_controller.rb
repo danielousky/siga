@@ -175,9 +175,7 @@ class RepresentativesController < ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:first_name, :last_name, :second_last_name, :email,
-                                :document, :document_type, :cedula_escolar,
-                                :birth_date, :sex)
+    params.require(:user).permit(*User::CAMPOS_DEL_FORMULARIO, :email)
   end
 
   def set_representative

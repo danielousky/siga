@@ -95,7 +95,76 @@ class User < ApplicationRecord
   # nadie miró antes de subirla.
   PESO_MAXIMO_DE_FOTO = 2.megabytes
 
+  # El RIF del SENIAT: una letra y nueve dígitos. Las cinco letras son las que
+  # el SENIAT emite —V y E para personas, J para empresas, G para entes del
+  # Estado, P para el pasaporte— y el noveno dígito es el verificador.
+  #
+  # ⚠️ Se valida el FORMATO, no el dígito verificador. El algoritmo existe y es
+  # público, pero un RIF correcto que el algoritmo rechace deja a un docente
+  # fuera de la nómina, y equivocarse por ese lado es mucho peor que guardar un
+  # número mal tecleado que el colegio corrige al primer pago.
+  FORMATO_DE_RIF = /\A[VEJPG]\d{9}\z/
+
+  validates :rif, format: { with: FORMATO_DE_RIF, message: "va con una letra y nueve dígitos, así: V123456789" },
+                  allow_blank: true
+  validates :rif, uniqueness: true, allow_blank: true
+
+  # El RIF como se escribe en un recibo: «V-12345678-9».
+  def rif_con_guiones
+    return nil if rif.blank?
+    return rif unless rif.match?(FORMATO_DE_RIF)
+
+    "#{rif[0]}-#{rif[1, 8]}-#{rif[9]}"
+  end
+
   validate :la_foto_es_una_foto
+
+  # ⚠️ Quitar la foto es un CAMPO del formulario, no un botón aparte.
+  #
+  # Un `DELETE /personas/:id/foto` borraría la foto en el acto, incluso si la
+  # persona después cancela la edición — y no hay manera de deshacerlo. Acá la
+  # decisión viaja con el resto del formulario y se aplica al guardar, que es
+  # cuando quien edita dijo que sí.
+  attr_reader :quitar_foto
+
+  def quitar_foto=(valor)
+    @quitar_foto = ActiveModel::Type::Boolean.new.cast(valor)
+
+    # ⚠️ Y hay que ENSUCIAR la ficha, o quitar la foto sin corregir ningún otro
+    # campo no guarda nada: `quitar_foto` no es una columna, así que el registro
+    # no queda sucio, `autosave` se salta al usuario anidado y el `after_save`
+    # no llega a correr. Se ve como que el botón no hace nada.
+    #
+    # `updated_at` además es verdad: la ficha cambió.
+    self.updated_at = Time.current if @quitar_foto && persisted?
+  end
+
+  # Los campos de una persona que un formulario puede escribir.
+  #
+  # ⚠️ Vive acá y no en cada controller porque estaba escrita TRES veces
+  # —alumno, profesor, administrador— idéntica, y es la misma deuda que
+  # `shared/_datos_de_la_persona` saldó para la vista (`MOR-177`): agregar un
+  # campo eran tres ediciones y la garantía de olvidar una. La foto lo demostró:
+  # el modelo la aceptaba desde MOR-149 y ningún formulario la mandaba.
+  CAMPOS_DEL_FORMULARIO = %i[
+    first_name last_name second_last_name
+    document document_type cedula_escolar rif
+    birth_date sex birth_place
+    foto quitar_foto
+  ].freeze
+
+  # Y lo que agrega el formulario ANIDADO de un rol (`user_attributes`).
+  #
+  # ⚠️ `id` va acá y NO arriba, y la diferencia no es cosmética:
+  #
+  #     user_attributes: [:id, …]   ← sin `id`, cada guardado CREA otra persona
+  #     params[:user].permit(…)     ← con `id`, se puede cambiar la clave primaria
+  #
+  # El representante es el segundo caso —su formulario escribe el `User`
+  # directo— así que su lista no lo lleva.
+  CAMPOS_ANIDADOS = [ :id, *CAMPOS_DEL_FORMULARIO, :email, :password, :password_confirmation ].freeze
+
+  after_save :quitar_la_foto_si_lo_pidieron
 
   # Nombre completo con los dos apellidos: "Álvaro José López Medina".
   #
@@ -256,6 +325,15 @@ class User < ApplicationRecord
     valor&.gsub(/\s/, "")&.upcase.presence
   end
 
+  # El RIF se guarda SIN guiones y en mayúscula: «V-12.345.678-9» y «V123456789»
+  # son el mismo número, y la forma canónica es la que permite buscarlo.
+  #
+  # ⚠️ Lo que se GUARDA y lo que se MUESTRA no son lo mismo: en el recibo de
+  # pago va con sus guiones, y de eso se encarga `#rif_con_guiones`.
+  def self.normalizar_rif(valor)
+    valor&.gsub(/[^A-Za-z0-9]/, "")&.upcase.presence
+  end
+
   # El tipo llega de tres formas según quién pregunte: el símbolo del enum
   # (modelo), su nombre en cadena —lo que manda el `<select>` del formulario— o
   # el entero crudo, que es como vive en la base y como sale de la exportación
@@ -337,6 +415,15 @@ class User < ApplicationRecord
                       "y la conexión del colegio sí")
   end
 
+  # ⚠️ `purge_later` y no `purge`: borrar el archivo del almacenamiento es una
+  # llamada a disco —o a S3— dentro de la transacción que guarda la ficha.
+  def quitar_la_foto_si_lo_pidieron
+    return unless quitar_foto
+    return unless foto.attached?
+
+    foto.purge_later
+  end
+
   def fila_vieja_sin_identificador?
     persisted? && !will_save_change_to_document? && !will_save_change_to_cedula_escolar?
   end
@@ -352,6 +439,7 @@ class User < ApplicationRecord
   def normalizar_identificadores
     self.document       = self.class.normalizar_documento(document, document_type)
     self.cedula_escolar = self.class.normalizar_cedula_escolar(cedula_escolar)
+    self.rif            = self.class.normalizar_rif(rif)
   end
 
   # Un campo de formulario vacío llega como `""`, nunca como `nil`. Y para este

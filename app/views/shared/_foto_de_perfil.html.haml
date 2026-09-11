@@ -1,0 +1,58 @@
+-# La foto de perfil de una persona, en el formulario de cualquiera de los roles.
+-#
+-#     = render "shared/foto_de_perfil", u: u
+-#
+-# ## ⚠️ El caso normal es SIN foto, y eso no es un hueco
+-#
+-# `User` ya lo dice: un colegio que carga su matrícula desde una planilla no
+-# tiene 360 fotos, así que las iniciales con su color estable NO son un marcador
+-# de posición — son el avatar. La foto, cuando existe, lo reemplaza.
+-#
+-# Por eso el campo no es obligatorio, no lleva asterisco y no se ofrece en la
+-# importación: se sube cuando alguien tiene la foto delante.
+-#
+-# ⚠️ La foto y las iniciales conviven en el DOM y se alterna cuál se ve. El
+-# controlador no reconstruye el avatar: eso perdería el color derivado del
+-# nombre (`AvataresHelper#color_de`), que es estable a propósito.
+- persona = u.object
+-# ⚠️ GUARDADA, no «adjunta». Cuando el formulario vuelve por un error de
+-# validación, el archivo que se acaba de elegir ya está adjunto pero no existe
+-# en el almacenamiento — y pedirle la URL revienta con «Cannot get a signed_id
+-# for a new record», tapando el error que la persona tenía que leer.
+- con_foto = persona.foto.attachment&.persisted?
+-# ⚠️ Solo `.avatar`, sin el `avatar--ficha` que emite el helper: ese modificador
+-# no tiene ninguna regla —el tamaño lo pone `--avatar-lado`— y escribirlo acá le
+-# hace creer a `clases_sin_estilo_test` que se borró su bloque.
+- lado = AvataresHelper::TAMANOS[:ficha]
+.foto-de-perfil{ data: { controller: "foto-de-perfil" } }
+  %img.avatar{ src: (url_for(foto_de(persona, lado)) if con_foto), width: lado, height: lado,
+                             alt: "", hidden: !con_foto,
+                             data: { foto_de_perfil_target: "foto" },
+                             style: "--avatar-lado: #{lado}px" }
+  %span.avatar{ hidden: con_foto, "aria-hidden": "true",
+                              data: { foto_de_perfil_target: "iniciales" },
+                              style: "--avatar-lado: #{lado}px; --avatar-color: #{color_de(persona)}" }
+    = iniciales_de(persona)
+
+  .foto-de-perfil-controles
+    .foto-de-perfil-botones
+      -# ⚠️ Un `<label>` y no un botón: el `<input type=file>` nativo no se puede
+      -# estilar, y esconderlo detrás de su propia etiqueta es la única forma de
+      -# que el control se vea como el resto del sistema sin perder el teclado
+      -# —la etiqueta enfoca y activa el campo igual.
+      %label.btn.btn-secondary.btn-sm{ data: { tooltip: "Subir una foto de perfil" } }
+        = icono(:subir, tamano: 15)
+        %span= con_foto ? "Cambiar la foto" : "Subir una foto"
+        = u.file_field :foto, accept: User::FORMATOS_DE_FOTO.join(","), class: "sr-only",
+                       data: { foto_de_perfil_target: "campo", action: "change->foto-de-perfil#elegir" }
+
+      %button.btn.btn-danger.btn-sm{ type: "button", hidden: !con_foto,
+                                     data: { foto_de_perfil_target: "botonDeQuitar",
+                                             action: "foto-de-perfil#quitar",
+                                             tooltip: "Quitar la foto de perfil" } }
+        = icono(:borrar, tamano: 15)
+        %span Quitar
+
+    = u.hidden_field :quitar_foto, value: "0", data: { foto_de_perfil_target: "quitar" }
+
+    %p.nota-ayuda= "PNG, JPG o WEBP, hasta #{User::PESO_MAXIMO_DE_FOTO / 1.megabyte} MB."

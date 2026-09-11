@@ -15,18 +15,22 @@
 
 .ficha
   .ficha-cabecera
-    %div
-      %h1.ficha-nombre= persona.apellidos_y_nombres
-      %p.ficha-situacion
-        = contar(@asignaciones.size, "asignación", "asignaciones")
-        - if @guia_de.any?
-          %span.ficha-punto ·
-          = "guía de #{@guia_de.map { |s| "#{s.grade.name} – #{s.name}" }.to_sentence}"
-        -# El coordinador de grado es otro cargo, y quien lo tiene suele tener
-        -# también sus secciones: se dicen los dos, no uno u otro.
-        - if @coordina.any?
-          %span.ficha-punto ·
-          = "coordina #{@coordina.map(&:name).to_sentence}"
+    -# La foto, o las iniciales con su color. Es lo que hace que quien abre la
+    -# ficha reconozca a la persona antes de leer el nombre.
+    .ficha-identidad
+      = avatar(persona, tamano: :grande)
+      %div
+        %h1.ficha-nombre= persona.apellidos_y_nombres
+        %p.ficha-situacion
+          = contar(@asignaciones.size, "asignación", "asignaciones")
+          - if @guia_de.any?
+            %span.ficha-punto ·
+            = "guía de #{@guia_de.map { |s| "#{s.grade.name} – #{s.name}" }.to_sentence}"
+          -# El coordinador de grado es otro cargo, y quien lo tiene suele tener
+          -# también sus secciones: se dicen los dos, no uno u otro.
+          - if @coordina.any?
+            %span.ficha-punto ·
+            = "coordina #{@coordina.map(&:name).to_sentence}"
 
     .ficha-acciones
       = boton "Editar", edit_teacher_path(@teacher), icono: :editar, tono: :secondary
@@ -61,6 +65,11 @@
       .detail-item
         %span.detail-label Cédula
         %p.detail-value= persona.document.presence || "—"
+      -# Con sus guiones, que es como se escribe en un recibo de pago. En la
+      -# base vive sin ellos, para poder buscarlo.
+      .detail-item
+        %span.detail-label RIF
+        %p.detail-value= persona.rif_con_guiones || "—"
       .detail-item
         %span.detail-label Correo
         %p.detail-value= persona.email

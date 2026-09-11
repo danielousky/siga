@@ -4,7 +4,7 @@
   .form-seccion
     %h2.form-seccion-titulo Datos de la persona
     = f.fields_for :user do |u|
-      = render "shared/datos_de_la_persona", u: u
+      = render "shared/datos_de_la_persona", u: u, rif: true
 
   .form-seccion
     %h2.form-seccion-titulo Cómo entra al sistema

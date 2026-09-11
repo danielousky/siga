@@ -9,15 +9,19 @@
 
 .ficha
   .ficha-cabecera
-    %div
-      %h1.ficha-nombre= alumno.apellidos_y_nombres
-      %p.ficha-situacion
-        - if @inscripcion
-          = "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
-          %span.ficha-punto ·
-          = @inscripcion.section.academic_period.name
-        - else
-          %span.ficha-sin-cupo Sin inscripción activa
+    -# La foto, o las iniciales con su color. Es lo que hace que quien abre la
+    -# ficha reconozca al niño antes de leer el nombre.
+    .ficha-identidad
+      = avatar(alumno, tamano: :grande)
+      %div
+        %h1.ficha-nombre= alumno.apellidos_y_nombres
+        %p.ficha-situacion
+          - if @inscripcion
+            = "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
+            %span.ficha-punto ·
+            = @inscripcion.section.academic_period.name
+          - else
+            %span.ficha-sin-cupo Sin inscripción activa
 
     .ficha-acciones
       = boton "Editar", edit_student_path(@student), icono: :editar, tono: :secondary

@@ -4121,6 +4121,21 @@ body:has(.portada) .barra-superior { display: none; }
   border-bottom: 1px solid var(--border-standard);
 }
 
+/* El avatar al lado del nombre, en la ficha de una persona.
+
+   ⚠️ `min-width: 0` en el bloque del texto: sin eso, un nombre largo estira el
+   flex y empuja los botones de la derecha fuera de la tarjeta. */
+.ficha-identidad {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  min-width: 0;
+}
+
+.ficha-identidad > div {
+  min-width: 0;
+}
+
 .ficha-nombre {
   font-family: var(--font-serif);
   font-size: clamp(24px, 3vw, 32px);
@@ -4916,6 +4931,52 @@ body:has(.portada) .barra-superior { display: none; }
 img.avatar {
   object-fit: cover;
   background: var(--surface-hover);
+}
+
+/* ── la foto de perfil en el formulario ────────────────────────────────────
+
+   El avatar a la izquierda y los controles a la derecha, para que el resultado
+   se vea al lado de lo que lo cambia. Apilarlos dejaría el botón lejos de la
+   foto en un teléfono, que es donde se sube. */
+
+.foto-de-perfil {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.foto-de-perfil-controles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.foto-de-perfil-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+/* ⚠️ El `<label>` que envuelve al campo de archivo tiene que verse y
+   comportarse como el botón que aparenta: sin esto queda con el cursor de
+   texto, y el `<input>` escondido con `.sr-only` deja al usuario sin señal de
+   que ahí se hace clic. */
+.foto-de-perfil-botones label.btn {
+  cursor: pointer;
+  margin: 0;
+}
+
+/* El foco vive en el `<input>`, que está fuera de la pantalla: sin esto, quien
+   navega con el teclado no ve NADA moverse al llegar acá. */
+.foto-de-perfil-botones label.btn:focus-within {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.foto-de-perfil .nota-ayuda {
+  margin: 0;
 }
 
 /* ── avatar + nombre, que es como se usa casi siempre ──────────────────── */

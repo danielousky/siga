@@ -112,6 +112,7 @@ es:
         document: Cédula de identidad
         document_type: Tipo de documento
         cedula_escolar: Cédula escolar
+        rif: RIF
         birth_date: Fecha de nacimiento
         sex: Sexo
         email: Correo electrónico
