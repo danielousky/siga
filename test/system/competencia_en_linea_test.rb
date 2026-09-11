@@ -105,6 +105,11 @@ class CompetenciaEnLineaSystemTest < ApplicationSystemTestCase
   # y Selenium no hace clic en lo que no ve. Es lo mismo que hace un humano.
   test "la × quita un indicador" do
     fila = all(".plan-indicador:not(.plan-indicador--nuevo)").first
+    # ⚠️ Traer la fila a la vista ANTES de apuntarla. Si queda fuera de
+    # pantalla, Selenium hace scroll al BUSCAR la × —no al apuntar— y el
+    # puntero se queda donde estaba: el `:hover` se pierde, la × vuelve a
+    # `opacity: 0` y deja de ser visible a mitad de la búsqueda.
+    execute_script("arguments[0].scrollIntoView({ block: 'center' })", fila)
     fila.hover
     fila.find(".plan-indicador-quitar").click
 

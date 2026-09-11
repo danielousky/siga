@@ -2,7 +2,7 @@ class SectionsController < ApplicationController
   include PreparaLaAsistencia
   include MuestraElPlan
 
-  PESTANAS = [ :show, :alumnos, :asistencia, :planificar ].freeze
+  PESTANAS = [ :show, :alumnos, :alumno, :asistencia, :planificar ].freeze
 
   before_action :require_admin_access!, except: PESTANAS
   before_action :require_read_access!, only: PESTANAS
@@ -49,6 +49,55 @@ class SectionsController < ApplicationController
   # navega y media que alterna no se le puede explicar a nadie: el botón de
   # atrás funcionaría en unas y en otras no.
   def alumnos; end
+
+  # La ficha del alumno COMO LA VE SU PROFESOR (etapa ③).
+  #
+  #     ┌─────────────────────────────────────────────────────────┐
+  #     │ ╭────╮ López Medina, Álvaro José        [← Volver]      │
+  #     │ │ LA │ 1er Nivel – U · 2025-2026                        │
+  #     │ ╰────╯                                                  │
+  #     ├─────────────────────────────────────────────────────────┤
+  #     │ A QUIÉN LLAMAR                                          │
+  #     │ María Pérez · Madre    0414-1234567  [WhatsApp]         │
+  #     ├─────────────────────────────────────────────────────────┤
+  #     │ CÓMO VA                     ASISTENCIA                  │
+  #     │ Comunicación y Repr.        18 de 20 días               │
+  #     │ 1er lapso · «Se integró…»   2 inasistencias             │
+  #     ├─────────────────────────────────────────────────────────┤
+  #     │ DATOS   cédula escolar · nacimiento · sexo              │
+  #     └─────────────────────────────────────────────────────────┘
+  #
+  # ## ⚠️ Por qué no es `StudentsController#show`
+  #
+  # Esa es la ficha de la DIRECCIÓN: el boletín entero, los documentos
+  # oficiales, los enlaces para editar a la familia y para emitir constancias.
+  # Un profesor no necesita nada de eso, y varias de esas acciones no debería
+  # poder ni verlas.
+  #
+  # Lo que sí necesita —y hasta hoy no tenía en ninguna pantalla— es **a quién
+  # llamar**: el número de la mamá del niño que faltó tres días. Eso estaba
+  # solo en la ficha de la dirección.
+  #
+  # ⚠️ «Cómo va» muestra las áreas que ESTE docente le dicta, no todas. La
+  # excepción es el profesor GUÍA, que responde por el niño completo y es quien
+  # atiende a la familia.
+  def alumno
+    @inscripcion = @enrollments.find { |i| i.id.to_s == params[:enrollment_id] }
+    return redirect_to(alumnos_section_path(@section), alert: "Ese alumno no está en esta sección.") if @inscripcion.nil?
+
+    @responsables = StudentRepresentative
+                    .where(student_id: @inscripcion.student_id)
+                    .includes(representative: :user)
+                    .order(principal: :desc)
+
+    @areas_del_alumno = areas_que_le_dicto
+    @lapsos = EvaluationMoment.where(academic_period_id: @section.academic_period_id).order(:id).to_a
+    @lapso  = @lapsos.find { |l| l.id.to_s == params[:lapso] } || lapso_en_curso(@lapsos) || @lapsos.first
+    @calificaciones = calificaciones_del_alumno
+    @faltas = Attendance.where(enrollment_id: @inscripcion.id)
+    @dias_con_registro = @faltas.count
+    @inasistencias = @faltas.faltas.count
+  end
 
   # ⚠️ La asistencia DENTRO de la sección, no en otra pantalla.
   #
@@ -139,6 +188,31 @@ class SectionsController < ApplicationController
   # La dirección las ve todas: no califica, supervisa.
   # Lo que las dos pestañas de esta pantalla necesitan siempre: quiénes dictan
   # acá y quiénes están inscritos.
+  # Las áreas de las que este alumno es «mi alumno».
+  #
+  # ⚠️ El GUÍA las ve todas: es quien responde por el niño ante la familia, y
+  # decirle «no puedes ver cómo va en Matemática» del muchacho que él atiende
+  # sería un límite que no existe en el colegio. La dirección también, por
+  # razones obvias.
+  def areas_que_le_dicto
+    return @section.grade.subjects.order(:name).to_a if can_manage_sections? || guia_de_la_seccion?
+
+    @teacher_sections.select { |ts| ts.teacher.user_id == current_user.id }
+                     .map(&:subject).uniq.sort_by(&:name)
+  end
+
+  def guia_de_la_seccion? = @section.leader_teacher&.user_id == current_user.id
+
+  # Lo que el alumno tiene escrito en esas áreas, en el lapso elegido: un número
+  # en primaria y bachillerato, un texto en Educación Inicial.
+  def calificaciones_del_alumno
+    return {} if @lapso.nil?
+
+    MomentGrade.where(enrollment_id: @inscripcion.id, evaluation_moment_id: @lapso.id,
+                      subject_id: @areas_del_alumno.map(&:id))
+               .index_by(&:subject_id)
+  end
+
   def cargar_la_seccion
     @teacher_sections = @section.teacher_sections.includes(teacher: :user, subject: {})
     @enrollments = @section.enrollments.where(status: :regular)
@@ -271,9 +345,11 @@ class SectionsController < ApplicationController
   # Es la misma trampa que `AcademicPeriod.en_operacion` para el año escolar,
   # cuarta o quinta aparición: abrir en el primero es abrirle a un profesor de
   # marzo la libreta de octubre, que ya cerró.
-  def lapso_en_curso
+  # ⚠️ Recibe la lista, y por defecto la de la libreta. La ficha del alumno tiene
+  # la suya (`@lapsos`) y sin el argumento leía una variable que ahí es `nil`.
+  def lapso_en_curso(lapsos = @lapsos_de_la_libreta)
     hoy = Date.current
-    @lapsos_de_la_libreta.find { |l| l.starts_on && l.ends_on && (l.starts_on..l.ends_on).cover?(hoy) }
+    lapsos.to_a.find { |l| l.starts_on && l.ends_on && (l.starts_on..l.ends_on).cover?(hoy) }
   end
 
   def set_section

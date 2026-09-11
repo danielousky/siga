@@ -74,10 +74,15 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
     con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: @a.registro_de_profesor) }
     visit section_path(@a.seccion, area: @area.id)
 
-    [ "Planificar", "Asistencia" ].each do |nombre|
+    [ [ "Planificar", :planificar_section_path ], [ "Asistencia", :asistencia_section_path ] ].each do |nombre, ruta|
       visit section_path(@a.seccion, area: @area.id)
       click_on nombre
 
+      # ⚠️ La URL PRIMERO, y no es ceremonia: sin esperar a que Turbo termine
+      # la navegación, Capybara encuentra `.pestana.activa` en la página
+      # ANTERIOR y le lee el texto mientras el DOM se reemplaza debajo. De ahí
+      # el fallo intermitente con «<<ERROR>>» en vez de «Asistencia».
+      assert_current_path send(ruta, @a.seccion), ignore_query: true
       assert_selector ".pestana.activa", text: nombre
       assert_selector ".cabecera-de-lista-titulo", text: /#{@a.seccion.grade.name}/
       assert_selector ".detail-label", text: "PROFESOR GUÍA"

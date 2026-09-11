@@ -16,19 +16,29 @@
              titulo: contar(@enrollments.size, "alumno inscrito", "alumnos inscritos")
 
     - if @enrollments.any?
+      -# ⚠️ La fila LLEVA A ALGÚN LADO, y antes no.
+      -#
+      -# Era una tabla muerta: el profesor veía los nombres de sus alumnos y no
+      -# podía abrir a ninguno. El dato que más le hace falta —el teléfono de la
+      -# mamá del niño que faltó— vivía solo en la ficha de la dirección, así
+      -# que había que pedirlo por la oficina.
+      -# ⚠️ UNA columna para el nombre, no dos.
+      -#
+      -# Eran «Sección» —que mostraba el NOMBRE del alumno, con el rótulo
+      -# equivocado— y «Apellido» al lado. `persona_con_avatar` escribe
+      -# «Apellidos, Nombres» de un tirón, que es como se lee una lista de clase
+      -# y como aparece en las otras cuatro pantallas de personas.
       %table.table-academic
         %thead
           %tr
             %th.columna-numero #
-            %th= Section.human_attribute_name(:name)
-            %th Apellido
+            %th= Student.model_name.human
             %th Nro. expediente
         %tbody
           - @enrollments.each_with_index do |enrollment, i|
             %tr
               %td.columna-numero= i + 1
-              %td= enrollment.student.user.first_name
-              %td= enrollment.student.user.apellidos
+              %td= link_to persona_con_avatar(enrollment.student.user), alumno_section_path(@section, enrollment_id: enrollment.id)
               %td= enrollment.student.school_card
     - else
       .empty-state

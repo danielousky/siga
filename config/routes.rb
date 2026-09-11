@@ -400,6 +400,18 @@ Rails.application.routes.draw do
       get "alumnos"
       get "asistencia"
       get "planificar"
+
+      # ⚠️ La ficha del alumno DENTRO de la sección, y no `/alumnos/:id`.
+      #
+      # `StudentsController#show` es de la dirección: trae el boletín completo,
+      # los documentos oficiales y los enlaces para editar a la familia. Un
+      # profesor no necesita nada de eso y no debería poder abrirlo.
+      #
+      # Y colgando de la sección, el permiso ya está resuelto por construcción:
+      # quien puede ver la sección puede ver a los niños de esa sección. Sin el
+      # anidamiento habría que volver a preguntar, alumno por alumno, si es de
+      # alguna de las secciones de quien mira.
+      get "alumnos/:enrollment_id", to: "sections#alumno", as: :alumno
     end
 
     resources :teacher_sections, path: "profesores", only: [:create, :destroy]

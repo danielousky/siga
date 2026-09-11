@@ -4121,6 +4121,13 @@ body:has(.portada) .barra-superior { display: none; }
   border-bottom: 1px solid var(--border-standard);
 }
 
+/* La cabecera de una ficha que es toda la tarjeta: sin nada debajo, la raya
+   inferior no separa nada y se lee como un subrayado suelto. */
+.ficha-cabecera--sola {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
 /* El avatar al lado del nombre, en la ficha de una persona.
 
    ⚠️ `min-width: 0` en el bloque del texto: sin eso, un nombre largo estira el
@@ -4978,6 +4985,70 @@ img.avatar {
 .foto-de-perfil .nota-ayuda {
   margin: 0;
 }
+
+/* ── la ficha del alumno vista por su profesor ─────────────────────────────
+
+   Dos tarjetas al lado, porque «cómo va» y «cuánto ha faltado» son la misma
+   pregunta partida en dos —por qué este niño anda así— y leerlas juntas es lo
+   que la contesta. En el teléfono se apilan, que es donde se lee de una en una. */
+
+.ficha-dos-columnas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-md);
+  align-items: start;
+}
+
+.ficha-areas { list-style: none; margin: 0; padding: 0; }
+
+.ficha-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-micro);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border-standard);
+}
+
+.ficha-area:last-child { border-bottom: none; }
+
+.ficha-area-nombre {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* La valoración de Educación Inicial es un párrafo, y se lee como tal. */
+.ficha-area-texto {
+  margin: 0;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* ⚠️ Sin color: un número es el DATO, y la regla de color (MOR-135) reserva el
+   rojo para cuando SIGA marca un aplazado — no para cada nota de una lista. */
+.ficha-area-nota {
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.ficha-asistencia-cuenta {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.ficha-asistencia-faltas {
+  margin: var(--space-micro) 0 0;
+  color: var(--text-secondary);
+}
+
+.ficha-sin-faltas { color: var(--text-secondary); }
 
 /* ── avatar + nombre, que es como se usa casi siempre ──────────────────── */
 

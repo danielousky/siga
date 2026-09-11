@@ -1,0 +1,119 @@
+-# La ficha del alumno COMO LA VE SU PROFESOR (etapa ③).
+-#
+-# ⚠️ No es `students/show`, que es la de la DIRECCIÓN. Ver el comentario de
+-# `SectionsController#alumno`: acá va lo que el docente usa —a quién llamar,
+-# cómo va en lo suyo, cuánto ha faltado— y nada de documentos ni de edición.
+- persona = @inscripcion.student.user
+- acciones = capture do
+  = boton "Volver a los alumnos", alumnos_section_path(@section), icono: :volver, tono: :secondary
+
+= render layout: "sections/marco",
+         locals: { seccion: @section, area: area_de_la_pestana, activa: :alumnos,
+                   inscritos: @enrollments.size, acciones: acciones } do
+  .card-academic
+    -# ⚠️ Sin la raya de `.ficha-cabecera`: acá no separa el encabezado del
+    -# contenido —no hay contenido debajo— y queda una línea colgando.
+    .ficha-cabecera.ficha-cabecera--sola
+      .ficha-identidad
+        = avatar(persona, tamano: :grande)
+        %div
+          %h2.ficha-nombre= persona.apellidos_y_nombres
+          %p.ficha-situacion
+            = "#{@section.grade.name} – #{@section.name}"
+            %span.ficha-punto ·
+            = @section.academic_period.name
+
+  -# ── 1. A quién llamar ────────────────────────────────────────────────────
+  -# Va PRIMERO, y es lo que esta pantalla vino a resolver: el número de la mamá
+  -# del niño que faltó tres días estaba solo en la ficha de la dirección, así
+  -# que un profesor tenía que pedirlo por la oficina.
+  .card-academic
+    = render "shared/cabecera", titulo: "A quién llamar", nivel: 2
+
+    - if @responsables.any?
+      %ul.ficha-responsables
+        - @responsables.each do |vinculo|
+          - responsable = vinculo.representative.user
+          %li.ficha-responsable
+            %div
+              %span.ficha-responsable-nombre= responsable.nombre_completo
+              %span.ficha-responsable-vinculo= vinculo.etiqueta
+              - if vinculo.principal?
+                %span.ficha-principal Principal
+            .ficha-responsable-contacto
+              - if vinculo.representative.phone.present?
+                -# `tel:` y no texto plano: el profesor tiene el teléfono en la
+                -# mano, y llamar es un toque.
+                = link_to vinculo.representative.phone, "tel:#{vinculo.representative.phone.gsub(/\s/, '')}", class: "ficha-telefono"
+                -# ⚠️ Solo si es un móvil: `Contacto.whatsapp_url` devuelve nil
+                -# para un fijo, y un enlace de WhatsApp hacia un 0212 abre la
+                -# app con un chat hacia nadie.
+                - if (wa = Contacto.whatsapp_url(vinculo.representative.phone, "Buenos días, le escribo de #{Current.school.name} por #{persona.first_name}."))
+                  = boton "WhatsApp", wa, icono: :representantes, tono: :accion, sm: true, target: "_blank", rel: "noopener", tooltip: "Escribirle por WhatsApp"
+              - else
+                %span.ficha-falta Sin teléfono
+              - if responsable.email.present?
+                %span.ficha-correo= responsable.email
+    - else
+      .empty-state
+        %h3 Sin representante registrado
+        %p
+          Nadie figura como responsable de #{persona.first_name}. Si hay que llamar a
+          la familia, el número tiene que pedirlo en la oficina.
+
+  .ficha-dos-columnas
+    -# ── 2. Cómo va ─────────────────────────────────────────────────────────
+    .card-academic
+      = render "shared/cabecera", titulo: "Cómo va", nivel: 2, detalle: @lapso&.name
+
+      - if @areas_del_alumno.empty?
+        .empty-state
+          %p No dictas ninguna área en esta sección.
+      - else
+        %ul.ficha-areas
+          - @areas_del_alumno.each do |area|
+            - calificacion = @calificaciones[area.id]
+            %li.ficha-area
+              %span.ficha-area-nombre= area.name
+              - if calificacion.nil?
+                %span.dato-vacio Sin calificar
+              - elsif calificacion.descripcion.present?
+                -# Educación Inicial: la calificación es un párrafo, no un número.
+                %p.ficha-area-texto= calificacion.descripcion
+              - else
+                %span.ficha-area-nota= calificacion.final_moment_score
+
+    -# ── 3. Asistencia ──────────────────────────────────────────────────────
+    .card-academic
+      = render "shared/cabecera", titulo: "Asistencia", nivel: 2
+
+      - if @dias_con_registro.zero?
+        .empty-state
+          %p Todavía no se ha pasado lista en esta sección.
+      - else
+        %p.ficha-asistencia-cuenta
+          = contar(@dias_con_registro, "día con lista pasada", "días con lista pasada")
+        %p.ficha-asistencia-faltas
+          - if @inasistencias.zero?
+            %span.ficha-sin-faltas Sin inasistencias
+          - else
+            = contar(@inasistencias, "inasistencia", "inasistencias")
+
+  -# ── 4. Datos ─────────────────────────────────────────────────────────────
+  .card-academic
+    = render "shared/cabecera", titulo: "Datos", nivel: 2
+
+    .detail-row
+      .detail-item
+        %span.detail-label= User.human_attribute_name(:cedula_escolar)
+        %p.detail-value= persona.cedula_escolar.presence || persona.document.presence || "—"
+      .detail-item
+        %span.detail-label= User.human_attribute_name(:birth_date)
+        %p.detail-value
+          - if persona.birth_date
+            = l(persona.birth_date, format: :long)
+          - else
+            = "—"
+      .detail-item
+        %span.detail-label= User.human_attribute_name(:sex)
+        %p.detail-value= User::SEX_LABELS[persona.sex] || "—"
