@@ -260,8 +260,23 @@ class School < ApplicationRecord
   # No se valida el LARGO ni el prefijo: el MPPE los ha cambiado, y rechazar un
   # código correcto porque nuestro patrón envejeció deja al colegio sin poder
   # registrarse.
-  validates :dea_code, presence: true, uniqueness: true,
-                       format: { with: /\A[A-Za-z0-9]+\z/,
+  # ⚠️ El DEA dejó de ser obligatorio, y es la otra mitad de `MOR-208`.
+  #
+  # Lo asigna el ministerio y nadie lo tiene en la cabeza: pedirlo en la puerta
+  # pierde a quien iba a registrarse y se fue a buscarlo. El formulario ya lo
+  # sabía —decía «escriba algo provisional y corríjalo después»— y eso es peor
+  # que dejarlo vacío: un identificador NACIONAL con un valor inventado adentro,
+  # que nadie vuelve a corregir.
+  #
+  # `PasosDeArranque` ya lo pide como un paso pendiente, con su explicación de
+  # por qué conviene cargarlo antes del primer boletín.
+  #
+  # ⚠️ `allow_blank` en el único, y el índice PARCIAL en la base: sin las dos,
+  # el segundo colegio que se registre sin código choca contra el primero.
+  # PostgreSQL trata dos `NULL` como distintos, pero dos `''` como iguales — de
+  # ahí que `normalizar_el_dea` devuelva `nil` y no `""`.
+  validates :dea_code, uniqueness: true, allow_blank: true,
+                       format: { with: /\A[A-Za-z0-9]+\z/, allow_blank: true,
                                  message: "solo admite letras y números, sin espacios ni símbolos" }
   # ⚠️ `location` dejó de ser obligatorio (MOR-208).
   #

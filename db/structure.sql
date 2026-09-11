@@ -1147,7 +1147,7 @@ CREATE TABLE public.schema_migrations (
 
 CREATE TABLE public.schools (
     id bigint NOT NULL,
-    dea_code character varying NOT NULL,
+    dea_code character varying,
     name character varying NOT NULL,
     location character varying,
     created_at timestamp(6) without time zone NOT NULL,
@@ -3438,7 +3438,7 @@ CREATE UNIQUE INDEX index_rubrics_on_school_id_and_valor ON public.rubrics USING
 -- Name: index_schools_on_dea_code; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE UNIQUE INDEX index_schools_on_dea_code ON public.schools USING btree (dea_code);
+CREATE UNIQUE INDEX index_schools_on_dea_code ON public.schools USING btree (dea_code) WHERE (dea_code IS NOT NULL);
 
 
 --
@@ -4987,6 +4987,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260911202756'),
 ('20260911042145'),
 ('20260911034912'),
 ('20260905003000'),

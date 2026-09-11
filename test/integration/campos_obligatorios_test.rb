@@ -49,8 +49,14 @@ class CamposObligatoriosTest < ActionDispatch::IntegrationTest
   # día: alguien afloja una validación y el `required` se queda impidiendo
   # enviar algo que ya es opcional.
   test "requerido? sale de los validadores, no de una lista" do
-    assert requerido?(School, :dea_code)
+    assert requerido?(School, :name)
     assert requerido?(Subject, :code)
+    # ⚠️ Y este es el ejemplo de por qué se deduce en vez de escribirse: el DEA
+    # era obligatorio y dejó de serlo (`MOR-208`, segunda mitad). Escrito a
+    # mano, el `required` habría quedado impidiendo enviar un campo que ya es
+    # opcional — y nadie lo habría notado hasta que un colegio no pudiera
+    # registrarse.
+    assert_not requerido?(School, :dea_code), "el DEA se carga después del registro"
     assert_not requerido?(User, :email), "el correo es opcional desde MOR-142"
     assert_not requerido?(User, :document), "document o cedula_escolar, no los dos"
   end

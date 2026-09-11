@@ -5045,7 +5045,21 @@ td.columna-orden { width: 2.5rem; }
   color: var(--text-tertiary);
 }
 
-.opcion-boton.elegida {
+/* El área donde se pega la lista: ancha, monoespaciada y sin ajuste de línea,
+   para que las columnas se vean como columnas y se note si algo vino pegado. */
+.campo-pegado {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 13px;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* ⚠️ Los DOS nombres, y no es descuido: `elegida` la pone el controlador de los
+   identificadores y `activa` la pone `paneles`, que es el de las pestañas. Son
+   la misma idea —«esta es la que está»— y tienen que verse igual; unificar los
+   nombres es tocar dos controladores que ya usan otras pantallas. */
+.opcion-boton.elegida,
+.opcion-boton.activa {
   border-color: var(--control-focus-border);
   background: var(--control-focus-ring);
   font-weight: 600;
@@ -5081,6 +5095,78 @@ td.columna-orden { width: 2.5rem; }
 }
 
 .form-avanzado[open] > .form-avanzado-titulo::before { transform: rotate(90deg); }
+
+/* ── el formulario de a un paso por vez ────────────────────────────────────
+
+   Diecisiete campos en una pantalla eran tres decisiones distintas —qué
+   colegio, dónde queda, quién responde— presentadas como una sola lista. */
+
+.pasos-barra {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.pasos-punto {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+/* El número en un círculo, que es cómo se lee un paso de un asistente. */
+.pasos-punto-numero {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--border-standard);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* En el teléfono se esconde el nombre del paso y quedan los tres números: tres
+   palabras más tres círculos no caben en 360 px, y lo que hace falta saber ahí
+   es por cuál se va. El nombre del paso actual lo dice el `<legend>`. */
+.pasos-punto-nombre { white-space: nowrap; }
+
+@media (max-width: 600px) {
+  .pasos-punto-nombre { display: none; }
+}
+
+.pasos-punto--actual { color: var(--text-primary); font-weight: 600; }
+
+.pasos-punto--actual .pasos-punto-numero {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: #fff;
+}
+
+/* ⚠️ El paso HECHO se marca con un fondo suave y no con un ✓ dibujado: el
+   check dentro de un círculo de 22 px se lee como un borrón. */
+.pasos-punto--hecho .pasos-punto-numero {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  background: var(--control-focus-ring);
+}
+
+.pasos-acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+/* La cuenta empuja a los botones a la derecha, que es donde se avanza. */
+.pasos-cuenta {
+  margin-right: auto;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
 
 /* ── el avatar ─────────────────────────────────────────────────────────────
 

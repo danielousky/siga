@@ -66,11 +66,31 @@ class ImportacionesController < ApplicationController
   #    después—, así que `archivo.open` daba `ActiveStorage::FileNotFoundError`:
   #    la fila existía y el archivo todavía no. Y no hacía falta bajarlo: lo
   #    tenemos en la mano.
+  # Dos puertas al mismo camino: un archivo, o lo que se pegó.
+  #
+  # ⚠️ Pegar NO es otro importador. La secretaria tiene la lista abierta en
+  # Excel al lado y el camino corto es seleccionar, copiar y pegar — guardar el
+  # archivo, buscarlo en el explorador y subirlo son cuatro pasos que no aportan
+  # nada. Lo que llega después es idéntico: la misma `Planilla`, la misma
+  # previsualización, los mismos avisos.
+  #
+  # Y no hace falta convertir nada: `Planilla` ya adivina el separador del
+  # propio texto, que es exactamente lo que necesita un pegado —Excel copia con
+  # TABULACIONES y un CSV pegado a mano viene con comas o con punto y coma.
   def create
     archivo = params.dig(:importacion, :archivo)
-    return rechazar("Elija una planilla para subir.") if archivo.blank?
+    pegado = params.dig(:importacion, :pegado).to_s.strip
 
-    hoja = Planilla.new(archivo.tempfile.path, extension: File.extname(archivo.original_filename))
+    return rechazar("Suba una planilla o pegue la lista.") if archivo.blank? && pegado.blank?
+
+    if archivo.present?
+      nombre = archivo.original_filename
+      hoja = Planilla.new(archivo.tempfile.path, extension: File.extname(nombre))
+    else
+      nombre = "pegado-#{Time.current.strftime('%Y%m%d-%H%M')}.csv"
+      pegado_en_disco = guardar_lo_pegado(pegado)
+      hoja = Planilla.new(pegado_en_disco.path, extension: ".csv")
+    end
 
     # ⚠️ El año escolar se ESTAMPA acá, desde la sesión (MOR-165).
     #
@@ -85,14 +105,24 @@ class ImportacionesController < ApplicationController
     @importacion = Importacion.new(
       school: Current.school, subido_por: current_user,
       academic_period: Current.academic_period,
-      nombre_del_archivo: archivo.original_filename,
+      nombre_del_archivo: nombre,
       filas_leidas: hoja.filas.size,
       tipo: tipo_pedido
     )
 
     return rechazar(@importacion.errors.full_messages.to_sentence) unless @importacion.save
 
-    @importacion.archivo.attach(archivo)
+    # ⚠️ Lo pegado se guarda como archivo igual, y no es ceremonia: la
+    # previsualización vuelve a LEER la planilla en cada pantalla —el mapeo, la
+    # muestra, la confirmación— y sin archivo no habría de dónde. Además la
+    # importación es la bitácora de quién cargó qué, y «se pegó una lista» sin
+    # la lista no contesta nada.
+    if archivo.present?
+      @importacion.archivo.attach(archivo)
+    else
+      @importacion.archivo.attach(io: File.open(pegado_en_disco.path), filename: nombre,
+                                  content_type: "text/csv")
+    end
 
     redirect_to @importacion, notice: "Planilla cargada. Revise cómo quedaron las columnas."
   rescue Planilla::NoSePuedeLeer => e
@@ -312,6 +342,16 @@ class ImportacionesController < ApplicationController
 
     Section.create(grade: grado, academic_period: periodo, name: nombre,
                    capacity: [ (@importacion.matricula? ? params[:cuantas].to_i : 0), 30 ].max)
+  end
+
+  # ⚠️ El `Tempfile` se guarda en una variable de instancia: `Planilla` lo abre
+  # por RUTA y Active Storage lo vuelve a leer más abajo, así que un temporal sin
+  # referencia lo borra el recolector entre una cosa y la otra.
+  def guardar_lo_pegado(texto)
+    @pegado_en_disco = Tempfile.new([ "pegado", ".csv" ])
+    @pegado_en_disco.write(texto)
+    @pegado_en_disco.flush
+    @pegado_en_disco
   end
 
   def rechazar(mensaje)

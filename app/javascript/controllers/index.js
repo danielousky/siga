@@ -38,6 +38,7 @@ import EdicionEnLineaController from "controllers/edicion_en_linea_controller"
 import FotoDePerfilController from "controllers/foto_de_perfil_controller"
 import IdentificadorController from "controllers/identificador_controller"
 import IdentificadoresUsadosController from "controllers/identificadores_usados_controller"
+import PasosController from "controllers/pasos_controller"
 import PlanillaController from "controllers/planilla_controller"
 import CalendarioEscolarController from "controllers/calendario_escolar_controller"
 import QueEvaluaController from "controllers/que_evalua_controller"
@@ -65,6 +66,7 @@ application.register("edicion-en-linea", EdicionEnLineaController)
 application.register("foto-de-perfil", FotoDePerfilController)
 application.register("identificador", IdentificadorController)
 application.register("identificadores-usados", IdentificadoresUsadosController)
+application.register("pasos", PasosController)
 application.register("planilla", PlanillaController)
 application.register("calendario-escolar", CalendarioEscolarController)
 application.register("que-evalua", QueEvaluaController)

@@ -17,9 +17,14 @@
 -# `entidad_federal`, `municipio` y `parroquia` salen IMPRESAS en los documentos
 -# del MPPE. Como texto libre producían «Libertador», «Mcpio. Libertador» y
 -# «LIBERTADOR» para el mismo lugar; en cascada producen siempre lo mismo.
-%fieldset.siga-fieldset{data: { controller: "ubicacion",
-                               ubicacion_catalogo_value: DivisionPolitica.como_json_para_el_navegador,
-                               ubicacion_otro_value: DivisionPolitica::OTRO }}
+-# ⚠️ `paso:` para que este MISMO fieldset sea un paso del asistente del alta de
+-# colegio, en vez de quedar envuelto en otro. Anidados salían dos `<legend>`
+-# —«Dónde queda» y el propio— y el de afuera arrastraba la validación del de
+-# adentro.
+- como_paso = local_assigns[:paso] ? { pasos_target: "paso" } : {}
+%fieldset.siga-fieldset{ data: como_paso.merge(controller: "ubicacion",
+                                              ubicacion_catalogo_value: DivisionPolitica.como_json_para_el_navegador,
+                                              ubicacion_otro_value: DivisionPolitica::OTRO) }
   %legend Dónde queda y cómo contactarlo
 
   .form-row

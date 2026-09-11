@@ -75,23 +75,26 @@
       %h2.form-seccion-titulo Su colegio
 
       = fields_for :school, @colegio do |c|
-        .form-row
-          .form-group
-            = c.label :name, "Nombre del colegio", class: "form-label"
-            = c.text_field :name, class: "#{clase_de_campo(@colegio, :name)} campo-mayuscula",
-                           placeholder: "U.E. Colegio San José", required: requerido?(School, :name),
-                           data: { controller: "campo-filtrado",
-                                   campo_filtrado_permite_value: Normaliza::LETRAS_DE_INSTITUCION,
-                                   campo_filtrado_mayuscula_value: true,
-                                   action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar" }
-          .form-group
-            = con_pista("Lo asigna el ministerio. Si no lo tiene a mano, escriba algo provisional y corríjalo después: se puede cambiar.") { c.label :dea_code, "Código DEA", class: "form-label" }
-            = c.text_field :dea_code, class: "#{clase_de_campo(@colegio, :dea_code)} campo-mayuscula",
-                           placeholder: "PD01234567", required: requerido?(School, :dea_code),
-                           pattern: "[A-Za-z0-9]+",
-                           data: { tooltip: "Solo letras y números, sin espacios ni símbolos",
-                                   controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9",
-                                   campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
+        -# ⚠️ El código DEA SALIÓ de esta pantalla (`MOR-208`, segunda mitad).
+        -#
+        -# Lo asigna el ministerio y nadie lo tiene en la cabeza: pedirlo en la
+        -# puerta pierde a quien iba a registrarse y se fue a buscarlo. Este
+        -# formulario ya lo sabía —decía «si no lo tiene a mano, escriba algo
+        -# provisional y corríjalo después»— y eso es peor que dejarlo vacío: un
+        -# identificador NACIONAL con un valor inventado adentro, que nadie
+        -# vuelve a corregir.
+        -#
+        -# Se pide después, en «La identidad del colegio», que es un paso de
+        -# arranque con su explicación de por qué conviene antes del primer
+        -# boletín. Ver `PasosDeArranque#identidad`.
+        .form-group
+          = c.label :name, "Nombre del colegio", class: "form-label"
+          = c.text_field :name, class: "#{clase_de_campo(@colegio, :name)} campo-mayuscula",
+                         placeholder: "U.E. Colegio San José", required: requerido?(School, :name),
+                         data: { controller: "campo-filtrado",
+                                 campo_filtrado_permite_value: Normaliza::LETRAS_DE_INSTITUCION,
+                                 campo_filtrado_mayuscula_value: true,
+                                 action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar" }
 
       -# ⚠️ Marcar es MÚLTIPLE, no un desplegable: la mitad del mercado dicta
       -# varias cosas, y esa es justamente la razón por la que `school_type` se
