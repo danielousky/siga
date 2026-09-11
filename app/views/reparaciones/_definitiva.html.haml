@@ -1,0 +1,13 @@
+-# La nota con la que queda el alumno, al lado del campo de reparación.
+-#
+-# ⚠️ Tiene `id` propio para que el servidor la reemplace SOLA por Turbo Stream.
+-# Sin esto el Art. 112 es una promesa que el profesor no puede comprobar hasta
+-# que salga el boletín: carga 14 sobre un 8 y no sabe si el sistema se quedó
+-# con el 8.
+-#
+-# ⚠️ Rojo o verde según aprueba: es el DATO —la nota definitiva de este
+-# alumno— y no un control, así que la regla de color aplica tal cual.
+- libro = local_assigns.fetch(:libro)
+%span.carga-definitiva{ id: "definitiva_#{local_assigns.fetch(:alumno)}",
+                        class: (libro.aplazado? ? "bajo" : "aprobada") }
+  = libro.final_score&.to_i

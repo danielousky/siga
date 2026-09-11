@@ -30,6 +30,7 @@
 # nota que ya está bien — que es como se le baja una nota a alguien por
 # accidente.
 class ReparacionesController < ApplicationController
+  include PlanillaQueSeGuardaSola
   before_action :require_puede_calificar!
   before_action :set_seccion_y_materia, except: [ :index ]
 
@@ -48,7 +49,7 @@ class ReparacionesController < ApplicationController
   # campos que se envía al final es una promesa de perder el trabajo.
   def update
     libro = libros_aplazados.find { |l| l.enrollment.student_id.to_s == params[:student_id].to_s }
-    return render(json: { estado: "error", mensaje: "Ese alumno no está aplazado en esta materia." }, status: :not_found) if libro.nil?
+    return head(:not_found) if libro.nil?
 
     anterior = libro.remedial_exam_score
     nota = params[:score].to_s.strip
@@ -60,10 +61,10 @@ class ReparacionesController < ApplicationController
 
     if libro.save
       auditar(libro, anterior)
-      render json: respuesta(libro)
+      contestar(libro, nota.blank? ? :vacio : :guardado)
     else
-      render json: { estado: "error", mensaje: libro.errors.full_messages.to_sentence },
-             status: :unprocessable_entity
+      contestar(libro, :rechazado, libro.errors.full_messages.to_sentence,
+                estado_http: :unprocessable_entity)
     end
   end
 
@@ -147,16 +148,24 @@ class ReparacionesController < ApplicationController
     )
   end
 
-  # ⚠️ Devuelve `definitiva`: es lo que la planilla pinta al lado, en vivo. Un
-  # profesor que carga 14 sobre un 8 tiene que VER que el alumno quedó en 14 —
-  # sin eso, el Art. 112 es una promesa que no se comprueba hasta el boletín.
-  def respuesta(libro)
-    { estado: "guardado",
-      nota: libro.remedial_exam_score&.to_i,
-      definitiva: libro.final_score&.to_i,
-      aprobado: !libro.aplazado?,
-      cargadas: libros_aplazados.count { |l| l.remedial_exam_score.present? },
-      total: libros_aplazados.size }
+  # ⚠️ El stream lleva la DEFINITIVA además de la marca, y esa es la diferencia
+  # con la planilla de notas.
+  #
+  # Un profesor que carga 14 sobre un 8 tiene que VER en el momento que el
+  # alumno quedó en 14 — sin eso, el Artículo 112 es una promesa que no se
+  # comprueba hasta que salga el boletín.
+  def contestar(libro, estado, mensaje = nil, estado_http: :ok)
+    response.status = estado_http
+    alumno = libro.enrollment.student_id
+
+    fila_de_la_planilla(
+      id: "estado_#{alumno}", estado: estado, mensaje: mensaje,
+      hechas: libros_aplazados.count { |l| l.remedial_exam_score.present? },
+      total: libros_aplazados.size, nombre: "cargadas",
+      extra: [ turbo_stream.replace("definitiva_#{alumno}",
+                                    partial: "reparaciones/definitiva",
+                                    locals: { alumno: alumno, libro: libro }) ]
+    )
   end
 
   def require_puede_calificar!

@@ -1,0 +1,16 @@
+-# Cuánto va lleno de una planilla: la barra y la cuenta.
+-#
+-#     = render "shared/progreso_de_la_planilla", hechas: 12, total: 30, nombre: "cargadas"
+-#
+-# ⚠️ Vive en su propio `id` para que el servidor pueda reemplazarlo SOLO a él
+-# por Turbo Stream. Repintar la lista entera para mover una barra se llevaría el
+-# foco del campo siguiente, que es lo que hace usable la planilla.
+- hechas = local_assigns.fetch(:hechas).to_i
+- total = local_assigns.fetch(:total).to_i
+- nombre = local_assigns.fetch(:nombre, "llenas")
+#progreso_de_la_planilla.carga-progreso
+  .carga-progreso-barra
+    -# `style` con interpolación: el ancho ES el dato (ver la regla del sistema
+    -# de diseño), no una decisión de presentación escrita a mano.
+    .carga-progreso-fill{ style: "width: #{total.positive? ? (hechas * 100.0 / total).round : 0}%" }
+  .carga-progreso-texto= "#{hechas} de #{total} #{nombre}"

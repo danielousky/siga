@@ -1,10 +1,7 @@
 -# La planilla está pensada MÓVIL PRIMERO: una fila por alumno, en vertical, con
 -# el campo grande y teclado numérico. Una grilla de 30 × N en un teléfono no se
 -# arregla con overflow-x — se arregla no siendo una grilla.
-.card-academic{data: { controller: "carga-notas",
-                       carga_notas_url_base_value: evaluation_activity_nota_path(@evaluation_activity, "STUDENT_ID"),
-                       carga_notas_cargadas_value: @notas_por_alumno.size,
-                       carga_notas_total_value: @inscripciones.size }}
+.card-academic{ data: { controller: "planilla" } }
   = render layout: "shared/cabecera", locals: { titulo: @evaluation_activity.description } do
     -# ⚠️ Vuelve a la LIBRETA de su sección, no a la ficha de la evaluación.
     -#
@@ -32,16 +29,10 @@
     - peso = @evaluation_activity.weight_percentage
     %span.carga-peso= "#{porcentaje(peso)} del lapso"
 
-  .carga-progreso
-    .carga-progreso-barra
-      .carga-progreso-fill{data: { carga_notas_target: "progresoBarra" },
-                           style: "width: #{@inscripciones.any? ? (@notas_por_alumno.size * 100.0 / @inscripciones.size).round : 0}%"}
-    .carga-progreso-texto{data: { carga_notas_target: "progresoTexto" }}
-      = "#{@notas_por_alumno.size} de #{@inscripciones.size} cargadas"
+  = render "shared/progreso_de_la_planilla", hechas: @notas_por_alumno.size,
+           total: @inscripciones.size, nombre: "cargadas"
 
-  .carga-aviso{data: { carga_notas_target: "aviso" }, hidden: true}
-    %span{data: { carga_notas_target: "avisoTexto" }}
-    %button.btn.btn-secondary.btn-sm{type: "button", data: { action: "carga-notas#reintentarTodo" }} Reintentar
+  = render "shared/aviso_de_la_planilla"
 
   - if @inscripciones.any?
     -# ⚠️ `%ol` y no `%ul`: es una lista ORDENADA —la de la clase, por apellido—
@@ -52,7 +43,7 @@
         - alumno = inscripcion.student
         - nota   = @notas_por_alumno[alumno.id]
         - promedio = @promedios[inscripcion.id]
-        %li.carga-fila{data: { carga_notas_target: "fila", alumno: alumno.id }}
+        %li.carga-fila{ data: { planilla_target: "fila" } }
           -# ⚠️ El número ANTES de la cara: es el índice de la fila, y va donde
           -# el ojo baja en línea recta buscando «¿por dónde iba?».
           = numero_de_fila(i)
@@ -69,13 +60,34 @@
                 -# tal cual: un número en rojo es un niño en problemas.
                 %span.carga-promedio{class: ("bajo" if promedio.to_i < 10)}
                   = "· lapso #{number_with_precision(promedio, precision: promedio.frac.zero? ? 0 : 1)}"
-          .carga-campo
-            %input.carga-input{type: "number", inputmode: "numeric", min: 1, max: 20, step: 1,
-                               value: nota&.score&.to_i, placeholder: "—",
-                               aria: { label: "Nota de #{alumno.user.nombre_completo}" },
-                               data: { carga_notas_target: "input",
-                                       action: "change->carga-notas#guardar keydown->carga-notas#navegar" }}
-            %span.carga-estado{data: { carga_notas_target: "estado" }}
+          -# ⚠️ Un `<form>` de verdad por fila, y Turbo lo manda.
+          -#
+          -# Antes era un `fetch` escrito a mano con su CSRF, su `Accept` y su
+          -# JSON — treinta líneas por planilla, copiadas, y en una de las
+          -# copias faltaba el `Accept`.
+          = form_with url: evaluation_activity_nota_path(@evaluation_activity, alumno.id),
+                      method: :patch, class: "carga-campo",
+                      data: { action: "turbo:submit-start->planilla#enviando turbo:submit-end->planilla#llego turbo:fetch-request-error->planilla#sinRed" } do
+            -# ⚠️ `id` PROPIO, y no es cosmético: `number_field_tag` le pondría
+            -# `id="score"` a los treinta. Además de ser HTML inválido, Turbo
+            -# vuelve a enfocar por `id` tras pintar un stream y
+            -# `getElementById` devuelve siempre el primero — el foco saltaba al
+            -# alumno siguiente y volvía solo al primero de la lista.
+            = number_field_tag :score, nota&.score&.to_i, min: 1, max: 20, step: 1,
+                               id: "nota_#{alumno.id}",
+                               inputmode: "numeric", placeholder: "—", class: "carga-input",
+                               autocomplete: "off",
+                               "aria-label": "Nota de #{alumno.user.nombre_completo}",
+                               data: { planilla_target: "campo",
+                                       action: "change->planilla#guardar input->planilla#escribir keydown->planilla#navegar" }
+          -# ⚠️ La marca va FUERA del formulario. Adentro, reemplazarla por
+          -# stream hace que el navegador devuelva el foco al campo que envió —
+          -# medido: el foco viajaba al alumno siguiente y volvía solo doce
+          -# milisegundos después de pintar el stream, así que Enter parecía no
+          -# hacer nada. Y además es correcto: la marca es de la FILA, no un
+          -# campo del formulario.
+          = render "shared/estado_de_la_fila", id: "estado_#{alumno.id}",
+                   estado: (nota ? :guardado : :vacio)
 
     %p.carga-ayuda
       Cada nota se guarda al salir del campo. Déjelo

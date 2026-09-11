@@ -25,12 +25,11 @@
       %p Cuando se inscriban, aparecen acá para escribirles su informe.
 
 - else
-  .card-academic{ data: { controller: "carga-informes",
-                          carga_informes_url_base_value: section_informes_path(@seccion, lapso: @lapso&.id) } }
+  .card-academic{ data: { controller: "planilla" } }
     %ol.informes-lista
       - @inscripciones.each_with_index do |inscripcion, i|
         - informe = @informes[inscripcion.id]
-        %li.informe-fila{ data: { carga_informes_target: "fila" } }
+        %li.informe-fila{ data: { planilla_target: "fila" } }
           .informe-cabecera
             = numero_de_fila(i)
             %span.informe-alumno= inscripcion.student.user.apellidos_y_nombres
@@ -47,18 +46,20 @@
                   = promedio
             - else
               %span.informe-promedio.dato-secundario Sin notas
-            %span.informe-estado{ data: { carga_informes_target: "estado" } }
+            = render "shared/estado_de_la_fila", id: "estado_#{inscripcion.id}",
+                     estado: (informe ? :guardado : :vacio)
 
-          = text_area_tag :cuerpo, informe&.cuerpo,
-              rows: 3, class: "form-control informe-campo",
-              placeholder: "Cómo le fue en el lapso: qué logró, en qué avanzó, qué conviene reforzar…",
-              data: { carga_informes_target: "campo",
-                      enrollment: inscripcion.id,
-                      action: "input->carga-informes#crecer blur->carga-informes#guardar" }
+          = form_with url: section_informe_path(@seccion, inscripcion.id, lapso: @lapso&.id),
+                      method: :patch,
+                      data: { action: "turbo:submit-start->planilla#enviando turbo:submit-end->planilla#llego turbo:fetch-request-error->planilla#sinRed" } do
+            -# ⚠️ El campo CRECE con lo escrito: tres líneas fijas esconden lo ya
+            -# escrito justo cuando se relee para corregir. Lo hace
+            -# `campo-que-crece`, el mismo de Educación Inicial y del plan.
+            = text_area_tag :cuerpo, informe&.cuerpo, id: "informe_#{inscripcion.id}",
+                rows: 3, class: "form-control informe-campo",
+                placeholder: "Cómo le fue en el lapso: qué logró, en qué avanzó, qué conviene reforzar…",
+                data: { planilla_target: "campo",
+                        controller: "campo-que-crece",
+                        action: "input->campo-que-crece#crecer input->planilla#escribir blur->planilla#guardar keydown->planilla#navegar" }
 
-    -# La cola de fallos, visible y con reintento: un guardado silencioso que
-    -# falla es peor que no guardar — se cierra el teléfono creyendo que terminó.
-    .carga-aviso{ data: { carga_informes_target: "aviso" }, hidden: true }
-      %span{ data: { carga_informes_target: "avisoTexto" } }
-      = button_tag "Reintentar", type: "button", class: "btn btn-secondary btn-sm",
-          data: { action: "carga-informes#reintentarTodo" }
+    = render "shared/aviso_de_la_planilla"

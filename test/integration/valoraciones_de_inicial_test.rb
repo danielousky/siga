@@ -64,7 +64,7 @@ class ValoracionesDeInicialTest < ActionDispatch::IntegrationTest
     assert_select ".valoracion-alumno", 2
     # Dos niños × un área del pensum: dos casillas, todas con su textarea.
     assert_select "textarea.valoracion-texto", 2
-    assert_select ".valoraciones-cuenta", /0 de 2/
+    assert_select ".carga-progreso-texto", /0 de 2/
     # Y NADA de la planilla numérica.
     assert_select "input[type=number]", count: 0
   end
@@ -77,8 +77,10 @@ class ValoracionesDeInicialTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :success
-    assert_select ".valoraciones-cuenta", /1 de 2/
-    assert_select ".valoracion-area--guardada"
+    assert_select "turbo-stream[action=replace][target=?]", "progreso_de_la_planilla" do
+      assert_select "template .carga-progreso-texto", /1 de 2/
+    end
+    assert_select "turbo-stream[action=replace] template .planilla-estado[data-estado=?]", "guardado"
 
     nota = MomentGrade.last
     assert_equal "Se integró al grupo con facilidad y comparte sus juegos.", nota.descripcion
@@ -95,7 +97,7 @@ class ValoracionesDeInicialTest < ActionDispatch::IntegrationTest
       valorar ""
     end
 
-    assert_select ".valoraciones-cuenta", /0 de 2/
+    assert_select ".carga-progreso-texto", /0 de 2/
   end
 
   test "volver a guardar corrige la misma fila, no crea otra" do
@@ -108,12 +110,16 @@ class ValoracionesDeInicialTest < ActionDispatch::IntegrationTest
     assert_equal "Versión corregida.", MomentGrade.last.descripcion
   end
 
-  # ⚠️ La respuesta vuelve DENTRO del frame que preguntó, o Turbo escribe
-  # «Content missing» encima de la pantalla entera.
-  test "la respuesta trae el frame de las valoraciones" do
+  # ⚠️ La respuesta NO redibuja la planilla: toca la marca de la casilla y el
+  # contador, y nada más. Reemplazar la lista de 48 casillas en cada guardado le
+  # quita el foco al campo siguiente, que es lo que hace usable la pantalla.
+  test "la respuesta toca solo la marca y el contador" do
     valorar "Comparte y espera su turno."
 
-    assert_select "turbo-frame#valoraciones"
+    assert_select "turbo-stream", 2
+    assert_select "turbo-stream[target^=?]", "estado_valoracion_"
+    assert_select "turbo-stream[target=?]", "progreso_de_la_planilla"
+    assert_select "textarea", count: 0
   end
 
   # ── Quién escribe ─────────────────────────────────────────────────────────

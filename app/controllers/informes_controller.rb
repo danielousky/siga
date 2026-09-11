@@ -16,6 +16,7 @@
 # Y la **dirección** también, porque una sección puede no tener guía: el cargo
 # es opcional y sin esto esos alumnos se quedarían sin informe para siempre.
 class InformesController < ApplicationController
+  include PlanillaQueSeGuardaSola
   before_action :set_seccion
   before_action :require_acceso!
   before_action :set_lapso
@@ -38,8 +39,9 @@ class InformesController < ApplicationController
   # se envía al final es una promesa de perder el trabajo de una noche.
   def update
     inscripcion = Enrollment.find_by(id: params[:enrollment_id], section_id: @seccion.id)
-    return render(json: { estado: "error", mensaje: "Ese alumno no está en esta sección." }, status: :not_found) if inscripcion.nil?
-    return render(json: { estado: "error", mensaje: "Elija un lapso." }, status: :unprocessable_entity) if @lapso.nil?
+    return head(:not_found) if inscripcion.nil?
+    return contestar(params[:enrollment_id], :rechazado, "Elija un lapso.",
+                     estado_http: :unprocessable_entity) if @lapso.nil?
 
     cuerpo  = params[:cuerpo].to_s.strip
     informe = Informe.para(inscripcion.id, @lapso.id)
@@ -48,7 +50,7 @@ class InformesController < ApplicationController
     # blanco: la boleta no tiene que imprimir un renglón vacío.
     if cuerpo.blank?
       informe&.destroy
-      return render json: { estado: "guardado", vacio: true }
+      return contestar(inscripcion.id, :vacio)
     end
 
     informe ||= Informe.new(enrollment: inscripcion, evaluation_moment: @lapso)
@@ -56,14 +58,24 @@ class InformesController < ApplicationController
     informe.cuerpo = cuerpo
 
     if informe.save
-      render json: { estado: "guardado", vacio: false }
+      contestar(inscripcion.id, :guardado)
     else
-      render json: { estado: "error", mensaje: informe.errors.full_messages.to_sentence },
-             status: :unprocessable_entity
+      contestar(inscripcion.id, :rechazado, informe.errors.full_messages.to_sentence,
+                estado_http: :unprocessable_entity)
     end
   end
 
   private
+
+  # ⚠️ Sin barra de progreso: acá el contador vive arriba y cuenta CUÁNTOS
+  # informes hay escritos, que es una consulta a la tabla entera. Recalcularla
+  # en cada tecla de una planilla de treinta no vale lo que cuesta — el profesor
+  # ya ve, fila por fila, cuáles quedaron.
+  def contestar(inscripcion_id, estado, mensaje = nil, estado_http: :ok)
+    response.status = estado_http
+
+    fila_de_la_planilla(id: "estado_#{inscripcion_id}", estado: estado, mensaje: mensaje)
+  end
 
   def set_seccion
     @seccion = Section.find(params[:section_id])

@@ -1,0 +1,24 @@
+-# La marca de qué pasó con una fila de una planilla.
+-#
+-#     = render "shared/estado_de_la_fila", id: "estado_12", estado: :guardado
+-#
+-# ## ⚠️ Existe porque las tres planillas decían lo mismo de tres maneras
+-#
+-#     notas       ✓   —   !          en un `<span>` pintado por JavaScript
+-#     informes    «guardado» «no se guardó»   en texto, otro JavaScript
+-#     Inicial     un destello verde y nada más
+-#
+-# Son la misma pregunta —¿quedó guardado?— y el profesor las cruza en la misma
+-# tarde. Ahora la pinta el SERVIDOR, que es quien sabe la respuesta, y llega por
+-# Turbo Stream a este `id`.
+-#
+-# ⚠️ Lo que el servidor NO puede saber —«guardando…» y «sin conexión»— lo pone
+-# el controlador de Stimulus sobre este mismo elemento. Son los dos estados que
+-# existen ANTES de que haya respuesta, o cuando no la hay.
+- id = local_assigns.fetch(:id)
+- estado = local_assigns.fetch(:estado).to_s
+- mensaje = local_assigns[:mensaje].presence
+%span.planilla-estado{ id: id, data: { estado: estado,
+                                       tooltip: mensaje || PlanillaHelper::AVISOS[estado],
+                                       tooltip_arriba: "" } }
+  = PlanillaHelper::MARCAS[estado]

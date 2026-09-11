@@ -1,0 +1,13 @@
+-# El aviso de lo que quedó sin guardar, con su botón de reintentar.
+-#
+-# ⚠️ Empieza oculto y lo enciende el controlador de Stimulus: es lo ÚNICO que
+-# el servidor no puede saber —si no hubo conexión, no hubo petición— y por eso
+-# no llega por stream como el resto.
+-#
+-# Daniel no lo pidió, pero es lo que hace que un guardado silencioso no sea
+-# peor que no guardar: sin esto el profesor cierra el teléfono creyendo que
+-# terminó.
+.carga-aviso{ hidden: true, data: { planilla_target: "aviso" } }
+  %span{ data: { planilla_target: "avisoTexto" } }
+  %button.btn.btn-secondary.btn-sm{ type: "button", data: { action: "planilla#reintentarTodo" } }
+    Reintentar

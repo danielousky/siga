@@ -77,11 +77,16 @@ class ReparacionesTest < ActionDispatch::IntegrationTest
     sign_in @a.profesor
     assert_equal 7, recargar(@libro).final_score.to_i
 
-    patch nota_de_reparacion_path(@a.seccion, @a.materia, @aplazado), params: { score: "14" }
+    patch nota_de_reparacion_path(@a.seccion, @a.materia, @aplazado),
+          params: { score: "14" }, as: :turbo_stream
 
     assert_response :success
-    assert_equal 14, response.parsed_body["definitiva"]
-    assert response.parsed_body["aprobado"]
+    # ⚠️ Lo que el profesor VE, no un JSON: la definitiva se repinta en vivo al
+    # lado del campo. Sin eso el Art. 112 es una promesa que no se comprueba
+    # hasta que salga el boletín.
+    assert_select "turbo-stream[action=replace][target=?]", "definitiva_#{@aplazado.id}" do
+      assert_select "template .carga-definitiva.aprobada", text: "14"
+    end
 
     @libro = recargar(@libro)
     assert_equal 14, @libro.remedial_exam_score.to_i

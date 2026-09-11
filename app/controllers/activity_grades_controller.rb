@@ -21,6 +21,7 @@
 #
 # Ver MOR-95.
 class ActivityGradesController < ApplicationController
+  include PlanillaQueSeGuardaSola
   before_action :require_profesor!
   before_action :set_evaluation_activity
 
@@ -49,7 +50,7 @@ class ActivityGradesController < ApplicationController
 
   def update
     inscripcion = inscripcion_del_alumno
-    return render(json: { estado: "error", mensaje: "Ese alumno no está inscrito en esta sección." }, status: :not_found) if inscripcion.nil?
+    return head(:not_found) if inscripcion.nil?
 
     puntaje = params[:score].to_s.strip
     nota    = @evaluation_activity.activity_grades.find_by(student_id: inscripcion.student_id)
@@ -59,7 +60,7 @@ class ActivityGradesController < ApplicationController
       anterior = nota&.score
       nota&.destroy
       auditar(inscripcion, "calificacion_eliminada", anterior, nil) if anterior
-      return render json: respuesta(nil)
+      return contestar(inscripcion, :vacio)
     end
 
     nota ||= @evaluation_activity.activity_grades.new(student_id: inscripcion.student_id)
@@ -70,9 +71,10 @@ class ActivityGradesController < ApplicationController
       auditar(inscripcion,
               anterior.nil? ? "calificacion_registrada" : "calificacion_modificada",
               anterior, nota.score)
-      render json: respuesta(nota)
+      contestar(inscripcion, :guardado)
     else
-      render json: { estado: "error", mensaje: nota.errors.full_messages.to_sentence }, status: :unprocessable_entity
+      contestar(inscripcion, :rechazado, nota.errors.full_messages.to_sentence,
+                estado_http: :unprocessable_entity)
     end
   end
 
@@ -130,13 +132,18 @@ class ActivityGradesController < ApplicationController
     @evaluation_activity.section.enrollments.find_by(student_id: params[:student_id])
   end
 
-  def respuesta(nota)
-    {
-      estado: "guardado",
-      nota: nota&.score&.to_i,
-      cargadas: @evaluation_activity.activity_grades.count,
-      total: @evaluation_activity.section.enrollments.count
-    }
+  # ⚠️ `status:` va en el rechazo, y no es un detalle: Turbo solo procesa el
+  # stream de una respuesta 2xx **o** de una 4xx/5xx si el formato es stream, y
+  # el controlador de Stimulus mira `detail.success` para saber si el valor se
+  # guardó. Con un 200 en un rechazo, el campo quedaría dado por guardado.
+  def contestar(inscripcion, estado, mensaje = nil, estado_http: :ok)
+    response.status = estado_http
+
+    fila_de_la_planilla(
+      id: "estado_#{inscripcion.student_id}", estado: estado, mensaje: mensaje,
+      hechas: @evaluation_activity.activity_grades.count,
+      total: @evaluation_activity.section.enrollments.count, nombre: "cargadas"
+    )
   end
 
   def require_profesor!
@@ -144,7 +151,7 @@ class ActivityGradesController < ApplicationController
 
     respond_to do |formato|
       formato.html { redirect_to dashboard_path_for_user, alert: "Solo el profesor que dicta la materia carga sus notas." }
-      formato.json { render json: { estado: "error", mensaje: "No autorizado." }, status: :forbidden }
+      formato.turbo_stream { head :forbidden }
     end
   end
 end

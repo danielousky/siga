@@ -13,19 +13,18 @@
 -# ⚠️ Y guarda al SALIR DEL CAMPO, sin botón: son hasta noventa textos por lapso
 -# y un «Guardar» al final pierde una hora de trabajo si el navegador se cierra.
 -# Es la misma decisión de la planilla de notas (`MOR-95`).
-- guardada = local_assigns[:guardada] || @guardada
-- error = local_assigns[:error] || @error
-= turbo_frame_tag "valoraciones" do
-  = render "shared/flash"
+-# ⚠️ Ya no es un `turbo_frame` que se reemplaza entero.
+-#
+-# Lo era, y en Inicial casi no se notaba porque la maestra escribe un párrafo y
+-# pasa al siguiente. En la planilla de notas —la misma interacción, treinta
+-# filas y Enter— habría sido fatal: repintar la lista en cada tecla se lleva el
+-# foco del campo siguiente. Las cuatro planillas contestan ahora con un stream
+-# que toca solo la marca y el contador (`PlanillaQueSeGuardaSola`).
+.valoraciones-planilla{ data: { controller: "planilla" } }
+  = render "shared/progreso_de_la_planilla", hechas: @valoraciones[:escritas],
+           total: @valoraciones[:casillas], nombre: "escritas en #{lapso&.name.to_s.downcase}"
 
-  .valoraciones-resumen
-    %span.valoraciones-cuenta
-      = "#{@valoraciones[:escritas]} de #{@valoraciones[:casillas]}"
-      %span.dato-secundario= "valoraciones escritas en #{lapso&.name.to_s.downcase}"
-    - if error
-      %p.valoraciones-error
-        = icono(:alerta, tamano: 14)
-        %span= error
+  = render "shared/aviso_de_la_planilla"
 
   - if @valoraciones[:filas].empty?
     .empty-state
@@ -41,24 +40,29 @@
             = numero_de_fila(i)
             = fila[:inscripcion].student.user.apellidos_y_nombres
           - fila[:casillas].each do |casilla|
-            .valoracion-area{ id: casilla.id,
-                              class: ("valoracion-area--guardada" if guardada == casilla.id) }
-              %h5.plan-rotulo= casilla.area.name
+            .valoracion-area{ id: casilla.id, data: { planilla_target: "fila" } }
+              %h5.plan-rotulo
+                = casilla.area.name
+                = render "shared/estado_de_la_fila", id: "estado_#{casilla.id}",
+                         estado: (casilla.escrita? ? :guardado : :vacio)
               - if puede_valorar
                 = form_with url: section_valoracion_path(seccion), method: :patch,
-                            data: { controller: "edicion-en-linea" } do
-                  = hidden_field_tag :enrollment_id, casilla.inscripcion.id
-                  = hidden_field_tag :subject_id, casilla.area.id
-                  = hidden_field_tag :lapso, lapso&.id
+                            data: { action: "turbo:submit-start->planilla#enviando turbo:submit-end->planilla#llego turbo:fetch-request-error->planilla#sinRed" } do
+                  -# ⚠️ `id: nil` en los ocultos: `hidden_field_tag` repetiría
+                  -# el mismo `id` en las cuarenta y ocho casillas.
+                  = hidden_field_tag :enrollment_id, casilla.inscripcion.id, id: nil
+                  = hidden_field_tag :subject_id, casilla.area.id, id: nil
+                  = hidden_field_tag :lapso, lapso&.id, id: nil
                   -# ⚠️ `textarea` y no un campo de una línea: una valoración es
                   -# un párrafo sobre un niño, no un dato. Crece con lo escrito.
                   = text_area_tag :descripcion, casilla.texto, rows: 2,
+                                  id: "texto_#{casilla.id}",
                                   class: "valoracion-texto", autocomplete: "off",
                                   placeholder: "escribe la valoración…",
                                   "aria-label": "#{casilla.area.name} de #{fila[:inscripcion].student.user.first_name}",
-                                  data: { edicion_en_linea_target: "campo",
+                                  data: { planilla_target: "campo",
                                           controller: "campo-que-crece",
-                                          action: "input->campo-que-crece#crecer keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }
+                                          action: "input->campo-que-crece#crecer input->planilla#escribir blur->planilla#guardar" }
               - else
                 - if casilla.escrita?
                   %p.valoracion-texto-fijo= casilla.texto

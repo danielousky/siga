@@ -2192,8 +2192,14 @@ nav.pagy a.gap {
   border-bottom: 1px solid var(--border-subtle);
 }
 
+/* ⚠️ `flex: 1` para que el nombre se coma TODO el espacio sobrante.
+   Sin esto, `space-between` lo reparte entre los cinco hijos de la fila y el
+   campo de la nota queda en una x distinta en cada renglón — se nota apenas la
+   marca de estado sale del mismo grupo que el campo. La columna de notas tiene
+   que caer a plomo: es la que se recorre de arriba abajo. */
 .carga-alumno {
   min-width: 0;
+  flex: 1;
 }
 
 .carga-alumno-nombre {
@@ -2240,21 +2246,47 @@ nav.pagy a.gap {
   color: var(--text-muted);
 }
 
-.carga-estado {
+/* ── la marca de qué pasó con una fila ─────────────────────────────────────
+
+   UNA para las cuatro planillas —notas, reparaciones, informes descriptivos y
+   Educación Inicial—. Antes eran tres: un símbolo en notas, una palabra en
+   informes y un destello verde en Inicial, para la misma pregunta —¿quedó
+   guardado?— que el mismo profesor se hace en la misma tarde.
+
+   ⚠️ El estado va en el ELEMENTO, no en la fila. Lo pinta el servidor por
+   Turbo Stream reemplazando este `<span>`, así que la fila de arriba ni se
+   entera — y es justo eso lo que conserva el foco del campo siguiente. */
+
+.planilla-estado {
+  flex: 0 0 auto;
   width: 18px;
   text-align: center;
   font-size: 15px;
   color: var(--text-muted);
+  user-select: none;
 }
 
-.carga-fila[data-estado="guardando"] .carga-estado { color: var(--text-tertiary); }
-.carga-fila[data-estado="guardado"] .carga-estado  { color: var(--success-text); }
-.carga-fila[data-estado="vacio"] .carga-estado     { color: var(--text-muted); }
-.carga-fila[data-estado="sin-red"] .carga-estado   { color: var(--warning-text); }
-.carga-fila[data-estado="rechazado"] .carga-estado { color: var(--danger-text); font-weight: 700; }
+.planilla-estado[data-estado="guardando"] { color: var(--text-tertiary); }
+.planilla-estado[data-estado="guardado"]  { color: var(--success-text); }
+.planilla-estado[data-estado="vacio"]     { color: var(--text-muted); }
+.planilla-estado[data-estado="sin_red"]   { color: var(--warning-text); }
+.planilla-estado[data-estado="rechazado"] { color: var(--danger-text); font-weight: 700; }
 
-.carga-fila[data-estado="sin-red"] .carga-input   { border-color: var(--warning-border); background: var(--warning-bg); }
-.carga-fila[data-estado="rechazado"] .carga-input { border-color: var(--danger-border); background: var(--danger-bg); }
+/* Y el campo se tiñe con él: la marca sola, de 18 px, se pierde en una lista de
+   treinta. Es el DATO el que está en problemas, no un control.
+
+   ⚠️ Desde la FILA y no desde el formulario: la marca vive fuera del `<form>`
+   —adentro, reemplazarla por stream le devuelve el foco al campo que envió— así
+   que son hermanas, no ancestro y descendiente. */
+.carga-fila:has(.planilla-estado[data-estado="sin_red"]) .carga-input {
+  border-color: var(--warning-border);
+  background: var(--warning-bg);
+}
+
+.carga-fila:has(.planilla-estado[data-estado="rechazado"]) .carga-input {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+}
 
 .carga-ayuda {
   margin-top: var(--space-md);
@@ -6928,17 +6960,6 @@ a.subject-avance:hover { filter: brightness(0.9); }
 
 /* El estado del guardado, por fila. Un guardado silencioso que falla es peor
    que no guardar: se cierra el teléfono creyendo que se terminó. */
-.informe-estado {
-  flex: 0 0 auto;
-  font-size: 12px;
-  color: var(--text-tertiary);
-  min-width: 5.5rem;
-  text-align: right;
-}
-
-.informe-fila[data-estado="guardado"] .informe-estado { color: var(--guardar-primary); }
-.informe-fila[data-estado="error"]    .informe-estado { color: var(--eliminar-primary); }
-
 .informe-campo {
   /* Crece con lo que se escribe: tres líneas fijas esconden lo ya escrito justo
      cuando se relee para corregir. El alto lo pone el controlador. */
@@ -8869,17 +8890,6 @@ a.subject-avance:hover { filter: brightness(0.9); }
 
 /* El estado del guardado, por fila. Un guardado silencioso que falla es peor
    que no guardar: se cierra el teléfono creyendo que se terminó. */
-.informe-estado {
-  flex: 0 0 auto;
-  font-size: 12px;
-  color: var(--text-tertiary);
-  min-width: 5.5rem;
-  text-align: right;
-}
-
-.informe-fila[data-estado="guardado"] .informe-estado { color: var(--guardar-primary); }
-.informe-fila[data-estado="error"]    .informe-estado { color: var(--eliminar-primary); }
-
 .informe-campo {
   /* Crece con lo que se escribe: tres líneas fijas esconden lo ya escrito justo
      cuando se relee para corregir. El alto lo pone el controlador. */

@@ -10,6 +10,7 @@
 # cuanto el navegador se cierra, y es lo que ya resolvió la planilla de notas
 # (`MOR-95`): guardado incremental, sin botón.
 class ValoracionesController < ApplicationController
+  include PlanillaQueSeGuardaSola
   before_action :set_seccion
   before_action :require_acceso!
 
@@ -26,29 +27,38 @@ class ValoracionesController < ApplicationController
     # iba?».
     if params[:descripcion].blank?
       valoracion.destroy if valoracion.persisted?
-      return refrescar
+      return contestar(:vacio)
     end
 
     valoracion.descripcion = params[:descripcion]
     valoracion.origen = :calculada
-    valoracion.save
 
-    refrescar(valoracion)
+    if valoracion.save
+      contestar(:guardado)
+    else
+      contestar(:rechazado, valoracion.errors.full_messages.to_sentence,
+                estado_http: :unprocessable_entity)
+    end
   end
 
   private
 
-  # La pantalla entera vuelve a dibujarse dentro de su frame: la casilla guardada
-  # y el contador de «cuántas van».
-  def refrescar(valoracion = nil)
-    @valoraciones = ValoracionesDeLaSeccion.para(seccion: @seccion, lapso: lapso)
-    @error = valoracion&.errors&.full_messages&.to_sentence.presence
-    @guardada = "valoracion_#{inscripcion.id}_#{area.id}" if @error.nil?
+  # ⚠️ Antes se redibujaba la PANTALLA ENTERA dentro de su frame, y eso era un
+  # error que en Inicial casi no se notaba y en la planilla de notas habría sido
+  # fatal: reemplazar el frame repinta las cuarenta y ocho casillas en cada
+  # guardado y se lleva el foco del campo siguiente.
+  #
+  # Ahora contesta lo mismo que las otras tres planillas: la marca de la casilla
+  # y el contador, que son los dos pedazos que no tienen el foco.
+  def contestar(estado, mensaje = nil, estado_http: :ok)
+    response.status = estado_http
+    resumen = ValoracionesDeLaSeccion.para(seccion: @seccion, lapso: lapso)
 
-    render partial: "sections/valoraciones", formats: [ :html ],
-           locals: { seccion: @seccion, lapso: lapso,
-                     # Quien llegó hasta acá ya pasó `require_acceso!`.
-                     puede_valorar: true }
+    fila_de_la_planilla(
+      id: "estado_valoracion_#{inscripcion.id}_#{area.id}", estado: estado, mensaje: mensaje,
+      hechas: resumen[:escritas], total: resumen[:casillas],
+      nombre: "escritas en #{lapso&.name.to_s.downcase}"
+    )
   end
 
   # ⚠️ `section_id` y no `seccion_id`: la ruta anidada toma el nombre del

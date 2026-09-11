@@ -25,8 +25,6 @@ import AutoEnvioController from "controllers/auto_envio_controller"
 import CampoFiltradoController from "controllers/campo_filtrado_controller"
 import CampoTelefonoController from "controllers/campo_telefono_controller"
 import BusquedaController from "controllers/busqueda_controller"
-import CargaInformesController from "controllers/carga_informes_controller"
-import CargaNotasController from "controllers/carga_notas_controller"
 import ContextoController from "controllers/contexto_controller"
 import CopiarController from "controllers/copiar_controller"
 import EscalaPorNivelController from "controllers/escala_por_nivel_controller"
@@ -38,6 +36,7 @@ import RepartoController from "controllers/reparto_controller"
 import MenuFlotanteController from "controllers/menu_flotante_controller"
 import EdicionEnLineaController from "controllers/edicion_en_linea_controller"
 import FotoDePerfilController from "controllers/foto_de_perfil_controller"
+import PlanillaController from "controllers/planilla_controller"
 import CalendarioEscolarController from "controllers/calendario_escolar_controller"
 import QueEvaluaController from "controllers/que_evalua_controller"
 import MenuController from "controllers/menu_controller"
@@ -51,8 +50,6 @@ application.register("auto-envio", AutoEnvioController)
 application.register("campo-filtrado", CampoFiltradoController)
 application.register("campo-telefono", CampoTelefonoController)
 application.register("busqueda", BusquedaController)
-application.register("carga-informes", CargaInformesController)
-application.register("carga-notas", CargaNotasController)
 application.register("contexto", ContextoController)
 application.register("copiar", CopiarController)
 application.register("escala-por-nivel", EscalaPorNivelController)
@@ -64,6 +61,7 @@ application.register("reparto", RepartoController)
 application.register("menu-flotante", MenuFlotanteController)
 application.register("edicion-en-linea", EdicionEnLineaController)
 application.register("foto-de-perfil", FotoDePerfilController)
+application.register("planilla", PlanillaController)
 application.register("calendario-escolar", CalendarioEscolarController)
 application.register("que-evalua", QueEvaluaController)
 application.register("menu", MenuController)
