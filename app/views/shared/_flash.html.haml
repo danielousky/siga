@@ -7,7 +7,15 @@
 -# Turbo: una respuesta de Turbo Stream reemplaza elementos por id, y el flash
 -# de una acción hecha sin recargar la página no tiene dónde aterrizar si no
 -# existe ese id. Sin esto, agregar un departamento funcionaba y no decía nada.
-#flash
+-# ⚠️ El `id` se puede cambiar, y hace falta cuando hay DOS en la pantalla.
+-#
+-# La libreta y el plan lo repiten adentro de su `turbo_frame` —el del layout
+-# queda afuera y un frame reemplaza solo su propio contenido— así que la página
+-# traía dos elementos con `id="flash"`. Es HTML inválido, y con Turbo cuesta:
+-# reemplazar por id agarra siempre el PRIMERO de la página, que es justamente
+-# el que no está en el frame.
+- id = local_assigns.fetch(:id, "flash")
+%div{ id: id }
   - if notice.present?
     .alert.alert-success= notice
   - if alert.present?

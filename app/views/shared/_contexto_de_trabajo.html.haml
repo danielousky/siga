@@ -130,15 +130,27 @@
           -# que dice además en qué situación está, que es justo lo que hace
           -# falta al elegir —quien acaba de poner «2024-2025» tiene que ver ahí
           -# mismo que ese año está cerrado.
+          -# ⚠️ `id: nil` en los ocultos, y en los cuatro de este panel.
+          -#
+          -# Es un formulario POR OPCIÓN, así que `hidden_field_tag :id` repetía
+          -# `id="id"` una vez por año escolar y `:nivel` repetía `id="nivel"`
+          -# una vez por nivel. Nadie los referencia —no tienen etiqueta ni los
+          -# busca ningún script— así que el atributo no hacía falta; lo que sí
+          -# hacía era HTML inválido en TODAS las pantallas, porque este panel
+          -# vive en la barra de contexto.
+          -#
+          -# Y no es cosmético: Turbo vuelve a enfocar por `id` después de
+          -# pintar un stream, y `getElementById` devuelve siempre el primero de
+          -# la página. Es lo que ya rompió el Enter de la planilla de notas.
           - anios_para_elegir.each do |anio|
             = form_with url: cambiar_anio_escolar_path, method: :post, class: "contexto-opcion-form", data: { turbo: false } do
-              = hidden_field_tag :id, anio.id
+              = hidden_field_tag :id, anio.id, id: nil
               = button_tag type: :submit, class: class_names("contexto-opcion", elegida: (anio_de_la_sesion&.id == anio.id)) do
                 %span.contexto-opcion-nombre= anio.name
                 %span.contexto-opcion-nota= situacion_del_periodo(anio)
 
           = form_with url: cambiar_anio_escolar_path, method: :post, class: "contexto-opcion-form", data: { turbo: false } do
-            = hidden_field_tag :id, LlevaElAnioEscolar::TODOS
+            = hidden_field_tag :id, LlevaElAnioEscolar::TODOS, id: nil
             = button_tag type: :submit, class: class_names("contexto-opcion", elegida: mirando_todos_los_anios?) do
               %span.contexto-opcion-nombre Todos los años
               %span.contexto-opcion-nota para buscar en lo viejo
@@ -148,13 +160,13 @@
           %h3.contexto-grupo-titulo Nivel
           .contexto-niveles
             = form_with url: cambiar_nivel_path, method: :post, class: "contexto-opcion-form", data: { turbo: false } do
-              = hidden_field_tag :nivel, LlevaElNivel::TODOS
+              = hidden_field_tag :nivel, LlevaElNivel::TODOS, id: nil
               = button_tag "Todos", type: :submit,
                   class: class_names("contexto-nivel-boton", elegida: mirando_todos_los_niveles?)
 
             - niveles_para_elegir.each do |nivel|
               = form_with url: cambiar_nivel_path, method: :post, class: "contexto-opcion-form", data: { turbo: false } do
-                = hidden_field_tag :nivel, nivel
+                = hidden_field_tag :nivel, nivel, id: nil
                 = button_tag GradoOficial.etiqueta(nivel, corto: true), type: :submit,
                     class: class_names("contexto-nivel-boton", elegida: (nivel_de_la_sesion == nivel))
 
