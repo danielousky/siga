@@ -44,6 +44,24 @@ class Grade < ApplicationRecord
   # siquiera los componentes. Es otra pantalla, y es MOR-218.
   def por_competencias? = primaria?
 
+  # ⚠️ En Educación Inicial la calificación es un TEXTO, no un número.
+  #
+  # Daniel, 10 de septiembre: *«los niños en Inicial no sacan ni A, ni B, ni C,
+  # ni PC, ni AP, ni 5, ni 20, entonces la calificación es descriptiva»*. Y el
+  # resultado del año es «aprobó», directo — «prácticamente con asistir al
+  # colegio»—; si hay una condición particular, el docente la sugiere en ese
+  # mismo texto.
+  #
+  # ⚠️ Existe como pregunta PROPIA y no como `unless primaria?`, que es la
+  # trampa de esta zona: `por_competencias?` es `primaria?`, así que Inicial y
+  # Media caen juntas en el mismo `false` y todo lo que diga «no es primaria»
+  # asume bachillerato — y se equivoca con Inicial.
+  def califica_con_texto? = preescolar?
+
+  # Y lo que se deriva: sin números no hay nada que ponderar, así que tampoco
+  # hay plan de evaluación que armar.
+  def planifica? = !califica_con_texto?
+
   # Con qué escala se califica este grado (MOR-129).
   #
   # Cuelga del GRADO y no del colegio: un mismo colegio tiene primaria por

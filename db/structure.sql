@@ -989,12 +989,14 @@ CREATE TABLE public.moment_grades (
     enrollment_id bigint NOT NULL,
     subject_id bigint NOT NULL,
     evaluation_moment_id bigint NOT NULL,
-    final_moment_score numeric(4,2) NOT NULL,
+    final_moment_score numeric(4,2),
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     school_id bigint NOT NULL,
     origen integer DEFAULT 0 NOT NULL,
-    CONSTRAINT moment_grades_final_moment_score_escala_1_20 CHECK (((final_moment_score IS NULL) OR ((final_moment_score >= (1)::numeric) AND (final_moment_score <= (20)::numeric))))
+    descripcion text,
+    CONSTRAINT moment_grades_final_moment_score_escala_1_20 CHECK (((final_moment_score IS NULL) OR ((final_moment_score >= (1)::numeric) AND (final_moment_score <= (20)::numeric)))),
+    CONSTRAINT moment_grades_numero_o_texto CHECK ((((final_moment_score IS NOT NULL) AND (descripcion IS NULL)) OR ((final_moment_score IS NULL) AND (descripcion IS NOT NULL))))
 );
 
 ALTER TABLE ONLY public.moment_grades FORCE ROW LEVEL SECURITY;
@@ -4977,6 +4979,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260911034912'),
 ('20260905003000'),
 ('20260904150000'),
 ('20260902120000'),

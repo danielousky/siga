@@ -1,0 +1,64 @@
+-# La planilla de Educación Inicial: un TEXTO por alumno y por área.
+-#
+-# Daniel, 10 de septiembre de 2026: *«los niños en Inicial no sacan ni A, ni B,
+-# ni C, ni PC, ni AP, ni 5, ni 20, entonces la calificación es descriptiva»*. Y
+-# el resultado del año es «aprobó», directo —«prácticamente con asistir al
+-# colegio»—; si hay una condición particular, el docente la sugiere en ese mismo
+-# texto.
+-#
+-# ⚠️ TODOS los niños en UNA pantalla, como la planilla de notas y la de
+-# informes. Con una pantalla por niño son treinta y dos clics de navegación
+-# además de lo que se escribe, y el trabajo se abandona a la mitad.
+-#
+-# ⚠️ Y guarda al SALIR DEL CAMPO, sin botón: son hasta noventa textos por lapso
+-# y un «Guardar» al final pierde una hora de trabajo si el navegador se cierra.
+-# Es la misma decisión de la planilla de notas (`MOR-95`).
+- guardada = local_assigns[:guardada] || @guardada
+- error = local_assigns[:error] || @error
+= turbo_frame_tag "valoraciones" do
+  = render "shared/flash"
+
+  .valoraciones-resumen
+    %span.valoraciones-cuenta
+      = "#{@valoraciones[:escritas]} de #{@valoraciones[:casillas]}"
+      %span.dato-secundario= "valoraciones escritas en #{lapso&.name.to_s.downcase}"
+    - if error
+      %p.valoraciones-error
+        = icono(:alerta, tamano: 14)
+        %span= error
+
+  - if @valoraciones[:filas].empty?
+    .empty-state
+      %h3 Sin alumnos inscritos
+      %p
+        Esta sección todavía no tiene niños inscritos, así que no hay a quién
+        valorar.
+  - else
+    %ol.valoraciones
+      - @valoraciones[:filas].each do |fila|
+        %li.valoracion-alumno
+          %h4.valoracion-nombre= fila[:inscripcion].student.user.apellidos_y_nombres
+          - fila[:casillas].each do |casilla|
+            .valoracion-area{ id: casilla.id,
+                              class: ("valoracion-area--guardada" if guardada == casilla.id) }
+              %h5.plan-rotulo= casilla.area.name
+              - if puede_valorar
+                = form_with url: section_valoracion_path(seccion), method: :patch,
+                            data: { controller: "edicion-en-linea" } do
+                  = hidden_field_tag :enrollment_id, casilla.inscripcion.id
+                  = hidden_field_tag :subject_id, casilla.area.id
+                  = hidden_field_tag :lapso, lapso&.id
+                  -# ⚠️ `textarea` y no un campo de una línea: una valoración es
+                  -# un párrafo sobre un niño, no un dato. Crece con lo escrito.
+                  = text_area_tag :descripcion, casilla.texto, rows: 2,
+                                  class: "valoracion-texto", autocomplete: "off",
+                                  placeholder: "escribe la valoración…",
+                                  "aria-label": "#{casilla.area.name} de #{fila[:inscripcion].student.user.first_name}",
+                                  data: { edicion_en_linea_target: "campo",
+                                          controller: "campo-que-crece",
+                                          action: "input->campo-que-crece#crecer keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }
+              - else
+                - if casilla.escrita?
+                  %p.valoracion-texto-fijo= casilla.texto
+                - else
+                  %p.valoracion-texto-fijo.dato-vacio Sin valorar

@@ -32,21 +32,32 @@
   -#
   -# Envuelve la libreta COMPLETA y no un hueco: al guardar hay que actualizar
   -# la tabla, no solo quitar el formulario.
-  = turbo_frame_tag "libreta" do
-    -# ⚠️ El FLASH viaja dentro del frame.
-    -#
-    -# El del layout está fuera, y un `turbo_frame` reemplaza solo su propio
-    -# contenido: copiar el plan a las hermanas o conectar una evaluación
-    -# funcionaba y no decía nada. Un aviso que no se ve es peor que no
-    -# tenerlo — el profesor toca otra vez y duplica lo que ya hizo.
-    = render "shared/flash"
-    - if @libreta
-      = render "libreta"
-    - else
-      .empty-state
-        %h3= "Todavía no puedes calificar #{@section.grade.name} – #{@section.name}"
-        %p
-          - if @areas_que_califico.blank?
-            = "No tienes #{Vocabulario::LAS_AREAS} asignadas en esta sección."
-          - else
-            Esta sección todavía no tiene lapsos en su año escolar.
+  -# ⚠️ «Calificar» es DOS pantallas, según cómo califique el grado. En
+  -# Educación Inicial la calificación es un texto por área —sin notas, sin
+  -# escala y sin promedio— así que en vez de la libreta de columnas va la
+  -# planilla de valoraciones.
+  - if @section.grade.califica_con_texto?
+    - ruta = ->(extra) { section_path(@section, area: area_de_la_pestana&.id, **extra) }
+    = render "shared/pastillas", etiqueta: "Lapso",
+             opciones: @lapsos_de_la_libreta.map { |l| [ l.name, ruta.(lapso: l.id), l.id == @lapso_de_la_libreta&.id ] }
+    = render "sections/valoraciones", seccion: @section, lapso: @lapso_de_la_libreta,
+             puede_valorar: (profesor? || can_manage_sections?)
+  - else
+    = turbo_frame_tag "libreta" do
+      -# ⚠️ El FLASH viaja dentro del frame.
+      -#
+      -# El del layout está fuera, y un `turbo_frame` reemplaza solo su propio
+      -# contenido: copiar el plan a las hermanas o conectar una evaluación
+      -# funcionaba y no decía nada. Un aviso que no se ve es peor que no
+      -# tenerlo — el profesor toca otra vez y duplica lo que ya hizo.
+      = render "shared/flash"
+      - if @libreta
+        = render "libreta"
+      - else
+        .empty-state
+          %h3= "Todavía no puedes calificar #{@section.grade.name} – #{@section.name}"
+          %p
+            - if @areas_que_califico.blank?
+              = "No tienes #{Vocabulario::LAS_AREAS} asignadas en esta sección."
+            - else
+              Esta sección todavía no tiene lapsos en su año escolar.

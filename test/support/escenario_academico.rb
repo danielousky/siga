@@ -50,6 +50,16 @@ module EscenarioAcademico
   # la escala: en secundaria la calificación es SIEMPRE numérica, la literal es
   # de primaria (MOR-129). Un test que necesite literal pide `nivel: :primaria`
   # en vez de forzarle la escala a un grado de bachillerato.
+  # ⚠️ El NOMBRE decide el nivel, no el `level:` que se pasa.
+  #
+  # `Grade#deducir_nivel_y_orden` lo saca del catálogo oficial, así que crear
+  # «1er Año» con `level: :preescolar` devuelve un grado de bachillerato **en
+  # silencio** — y la prueba de Educación Inicial estaría probando otro nivel.
+  NOMBRE_DEL_GRADO = {
+    preescolar: "1er Nivel", primaria: "6to Grado",
+    secundaria: "1er Año",   media_tecnica: "6to Año"
+  }.freeze
+
   def escenario_academico(nombre: "U.E. de Prueba", pesos: [30, 30, 40], alumnos: 1, nivel: :secundaria)
     n = EscenarioAcademico.siguiente
 
@@ -68,8 +78,7 @@ module EscenarioAcademico
 
       departamento = Department.create!(school: colegio, name: "Ciencias #{n}")
       materia      = Subject.create!(department: departamento, code: "MAT", name: "Matemática")
-      grado        = Grade.create!(school: colegio, level: nivel,
-                                   name: nivel.to_sym == :primaria ? "6to Grado" : "1er Año")
+      grado        = Grade.create!(school: colegio, level: nivel, name: NOMBRE_DEL_GRADO.fetch(nivel.to_sym))
       GradeSubject.create!(grade: grado, subject: materia)
 
       seccion = Section.create!(grade: grado, academic_period: periodo, name: "A", capacity: 30)

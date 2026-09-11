@@ -411,7 +411,15 @@ module MenuHelper
     end
 
     pestanas << [ "Calificar", section_path(seccion, contexto), activa == :calificar ]
-    pestanas << [ "Planificar", planificar_section_path(seccion, contexto), activa == :planificar ]
+
+    # ⚠️ Educación Inicial NO planifica: su calificación es un texto, así que no
+    # hay evaluaciones que ponderar. Se pregunta por `planifica?` y no por «no
+    # es primaria», que es la trampa de esta zona — con eso, Inicial y
+    # bachillerato caen juntos y a la maestra de 1er Nivel se le pedía un
+    # «Examen 40 %» para un niño de tres años.
+    if seccion.grade.planifica?
+      pestanas << [ "Planificar", planificar_section_path(seccion, contexto), activa == :planificar ]
+    end
     pestanas << [ "Alumnos", alumnos_section_path(seccion, contexto), activa == :alumnos ]
     pestanas
   end

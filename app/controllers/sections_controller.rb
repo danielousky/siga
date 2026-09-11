@@ -32,7 +32,15 @@ class SectionsController < ApplicationController
 
   # `show` es la pestaña CALIFICAR (etapa ③). Las otras tres son
   # `alumnos` acá al lado, `asistencias#show` y `competencies#index`.
+  # ⚠️ «Calificar» es DOS pantallas, según cómo califique el grado.
+  #
+  # En Educación Inicial la calificación es un texto por área —no hay notas, ni
+  # escala, ni promedio— así que en vez de la libreta de columnas va la planilla
+  # de valoraciones. La pestaña se sigue llamando igual porque es el mismo
+  # trabajo: registrar cómo le fue al niño.
   def show
+    return preparar_las_valoraciones if @section.grade.califica_con_texto?
+
     preparar_la_libreta
   end
 
@@ -64,6 +72,13 @@ class SectionsController < ApplicationController
   # elegida**. El plan es de la sección; quién lo escribe es otra pregunta, y ya
   # la contesta `profesor?` en cada botón.
   def planificar
+    # ⚠️ En Educación Inicial no hay nada que planificar: la calificación es un
+    # texto y no se compone de evaluaciones con peso. La pestaña no se ofrece
+    # (ver `pestanas_de_la_seccion`), pero la URL se puede escribir a mano o
+    # quedar en un marcador, y esa pantalla le pediría a la maestra una
+    # ponderación que no existe.
+    return redirect_to(section_path(@section, area: area_del_plan&.id)) if @section.grade.califica_con_texto?
+
     return redirect_to(section_path(@section), alert: "Elige primero un área.") if area_del_plan.nil?
 
     @competencias = Competency.del_plan(@section.id, area_del_plan.id, lapso&.id)
@@ -218,6 +233,12 @@ class SectionsController < ApplicationController
                           areas_que_califico.first
   end
   helper_method :area_de_la_pestana
+
+  def preparar_las_valoraciones
+    @lapsos_de_la_libreta = EvaluationMoment.where(academic_period_id: @section.academic_period_id).order(:id)
+    @lapso_de_la_libreta = @lapsos_de_la_libreta.find { |l| l.id.to_s == params[:lapso] } || lapso_en_curso || @lapsos_de_la_libreta.first
+    @valoraciones = ValoracionesDeLaSeccion.para(seccion: @section, lapso: @lapso_de_la_libreta)
+  end
 
   def preparar_la_libreta
     @areas_que_califico = areas_que_califico

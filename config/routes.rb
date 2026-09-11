@@ -376,6 +376,11 @@ Rails.application.routes.draw do
     end
   end
   resources :sections, path: "secciones" do
+    # ⚠️ La valoración descriptiva de Educación Inicial: un TEXTO por alumno y
+    # área, guardado al salir del campo. No es una nota — ese nivel no las
+    # tiene (ver `docs/specs/educacion-inicial.md`).
+    patch "valoracion", to: "valoraciones#update", as: :valoracion
+
     # ⚠️ «Alumnos» es una PESTAÑA de la sección, con su propia URL (etapa ③).
     #
     # Era un panel que alternaba con `hidden`, y las otras tres —asistencia,
