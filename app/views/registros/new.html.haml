@@ -87,14 +87,46 @@
         -# Se pide después, en «La identidad del colegio», que es un paso de
         -# arranque con su explicación de por qué conviene antes del primer
         -# boletín. Ver `PasosDeArranque#identidad`.
-        .form-group
+        -# ⚠️ El nombre del colegio SUGIERE, con el catálogo del MPPE.
+        -#
+        -# Daniel: *«al escribir el nombre me va sugiriendo… al seleccionar uno
+        -# se completan los campos pero la persona PODRÁ cambiarlos: es
+        -# sugerencia, no verdad»*.
+        -#
+        -# Con eso el código DEA deja de ser un problema sin volver a pedirse: no
+        -# se escribe, llega con el colegio elegido. Y si el colegio no está en
+        -# el catálogo —que está incompleto a propósito— no pasa nada: se
+        -# registra con lo que escribió. Es la regla de `DivisionPolitica::OTRO`.
+        .form-group{ data: { controller: "catalogo-de-planteles",
+                             catalogo_de_planteles_url_value: planteles_path } }
           = c.label :name, "Nombre del colegio", class: "form-label"
           = c.text_field :name, class: "#{clase_de_campo(@colegio, :name)} campo-mayuscula",
                          placeholder: "U.E. Colegio San José", required: requerido?(School, :name),
-                         data: { controller: "campo-filtrado",
+                         autocomplete: "off",
+                         data: { catalogo_de_planteles_target: "nombre",
+                                 controller: "campo-filtrado",
                                  campo_filtrado_permite_value: Normaliza::LETRAS_DE_INSTITUCION,
                                  campo_filtrado_mayuscula_value: true,
-                                 action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar" }
+                                 action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar input->catalogo-de-planteles#buscar" }
+
+          -# Las sugerencias llegan acá por Turbo, sin recargar nada.
+          = turbo_frame_tag "sugerencias_de_planteles"
+
+          -# ⚠️ El código aparece SOLO si se eligió del catálogo, y aparece como
+          -# un campo de texto normal: se puede corregir o borrar. Quien no
+          -# encuentra su colegio no lo ve nunca — no tiene por qué buscarlo.
+          .form-group{ hidden: @colegio.dea_code.blank?, data: { catalogo_de_planteles_target: "campoDelDea" } }
+            = con_pista("Vino del catálogo del MPPE. Si no es el suyo, corríjalo o bórrelo: se puede cargar después.") { c.label :dea_code, "Código DEA", class: "form-label" }
+            = c.text_field :dea_code, class: "#{clase_de_campo(@colegio, :dea_code)} campo-mayuscula",
+                           pattern: "[A-Za-z0-9]+", autocomplete: "off",
+                           data: { catalogo_de_planteles_target: "dea",
+                                   controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9",
+                                   campo_filtrado_mayuscula_value: true,
+                                   action: "input->campo-filtrado#filtrar" }
+
+          %p.nota-ayuda.catalogo-marca{ hidden: true, data: { catalogo_de_planteles_target: "marca" } }
+            = icono(:ok, tamano: 13)
+            Tomado del catálogo del MPPE. Cámbielo si hace falta: se registra lo que usted escriba.
 
       -# ⚠️ Marcar es MÚLTIPLE, no un desplegable: la mitad del mercado dicta
       -# varias cosas, y esa es justamente la razón por la que `school_type` se

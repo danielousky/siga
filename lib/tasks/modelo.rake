@@ -155,6 +155,7 @@ namespace :modelo do
     attendances report_cards informes
     importaciones mensajes mensaje_eventos mensajes_entrantes
     activity_logs demo_requests
+    planteles_oficiales
   ].freeze
 
   # ⚠️ Lo que `structure.sql` NO sabe, y es la mitad del valor de un ERD.

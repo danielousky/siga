@@ -24,16 +24,31 @@
         %span.pasos-punto-numero= i + 1
         %span.pasos-punto-nombre= nombre
 
-  %fieldset.siga-fieldset{ data: { pasos_target: "paso" } }
+  -# ⚠️ El MISMO buscador del registro: se escribe el nombre y el catálogo del
+  -# MPPE sugiere, con su código. Acá vale igual —quien da de alta un colegio
+  -# desde SIGA tampoco tiene el DEA en la cabeza— y de paso el nombre queda
+  -# como lo escribe el ministerio, que es el que sale en los documentos.
+  %fieldset.siga-fieldset{ data: { pasos_target: "paso", controller: "catalogo-de-planteles",
+                                   catalogo_de_planteles_url_value: planteles_path } }
     %legend El colegio
-    .form-row
-      .form-group
-        = label_tag "school[name]", "Nombre", class: "form-label"
-        = text_field_tag "school[name]", @colegio.name, class: "form-control", required: true, placeholder: "U.E. Colegio San José"
-      .form-group
+    .form-group
+      = label_tag "school[name]", "Nombre", class: "form-label"
+      = text_field_tag "school[name]", @colegio.name, class: "form-control", required: true,
+                       placeholder: "U.E. Colegio San José", autocomplete: "off",
+                       data: { catalogo_de_planteles_target: "nombre",
+                               action: "input->catalogo-de-planteles#buscar" }
+      = turbo_frame_tag "sugerencias_de_planteles"
+
+      .form-group{ hidden: @colegio.dea_code.blank?, data: { catalogo_de_planteles_target: "campoDelDea" } }
         = etiqueta_con_pista "school[dea_code]", "Código DEA",
-                             pista: "Lo asigna el MPPE. Es único en toda la plataforma, así que dos colegios no pueden tener el mismo. Si no lo tiene, se carga después."
-        = text_field_tag "school[dea_code]", @colegio.dea_code, class: "form-control", placeholder: "PD01234567"
+                             pista: "Lo asigna el MPPE y es único en toda la plataforma. Vino del catálogo: corríjalo si no es el suyo, o bórrelo y se carga después."
+        = text_field_tag "school[dea_code]", @colegio.dea_code, class: "form-control",
+                         placeholder: "PD01234567", autocomplete: "off",
+                         data: { catalogo_de_planteles_target: "dea" }
+
+      %p.nota-ayuda.catalogo-marca{ hidden: true, data: { catalogo_de_planteles_target: "marca" } }
+        = icono(:ok, tamano: 13)
+        Tomado del catálogo del MPPE. Cámbielo si hace falta: se guarda lo que usted escriba.
     -# ⚠️ Acá NO se pregunta qué dicta el colegio (MOR-160).
     -#
     -# `school_type` era excluyente —o primaria o bachillerato— y un colegio

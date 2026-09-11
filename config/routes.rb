@@ -375,6 +375,11 @@ Rails.application.routes.draw do
       post "promover", to: "promociones#create", as: :hacer_promocion_al
     end
   end
+  # ⚠️ PÚBLICA: la usa el registro, y quien se registra no tiene cuenta todavía.
+  # Devuelve nombres y códigos de planteles que el MPPE publica; nada de ningún
+  # colegio de SIGA.
+  resources :planteles, only: [ :index ]
+
   resources :sections, path: "secciones" do
     # ⚠️ La valoración descriptiva de Educación Inicial: un TEXTO por alumno y
     # área, guardado al salir del campo. No es una nota — ese nivel no las

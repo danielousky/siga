@@ -20,11 +20,20 @@ require "test_helper"
 class DeaQueSeCargaDespuesTest < ActionDispatch::IntegrationTest
   # ── Registrarse ───────────────────────────────────────────────────────────
 
-  test "el registro ya no pide el código DEA" do
+  # ⚠️ El campo VOLVIÓ, pero nadie lo escribe: lo rellena el catálogo del MPPE
+  # al elegir el colegio, y hasta entonces ni se ve.
+  #
+  # No es una vuelta atrás: lo que se quitó fue PEDIR un código que nadie tiene
+  # en la cabeza. Ahora llega con el nombre del colegio, que todo el mundo sabe.
+  # Ver `catalogo_de_planteles_test`.
+  test "el registro no pide el código DEA: lo sugiere" do
     get registrarse_path
 
     assert_response :success
-    assert_select "input[name='school[dea_code]']", count: 0
+    # Existe, pero escondido hasta que se elija un plantel del catálogo.
+    assert_select "[data-catalogo-de-planteles-target=campoDelDea][hidden]"
+    # Y no es obligatorio: quien no está en el catálogo se registra sin él.
+    assert_select "input[name='school[dea_code]'][required]", count: 0
   end
 
   test "un colegio se registra sin código y queda en nil, no en blanco" do

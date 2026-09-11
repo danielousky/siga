@@ -1,0 +1,28 @@
+-# Las sugerencias del catálogo, dentro del frame que preguntó.
+-#
+-# ⚠️ Cada una es un BOTÓN, no un enlace: elegir un plantel no navega a ningún
+-# lado, rellena los campos de este mismo formulario.
+= turbo_frame_tag "sugerencias_de_planteles" do
+  - if termino.blank?
+    -# Nada: escribir es lo que enciende esto.
+  - elsif planteles.empty?
+    %p.nota-ayuda.sugerencias-vacio
+      Ningún plantel del catálogo coincide con «#{termino}». Escriba el nombre
+      de su colegio y siga: se registra igual.
+  - else
+    %ul.sugerencias
+      - planteles.each do |plantel|
+        %li
+          %button.sugerencia{ type: "button",
+                              data: { action: "catalogo-de-planteles#elegir",
+                                      catalogo_de_planteles_nombre_param: plantel.nombre,
+                                      catalogo_de_planteles_dea_param: plantel.dea_code.to_s } }
+            %span.sugerencia-nombre= plantel.nombre
+            %span.sugerencia-detalle
+              - if plantel.dea_code.present?
+                %span.sugerencia-dea= plantel.dea_code
+              = plantel.procedencia
+    %p.nota-ayuda.sugerencias-pie
+      Del catálogo del MPPE. Al elegir uno se rellenan los campos y
+      %strong usted puede cambiarlos
+      \: manda lo que escriba.

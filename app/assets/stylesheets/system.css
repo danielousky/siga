@@ -5168,6 +5168,73 @@ td.columna-orden { width: 2.5rem; }
   color: var(--text-tertiary);
 }
 
+/* ── las sugerencias del catálogo de planteles ─────────────────────────────
+
+   Aparecen debajo del nombre mientras se escribe. No son un desplegable del
+   navegador: cada una muestra el código DEA y de dónde es, que es lo que
+   permite distinguir dos colegios que se llaman parecido. */
+
+.sugerencias {
+  list-style: none;
+  margin: var(--space-xs) 0 0;
+  padding: 0;
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface-elevated);
+}
+
+.sugerencia {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.sugerencias li:last-child .sugerencia { border-bottom: 0; }
+
+.sugerencia:hover,
+.sugerencia:focus-visible {
+  background: var(--surface-hover);
+  outline: none;
+}
+
+.sugerencia-nombre { color: var(--text-primary); }
+
+.sugerencia-detalle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  display: flex;
+  gap: var(--space-xs);
+}
+
+/* El código, en monoespaciada: es un identificador y se compara carácter a
+   carácter con el que el colegio tenga en su papel. */
+.sugerencia-dea {
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.sugerencias-vacio,
+.sugerencias-pie { margin-top: var(--space-xs); }
+
+/* ⚠️ La marca de «esto vino del catálogo» dice ADEMÁS que se puede cambiar.
+   Sin esa mitad, un campo que se rellenó solo se lee como un dato cerrado. */
+.catalogo-marca {
+  display: flex;
+  align-items: center;
+  gap: var(--space-micro);
+  color: var(--success-text);
+  margin-top: var(--space-xs);
+}
+
 /* ── el avatar ─────────────────────────────────────────────────────────────
 
    `--avatar-lado` viene del helper y no de una clase por tamaño: son cinco

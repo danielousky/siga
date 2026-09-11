@@ -1022,6 +1022,40 @@ ALTER SEQUENCE public.moment_grades_id_seq OWNED BY public.moment_grades.id;
 
 
 --
+-- Name: planteles_oficiales; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.planteles_oficiales (
+    id bigint NOT NULL,
+    dea_code character varying,
+    nombre character varying NOT NULL,
+    entidad_federal character varying,
+    busqueda character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: planteles_oficiales_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.planteles_oficiales_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: planteles_oficiales_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.planteles_oficiales_id_seq OWNED BY public.planteles_oficiales.id;
+
+
+--
 -- Name: report_cards; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2123,6 +2157,13 @@ ALTER TABLE ONLY public.moment_grades ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: planteles_oficiales id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.planteles_oficiales ALTER COLUMN id SET DEFAULT nextval('public.planteles_oficiales_id_seq'::regclass);
+
+
+--
 -- Name: report_cards id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2518,6 +2559,14 @@ ALTER TABLE ONLY public.mensajes
 
 ALTER TABLE ONLY public.moment_grades
     ADD CONSTRAINT moment_grades_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: planteles_oficiales planteles_oficiales_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.planteles_oficiales
+    ADD CONSTRAINT planteles_oficiales_pkey PRIMARY KEY (id);
 
 
 --
@@ -3355,6 +3404,20 @@ CREATE INDEX index_moment_grades_on_school_id_and_origen ON public.moment_grades
 --
 
 CREATE INDEX index_moment_grades_on_subject_id ON public.moment_grades USING btree (subject_id);
+
+
+--
+-- Name: index_planteles_oficiales_on_busqueda; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_planteles_oficiales_on_busqueda ON public.planteles_oficiales USING btree (busqueda);
+
+
+--
+-- Name: index_planteles_oficiales_on_dea_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_planteles_oficiales_on_dea_code ON public.planteles_oficiales USING btree (dea_code);
 
 
 --
@@ -4987,6 +5050,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260911233604'),
 ('20260911202756'),
 ('20260911042145'),
 ('20260911034912'),
