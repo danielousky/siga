@@ -147,6 +147,38 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     assert_select ".plan-sugerido", 0
   end
 
+  # ⚠️ Una sección de OTRO año escolar: `asignacion` se busca entre las del año
+  # de la sesión, así que ahí es nil mientras la sección y el área no lo son.
+  #
+  # La tarjeta salía igual —el plan cuelga de la sección, no de la asignación— y
+  # la vista le pedía la materia a `asignacion`: la pantalla entera reventaba con
+  # «undefined method 'subject' for nil». Y el profesor no tiene selector de año
+  # justamente para no planificar en el año equivocado, así que tampoco debía
+  # salirle.
+  test "una sección de otro año escolar no revienta ni ofrece duplicar" do
+    del_otro_ano = con_el_colegio(@a.colegio) do
+      plan_viejo   # deja un plan en 2024-2025, que es lo que se va a sugerir
+      # ⚠️ Un TERCER año: el destino tiene que estar vacío y ser de un año
+      # distinto al del plan, o `para_sugerir` no lo propone.
+      otro = AcademicPeriod.create!(name: "2023-2024", start_date: Date.new(2023, 9, 15),
+                                    end_date: Date.new(2024, 7, 31))
+      EvaluationMoment.create!(academic_period: otro, name: @lapso.name)
+      seccion = Section.create!(grade: @a.grado, academic_period: otro, name: "A", capacity: 30)
+      # ⚠️ CON la asignación: sin ella la autorización lo rebota antes de
+      # dibujar nada, y el error no se reproduce. El bug es justamente el del
+      # profesor que tiene la sección, pero en otro año que el de su sesión.
+      TeacherSection.create!(teacher: @a.registro_de_profesor, section: seccion,
+                             subject: @a.escenario.materia)
+      seccion
+    end
+    sign_in @a.profesor
+
+    get planificar_section_path(del_otro_ano, area: @a.escenario.materia.id)
+
+    assert_response :success
+    assert_select ".plan-sugerido", 0
+  end
+
   # ⚠️ Idempotente, como `CopiarLaEstructura`: traerlo dos veces no duplica.
   test "traerlo dos veces no duplica nada" do
     con_el_colegio(@a.colegio) { plan_viejo }

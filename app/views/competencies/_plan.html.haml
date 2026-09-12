@@ -39,8 +39,15 @@
     %h3.plan-sugerido-titulo
       = icono(:lapsos, tamano: 18)
       Hay un plan del año pasado
+    -# ⚠️ La materia sale de `area_del_plan`, NO de `asignacion.subject`.
+    -#
+    -# `asignacion` es la asignación del profesor y se busca en las de la SESIÓN
+    -# (`del_anio_de_la_sesion`); el plan, en cambio, cuelga de la sección y el
+    -# área que se abrieron. Con una sección de otro año escolar la primera es
+    -# nil y la segunda no, así que preguntarle la materia a `asignacion`
+    -# reventaba la pantalla entera con «undefined method 'subject' for nil».
     %p.nota-ayuda
-      = "#{plan_sugerido.first.section.academic_period.name} · #{plan_sugerido.first.section.grade.name} · #{asignacion.subject.name}"
+      = "#{plan_sugerido.first.section.academic_period.name} · #{plan_sugerido.first.section.grade.name} · #{area_del_plan.name}"
       \—
       = contar(plan_sugerido.size, "competencia", "competencias")
     %ul.plan-sugerido-lista
