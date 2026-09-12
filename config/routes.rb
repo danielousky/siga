@@ -40,6 +40,13 @@ Rails.application.routes.draw do
   # que lo arregla.
   get "salud", to: "salud#show", as: :salud
 
+  # Lo que leen los buscadores. Son un controller y no dos archivos en
+  # `public/` porque el `robots.txt` tiene que decir la URL del sitemap, y esa
+  # lleva el host — que en SIGA es `SIGA_HOST`, no una constante. Ver
+  # `BuscadoresController`.
+  get "robots.txt", to: "buscadores#robots", as: :robots, defaults: { format: "text" }
+  get "sitemap.xml", to: "buscadores#mapa", as: :sitemap, defaults: { format: "xml" }
+
   # ⚠️ NO hay registro público. Ver MOR-101.
   #
   # `:registerable` viene puesto por `rails generate devise User` y no es una

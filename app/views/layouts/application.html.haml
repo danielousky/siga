@@ -14,6 +14,17 @@
     = csrf_meta_tags
     = csp_meta_tag
 
+    -# ⚠️ El canonical va SIEMPRE, también adentro del panel. Ahí Google no
+    -# entra, pero el canonical no es solo para él: es lo que hace que un
+    -# enlace con `?utm_source=…` pegado y el mismo enlace pelado sean la misma
+    -# página. Ver `MetadatosHelper#url_canonica`.
+    %link{rel: "canonical", href: url_canonica}
+
+    -# Lo que no debe aparecer en un resultado: el documento de una persona, el
+    -# autocompletado del registro y todo lo que hay tras el login.
+    - if esconder_de_los_buscadores?
+      %meta{name: "robots", content: "noindex, nofollow"}
+
     -# La tarjeta que ve quien recibe el enlace por WhatsApp — que es el canal de
     -# venta real. Ver `MetadatosHelper`: las URL van absolutas a propósito,
     -# porque quien pide la imagen es el servidor de WhatsApp, no el navegador.
@@ -30,6 +41,12 @@
       %meta{property: "og:image:alt", content: "SIGA · Notas, boletines y constancias desde el teléfono"}
       %meta{name: "twitter:card", content: "summary_large_image"}
       %meta{name: "theme-color", content: "#07142f"}
+
+      -# ⚠️ Solo en la PORTADA. Es la ficha del producto, y repetirla en
+      -# `/registrarse` y en `/verificar` le dice a un buscador que hay tres
+      -# productos distintos con el mismo nombre y el mismo precio.
+      - if current_page?(root_path)
+        %script{type: "application/ld+json"}!= ficha_estructurada.to_json
     -# El favicon en SVG: 26 KB contra los 43 KB del PNG que había antes, y sin
     -# perder nitidez en pantalla retina. Los navegadores que no lo soportan
     -# simplemente no muestran ícono, que es un precio ínfimo.
