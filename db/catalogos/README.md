@@ -45,10 +45,44 @@ estado— así que esta copia se armó del directorio público de
 públicos, pero el directorio compilado es su trabajo. Un enlace de crédito es
 barato.
 
+## ⚠️ El código DEA lleva el ESTADO adentro, y está comprobado
+
+Los dos dígitos que anteceden a los dos últimos son el código INE de la entidad
+federal. Contrastado contra las 13.441 filas con código:
+
+```
+   Amazonas   163/163 → 02      Apure    725/725 → 04
+   Anzoátegui 483/483 → 03      Bolívar  915/915 → 07
+```
+
+Sirve para detectar un código mal tecleado: si alguien escribe un DEA cuyo
+estado no coincide con el suyo, hay algo que revisar.
+
+## ⚠️ Y los dos ÚLTIMOS parecen ser el municipio — sin confirmar
+
+El rango calza exacto en todos los estados: Amazonas tiene 7 municipios y sus
+códigos van del 1 al 7; Aragua tiene 18 y van del 1 al 18. Es casi seguro que
+`MM` es el ordinal del municipio dentro del estado.
+
+**Lo que NO se pudo establecer es el ORDEN que usa el MPPE.** Se probaron dos
+—el de un catálogo público y el alfabético— y ninguno pasa de la mitad de los
+estados al contrastarlo.
+
+Por eso **no se deriva el municipio**: un municipio equivocado que se ve
+plausible es peor que ninguno, porque nadie corrige lo que no nota, y ese dato
+sale impreso en los documentos del MPPE. Es exactamente lo que advierte
+`DivisionPolitica` de sí mismo.
+
+Con una tabla oficial de numeración de municipios (INE o el propio MPPE), esto
+se desbloquea sin una sola petición más.
+
 ## Lo que el catálogo NO trae
 
-- **Municipio y parroquia.** El directorio los tiene en la ficha de cada
-  plantel, no en el listado. Traerlos serían ~16.000 peticiones más, y hoy no
-  hacen falta: el registro no pregunta la ubicación.
+- **La dirección.** La ficha de cada plantel SÍ la tiene
+  (`schema.org/PostalAddress` → `streetAddress`), pero está en la ficha y no en
+  el listado: traerla son ~16.000 peticiones más, unas cuatro horas y media a
+  una por segundo.
+- **Municipio y parroquia.** No están en ninguna de las dos: la ficha solo trae
+  el estado y la calle. Ver arriba lo del código.
 - **Acentos en los nombres.** La fuente los tiene sin acentuar («JOSE», no
   «JOSÉ»). Como se puede corregir al registrarse, no se inventaron.

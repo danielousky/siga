@@ -80,6 +80,35 @@ class CatalogoDePlantelesTest < ActionDispatch::IntegrationTest
     assert_select ".sugerencia-detalle", /Carabobo · privado/
   end
 
+  # ── Por código ────────────────────────────────────────────────────────────
+
+  # ⚠️ Quien tiene el papel del MPPE delante escribe el CÓDIGO, no el nombre. Y
+  # no funcionaba: `busqueda` solo llevaba el nombre y el estado, así que buscar
+  # un código que estaba en la propia lista no devolvía nada.
+  test "se busca por código DEA" do
+    get planteles_path(q: "PD01234567")
+
+    assert_select ".sugerencia", 1
+    assert_select ".sugerencia-nombre", /SAN JOSÉ/
+  end
+
+  test "el código también en minúscula y por pedazos" do
+    get planteles_path(q: "pd0123")
+
+    assert_select ".sugerencia", 1
+  end
+
+  # ⚠️ Y un número suelto NO es un código: hay planteles que se llaman «Escuela
+  # 24 de Julio», y buscar «24» tiene que seguir buscando por nombre.
+  test "un número dentro de un nombre sigue siendo una búsqueda por nombre" do
+    PlantelOficial.create!(nombre: "E B N 24 DE JULIO", dea_code: "OD05050505",
+                           entidad_federal: "Lara")
+
+    get planteles_path(q: "24 de julio")
+
+    assert_select ".sugerencia-nombre", /24 DE JULIO/
+  end
+
   # ── No encontrarlo no bloquea nada ────────────────────────────────────────
 
   # ⚠️ El catálogo está incompleto A PROPÓSITO, y que lo esté no puede costarle
