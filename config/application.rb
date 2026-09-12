@@ -7,6 +7,29 @@ require "rails/all"
 Bundler.require(*Rails.groups)
 
 module Siga
+  # La versión del PRODUCTO, que no es la del commit.
+  #
+  # ## ⚠️ SemVer con los significados puestos desde el colegio
+  #
+  # El MAYOR de SemVer significa «rompí la API para quien depende de mí». De
+  # SIGA no depende nadie: hay UNA versión corriendo y todos los colegios la
+  # tienen. Sin darles otro significado, MAYOR/MENOR/PARCHE son una moneda al
+  # aire y la numeración deja de decir nada.
+  #
+  #     MAYOR    cambia CÓMO TRABAJA el colegio    hay que avisarle y enseñarle
+  #     MENOR    una función nueva                  se cuenta en el CHANGELOG
+  #     PARCHE   un arreglo o un ajuste             nadie tiene que enterarse
+  #
+  # ⚠️ `1.0.0` NO significa «está completo»: significa **un colegio real opera
+  # con esto**. Lo único que falta para eso es sacar los datos de demostración
+  # de producción (`MOR-146`). La cobranza dentro de la app (`MOR-128`) NO es
+  # un portón: hoy se vende igual y la suscripción ya lleva su estado.
+  #
+  # ⚠️ Y no es la revisión de git. `/salud` devuelve las dos: `version` es esta
+  # —qué producto es— y `revision` es el commit desplegado —qué build es—.
+  # Confundirlas hace que «la 0.9.0» signifique cuarenta cosas distintas.
+  VERSION = "0.9.0".freeze
+
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.1
