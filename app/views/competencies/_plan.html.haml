@@ -24,7 +24,14 @@
 -#           Examen del lapso   40 %    8 nov
 -#     2 ▸ Interpreta gráficos
 -#           ⚠ sin evaluaciones — no tendrá nivel en la boleta
-- if @sugerido&.any?
+-# ⚠️ Se pregunta por `plan_sugerido`, NO por una variable de instancia.
+-#
+-# Era `@sugerido`, que lo llenaba `CompetenciesController#index`. El día que el
+-# índice se volvió un redirector, la asignación se fue con él y esta tarjeta
+-# dejó de dibujarse EN SILENCIO — `nil&.any?` no falla, no avisa y no rompe
+-# ningún test. Ahora las condiciones viven en `MuestraElPlan`, que es quien
+-# sabe de qué plan se está hablando.
+- if plan_sugerido.any?
   -# ⚠️ Se OFRECE, no se carga solo. Un plan clonado que nadie miró es un plan
   -# que alguien va a usar sin leer. Daniel: «se le sugiere… lo previsualiza,
   -# hace los ajustes que considere y se guarda».
@@ -33,14 +40,14 @@
       = icono(:lapsos, tamano: 18)
       Hay un plan del año pasado
     %p.nota-ayuda
-      = "#{@sugerido.first.section.academic_period.name} · #{@sugerido.first.section.grade.name} · #{asignacion.subject.name}"
+      = "#{plan_sugerido.first.section.academic_period.name} · #{plan_sugerido.first.section.grade.name} · #{asignacion.subject.name}"
       \—
-      = contar(@sugerido.size, "competencia", "competencias")
+      = contar(plan_sugerido.size, "competencia", "competencias")
     %ul.plan-sugerido-lista
-      - @sugerido.first(4).each do |c|
+      - plan_sugerido.first(4).each do |c|
         %li= c.descripcion.truncate(110)
-      - if @sugerido.size > 4
-        %li.dato-secundario= "y #{contar(@sugerido.size - 4, 'competencia más', 'competencias más')}"
+      - if plan_sugerido.size > 4
+        %li.dato-secundario= "y #{contar(plan_sugerido.size - 4, 'competencia más', 'competencias más')}"
     -# ⚠️ Se dice que vienen TAMBIÉN las evaluaciones, y con la fecha corrida.
     -#
     -# Daniel: *«copiamos competencias, indicadores y evaluaciones, se le coloca
@@ -60,7 +67,7 @@
     -# del viejo. «Extender», «Aplicar» y «Usar también en» sugieren que es el
     -# mismo plan en dos sitios, y el día que el profesor cambie uno y vea que el
     -# otro no cambió, la palabra le habría mentido.
-    = button_to "Duplicar el plan de #{@sugerido.first.section.academic_period.name}",
+    = button_to "Duplicar el plan de #{plan_sugerido.first.section.academic_period.name}",
                 traer_competencies_path(contexto),
                 class: "btn btn-accion"
 
