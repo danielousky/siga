@@ -66,6 +66,7 @@ class ActivityLog < ApplicationRecord
     "certificacion_emitida" => "Certificación de calificaciones emitida",
     "documento_de_primaria_emitido" => "Documento de primaria emitido",
     "documento_de_inicial_emitido" => "Documento de Educación Inicial emitido",
+    "resumen_final_emitido" => "Resumen Final del Rendimiento emitido",
     "pensum_importada"     => "Materias y profesores importados",
     "login"                => "Inicio de sesión",
     "enrollment_created"   => "Inscripción creada",

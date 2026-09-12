@@ -444,6 +444,14 @@ Rails.application.routes.draw do
   get "documentos/inicial/:enrollment_id",
       to: "documentos_oficiales#inicial", as: :documento_de_inicial
 
+  # ⚠️ El Resumen Final es de la SECCIÓN, no de un alumno: es el acta que el
+  # colegio le manda a la zona educativa al cerrar el año. Acepta `.pdf` y
+  # `.xlsx` por lo mismo que la 31059 — el formato tiene casillas que SIGA no
+  # modela y el colegio las completa a mano.
+  get "documentos/resumen-final/:section_id",
+      to: "documentos_oficiales#resumen_final", as: :resumen_final,
+      defaults: { format: "pdf" }, constraints: { format: /pdf|xlsx/ }
+
   # El buscador global de `⌘K` (MOR-149). Devuelve un fragmento, no una página:
   # el modal lo pega dentro de su `<turbo-frame>` mientras se escribe.
   get "buscar", to: "busquedas#show", as: :busqueda
