@@ -441,6 +441,8 @@ Rails.application.routes.draw do
       defaults: { format: "pdf" }, constraints: { format: /pdf|xlsx/ }
   get "documentos/primaria/:enrollment_id",
       to: "documentos_oficiales#primaria", as: :documento_de_primaria
+  get "documentos/inicial/:enrollment_id",
+      to: "documentos_oficiales#inicial", as: :documento_de_inicial
 
   # El buscador global de `⌘K` (MOR-149). Devuelve un fragmento, no una página:
   # el modal lo pega dentro de su `<turbo-frame>` mientras se escribe.

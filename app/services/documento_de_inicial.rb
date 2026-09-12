@@ -1,0 +1,129 @@
+# Los datos de los documentos de fin de año de Educación Inicial (MOR-99).
+#
+# Decide **cuál de los dos** corresponde, igual que su hermano de primaria:
+#
+#     III Grupo (el último)  →  CERTIFICACIÓN DE ESTUDIOS DEL NIVEL DE
+#                               EDUCACIÓN INICIAL
+#                               «continuará estudios en el 1ER. GRADO del
+#                                Nivel de Educación Primaria»
+#     I y II Grupo           →  CONSTANCIA DE PROSECUCIÓN EN EL NIVEL DE
+#                               EDUCACIÓN INICIAL
+#
+# El texto sale de los formatos del MPPE que entregó Daniel el 11 de septiembre
+# de 2026 (`DOCs/209_CertificadoEduI`).
+#
+# ## ⚠️ Acá NO hay literal, y esa es la diferencia grande con primaria
+#
+# En Educación Inicial la calificación es un TEXTO —no hay nota, ni escala, ni
+# promedio (ver `docs/specs/educacion-inicial.md`)— y el formato del ministerio
+# lo refleja: no tiene dónde poner una calificación. Solo dice qué grupo cursó y
+# en qué período.
+#
+# ## ⚠️ «Nivel» en SIGA, «Grupo» en el papel
+#
+# SIGA llama a los grados de Inicial «1er Nivel», «2do Nivel» y «3er Nivel»,
+# porque así los nombra el catálogo oficial de grados (`GradoOficial`). El
+# formato del MPPE los llama «I, II y III Grupo de la Etapa Preescolar». Es el
+# mismo niño en el mismo año: lo que cambia es cómo lo nombra cada papel, y el
+# documento tiene que decirlo como lo dice el ministerio.
+class DocumentoDeInicial
+  # ⚠️ La Etapa Preescolar son TRES grupos, y no es configurable: lo fija el
+  # currículo de Educación Inicial. Es la misma razón por la que
+  # `DocumentoDePrimaria::ULTIMO_GRADO` está escrito y no se deduce de qué
+  # grados haya cargado el colegio — un plantel que todavía no creó el 3er
+  # Nivel le habría emitido la certificación final a un niño de I Grupo.
+  ULTIMO_GRUPO = 3
+
+  # La etapa que cubren esos tres grupos. La otra —Maternal— SIGA no la modela:
+  # `GradoOficial` tiene los tres niveles de preescolar y nada más.
+  ETAPA = "Preescolar".freeze
+
+  # A dónde continúa quien termina. No es un grado de este colegio: es el nivel
+  # siguiente del sistema, y el formato lo trae impreso así, en mayúscula.
+  DESPUES_DE_INICIAL = "el 1ER. GRADO del Nivel de Educación Primaria".freeze
+
+  # Los grupos se numeran en ROMANO en el formato del ministerio.
+  ROMANOS = { 1 => "I", 2 => "II", 3 => "III" }.freeze
+
+  def self.para(enrollment:, firmante: nil)
+    new(enrollment: enrollment, firmante: firmante).datos
+  end
+
+  def initialize(enrollment:, firmante: nil)
+    @inscripcion = enrollment
+    @seccion = enrollment.section
+    @grado = @seccion.grade
+    @colegio = @grado.school
+    @firmante = firmante
+  end
+
+  # ⚠️ Solo para Educación Inicial. A un alumno de primaria le toca su propio
+  # par de documentos, y a uno de bachillerato la certificación 31059.
+  def emitible? = @grado.preescolar?
+
+  def datos
+    {
+      "tipo" => tipo,
+      "plantel" => plantel,
+      "estudiante" => estudiante,
+      "grupo" => grupo,
+      "etapa" => ETAPA,
+      "periodo" => @seccion.academic_period.name,
+      "continua_en" => (DESPUES_DE_INICIAL if ultimo_grupo?),
+      "expedida_en" => expedida_en,
+      "firmante" => firmante
+    }
+  end
+
+  private
+
+  # Quien termina el III Grupo recibe la CERTIFICACIÓN de estudios; los otros
+  # dos, la CONSTANCIA de prosecución entre grupos.
+  def tipo = ultimo_grupo? ? "certificacion" : "prosecucion"
+
+  def ultimo_grupo? = numero == ULTIMO_GRUPO
+
+  # «III», que es como lo escribe el formato del ministerio.
+  def grupo = ROMANOS.fetch(numero, numero.to_s)
+
+  # ⚠️ El número sale del NOMBRE del grado: «3er Nivel» → 3.
+  #
+  # Y ante la duda —un nombre sin número— se emite la CONSTANCIA, que es el
+  # documento de todos los años. La certificación, que dice que el niño pasa a
+  # primaria, es la que no se puede emitir de más.
+  def numero = @numero ||= @grado.name.to_s[/\d+/]&.to_i || 0
+
+  def plantel
+    {
+      "nombre" => @colegio.name,
+      "municipio" => @colegio.municipio,
+      "parroquia" => @colegio.parroquia,
+      "entidad_federal" => @colegio.entidad_federal
+    }
+  end
+
+  def estudiante
+    persona = @inscripcion.student.user
+
+    {
+      "nombre" => persona.nombre_completo,
+      # ⚠️ El formato pide la CÉDULA ESCOLAR, que es justamente la que tiene un
+      # niño de preescolar: la de identidad no la tiene todavía. Si por lo que
+      # sea hay documento, se muestra ese — el papel no puede salir en blanco.
+      "identificador" => persona.cedula_escolar.presence || persona.documento_a_la_vista,
+      "lugar_de_nacimiento" => persona.birth_place,
+      "fecha_de_nacimiento" => (I18n.l(persona.birth_date, format: :long) if persona.birth_date)
+    }
+  end
+
+  # Dónde se expide: la ciudad del plantel. Es lo que el formato pide en
+  # «Constancia que se expide en ___».
+  def expedida_en = @colegio.municipio.presence || @colegio.location
+
+  def firmante
+    return @firmante if @firmante.is_a?(Hash)
+    return nil if @firmante.nil?
+
+    { "nombre" => @firmante.nombre_completo, "documento" => @firmante.identificador_a_la_vista }
+  end
+end

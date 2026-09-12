@@ -61,6 +61,29 @@ class DocumentosOficialesController < ApplicationController
                "#{datos['tipo']}-primaria-#{apellido(inscripcion.student)}.pdf")
   end
 
+  # La certificación o la constancia de Educación Inicial, según el grupo.
+  #
+  # ⚠️ Acá NO va ningún literal: en Inicial la calificación es un TEXTO —no hay
+  # nota, ni escala, ni promedio— y el formato del ministerio no tiene casilla
+  # para una. Ver `docs/specs/educacion-inicial.md`.
+  def inicial
+    inscripcion = Enrollment.find(params[:enrollment_id])
+    armador = DocumentoDeInicial.new(enrollment: inscripcion, firmante: firmante_admin)
+
+    unless armador.emitible?
+      return redirect_to student_path(inscripcion.student),
+                         alert: "Este documento es de Educación Inicial. Para primaria o " \
+                                "bachillerato, use el que corresponde a su nivel."
+    end
+
+    datos = armador.datos
+    registrar("documento_de_inicial_emitido", inscripcion.student,
+              datos["tipo"] == "certificacion" ? "Certificación de Estudios de Educación Inicial" : "Constancia de Prosecución de Educación Inicial")
+
+    enviar_pdf(DocumentoDeInicialPdf.new(datos),
+               "#{datos['tipo']}-inicial-#{apellido(inscripcion.student)}.pdf")
+  end
+
   private
 
   def enviar_pdf(documento, nombre)

@@ -166,6 +166,24 @@
                 documento_de_primaria_path(enrollment_id: @inscripcion),
                 class: "btn btn-documento"
 
+    - elsif @inscripcion&.section&.grade&.preescolar?
+      %p
+        -# El grupo decide cuál de los dos: el III —el último— certifica los
+        -# estudios y dice que el niño continúa a primaria; los otros dos llevan
+        -# la constancia de prosecución entre grupos.
+        %strong Certificación de Estudios
+        o
+        %strong Constancia de Prosecución
+        \, según el grupo que cursó.
+      -# ⚠️ Sin literal ni calificación: en Educación Inicial no las hay, y el
+      -# formato del ministerio tampoco tiene dónde ponerlas.
+      %p.nota-ayuda
+        En Educación Inicial no se certifica una calificación: el formato dice qué
+        grupo cursó y en qué período escolar.
+      = link_to "Emitir el documento",
+                documento_de_inicial_path(enrollment_id: @inscripcion),
+                class: "btn btn-documento"
+
     - else
       %p.nota-pendiente
         Este alumno no tiene una inscripción activa, así que todavía no hay nada que
