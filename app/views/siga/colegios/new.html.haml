@@ -13,8 +13,12 @@
 -# Los tres grupos ya existían como `fieldset`; lo único que faltaba era
 -# mostrarlos de a uno. Ver `pasos_controller`: los pasos son del navegador y el
 -# formulario se envía UNA vez, así que o se crea entero o no se crea.
+-# ⚠️ `catalogo-de-planteles` va en el FORMULARIO y no en el paso ①: al elegir
+-# un plantel preselecciona el estado y el municipio, que viven en el paso ②.
+-# Un controlador solo ve sus `target` DENTRO de su elemento.
 = form_with url: siga_colegios_path, method: :post, class: "siga-form",
-            data: { controller: "pasos" } do
+            data: { controller: "pasos catalogo-de-planteles",
+                    catalogo_de_planteles_url_value: planteles_path } do
   = render "shared/errors", object: @colegio
   = render "shared/errors", object: @usuario
 
@@ -28,8 +32,7 @@
   -# MPPE sugiere, con su código. Acá vale igual —quien da de alta un colegio
   -# desde SIGA tampoco tiene el DEA en la cabeza— y de paso el nombre queda
   -# como lo escribe el ministerio, que es el que sale en los documentos.
-  %fieldset.siga-fieldset{ data: { pasos_target: "paso", controller: "catalogo-de-planteles",
-                                   catalogo_de_planteles_url_value: planteles_path } }
+  %fieldset.siga-fieldset{ data: { pasos_target: "paso" } }
     %legend El colegio
     .form-group
       = label_tag "school[name]", "Nombre", class: "form-label"

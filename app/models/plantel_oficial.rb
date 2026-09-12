@@ -108,7 +108,7 @@ class PlantelOficial < ApplicationRecord
 
   # Cómo se ve en la lista de sugerencias: «Distrito Capital · privado».
   def procedencia
-    [ entidad_federal, dependencia ].compact_blank.join(" · ")
+    [ entidad_federal, municipio, dependencia ].compact_blank.join(" · ")
   end
 
   # ⚠️ La PRIMERA letra del código dice de quién depende el plantel, y sale

@@ -80,6 +80,21 @@ class CatalogoDePlantelesTest < ActionDispatch::IntegrationTest
     assert_select ".sugerencia-detalle", /Carabobo · privado/
   end
 
+  # ⚠️ El municipio también viaja, deducido del propio código DEA: sus cuatro
+  # dígitos finales son el `Co_municip` del INE. Al elegir el plantel, el
+  # estado y el municipio quedan SELECCIONADOS en sus desplegables — que es lo
+  # que pidió Daniel: «seleccionables, con la sugerencia asociada a su
+  # selección».
+  test "la sugerencia lleva el municipio, para preseleccionarlo" do
+    PlantelOficial.create!(nombre: "U.E. DEL YAGUAL", dea_code: "OD01040401",
+                           entidad_federal: "Apure", municipio: "Achaguas")
+
+    get planteles_path(q: "del yagual")
+
+    assert_select "[data-catalogo-de-planteles-municipio-param=?]", "Achaguas"
+    assert_select "[data-catalogo-de-planteles-estado-param=?]", "Apure"
+  end
+
   # ── Por código ────────────────────────────────────────────────────────────
 
   # ⚠️ Quien tiene el papel del MPPE delante escribe el CÓDIGO, no el nombre. Y

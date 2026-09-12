@@ -1,0 +1,1124 @@
+co_parroquia,estado,municipio,parroquia
+010101,Distrito Capital,Libertador,Altagracia
+010102,Distrito Capital,Libertador,Antímano
+010103,Distrito Capital,Libertador,Candelaria
+010104,Distrito Capital,Libertador,Caricuao
+010105,Distrito Capital,Libertador,Catedral
+010106,Distrito Capital,Libertador,Coche
+010107,Distrito Capital,Libertador,El Junquito
+010108,Distrito Capital,Libertador,El Paraíso
+010109,Distrito Capital,Libertador,El Recreo
+010110,Distrito Capital,Libertador,El Valle
+010111,Distrito Capital,Libertador,La Pastora
+010112,Distrito Capital,Libertador,La Vega
+010113,Distrito Capital,Libertador,Macarao
+010114,Distrito Capital,Libertador,San Agustín
+010115,Distrito Capital,Libertador,San Benardino
+010116,Distrito Capital,Libertador,San José
+010117,Distrito Capital,Libertador,San Juan
+010118,Distrito Capital,Libertador,San Pedro
+010119,Distrito Capital,Libertador,Santa Rosalía
+010120,Distrito Capital,Libertador,Santa Teresa
+010121,Distrito Capital,Libertador,Sucre
+010122,Distrito Capital,Libertador,23 de Enero
+020101,Amazonas,Alto Orinoco,Huachamacare
+020102,Amazonas,Alto Orinoco,Marawaka
+020103,Amazonas,Alto Orinoco,Mavaca
+020104,Amazonas,Alto Orinoco,Sierra Parima
+020201,Amazonas,Atabapo,Ucata
+020202,Amazonas,Atabapo,Yacapana
+020203,Amazonas,Atabapo,Caname
+020301,Amazonas,Atures,Fernando Girón Tovar
+020401,Amazonas,Autana,Samariapo
+020501,Amazonas,Maroa,Victorino
+020601,Amazonas,Manapiare,Alto Ventuari
+020701,Amazonas,Río Negro,Solano
+030101,Anzoátegui,Anaco,Anaco
+030102,Anzoátegui,Anaco,San Joaquín
+030103,Anzoátegui,Anaco,Buena Vista
+030201,Anzoátegui,Aragua,Capital Aragua
+030202,Anzoátegui,Aragua,Cachipo
+030301,Anzoátegui,Fernando de Peñalver,Puerto Piritu
+030302,Anzoátegui,Fernando de Peñalver,San Miguel
+030303,Anzoátegui,Fernando de Peñalver,Sucre
+030401,Anzoátegui,Francisco del Carmen Carvajal,Capital Francisco del Carmen Carvajal
+030402,Anzoátegui,Francisco del Carmen Carvajal,Santa Bárbara
+030501,Anzoátegui,Francisco de Miranda,Capital Francisco de Miranda
+030502,Anzoátegui,Francisco de Miranda,Atapirire
+030503,Anzoátegui,Francisco de Miranda,Boca Del Pao
+030504,Anzoátegui,Francisco de Miranda,El Pao
+030601,Anzoátegui,Guanta,Capital Guanta
+030602,Anzoátegui,Guanta,Chorrerón
+030701,Anzoátegui,Independencia,Capital Independencia
+030702,Anzoátegui,Independencia,Mamo
+030801,Anzoátegui,Juan Antonio Sotillo,Capital Puerto La Cruz
+030802,Anzoátegui,Juan Antonio Sotillo,Pozuelos
+030901,Anzoátegui,Juan Manuel Cajigal,Capital Juan Manuel Cajigal
+030902,Anzoátegui,Juan Manuel Cajigal,San Pablo
+031001,Anzoátegui,José Gregorio Monagas,Capital José Gregorio Monagas
+031002,Anzoátegui,José Gregorio Monagas,Piar
+031003,Anzoátegui,José Gregorio Monagas,San Diego De Cabrutica
+031004,Anzoátegui,José Gregorio Monagas,Santa Clara
+031005,Anzoátegui,José Gregorio Monagas,Uverito
+031006,Anzoátegui,José Gregorio Monagas,Zuata
+031101,Anzoátegui,Libertad,Capital Libertad
+031102,Anzoátegui,Libertad,El Carito
+031103,Anzoátegui,Libertad,Santa Ines
+031201,Anzoátegui,Manuel Ezequiel Bruzual,Capital Manuel Ezequiel Bruzual
+031202,Anzoátegui,Manuel Ezequiel Bruzual,Guanape
+031203,Anzoátegui,Manuel Ezequiel Bruzual,Sabana De Uchire
+031301,Anzoátegui,Pedro María Freites,Capital Pedro María Freites
+031302,Anzoátegui,Pedro María Freites,Libertador
+031303,Anzoátegui,Pedro María Freites,Santa Rosa
+031304,Anzoátegui,Pedro María Freites,Urica
+031401,Anzoátegui,Píritu,Capital Píritu
+031402,Anzoátegui,Píritu,San Francisco
+031501,Anzoátegui,San José de Guanipa,Capital San José de Guanipa
+031601,Anzoátegui,San Juan Capistrano,Capital San Juan de Capistrano
+031602,Anzoátegui,San Juan Capistrano,Boca De Chavez
+031701,Anzoátegui,Santa Ana,Capital Santa Ana
+031702,Anzoátegui,Santa Ana,Pueblo Nuevo
+031801,Anzoátegui,Simon Bilivar,El Carmen
+031802,Anzoátegui,Simon Bilivar,San Cristóbal
+031803,Anzoátegui,Simon Bilivar,Bergantin
+031804,Anzoátegui,Simon Bilivar,Caigua
+031805,Anzoátegui,Simon Bilivar,El Pilar
+031806,Anzoátegui,Simon Bilivar,Naricual
+031901,Anzoátegui,Simón Rodríguez,Edmundo Barrios
+032001,Anzoátegui,Sir Artur Mc Gregor,Capital Sir Arthur Mc Gregor
+032002,Anzoátegui,Sir Artur Mc Gregor,Tomas Alfaro Calatrava
+032101,Anzoátegui,Diego Bautista Urbaneja,Lecherias
+032102,Anzoátegui,Diego Bautista Urbaneja,El Morro
+040101,Apure,Achaguas,Urbana Achaguas
+040102,Apure,Achaguas,Apurito
+040103,Apure,Achaguas,El Yagual
+040104,Apure,Achaguas,Guachara
+040105,Apure,Achaguas,Mucuritas
+040106,Apure,Achaguas,Queseras Del Medio
+040201,Apure,Biruaca,Urbana Biruaca
+040301,Apure,Muñoz,Urbana Bruzual
+040302,Apure,Muñoz,Mantecal
+040303,Apure,Muñoz,Quintero
+040304,Apure,Muñoz,Rincon Hondo
+040305,Apure,Muñoz,San Vicente
+040401,Apure,Páez,Urbana Guasdualito
+040402,Apure,Páez,Aramendi
+040403,Apure,Páez,El Amparo
+040404,Apure,Páez,San Camilo
+040405,Apure,Páez,Urdaneta
+040501,Apure,Pedro Camejo,Urbana San Juan De Payara
+040502,Apure,Pedro Camejo,Codazzi
+040503,Apure,Pedro Camejo,Cunaviche
+040601,Apure,Rómulo Gallegos,Urbana Elorza
+040602,Apure,Rómulo Gallegos,La Trinidad
+040701,Apure,San Fernando,Urbana San Fernando
+040702,Apure,San Fernando,El Recreo
+040703,Apure,San Fernando,Peñalver
+040704,Apure,San Fernando,San Rafael De Atamaica
+050101,Aragua,Bolívar,San Mateo
+050201,Aragua,Camatagua,Capital Camatagua
+050202,Aragua,Camatagua,No Urbana Carmen De Cura
+050302,Aragua,Girardot,No Urbana Choroni
+050303,Aragua,Girardot,Urbana Las Delicias
+050304,Aragua,Girardot,Urbana Maria De San Jose
+050305,Aragua,Girardot,Urbana Joaquin Crespo
+050306,Aragua,Girardot,Urbana Pedro Jose Ovalles
+050307,Aragua,Girardot,Urbana Jose Casanova
+050308,Aragua,Girardot,Urbana Andres Eloy Blanco
+050309,Aragua,Girardot,Urbana Los Tacariguas
+050401,Aragua,José Ángel Lamas,Santa Cruz
+050501,Aragua,José Félix Ribas,Urbana Juan Vicente Bolívar y Aponte
+050502,Aragua,José Félix Ribas,Urbana Castor Nieves Rios
+050503,Aragua,José Félix Ribas,No Urbana Las Guacamayas
+050504,Aragua,José Félix Ribas,No Urbana Pao De Zarate
+050505,Aragua,José Félix Ribas,No Urbana Zuata
+050601,Aragua,José Rafael Revenga,El Consejo
+050701,Aragua,Libertador,Libertador
+050702,Aragua,Libertador,No Urbana San Martin De Porres
+050801,Aragua,Mario Briceno Irragorry,Mario Briceño Iragorry
+050802,Aragua,Mario Briceno Irragorry,Urbana Caña De Azucar
+050901,Aragua,San Casimiro,San Casimiro
+050902,Aragua,San Casimiro,No Urbana Guiripa
+050903,Aragua,San Casimiro,No Urbana Ollas De Caramacate
+050904,Aragua,San Casimiro,No Urbana Valle Morin
+051001,Aragua,San Sebastián,San Sebastián
+051101,Aragua,Santiago Mariño,Santiago Mariño
+051102,Aragua,Santiago Mariño,No Urbana Arevalo Aponte
+051103,Aragua,Santiago Mariño,No Urbana Chuao
+051104,Aragua,Santiago Mariño,No Urbana Samán De Güere
+051105,Aragua,Santiago Mariño,No Urbana Alfredo Pacheco Miranda
+051201,Aragua,Santos Michelena,Santos Michelena
+051202,Aragua,Santos Michelena,No Urbana Tiara
+051301,Aragua,Sucre,Sucre
+051302,Aragua,Sucre,No Urbana Bella Vista
+051401,Aragua,Tovar,Tovar
+051501,Aragua,Urdaneta,Urdaneta
+051502,Aragua,Urdaneta,No Urbana Las Peñitas
+051503,Aragua,Urdaneta,No Urbana San Francisco De Cara
+051504,Aragua,Urdaneta,No Urbana Taguay
+051601,Aragua,Zamora,Zamora
+051602,Aragua,Zamora,No Urbana Magdaleno
+051603,Aragua,Zamora,No Urbana San Francisco De Asis
+051604,Aragua,Zamora,No Urbana Valles Del Tucutunemo
+051605,Aragua,Zamora,No Urbana Augusto Mijares
+051701,Aragua,Francisco Linares Alcántara,Francisco Linares Alcántara
+051702,Aragua,Francisco Linares Alcántara,No Urbana Francisco De Miranda
+051703,Aragua,Francisco Linares Alcántara,No Urbana Monseñor Feliciano González
+060101,Barinas,Alberto Arvelo Torrealba,Sabaneta
+060102,Barinas,Alberto Arvelo Torrealba,Rodriguez Dominguez
+060201,Barinas,Antonio José de Sucre,Ticoporo
+060202,Barinas,Antonio José de Sucre,Andrés Bello
+060203,Barinas,Antonio José de Sucre,Nicolas Pulido
+060301,Barinas,Arismendi,Arismendi
+060302,Barinas,Arismendi,Guadarrama
+060303,Barinas,Arismendi,La Union
+060304,Barinas,Arismendi,San Antonio
+060401,Barinas,Barinas,Barinas
+060402,Barinas,Barinas,Alfredo Arvelo Larriva
+060403,Barinas,Barinas,San Silvestre
+060404,Barinas,Barinas,Santa Ines
+060405,Barinas,Barinas,Santa Lucía
+060406,Barinas,Barinas,Torunos
+060407,Barinas,Barinas,El Carmen
+060408,Barinas,Barinas,Don Rómulo Betancourt
+060409,Barinas,Barinas,Corazon De Jesus
+060410,Barinas,Barinas,Ramon Ignacio Mendez
+060411,Barinas,Barinas,Alto Barinas
+060412,Barinas,Barinas,Manuel Palacios Fajardo
+060413,Barinas,Barinas,Juan Antonio Rodriguez Dominguez
+060414,Barinas,Barinas,Dominga Ortiz De Paez
+060501,Barinas,Bolívar,Barinitas
+060502,Barinas,Bolívar,Altamira
+060503,Barinas,Bolívar,Calderas
+060601,Barinas,Cruz Paredes,Barrancas
+060602,Barinas,Cruz Paredes,El Socorro
+060603,Barinas,Cruz Paredes,Masparrito
+060701,Barinas,Ezequiel Zamora,Santa Bárbara
+060702,Barinas,Ezequiel Zamora,José Ignacio del Pumar
+060703,Barinas,Ezequiel Zamora,Pedro Briceño Méndez
+060704,Barinas,Ezequiel Zamora,Ramon Ignacio Mendez
+060801,Barinas,Obispos,Obispos
+060802,Barinas,Obispos,El Real
+060803,Barinas,Obispos,La Luz
+060804,Barinas,Obispos,Los Guasimitos
+060901,Barinas,Pedraza,Ciudad Bolivia
+060902,Barinas,Pedraza,Ignacio Briceño
+060903,Barinas,Pedraza,José Félix Ribas
+060904,Barinas,Pedraza,Páez
+061001,Barinas,Rojas,Libertad
+061002,Barinas,Rojas,Dolores
+061003,Barinas,Rojas,Palacio Fajardo
+061004,Barinas,Rojas,Santa Rosa
+061005,Barinas,Rojas,Simón Rodríguez
+061101,Barinas,Sosa,Ciudad De Nutrias
+061102,Barinas,Sosa,El Regalo
+061103,Barinas,Sosa,Puerto De Nutrias
+061104,Barinas,Sosa,Santa Catalina
+061105,Barinas,Sosa,Simón Bolívar
+061201,Barinas,Andrés Eloy Blanco,El Canton
+061202,Barinas,Andrés Eloy Blanco,Santa Cruz De Guacas
+061203,Barinas,Andrés Eloy Blanco,Puerto Vivas
+070101,Bolívar,Caroní,Cachamay
+070102,Bolívar,Caroní,Chirica
+070103,Bolívar,Caroní,Dalla Costa
+070104,Bolívar,Caroní,Once De Abril
+070105,Bolívar,Caroní,Simón Bolívar
+070106,Bolívar,Caroní,Unare
+070107,Bolívar,Caroní,Universidad
+070108,Bolívar,Caroní,Vista Al Sol
+070109,Bolívar,Caroní,Pozo Verde
+070110,Bolívar,Caroní,Yocoima
+070111,Bolívar,Caroní,Cinco de Julio
+070201,Bolívar,Cedeño,Seccion Capital Cedeño
+070202,Bolívar,Cedeño,Altagracia
+070203,Bolívar,Cedeño,Ascencion Farreras
+070204,Bolívar,Cedeño,Guaniamo
+070205,Bolívar,Cedeño,La Urbana
+070206,Bolívar,Cedeño,Pijiguaos
+070301,Bolívar,El Callao,El Callao
+070401,Bolívar,Gran Sabana,Seccion Capital Gran Sabana
+070402,Bolívar,Gran Sabana,Ikabarú
+070501,Bolívar,Heres,Agua Salada
+070502,Bolívar,Heres,Catedral
+070503,Bolívar,Heres,José Antonio Páez
+070504,Bolívar,Heres,La Sabanita
+070505,Bolívar,Heres,Marhuanta
+070506,Bolívar,Heres,Vista Hermosa
+070507,Bolívar,Heres,Orinoco
+070508,Bolívar,Heres,Panapana
+070509,Bolívar,Heres,Zea
+070601,Bolívar,Piar,Seccion Capital Piar
+070602,Bolívar,Piar,Andrés Eloy Blanco
+070603,Bolívar,Piar,Pedro Cova
+070701,Bolívar,Bolivariano Angostura,Seccion Capital Angostura
+070702,Bolívar,Bolivariano Angostura,Barceloneta
+070703,Bolívar,Bolivariano Angostura,San Francisco
+070704,Bolívar,Bolivariano Angostura,Santa Bárbara
+070801,Bolívar,Roscio,Seccion Capital Roscio
+070802,Bolívar,Roscio,Salom
+070901,Bolívar,Sifontes,Seccion Capital Sifontes
+070902,Bolívar,Sifontes,Dalla Costa
+070903,Bolívar,Sifontes,San Isidro
+071001,Bolívar,Sucre,Seccion Capital Sucre
+071002,Bolívar,Sucre,Aripao
+071003,Bolívar,Sucre,Guarataro
+071004,Bolívar,Sucre,Las Majadas
+071005,Bolívar,Sucre,Moitaco
+071101,Bolívar,Padre Pedro Chien,El Palmar
+080101,Carabobo,Bejuma,Urbana Bejuma
+080102,Carabobo,Bejuma,No Urbana Canoabo
+080103,Carabobo,Bejuma,No Urbana Simon Bolivar
+080201,Carabobo,Carlos Arvelo,Urbana Güigüe
+080202,Carabobo,Carlos Arvelo,No Urbana Belen
+080203,Carabobo,Carlos Arvelo,No Urbana Tacarigua
+080301,Carabobo,Diego Ibarra,Urbana Aguas Calientes
+080302,Carabobo,Diego Ibarra,Urbana Mariara
+080401,Carabobo,Guacara,Urbana Ciudad Alianza
+080402,Carabobo,Guacara,Urbana Guacara
+080403,Carabobo,Guacara,No Urbana Yagua
+080501,Carabobo,Juan José Mora,Urbana Morón
+080502,Carabobo,Juan José Mora,No Urbana Urama
+080601,Carabobo,Libertador,Urbana Tocuyito
+080602,Carabobo,Libertador,Urbana Independencia
+080701,Carabobo,Los Guayos,Urbana Los Guayos
+080801,Carabobo,Miranda,Urbana Miranda
+080901,Carabobo,Montalbán,Urbana Montalbán
+081001,Carabobo,Naguanagua,Urbana Naguanagua
+081101,Carabobo,Puerto Cabello,Urbana Bartolome Salom
+081102,Carabobo,Puerto Cabello,Urbana Democracia
+081103,Carabobo,Puerto Cabello,Urbana Fraternidad
+081104,Carabobo,Puerto Cabello,Urbana Goaigoaza
+081105,Carabobo,Puerto Cabello,Urbana Juan Jose Flores
+081106,Carabobo,Puerto Cabello,Urbana Union
+081107,Carabobo,Puerto Cabello,No Urbana Borburata
+081108,Carabobo,Puerto Cabello,No Urbana Patanemo
+081201,Carabobo,San Diego,Urbana San Diego
+081301,Carabobo,San Joaquín,Urbana San Joaquin
+081401,Carabobo,Valencia,Urbana Candelaria
+081402,Carabobo,Valencia,Urbana Catedral
+081403,Carabobo,Valencia,Urbana El Socorro
+081404,Carabobo,Valencia,Urbana Miguel Peña
+081405,Carabobo,Valencia,Urbana Rafael Urdaneta
+081406,Carabobo,Valencia,Urbana San Blas
+081407,Carabobo,Valencia,Urbana San José
+081408,Carabobo,Valencia,Urbana Santa Rosa
+081409,Carabobo,Valencia,No Urbana Negro Primero
+090101,Cojedes,Anzoátegui,Cojedes
+090102,Cojedes,Anzoátegui,Juan De Mata Suarez
+090201,Cojedes,Tinaquillo,Tinaquillo
+090301,Cojedes,Girardot,El Baúl
+090302,Cojedes,Girardot,Sucre
+090401,Cojedes,Lima Blanco,Macapo
+090402,Cojedes,Lima Blanco,La Aguadita
+090501,Cojedes,Pao de San Juan Bautista,El Pao
+090601,Cojedes,Ricaurte,Libertad De Cojedes
+090602,Cojedes,Ricaurte,El Amparo
+090701,Cojedes,Rómulo Gallegos,Rómulo Gallegos
+090801,Cojedes,San Carlos,San Carlos De Austria
+090802,Cojedes,San Carlos,Juan Angel Bravo
+090803,Cojedes,San Carlos,Manuel Manrique
+090901,Cojedes,Tinaco,General En Jefe Jose Laurencio Silva
+100101,Delta Amacuro,Antonio Díaz,Curiapo
+100102,Delta Amacuro,Antonio Díaz,Almirante Luis Brion
+100103,Delta Amacuro,Antonio Díaz,Francisco Aniceto Lugo
+100104,Delta Amacuro,Antonio Díaz,Manuel Renaud
+100105,Delta Amacuro,Antonio Díaz,Padre Barral
+100106,Delta Amacuro,Antonio Díaz,Santos De Abelgas
+100201,Delta Amacuro,Casacoima,Imataca
+100202,Delta Amacuro,Casacoima,Cinco De Julio
+100203,Delta Amacuro,Casacoima,Juan Bautista Arismendi
+100204,Delta Amacuro,Casacoima,Manuel Piar
+100205,Delta Amacuro,Casacoima,Rómulo Gallegos
+100301,Delta Amacuro,Pedernales,Pedernales
+100302,Delta Amacuro,Pedernales,Luis Beltran Prieto Figueroa
+100401,Delta Amacuro,Tucupita,San José
+100402,Delta Amacuro,Tucupita,Jose Vidal Marcano
+100403,Delta Amacuro,Tucupita,Juan Millan
+100404,Delta Amacuro,Tucupita,Leonardo Ruiz Pineda
+100405,Delta Amacuro,Tucupita,Mariscal Antonio Jose De Sucre
+100406,Delta Amacuro,Tucupita,Monseior Argimiro Garcia
+100407,Delta Amacuro,Tucupita,San Rafael
+100408,Delta Amacuro,Tucupita,Virgen Del Valle
+110101,Falcón,Acosta,San Juan De Los Cayos
+110102,Falcón,Acosta,Capadare
+110103,Falcón,Acosta,La Pastora
+110104,Falcón,Acosta,Libertador
+110201,Falcón,Bolívar,San Luis
+110202,Falcón,Bolívar,Aracua
+110203,Falcón,Bolívar,La Peña
+110301,Falcón,Buchivacoa,Capatarida
+110302,Falcón,Buchivacoa,Bariro
+110303,Falcón,Buchivacoa,Borojo
+110304,Falcón,Buchivacoa,Guajiro
+110305,Falcón,Buchivacoa,Seque
+110306,Falcón,Buchivacoa,Zazarida
+110401,Falcón,Cacique Manaure,Yaracal
+110501,Falcón,Carirubana,Carirubana
+110502,Falcón,Carirubana,Norte
+110503,Falcón,Carirubana,Punta Cardon
+110504,Falcón,Carirubana,Santa Ana
+110601,Falcón,Colina,La Vela De Coro
+110602,Falcón,Colina,Acurigua
+110603,Falcón,Colina,Guaibacoa
+110604,Falcón,Colina,Las Calderas
+110605,Falcón,Colina,Macoruca
+110701,Falcón,Dabajuro,Dabajuro
+110801,Falcón,Democracia,Pedregal
+110802,Falcón,Democracia,Agua Clara
+110803,Falcón,Democracia,Avaria
+110804,Falcón,Democracia,Piedra Grande
+110805,Falcón,Democracia,Purureche
+110901,Falcón,Falcón,Pueblo Nuevo
+110902,Falcón,Falcón,Adicora
+110903,Falcón,Falcón,Baraived
+110904,Falcón,Falcón,Buena Vista
+110905,Falcón,Falcón,Jadacaquiva
+110906,Falcón,Falcón,Moruy
+110907,Falcón,Falcón,Adaure
+110908,Falcón,Falcón,El Hato
+110909,Falcón,Falcón,El Vinculo
+111001,Falcón,Federación,Churuguara
+111002,Falcón,Federación,Agua Larga
+111003,Falcón,Federación,El Pauji
+111004,Falcón,Federación,Independencia
+111005,Falcón,Federación,Maparari
+111101,Falcón,Jacura,Jacura
+111102,Falcón,Jacura,Agua Linda
+111103,Falcón,Jacura,Araurima
+111201,Falcón,Los Taques,Los Taques
+111202,Falcón,Los Taques,Judibana
+111301,Falcón,Mauroa,Mene Mauroa
+111302,Falcón,Mauroa,Casigua
+111303,Falcón,Mauroa,San Felix
+111401,Falcón,Miranda,San Antonio
+111402,Falcón,Miranda,San Gabriel
+111403,Falcón,Miranda,Santa Ana
+111404,Falcón,Miranda,Guzman Guillermo
+111405,Falcón,Miranda,Mitare
+111406,Falcón,Miranda,Rio Seco
+111407,Falcón,Miranda,Sabaneta
+111501,Falcón,Monseñor Iturriza,Chichiriviche
+111502,Falcón,Monseñor Iturriza,Boca De Tocuyo
+111503,Falcón,Monseñor Iturriza,Tocuyo De La Costa
+111601,Falcón,Palma Sola,Palmasola
+111701,Falcón,Petit,Cabudare
+111702,Falcón,Petit,Colina
+111703,Falcón,Petit,Curimagua
+111801,Falcón,Píritu,Píritu
+111802,Falcón,Píritu,San Jose De La Costa
+111901,Falcón,San Francisco,Mirimire
+112001,Falcón,Silva,Tucacas
+112002,Falcón,Silva,Boca De Aroa
+112101,Falcón,Sucre,Sucre
+112102,Falcón,Sucre,Pecaya
+112201,Falcón,Tocópero,Tocópero
+112301,Falcón,Unión,Santa Cruz De Bucaral
+112302,Falcón,Unión,El Charal
+112303,Falcón,Unión,Las Vegas Del Tuy
+112401,Falcón,Urumaco,Urumaco
+112402,Falcón,Urumaco,Bruzual
+112501,Falcón,Zamora,Puerto Cumarebo
+112502,Falcón,Zamora,La Cienega
+112503,Falcón,Zamora,La Soledad
+112504,Falcón,Zamora,Pueblo Cumarebo
+112505,Falcón,Zamora,Zazarida
+120101,Guárico,Camaguán,Camaguán
+120102,Guárico,Camaguán,Puerto Miranda
+120103,Guárico,Camaguán,Uverito
+120201,Guárico,Chaguaramas,Chaguaramas
+120301,Guárico,El Socorro,El Socorro
+120401,Guárico,San Gerónimo de Guayabal,Capital San Geronimo De Guayabal
+120402,Guárico,San Gerónimo de Guayabal,Cazorla
+120501,Guárico,Leonardo Infante,Capital Valle De La Pascua
+120502,Guárico,Leonardo Infante,Espino
+120601,Guárico,Las Mercedes,Capital Las Mercedes
+120602,Guárico,Las Mercedes,Cabruta
+120603,Guárico,Las Mercedes,Santa Rita De Manapire
+120701,Guárico,Julián Mellado,El Sombrero
+120702,Guárico,Julián Mellado,Sosa
+120801,Guárico,Francisco de Miranda,Calabozo
+120802,Guárico,Francisco de Miranda,El Calvario
+120803,Guárico,Francisco de Miranda,El Rastro
+120804,Guárico,Francisco de Miranda,Guardatinajas
+120901,Guárico,José Tadeo Monagas,Altagracia De Orituco
+120902,Guárico,José Tadeo Monagas,Lezama
+120903,Guárico,José Tadeo Monagas,Libertad De Orituco
+120904,Guárico,José Tadeo Monagas,Paseo Real De Macaira
+120905,Guárico,José Tadeo Monagas,San Francisco De Macaira
+120906,Guárico,José Tadeo Monagas,San Rafael De Orituco
+120907,Guárico,José Tadeo Monagas,Soublette
+121001,Guárico,Ortiz,Capital Ortiz
+121002,Guárico,Ortiz,San Francisco De Tiznados
+121003,Guárico,Ortiz,San Jose De Tiznados
+121004,Guárico,Ortiz,San Lorenzo De Tiznados
+121101,Guárico,José Félix Ribas,Capital Tucupido
+121102,Guárico,José Félix Ribas,San Rafael De Laya
+121201,Guárico,Juan Germán Roscio,Capital San Juan De Los Morros
+121202,Guárico,Juan Germán Roscio,Cantagallo
+121203,Guárico,Juan Germán Roscio,Parapara
+121301,Guárico,San José de Guaribe,San José de Guaribe
+121401,Guárico,Santa María de Ipire,Capital Santa Maria De Ipire
+121402,Guárico,Santa María de Ipire,Altamira
+121501,Guárico,Pedro Zaraza,Zaraza
+121502,Guárico,Pedro Zaraza,San Jose De Unare
+130101,Lara,Andrés Eloy Blanco,Pio Tamayo
+130102,Lara,Andrés Eloy Blanco,Quebrada Honda De Guache
+130103,Lara,Andrés Eloy Blanco,Yacambu
+130201,Lara,Crespo,Freitez
+130202,Lara,Crespo,Jose Maria Blanco
+130301,Lara,Iribarren,Catedral
+130302,Lara,Iribarren,Concepción
+130303,Lara,Iribarren,El Cují
+130304,Lara,Iribarren,Juan de Villegas
+130305,Lara,Iribarren,Santa Rosa
+130306,Lara,Iribarren,Tamaca
+130307,Lara,Iribarren,Unión
+130308,Lara,Iribarren,Aguedo Felipe Alvarado
+130309,Lara,Iribarren,Buena Vista
+130310,Lara,Iribarren,Juarez
+130401,Lara,Jiménez,Juan Bautista Rodriguez
+130402,Lara,Jiménez,Cuara
+130403,Lara,Jiménez,Diego De Lozada
+130404,Lara,Jiménez,Paraiso De San Jose
+130405,Lara,Jiménez,San Miguel
+130406,Lara,Jiménez,Tintorero
+130407,Lara,Jiménez,Jose Bernardo Dorante
+130408,Lara,Jiménez,Coronel Mariano Peraza
+130501,Lara,Morán,Bolívar
+130502,Lara,Morán,Anzoátegui
+130503,Lara,Morán,Guarico
+130504,Lara,Morán,Hilario Luna Y Luna
+130505,Lara,Morán,Humocaro Alto
+130506,Lara,Morán,HumoCaro Bajo
+130507,Lara,Morán,La Candelaria
+130508,Lara,Morán,Morán
+130601,Lara,Palavecino,Cabudare
+130602,Lara,Palavecino,Jose Gregorio Bastidas
+130603,Lara,Palavecino,Agua Viva
+130701,Lara,Simón Planas,Sarare
+130702,Lara,Simón Planas,Buria
+130703,Lara,Simón Planas,Gustavo Vegas Leon
+130801,Lara,Torres,Trinidad Samuel
+130802,Lara,Torres,Antonio Díaz
+130803,Lara,Torres,Camacaro
+130804,Lara,Torres,Castañeda
+130805,Lara,Torres,Cecilio Zubillaga
+130806,Lara,Torres,Chiquinquirá
+130807,Lara,Torres,El Blanco
+130808,Lara,Torres,Espinoza De Los Monteros
+130809,Lara,Torres,Lara
+130810,Lara,Torres,Las Mercedes
+130811,Lara,Torres,Manuel Morillo
+130812,Lara,Torres,Montaña Verde
+130813,Lara,Torres,Montes De Oca
+130814,Lara,Torres,Torres
+130816,Lara,Torres,Reyes Vargas
+130817,Lara,Torres,Altagracia
+130901,Lara,Urdaneta,Siquisique
+130902,Lara,Urdaneta,Moroturo
+130903,Lara,Urdaneta,San Miguel
+130904,Lara,Urdaneta,Xaguas
+140101,Mérida,Alberto Adriani,Presidente Betancourt
+140102,Mérida,Alberto Adriani,Presidente Paez
+140103,Mérida,Alberto Adriani,Rómulo Gallegos
+140104,Mérida,Alberto Adriani,Gabriel Picon Gonzalez
+140105,Mérida,Alberto Adriani,Hector Amable Mora
+140106,Mérida,Alberto Adriani,Jose Nuceti Sardi
+140107,Mérida,Alberto Adriani,Pulido Mendez
+140201,Mérida,Andrés Bello,La Azulita
+140301,Mérida,Antonio Pinto Salinas,Capital Antonio Pinto Salinas
+140302,Mérida,Antonio Pinto Salinas,Mesa Bolivar
+140303,Mérida,Antonio Pinto Salinas,Mesa De Las Palmas
+140401,Mérida,Aricagua,Capital Aricagua
+140402,Mérida,Aricagua,San Antonio
+140501,Mérida,Arzobispo Chacón,Capital Arzobispo Chacon
+140502,Mérida,Arzobispo Chacón,Capuri
+140503,Mérida,Arzobispo Chacón,Chacantá
+140504,Mérida,Arzobispo Chacón,El Molino
+140505,Mérida,Arzobispo Chacón,Guaimaral
+140506,Mérida,Arzobispo Chacón,Mucutuy
+140507,Mérida,Arzobispo Chacón,Mucuchachi
+140601,Mérida,Campo Elías,Fernandez Peña
+140602,Mérida,Campo Elías,Matriz
+140603,Mérida,Campo Elías,Montalbán
+140604,Mérida,Campo Elías,Acequias
+140605,Mérida,Campo Elías,Jaji
+140606,Mérida,Campo Elías,La Mesa
+140607,Mérida,Campo Elías,San Jose del Sur
+140701,Mérida,Caracciolo Parra Olmedo,Capital Caracciolo Parra Olmedo
+140702,Mérida,Caracciolo Parra Olmedo,Florencia Ramirez
+140801,Mérida,Cardenal Quintero,Capital Cardenal Quintero
+140802,Mérida,Cardenal Quintero,Las Piedras
+140901,Mérida,Guaraque,Capial Guaraque
+140902,Mérida,Guaraque,Mesa De Quintero
+140903,Mérida,Guaraque,Río Negro
+141001,Mérida,Julio César Salas,Capital Julio Cesar Salas
+141002,Mérida,Julio César Salas,Palmira
+141101,Mérida,Justo Briceño,Capital Justo Briceño
+141102,Mérida,Justo Briceño,San Cristobal De Torondoy
+141201,Mérida,Libertador,Antonio Espinetti Dini
+141202,Mérida,Libertador,Arias
+141203,Mérida,Libertador,Caracciolo Parra Pérez
+141204,Mérida,Libertador,Domingo Peña
+141205,Mérida,Libertador,El Llano
+141206,Mérida,Libertador,Gonzalo Picón Febres
+141207,Mérida,Libertador,Jacinto Plaza
+141208,Mérida,Libertador,Juan Rodríguez Suárez
+141209,Mérida,Libertador,Lasso de la Vega
+141210,Mérida,Libertador,Mariano Picón Salas
+141211,Mérida,Libertador,Milla
+141212,Mérida,Libertador,Osuna Rodríguez
+141213,Mérida,Libertador,Sagrario
+141214,Mérida,Libertador,El Morro
+141215,Mérida,Libertador,Los Nevados
+141301,Mérida,Miranda,Capital Miranda
+141302,Mérida,Miranda,Andrés Eloy Blanco
+141303,Mérida,Miranda,La Venta
+141304,Mérida,Miranda,Piñango
+141401,Mérida,Obispo Ramos de Lora,Capital Obispo Ramos De Lora
+141402,Mérida,Obispo Ramos de Lora,Eloy Paredes
+141403,Mérida,Obispo Ramos de Lora,San Rafael De Alcazar
+141501,Mérida,Padre Noguera,Santa María de Caparo
+141601,Mérida,Pueblo Llano,Pueblo Llano
+141701,Mérida,Rangel,Capital Rangel
+141702,Mérida,Rangel,Cacute
+141703,Mérida,Rangel,La Toma
+141704,Mérida,Rangel,Mucuruba
+141705,Mérida,Rangel,San Rafael
+141801,Mérida,Rivas Dávila,Capital Rivas Davila
+141802,Mérida,Rivas Dávila,Gerónimo Maldonado
+141901,Mérida,Santos Marquina,Tabay
+142001,Mérida,Sucre,Capital Sucre
+142002,Mérida,Sucre,Chiguara
+142003,Mérida,Sucre,Estánques
+142004,Mérida,Sucre,La Trampa
+142005,Mérida,Sucre,Pueblo Nuevo Del Sur
+142006,Mérida,Sucre,San Juan
+142101,Mérida,Tovar,El Amparo
+142102,Mérida,Tovar,El Llano
+142103,Mérida,Tovar,San Francisco
+142104,Mérida,Tovar,Tovar
+142201,Mérida,Tulio Febres Cordero,Capital Tulio Febres Cordero
+142202,Mérida,Tulio Febres Cordero,Independencia
+142203,Mérida,Tulio Febres Cordero,Maria De La Concepcion Palacios Blanco
+142204,Mérida,Tulio Febres Cordero,Santa Polonia
+142301,Mérida,Zea,Capital Zea
+142302,Mérida,Zea,Caño El Tigre
+150101,Miranda,Acevedo,Caucagua
+150102,Miranda,Acevedo,Aragüita
+150103,Miranda,Acevedo,Arvelo Gonzalez
+150104,Miranda,Acevedo,Capaya
+150105,Miranda,Acevedo,El Cafe
+150106,Miranda,Acevedo,Marizapa
+150107,Miranda,Acevedo,Panaquire
+150108,Miranda,Acevedo,Ribas
+150201,Miranda,Andrés Bello,San José De Barlovento
+150202,Miranda,Andrés Bello,Cumbo
+150301,Miranda,Baruta,Baruta
+150302,Miranda,Baruta,El Cafetal
+150303,Miranda,Baruta,Las Minas de Baruta
+150401,Miranda,Brión,Higuerote
+150402,Miranda,Brión,Curiepe
+150403,Miranda,Brión,Tacarigua
+150501,Miranda,Buroz,Mamporal
+150601,Miranda,Carrizal,Carrizal
+150701,Miranda,Chacao,Chacao
+150801,Miranda,Cristóbal Rojas,Charallave
+150802,Miranda,Cristóbal Rojas,Las Brisas
+150901,Miranda,El Hatillo,El Hatillo
+151001,Miranda,Guaicaipuro,Los Teques
+151002,Miranda,Guaicaipuro,Altagracia De La Montaña
+151003,Miranda,Guaicaipuro,Cecilio Acosta
+151004,Miranda,Guaicaipuro,El Jarillo
+151005,Miranda,Guaicaipuro,Paracotos
+151006,Miranda,Guaicaipuro,San Pedro
+151007,Miranda,Guaicaipuro,Tacata
+151101,Miranda,Independencia,Santa Teresa Del Tuy
+151102,Miranda,Independencia,Cartanal
+151201,Miranda,Lander,Ocumare Del Tuy
+151202,Miranda,Lander,La Democracia
+151203,Miranda,Lander,Santa Bárbara
+151301,Miranda,Los Salias,San Antonio De Los Altos
+151401,Miranda,Páez,Rio Chico
+151402,Miranda,Páez,El Guapo
+151403,Miranda,Páez,Tacarigua De La Laguna
+151404,Miranda,Páez,Paparo
+151405,Miranda,Páez,San Fernando del Guapo
+151501,Miranda,Paz Castillo,Santa Lucía
+151601,Miranda,Pedro Gual,Cupira
+151602,Miranda,Pedro Gual,Machurucuto
+151701,Miranda,Plaza,Guarenas
+151801,Miranda,Simón Bolívar,San Francisco De Yare
+151802,Miranda,Simón Bolívar,San Antonio De Yare
+151901,Miranda,Sucre,Petare
+151902,Miranda,Sucre,Caucagüita
+151903,Miranda,Sucre,Filas De Mariches
+151904,Miranda,Sucre,La Dolorita
+151905,Miranda,Sucre,Leoncio Martínez
+152001,Miranda,Urdaneta,Cúa
+152002,Miranda,Urdaneta,Nueva Cua
+152101,Miranda,Zamora,Guatire
+152102,Miranda,Zamora,Simón Bolívar
+160101,Monagas,Acosta,Capital Acosta
+160102,Monagas,Acosta,San Francisco
+160201,Monagas,Aguasay,Aguasay
+160301,Monagas,Bolívar,Caripito
+160401,Monagas,Caripe,Capital Caripe
+160402,Monagas,Caripe,El Guácharo
+160403,Monagas,Caripe,La Guanota
+160404,Monagas,Caripe,Sabana De Piedra
+160405,Monagas,Caripe,San Agustín
+160406,Monagas,Caripe,Teresen
+160501,Monagas,Cedeño,Capital Cede
+160502,Monagas,Cedeño,Areo
+160503,Monagas,Cedeño,San Felix
+160504,Monagas,Cedeño,Viento Fresco
+160601,Monagas,Ezequiel Zamora,Capital Ezequiel Zamora
+160602,Monagas,Ezequiel Zamora,El Tejero
+160701,Monagas,Libertador,Capital Libertador
+160702,Monagas,Libertador,Chaguaramas
+160703,Monagas,Libertador,La Aluhacas
+160704,Monagas,Libertador,Tabasca
+160801,Monagas,Maturín,Capital Maturin
+160802,Monagas,Maturín,Alto De Los Godos
+160803,Monagas,Maturín,Boqueron
+160804,Monagas,Maturín,Las Cocuizas
+160805,Monagas,Maturín,San Simon
+160806,Monagas,Maturín,Santa Cruz
+160807,Monagas,Maturín,El Corozo
+160808,Monagas,Maturín,El Furrial
+160809,Monagas,Maturín,Jusepin
+160810,Monagas,Maturín,La Pica
+160811,Monagas,Maturín,San Vicente
+160901,Monagas,Piar,Capital Piar
+160902,Monagas,Piar,Aparicio
+160903,Monagas,Piar,Chaguaramal
+160904,Monagas,Piar,El Pinto
+160905,Monagas,Piar,Guanaguana
+160906,Monagas,Piar,La Toscana
+160907,Monagas,Piar,Taguaya
+161001,Monagas,Punceres,Capital Punceres
+161002,Monagas,Punceres,Cachipo
+161101,Monagas,Santa Bárbara,Santa Bárbara
+161201,Monagas,Sotillo,Capital Sotillo
+161202,Monagas,Sotillo,Los Barrancos De Fajardo
+161301,Monagas,Uracoa,Uracoa
+170101,Nueva Esparta,Antolín del Campo,La Plaza de Paraguachí
+170201,Nueva Esparta,Arismendi,La Asunción
+170301,Nueva Esparta,Díaz,Capital Diaz
+170302,Nueva Esparta,Díaz,Zabala
+170401,Nueva Esparta,García,Capital Garcia
+170402,Nueva Esparta,García,Francisco Fajardo
+170501,Nueva Esparta,Gómes,Capital Gómez
+170502,Nueva Esparta,Gómes,Bolívar
+170503,Nueva Esparta,Gómes,Guevara
+170504,Nueva Esparta,Gómes,Matasiete
+170505,Nueva Esparta,Gómes,Sucre
+170601,Nueva Esparta,Maneiro,Capital Maneiro
+170602,Nueva Esparta,Maneiro,Aguirre
+170701,Nueva Esparta,Marcano,Capital Marcano
+170702,Nueva Esparta,Marcano,Adrian
+170801,Nueva Esparta,Mariño,Porlamar
+170901,Nueva Esparta,Península de Macanao,Capital Península De Macanao
+170902,Nueva Esparta,Península de Macanao,San Francisco
+171001,Nueva Esparta,Tubores,Capital Tubores
+171002,Nueva Esparta,Tubores,Los Barales
+171101,Nueva Esparta,Villalba,Capital Villalba
+171102,Nueva Esparta,Villalba,Vicente Fuentes
+180101,Portuguesa,Agua Blanca,Agua Blanca
+180201,Portuguesa,Araure,Capital Araure
+180202,Portuguesa,Araure,Rio Acarigua
+180301,Portuguesa,Esteller,Capital Esteller
+180302,Portuguesa,Esteller,Uveral
+180401,Portuguesa,Guanare,Capital Guanare
+180402,Portuguesa,Guanare,Córdoba
+180403,Portuguesa,Guanare,San Jose De La Montaña
+180404,Portuguesa,Guanare,San Juan De Guanaguanare
+180405,Portuguesa,Guanare,Virgen De La Coromoto
+180501,Portuguesa,Guanarito,Capital Guanarito
+180502,Portuguesa,Guanarito,Trinidad De La Capilla
+180503,Portuguesa,Guanarito,Divina Pastora
+180601,Portuguesa,Monseñor José Vicente de Unda,Capital Monseñor Jose Vicente De Unda
+180602,Portuguesa,Monseñor José Vicente de Unda,Peña Blanca
+180701,Portuguesa,Ospino,Capital Ospino
+180702,Portuguesa,Ospino,Aparicion
+180703,Portuguesa,Ospino,La Estación
+180801,Portuguesa,Páez,Capital Páez
+180802,Portuguesa,Páez,Payara
+180803,Portuguesa,Páez,Pimpinela
+180804,Portuguesa,Páez,Ramon Peraza
+180901,Portuguesa,Papelón,Capital Papelón
+180902,Portuguesa,Papelón,Caño Delgadito
+181001,Portuguesa,San Genaro de Boconoíto,Capital San Genaro De Boconoito
+181002,Portuguesa,San Genaro de Boconoíto,Antolin Tovar
+181101,Portuguesa,San Rafael de Onoto,Capital San Rafael De Onoto
+181102,Portuguesa,San Rafael de Onoto,Santa Fe
+181103,Portuguesa,San Rafael de Onoto,Thermo Morles
+181201,Portuguesa,Santa Rosalía,Capital Santa Rosalia
+181202,Portuguesa,Santa Rosalía,Florida
+181301,Portuguesa,Sucre,Capital Sucre
+181302,Portuguesa,Sucre,Concepción
+181303,Portuguesa,Sucre,San Rafael De Palo Alzao
+181304,Portuguesa,Sucre,Uvencio Antonio Velasquez
+181305,Portuguesa,Sucre,San Jose De Saguaz
+181306,Portuguesa,Sucre,Villa Rosa
+181401,Portuguesa,Turén,Capital Turén
+181402,Portuguesa,Turén,Canelones
+181403,Portuguesa,Turén,Santa Cruz
+181404,Portuguesa,Turén,San Isidro Labrador
+190101,Sucre,Andrés Eloy Blanco,Mariño
+190102,Sucre,Andrés Eloy Blanco,Rómulo Gallegos
+190201,Sucre,Andrés Mata,San Jose De Aerocuar
+190202,Sucre,Andrés Mata,Tavera Acosta
+190301,Sucre,Arismendi,Rio Caribe
+190303,Sucre,Arismendi,Antonio José de Sucre
+190303,Sucre,Arismendi,El Morro De Puerto Santo
+190304,Sucre,Arismendi,Puerto Santo
+190305,Sucre,Arismendi,Juan De Las Galdonas
+190401,Sucre,Benítez,El Pilar
+190402,Sucre,Benítez,El Rincon
+190403,Sucre,Benítez,General Francisco Antonio Vasquez
+190404,Sucre,Benítez,Guaraunos
+190405,Sucre,Benítez,Tunapucito
+190406,Sucre,Benítez,Unión
+190501,Sucre,Bermúdez,Bolívar
+190502,Sucre,Bermúdez,Macarapana
+190503,Sucre,Bermúdez,Santa Catalina
+190504,Sucre,Bermúdez,Santa Rosa
+190505,Sucre,Bermúdez,Santa Teresa
+190601,Sucre,Bolívar,Marigüitar
+190701,Sucre,Cajigal,Yaguaraparo
+190702,Sucre,Cajigal,El Paujil
+190703,Sucre,Cajigal,Libertad
+190801,Sucre,Cruz Salmerón Acosta,Araya
+190802,Sucre,Cruz Salmerón Acosta,Chacopata
+190803,Sucre,Cruz Salmerón Acosta,Manicuare
+190901,Sucre,Libertador,Tunapuy
+190902,Sucre,Libertador,Campo Elías
+191001,Sucre,Mariño,Irapa
+191002,Sucre,Mariño,Campo Claro
+191003,Sucre,Mariño,Marabal
+191004,Sucre,Mariño,San Antonio De Irapa
+191005,Sucre,Mariño,Soro
+191101,Sucre,Mejía,San Antonio del Golfo
+191201,Sucre,Montes,Cumanacoa
+191202,Sucre,Montes,Arenas
+191203,Sucre,Montes,Aricagua
+191204,Sucre,Montes,Cocollar
+191205,Sucre,Montes,San Fernando
+191206,Sucre,Montes,San Lorenzo
+191301,Sucre,Ribero,Cariaco
+191302,Sucre,Ribero,Catuaro
+191303,Sucre,Ribero,Rendon
+191304,Sucre,Ribero,Santa Cruz
+191305,Sucre,Ribero,Santa Maria
+191401,Sucre,Sucre,Altagracia
+191402,Sucre,Sucre,Ayacucho
+191403,Sucre,Sucre,Santa Ines
+191404,Sucre,Sucre,Valentin Valiente
+191405,Sucre,Sucre,San Juan
+191406,Sucre,Sucre,Raúl Leoni
+191407,Sucre,Sucre,Gran Mariscal
+191501,Sucre,Valdez,Güiria
+191502,Sucre,Valdez,Bideau
+191503,Sucre,Valdez,Cristobal Colon
+191504,Sucre,Valdez,Punta De Piedra
+200101,Táchira,Andrés Bello,Cordero
+200201,Táchira,Antonio Rómulo Costa,Las Mesas
+200301,Táchira,Ayacucho,Capital Ayacucho
+200302,Táchira,Ayacucho,Rivas Berti
+200303,Táchira,Ayacucho,San Pedro Del Rio
+200401,Táchira,Bolívar,Bolívar
+200402,Táchira,Bolívar,El Palotal
+200403,Táchira,Bolívar,General Juan Vicente Gomez
+200404,Táchira,Bolívar,Isaias Medina Angarita
+200501,Táchira,Cárdenas,Cárdenas
+200502,Táchira,Cárdenas,Amenodoro Rangel Lamus
+200503,Táchira,Cárdenas,La Florida
+200601,Táchira,Córdoba,Santa Ana del Táchira
+200701,Táchira,Fernández Feo,Fernández Feo
+200702,Táchira,Fernández Feo,Alberto Adriani
+200703,Táchira,Fernández Feo,Santo Domingo
+200801,Táchira,Francisco de Miranda,San José de Bolívar
+200901,Táchira,García de Hevia,García de Hevia
+200902,Táchira,García de Hevia,Boca De Grita
+200903,Táchira,García de Hevia,José Antonio Páez
+201001,Táchira,Guásimos,Palmira
+201101,Táchira,Independencia,Independencia
+201102,Táchira,Independencia,Juan German Rosio
+201103,Táchira,Independencia,Roman Cardenas
+201201,Táchira,Jáuregui,Jáuregui
+201202,Táchira,Jáuregui,Emilio Constantino Guerrero
+201203,Táchira,Jáuregui,Monsegor Miguel Antonio Salas
+201301,Táchira,José María Vargas,El Cobre
+201401,Táchira,Junín,Junín
+201402,Táchira,Junín,La Petrólea
+201403,Táchira,Junín,Quinimari
+201404,Táchira,Junín,Bramón
+201501,Táchira,Libertad,Libertad
+201502,Táchira,Libertad,Cipriano Castro
+201503,Táchira,Libertad,Manuel Felipe Rugeles
+201601,Táchira,Libertador,Libertador
+201602,Táchira,Libertador,Emeterio Ochoa
+201603,Táchira,Libertador,Doradas
+201604,Táchira,Libertador,San Joaquin De Navay
+201701,Táchira,Lobatera,Lobatera
+201702,Táchira,Lobatera,Constitucion
+201801,Táchira,Michelena,Michelena
+201901,Táchira,Panamericano,Panamericano
+201902,Táchira,Panamericano,La Palmita
+202001,Táchira,Pedro María Ureña,Pedro María Ureña
+202002,Táchira,Pedro María Ureña,Nueva Arcadia
+202101,Táchira,Rafael Urdaneta,Delicias
+202201,Táchira,Samuel Darío Maldonado,Samuel Darío Maldonado
+202202,Táchira,Samuel Darío Maldonado,Boconó
+202203,Táchira,Samuel Darío Maldonado,Hernández
+202301,Táchira,San Cristóbal,La Concordia
+202302,Táchira,San Cristóbal,Pedro María Morantes
+202303,Táchira,San Cristóbal,San Juan Baustista
+202304,Táchira,San Cristóbal,San Sebastián
+202305,Táchira,San Cristóbal,Dr. Francisco Romero Lobo
+202401,Táchira,Seboruco,Seboruco
+202501,Táchira,Simón Rodríguez,San Simón
+202601,Táchira,Sucre,Sucre
+202602,Táchira,Sucre,Eleazar Lopez Contreras
+202603,Táchira,Sucre,San Pablo
+202701,Táchira,Torbes,San Josecito
+202801,Táchira,Uribante,Uribante
+202802,Táchira,Uribante,Cárdenas
+202803,Táchira,Uribante,Juan Pablo Peñaloza
+202804,Táchira,Uribante,Potosi
+202901,Táchira,San Judas Tadeo,Umuquena
+210101,Trujillo,Andrés Bello,Santa Isabel
+210102,Trujillo,Andrés Bello,Araguaney
+210103,Trujillo,Andrés Bello,El Jaguito
+210104,Trujillo,Andrés Bello,La Esperanza
+210201,Trujillo,Boconó,Boconó
+210202,Trujillo,Boconó,El Carmen
+210203,Trujillo,Boconó,Mosquey
+210204,Trujillo,Boconó,Ayacucho
+210205,Trujillo,Boconó,Burbusay
+210206,Trujillo,Boconó,General Rivas
+210207,Trujillo,Boconó,Guaramacal
+210208,Trujillo,Boconó,La Vega De Guaramacal
+210209,Trujillo,Boconó,Monseñor Jauregui
+210210,Trujillo,Boconó,Rafael Rangel
+210211,Trujillo,Boconó,San Miguel
+210212,Trujillo,Boconó,San José
+210301,Trujillo,Bolívar,Sabana Grande
+210302,Trujillo,Bolívar,Cheregue
+210303,Trujillo,Bolívar,Granados
+210401,Trujillo,Candelaria,Chejende
+210402,Trujillo,Candelaria,Arnoldo Gabaldon
+210403,Trujillo,Candelaria,Bolivia
+210404,Trujillo,Candelaria,Carrillo
+210405,Trujillo,Candelaria,Cegarra
+210406,Trujillo,Candelaria,Manuel Salvador Ulloa
+210407,Trujillo,Candelaria,San José
+210501,Trujillo,Carache,Carache
+210502,Trujillo,Carache,Cuicas
+210503,Trujillo,Carache,La Concepcion
+210504,Trujillo,Carache,Panamericana
+210505,Trujillo,Carache,Santa Cruz
+210601,Trujillo,Escuque,Escuque
+210602,Trujillo,Escuque,La Union
+210603,Trujillo,Escuque,Sabana Libre
+210604,Trujillo,Escuque,Santa Rita
+210701,Trujillo,José Felipe Márquez Cañiizales,El Socorro
+210702,Trujillo,José Felipe Márquez Cañiizales,Antonio José de Sucre
+210703,Trujillo,José Felipe Márquez Cañiizales,Los Caprichos
+210801,Trujillo,Juan Vicente Campo Elías,Campo Elías
+210802,Trujillo,Juan Vicente Campo Elías,Arnoldo Gabaldon
+210901,Trujillo,La Ceiba,Santa Apolonia
+210902,Trujillo,La Ceiba,El Progreso
+210903,Trujillo,La Ceiba,La Ceiba
+210904,Trujillo,La Ceiba,Tres De Febrero
+211001,Trujillo,Miranda,El Dividive
+211002,Trujillo,Miranda,Agua Santa
+211003,Trujillo,Miranda,Aguas Calientes
+211004,Trujillo,Miranda,El Cenizo
+211005,Trujillo,Miranda,Valerita
+211101,Trujillo,Monte Carmelo,Monte Carmelo
+211102,Trujillo,Monte Carmelo,Buena Vista
+211103,Trujillo,Monte Carmelo,Santa Maria Del Horcon
+211201,Trujillo,Motatán,Motatán
+211202,Trujillo,Motatán,El Baño
+211203,Trujillo,Motatán,Jalisco
+211301,Trujillo,Pampán,Pampán
+211302,Trujillo,Pampán,Flor De Patria
+211303,Trujillo,Pampán,La Paz
+211304,Trujillo,Pampán,Santa Ana
+211401,Trujillo,Pampanito,Pampanito
+211402,Trujillo,Pampanito,La Concepcion
+211403,Trujillo,Pampanito,Pampanito II
+211501,Trujillo,Rafael Rangel,Betijoque
+211502,Trujillo,Rafael Rangel,La Pueblita
+211503,Trujillo,Rafael Rangel,Los Cedros
+211504,Trujillo,Rafael Rangel,Jose Gregorio Hernandez
+211601,Trujillo,San Rafael de Carvajal,Carvajal
+211602,Trujillo,San Rafael de Carvajal,Antonio Nicolas Briceño
+211603,Trujillo,San Rafael de Carvajal,Campo Alegre
+211604,Trujillo,San Rafael de Carvajal,Jose Leonardo Suarez
+211701,Trujillo,Sucre,Sabana De Mendoza
+211702,Trujillo,Sucre,El Paraíso
+211703,Trujillo,Sucre,Junín
+211704,Trujillo,Sucre,Valmore Rodríguez
+211801,Trujillo,Trujillo,Andres Linares
+211802,Trujillo,Trujillo,Chiquinquirá
+211803,Trujillo,Trujillo,Cristobal Mendoza
+211804,Trujillo,Trujillo,Cruz Carrillo
+211805,Trujillo,Trujillo,Matriz
+211806,Trujillo,Trujillo,Monseñor Carrillo
+211807,Trujillo,Trujillo,Tres Esquinas
+211901,Trujillo,Urdaneta,La Quebrada
+211902,Trujillo,Urdaneta,Cabimbu
+211903,Trujillo,Urdaneta,Jajó
+211904,Trujillo,Urdaneta,La Mesa
+211905,Trujillo,Urdaneta,Santiago
+211906,Trujillo,Urdaneta,Tuñame
+212001,Trujillo,Valera,Juan Ignacio Montilla
+212002,Trujillo,Valera,La Beatríz
+212003,Trujillo,Valera,Mercedes Diaz
+212004,Trujillo,Valera,San Luis
+212005,Trujillo,Valera,La Puerta
+212006,Trujillo,Valera,Mendoza
+220101,Yaracuy,Arístides Bastidas,San Pablo
+220201,Yaracuy,Bolívar,Aroa
+220301,Yaracuy,Bruzual,Capital Bruzual
+220302,Yaracuy,Bruzual,Campo Elías
+220401,Yaracuy,Cocorote,Cocorote
+220501,Yaracuy,Independencia,Independencia
+220601,Yaracuy,José Antonio Páez,Sabana de Parra
+220701,Yaracuy,La Trinidad,Boraure
+220801,Yaracuy,Manuel Monge,Yumare
+220901,Yaracuy,Nirgua,Capital Nirgua
+220902,Yaracuy,Nirgua,Salom
+220903,Yaracuy,Nirgua,Temerla
+221001,Yaracuy,Peña,Capital Peña
+221002,Yaracuy,Peña,San Andres
+221101,Yaracuy,San Felipe,Capital San Felipe
+221102,Yaracuy,San Felipe,Albarico
+221103,Yaracuy,San Felipe,San Javier
+221201,Yaracuy,Sucre,Guama
+221301,Yaracuy,Urachiche,Urachiche
+221401,Yaracuy,Veroes,Capital Veroes
+221402,Yaracuy,Veroes,El Guayabo
+230101,Zulia,Almirante Padilla,Isla De Toas
+230102,Zulia,Almirante Padilla,Monagas
+230201,Zulia,Baralt,San Timoteo
+230202,Zulia,Baralt,General Urdaneta
+230203,Zulia,Baralt,Libertador
+230204,Zulia,Baralt,Manuel Guanipa Matos
+230205,Zulia,Baralt,Marcelino Briceño
+230206,Zulia,Baralt,Pueblo Nuevo
+230301,Zulia,Cabimas,Ambrosio
+230302,Zulia,Cabimas,Carmen Herrera
+230303,Zulia,Cabimas,German Rios Linares
+230304,Zulia,Cabimas,La Rosa
+230305,Zulia,Cabimas,Jorge Hernandez
+230306,Zulia,Cabimas,Romulo Betancourt
+230307,Zulia,Cabimas,San Benito
+230308,Zulia,Cabimas,Aristides Calvani
+230309,Zulia,Cabimas,Punta Gorda
+230401,Zulia,Catatumbo,Encontrados
+230402,Zulia,Catatumbo,Udon Perez
+230501,Zulia,Colón,San Carlos Del Zulia
+230502,Zulia,Colón,Moralito
+230503,Zulia,Colón,Santa Bárbara
+230504,Zulia,Colón,Santa Cruz Del Zulia
+230505,Zulia,Colón,Urribarri
+230601,Zulia,Francisco Javier Pulgar,Simón Rodríguez
+230602,Zulia,Francisco Javier Pulgar,Carlos Quevedo
+230603,Zulia,Francisco Javier Pulgar,Francisco Javier Pulgar
+230701,Zulia,Jesús Enrique Lossada,La Concepcion
+230702,Zulia,Jesús Enrique Lossada,Jose Ramon Yepez
+230703,Zulia,Jesús Enrique Lossada,Mariano Parra Leon
+230704,Zulia,Jesús Enrique Lossada,San José
+230801,Zulia,Jesus Maria Semprum,Jesus Maria Semprum
+230802,Zulia,Jesus Maria Semprum,Bari
+230901,Zulia,La Cañada de Urdaneta,Concepción
+230902,Zulia,La Cañada de Urdaneta,Andrés Bello
+230903,Zulia,La Cañada de Urdaneta,Chiquinquirá
+230904,Zulia,La Cañada de Urdaneta,El Carmelo
+230905,Zulia,La Cañada de Urdaneta,Potreritos
+231001,Zulia,Lagunillas,Alonso De Ojeda
+231002,Zulia,Lagunillas,Libertad
+231003,Zulia,Lagunillas,Campo Lara
+231004,Zulia,Lagunillas,Eleazar Lopez Contreras
+231005,Zulia,Lagunillas,Venezuela
+231006,Zulia,Lagunillas,El Danto
+231101,Zulia,Machiques de Perijá,Libertad
+231102,Zulia,Machiques de Perijá,Bartolome De Las Casas
+231103,Zulia,Machiques de Perijá,Río Negro
+231104,Zulia,Machiques de Perijá,San Jose De Perija
+231201,Zulia,Mara,San Rafael
+231202,Zulia,Mara,La Sierrita
+231203,Zulia,Mara,Las Parcelas
+231204,Zulia,Mara,Luis De Vicente
+231205,Zulia,Mara,Monseñor Marcos Sergio Godoy
+231206,Zulia,Mara,Ricaurte
+231207,Zulia,Mara,Tamare
+231301,Zulia,Maracaibo,Antonio Borjas Romero
+231302,Zulia,Maracaibo,Bolívar
+231303,Zulia,Maracaibo,Cacique Mara
+231304,Zulia,Maracaibo,Caracciolo Parra Pérez
+231305,Zulia,Maracaibo,Cecilio Acosta
+231306,Zulia,Maracaibo,Cristo de Aranza
+231307,Zulia,Maracaibo,Coquivacoa
+231308,Zulia,Maracaibo,Chiquinquirá
+231309,Zulia,Maracaibo,Francisco Eugenio Bustamante
+231310,Zulia,Maracaibo,Idelfonso Vásquez
+231311,Zulia,Maracaibo,Juana de Ávila
+231312,Zulia,Maracaibo,Luis Hurtado Higuera
+231313,Zulia,Maracaibo,Manuel Dagnino
+231314,Zulia,Maracaibo,Olegario Villalobos
+231315,Zulia,Maracaibo,Raúl Leoni
+231316,Zulia,Maracaibo,Santa Lucía
+231317,Zulia,Maracaibo,Venancio Pulgar
+231318,Zulia,Maracaibo,San Isidro
+231401,Zulia,Miranda,Altagracia
+231402,Zulia,Miranda,Ana Maria Campos
+231403,Zulia,Miranda,Faria
+231404,Zulia,Miranda,San Antonio
+231405,Zulia,Miranda,San José
+231501,Zulia,Indígena Bolivariano Guajira,Sinamaica
+231502,Zulia,Indígena Bolivariano Guajira,Alta Guajira
+231503,Zulia,Indígena Bolivariano Guajira,Elias Sanchez Rubio
+231504,Zulia,Indígena Bolivariano Guajira,Guajira
+231601,Zulia,Rosario de Perijá,El Rosario
+231602,Zulia,Rosario de Perijá,Donaldo Garcia
+231603,Zulia,Rosario de Perijá,Sixto Zambrano
+231701,Zulia,San Francisco,San Francisco
+231702,Zulia,San Francisco,El Bajo
+231703,Zulia,San Francisco,Domitila Flores
+231704,Zulia,San Francisco,Francisco Ochoa
+231705,Zulia,San Francisco,Los Cortijos
+231706,Zulia,San Francisco,Marcial Hernandez
+231707,Zulia,San Francisco,José Domingo Rus
+231801,Zulia,Santa Rita,Santa Rita
+231802,Zulia,Santa Rita,El Mene
+231803,Zulia,Santa Rita,Jose Cenovio Urribarri
+231804,Zulia,Santa Rita,Pedro Lucas Urribarri
+231901,Zulia,Simón Bolívar,Manuel Manrique
+231902,Zulia,Simón Bolívar,Rafael Maria Baralt
+231903,Zulia,Simón Bolívar,Rafael Urdaneta
+232001,Zulia,Sucre,Bobures
+232002,Zulia,Sucre,El Batey
+232003,Zulia,Sucre,Gibraltar
+232004,Zulia,Sucre,Heras
+232005,Zulia,Sucre,Monseñor Arturo Celestino Alvarez
+232006,Zulia,Sucre,Rómulo Gallegos
+232101,Zulia,Valmore Rodríguez,La Victoria
+232102,Zulia,Valmore Rodríguez,Rafael Urdaneta
+232103,Zulia,Valmore Rodríguez,Raul Cuenca
+240101,La Guaira,Vargas,Caraballeda
+240102,La Guaira,Vargas,Carayaca
+240103,La Guaira,Vargas,Caruao
+240104,La Guaira,Vargas,Catia La Mar
+240105,La Guaira,Vargas,El Junko
+240106,La Guaira,Vargas,La Guaira
+240107,La Guaira,Vargas,Macuto
+240108,La Guaira,Vargas,Maiquetia
+240109,La Guaira,Vargas,Naiguata
+240110,La Guaira,Vargas,Urimare
+240111,La Guaira,Vargas,Carlos Soublette

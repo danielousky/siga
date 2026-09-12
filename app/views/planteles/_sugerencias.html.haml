@@ -13,10 +13,15 @@
     %ul.sugerencias
       - planteles.each do |plantel|
         %li
+          -# ⚠️ La ubicación viaja con la sugerencia, deducida del código DEA: sus
+          -# cuatro dígitos finales son el municipio del INE. Ver
+          -# `DivisionPolitica#ubicacion_del_codigo`.
           %button.sugerencia{ type: "button",
                               data: { action: "catalogo-de-planteles#elegir",
                                       catalogo_de_planteles_nombre_param: plantel.nombre,
-                                      catalogo_de_planteles_dea_param: plantel.dea_code.to_s } }
+                                      catalogo_de_planteles_dea_param: plantel.dea_code.to_s,
+                                      catalogo_de_planteles_estado_param: plantel.entidad_federal.to_s,
+                                      catalogo_de_planteles_municipio_param: plantel.municipio.to_s } }
             %span.sugerencia-nombre= plantel.nombre
             %span.sugerencia-detalle
               - if plantel.dea_code.present?

@@ -44,12 +44,24 @@ namespace :catalogo do
     nombre = fila["nombre"].to_s.strip
     return nil if nombre.blank?
 
+    dea = fila["dea"].to_s.strip.presence
     entidad = fila["estado"].to_s.strip.presence
     ahora = Time.current
 
-    { dea_code: fila["dea"].to_s.strip.presence,
+    # ⚠️ El municipio sale del propio código DEA: sus cuatro dígitos finales son
+    # el `Co_municip` del INE. Comprobado contra las 13.441 filas con código —
+    # casan 13.434 (99 %). Ver `DivisionPolitica#ubicacion_del_codigo`.
+    #
+    # ⚠️ Si el código no corresponde a ningún municipio oficial queda en `nil`.
+    # Nunca se adivina: un municipio equivocado que se ve plausible es peor que
+    # ninguno, porque nadie corrige lo que no nota.
+    ubicacion = DivisionPolitica.ubicacion_del_codigo(dea)
+    entidad = ubicacion[:entidad] if ubicacion
+
+    { dea_code: dea,
       nombre: nombre,
       entidad_federal: entidad,
+      municipio: ubicacion&.dig(:municipio),
       busqueda: [ Normaliza.para_comparar(nombre), Normaliza.para_comparar(entidad) ].compact_blank.join(" "),
       created_at: ahora, updated_at: ahora }
   end

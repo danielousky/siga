@@ -1032,7 +1032,8 @@ CREATE TABLE public.planteles_oficiales (
     entidad_federal character varying,
     busqueda character varying NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    municipio character varying
 );
 
 
@@ -5050,6 +5051,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260912005350'),
 ('20260911233604'),
 ('20260911202756'),
 ('20260911042145'),

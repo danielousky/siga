@@ -58,23 +58,34 @@ federal. Contrastado contra las 13.441 filas con código:
 Sirve para detectar un código mal tecleado: si alguien escribe un DEA cuyo
 estado no coincide con el suyo, hay algo que revisar.
 
-## ⚠️ Y los dos ÚLTIMOS parecen ser el municipio — sin confirmar
+## ✅ Y los dos ÚLTIMOS son el MUNICIPIO — confirmado
 
-El rango calza exacto en todos los estados: Amazonas tiene 7 municipios y sus
-códigos van del 1 al 7; Aragua tiene 18 y van del 1 al 18. Es casi seguro que
-`MM` es el ordinal del municipio dentro del estado.
+    O D 0489 02 03
+            │  │  └── municipio dentro del estado  ── «03» = Atures
+            │  └───── entidad federal (código INE) ── «02» = Amazonas
+            └──────── el registro ante la zona educativa
 
-**Lo que NO se pudo establecer es el ORDEN que usa el MPPE.** Se probaron dos
-—el de un catálogo público y el alfabético— y ninguno pasa de la mitad de los
-estados al contrastarlo.
+Los cuatro dígitos finales son el `Co_municip` de la **División Político
+Territorial del INE**, tal cual. Contrastado contra las 13.441 filas con
+código: **casan 13.434, el 99 %.**
 
-Por eso **no se deriva el municipio**: un municipio equivocado que se ve
-plausible es peor que ninguno, porque nadie corrige lo que no nota, y ese dato
-sale impreso en los documentos del MPPE. Es exactamente lo que advierte
-`DivisionPolitica` de sí mismo.
+⚠️ Las siete que no casan y las dos excepciones son reales, no ruido:
 
-Con una tabla oficial de numeración de municipios (INE o el propio MPPE), esto
-se desbloquea sin una sola petición más.
+- **Distrito Capital y La Guaira tienen UN SOLO municipio** —Libertador y
+  Vargas— y el MPPE usa ahí códigos 02, 03, 04 y 05 que son subdivisiones
+  suyas. Cualquier código de un estado con un municipio cae en ese municipio,
+  y eso no es una suposición: es aritmética.
+- Siete filas con códigos que no existen en la DPT: erratas de la fuente.
+  Quedan **sin municipio**, no con uno inventado.
+
+El catálogo de la DPT vive en `db/catalogos/division_politica.csv` y lo lee
+`DivisionPolitica`. Se bajó del servicio público del INE:
+
+    24 entidades · 334 municipios · 1.123 parroquias
+
+⚠️ La ortografía viene del catálogo anterior, escrito a mano: la capa del INE
+trae los nombres **sin acentuar** —«Andres Bello», «Brion»— y esos nombres
+salen impresos en los documentos del MPPE.
 
 ## Lo que el catálogo NO trae
 

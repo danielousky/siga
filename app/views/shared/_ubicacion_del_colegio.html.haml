@@ -40,7 +40,9 @@
       = select_tag "school[entidad_federal]",
                    options_for_select(EntidadFederal::TODAS, colegio.entidad_federal),
                    include_blank: "Seleccione el estado…", class: "form-select", required: true,
-                   data: { ubicacion_target: "entidad", action: "change->ubicacion#alCambiarEntidad" }
+                   data: { ubicacion_target: "entidad",
+                           catalogo_de_planteles_target: "estado",
+                           action: "change->ubicacion#alCambiarEntidad" }
 
     .form-group
       = label_tag "school[municipio]", "Municipio", class: "form-label"
@@ -64,6 +66,7 @@
       -# #deducir_la_ubicacion`), así que con el estado solo ya es válido.
       = select_tag "school[municipio]", nil, class: "form-select",
                    data: { ubicacion_target: "municipio", actual: colegio.municipio,
+                           catalogo_de_planteles_target: "municipio",
                            action: "change->ubicacion#alCambiarMunicipio" }
       -# ⚠️ La salida a mano. El catálogo está incompleto y NO puede impedirle a
       -# un colegio registrarse: uno que no puede registrarse no vuelve.
