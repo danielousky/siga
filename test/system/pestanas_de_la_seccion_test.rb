@@ -75,7 +75,14 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
     visit section_path(@a.seccion, area: @area.id)
 
     [ [ "Planificar", :planificar_section_path ], [ "Asistencia", :asistencia_section_path ] ].each do |nombre, ruta|
-      visit section_path(@a.seccion, area: @area.id)
+      # ⚠️ Se ESPERA a estar en la sección antes de tocar la pestaña.
+      #
+      # `click_on` espera a que el enlace exista, pero en la segunda vuelta el
+      # que existe puede ser el de la página ANTERIOR: Capybara lo toca, Turbo
+      # reemplaza el DOM debajo, y la navegación se pierde. El síntoma era
+      # `expected "/secciones/4328" to equal "/secciones/4328/planificar"` —
+      # la URL nunca cambió porque nadie llegó a pulsar nada.
+      en_la_seccion
       click_on nombre
 
       # ⚠️ La URL PRIMERO, y no es ceremonia: sin esperar a que Turbo termine
@@ -114,10 +121,24 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
   test "sin área en la URL, planificar abre igual" do
     con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: @a.registro_de_profesor) }
     visit section_path(@a.seccion)
+    en_la_seccion(area: nil)
 
     click_on "Planificar"
 
+    # ⚠️ La URL primero. Sin esto, `.pestana.activa` se lee en la página vieja
+    # y devuelve «Calificar» — el fallo intermitente de este test.
+    assert_current_path planificar_section_path(@a.seccion), ignore_query: true
     assert_selector ".pestana.activa", text: "Planificar"
     assert_no_text "Elige primero un área"
+  end
+
+  private
+
+  # La sección, asentada: estamos en su URL y su fila de pestañas ya está
+  # dibujada. Es la precondición de cualquier `click_on` de este archivo.
+  def en_la_seccion(area: @area.id)
+    visit section_path(@a.seccion, area: area) unless current_path == section_path(@a.seccion)
+    assert_current_path section_path(@a.seccion), ignore_query: true
+    assert_selector ".pestana", minimum: 3
   end
 end
