@@ -36,7 +36,7 @@ class RegistrosController < Devise::RegistrationsController
 
   def new
     build_resource({})
-    @colegio = School.new
+    @colegio = School.new(sugerido_por_la_url)
     @niveles = []
     yield resource if block_given?
     respond_with resource
@@ -95,6 +95,21 @@ class RegistrosController < Devise::RegistrationsController
   end
 
   private
+
+  # El colegio ya puesto cuando se llega desde el directorio público.
+  #
+  # ⚠️ SOLO el nombre y el código, y no es por prudencia sobrante: son los dos
+  # únicos campos que el catálogo rellena de todas formas cuando alguien
+  # escribe el nombre a mano. Aceptar más convertiría la URL en una manera de
+  # preparar un registro entero desde afuera.
+  #
+  # ⚠️ Y son SUGERENCIA, como todo lo del catálogo: el formulario los muestra
+  # editables y manda lo que quede escrito.
+  def sugerido_por_la_url
+    return {} if params[:school].blank?
+
+    params.require(:school).permit(:name, :dea_code)
+  end
 
   def datos_de_la_persona
     params.require(:user).permit(*PERMITIDOS).to_h.symbolize_keys

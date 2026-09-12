@@ -2453,6 +2453,44 @@ nav.pagy a.gap {
    Boletines y su verificación pública
    ============================================ */
 
+/* ---- El directorio público de planteles ---------------------------------
+   Cuatro pantallas que vive cualquiera sin sesión, con el MISMO sistema de
+   diseño del panel: `card-academic`, `shared/cabecera` y `table-academic`. No
+   son la portada —que es otro mundo visual, oscuro y de venta— sino un
+   documento que se consulta, y ahí lo que hace falta es que se lea. */
+.lista-directorio {
+  list-style: none;
+  margin: var(--space-md) 0 0;
+  padding: 0;
+  /* Veinticuatro estados en una columna son un scroll tonto en un monitor y la
+     lista correcta en un teléfono: se reparte por ANCHO DISPONIBLE, no por un
+     número de columnas fijo. */
+  columns: 260px 3;
+  column-gap: var(--space-lg);
+}
+.lista-directorio li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  break-inside: avoid;
+}
+.lista-directorio a { text-decoration: none; }
+.lista-directorio a:hover { text-decoration: underline; }
+
+/* El remate: es la razón por la que el directorio existe. Va destacado sin
+   gritar — el fondo del acento propio y nada más. */
+.directorio-cierre { background: var(--brand-subtle); }
+.directorio-cierre-titulo {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 var(--space-sm);
+  color: var(--brand-primary);
+}
+
 .verificacion-sello {
   display: inline-flex;
   align-items: center;

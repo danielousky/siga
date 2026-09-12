@@ -1,0 +1,23 @@
+-# El remate de cada página del directorio.
+-#
+-# ⚠️ Es la razón por la que el directorio existe: quien llegó buscando su
+-# propio colegio está a un clic de registrarlo. Sin esto, esto es una tabla
+-# bonita que no hace nada por SIGA.
+-#
+-# ⚠️ Y cuando la página ES un plantel, el enlace se lleva el nombre y el código
+-# PUESTOS: el formulario abre con dos campos llenos, que es exactamente lo que
+-# el catálogo hace en el registro cuando alguien escribe el nombre a mano.
+- plantel = local_assigns[:plantel]
+
+.card-academic.directorio-cierre
+  %h2.directorio-cierre-titulo
+    - if plantel
+      ¿Es este su colegio?
+    - else
+      ¿Dirige uno de estos colegios?
+  %p
+    SIGA lleva las notas, los boletines y las constancias de su colegio, y la
+    familia las consulta desde el teléfono. Registrarse es gratis y no vence.
+  = boton "Registrar mi colegio",
+          (plantel ? registrarse_ruta_con(plantel) : new_user_registration_path),
+          icono: :agregar, tono: :guardar

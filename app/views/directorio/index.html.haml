@@ -1,0 +1,24 @@
+-# El primer nivel del directorio: los estados.
+-#
+-# ⚠️ El título y la descripción se ponen a mano en CADA nivel. Sin eso, las
+-# 13.434 páginas comparten el `<title>` de la marca y para un buscador son la
+-# misma página repetida — que es la manera exacta de no rankear con ninguna.
+- content_for :titulo, "Colegios de Venezuela por estado y municipio"
+- content_for :descripcion, "Directorio de #{number_with_delimiter(@total)} planteles de Venezuela con su código DEA, por estado y municipio. Busque el suyo."
+
+.card-academic
+  = render "shared/cabecera", titulo: "Colegios de Venezuela"
+
+  %p
+    = succeed "," do
+      %strong= "#{number_with_delimiter(@total)} planteles"
+    con su código DEA, agrupados por estado y municipio. La información es
+    pública y la compilamos del registro del Ministerio de Educación.
+
+  %ul.lista-directorio
+    - @por_estado.each do |entidad, cuantos|
+      %li
+        = link_to entidad, directorio_estado_path(entidad.parameterize)
+        %span.dato-secundario= contar(cuantos, "plantel", "planteles")
+
+= render "directorio/es_su_colegio"

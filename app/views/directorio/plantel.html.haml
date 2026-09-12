@@ -1,0 +1,38 @@
+-# Cuarto nivel: la ficha. Es la página que contesta «código DEA de <colegio>».
+- content_for :titulo, "#{plantel_en_titulo(@plantel.nombre)} · código DEA #{@plantel.dea_code}"
+- content_for :descripcion, "#{plantel_en_titulo(@plantel.nombre)}, en #{@municipio}, estado #{@estado}. Código DEA #{@plantel.dea_code}."
+
+.card-academic
+  = render "shared/cabecera", titulo: plantel_en_titulo(@plantel.nombre)
+
+  %p.nota-ayuda
+    = link_to "← Colegios en #{@municipio}", directorio_municipio_path(@estado.parameterize, @municipio.parameterize)
+
+  .detail-row
+    .detail-item
+      .detail-label Código DEA
+      .detail-value= @plantel.dea_code
+    .detail-item
+      .detail-label Estado
+      .detail-value= @estado
+    .detail-item
+      .detail-label Municipio
+      .detail-value= @municipio
+
+  -# ⚠️ Se dice qué NO sabemos, y no es humildad: una ficha que calla lo que le
+  -# falta parece completa, y quien la lee concluye que el dato no existe. Del
+  -# catálogo del MPPE salen el nombre, el código y el municipio; la dirección
+  -# y el teléfono no están, y el único que los puede poner es el colegio.
+  %p.nota-ayuda
+    Esta información sale del registro público del Ministerio de Educación: el
+    nombre, el código DEA y dónde queda. La dirección y el teléfono no forman
+    parte de ese registro.
+
+= render "directorio/es_su_colegio", plantel: @plantel
+
+- if @otros.any?
+  .card-academic
+    = render "shared/cabecera", titulo: "Otros colegios en #{@municipio}", nivel: 2
+    %ul.lista-directorio
+      - @otros.each do |otro|
+        %li= link_to otro.nombre, directorio_plantel_path(@estado.parameterize, @municipio.parameterize, otro.slug)

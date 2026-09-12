@@ -47,6 +47,17 @@ Rails.application.routes.draw do
   get "robots.txt", to: "buscadores#robots", as: :robots, defaults: { format: "text" }
   get "sitemap.xml", to: "buscadores#mapa", as: :sitemap, defaults: { format: "xml" }
 
+  # El directorio público de planteles. Cuatro niveles, cada uno una URL de
+  # verdad: es lo que rankea, y es la única palanca de tráfico orgánico que
+  # tiene SIGA. Ver `DirectorioController`.
+  #
+  # ⚠️ `/colegios` en plural NO choca con `/colegio`, que es la identidad del
+  # colegio de la sesión — otra pantalla, otro público, otra ruta.
+  get "colegios", to: "directorio#index", as: :directorio
+  get "colegios/:estado", to: "directorio#estado", as: :directorio_estado
+  get "colegios/:estado/:municipio", to: "directorio#municipio", as: :directorio_municipio
+  get "colegios/:estado/:municipio/:plantel", to: "directorio#plantel", as: :directorio_plantel
+
   # ⚠️ NO hay registro público. Ver MOR-101.
   #
   # `:registerable` viene puesto por `rails generate devise User` y no es una

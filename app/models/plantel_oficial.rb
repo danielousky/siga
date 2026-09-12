@@ -33,6 +33,51 @@ class PlantelOficial < ApplicationRecord
   # ser una lista que hay que leer entera.
   SUGERENCIAS = 8
 
+  # ── El directorio público ─────────────────────────────────────────────────
+  #
+  # El catálogo es data pública que compilamos nosotros, y publicarlo es la
+  # única palanca real de tráfico orgánico que tiene SIGA: «colegios en Baruta»
+  # es lo que un director escribe en Google, y hoy lo contesta un directorio
+  # ajeno. Decisión de Daniel: *«el costo es bajo y lo sacamos de la web
+  # (público), entonces considero que podemos publicarlo»*.
+  #
+  # ⚠️ Solo se publica el que se puede UBICAR Y NOMBRAR: hacen falta el
+  # municipio —o no hay dónde colgarlo en el árbol— y el código DEA, que es lo
+  # que hace única su URL. Son 13.434 de 15.954. Los otros 2.520 siguen
+  # sirviendo para sugerir al registrarse, que es para lo que se compilaron.
+  scope :publicables, -> {
+    where.not(municipio: [ nil, "" ]).where.not(dea_code: [ nil, "" ])
+  }
+
+  # ⚠️ El slug lleva el NOMBRE y el CÓDIGO, y los dos hacen falta.
+  #
+  # El nombre, porque una URL que se lee rankea y una de números no: quien
+  # busca «colegio san josé baruta» tiene que reconocer el enlace. El código,
+  # porque hay decenas de «U.E. Bolívar» y sin él dos colegios distintos
+  # pelearían por la misma dirección.
+  #
+  #     u-e-p-colegio-san-jose-pd01234567
+  #     └─────── nombre ────────┘└─ DEA ─┘
+  # ⚠️ `nil` sin código: un plantel que no se publica no tiene URL, y devolver
+  # una a medias —«colegio-de-prueba-»— haría que `por_slug` resolviera
+  # cualquier cosa por la cola vacía.
+  def slug = dea_code.present? ? "#{nombre.parameterize}-#{dea_code.downcase}" : nil
+
+  # ⚠️ Se resuelve por el CÓDIGO, no por el nombre: el nombre del slug es
+  # decoración para el buscador y puede cambiar —una tilde, una abreviatura— sin
+  # que el enlace de nadie se rompa. Lo que identifica es la cola.
+  def self.por_slug(slug)
+    codigo = slug.to_s.rpartition("-").last
+    return nil if codigo.blank?
+
+    publicables.find_by(dea_code: codigo.upcase)
+  end
+
+  # ⚠️ La entidad se normaliza al leerla, y no es cosmética: en el catálogo
+  # conviven «Bolívar» y «Bolivar», «Táchira» y «Tachira». Sin normalizar, el
+  # directorio mostraría treinta estados y seis de ellos serían fantasmas.
+  def entidad = EntidadFederal.normalizar(entidad_federal) || entidad_federal
+
   # ⚠️ Se busca PALABRA POR PALABRA, con AND entre ellas (`MOR-183`).
   #
   # «san jose caracas» tiene que encontrar al colegio aunque «caracas» esté en

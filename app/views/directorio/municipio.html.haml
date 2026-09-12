@@ -1,0 +1,31 @@
+-# Tercer nivel: la lista de planteles del municipio. Es la página que contesta
+-# «colegios en Baruta», que es la búsqueda que trae gente.
+- content_for :titulo, "Colegios en #{@municipio}, #{@estado}"
+- content_for :descripcion, "Listado de los #{@planteles.size} planteles del municipio #{@municipio}, estado #{@estado}, con su código DEA."
+
+.card-academic
+  = render "shared/cabecera", titulo: "Colegios en #{@municipio}"
+
+  %p.nota-ayuda
+    = link_to "← #{@estado}", directorio_estado_path(@estado.parameterize)
+
+  %p
+    = succeed "." do
+      %strong= contar(@planteles.size, "plantel", "planteles")
+    en el municipio #{@municipio}, estado #{@estado}
+    - if @parroquias.any?
+      %br
+      %span.dato-secundario= "Parroquias del municipio: #{@parroquias.to_sentence(two_words_connector: ' y ', last_word_connector: ' y ')}."
+
+  %table.table-academic
+    %thead
+      %tr
+        %th Plantel
+        %th Código DEA
+    %tbody
+      - @planteles.each do |plantel|
+        %tr
+          %td= link_to plantel.nombre, directorio_plantel_path(@estado.parameterize, @municipio.parameterize, plantel.slug)
+          %td= plantel.dea_code
+
+= render "directorio/es_su_colegio"
