@@ -62,7 +62,16 @@ class SaludController < ApplicationController
     { ok: cola[:mas_viejo_en_segundos].to_i < TOLERANCIA.to_i,
       base: true,
       cola: cola,
-      version: ENV["GIT_REV"].presence,
+      # ⚠️ DOS versiones, y no son lo mismo:
+      #
+      #   version   qué PRODUCTO es      0.9.0        se sube a mano, con su
+      #                                               entrada en el CHANGELOG
+      #   revision  qué BUILD corre      un SHA       lo pone el despliegue
+      #
+      # Con una sola, «la 0.9.0» significa cuarenta builds distintos y un
+      # reporte de un colegio no se puede atar a un commit.
+      version: Siga::VERSION,
+      revision: ENV["GIT_REV"].presence,
       medido: Time.current.iso8601 }
   end
 

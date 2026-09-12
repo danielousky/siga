@@ -1077,5 +1077,30 @@ correrlo dos veces no duplica inscripciones.
 2do Año B?», lo que hay que ver es quién corrió la promoción, desde qué año y con
 qué criterio.
 
+## 🔢 La versión
+
+`Siga::VERSION` en `config/application.rb` es la del PRODUCTO, y **no** la del
+commit. SemVer con los significados puestos desde el colegio, porque de SIGA no
+depende ninguna API:
+
+```
+   MAYOR    cambia CÓMO TRABAJA el colegio    hay que avisarle y enseñarle
+   MENOR    una función nueva                  se cuenta en el CHANGELOG
+   PARCHE   un arreglo o un ajuste             nadie tiene que enterarse
+```
+
+⚠️ **`1.0.0` no significa «está completo»: significa que un colegio real opera
+con esto.** El único portón es sacar los datos de demostración de producción
+(`MOR-146`). La cobranza dentro de la app (`MOR-128`) **no** lo es: hoy se vende
+igual y la suscripción ya lleva su estado.
+
+⚠️ **Subir el número son tres cosas, no una**: la constante, la entrada en
+[`CHANGELOG.md`](CHANGELOG.md) y el tag `vX.Y.Z`. Lo cuida `version_test`, que
+falla si el número no tiene su entrada — un colegio que reporta «la 0.9.0» tiene
+que poder saberse qué había dentro.
+
+⚠️ **`/salud` devuelve las DOS**: `version` es qué producto es y `revision` el
+commit desplegado. Confundirlas hace que una versión signifique cuarenta builds.
+
 Backlog completo en `BACKLOG.md`. Diagrama del modelo actual y objetivo:
 https://claude.ai/code/artifact/0e167ba9-8e21-4264-ac29-f7a2d9fe5523

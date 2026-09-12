@@ -417,5 +417,9 @@
             %li= link_to "Entrar al sistema", new_user_session_path
             %li= link_to "Verificar un documento", verificar_path
 
+      -# ⚠️ La versión va a la vista y no escondida en un `/salud` que nadie
+      -# abre: cuando un colegio reporta algo, lo primero que hay que saber es
+      -# qué versión estaba mirando. Y es la del PRODUCTO, no el commit.
       %p.portada-pie-legal
         &copy; #{Time.current.year} SIGA · Hecho en Venezuela para colegios de Venezuela.
+        %span.portada-pie-version= "v#{Siga::VERSION}"

@@ -4127,6 +4127,13 @@ body:has(.portada) .barra-superior { display: none; }
   font-size: 13px;
   color: var(--text-muted);
 }
+/* La versión, al lado del año y más apagada: está para leerla cuando hace
+   falta, no para que compita con nada. */
+.portada-pie-version {
+  margin-left: 10px;
+  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
+}
 
 @media (max-width: 640px) {
   .portada-acciones { flex-direction: column; align-items: stretch; }
