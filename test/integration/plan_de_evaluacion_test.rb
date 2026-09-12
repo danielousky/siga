@@ -94,6 +94,59 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # ⚠️ LOS TRES QUE FALTABAN, y por eso el botón desapareció sin que nadie se
+  # enterara: los de arriba prueban el POST —que siempre funcionó— y ninguno
+  # probaba que la pantalla OFRECIERA tocarlo.
+  #
+  # `@sugerido` lo llenaba `CompetenciesController#index`; cuando el índice se
+  # volvió un redirector, la asignación se fue con él y la vista quedó
+  # preguntando por una variable que ya no escribía nadie. `nil&.any?` no falla,
+  # no avisa y no rompe nada — la tarjeta simplemente dejó de dibujarse.
+  test "la tarjeta del año pasado se OFRECE en la pestaña, no solo funciona el POST" do
+    con_el_colegio(@a.colegio) { plan_viejo }
+    sign_in @a.profesor
+
+    get planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
+
+    assert_response :success
+    assert_select ".plan-sugerido", 1, "sin esta tarjeta, traer el plan del año pasado no tiene puerta"
+    assert_select ".plan-sugerido-titulo", /Hay un plan del año pasado/
+    # ⚠️ El `action` lleva el contexto pegado —`?asignacion=…&lapso=…`—, que es
+    # lo que impide que traer el plan te expulse de la sección. Se compara el
+    # comienzo, no la URL entera.
+    assert_select ".plan-sugerido form" do |formularios|
+      assert formularios.any? { |f| f["action"].start_with?(traer_competencies_path) },
+             "el botón tiene que hacer POST a #{traer_competencies_path}"
+    end
+  end
+
+  # ⚠️ Ofrecer duplicar sobre un plan ya escrito es ruido: la maestra ya hizo el
+  # trabajo, y la tarjeta le sugiere mezclarle otro año encima.
+  test "la tarjeta desaparece cuando el lapso ya tiene su plan" do
+    con_el_colegio(@a.colegio) do
+      plan_viejo
+      competencia_con(1)
+    end
+    sign_in @a.profesor
+
+    get planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
+
+    assert_select ".plan-sugerido", 0
+  end
+
+  # ⚠️ El botón hace POST a `traer_competencies`, que exige `require_profesor!`.
+  # A la dirección le saldría un control que la rebota — que es la manera de
+  # enseñar que los controles de este sistema a veces no funcionan.
+  test "la dirección ve el plan pero no el botón de duplicar" do
+    con_el_colegio(@a.colegio) { plan_viejo }
+    sign_in @a.director
+
+    get planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
+
+    assert_response :success
+    assert_select ".plan-sugerido", 0
+  end
+
   # ⚠️ Idempotente, como `CopiarLaEstructura`: traerlo dos veces no duplica.
   test "traerlo dos veces no duplica nada" do
     con_el_colegio(@a.colegio) { plan_viejo }

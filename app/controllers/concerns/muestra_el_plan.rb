@@ -29,7 +29,7 @@ module MuestraElPlan
     helper_method :lapsos, :lapso, :otras_secciones, :contexto,
                   :hermanas_con_plan, :hermanas_sin_plan, :evaluaciones_del_lapso,
                   :evaluaciones_de, :evaluaciones_sueltas, :peso_del_lapso,
-                  :competencias_del_lapso,
+                  :competencias_del_lapso, :plan_sugerido,
                   :peso_libre, :periodo_del_plan, :con_competencias?
   end
 
@@ -210,6 +210,70 @@ module MuestraElPlan
   # El año escolar de la sección: acota el calendario del alta a sus meses, como
   # ya hace la fecha de una evaluación existente.
   def periodo_del_plan = seccion_del_plan&.academic_period
+
+  # ── El plan del año pasado ────────────────────────────────────────────────
+  #
+  # Es la razón de ser de MOR-136. Cyndi Montoya, maestra con 19 años de aula:
+  # *«nosotros todos los lapsos tenemos que estar cargando competencias e
+  # indicadores… es de verdad una pérdida de tiempo muy grande»*. Un colegio de
+  # primaria escribe ~620 competencias al año y las bota al terminar.
+  #
+  # ## ⚠️ Vive en el CONCERN y no en un controller, y esa es la corrección
+  #
+  # Estuvo en `CompetenciesController#index` como `@sugerido = plan_del_ano_pasado
+  # if @competencias.empty? && profesor?`. Cuando el índice se convirtió en un
+  # redirector —la sección pasó a ser el espacio de trabajo— la asignación se
+  # fue con él, y la vista quedó preguntando por una variable que **ya no
+  # escribía nadie**: `- if @sugerido&.any?` es `nil&.any?`, o sea `nil`.
+  #
+  # No falló nada. No hubo error, ni log, ni test en rojo: la tarjeta de
+  # «Duplicar el plan del año pasado» simplemente dejó de dibujarse, y con ella
+  # el único atajo que ahorra el trabajo de septiembre. Se descubrió leyendo el
+  # manual, cuatro etapas después.
+  #
+  # Acá no puede volver a pasar: `MuestraElPlan` es lo que la pantalla del plan
+  # necesita para dibujarse, lo incluyen los dos controllers que la dibujan, y
+  # se pide por su nombre — no hay ivar que olvidarse de llenar.
+  #
+  # ⚠️ Las DOS condiciones van adentro, no en la vista:
+  #
+  #   · el plan de este lapso está vacío — ofrecer duplicar sobre un plan ya
+  #     escrito es ruido, y la copia mezclaría dos años sin que nadie lo pida;
+  #   · quien mira es un PROFESOR — el botón hace POST a `traer_competencies`,
+  #     que exige `require_profesor!`. A la dirección le saldría un botón que
+  #     la rebota, que es la manera de enseñar que los controles no funcionan.
+  #
+  # ⚠️ Devuelve un ARRAY, no una relación: la vista lo recorre cuatro veces
+  # —`any?`, `first`, `size`, `first(4)`— y con una relación eso son cuatro
+  # consultas para dibujar una tarjeta.
+  def plan_sugerido
+    return [] unless profesor? && competencias_del_lapso.empty?
+
+    plan_del_ano_pasado
+  end
+
+  def plan_del_ano_pasado
+    return [] if seccion_del_plan.nil? || area_del_plan.nil? || lapso.nil?
+
+    @plan_del_ano_pasado ||=
+      Competency.para_sugerir(section: seccion_del_plan, subject: area_del_plan,
+                              evaluation_moment: lapso).includes(:indicators).to_a
+  end
+
+  # De dónde sale ese plan: su sección y su lapso.
+  #
+  # ⚠️ `plan_del_ano_pasado` devuelve COMPETENCIAS, y para traer también sus
+  # evaluaciones hace falta saber de qué (sección, lapso) vienen. Sale de la
+  # primera —vienen ordenadas por año descendente, así que es la más reciente—
+  # y se arma una asignación de solo lectura con lo que el servicio necesita:
+  # `section_id` y `subject_id`.
+  def origen_del_ano_pasado
+    primera = plan_del_ano_pasado.first
+    return nil if primera.nil?
+
+    { asignacion: Struct.new(:section_id, :subject_id).new(primera.section_id, primera.subject_id),
+      lapso: primera.evaluation_moment }
+  end
 
   def por_competencia
     @por_competencia ||= evaluaciones_del_lapso.each_with_object(Hash.new { |h, k| h[k] = [] }) do |e, mapa|

@@ -414,23 +414,6 @@ class CompetenciesController < ApplicationController
   end
   helper_method :plan_path
 
-  # ── El plan del año pasado ────────────────────────────────────────────────
-
-  # De dónde sale el plan del año pasado: su sección y su lapso.
-  #
-  # ⚠️ `plan_del_ano_pasado` devuelve COMPETENCIAS, y para traer también sus
-  # evaluaciones hace falta saber de qué (sección, lapso) vienen. Sale de la
-  # primera —vienen ordenadas por año descendente, así que es la más reciente—
-  # y se arma una asignación de solo lectura con lo que el servicio necesita:
-  # `section_id` y `subject_id`.
-  def origen_del_ano_pasado
-    primera = plan_del_ano_pasado.first
-    return nil if primera.nil?
-
-    { asignacion: Struct.new(:section_id, :subject_id).new(primera.section_id, primera.subject_id),
-      lapso: primera.evaluation_moment }
-  end
-
   # ⚠️ Dice qué llegó, separando las dos cosas: el plan y las evaluaciones que
   # lo miden. «Se trajeron 3 competencias» callaba que además vinieron cuatro
   # evaluaciones con su peso y su fecha, que es la mitad del ahorro.
@@ -442,13 +425,6 @@ class CompetenciesController < ApplicationController
     partes << helpers.contar(hecho.evaluaciones, "evaluación", "evaluaciones") if hecho.evaluaciones.positive?
 
     "Se trajo #{partes.join(' y ')} del año pasado. Revisa las fechas y ajusta lo que haga falta."
-  end
-
-  def plan_del_ano_pasado
-    return Competency.none if asignacion.nil? || lapso.nil?
-
-    Competency.para_sugerir(section: asignacion.section, subject: asignacion.subject,
-                            evaluation_moment: lapso).includes(:indicators)
   end
 
   # ⚠️ Idempotente: la que ya está en el plan se salta. Copiar dos veces no
