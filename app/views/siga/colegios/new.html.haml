@@ -7,41 +7,77 @@
   dejarlo en dos pasos garantiza que alguna vez quede uno a medias — el alta se
   hace una vez por cliente y nadie recuerda el segundo paso.
 
-= form_with url: siga_colegios_path, method: :post, class: "siga-form" do
+-# ⚠️ DIECISIETE campos en una pantalla eran tres decisiones distintas —qué
+-# colegio, dónde queda, quién responde— presentadas como una sola lista.
+-#
+-# Los tres grupos ya existían como `fieldset`; lo único que faltaba era
+-# mostrarlos de a uno. Ver `pasos_controller`: los pasos son del navegador y el
+-# formulario se envía UNA vez, así que o se crea entero o no se crea.
+-# ⚠️ `catalogo-de-planteles` va en el FORMULARIO y no en el paso ①: al elegir
+-# un plantel preselecciona el estado y el municipio, que viven en el paso ②.
+-# Un controlador solo ve sus `target` DENTRO de su elemento.
+= form_with url: siga_colegios_path, method: :post, class: "siga-form",
+            data: { controller: "pasos catalogo-de-planteles",
+                    catalogo_de_planteles_url_value: planteles_path } do
   = render "shared/errors", object: @colegio
   = render "shared/errors", object: @usuario
 
-  %fieldset.siga-fieldset
-    %legend El colegio
-    .form-row
-      .form-group
-        = label_tag "school[name]", "Nombre", class: "form-label"
-        = text_field_tag "school[name]", @colegio.name, class: "form-control", placeholder: "U.E. Colegio San José"
-      .form-group
-        = etiqueta_con_pista "school[dea_code]", "Código DEA",
-                             pista: "Lo asigna el MPPE. Es único en toda la plataforma, así que dos colegios no pueden tener el mismo."
-        = text_field_tag "school[dea_code]", @colegio.dea_code, class: "form-control", placeholder: "PD01234567"
-    .form-row
-      .form-group
-        = label_tag "school[location]", "Ubicación", class: "form-label"
-        = text_field_tag "school[location]", @colegio.location, class: "form-control", placeholder: "Caracas, Distrito Capital"
-      -# ⚠️ Acá NO se pregunta qué dicta el colegio (MOR-160).
-      -#
-      -# `school_type` era excluyente —o primaria o bachillerato— y un colegio
-      -# venezolano corriente dicta preescolar Y primaria Y bachillerato. Lo que
-      -# dicta se DEDUCE de sus grados, y los grados se siembran marcando niveles
-      -# en `/niveles`, que es donde la pregunta se hace bien.
-  = render "shared/ubicacion_del_colegio", colegio: @colegio
+  .pasos-barra
+    - [ "El colegio", "Dónde queda", "Quién lo dirige" ].each_with_index do |nombre, i|
+      %span.pasos-punto{ data: { pasos_target: "punto" } }
+        %span.pasos-punto-numero= i + 1
+        %span.pasos-punto-nombre= nombre
 
-  %fieldset.siga-fieldset
+  -# ⚠️ El MISMO buscador del registro: se escribe el nombre y el catálogo del
+  -# MPPE sugiere, con su código. Acá vale igual —quien da de alta un colegio
+  -# desde SIGA tampoco tiene el DEA en la cabeza— y de paso el nombre queda
+  -# como lo escribe el ministerio, que es el que sale en los documentos.
+  %fieldset.siga-fieldset{ data: { pasos_target: "paso" } }
+    %legend El colegio
+    .form-group
+      = label_tag "school[name]", "Nombre", class: "form-label"
+      = text_field_tag "school[name]", @colegio.name, class: "form-control", required: true,
+                       placeholder: "U.E. Colegio San José", autocomplete: "off",
+                       data: { catalogo_de_planteles_target: "nombre",
+                               action: "input->catalogo-de-planteles#buscar" }
+      = turbo_frame_tag "sugerencias_de_planteles"
+
+      .form-group{ hidden: @colegio.dea_code.blank?, data: { catalogo_de_planteles_target: "campoDelDea" } }
+        = etiqueta_con_pista "school[dea_code]", "Código DEA",
+                             pista: "Lo asigna el MPPE y es único en toda la plataforma. Vino del catálogo: corríjalo si no es el suyo, o bórrelo y se carga después."
+        = text_field_tag "school[dea_code]", @colegio.dea_code, class: "form-control",
+                         placeholder: "PD01234567", autocomplete: "off",
+                         data: { catalogo_de_planteles_target: "dea" }
+
+      %p.nota-ayuda.catalogo-marca{ hidden: true, data: { catalogo_de_planteles_target: "marca" } }
+        = icono(:ok, tamano: 13)
+        Tomado del catálogo del MPPE. Cámbielo si hace falta: se guarda lo que usted escriba.
+    -# ⚠️ Acá NO se pregunta qué dicta el colegio (MOR-160).
+    -#
+    -# `school_type` era excluyente —o primaria o bachillerato— y un colegio
+    -# venezolano corriente dicta preescolar Y primaria Y bachillerato. Lo que
+    -# dicta se DEDUCE de sus grados, y los grados se siembran marcando niveles
+    -# en `/niveles`, que es donde la pregunta se hace bien.
+    -#
+    -# ⚠️ Y tampoco se pregunta «Ubicación». Había un campo `location` acá Y la
+    -# ubicación completa más abajo: la misma pregunta dos veces, que es justo lo
+    -# que `MOR-208` arregló en la ficha del colegio y quedó sin arreglar acá.
+    -# `location` se DEDUCE del municipio y el estado (`School#deducir_la_ubicacion`).
+
+  -# ⚠️ El parcial ES el paso, no va envuelto en otro `fieldset`: anidados
+  -# salían dos `<legend>` y el de afuera arrastraba la validación del de
+  -# adentro — el «Siguiente» se quedaba pegado sin decir por qué.
+  = render "shared/ubicacion_del_colegio", colegio: @colegio, paso: true
+
+  %fieldset.siga-fieldset{ data: { pasos_target: "paso" } }
     %legend Su primer director
     .form-row
       .form-group
         = label_tag "director[first_name]", "Nombre", class: "form-label"
-        = text_field_tag "director[first_name]", @usuario&.first_name, class: "form-control"
+        = text_field_tag "director[first_name]", @usuario&.first_name, class: "form-control", required: true
       .form-group
         = label_tag "director[last_name]", "Primer apellido", class: "form-label"
-        = text_field_tag "director[last_name]", @usuario&.last_name, class: "form-control"
+        = text_field_tag "director[last_name]", @usuario&.last_name, class: "form-control", required: true
       .form-group
         = label_tag "director[second_last_name]", "Segundo apellido", class: "form-label"
         = text_field_tag "director[second_last_name]", @usuario&.second_last_name, class: "form-control"
@@ -62,4 +98,12 @@
       No se le pone contraseña: al guardar sale un enlace de un solo uso para que
       la elija él mismo. Se le envía por correo y además queda visible una vez.
 
-  = submit_tag "Dar de alta", class: "btn btn-guardar"
+  .pasos-acciones
+    %span.pasos-cuenta{ data: { pasos_target: "cuenta" } }
+    %button.btn.btn-secondary{ type: "button", hidden: true, data: { pasos_target: "atras", action: "pasos#atras" } }
+      = icono(:volver, tamano: 16)
+      %span Atrás
+    %button.btn.btn-accion{ type: "button", data: { pasos_target: "siguiente", action: "pasos#siguiente" } }
+      %span Siguiente
+      = icono(:siguiente, tamano: 16)
+    = submit_tag "Dar de alta", class: "btn btn-guardar", data: { pasos_target: "enviar" }

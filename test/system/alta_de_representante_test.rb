@@ -25,10 +25,17 @@ class AltaDeRepresentanteTest < ApplicationSystemTestCase
   # ⚠️ El alumno SÍ los necesita: la certificación 31059 y el documento de
   # primaria imprimen la fecha de nacimiento, y la cédula escolar es su
   # identificador mientras no tenga cédula.
+  #
+  # ⚠️ Su cédula escolar ya no tiene campo propio: vive en el «Se identifica
+  # con» que fusiona las dos —quien carga un alumno no piensa en dos
+  # documentos—. Lo que este test cuida no es el `name` del input: es que al
+  # alumno se le SIGA pidiendo con qué identificarlo, que fue lo que se le
+  # quitó al representante.
   test "el alumno los sigue pidiendo" do
     visit new_student_path
 
-    assert_selector "input[name='student[user_attributes][cedula_escolar]']"
+    assert_selector "input[name='student[user_attributes][identificador]']"
+    assert_text "Se identifica con"
     assert_selector "input[name='student[user_attributes][birth_date]']"
   end
 end

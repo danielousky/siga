@@ -49,10 +49,19 @@ class ColegioController < ApplicationController
   private
 
   def colegio_params
-    params.require(:school).permit(:name, :logo, :firma, :sello,
-                                   :tope_de_arrastre,
-                                   :entidad_federal, :municipio, :municipio_libre,
-                                   :parroquia, :parroquia_libre,
-                                   :direccion, :telefono)
+    permitidos = params.require(:school).permit(:name, :logo, :firma, :sello,
+                                                :dea_code, :tope_de_arrastre,
+                                                :entidad_federal, :municipio, :municipio_libre,
+                                                :parroquia, :parroquia_libre,
+                                                :direccion, :telefono)
+
+    # ⚠️ El DEA se carga UNA vez, y la guarda va acá y no solo en el formulario.
+    #
+    # El campo sale deshabilitado cuando ya está cargado, y eso basta para la
+    # pantalla. Pero un `disabled` no es un permiso: un POST escrito a mano lo
+    # cambiaría igual, y ese código sale impreso en cada boletín y en cada
+    # constancia del colegio.
+    permitidos.delete(:dea_code) if Current.school&.dea_code.present?
+    permitidos
   end
 end

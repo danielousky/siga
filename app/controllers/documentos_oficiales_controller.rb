@@ -61,6 +61,61 @@ class DocumentosOficialesController < ApplicationController
                "#{datos['tipo']}-primaria-#{apellido(inscripcion.student)}.pdf")
   end
 
+  # La certificación o la constancia de Educación Inicial, según el grupo.
+  #
+  # ⚠️ Acá NO va ningún literal: en Inicial la calificación es un TEXTO —no hay
+  # nota, ni escala, ni promedio— y el formato del ministerio no tiene casilla
+  # para una. Ver `docs/specs/educacion-inicial.md`.
+  def inicial
+    inscripcion = Enrollment.find(params[:enrollment_id])
+    armador = DocumentoDeInicial.new(enrollment: inscripcion, firmante: firmante_admin)
+
+    unless armador.emitible?
+      return redirect_to student_path(inscripcion.student),
+                         alert: "Este documento es de Educación Inicial. Para primaria o " \
+                                "bachillerato, use el que corresponde a su nivel."
+    end
+
+    datos = armador.datos
+    registrar("documento_de_inicial_emitido", inscripcion.student,
+              datos["tipo"] == "certificacion" ? "Certificación de Estudios de Educación Inicial" : "Constancia de Prosecución de Educación Inicial")
+
+    enviar_pdf(DocumentoDeInicialPdf.new(datos),
+               "#{datos['tipo']}-inicial-#{apellido(inscripcion.student)}.pdf")
+  end
+
+  # El Resumen Final del Rendimiento Estudiantil (`RR-DEA-04-03`), en PDF o en
+  # Excel.
+  #
+  # ⚠️ Es de la SECCIÓN, no de un alumno: una fila por cada uno, una columna por
+  # asignatura. Es el acta que el colegio le manda a la zona educativa.
+  #
+  # ⚠️ El Excel no es un capricho: el formato tiene tres bloques que SIGA no
+  # modela —Plan de Estudio, Mención y todo lo de Educación para el Trabajo— y
+  # con solo el PDF el colegio queda esperando que nosotros los modelemos para
+  # poder entregar su acta.
+  def resumen_final
+    seccion = Section.find(params[:section_id])
+    armador = ResumenFinalDeLaSeccion.new(seccion: seccion, firmante: firmante_admin)
+
+    unless armador.emitible?
+      return redirect_to section_path(seccion),
+                         alert: "El Resumen Final es de Educación Media. Para primaria e " \
+                                "Inicial, el documento se emite desde la ficha del alumno."
+    end
+
+    datos = armador.datos
+    registrar_seccion("resumen_final_emitido", seccion,
+                      "Resumen Final del Rendimiento · #{seccion.grade.name} #{seccion.name}")
+
+    if params[:format] == "xlsx"
+      enviar_xlsx(ResumenFinalXlsx.new(datos))
+    else
+      enviar_pdf(ResumenFinalPdf.new(datos),
+                 "resumen-final-#{seccion.grade.name.parameterize}-#{seccion.name.parameterize}.pdf")
+    end
+  end
+
   private
 
   def enviar_pdf(documento, nombre)
@@ -99,6 +154,14 @@ class DocumentosOficialesController < ApplicationController
     log_activity(action: accion,
                  message: "#{current_user.nombre_completo} emitió #{que} de #{alumno.user.nombre_completo}",
                  subject: alumno)
+  end
+
+  # ⚠️ El Resumen Final se audita contra la SECCIÓN y no contra un alumno: no es
+  # el papel de nadie en particular, es el acta del curso entero.
+  def registrar_seccion(accion, seccion, que)
+    log_activity(action: accion,
+                 message: "#{current_user.nombre_completo} emitió #{que}",
+                 subject: seccion)
   end
 
   def require_emisor!

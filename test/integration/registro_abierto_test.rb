@@ -218,13 +218,62 @@ class RegistroAbiertoTest < ActionDispatch::IntegrationTest
   # Lo que el formulario NO pide
   # ══════════════════════════════════════════════════════════════════════════
 
-  test "no pide cédula, ubicación, teléfono ni dirección" do
+  # ⚠️ La CÉDULA sigue sin pedirse, y eso no cambió (`MOR-196`).
+  #
+  # Daniel, mirando el formulario: *«no debería pedirse la CI en este momento;
+  # además, al director (o asistente) ese dato es irrelevante»*. Quien abre su
+  # propia cuenta se identifica con su CORREO.
+  test "no pide cédula" do
     get new_user_registration_path
 
-    %w[user[document] user[cedula_escolar] school[location] school[telefono]
-       school[direccion] school[entidad_federal]].each do |campo|
+    %w[user[document] user[cedula_escolar]].each do |campo|
       assert_empty css_select("[name='#{campo}']"), "el registro sigue pidiendo #{campo}"
     end
+  end
+
+  # ⚠️ Y «Ubicación» tampoco: se DEDUCE del municipio y el estado
+  # (`School#deducir_la_ubicacion`). Preguntarla sería preguntar lo mismo dos
+  # veces, que es lo que `MOR-208` vino a arreglar.
+  test "no pide «Ubicación», que se deduce" do
+    get new_user_registration_path
+
+    assert_empty css_select("[name='school[location]']")
+  end
+
+  # ⚠️ La UBICACIÓN sí se pide ahora, y es un cambio sobre `MOR-196`.
+  #
+  # Esa decisión —«el registro pregunta lo mínimo, porque cada campo de más en
+  # la puerta es gente que no entra»— se tomó cuando la ubicación había que
+  # ESCRIBIRLA. Ahora llega elegida: al escoger el plantel del catálogo del
+  # MPPE, el estado y el municipio se deducen de su código DEA y quedan
+  # puestos. Con todo preseleccionado deja de ser rellenar y pasa a ser
+  # confirmar. Decisión de Daniel, 11 de septiembre de 2026.
+  test "la ubicación se elige, y llega preseleccionada del catálogo" do
+    get new_user_registration_path
+
+    assert_select "select[name='school[entidad_federal]']"
+    assert_select "select[name='school[municipio]']"
+    assert_select "select[name='school[parroquia]']"
+    # Y los selects están DENTRO del controlador que los preselecciona.
+    assert_select "[data-controller~=catalogo-de-planteles] select[name='school[entidad_federal]']"
+  end
+
+  # ⚠️ Lo que llega elegido se GUARDA: si el registro no lo persistiera, todo
+  # esto sería un adorno y el colegio arrancaría igual de vacío que antes.
+  test "lo elegido queda guardado en el colegio" do
+    post registrarse_path, params: {
+      user: { first_name: "Rosa", last_name: "Mendoza", email: "rosa@ubicado.test",
+              password: "clave-larga-123", password_confirmation: "clave-larga-123" },
+      school: { name: "U.E. CON UBICACIÓN", dea_code: "PD44445555",
+                entidad_federal: "Apure", municipio: "Achaguas", parroquia: "El Yagual" },
+      niveles: [ "primaria" ]
+    }
+
+    colegio = Current.sin_aislamiento { School.find_by(dea_code: "PD44445555") }
+
+    assert_equal "Apure", colegio.entidad_federal
+    assert_equal "Achaguas", colegio.municipio
+    assert_equal "El Yagual", colegio.parroquia
   end
 
   test "pide qué dicta el colegio, con los cuatro niveles" do

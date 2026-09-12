@@ -4982,6 +4982,259 @@ td.columna-orden { width: 2.5rem; }
   font-variant-numeric: tabular-nums;
 }
 
+/* ── inscribir: un buscador y una fila por alumno ──────────────────────────
+
+   Reemplaza a un `<select>` de trescientos nombres. Cada fila dice quién es
+   —cara, nombre, cédula— y EN QUÉ SITUACIÓN está, que es lo que evita
+   inscribir dos veces al mismo niño en septiembre. */
+
+.inscribir-lista {
+  list-style: none;
+  margin: var(--space-md) 0 0;
+  padding: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.inscribir-alumno {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* Quien ya está inscrito se ve APAGADO, no escondido: esconderlo dejaría a
+   quien lo busca pensando que el alumno no existe. */
+.inscribir-alumno--ya { opacity: 0.55; }
+
+.inscribir-quien {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.inscribir-nombre {
+  font-size: 15px;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inscribir-detalle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.inscribir-punto { margin: 0 var(--space-micro); }
+
+/* ── el identificador fusionado y las pastillas del formulario ───────────── */
+
+/* Las pastillas de un identificador son cortas —«A», «B», «U1»— así que no
+   tienen por qué ocupar 110 px como las de «Femenino / Masculino». */
+.opciones-compactas .opcion-boton {
+  flex: 0 0 auto;
+  min-width: 3.5rem;
+}
+
+/* «Otra…» no es una opción más: es la puerta al campo libre. Se distingue
+   porque elegirla no elige nada — abre dónde escribir. */
+.opcion-boton--otra {
+  font-style: italic;
+  color: var(--text-tertiary);
+}
+
+/* El área donde se pega la lista: ancha, monoespaciada y sin ajuste de línea,
+   para que las columnas se vean como columnas y se note si algo vino pegado. */
+.campo-pegado {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 13px;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* ⚠️ Los DOS nombres, y no es descuido: `elegida` la pone el controlador de los
+   identificadores y `activa` la pone `paneles`, que es el de las pestañas. Son
+   la misma idea —«esta es la que está»— y tienen que verse igual; unificar los
+   nombres es tocar dos controladores que ya usan otras pantallas. */
+.opcion-boton.elegida,
+.opcion-boton.activa {
+  border-color: var(--control-focus-border);
+  background: var(--control-focus-ring);
+  font-weight: 600;
+}
+
+/* ── «Guía, cupo y aula»: lo que no hace falta para crear ────────────────── */
+
+.form-avanzado {
+  margin: var(--space-md) 0;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-md);
+}
+
+.form-avanzado-titulo {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  list-style: none;
+}
+
+/* La flechita de `<details>`, dibujada por nosotros: la nativa cambia de forma
+   entre navegadores y en Safari ni se puede ocultar con `list-style`. */
+.form-avanzado-titulo::-webkit-details-marker { display: none; }
+
+.form-avanzado-titulo::before {
+  content: "▸";
+  font-size: 11px;
+  color: var(--text-tertiary);
+  transition: transform var(--transition-fast);
+}
+
+.form-avanzado[open] > .form-avanzado-titulo::before { transform: rotate(90deg); }
+
+/* ── el formulario de a un paso por vez ────────────────────────────────────
+
+   Diecisiete campos en una pantalla eran tres decisiones distintas —qué
+   colegio, dónde queda, quién responde— presentadas como una sola lista. */
+
+.pasos-barra {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.pasos-punto {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+/* El número en un círculo, que es cómo se lee un paso de un asistente. */
+.pasos-punto-numero {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--border-standard);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* En el teléfono se esconde el nombre del paso y quedan los tres números: tres
+   palabras más tres círculos no caben en 360 px, y lo que hace falta saber ahí
+   es por cuál se va. El nombre del paso actual lo dice el `<legend>`. */
+.pasos-punto-nombre { white-space: nowrap; }
+
+@media (max-width: 600px) {
+  .pasos-punto-nombre { display: none; }
+}
+
+.pasos-punto--actual { color: var(--text-primary); font-weight: 600; }
+
+.pasos-punto--actual .pasos-punto-numero {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: #fff;
+}
+
+/* ⚠️ El paso HECHO se marca con un fondo suave y no con un ✓ dibujado: el
+   check dentro de un círculo de 22 px se lee como un borrón. */
+.pasos-punto--hecho .pasos-punto-numero {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  background: var(--control-focus-ring);
+}
+
+.pasos-acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+/* La cuenta empuja a los botones a la derecha, que es donde se avanza. */
+.pasos-cuenta {
+  margin-right: auto;
+  font-size: 13px;
+  color: var(--text-tertiary);
+}
+
+/* ── las sugerencias del catálogo de planteles ─────────────────────────────
+
+   Aparecen debajo del nombre mientras se escribe. No son un desplegable del
+   navegador: cada una muestra el código DEA y de dónde es, que es lo que
+   permite distinguir dos colegios que se llaman parecido. */
+
+.sugerencias {
+  list-style: none;
+  margin: var(--space-xs) 0 0;
+  padding: 0;
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface-elevated);
+}
+
+.sugerencia {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.sugerencias li:last-child .sugerencia { border-bottom: 0; }
+
+.sugerencia:hover,
+.sugerencia:focus-visible {
+  background: var(--surface-hover);
+  outline: none;
+}
+
+.sugerencia-nombre { color: var(--text-primary); }
+
+.sugerencia-detalle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  display: flex;
+  gap: var(--space-xs);
+}
+
+/* El código, en monoespaciada: es un identificador y se compara carácter a
+   carácter con el que el colegio tenga en su papel. */
+.sugerencia-dea {
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.sugerencias-vacio,
+.sugerencias-pie { margin-top: var(--space-xs); }
+
+/* ⚠️ La marca de «esto vino del catálogo» dice ADEMÁS que se puede cambiar.
+   Sin esa mitad, un campo que se rellenó solo se lee como un dato cerrado. */
+.catalogo-marca {
+  display: flex;
+  align-items: center;
+  gap: var(--space-micro);
+  color: var(--success-text);
+  margin-top: var(--space-xs);
+}
+
 /* ── el avatar ─────────────────────────────────────────────────────────────
 
    `--avatar-lado` viene del helper y no de una clase por tamaño: son cinco

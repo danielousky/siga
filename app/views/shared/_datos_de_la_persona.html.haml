@@ -60,14 +60,51 @@
 -#
 -# El select va PRIMERO porque es el orden en que se escribe, y además decide
 -# cómo se normaliza el número (`User.normalizar_documento`).
-.form-row
-  .form-group
-    = u.label :document, class: "form-label"
+-# ⚠️ UN campo para las DOS cédulas, donde las dos conviven.
+-#
+-# Solo el formulario del ALUMNO pide las dos —la de identidad y la escolar— y
+-# quien lo llena no piensa en dos campos: piensa «con qué se identifica este
+-# niño». Pedirlas por separado obliga a leer dos rótulos, entender la
+-# diferencia y elegir, para escribir UN número. La diferencia la sabe el
+-# sistema (`User#identificador=`).
+-#
+-# ⚠️ Se fusionan SOLO si la persona no tiene ya las dos. Un alumno que sacó su
+-# cédula conserva la escolar —no se borra cuando llega—, y con un campo único
+-# no habría cómo corregir la que no se está mostrando.
+- fusionado = local_assigns[:cedula_escolar] && !(u.object.document.present? && u.object.cedula_escolar.present?)
+
+- if fusionado
+  .form-group{ data: { controller: "identificador", identificador_digitos_value: User::DIGITOS_DE_CEDULA } }
+    -# ⚠️ NO es opcional, y decirlo sería mentira: el modelo exige una de las
+    -# dos (`tiene_algun_identificador`). La escolar existe justamente para el
+    -# alumno que todavía no tiene cédula, así que siempre hay una.
+    = con_pista "Escriba la que tenga: la cédula de identidad, o la escolar que asigna el MPPE mientras no la tiene. SIGA reconoce cuál es." do
+      %span.form-label Se identifica con
     .campo-compuesto
-      = u.select :document_type, User.tipos_de_documento_ofrecidos(u.object), {}, class: "campo-compuesto-sigla"
-      -# Solo dígitos: la nacionalidad ya está en el select pegado, así que
-      -# escribir «V-» acá la duplicaría. Menos tecleo y menos error.
-      = u.text_field :document, class: "form-control", inputmode: "numeric", placeholder: "12345678", data: { controller: "campo-filtrado", campo_filtrado_permite_value: "0-9", action: "input->campo-filtrado#filtrar" }
+      -# ⚠️ El selector de V/E se esconde hasta que lo escrito PAREZCA una
+      -# cédula de identidad: una escolar ya trae su nacionalidad adentro.
+      %span.campo-compuesto-sigla{ hidden: u.object.document.blank?, data: { identificador_target: "sigla" } }
+        = u.select :document_type, User.tipos_de_documento_ofrecidos(u.object), {}, class: "campo-compuesto-sigla"
+      = u.text_field :identificador, value: u.object.identificador,
+                     class: "form-control", placeholder: "12345678 · o V20140000001",
+                     autocomplete: "off", required: true,
+                     data: { identificador_target: "campo",
+                             action: "input->identificador#revisar",
+                             controller: "campo-filtrado",
+                             campo_filtrado_permite_value: "A-Za-z0-9-",
+                             campo_filtrado_mayuscula_value: true }
+    -# Lo que el sistema entendió, escrito después de escribir y no antes.
+    %p.nota-ayuda{ data: { identificador_target: "aviso" } }
+
+- else
+  .form-row
+    .form-group
+      = u.label :document, class: "form-label"
+      .campo-compuesto
+        = u.select :document_type, User.tipos_de_documento_ofrecidos(u.object), {}, class: "campo-compuesto-sigla"
+        -# Solo dígitos: la nacionalidad ya está en el select pegado, así que
+        -# escribir «V-» acá la duplicaría. Menos tecleo y menos error.
+        = u.text_field :document, class: "form-control", inputmode: "numeric", placeholder: "12345678", data: { controller: "campo-filtrado", campo_filtrado_permite_value: "0-9", action: "input->campo-filtrado#filtrar" }
 
 -# ⚠️ El RIF solo se le pide a quien cobra.
 -#
@@ -82,7 +119,8 @@
     = u.text_field :rif, class: "form-control", placeholder: "V123456789",
                    data: { controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9", campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
 
-- if local_assigns[:cedula_escolar]
+-# El campo aparte solo cuando NO está fusionado: ver arriba.
+- if local_assigns[:cedula_escolar] && !fusionado
   .form-group
     = con_pista "La asigna el MPPE. Es la que se usa mientras el alumno no tenga cédula de identidad." do
       = u.label :cedula_escolar, class: "form-label"

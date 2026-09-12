@@ -17,9 +17,14 @@
 -# `entidad_federal`, `municipio` y `parroquia` salen IMPRESAS en los documentos
 -# del MPPE. Como texto libre producían «Libertador», «Mcpio. Libertador» y
 -# «LIBERTADOR» para el mismo lugar; en cascada producen siempre lo mismo.
-%fieldset.siga-fieldset{data: { controller: "ubicacion",
-                               ubicacion_catalogo_value: DivisionPolitica.como_json_para_el_navegador,
-                               ubicacion_otro_value: DivisionPolitica::OTRO }}
+-# ⚠️ `paso:` para que este MISMO fieldset sea un paso del asistente del alta de
+-# colegio, en vez de quedar envuelto en otro. Anidados salían dos `<legend>`
+-# —«Dónde queda» y el propio— y el de afuera arrastraba la validación del de
+-# adentro.
+- como_paso = local_assigns[:paso] ? { pasos_target: "paso" } : {}
+%fieldset.siga-fieldset{ data: como_paso.merge(controller: "ubicacion",
+                                              ubicacion_catalogo_value: DivisionPolitica.como_json_para_el_navegador,
+                                              ubicacion_otro_value: DivisionPolitica::OTRO) }
   %legend Dónde queda y cómo contactarlo
 
   .form-row
@@ -28,14 +33,22 @@
       -# sabe qué es una parroquia no necesita leerlo cada vez que abre esto.
       = etiqueta_con_pista "school[entidad_federal]", "Estado",
                            pista: "La entidad, el municipio y la parroquia salen impresos en los documentos del ministerio. Conviene dejarlos bien desde ahora."
-      -# ⚠️ Obligatorio desde MOR-196: `location` se DEDUCE del municipio y el
-      -# estado, así que dejarlos vacíos hace fallar una validación sobre un
-      -# campo que ya no está en pantalla —el error decía «Ubicación», que la
-      -# persona no ve por ningún lado.
+      -# ⚠️ Obligatorio donde COMPLETAR la identidad es el trabajo de la
+      -# pantalla; opcional en el REGISTRO.
+      -#
+      -# Lo era siempre desde MOR-196, cuando `location` se deducía de acá y era
+      -# obligatorio. Dejó de serlo en MOR-208, y en el registro ese `required`
+      -# pasó a ser justo lo que MOR-202 advierte: un control que bloquea el
+      -# envío sin decir por qué. Un colegio que no se encuentra en el catálogo
+      -# no puede quedarse sin poder registrarse por un campo que el modelo ni
+      -# siquiera exige.
       = select_tag "school[entidad_federal]",
                    options_for_select(EntidadFederal::TODAS, colegio.entidad_federal),
-                   include_blank: "Seleccione el estado…", class: "form-select", required: true,
-                   data: { ubicacion_target: "entidad", action: "change->ubicacion#alCambiarEntidad" }
+                   include_blank: "Seleccione el estado…", class: "form-select",
+                   required: local_assigns.fetch(:exigir_estado, true),
+                   data: { ubicacion_target: "entidad",
+                           catalogo_de_planteles_target: "estado",
+                           action: "change->ubicacion#alCambiarEntidad" }
 
     .form-group
       = label_tag "school[municipio]", "Municipio", class: "form-label"
@@ -59,6 +72,7 @@
       -# #deducir_la_ubicacion`), así que con el estado solo ya es válido.
       = select_tag "school[municipio]", nil, class: "form-select",
                    data: { ubicacion_target: "municipio", actual: colegio.municipio,
+                           catalogo_de_planteles_target: "municipio",
                            action: "change->ubicacion#alCambiarMunicipio" }
       -# ⚠️ La salida a mano. El catálogo está incompleto y NO puede impedirle a
       -# un colegio registrarse: uno que no puede registrarse no vuelve.

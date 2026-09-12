@@ -6,22 +6,59 @@
     -# y qué se crea al confirmar.
     = f.hidden_field :tipo
 
-    .form-seccion
-      %h2.form-seccion-titulo El archivo
-      .form-group
+    -# ⚠️ DOS puertas al mismo camino, y pegar es la corta.
+    -#
+    -# La secretaria tiene la lista abierta en Excel al lado. Guardar el archivo,
+    -# buscarlo en el explorador y subirlo son cuatro pasos que no aportan nada
+    -# cuando lo que quiere es seleccionar, copiar y pegar.
+    -#
+    -# Lo que pasa después es IDÉNTICO: la misma `Planilla`, la misma
+    -# previsualización, los mismos avisos. No es otro importador.
+    .form-seccion{ data: { controller: "paneles" } }
+      %h2.form-seccion-titulo Cómo la va a traer
+
+      -# ⚠️ Botones y no un `<select>`: son DOS opciones, y un desplegable obliga
+      -# a abrir, leer y elegir donde dos botones se ven y se tocan de una. Es la
+      -# misma decisión que el sexo en la ficha de una persona.
+      .opciones-en-botones
+        %button.opcion-boton.activa{ type: "button", role: "tab", "aria-selected": "true",
+                                     data: { paneles_target: "pestana", panel: "archivo",
+                                             action: "paneles#mostrar" } }
+          Subir un archivo
+        %button.opcion-boton{ type: "button", role: "tab", "aria-selected": "false",
+                              data: { paneles_target: "pestana", panel: "pegado",
+                                      action: "paneles#mostrar" } }
+          Pegar la lista
+
+      .form-group{ data: { paneles_target: "panel", panel: "archivo" } }
         = f.label :archivo, "Planilla de #{@importacion.etiqueta_de_tipo.downcase}", class: "form-label"
-        = f.file_field :archivo, class: "form-control", required: true,
+        = f.file_field :archivo, class: "form-control",
                        accept: Planilla::EXTENSIONES.join(",")
         -# Se queda VISIBLE, y recortada: «no hace falta que esté limpia» es lo
         -# que hace que alguien se atreva a subir su Excel de verdad en vez de
-        -# ponerse a limpiarlo un domingo. El formato aceptado ya lo impone el
-        -# `accept` del campo.
+        -# ponerse a limpiarlo un domingo.
         %p.nota-ayuda
           No hace falta que esté limpia: el membrete y los subtotales se ignoran
           solos, y después le decimos qué filas quedaron fuera.
 
+      .form-group{ data: { paneles_target: "panel", panel: "pegado" }, hidden: true }
+        = f.label :pegado, "Pegue aquí la lista", class: "form-label"
+        = f.text_area :pegado, class: "form-control campo-pegado", rows: 10,
+                      placeholder: "Seleccione las filas en Excel, cópielas y péguelas aquí."
+        -# ⚠️ La primera fila TIENE que ser la de los encabezados, y hay que
+        -# decirlo: sin ellos, la planilla toma el primer alumno como si fueran
+        -# los nombres de las columnas — se pierde una fila y las demás quedan
+        -# mapeadas contra el nombre de una persona.
+        -#
+        -# La previsualización lo muestra igual antes de escribir nada, pero
+        -# avisarlo acá evita el viaje.
+        %p.nota-ayuda
+          Incluya la fila de los encabezados: es la que dice qué hay en cada
+          columna. Lo demás da igual — separadas por tabulaciones, comas o punto
+          y coma, las reconocemos solas.
+
     .form-acciones
-      = f.submit "Subir y ver las columnas", class: "btn btn-guardar"
+      = f.submit "Ver las columnas", class: "btn btn-guardar"
       = boton "Volver", importaciones_path, icono: :volver, tono: :secondary
 
 .card-academic

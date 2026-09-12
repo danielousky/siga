@@ -71,10 +71,31 @@
         -# el estado, que están a diez centímetros más abajo. Ver
         -# `School#deducir_la_ubicacion`.
 
+        -# ⚠️ Se puede CARGAR una vez, y después ya no se cambia.
+        -#
+        -# Estaba deshabilitado siempre, y tenía sentido mientras el registro lo
+        -# exigía: llegaba lleno y cambiarlo era cosa de soporte. Desde que el
+        -# registro dejó de pedirlo (`MOR-208`, segunda mitad) hay colegios que
+        -# entran sin él — y con el campo bloqueado no tendrían dónde cargarlo
+        -# nunca. El paso de arranque los mandaría a una pantalla que no los deja
+        -# hacer lo que les pide.
+        -#
+        -# Bloquearlo DESPUÉS sigue estando bien: es un identificador nacional
+        -# que sale impreso en cada boletín y en cada constancia, y corregirlo a
+        -# posteriori es exactamente lo que nadie hace.
         .form-group
-          = con_pista "Lo asigna el MPPE y no se edita desde aquí. Si está mal, escríbanos y lo corregimos." do
+          - cargado = @colegio.dea_code.present?
+          = con_pista(cargado ? "Lo asigna el MPPE. Ya está cargado y no se edita desde aquí: si está mal, escríbanos y lo corregimos." : "Lo asigna el MPPE. Sale impreso en cada boletín y en cada constancia, así que conviene cargarlo antes del primero.") do
             = f.label :dea_code, "Código DEA", class: "form-label"
-          = f.text_field :dea_code, class: "form-control", disabled: true
+          = f.text_field :dea_code, class: "form-control campo-mayuscula", disabled: cargado,
+                         placeholder: ("PD01234567" unless cargado), pattern: "[A-Za-z0-9]+",
+                         data: (cargado ? {} : { tooltip: "Solo letras y números, sin espacios ni símbolos",
+                                                 controller: "campo-filtrado",
+                                                 campo_filtrado_permite_value: "A-Za-z0-9",
+                                                 campo_filtrado_mayuscula_value: true,
+                                                 action: "input->campo-filtrado#filtrar" })
+          - unless cargado
+            %p.nota-ayuda Se carga una sola vez. Después, para corregirlo hay que escribirnos.
 
         -# Los mismos campos que el alta desde el panel de SIGA. Ver el parcial:
         -# salen impresos en los documentos del MPPE, y hasta ahora las columnas

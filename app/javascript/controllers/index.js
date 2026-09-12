@@ -36,6 +36,10 @@ import RepartoController from "controllers/reparto_controller"
 import MenuFlotanteController from "controllers/menu_flotante_controller"
 import EdicionEnLineaController from "controllers/edicion_en_linea_controller"
 import FotoDePerfilController from "controllers/foto_de_perfil_controller"
+import CatalogoDePlantelesController from "controllers/catalogo_de_planteles_controller"
+import IdentificadorController from "controllers/identificador_controller"
+import IdentificadoresUsadosController from "controllers/identificadores_usados_controller"
+import PasosController from "controllers/pasos_controller"
 import PlanillaController from "controllers/planilla_controller"
 import CalendarioEscolarController from "controllers/calendario_escolar_controller"
 import QueEvaluaController from "controllers/que_evalua_controller"
@@ -61,6 +65,10 @@ application.register("reparto", RepartoController)
 application.register("menu-flotante", MenuFlotanteController)
 application.register("edicion-en-linea", EdicionEnLineaController)
 application.register("foto-de-perfil", FotoDePerfilController)
+application.register("catalogo-de-planteles", CatalogoDePlantelesController)
+application.register("identificador", IdentificadorController)
+application.register("identificadores-usados", IdentificadoresUsadosController)
+application.register("pasos", PasosController)
 application.register("planilla", PlanillaController)
 application.register("calendario-escolar", CalendarioEscolarController)
 application.register("que-evalua", QueEvaluaController)

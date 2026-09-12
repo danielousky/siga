@@ -101,7 +101,13 @@ class RegistrosController < Devise::RegistrationsController
   end
 
   def datos_del_colegio
-    params.require(:school).permit(:name, :dea_code).to_h.symbolize_keys
+    # ⚠️ La ubicación entra desde el registro: llega ELEGIDA del catálogo del
+    # MPPE, así que pedirla ya no cuesta un campo que escribir. Son los tres
+    # datos que salen impresos en los documentos del ministerio.
+    params.require(:school).permit(:name, :dea_code,
+                                   :entidad_federal, :municipio, :municipio_libre,
+                                   :parroquia, :parroquia_libre,
+                                   :direccion, :telefono).to_h.symbolize_keys
   end
 
   # ⚠️ Se filtra contra `GradoOficial::NIVELES` y no se confía en el formulario:

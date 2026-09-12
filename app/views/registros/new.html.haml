@@ -71,27 +71,83 @@
               = radio_button_tag :cargo, valor, (params[:cargo] || "director") == valor
               %span= etiqueta
 
-    .form-seccion
+    -# ⚠️ `catalogo-de-planteles` envuelve la SECCIÓN entera y no solo el campo
+    -# del nombre: al elegir un plantel preselecciona el estado y el municipio,
+    -# que viven más abajo. Un controlador solo ve sus `target` DENTRO de su
+    -# elemento.
+    .form-seccion{ data: { controller: "catalogo-de-planteles",
+                           catalogo_de_planteles_url_value: planteles_path } }
       %h2.form-seccion-titulo Su colegio
 
       = fields_for :school, @colegio do |c|
-        .form-row
-          .form-group
-            = c.label :name, "Nombre del colegio", class: "form-label"
-            = c.text_field :name, class: "#{clase_de_campo(@colegio, :name)} campo-mayuscula",
-                           placeholder: "U.E. Colegio San José", required: requerido?(School, :name),
-                           data: { controller: "campo-filtrado",
-                                   campo_filtrado_permite_value: Normaliza::LETRAS_DE_INSTITUCION,
-                                   campo_filtrado_mayuscula_value: true,
-                                   action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar" }
-          .form-group
-            = con_pista("Lo asigna el ministerio. Si no lo tiene a mano, escriba algo provisional y corríjalo después: se puede cambiar.") { c.label :dea_code, "Código DEA", class: "form-label" }
+        -# ⚠️ El código DEA SALIÓ de esta pantalla (`MOR-208`, segunda mitad).
+        -#
+        -# Lo asigna el ministerio y nadie lo tiene en la cabeza: pedirlo en la
+        -# puerta pierde a quien iba a registrarse y se fue a buscarlo. Este
+        -# formulario ya lo sabía —decía «si no lo tiene a mano, escriba algo
+        -# provisional y corríjalo después»— y eso es peor que dejarlo vacío: un
+        -# identificador NACIONAL con un valor inventado adentro, que nadie
+        -# vuelve a corregir.
+        -#
+        -# Se pide después, en «La identidad del colegio», que es un paso de
+        -# arranque con su explicación de por qué conviene antes del primer
+        -# boletín. Ver `PasosDeArranque#identidad`.
+        -# ⚠️ El nombre del colegio SUGIERE, con el catálogo del MPPE.
+        -#
+        -# Daniel: *«al escribir el nombre me va sugiriendo… al seleccionar uno
+        -# se completan los campos pero la persona PODRÁ cambiarlos: es
+        -# sugerencia, no verdad»*.
+        -#
+        -# Con eso el código DEA deja de ser un problema sin volver a pedirse: no
+        -# se escribe, llega con el colegio elegido. Y si el colegio no está en
+        -# el catálogo —que está incompleto a propósito— no pasa nada: se
+        -# registra con lo que escribió. Es la regla de `DivisionPolitica::OTRO`.
+        .form-group
+          = c.label :name, "Nombre del colegio", class: "form-label"
+          = c.text_field :name, class: "#{clase_de_campo(@colegio, :name)} campo-mayuscula",
+                         placeholder: "U.E. Colegio San José", required: requerido?(School, :name),
+                         autocomplete: "off",
+                         data: { catalogo_de_planteles_target: "nombre",
+                                 controller: "campo-filtrado",
+                                 campo_filtrado_permite_value: Normaliza::LETRAS_DE_INSTITUCION,
+                                 campo_filtrado_mayuscula_value: true,
+                                 action: "input->campo-filtrado#filtrar blur->campo-filtrado#recortar input->catalogo-de-planteles#buscar" }
+
+          -# Las sugerencias llegan acá por Turbo, sin recargar nada.
+          = turbo_frame_tag "sugerencias_de_planteles"
+
+          -# ⚠️ El código aparece SOLO si se eligió del catálogo, y aparece como
+          -# un campo de texto normal: se puede corregir o borrar. Quien no
+          -# encuentra su colegio no lo ve nunca — no tiene por qué buscarlo.
+          .form-group{ hidden: @colegio.dea_code.blank?, data: { catalogo_de_planteles_target: "campoDelDea" } }
+            = con_pista("Vino del catálogo del MPPE. Si no es el suyo, corríjalo o bórrelo: se puede cargar después.") { c.label :dea_code, "Código DEA", class: "form-label" }
             = c.text_field :dea_code, class: "#{clase_de_campo(@colegio, :dea_code)} campo-mayuscula",
-                           placeholder: "PD01234567", required: requerido?(School, :dea_code),
-                           pattern: "[A-Za-z0-9]+",
-                           data: { tooltip: "Solo letras y números, sin espacios ni símbolos",
+                           pattern: "[A-Za-z0-9]+", autocomplete: "off",
+                           data: { catalogo_de_planteles_target: "dea",
                                    controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9",
-                                   campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
+                                   campo_filtrado_mayuscula_value: true,
+                                   action: "input->campo-filtrado#filtrar" }
+
+          %p.nota-ayuda.catalogo-marca{ hidden: true, data: { catalogo_de_planteles_target: "marca" } }
+            = icono(:ok, tamano: 13)
+            Tomado del catálogo del MPPE. Cámbielo si hace falta: se registra lo que usted escriba.
+
+        -# ⚠️ La UBICACIÓN sí se pide acá, y es un cambio sobre `MOR-196`.
+        -#
+        -# Esa decisión —«el registro pregunta lo mínimo, porque cada campo de
+        -# más en la puerta es gente que no entra»— se tomó cuando la ubicación
+        -# había que ESCRIBIRLA. Ahora llega elegida: al escoger el plantel, el
+        -# estado y el municipio se deducen de su código DEA y quedan puestos, y
+        -# la parroquia se elige de las que le corresponden a ese municipio.
+        -#
+        -# Con todo preseleccionado esto deja de ser rellenar y pasa a ser
+        -# confirmar — y el colegio arranca con los tres datos que salen
+        -# impresos en cada documento del MPPE, en vez de con el «se completa
+        -# después» de siempre. Decisión de Daniel, 11 de septiembre de 2026.
+        -# ⚠️ `exigir_estado: false`: acá la ubicación se OFRECE, no se exige. Un
+        -# colegio que no aparece en el catálogo no puede quedarse sin poder
+        -# registrarse por un campo que el modelo ni siquiera valida.
+        = render "shared/ubicacion_del_colegio", colegio: @colegio, exigir_estado: false
 
       -# ⚠️ Marcar es MÚLTIPLE, no un desplegable: la mitad del mercado dicta
       -# varias cosas, y esa es justamente la razón por la que `school_type` se

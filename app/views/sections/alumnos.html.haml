@@ -16,6 +16,20 @@
     = boton "Descargar la lista", alumnos_section_path(@section, format: :xlsx),
             icono: :descargar, tono: :documento, data: { turbo: false },
             tooltip: "La lista de esta sección en Excel"
+  -# ⚠️ El RESUMEN FINAL es el documento de fin de año de Educación Media, y es
+  -# de la SECCIÓN —no de un alumno— así que se pide desde acá y no desde la
+  -# ficha. Es el acta que el colegio le manda a la zona educativa.
+  -#
+  -# En PDF y en Excel, como la 31059: el formato tiene casillas que SIGA no
+  -# modela —Plan de Estudio, Mención, Educación para el Trabajo— y el colegio
+  -# las completa a mano.
+  - if @section.grade.media? && can_manage_students?
+    = boton "Resumen Final", resumen_final_path(@section, format: :pdf),
+            icono: :descargar, tono: :documento, data: { turbo: false },
+            tooltip: "El acta de fin de año para la zona educativa"
+    = boton "en Excel", resumen_final_path(@section, format: :xlsx),
+            icono: :descargar, tono: :secondary, data: { turbo: false },
+            tooltip: "El mismo, editable: para completar lo que SIGA no llena"
   - if administrador?
     = boton "Editar", edit_section_path(@section), icono: :editar, tono: :secondary
 

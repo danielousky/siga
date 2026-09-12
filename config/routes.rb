@@ -375,6 +375,11 @@ Rails.application.routes.draw do
       post "promover", to: "promociones#create", as: :hacer_promocion_al
     end
   end
+  # ⚠️ PÚBLICA: la usa el registro, y quien se registra no tiene cuenta todavía.
+  # Devuelve nombres y códigos de planteles que el MPPE publica; nada de ningún
+  # colegio de SIGA.
+  resources :planteles, only: [ :index ]
+
   resources :sections, path: "secciones" do
     # ⚠️ La valoración descriptiva de Educación Inicial: un TEXTO por alumno y
     # área, guardado al salir del campo. No es una nota — ese nivel no las
@@ -436,6 +441,16 @@ Rails.application.routes.draw do
       defaults: { format: "pdf" }, constraints: { format: /pdf|xlsx/ }
   get "documentos/primaria/:enrollment_id",
       to: "documentos_oficiales#primaria", as: :documento_de_primaria
+  get "documentos/inicial/:enrollment_id",
+      to: "documentos_oficiales#inicial", as: :documento_de_inicial
+
+  # ⚠️ El Resumen Final es de la SECCIÓN, no de un alumno: es el acta que el
+  # colegio le manda a la zona educativa al cerrar el año. Acepta `.pdf` y
+  # `.xlsx` por lo mismo que la 31059 — el formato tiene casillas que SIGA no
+  # modela y el colegio las completa a mano.
+  get "documentos/resumen-final/:section_id",
+      to: "documentos_oficiales#resumen_final", as: :resumen_final,
+      defaults: { format: "pdf" }, constraints: { format: /pdf|xlsx/ }
 
   # El buscador global de `⌘K` (MOR-149). Devuelve un fragmento, no una página:
   # el modal lo pega dentro de su `<turbo-frame>` mientras se escribe.

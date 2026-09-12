@@ -15,18 +15,37 @@
       -# lo que ya está guardado.
       = f.select :grade_id, grouped_options_for_select(grados_por_nivel(incluyendo: f.object.grade), f.object.grade_id), { include_blank: "Seleccione…" }, class: "form-select"
 
-    -# ⚠️ Un `datalist`, no un `select` (MOR-170).
+    -# ⚠️ PASTILLAS de lo que el colegio ya usa, más «Otra…» (MOR-170).
     -#
     -# Daniel: «si ya hay secciones debería hacerlas seleccionables… con el
     -# tiempo es probable que haga su universo de 4 o 5 valores fijos. Además se
     -# siente como que el sistema está autoaprendiendo».
     -#
-    -# Un `select` cerrado sería más simple y estaría MAL: el colegio que abre su
-    -# primera sección «D» no podría. El `datalist` ofrece lo que ya usa y deja
-    -# escribir lo que no — que es exactamente «aprende sin encerrar».
+    -# Era un `datalist`, y la idea estaba bien: ofrece lo que ya se usa sin
+    -# encerrar —el colegio que abre su primera «D» tiene que poder—. Lo que no
+    -# funciona es dónde: en un teléfono el `datalist` no se ve hasta que se
+    -# empieza a teclear, así que el autoaprendizaje no existe justo para quien
+    -# arma las secciones desde el teléfono en septiembre.
+    -#
+    -# ⚠️ El campo de texto SIGUE SIENDO el valor. Las pastillas solo lo
+    -# escriben: sin JavaScript se ve y se llena como siempre.
     - usados = Section.identificadores_usados
-    .form-group
+    .form-group{ data: { controller: "identificadores-usados" } }
       = f.label :name, class: "form-label"
+
+      - if usados.any?
+        .opciones-en-botones.opciones-compactas
+          - usados.each do |identificador|
+            %button.opcion-boton{ type: "button", data: { identificadores_usados_target: "pastilla",
+                                                         valor: identificador,
+                                                         action: "identificadores-usados#elegir",
+                                                         identificadores_usados_valor_param: identificador } }
+              = identificador
+          %button.opcion-boton.opcion-boton--otra{ type: "button", hidden: true,
+                                                   data: { identificadores_usados_target: "otra",
+                                                           action: "identificadores-usados#otra" } }
+            Otra…
+
       -# ⚠️ Tres capas, y las tres hacen falta.
       -#
       -#   `campo-filtrado`   NO DEJA ESCRIBIR lo que no corresponde
@@ -39,14 +58,8 @@
       -#
       -# La tercera no sobra: un POST que no pasa por el formulario mete lo que
       -# quiera, y ahí no hay JavaScript que valga.
-      = f.text_field :name, class: "form-control campo-mayuscula", list: "identificadores-usados", maxlength: 8, autocapitalize: "characters", pattern: "[A-Za-z0-9]+", placeholder: (usados.first || "A"), data: { tooltip: "Solo letras y números, sin espacios ni símbolos", controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9", campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
-      - if usados.any?
-        %datalist#identificadores-usados
-          - usados.each do |identificador|
-            %option{ value: identificador }
-        %p.nota-ayuda
-          = "Este colegio ya usa #{usados.to_sentence}."
-          Escriba otro si abre una sección nueva.
+      %div
+        = f.text_field :name, class: "form-control campo-mayuscula", maxlength: 8, autocapitalize: "characters", pattern: "[A-Za-z0-9]+", placeholder: (usados.first || "A"), data: { tooltip: "Solo letras y números, sin espacios ni símbolos", identificadores_usados_target: "campo", controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9", campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar input->identificadores-usados#escribir" }
 
   -# ⚠️ El año escolar de una sección NO se pregunta y NO se edita (MOR-165).
   -#
@@ -74,29 +87,43 @@
       = f.label :academic_period_id, class: "form-label"
       = f.select :academic_period_id, AcademicPeriod.order(start_date: :desc).map { |p| [ p.name, p.id ] }, { include_blank: "Seleccione…" }, class: "form-select"
 
-  -# El profesor guía (MOR-209). Va acá, en la SECCIÓN, y no en el grado: es
-  -# quien pasa lista de ESTOS alumnos y responde por ellos. «1er Año A» tiene su
-  -# guía y «1er Año B» el suyo.
-  .form-group
-    = f.label :leader_teacher_id, class: "form-label"
-    = f.select :leader_teacher_id, Teacher.includes(:user).order("users.last_name").map { |t| [t.user.apellidos_y_nombres, t.id] }, { include_blank: "Sin asignar" }, class: "form-select"
-    -# ⚠️ Se queda VISIBLE. No explica qué es el campo: dice qué pasa si se deja
-    -# vacío, y eso cambia quién puede trabajar el lunes. Esconderlo detrás de un
-    -# «?» sería dejar que alguien tome la decisión sin saber que la está tomando.
-    %p.nota-ayuda
-      Quien pasa lista de esta sección. Sin guía asignado, la asistencia solo la
-      puede tomar la dirección.
+  -# ⚠️ Los TRES se difieren: ninguno hace falta para que la sección exista.
+  -#
+  -# Una sección es un grado y un identificador —«1er Año A»— y con eso ya se le
+  -# pueden inscribir alumnos. El guía se decide en la reunión de septiembre, el
+  -# cupo se ajusta cuando se ve la matrícula y el aula la asigna quien arma los
+  -# horarios: tres decisiones de tres personas distintas, en tres momentos
+  -# distintos, presentadas hoy como si fueran parte de crearla.
+  -#
+  -# ⚠️ Se abre solo si YA tienen algo: al editar una sección armada, esconder
+  -# lo que está lleno obliga a buscarlo para ver qué dice.
+  - hay_detalle = section.leader_teacher_id.present? || section.capacity.present? || section.classroom.present?
+  %details.form-avanzado{ open: hay_detalle }
+    %summary.form-avanzado-titulo
+      Guía, cupo y aula
+      %span.solicitud-opcional opcional
 
-  -# Los dos en una línea: son cortos y se llenan juntos. `.form-row` ya
-  -# envuelve solo en pantallas chicas (`flex-wrap`).
-  .form-row
+    -# El profesor guía (MOR-209). Va acá, en la SECCIÓN, y no en el grado: es
+    -# quien pasa lista de ESTOS alumnos y responde por ellos. «1er Año A» tiene
+    -# su guía y «1er Año B» el suyo.
     .form-group
-      = f.label :capacity, class: "form-label"
-      = f.number_field :capacity, class: "form-control", min: 1
+      = f.label :leader_teacher_id, class: "form-label"
+      = f.select :leader_teacher_id, Teacher.includes(:user).order("users.last_name").map { |t| [t.user.apellidos_y_nombres, t.id] }, { include_blank: "Sin asignar" }, class: "form-select"
+      -# ⚠️ Se queda VISIBLE dentro del panel. No explica qué es el campo: dice
+      -# qué pasa si se deja vacío, y eso cambia quién puede trabajar el lunes.
+      %p.nota-ayuda
+        Quien pasa lista de esta sección. Sin guía asignado, la asistencia solo la
+        puede tomar la dirección.
 
-    .form-group
-      = f.label :classroom, class: "form-label"
-      = f.text_field :classroom, class: "form-control"
+    -# Los dos en una línea: son cortos y se llenan juntos.
+    .form-row
+      .form-group
+        = f.label :capacity, class: "form-label"
+        = f.number_field :capacity, class: "form-control", min: 1
+
+      .form-group
+        = f.label :classroom, class: "form-label"
+        = f.text_field :classroom, class: "form-control"
 
   .form-acciones
     = f.submit class: "btn btn-guardar"
