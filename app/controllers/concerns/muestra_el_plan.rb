@@ -29,7 +29,7 @@ module MuestraElPlan
     helper_method :lapsos, :lapso, :otras_secciones, :contexto,
                   :hermanas_con_plan, :hermanas_sin_plan, :evaluaciones_del_lapso,
                   :evaluaciones_de, :evaluaciones_sueltas, :peso_del_lapso,
-                  :competencias_del_lapso, :plan_sugerido,
+                  :competencias_del_lapso, :plan_sugerido, :area_del_plan,
                   :peso_libre, :periodo_del_plan, :con_competencias?
   end
 
@@ -241,13 +241,18 @@ module MuestraElPlan
   #     escrito es ruido, y la copia mezclaría dos años sin que nadie lo pida;
   #   · quien mira es un PROFESOR — el botón hace POST a `traer_competencies`,
   #     que exige `require_profesor!`. A la dirección le saldría un botón que
-  #     la rebota, que es la manera de enseñar que los controles no funcionan.
+  #     la rebota, que es la manera de enseñar que los controles no funcionan;
+  #   · y ese profesor TIENE la asignación. `asignacion` se busca entre las del
+  #     año de la sesión, así que en una sección de otro año escolar es nil
+  #     mientras `seccion_del_plan` y `area_del_plan` no lo son — la tarjeta
+  #     salía y el bloque de copiar reventaba contra ese nil. Quien no tiene la
+  #     asignación tampoco podría completar el POST.
   #
   # ⚠️ Devuelve un ARRAY, no una relación: la vista lo recorre cuatro veces
   # —`any?`, `first`, `size`, `first(4)`— y con una relación eso son cuatro
   # consultas para dibujar una tarjeta.
   def plan_sugerido
-    return [] unless profesor? && competencias_del_lapso.empty?
+    return [] unless profesor? && asignacion.present? && competencias_del_lapso.empty?
 
     plan_del_ano_pasado
   end
