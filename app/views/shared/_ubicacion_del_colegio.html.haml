@@ -33,13 +33,19 @@
       -# sabe qué es una parroquia no necesita leerlo cada vez que abre esto.
       = etiqueta_con_pista "school[entidad_federal]", "Estado",
                            pista: "La entidad, el municipio y la parroquia salen impresos en los documentos del ministerio. Conviene dejarlos bien desde ahora."
-      -# ⚠️ Obligatorio desde MOR-196: `location` se DEDUCE del municipio y el
-      -# estado, así que dejarlos vacíos hace fallar una validación sobre un
-      -# campo que ya no está en pantalla —el error decía «Ubicación», que la
-      -# persona no ve por ningún lado.
+      -# ⚠️ Obligatorio donde COMPLETAR la identidad es el trabajo de la
+      -# pantalla; opcional en el REGISTRO.
+      -#
+      -# Lo era siempre desde MOR-196, cuando `location` se deducía de acá y era
+      -# obligatorio. Dejó de serlo en MOR-208, y en el registro ese `required`
+      -# pasó a ser justo lo que MOR-202 advierte: un control que bloquea el
+      -# envío sin decir por qué. Un colegio que no se encuentra en el catálogo
+      -# no puede quedarse sin poder registrarse por un campo que el modelo ni
+      -# siquiera exige.
       = select_tag "school[entidad_federal]",
                    options_for_select(EntidadFederal::TODAS, colegio.entidad_federal),
-                   include_blank: "Seleccione el estado…", class: "form-select", required: true,
+                   include_blank: "Seleccione el estado…", class: "form-select",
+                   required: local_assigns.fetch(:exigir_estado, true),
                    data: { ubicacion_target: "entidad",
                            catalogo_de_planteles_target: "estado",
                            action: "change->ubicacion#alCambiarEntidad" }
