@@ -1,0 +1,22 @@
+-# Segundo nivel: los municipios de un estado.
+- content_for :titulo, "Colegios en #{@estado} por municipio"
+- content_for :descripcion, "#{number_with_delimiter(@total)} planteles del estado #{@estado}, con su código DEA, agrupados por municipio."
+
+.card-academic
+  = render "shared/cabecera", titulo: "Colegios en #{@estado}"
+
+  %p.nota-ayuda
+    = link_to "← Todos los estados", directorio_path
+
+  %p
+    = succeed "." do
+      %strong= "#{number_with_delimiter(@total)} planteles"
+    Elija el municipio para ver la lista con sus códigos DEA
+
+  %ul.lista-directorio
+    - @por_municipio.each do |municipio, cuantos|
+      %li
+        = link_to municipio, directorio_municipio_path(@estado.parameterize, municipio.parameterize)
+        %span.dato-secundario= contar(cuantos, "plantel", "planteles")
+
+= render "directorio/es_su_colegio"

@@ -50,7 +50,7 @@ class BuscadoresController < ApplicationController
     render xml: <<~XML, content_type: "application/xml"
       <?xml version="1.0" encoding="UTF-8"?>
       <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-      #{PUBLICAS.map { |ruta, prioridad| entrada(ruta, prioridad) }.join("\n")}
+      #{(PUBLICAS.map { |ruta, prioridad| entrada(ruta, prioridad) } + del_directorio).join("\n")}
       </urlset>
     XML
   end
@@ -65,6 +65,30 @@ class BuscadoresController < ApplicationController
     "/demo_requests/new" => "0.8",
     "/verificar" => "0.5"
   }.freeze
+
+  # Los estados y los municipios del directorio: unas 360 URL.
+  #
+  # ⚠️ Las FICHAS de los 13.434 planteles NO entran, y no es por el tamaño del
+  # archivo: un sitemap con trece mil páginas finas —un nombre, un código y un
+  # municipio— le dice a Google «indexa esto» trece mil veces, y cuando decide
+  # que no valen la pena, la desconfianza alcanza al sitio entero. Se descubren
+  # por ENLACE desde su municipio, que es como se descubre una página buena.
+  #
+  # ⚠️ Y sin aislamiento: `planteles_oficiales` es de la plataforma, no de un
+  # colegio, y esto lo pide un robot sin sesión.
+  def del_directorio
+    grupos = PlantelOficial.publicables.group(:entidad_federal, :municipio).count
+
+    estados = grupos.keys.map { |entidad, _| EntidadFederal.normalizar(entidad) || entidad }.uniq
+    municipios = grupos.keys.filter_map do |entidad, municipio|
+      normalizada = EntidadFederal.normalizar(entidad) || entidad
+      [ normalizada.parameterize, municipio.parameterize ]
+    end.uniq
+
+    [ entrada("/colegios", "0.9") ] +
+      estados.map { |e| entrada("/colegios/#{e.parameterize}", "0.7") } +
+      municipios.map { |e, m| entrada("/colegios/#{e}/#{m}", "0.6") }
+  end
 
   def entrada(ruta, prioridad)
     "  <url><loc>#{url_de(ruta)}</loc><priority>#{prioridad}</priority></url>"
