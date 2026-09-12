@@ -52,6 +52,34 @@ class PortadaPublicaTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # ⚠️ La portada tenía DOS salidas —pedir una demostración y entrar— y ninguna
+  # para el colegio que quiere empezar solo. Que es justamente al que apunta el
+  # plan Inicial: sin costo, sin vendedor y sin esperar una llamada.
+  test "la portada ofrece registrar un colegio" do
+    get root_path
+
+    assert_select "a[href=?]", registrarse_path, minimum: 1,
+                  message: "sin esta puerta, /registrarse solo se alcanza con el enlace a mano"
+    assert_select ".portada-alta-enlace", /Registre su colegio/
+  end
+
+  # ⚠️ El precio NO va en el hero. Daniel: *«se ve como antipático, como que si
+  # le estoy cobrando antes de sentarse»*.
+  #
+  # No es esconderlo —sigue completo en «La suscripción», y el test de arriba lo
+  # exige— es que ahí lo contesta quien fue a buscarlo.
+  test "el hero no habla de plata" do
+    get root_path
+
+    # ⚠️ Se mira `.portada-hero-inner` y no el `<header>` entero: la barra de
+    # arriba vive adentro del header y ahí «La suscripción» es el nombre de una
+    # sección, no un precio.
+    tesis = css_select(".portada-hero-inner").first
+    assert tesis.present?, "no se encontró el bloque de la tesis"
+    assert_no_match(/\$|precio|suscripción mensual/i, tesis.to_s,
+                    "el hero volvió a poner el precio delante de quien todavía no preguntó")
+  end
+
   # La superficie pública trata de usted; adentro se tutea. Decisión de Daniel.
   test "la portada trata de usted, no de tú" do
     get root_path
