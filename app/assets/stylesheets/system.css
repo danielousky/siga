@@ -3605,30 +3605,34 @@ body:has(.portada) .barra-superior { display: none; }
 .portada-cta--fantasma { background: transparent; border-color: rgba(255, 255, 255, 0.28); color: #fff; }
 .portada-cta--fantasma:hover { background: rgba(255, 255, 255, 0.10); color: #fff; }
 
-/* El precio de entrada, arriba y sin hacer bajar: es la primera pregunta. */
-.portada-sello {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 18px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.05);
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.78);
-  text-align: left;
+/* ---- La puerta para registrarse ------------------------------------------
+   Reemplaza al sello del precio, que Daniel sacó del hero: «se ve como
+   antipático, como que si le estoy cobrando antes de sentarse».
+
+   ⚠️ Es texto, no un botón, y esa es toda la decisión de diseño. Un tercer
+   botón le compite a «Agende una demostración», que es la conversión que se
+   busca; un enlace subrayado se ve, se entiende y no pelea. Daniel: «evidente
+   pero discreto».
+
+   Vive sobre los DOS fondos oscuros de la portada —el hero y el cierre— así
+   que el color sale de la misma familia translúcida que el resto. */
+.portada-alta {
+  margin: 0;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.62);
 }
-.portada-sello strong { color: #fff; font-weight: 600; }
-.portada-sello-marca {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: rgba(124, 192, 255, 0.18);
+.portada-alta-enlace {
+  color: #fff;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(255, 255, 255, 0.32);
+  transition: text-decoration-color var(--transition-fast), color var(--transition-fast);
+}
+.portada-alta-enlace:hover,
+.portada-alta-enlace:focus-visible {
   color: var(--cielo);
-  font-size: 12px;
+  text-decoration-color: var(--cielo);
 }
 
 /* ---- La maqueta del panel, ladeada --------------------------------------

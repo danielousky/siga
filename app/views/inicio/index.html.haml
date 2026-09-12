@@ -62,14 +62,28 @@
           Entrar al sistema
           %span{"aria-hidden": "true"} →
 
-      -# El precio de entrada, arriba y sin hacer bajar: es la primera pregunta
-      -# de un director. Sale de `Subscription::PLANES`, nunca escrito a mano.
-      %p.portada-sello
-        %span.portada-sello-marca{"aria-hidden": "true"} ✓
-        %span
-          Suscripción mensual desde
-          %strong= "#{Subscription::PLANES.dig(:basico, :precio)} $"
-          para colegios de hasta #{number_with_delimiter(Subscription::PLANES.dig(:basico, :hasta))} alumnos.
+      -# ⚠️ ACÁ VIVÍA EL PRECIO, y Daniel lo sacó: *«creo que puede causar un
+      -# efecto contrario… se ve como antipático, como que si le estoy cobrando
+      -# antes de sentarse»*.
+      -#
+      -# No se esconde: sigue completo en «04 — La suscripción», con los tres
+      -# planes, y esa sección se llama así en la barra de arriba. La diferencia
+      -# es QUIÉN pregunta. En el hero el precio contesta algo que nadie preguntó
+      -# todavía; en la sección lo contesta quien fue a buscarlo.
+      -#
+      -# En su lugar va la puerta que faltaba. La portada tenía dos salidas
+      -# —pedir una demostración y entrar— y ninguna para el colegio que quiere
+      -# empezar solo, que es justamente el que el plan Inicial busca: sin costo,
+      -# sin vendedor de por medio y sin esperar una llamada.
+      -#
+      -# ⚠️ Enlace y no botón, a propósito. Un tercer botón le quita fuerza a la
+      -# demostración, que es la conversión que se quiere. Daniel: «evidente pero
+      -# discreto».
+      %p.portada-alta
+        ¿Todavía no tiene cuenta?
+        = link_to registrarse_path, class: "portada-alta-enlace" do
+          Registre su colegio
+          %span{"aria-hidden": "true"} →
 
     -# ⚠️ TODO lo que se ve dentro de esta maqueta es un EJEMPLO: cifras
     -# inventadas para mostrar la forma de la pantalla. Va `aria-hidden` con su
@@ -375,6 +389,12 @@
         = link_to new_user_session_path, class: "portada-cta portada-cta--fantasma" do
           Entrar al sistema
           %span{"aria-hidden": "true"} →
+      -# Quien leyó hasta acá y se decidió no tiene por qué volver arriba.
+      %p.portada-alta
+        ¿Prefiere empezar por su cuenta?
+        = link_to registrarse_path, class: "portada-alta-enlace" do
+          Registre su colegio
+          %span{"aria-hidden": "true"} →
 
   %footer.portada-pie
     .portada-inner
@@ -393,6 +413,7 @@
           %ul
             %li= link_to "La suscripción", "#planes"
             %li= link_to "Pedir una demostración", new_demo_request_path
+            %li= link_to "Registrar un colegio", registrarse_path
             %li= link_to "Entrar al sistema", new_user_session_path
             %li= link_to "Verificar un documento", verificar_path
 
