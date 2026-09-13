@@ -25,6 +25,11 @@
 # Documentación y material de trabajo.
 /references
 /docs
+# ⚠️ …menos el manual PUBLICADO, que no es documentación del repo: es lo que
+# sirve `/manual` en producción. Sin esta excepción la imagen se construye sin
+# él y la ruta contesta 404 — pasó, y las capturas sí llegaban porque viven en
+# `public/`, lo que lo hacía parecer un problema de la ruta.
+!/docs/manual/publicado
 *.md
 !README.md
 
