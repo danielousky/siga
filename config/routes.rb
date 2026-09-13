@@ -58,6 +58,15 @@ Rails.application.routes.draw do
   get "colegios/:estado/:municipio", to: "directorio#municipio", as: :directorio_municipio
   get "colegios/:estado/:municipio/:plantel", to: "directorio#plantel", as: :directorio_plantel
 
+  # El manual, público y compartible. Ver `ManualController`: NO son dos
+  # archivos en `public/`, porque ahí el caché es de un año.
+  #
+  # ⚠️ UNA ruta, no dos. Rails ya entiende `/manual.pdf` como esta misma con
+  # `format: :pdf` —el punto es el separador del formato, siempre— así que un
+  # `get "manual.pdf"` aparte no se alcanza nunca: la de arriba gana, y el PDF
+  # salía con el HTML adentro y `Content-Type: text/html`.
+  get "manual", to: "manual#show", as: :manual
+
   # ⚠️ NO hay registro público. Ver MOR-101.
   #
   # `:registerable` viene puesto por `rails generate devise User` y no es una

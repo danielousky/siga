@@ -1,0 +1,2029 @@
+<!doctype html>
+<html lang="es-VE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Manual de SIGA: las 37 funciones del sistema, en orden y con pantallas, desde crear la cuenta del colegio hasta imprimir el papel que la familia se lleva.">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+</head>
+<body>
+<title>Manual de SIGA</title>
+<style>
+  /* La paleta es la del producto, no una inventada: si el manual no se ve como
+     SIGA, deja de enseñar SIGA. Sale de `app/assets/stylesheets/system.css`. */
+  :root {
+    --tinta: #2c2c2c;
+    --tinta-2: #5a5a5a;
+    --tinta-3: #878787;
+    --papel: #faf8f5;
+    --papel-alto: #ffffff;
+    --papel-hover: #f0ede8;
+    --borde: rgba(44, 44, 44, 0.12);
+    --borde-suave: rgba(44, 44, 44, 0.08);
+    --azul: #1e4a7a;
+    --azul-suave: #e8eef5;
+    --indigo: #4a3f7a;
+    --petroleo: #12596e;
+    --verde: #2d5a3d;
+    --verde-fondo: #e8f4ec;
+    --ambar: #8b6914;
+    --ambar-fondo: #fef9e7;
+    --ambar-borde: #f9e79f;
+    --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+    --nav: 268px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --tinta: #e8e6e3; --tinta-2: #b4b0ab; --tinta-3: #8e8a85;
+      --papel: #1b1a18; --papel-alto: #232220; --papel-hover: #2c2a27;
+      --borde: rgba(232, 230, 227, 0.16); --borde-suave: rgba(232, 230, 227, 0.09);
+      --azul: #7aa8d8; --azul-suave: #1d2b3a;
+      --indigo: #a294d8; --petroleo: #6bb6c9;
+      --verde: #8fc9a3; --verde-fondo: #1b2b21;
+      --ambar: #e0be6a; --ambar-fondo: #2a2415; --ambar-borde: #4a3f1f;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --tinta: #e8e6e3; --tinta-2: #b4b0ab; --tinta-3: #8e8a85;
+    --papel: #1b1a18; --papel-alto: #232220; --papel-hover: #2c2a27;
+    --borde: rgba(232, 230, 227, 0.16); --borde-suave: rgba(232, 230, 227, 0.09);
+    --azul: #7aa8d8; --azul-suave: #1d2b3a;
+    --indigo: #a294d8; --petroleo: #6bb6c9;
+    --verde: #8fc9a3; --verde-fondo: #1b2b21;
+    --ambar: #e0be6a; --ambar-fondo: #2a2415; --ambar-borde: #4a3f1f;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── el índice, siempre a la vista ───────────────────────────────────── */
+
+  nav.indice {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: var(--nav);
+    overflow-y: auto;
+    padding: 26px 18px 40px 26px;
+    border-right: 1px solid var(--borde);
+    background: var(--papel-alto);
+  }
+
+  .marca {
+    font-family: var(--serif);
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--azul);
+    letter-spacing: -0.01em;
+    margin-bottom: 2px;
+  }
+
+  .marca-sub { font-size: 11.5px; color: var(--tinta-3); margin-bottom: 22px; }
+
+  nav.indice ol { list-style: none; margin: 0 0 18px; padding: 0; }
+
+  nav.indice .parte {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--tinta-3);
+    margin: 20px 0 7px;
+  }
+
+  nav.indice a {
+    display: block;
+    padding: 3.5px 0;
+    font-size: 13.5px;
+    color: var(--tinta-2);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    padding-left: 10px;
+    margin-left: -10px;
+  }
+
+  nav.indice a:hover { color: var(--azul); border-left-color: var(--azul); }
+
+  /* ── el cuerpo ───────────────────────────────────────────────────────── */
+
+  main { margin-left: var(--nav); padding: 0 40px 120px; }
+
+  .hoja { max-width: 860px; margin: 0 auto; }
+
+  header.portada { padding: 76px 0 44px; border-bottom: 1px solid var(--borde); margin-bottom: 12px; }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(34px, 5vw, 48px);
+    line-height: 1.12;
+    margin: 0 0 14px;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  .entradilla { font-size: 19px; color: var(--tinta-2); max-width: 62ch; margin: 0 0 26px; }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 29px;
+    margin: 68px 0 6px;
+    padding-top: 20px;
+    border-top: 1px solid var(--borde);
+    letter-spacing: -0.012em;
+    text-wrap: balance;
+  }
+
+  h2 .numero {
+    display: block;
+    font-family: var(--sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--azul);
+    margin-bottom: 7px;
+  }
+
+  h3 {
+    font-family: var(--serif);
+    font-size: 21px;
+    margin: 40px 0 8px;
+    letter-spacing: -0.008em;
+  }
+
+  p { margin: 0 0 15px; max-width: 68ch; }
+
+  a { color: var(--azul); }
+
+  strong { font-weight: 650; }
+
+  code, kbd {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--papel-hover);
+    padding: 1.5px 5px;
+    border-radius: 3px;
+  }
+
+  kbd { border: 1px solid var(--borde); box-shadow: 0 1px 0 var(--borde); }
+
+  /* ── las capturas ────────────────────────────────────────────────────── */
+
+  figure {
+    margin: 22px 0 26px;
+  }
+
+  figure img {
+    display: block;
+    width: 100%;
+    border: 1px solid var(--borde);
+    border-radius: 7px;
+    background: var(--papel-alto);
+  }
+
+  figcaption {
+    margin-top: 9px;
+    font-size: 13px;
+    color: var(--tinta-3);
+    line-height: 1.5;
+  }
+
+  /* ── los pasos ───────────────────────────────────────────────────────── */
+
+  ol.pasos { counter-reset: paso; list-style: none; margin: 18px 0 22px; padding: 0; }
+
+  ol.pasos li {
+    counter-increment: paso;
+    position: relative;
+    padding: 0 0 12px 38px;
+    max-width: 66ch;
+  }
+
+  ol.pasos li::before {
+    content: counter(paso);
+    position: absolute;
+    left: 0;
+    top: 1px;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--azul);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  ul.lista { margin: 14px 0 20px; padding-left: 20px; max-width: 66ch; }
+  ul.lista li { margin-bottom: 7px; }
+
+  /* ── avisos ──────────────────────────────────────────────────────────── */
+
+  .ojo {
+    border-left: 3px solid var(--ambar-borde);
+    background: var(--ambar-fondo);
+    padding: 13px 17px;
+    margin: 20px 0;
+    border-radius: 0 6px 6px 0;
+    max-width: 68ch;
+  }
+
+  .ojo p { margin: 0; }
+  .ojo p + p { margin-top: 9px; }
+
+  .ojo-titulo {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ambar);
+    margin-bottom: 5px;
+  }
+
+  .truco {
+    border-left: 3px solid var(--verde);
+    background: var(--verde-fondo);
+    padding: 13px 17px;
+    margin: 20px 0;
+    border-radius: 0 6px 6px 0;
+    max-width: 68ch;
+  }
+
+  .truco p { margin: 0; }
+
+  .truco-titulo {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--verde);
+    margin-bottom: 5px;
+  }
+
+  /* ── quién hace qué ──────────────────────────────────────────────────── */
+
+  .quien {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 99px;
+    margin-bottom: 12px;
+  }
+
+  .quien--direccion { background: var(--azul-suave); color: var(--azul); }
+  .quien--profesor { background: var(--verde-fondo); color: var(--verde); }
+  .quien--familia { background: var(--ambar-fondo); color: var(--ambar); }
+
+  /* ── tablas ──────────────────────────────────────────────────────────── */
+
+  .tabla-envuelta { overflow-x: auto; margin: 20px 0 24px; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14.5px;
+    min-width: 440px;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 9px 13px;
+    border-bottom: 1px solid var(--borde-suave);
+    vertical-align: top;
+  }
+
+  th {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--tinta-3);
+    border-bottom: 1px solid var(--borde);
+  }
+
+  /* ── el mapa del arranque ────────────────────────────────────────────── */
+
+  .ruta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+    margin: 26px 0 32px;
+  }
+
+  .ruta-paso {
+    background: var(--papel-alto);
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    padding: 15px 16px;
+  }
+
+  .ruta-numero {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--azul);
+    letter-spacing: 0.09em;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  .ruta-paso strong { display: block; font-size: 15px; margin-bottom: 3px; }
+  .ruta-paso span.d { font-size: 13px; color: var(--tinta-3); line-height: 1.45; }
+
+  .descarga {
+    margin: 22px 0 0;
+    font-size: 14.5px;
+  }
+  .descarga a {
+    font-weight: 650;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .descarga span { color: var(--tinta-3); margin-left: 6px; }
+  /* En papel no se descarga nada: ya está impreso. */
+  @media print { .descarga { display: none; } }
+
+  /* ── En papel ──────────────────────────────────────────────────────────
+     El índice es una barra FIJA: en papel se repetiría en cada hoja encima
+     del texto, así que se retira y su hueco con ella. Lo que reemplaza a la
+     navegación es el índice numerado del principio, que en papel funciona
+     mejor: se lee «apartado 21» y se busca.
+
+     ⚠️ Las capturas llevan `break-inside: avoid`: una imagen partida entre dos
+     hojas no enseña nada, y su pie tiene que ir con ella. */
+  @media print {
+    /* ⚠️ El índice NO se esconde: se suelta. Está antes de `main` en el HTML,
+       así que al quitarle el `position: fixed` sale como primera hoja — que es
+       justo lo que hace falta en papel, donde no se puede hacer clic. */
+    nav.indice {
+      position: static;
+      width: auto;
+      overflow: visible;
+      padding: 0;
+      border-right: none;
+      break-after: page;
+      columns: 2;
+      column-gap: 32px;
+    }
+    nav.indice .parte { break-after: avoid; }
+    main { margin-left: 0; padding: 0; }
+    .hoja { max-width: none; }
+
+    body { font-size: 10.5pt; line-height: 1.5; background: #fff; color: #000; }
+    nav.indice, nav.indice a { background: #fff; color: #000; }
+
+    h2 { break-before: page; break-after: avoid; }
+    h2:first-of-type { break-before: avoid; }
+    h3 { break-after: avoid; }
+
+    figure, .ojo, .truco, .tabla-envuelta, ol.pasos, .ruta { break-inside: avoid; }
+    figure img { border-color: #bbb; }
+    .quien { break-after: avoid; }
+
+    /* La dirección de un enlace no se puede tocar en papel: se escribe. */
+    a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 0.82em; color: #555; }
+    a[href^="#"]::after { content: none; }
+  }
+
+  @media (max-width: 900px) {
+    nav.indice {
+      position: static;
+      width: auto;
+      border-right: 0;
+      border-bottom: 1px solid var(--borde);
+      max-height: none;
+      padding: 22px 24px 14px;
+    }
+    main { margin-left: 0; padding: 0 24px 80px; }
+    header.portada { padding-top: 34px; }
+  }
+</style>
+
+<nav class="indice">
+  <div class="marca">SIGA</div>
+  <div class="marca-sub">Manual del sistema</div>
+
+  <div class="parte">Empezar</div>
+  <ol>
+    <li><a href="#que-es">Qué es SIGA</a></li>
+    <li><a href="#registro">1 · Crear su cuenta</a></li>
+    <li><a href="#arranque">2 · Los pasos de arranque</a></li>
+  </ol>
+
+  <div class="parte">Armar el colegio</div>
+  <ol>
+    <li><a href="#identidad">3 · La identidad</a></li>
+    <li><a href="#niveles">4 · Niveles y grados</a></li>
+    <li><a href="#materias">5 · Áreas y departamentos</a></li>
+    <li><a href="#anios">6 · Año escolar y lapsos</a></li>
+    <li><a href="#secciones">7 · Secciones</a></li>
+    <li><a href="#contexto">8 · La barra de arriba</a></li>
+  </ol>
+
+  <div class="parte">La gente</div>
+  <ol>
+    <li><a href="#alumnos">9 · Alumnos</a></li>
+    <li><a href="#representantes">10 · Representantes</a></li>
+    <li><a href="#profesores">11 · Profesores</a></li>
+    <li><a href="#administradores">12 · Administradores</a></li>
+    <li><a href="#inscribir">13 · Inscribir</a></li>
+    <li><a href="#acceso">14 · Activar el acceso</a></li>
+  </ol>
+
+  <div class="parte">Traer lo que ya existe</div>
+  <ol>
+    <li><a href="#importar">15 · Importar o pegar</a></li>
+    <li><a href="#clonar">16 · Clonar el año</a></li>
+    <li><a href="#promover">17 · Promover</a></li>
+  </ol>
+
+  <div class="parte">El profesor</div>
+  <ol>
+    <li><a href="#profe-panel">18 · Su panel</a></li>
+    <li><a href="#asistencia">19 · Asistencia</a></li>
+    <li><a href="#planificar">20 · Planificar</a></li>
+    <li><a href="#competencias">21 · Competencias e indicadores</a></li>
+    <li><a href="#libreta">22 · La libreta</a></li>
+    <li><a href="#planilla">23 · Cargar notas</a></li>
+    <li><a href="#inicial">24 · Educación Inicial</a></li>
+    <li><a href="#informes">25 · Informes descriptivos</a></li>
+    <li><a href="#ficha-profe">26 · La ficha del alumno</a></li>
+    <li><a href="#quien-no-cargo">27 · Quién no cargó</a></li>
+  </ol>
+
+  <div class="parte">Documentos</div>
+  <ol>
+    <li><a href="#boletines">28 · Boletines</a></li>
+    <li><a href="#constancias">29 · Constancias</a></li>
+    <li><a href="#papeles">30 · Los del ministerio</a></li>
+    <li><a href="#listas">31 · Listas en Excel</a></li>
+    <li><a href="#rubrica">32 · La rúbrica</a></li>
+  </ol>
+
+  <div class="parte">La familia</div>
+  <ol>
+    <li><a href="#familia">33 · Portal del representante</a></li>
+    <li><a href="#portal-alumno">34 · Portal del alumno</a></li>
+  </ol>
+
+  <div class="parte">Día a día</div>
+  <ol>
+    <li><a href="#buscar">35 · Buscar</a></li>
+    <li><a href="#auditoria">36 · La auditoría</a></li>
+    <li><a href="#cuenta">37 · Su cuenta</a></li>
+  </ol>
+
+  <div class="parte">Para cerrar</div>
+  <ol>
+    <li><a href="#cierre">Lo que hay que recordar</a></li>
+  </ol>
+</nav>
+
+<main>
+<div class="hoja">
+
+<header class="portada">
+  <h1>Manual de SIGA</h1>
+  <p class="entradilla">
+    Todo lo que hace el sistema, en orden y con pantallas: desde crear la cuenta
+    del colegio hasta imprimir el papel que la familia se lleva.
+  </p>
+  <p style="font-size:14.5px;color:var(--tinta-3);max-width:62ch">
+    Está escrito para leerse de arriba abajo la primera vez, y para buscar por
+    el índice todas las demás. Cada apartado dice <strong>quién</strong> lo hace,
+    <strong>para qué sirve</strong> y <strong>los pasos</strong>.
+  </p>
+<p class="descarga"><a href="/manual.pdf">Descargar en PDF</a> <span>72 páginas, para imprimir o mandar por WhatsApp</span></p>
+</header>
+
+<h2 id="que-es"><span class="numero">Antes de empezar</span>Qué es SIGA</h2>
+
+<p>
+  SIGA es el sistema donde el colegio lleva sus alumnos, sus notas y sus papeles.
+  Sustituye al Word, al cuaderno y a la carpeta de constancias: lo que el
+  profesor carga desde su teléfono el lunes, lo ve la mamá el lunes.
+</p>
+
+<figure>
+<img loading="lazy" alt="El sitio público de SIGA. Debajo de los dos botones está «Registre su colegio»: de ahí sale la cuenta." src="/manual/capturas/portada.jpg">
+<figcaption>El sitio público de SIGA. Debajo de los dos botones está «Registre su colegio»: de ahí sale la cuenta.</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Quién entra</th><th>Qué hace</th></tr></thead>
+  <tbody>
+    <tr><td><strong>La dirección</strong></td><td>Arma el colegio, carga la gente, emite los documentos.</td></tr>
+    <tr><td><strong>El profesor</strong></td><td>Pasa lista, planifica sus evaluaciones y carga sus notas.</td></tr>
+    <tr><td><strong>El representante</strong></td><td>Ve las notas y la asistencia de su representado.</td></tr>
+    <tr><td><strong>El alumno</strong></td><td>Ve las suyas, si el colegio le dio correo.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">La idea que lo ordena todo</span>
+  <p>
+    <strong>Nada se pregunta dos veces.</strong> Si el sistema ya sabe el dato —el
+    año escolar que usted eligió arriba, el grado por el que entró, la sección
+    donde está parado— no se lo vuelve a pedir. Por eso muchos formularios tienen
+    menos campos de los que esperaría.
+  </p>
+</div>
+
+<h2 id="registro"><span class="numero">Paso 1</span>Crear su cuenta</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  Todo empieza en <code>/registrarse</code>. En una sola pantalla quedan
+  <strong>su cuenta y su colegio</strong>, con sus grados y su año escolar ya
+  cargados.
+</p>
+
+<figure>
+<img loading="lazy" alt="La pantalla de registro. Son siete campos y ninguno es un código que haya que ir a buscar." src="/manual/capturas/registro.jpg">
+<figcaption>La pantalla de registro. Son siete campos y ninguno es un código que haya que ir a buscar.</figcaption>
+</figure>
+
+<h3>Escriba el nombre de su colegio y deje que lo encuentre</h3>
+
+<p>
+  Al escribir el nombre, SIGA busca en el <strong>catálogo del ministerio</strong>
+  —casi dieciséis mil planteles— y le sugiere el suyo con su código DEA y dónde
+  queda.
+</p>
+
+<figure>
+<img loading="lazy" alt="Escribiendo «san jose» aparecen los planteles que coinciden, con su código DEA y su municipio." src="/manual/capturas/registro_sugerencias.jpg">
+<figcaption>Escribiendo «san jose» aparecen los planteles que coinciden, con su código DEA y su municipio.</figcaption>
+</figure>
+
+<ol class="pasos">
+  <li>Escriba su nombre, apellido y correo, y elija una contraseña.</li>
+  <li>Diga si es director o asistente de dirección.</li>
+  <li>Empiece a escribir el nombre del colegio y <strong>toque el suyo en la lista</strong>.</li>
+  <li>Se rellenan el nombre oficial, el código DEA, el estado y el municipio. <strong>Puede cambiar cualquiera de los cuatro.</strong></li>
+  <li>Marque qué dicta el colegio: Inicial, Primaria, Media, Media Técnica. Puede marcar varios.</li>
+  <li>Listo. Ya tiene colegio, año escolar y grados.</li>
+</ol>
+
+<div class="ojo">
+  <span class="ojo-titulo">Es una sugerencia, no una verdad</span>
+  <p>
+    Lo que trae el catálogo <strong>se puede corregir</strong>. Se registra lo que
+    usted deje escrito, no lo que diga la lista. Y si su colegio no aparece —el
+    catálogo está incompleto a propósito— escriba el nombre y siga: se registra
+    igual.
+  </p>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">También busca por código</span>
+  <p>
+    Si tiene el papel del ministerio delante, escriba el código DEA en vez del
+    nombre: <code>OD04890203</code>, o solo los primeros dígitos.
+  </p>
+</div>
+
+<h2 id="arranque"><span class="numero">Paso 2</span>Los pasos de arranque</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  Apenas termina el registro, SIGA le muestra <strong>lo que armó solo</strong>
+  mientras usted llenaba el formulario. No le pide nada: le dice qué ya existe.
+</p>
+
+<figure>
+<img loading="lazy" alt="«Su colegio quedó en orden»: los grados, las áreas de aprendizaje y los años escolares, ya creados. Todo se puede cambiar." src="/manual/capturas/arranque_listo.jpg">
+<figcaption>«Su colegio quedó en orden»: los grados, las áreas de aprendizaje y los años escolares, ya creados. Todo se puede cambiar.</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Ya está</th><th>De dónde salió</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Los grados</strong></td><td>De los niveles que marcó. Los fija el Reglamento de la LOE, con su nombre y su orden.</td></tr>
+    <tr><td><strong>Las áreas de aprendizaje</strong></td><td>El plan de estudio del ministerio, repartido por año: Física empieza en 3er Año, no antes.</td></tr>
+    <tr><td><strong>Los años escolares</strong></td><td>El que empieza y los anteriores, con sus lapsos — los viejos están para que pueda subir notas pasadas.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Y después, el plan: ocho pasos que se miran solos</h3>
+
+<p>
+  El panel le muestra <strong>qué falta y en qué orden</strong>, con la
+  explicación de por qué importa cada paso y el botón que lleva a hacerlo.
+</p>
+
+<figure>
+<img loading="lazy" alt="«Puesta en marcha · 2 de 8 listos». Cada paso dice qué es, por qué importa y a dónde ir; los que ya están se pliegan con un ✓." src="/manual/capturas/plan_de_arranque.jpg">
+<figcaption>«Puesta en marcha · 2 de 8 listos». Cada paso dice qué es, por qué importa y a dónde ir; los que ya están se pliegan con un ✓.</figcaption>
+</figure>
+
+<div class="ruta">
+  <div class="ruta-paso"><span class="ruta-numero">① NIVELES</span><strong>Qué dicta</strong><span class="d">Marque los niveles y quedan los grados.</span></div>
+  <div class="ruta-paso"><span class="ruta-numero">② IDENTIDAD</span><strong>El colegio</strong><span class="d">DEA, escudo y firma del director.</span></div>
+  <div class="ruta-paso"><span class="ruta-numero">③ DEPARTAMENTOS</span><strong>Opcional</strong><span class="d">Ciencias, Letras. Un colegio chico vive sin ellos.</span></div>
+  <div class="ruta-paso"><span class="ruta-numero">④ MATERIAS</span><strong>Quién las dicta</strong><span class="d">Las áreas ya están; faltan los profesores.</span></div>
+  <div class="ruta-paso"><span class="ruta-numero">⑤ AÑO ESCOLAR</span><strong>Y sus lapsos</strong><span class="d">Nace con los tres puestos.</span></div>
+  <div class="ruta-paso"><span class="ruta-numero">⑥ SECCIONES</span><strong>Armar las aulas</strong><span class="d">1er Grado A, 1er Grado B…</span></div>
+  <div class="ruta-paso"><span class="ruta-numero">⑦ MATRÍCULA</span><strong>Los alumnos</strong><span class="d">De a uno o subiendo su Excel.</span></div>
+  <div class="ruta-paso"><span class="ruta-numero">⑧ HISTORIAL</span><strong>Opcional</strong><span class="d">Las notas de los años anteriores.</span></div>
+</div>
+
+<div class="ojo">
+  <span class="ojo-titulo">Nada de esto se guarda como «paso 4 completado»</span>
+  <p>
+    La lista <strong>mira lo que hay cargado</strong> y se actualiza sola. Si la
+    secretaria entra por el menú y carga las veintidós materias, el paso se pone
+    en verde sin que nadie lo marque — y si borra la única sección, vuelve a
+    pendiente, que es lo correcto.
+  </p>
+  <p>
+    Por eso <strong>retomar días después no es un problema</strong>: no hay nada
+    guardado que retomar. Abrir el panel el jueves muestra la verdad del jueves.
+  </p>
+</div>
+
+<h3>La franja: el hilo que no se pierde</h3>
+
+<p>
+  Al entrar a un paso desde el plan, arriba queda una línea que dice
+  <strong>dónde está y cómo vuelve</strong>.
+</p>
+
+<figure>
+<img loading="lazy" alt="«← Volver al plan · Puesta en marcha · 2 de 8 · va por las materias y quién las dicta · Retomar →»." src="/manual/capturas/franja_de_arranque.jpg">
+<figcaption>«← Volver al plan · Puesta en marcha · 2 de 8 · va por las materias y quién las dicta · Retomar →».</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Lo que dice</th><th>Qué significa</th></tr></thead>
+  <tbody>
+    <tr><td><strong>2 de 8</strong></td><td>Cuántos pasos ya están listos</td></tr>
+    <tr><td><strong>va por las materias…</strong></td><td>Se desvió a otra pantalla. El enlace de la derecha lo devuelve al paso</td></tr>
+    <tr><td><strong>Listo, seguir</strong></td><td>Pasa al siguiente. <strong>No marca nada</strong>: si no hizo el trabajo, el paso sigue pendiente</td></tr>
+    <tr><td><strong>✕</strong></td><td>Oculta la franja. El plan sigue en el panel</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">Se puede hacer en cualquier orden, y a medias</span>
+  <p>
+    Los pasos no bloquean nada. Si prefiere empezar subiendo su matrícula en
+    Excel, vaya directo a <a href="#importar">Importar</a>: el resto se irá
+    poniendo en verde solo.
+  </p>
+  <p>
+    Y <strong>«Este colegio no lo usa»</strong> es lo único que sí se guarda: que
+    usted no tenga departamentos no se puede adivinar — se ve igual que no
+    haberlos cargado todavía.
+  </p>
+</div>
+
+<div class="ojo">
+  <span class="ojo-titulo">Cuando termina, desaparece</span>
+  <p>
+    El plan y la franja se van solos en cuanto lo obligatorio está listo. Un
+    colegio ya configurado no los ve nunca más.
+  </p>
+</div>
+
+
+<h2 id="identidad"><span class="numero">Armar el colegio · 3</span>La identidad</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  El nombre, el código DEA, dónde queda, el escudo y la firma del director.
+  <strong>Todo esto sale impreso</strong> en cada boletín y en cada constancia,
+  así que conviene dejarlo listo antes de que haga falta el primero.
+</p>
+
+<figure>
+<img loading="lazy" alt="La identidad del colegio: los datos que van en el membrete de todos los papeles." src="/manual/capturas/colegio.jpg">
+<figcaption>La identidad del colegio: los datos que van en el membrete de todos los papeles.</figcaption>
+</figure>
+
+<ul class="lista">
+  <li><strong>Código DEA</strong> — se carga una sola vez. Después se bloquea: es un identificador nacional y corregirlo a posteriori es lo que nadie hace.</li>
+  <li><strong>Estado, municipio y parroquia</strong> — se eligen en cascada; al elegir el estado se despliegan sus municipios.</li>
+  <li><strong>Escudo, firma y sello</strong> — se suben una vez y aparecen en los documentos.</li>
+  <li><strong>Tope de arrastre</strong> — cuántas materias aplazadas puede llevar un alumno al año siguiente sin repetir. Por defecto, dos.</li>
+</ul>
+
+<div class="ojo">
+  <span class="ojo-titulo">La firma escaneada no es una firma digital</span>
+  <p>
+    Es un facsímil, igual que el sello que se estampa en papel. Lo que hace
+    comprobable un boletín de SIGA es el <strong>código de verificación</strong>:
+    un tercero entra a <code>/verificar/CÓDIGO</code> y ve lo que el colegio
+    emitió.
+  </p>
+</div>
+
+<h2 id="niveles"><span class="numero">Armar el colegio · 4</span>Niveles y grados</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  Los grados de Venezuela <strong>los fija la ley</strong>: son quince y siempre
+  los mismos. Usted no los escribe — marca los niveles que dicta y quedan creados.
+</p>
+
+<figure>
+<img loading="lazy" alt="Marcar un nivel siembra todos sus grados de una vez." src="/manual/capturas/niveles.jpg">
+<figcaption>Marcar un nivel siembra todos sus grados de una vez.</figcaption>
+</figure>
+
+<figure>
+<img loading="lazy" alt="Los grados ya creados, agrupados por nivel y en el orden en que un niño los cursa." src="/manual/capturas/grados.jpg">
+<figcaption>Los grados ya creados, agrupados por nivel y en el orden en que un niño los cursa.</figcaption>
+</figure>
+
+<div class="ojo">
+  <span class="ojo-titulo">Media Técnica trae el bachillerato consigo</span>
+  <p>
+    Marcarla siembra también los cinco años de Media General: <strong>no hay
+    sexto año sin los cinco anteriores</strong>.
+  </p>
+</div>
+
+<h2 id="materias"><span class="numero">Armar el colegio · 5</span>Áreas y departamentos</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  Las materias —«áreas de aprendizaje»— y en qué grados se dictan. Un
+  departamento agrupa varias: Ciencias, Letras, Deportes.
+</p>
+
+<figure>
+<img loading="lazy" alt="El listado de áreas, con su código y en cuántos grados se dicta cada una." src="/manual/capturas/materias.jpg">
+<figcaption>El listado de áreas, con su código y en cuántos grados se dicta cada una.</figcaption>
+</figure>
+
+<figure>
+<img loading="lazy" alt="Los departamentos agrupan áreas. Son opcionales, pero ordenan el pensum cuando son muchas." src="/manual/capturas/departamentos.jpg">
+<figcaption>Los departamentos agrupan áreas. Son opcionales, pero ordenan el pensum cuando son muchas.</figcaption>
+</figure>
+
+<h2 id="anios"><span class="numero">Armar el colegio · 6</span>Año escolar y lapsos</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  Un año escolar nace con <strong>sus tres lapsos ya puestos</strong>. Solo se le
+  pregunta qué año va a cargar.
+</p>
+
+<figure>
+<img loading="lazy" alt="Los años escolares del colegio, con su situación: en curso, finalizado o por empezar." src="/manual/capturas/anios.jpg">
+<figcaption>Los años escolares del colegio, con su situación: en curso, finalizado o por empezar.</figcaption>
+</figure>
+
+<figure>
+<img loading="lazy" alt="Los lapsos del año. Sus fechas deciden cuál se abre por defecto cuando un profesor entra a calificar." src="/manual/capturas/lapsos.jpg">
+<figcaption>Los lapsos del año. Sus fechas deciden cuál se abre por defecto cuando un profesor entra a calificar.</figcaption>
+</figure>
+
+<div class="ojo">
+  <span class="ojo-titulo">Un lapso no tiene peso</span>
+  <p>
+    El Artículo 111 manda <strong>promedio simple</strong> de los tres lapsos. Un
+    «30/30/40» escrito al lado no significaría nada, así que SIGA no lo pregunta.
+    Lo que sí se pondera son las <strong>evaluaciones dentro de cada lapso</strong>.
+  </p>
+</div>
+
+<h2 id="secciones"><span class="numero">Armar el colegio · 7</span>Secciones</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  Una sección es «1er Grado A»: un grado más una letra. Es donde el alumno se
+  inscribe y donde el profesor trabaja.
+</p>
+
+<figure>
+<img loading="lazy" alt="Las secciones del año, con su profesor guía, su cupo y su aula." src="/manual/capturas/secciones.jpg">
+<figcaption>Las secciones del año, con su profesor guía, su cupo y su aula.</figcaption>
+</figure>
+
+<figure>
+<img loading="lazy" alt="Crear una sección son dos decisiones: el grado y la letra. Lo demás se difiere." src="/manual/capturas/seccion_nueva.jpg">
+<figcaption>Crear una sección son dos decisiones: el grado y la letra. Lo demás se difiere.</figcaption>
+</figure>
+
+<ol class="pasos">
+  <li>Elija el grado.</li>
+  <li>Toque una de las letras que el colegio <strong>ya usa</strong>, o «Otra…» para escribir una nueva.</li>
+  <li>Si ya sabe quién es el guía, ábralo en «Guía, cupo y aula». Si no, déjelo: se asigna después.</li>
+</ol>
+
+<div class="truco">
+  <span class="truco-titulo">El sistema aprende sus letras</span>
+  <p>
+    Las pastillas muestran los identificadores que su colegio ya usa. El que abra
+    su primera sección «D» la escribe y, a partir de ahí, aparece para todos.
+  </p>
+</div>
+
+<div class="ojo">
+  <span class="ojo-titulo">El año escolar no se pregunta</span>
+  <p>
+    Una sección nace en el año que usted tiene elegido arriba. Y al editarla ni
+    se muestra: mover una sección de año arrastraría sus notas, su asistencia y
+    sus boletines, que son de ese año y de ningún otro.
+  </p>
+</div>
+
+<h2 id="contexto"><span class="numero">Armar el colegio · 8</span>La barra de arriba</h2>
+
+<p>
+  Arriba de todas las pantallas hay <strong>un solo selector</strong> con el año
+  escolar y el nivel. De ahí cuelga todo lo que se filtra: los listados, el
+  panel, los documentos.
+</p>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Lo que elige</th><th>Qué cambia</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Año escolar</strong></td><td>Qué secciones, inscripciones y notas se ven. Con «Todos los años» se busca en lo viejo.</td></tr>
+    <tr><td><strong>Nivel</strong></td><td>Un modo de trabajo: «vamos a trabajar Primaria». Por defecto están todos.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="ojo">
+  <span class="ojo-titulo">El profesor no tiene ese selector</span>
+  <p>
+    Y no es permisología: es que darle el control sería darle una manera de
+    cargar notas en el año equivocado sin enterarse. Él ve el año en el que está
+    calificando, y ya.
+  </p>
+</div>
+
+<h2 id="alumnos"><span class="numero">La gente · 9</span>Alumnos</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<figure>
+<img loading="lazy" alt="El listado de alumnos. Se busca palabra por palabra y sin acentos: «sofia» encuentra a Sofía." src="/manual/capturas/alumnos.jpg">
+<figcaption>El listado de alumnos. Se busca palabra por palabra y sin acentos: «sofia» encuentra a Sofía.</figcaption>
+</figure>
+
+<h3>Registrar uno</h3>
+
+<figure>
+<img loading="lazy" alt="El alta de un alumno: cinco campos visibles, y lo opcional plegado." src="/manual/capturas/alumno_nuevo.jpg">
+<figcaption>El alta de un alumno: cinco campos visibles, y lo opcional plegado.</figcaption>
+</figure>
+
+<ol class="pasos">
+  <li>Nombres y apellidos. Se guardan en mayúscula —la forma de la cédula y de las planillas del MPPE— y se muestran en Tipo Título.</li>
+  <li><strong>«Se identifica con»</strong>: escriba la cédula de identidad si ya la tiene, o la cédula escolar que asigna el MPPE. SIGA reconoce cuál es por el formato y se lo dice mientras escribe.</li>
+  <li>Fecha de nacimiento y sexo.</li>
+  <li>Lo demás —foto, correo, carnet— está plegado y es opcional. El carnet lo numera SIGA si lo deja vacío.</li>
+</ol>
+
+<div class="truco">
+  <span class="truco-titulo">Una cédula, no dos campos</span>
+  <p>
+    <code>12345678</code> es una cédula de identidad. <code>V20140000012</code> es
+    una cédula escolar. Lo que las distingue es el <strong>largo</strong>, no la
+    letra —las dos empiezan por la nacionalidad— y de eso se encarga el sistema.
+  </p>
+</div>
+
+<h3>Su ficha</h3>
+
+<figure>
+<img loading="lazy" alt="La ficha del alumno: a quién llamar, cómo va, sus datos y sus documentos oficiales." src="/manual/capturas/alumno_ficha.jpg">
+<figcaption>La ficha del alumno: a quién llamar, cómo va, sus datos y sus documentos oficiales.</figcaption>
+</figure>
+
+<p>
+  Lo primero que se ve es <strong>a quién llamar</strong>, con el teléfono
+  tocable. Es el motivo número uno por el que alguien abre esta pantalla.
+</p>
+
+<h2 id="representantes"><span class="numero">La gente · 10</span>Representantes</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<figure>
+<img loading="lazy" alt="Los representantes del colegio y a cuántos alumnos representa cada uno." src="/manual/capturas/representantes.jpg">
+<figcaption>Los representantes del colegio y a cuántos alumnos representa cada uno.</figcaption>
+</figure>
+
+<figure>
+<img loading="lazy" alt="Su ficha: sus representados, y los dos canales para escribirle." src="/manual/capturas/representante_ficha.jpg">
+<figcaption>Su ficha: sus representados, y los dos canales para escribirle.</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Canal</th><th>Cómo funciona</th></tr></thead>
+  <tbody>
+    <tr><td><strong>WhatsApp</strong></td><td>Abre la aplicación con el número puesto. Termina fuera de SIGA.</td></tr>
+    <tr><td><strong>Correo</strong></td><td>Lo manda SIGA y queda en la auditoría. La respuesta le llega a quien escribió.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="ojo">
+  <span class="ojo-titulo">WhatsApp solo si es un móvil</span>
+  <p>
+    Un enlace de WhatsApp hacia un 0212 abre la aplicación con un chat hacia
+    nadie. Por eso el botón solo aparece con 0412, 0414, 0416, 0424 y 0426.
+  </p>
+</div>
+
+<h2 id="profesores"><span class="numero">La gente · 11</span>Profesores</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<figure>
+<img loading="lazy" alt="Los profesores, con cuántas secciones dicta cada uno." src="/manual/capturas/profesores.jpg">
+<figcaption>Los profesores, con cuántas secciones dicta cada uno.</figcaption>
+</figure>
+
+<p>
+  Un profesor <strong>necesita correo</strong>: sin él no puede entrar, y sin
+  entrar no puede cargar notas. En su ficha se le asignan las secciones y las
+  áreas que dicta, y se le carga su RIF para la nómina.
+</p>
+
+<h2 id="administradores"><span class="numero">La gente · 12</span>Administradores</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<figure>
+<img loading="lazy" alt="Quién más puede administrar el colegio, y con qué cargo." src="/manual/capturas/administradores.jpg">
+<figcaption>Quién más puede administrar el colegio, y con qué cargo.</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Cargo</th><th>Alcance</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Director</strong></td><td>Todo.</td></tr>
+    <tr><td><strong>Coordinador</strong></td><td>La estructura académica y la gente.</td></tr>
+    <tr><td><strong>Secretaria</strong></td><td>Alumnos, representantes, inscripciones y documentos.</td></tr>
+    <tr><td><strong>Finanzas</strong></td><td>La suscripción.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="inscribir"><span class="numero">La gente · 13</span>Inscribir</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  Inscribir es poner a un alumno en una sección. Es <strong>una sola
+  decisión</strong>: a quién.
+</p>
+
+<figure>
+<img loading="lazy" alt="Se elige la sección una vez arriba, se busca por apellido y se toca «Inscribir»." src="/manual/capturas/inscribir.jpg">
+<figcaption>Se elige la sección una vez arriba, se busca por apellido y se toca «Inscribir».</figcaption>
+</figure>
+
+<ol class="pasos">
+  <li>Elija la sección.</li>
+  <li>Escriba un apellido, un nombre o una cédula en el buscador.</li>
+  <li>Toque <strong>«Inscribir»</strong> en la fila del alumno.</li>
+  <li>Vuelve a la misma pantalla, lista para el siguiente.</li>
+</ol>
+
+<div class="truco">
+  <span class="truco-titulo">Los que ya están, se ven</span>
+  <p>
+    Quien ya está inscrito aparece apagado y <strong>dice en qué sección</strong>.
+    Es lo que evita el error clásico de septiembre: inscribir dos veces al mismo
+    niño porque no se sabía que ya estaba.
+  </p>
+</div>
+
+<figure>
+<img loading="lazy" alt="El listado de inscripciones del año, con su estado." src="/manual/capturas/inscripciones.jpg">
+<figcaption>El listado de inscripciones del año, con su estado.</figcaption>
+</figure>
+
+<div class="ojo">
+  <span class="ojo-titulo">De una inscripción solo se cambian dos cosas</span>
+  <p>
+    La <strong>sección</strong> y el <strong>estado</strong>. El alumno no: una
+    inscripción es «este alumno en esta sección», y cambiárselo no la corrige —
+    la convierte en otra, con las notas y la asistencia de la persona anterior
+    colgando.
+  </p>
+</div>
+
+<h2 id="acceso"><span class="numero">La gente · 14</span>Activar el acceso</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  Cargar a una persona no le da acceso. Para que entre, el colegio le
+  <strong>genera un código de un solo uso</strong> desde su ficha.
+</p>
+
+<ol class="pasos">
+  <li>Abra la ficha del representante, profesor o administrador.</li>
+  <li>Toque <strong>«Generar el código»</strong>.</li>
+  <li>El código aparece en pantalla <strong>una sola vez</strong> — cópielo o entrégueselo ahí mismo.</li>
+  <li>Además se le envía por correo, si lo tiene cargado.</li>
+</ol>
+
+<div class="ojo">
+  <span class="ojo-titulo">Se ve una vez, y no es un descuido</span>
+  <p>
+    SIGA guarda una huella del código, no el código. Si se pierde de vista hay
+    que generar otro — y eso invalida el que se acaba de mandar por correo.
+  </p>
+  <p>
+    Tiene <strong>72 horas</strong> para activarse: la secretaria carga un jueves
+    y la mamá abre el domingo.
+  </p>
+</div>
+
+
+<h2 id="importar"><span class="numero">Traer lo que existe · 15</span>Importar o pegar</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  Un colegio que ya usa otro sistema <strong>no va a tipear 360 alumnos de
+  nuevo</strong>. SIGA lee tres planillas distintas.
+</p>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Planilla</th><th>Qué trae</th><th>Qué crea</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Matrícula</strong></td><td>Alumnos y sus representantes</td><td>Personas e inscripciones</td></tr>
+    <tr><td><strong>Pensum</strong></td><td>Materias y profesores</td><td>Áreas y asignaciones</td></tr>
+    <tr><td><strong>Historial</strong></td><td>Notas de años anteriores</td><td>Calificaciones ya cerradas</td></tr>
+  </tbody>
+</table>
+</div>
+
+<figure>
+<img loading="lazy" alt="Las tres planillas, con lo que cada una trae y la plantilla para descargar." src="/manual/capturas/importar.jpg">
+<figcaption>Las tres planillas, con lo que cada una trae y la plantilla para descargar.</figcaption>
+</figure>
+
+<h3>Dos maneras de traerla</h3>
+
+<figure>
+<img loading="lazy" alt="Subir un archivo, o pegar la lista directamente." src="/manual/capturas/importar_nuevo.jpg">
+<figcaption>Subir un archivo, o pegar la lista directamente.</figcaption>
+</figure>
+
+<figure>
+<img loading="lazy" alt="Pegar es el camino corto: seleccione las filas en Excel, cópielas y péguelas aquí." src="/manual/capturas/importar_pegar.jpg">
+<figcaption>Pegar es el camino corto: seleccione las filas en Excel, cópielas y péguelas aquí.</figcaption>
+</figure>
+
+<div class="truco">
+  <span class="truco-titulo">Pegar se lleva cuatro pasos por delante</span>
+  <p>
+    Guardar el archivo, buscarlo en el explorador y subirlo no aportan nada
+    cuando la lista ya está abierta al lado. <strong>Incluya la fila de los
+    encabezados</strong> y péguela: el resto da igual —tabulaciones, comas o
+    punto y coma, las reconoce solas.
+  </p>
+</div>
+
+<h3>Nada se crea sin que usted lo vea</h3>
+
+<ol class="pasos">
+  <li>Sube o pega la planilla.</li>
+  <li>SIGA le muestra <strong>qué columna es cuál</strong>, con su propuesta ya hecha. Corrija lo que esté mal.</li>
+  <li>Le dice qué falta: secciones que no existen, grados nuevos, representantes sin correo.</li>
+  <li>Ve el resumen —«312 de 316 filas»— y confirma.</li>
+</ol>
+
+<div class="ojo">
+  <span class="ojo-titulo">Error y aviso no son lo mismo</span>
+  <p>
+    Un <strong>error</strong> deja la fila fuera: le falta algo sin lo cual el
+    registro no existiría. Un <strong>aviso</strong> la carga igual, pero alguien
+    tiene que enterarse — un representante sin correo entra, un profesor sin
+    correo no, porque sin entrar no puede cargar notas.
+  </p>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">No hace falta que esté limpia</span>
+  <p>
+    El membrete del colegio arriba y los subtotales del medio se ignoran solos.
+    Y después le decimos qué filas quedaron fuera y por qué.
+  </p>
+</div>
+
+<h2 id="clonar"><span class="numero">Traer lo que existe · 16</span>Clonar el año</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  Diez secciones con ocho materias son <strong>ochenta asignaciones de
+  profesor</strong> escritas a mano cada septiembre, cuando el 90 % son las
+  mismas del año pasado.
+</p>
+
+<figure>
+<img loading="lazy" alt="Antes de copiar, SIGA dice exactamente qué va a traer: «se van a traer 19 secciones y 154 asignaciones de profesor»." src="/manual/capturas/copiar_estructura.jpg">
+<figcaption>Antes de copiar, SIGA dice exactamente qué va a traer: «se van a traer 19 secciones y 154 asignaciones de profesor».</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Se copia</th><th>No se copia</th></tr></thead>
+  <tbody>
+    <tr><td>Las secciones, con su cupo y su aula</td><td><strong>Los alumnos</strong> — eso es promover</td></tr>
+    <tr><td>Su profesor guía</td><td>Las notas</td></tr>
+    <tr><td>Quién dicta qué en cada una</td><td>La asistencia y los boletines</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="ojo">
+  <span class="ojo-titulo">Los alumnos NO se copian, a propósito</span>
+  <p>
+    Pasar a un alumno de 1er a 2do Año depende de si aprobó, no de un botón.
+    Copiar la matrícula repetiría a los trescientos sesenta en el mismo grado —
+    y eso es justo lo que un director teme al leer «copiar el año».
+  </p>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">Se puede correr dos veces</span>
+  <p>
+    No duplica nada, y una sección que usted ya armó a mano no se pisa: conserva
+    su cupo y su aula, y solo se le completan las asignaciones que le faltaban.
+  </p>
+</div>
+
+<h2 id="promover"><span class="numero">Traer lo que existe · 17</span>Promover</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  Es la otra mitad de septiembre: clonar arma el año nuevo y lo deja vacío;
+  promover lo llena.
+</p>
+
+<figure>
+<img loading="lazy" alt="La cuenta antes de escribir nada, y debajo qué le pasa a cada sección. «Sin nota cargada» es el caso normal de un colegio que estrena SIGA." src="/manual/capturas/promover.jpg">
+<figcaption>La cuenta antes de escribir nada, y debajo qué le pasa a cada sección. «Sin nota cargada» es el caso normal de un colegio que estrena SIGA.</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Situación</th><th>Qué pasa</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Promueve</strong></td><td>Aprobó todo, o arrastra dentro del tope → al grado siguiente</td></tr>
+    <tr><td><strong>Repite</strong></td><td>Arrastra más que el tope → el mismo grado</td></tr>
+    <tr><td><strong>Egresa</strong></td><td>El grado siguiente no lo dicta el colegio → no se inscribe</td></tr>
+    <tr><td><strong>Sin datos</strong></td><td>No tiene notas definitivas → lo decide el director</td></tr>
+    <tr><td><strong>Retirado</strong></td><td>No se toca</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">«Sin datos» es lo normal el primer año</span>
+  <p>
+    Un colegio que estrena SIGA tiene las notas del año pasado en su sistema
+    viejo o en papel. Por eso existe <strong>«Pasar a todos al siguiente
+    grado»</strong>: el director asume la decisión y queda registrada como suya.
+  </p>
+</div>
+
+<div class="ojo">
+  <span class="ojo-titulo">Nada se escribe sin confirmar</span>
+  <p>
+    Primero ve la cuenta —«181 pasan, 18 repiten, 1 egresa»— y después acepta.
+    Promover a trescientos sesenta alumnos al grado equivocado no se deshace con
+    un botón.
+  </p>
+</div>
+
+<h2 id="profe-panel"><span class="numero">El profesor · 18</span>Su panel</h2>
+<span class="quien quien--profesor">Lo hace el profesor</span>
+
+<p>
+  El profesor entra y ve <strong>solo lo suyo</strong>, en un árbol de dos ramas.
+</p>
+
+<figure>
+<img loading="lazy" alt="«Soy guía de» arriba, «Dicto» abajo. La misma sección puede salir en las dos: son dos trabajos distintos." src="/manual/capturas/profe_panel.jpg">
+<figcaption>«Soy guía de» arriba, «Dicto» abajo. La misma sección puede salir en las dos: son dos trabajos distintos.</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Rama</th><th>Qué abre</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Soy guía de</strong></td><td>La sección completa. La asistencia es de todos sus alumnos, sin importar el área.</td></tr>
+    <tr><td><strong>Dicto</strong></td><td>Un área en una sección. Ahí planifica y califica.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>
+  Dentro de una sección hay <strong>cuatro pestañas</strong>: Asistencia,
+  Calificar, Planificar y Alumnos. No lo sacan de la sección: es su espacio de
+  trabajo.
+</p>
+
+<h2 id="asistencia"><span class="numero">El profesor · 19</span>Asistencia</h2>
+<span class="quien quien--profesor">La toma el profesor guía</span>
+
+<figure>
+<img loading="lazy" alt="Un toque por alumno. Todo empieza en «presente»: se marca la excepción, no la norma." src="/manual/capturas/profe_asistencia.jpg">
+<figcaption>Un toque por alumno. Todo empieza en «presente»: se marca la excepción, no la norma.</figcaption>
+</figure>
+
+<ol class="pasos">
+  <li>Elija el día —viene el de hoy, y los cinco anteriores a un toque.</li>
+  <li>Toque a quien faltó. El icono cambia: presente → ausente → tarde.</li>
+  <li>Guarde. Todo va junto, no una petición por niño.</li>
+</ol>
+
+<div class="ojo">
+  <span class="ojo-titulo">Sin guía asignado, no hay quien pase lista</span>
+  <p>
+    La asistencia la toma el <strong>profesor guía de la sección</strong>, no
+    cualquiera que dicte ahí. Si la sección no tiene guía, solo la dirección
+    puede tomarla.
+  </p>
+</div>
+
+<figure>
+<img loading="lazy" alt="El reporte: quién falta más, por sección y por lapso." src="/manual/capturas/asistencia_reporte.jpg">
+<figcaption>El reporte: quién falta más, por sección y por lapso.</figcaption>
+</figure>
+
+<h2 id="planificar"><span class="numero">El profesor · 20</span>Planificar</h2>
+<span class="quien quien--profesor">Lo hace el profesor</span>
+
+<p>
+  Antes de calificar hay que decir <strong>qué se va a evaluar y cuánto
+  vale</strong>. Eso es el plan del lapso.
+</p>
+
+<figure>
+<img loading="lazy" alt="El plan: la barra de ponderación arriba, las competencias con sus evaluaciones anidadas debajo." src="/manual/capturas/profe_planificar.jpg">
+<figcaption>El plan: la barra de ponderación arriba, las competencias con sus evaluaciones anidadas debajo.</figcaption>
+</figure>
+
+<h3>Se edita donde se lee</h3>
+
+<p>
+  No hay lápiz ni pantalla aparte: <strong>toque el texto y escriba</strong>. Se
+  guarda al salir del campo.
+</p>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Tecla</th><th>Qué hace</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>Enter</kbd></td><td>Guarda y suelta el campo</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>Descarta y deja lo que había</td></tr>
+    <tr><td>Salir del campo</td><td>Guarda, si algo cambió</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>La barra de ponderación</h3>
+
+<p>
+  Arriba ve <strong>cuánto lleva repartido y cuánto le queda</strong>. Se mueve
+  sola al cambiar un porcentaje, y el máximo de cada campo es lo que queda
+  libre — no 100.
+</p>
+
+<div class="ojo">
+  <span class="ojo-titulo">El 70/30 es norma, pero SIGA no lo impone</span>
+  <p>
+    El Artículo 111 dice que un lapso se forma con 70 % de evaluaciones parciales
+    y 30 % de una evaluación final. SIGA deja los pesos libres <strong>mientras
+    cierren en 100</strong>, y le propone el que falta en vez de pedirle una resta
+    que ya tiene hecha.
+  </p>
+</div>
+
+<h3>Competencias e indicadores</h3>
+
+<p>
+  En <strong>primaria</strong>, el plan se arma por competencias: qué debe lograr
+  el niño, con sus indicadores. Una evaluación puede medir varias competencias, y
+  entonces es <strong>un solo dato</strong>: cambiarle el peso en un sitio lo
+  cambia en todos.
+</p>
+
+<p>
+  En <strong>bachillerato</strong> no hay competencias: son las evaluaciones, su
+  peso y su fecha.
+</p>
+
+<div class="truco">
+  <span class="truco-titulo">Agregar sin salir</span>
+  <p>
+    «+ Agregar evaluación» y «+ Agregar competencia» abren un panel ahí mismo.
+    No lo sacan del plan.
+  </p>
+</div>
+
+<h2 id="competencias"><span class="numero">El profesor · 21</span>Competencias e indicadores</h2>
+<span class="quien quien--profesor">Lo hace el profesor</span>
+
+<p>
+  En primaria el plan no se arma con exámenes: se arma con <strong>lo que el
+  niño tiene que lograr</strong>. Eso es una competencia, y debajo van sus
+  indicadores.
+</p>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Qué es</th><th>Ejemplo</th><th>¿Se califica?</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Competencia</strong></td><td>«Reconoce los seres vivos de su entorno y sus necesidades»</td><td>No directamente</td></tr>
+    <tr><td><strong>Indicador</strong></td><td>«Distingue seres vivos de objetos inertes»</td><td><strong>No.</strong> Describe qué significa la competencia, y sale impreso en la boleta</td></tr>
+    <tr><td><strong>Evaluación</strong></td><td>«Examen — 1er Lapso · 40 % · 5 de nov»</td><td>Sí. Es la que lleva la nota</td></tr>
+  </tbody>
+</table>
+</div>
+
+<figure>
+<img loading="lazy" alt="Un lapso sin planificar. La propia pantalla dice por dónde empezar y qué es cada cosa." src="/manual/capturas/plan_vacio.jpg">
+<figcaption>Un lapso sin planificar. La propia pantalla dice por dónde empezar y qué es cada cosa.</figcaption>
+</figure>
+
+<h3>Todo vive anidado, en una sola pantalla</h3>
+
+<p>
+  La competencia arriba, sus indicadores debajo y las evaluaciones que la miden
+  adentro. No hay que ir a otra pantalla para nada.
+</p>
+
+<figure>
+<img loading="lazy" alt="Una competencia numerada, sus dos indicadores y las tres evaluaciones que la miden, cada una con su peso y su fecha." src="/manual/capturas/plan_competencias.jpg">
+<figcaption>Una competencia numerada, sus dos indicadores y las tres evaluaciones que la miden, cada una con su peso y su fecha.</figcaption>
+</figure>
+
+<ol class="pasos">
+  <li>Toque <strong>«+ Agregar competencia»</strong> y escríbala.</li>
+  <li>Debajo aparece <em>«escribe un indicador…»</em> — escriba y pulse <kbd>Enter</kbd>; se abre el siguiente.</li>
+  <li>Toque <strong>«+ Agregar evaluación»</strong> dentro de la competencia: nace midiéndola.</li>
+  <li>Póngale su peso y su fecha. La barra de arriba le dice cuánto queda por repartir.</li>
+</ol>
+
+<div class="truco">
+  <span class="truco-titulo">Se escribe donde se lee</span>
+  <p>
+    No hay pantalla de edición: toque el texto de una competencia o de un
+    indicador y escriba. <kbd>Enter</kbd> guarda, <kbd>Esc</kbd> descarta, y
+    salir del campo guarda si algo cambió.
+  </p>
+</div>
+
+<div class="ojo">
+  <span class="ojo-titulo">Un indicador NO es una evaluación</span>
+  <p>
+    No lleva nota ni peso: <strong>describe</strong> la competencia y se imprime
+    en la boleta para que la familia entienda qué se midió. Quien pone la nota
+    es la evaluación.
+  </p>
+</div>
+
+<div class="ojo">
+  <span class="ojo-titulo">Una evaluación puede medir DOS competencias, y sigue siendo UNA</span>
+  <p>
+    Aparece bajo las dos, pero es el mismo dato: cambiarle el peso en un sitio lo
+    cambia en el otro, y la nota se carga una sola vez. Duplicarla contaría dos
+    veces en la ponderación.
+  </p>
+</div>
+
+<h3>Por qué esto existe</h3>
+
+<p>
+  Cyndi Montoya, maestra con 19 años de aula: <em>«nosotros todos los lapsos
+  tenemos que estar cargando competencias e indicadores… y eso es algo que pasa
+  con todos los sistemas. Es de verdad una pérdida de tiempo muy grande»</em>.
+</p>
+
+<p>
+  Un colegio de primaria escribe cerca de <strong>620 competencias al año</strong>
+  y las bota al terminar. Por eso el plan se puede <strong>copiar a sus otras
+  secciones</strong> del mismo grado: se escribe una vez y se reparte.
+</p>
+
+<div class="ojo">
+  <span class="ojo-titulo">Copiar es un atajo, no un vínculo</span>
+  <p>
+    Después de copiar, cada sección sigue su camino: corregir el plan de «1er
+    Grado A» no toca el de «1er Grado B». Y una sección que ya tiene plan no se
+    pisa — el botón para copiarle se apaga.
+  </p>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">En bachillerato no hay competencias</span>
+  <p>
+    Son las evaluaciones, su peso y su fecha, y ya. La pantalla es la misma:
+    simplemente no aparece la parte de arriba.
+  </p>
+</div>
+
+<h2 id="libreta"><span class="numero">El profesor · 22</span>La libreta</h2>
+<span class="quien quien--profesor">Lo hace el profesor</span>
+
+<p>
+  La vista de conjunto: <strong>sus alumnos por sus evaluaciones</strong>, con el
+  promedio del lapso a la derecha.
+</p>
+
+<figure>
+<img loading="lazy" alt="Cada columna es una evaluación, con su peso, su fecha y cuántas notas lleva cargadas." src="/manual/capturas/profe_libreta.jpg">
+<figcaption>Cada columna es una evaluación, con su peso, su fecha y cuántas notas lleva cargadas.</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>La columna dice</th><th>Significa</th></tr></thead>
+  <tbody>
+    <tr><td><strong>22 de 22</strong></td><td>Están todas las notas</td></tr>
+    <tr><td><strong>8 de 22</strong></td><td>Falta cargar</td></tr>
+    <tr><td>Una raya <code>—</code></td><td>Sin nota. <strong>No es un cero.</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="ojo">
+  <span class="ojo-titulo">Sin nota no es reprobado</span>
+  <p>
+    Un alumno sin calificar sale con una raya, nunca con un cero. Confundirlos
+    reprueba a una sección entera a mitad de lapso y le hace perder la confianza
+    a la familia.
+  </p>
+</div>
+
+<h2 id="planilla"><span class="numero">El profesor · 23</span>Cargar notas</h2>
+<span class="quien quien--profesor">Lo hace el profesor</span>
+
+<p>
+  Se toca una columna de la libreta y se abre su planilla: <strong>una fila por
+  alumno</strong>, pensada para el teléfono.
+</p>
+
+<figure>
+<img loading="lazy" alt="La planilla de notas. Se guarda sola, al salir de cada campo." src="/manual/capturas/profe_notas.jpg">
+<figcaption>La planilla de notas. Se guarda sola, al salir de cada campo.</figcaption>
+</figure>
+
+<ol class="pasos">
+  <li>Escriba la nota.</li>
+  <li>Pulse <kbd>Enter</kbd> y pasa al alumno siguiente. Las flechas también.</li>
+  <li>Cada nota se guarda sola. El <strong>✓</strong> al lado lo confirma.</li>
+  <li>La barra de arriba lleva la cuenta: «12 de 22 cargadas».</li>
+</ol>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Marca</th><th>Qué pasó</th></tr></thead>
+  <tbody>
+    <tr><td><strong>✓</strong></td><td>Guardada</td></tr>
+    <tr><td><strong>—</strong></td><td>Sin nota: el campo quedó vacío</td></tr>
+    <tr><td><strong>⟳</strong></td><td>Sin conexión. Queda pendiente y se reintenta solo</td></tr>
+    <tr><td><strong>!</strong></td><td>El servidor la rechazó. Apunte la marca y le dice por qué</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">No hay botón de guardar, y es a propósito</span>
+  <p>
+    Son hasta noventa notas por lapso. Un «Guardar» al final pierde el trabajo de
+    una hora en cuanto el navegador se cierra. Y si se queda sin señal, lo
+    escrito se queda en pantalla y se reintenta solo al volver.
+  </p>
+</div>
+
+<div class="ojo">
+  <span class="ojo-titulo">Vaciar el campo BORRA la nota</span>
+  <p>
+    El alumno vuelve a «sin nota», que no es una nota baja. Es la manera de
+    corregir un dedazo.
+  </p>
+</div>
+
+
+<h2 id="inicial"><span class="numero">El profesor · 24</span>Educación Inicial</h2>
+<span class="quien quien--profesor">Lo hace la maestra</span>
+
+<p>
+  En preescolar <strong>no hay notas</strong>. Hay áreas de aprendizaje y, en
+  cada una, lo que la maestra escribe sobre ese niño en ese lapso.
+</p>
+
+<figure>
+<img loading="lazy" alt="La pestaña «Calificar» de una sección de Inicial: en vez de una planilla de números, un campo de texto por área y por niño." src="/manual/capturas/inicial_calificar.jpg">
+<figcaption>La pestaña «Calificar» de una sección de Inicial: en vez de una planilla de números, un campo de texto por área y por niño.</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>En Inicial</th><th>En primaria y bachillerato</th></tr></thead>
+  <tbody>
+    <tr><td>Valoración escrita por área</td><td>Nota del 1 al 20</td></tr>
+    <tr><td>Nivel, Grupo y Sección</td><td>Grado y Sección</td></tr>
+    <tr><td>Certificación y prosecución</td><td>Boletín y certificado</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Se guarda sola, igual que las notas</h3>
+
+<p>
+  Escriba y salga del campo: el <strong>✓</strong> junto al área lo confirma. La
+  barra de arriba lleva la cuenta —«2 de 48 escritas en 1er lapso»— porque son
+  tantas valoraciones como áreas por niños.
+</p>
+
+<figure>
+<img loading="lazy" alt="La misma sección, pestaña «Alumnos», con la lista para descargar." src="/manual/capturas/inicial_alumnos.jpg">
+<figcaption>La misma sección, pestaña «Alumnos», con la lista para descargar.</figcaption>
+</figure>
+
+<div class="ojo">
+  <span class="ojo-titulo">Los grupos de Inicial son tres, no seis</span>
+  <p>
+    Se llaman <strong>1er, 2do y 3er Nivel</strong>, y al terminar el tercero el
+    niño pasa a 1er Grado. La constancia de prosecución es entre grupos <em>del
+    nivel</em>; la certificación sale al salir de Preescolar.
+  </p>
+</div>
+
+<h2 id="informes"><span class="numero">El profesor · 25</span>Informes descriptivos</h2>
+<span class="quien quien--profesor">Lo hace el profesor guía</span>
+
+<p>
+  En primaria la familia lee un párrafo, no un 14. El informe descriptivo es
+  <strong>cómo le fue al niño en el lapso, en palabras de su maestra</strong>, y
+  sale impreso al final de la boleta, debajo de las calificaciones.
+</p>
+
+<figure>
+<img loading="lazy" alt="Un campo por alumno, con su nota del lapso a la derecha para escribir con el dato a la vista." src="/manual/capturas/informes.jpg">
+<figcaption>Un campo por alumno, con su nota del lapso a la derecha para escribir con el dato a la vista.</figcaption>
+</figure>
+
+<ol class="pasos">
+  <li>Elija el lapso.</li>
+  <li>Escriba en el campo del alumno.</li>
+  <li>Salga del campo — se guarda solo, como las notas.</li>
+</ol>
+
+<div class="truco">
+  <span class="truco-titulo">La nota del lapso está al lado a propósito</span>
+  <p>
+    «PI · 14» junto al nombre evita ir y volver a la libreta para saber de quién
+    se está hablando.
+  </p>
+</div>
+
+<h2 id="ficha-profe"><span class="numero">El profesor · 26</span>La ficha del alumno</h2>
+<span class="quien quien--profesor">La ve el profesor</span>
+
+<p>
+  Un profesor no administra personas, pero <strong>necesita llamar a la casa</strong>.
+  Desde la pestaña «Alumnos» de su sección, cada nombre abre una ficha corta.
+</p>
+
+<figure>
+<img loading="lazy" alt="Lo que el profesor ve: a quién llamar, con el teléfono, WhatsApp y el correo del representante." src="/manual/capturas/profe_ficha_alumno.jpg">
+<figcaption>Lo que el profesor ve: a quién llamar, con el teléfono, WhatsApp y el correo del representante.</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Ve</th><th>No ve</th></tr></thead>
+  <tbody>
+    <tr><td>Nombre, sección y año</td><td>Cédula y documentos</td></tr>
+    <tr><td>A quién llamar, y por dónde</td><td>Datos de otras secciones</td></tr>
+    <tr><td>Su desempeño en el área que dicta</td><td>Nada que pueda editar</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="ojo">
+  <span class="ojo-titulo">WhatsApp solo aparece si el número es móvil</span>
+  <p>
+    0412, 0414, 0416, 0424 y 0426. Un fijo se muestra para llamar, pero no ofrece
+    un chat que no existe.
+  </p>
+</div>
+
+<h2 id="quien-no-cargo"><span class="numero">El profesor · 27</span>Quién no cargó</h2>
+<span class="quien quien--direccion">Lo mira la dirección</span>
+
+<p>
+  La pregunta de todo coordinador en la semana de cierre. SIGA la contesta en una
+  pantalla: <strong>quién tiene evaluaciones vencidas sin notas</strong>.
+</p>
+
+<figure>
+<img loading="lazy" alt="Doce profesores por llamar, cada uno con sus evaluaciones atrasadas y cuántos alumnos le faltan." src="/manual/capturas/carga_de_notas.jpg">
+<figcaption>Doce profesores por llamar, cada uno con sus evaluaciones atrasadas y cuántos alumnos le faltan.</figcaption>
+</figure>
+
+<div class="ojo">
+  <span class="ojo-titulo">Solo cuenta lo que ya venció</span>
+  <p>
+    Una evaluación cuya fecha es la semana que viene <strong>no está
+    atrasada</strong>. Sin esa regla, la lista sería los mismos doce profesores
+    todos los días y nadie la miraría.
+  </p>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">«Escribirle» manda el correo desde aquí</span>
+  <p>
+    Sale de SIGA con <em>responder</em> apuntando a quien lo escribió, y queda en
+    la auditoría — así se sabe que se avisó.
+  </p>
+</div>
+
+<h2 id="boletines"><span class="numero">Documentos · 28</span>Boletines</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  El papel que la familia espera. Se elige la sección, qué se emite y para quién.
+</p>
+
+<figure>
+<img loading="lazy" alt="Emitir boletines: una sección, un lapso —o el año completo— y un alumno o todos." src="/manual/capturas/boletines.jpg">
+<figcaption>Emitir boletines: una sección, un lapso —o el año completo— y un alumno o todos.</figcaption>
+</figure>
+
+<ol class="pasos">
+  <li>Elija la <strong>sección</strong>.</li>
+  <li>Elija <strong>qué se emite</strong>: un lapso, o el año completo.</li>
+  <li>Elija un <strong>alumno</strong>, o deje «toda la sección».</li>
+  <li>Toque <strong>«Emitir y descargar»</strong>. Sale un solo PDF con una página por alumno.</li>
+</ol>
+
+<div class="ojo">
+  <span class="ojo-titulo">Un boletín emitido queda congelado</span>
+  <p>
+    Guarda las notas <strong>tal como se imprimieron</strong>, con su propio
+    código. Si mañana se corrige una nota, el boletín de ayer sigue diciendo lo
+    que decía — que es justo lo que hace que sirva como documento.
+  </p>
+  <p>
+    Cada emisión queda registrada: quién la hizo y cuándo. Y un tercero puede
+    comprobarla en <code>/verificar/CÓDIGO</code>.
+  </p>
+</div>
+
+<h2 id="constancias"><span class="numero">Documentos · 29</span>Constancias</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  Para el pasaporte, una beca, el seguro o una embajada. Sale con la
+  <strong>situación de hoy</strong> y el espacio para la firma y el sello.
+</p>
+
+<figure>
+<img loading="lazy" alt="Constancia de estudios: sección, alumno —o toda la sección— y a descargar." src="/manual/capturas/constancias.jpg">
+<figcaption>Constancia de estudios: sección, alumno —o toda la sección— y a descargar.</figcaption>
+</figure>
+
+<div class="ojo">
+  <span class="ojo-titulo">Esta NO se guarda, y es la diferencia con el boletín</span>
+  <p>
+    Una constancia dice «este alumno estudia aquí <em>hoy</em>». Congelarla la
+    volvería mentira mañana. El boletín, al revés, es un hecho de un lapso que ya
+    pasó: ese sí se guarda.
+  </p>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">Un colegio con deuda sigue emitiendo constancias</span>
+  <p>
+    La suscripción vencida deja el sistema en solo lectura, pero no corta este
+    papel: <strong>la deuda es del colegio y el perjuicio no puede ser del
+    alumno</strong>.
+  </p>
+</div>
+
+<h2 id="papeles"><span class="numero">Documentos · 30</span>Los del ministerio</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  Los formatos oficiales, con su estructura y su redacción. Se emiten desde la
+  pestaña <strong>«Alumnos» de la sección</strong>, que es donde el director ya
+  está mirando al grupo.
+</p>
+
+<figure>
+<img loading="lazy" alt="Una sección de bachillerato: además de la lista, el Resumen Final en PDF y en Excel." src="/manual/capturas/resumen_final.jpg">
+<figcaption>Una sección de bachillerato: además de la lista, el Resumen Final en PDF y en Excel.</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Documento</th><th>Para</th><th>Sale en</th></tr></thead>
+  <tbody>
+    <tr><td>Certificado de Educación Primaria</td><td>Quien termina 6to Grado</td><td>PDF</td></tr>
+    <tr><td>Constancia de prosecución — Primaria</td><td>Quien pasa de grado</td><td>PDF</td></tr>
+    <tr><td>Certificación de Educación Inicial</td><td>Quien sale de Preescolar</td><td>PDF</td></tr>
+    <tr><td>Prosecución entre grupos — Inicial</td><td>Quien pasa de Nivel</td><td>PDF</td></tr>
+    <tr><td>Resumen Final del Rendimiento</td><td>La sección entera, Media</td><td>PDF y Excel</td></tr>
+    <tr><td>Certificación 31059</td><td>Quien termina bachillerato</td><td>PDF</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">El Resumen Final también sale en Excel, editable</span>
+  <p>
+    Lo que SIGA sabe va escrito; lo que no —las casillas que el colegio llena a
+    mano— va en <strong>ámbar</strong>, para que se vea de un golpe qué falta
+    completar antes de imprimir.
+  </p>
+</div>
+
+<h2 id="listas"><span class="numero">Documentos · 31</span>Listas en Excel</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  Cualquier sección, de cualquier nivel, se baja como una lista bien hecha —con
+  el escudo del colegio, su encabezado y el efecto cebra— <strong>lista para
+  imprimir y firmar</strong>.
+</p>
+
+<figure>
+<img loading="lazy" alt="«Descargar la lista», arriba de cualquier sección. No hay que armar nada." src="/manual/capturas/seccion_alumnos.jpg">
+<figcaption>«Descargar la lista», arriba de cualquier sección. No hay que armar nada.</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Trae</th></tr></thead>
+  <tbody>
+    <tr><td>#, apellidos y nombres, número de expediente</td></tr>
+    <tr><td>Cédula o cédula escolar, sexo, fecha de nacimiento</td></tr>
+    <tr><td>Representante, con su teléfono y su correo</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">Sirve de lista de asistencia en papel</span>
+  <p>
+    Es la razón por la que lleva número de fila y va ordenada por apellido: para
+    pasarla en una excursión, en una reunión de representantes o el día que se
+    fue la luz.
+  </p>
+</div>
+
+<h2 id="rubrica"><span class="numero">Documentos · 32</span>La rúbrica</h2>
+<span class="quien quien--direccion">Lo hace la dirección</span>
+
+<p>
+  En primaria la familia no lee un 17: <strong>lee un nivel</strong>. Aquí se
+  decide con qué palabras.
+</p>
+
+<figure>
+<img loading="lazy" alt="La rúbrica: cada nivel con su código, su nombre y desde qué nota empieza." src="/manual/capturas/rubrica.jpg">
+<figcaption>La rúbrica: cada nivel con su código, su nombre y desde qué nota empieza.</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Código</th><th>Nombre</th><th>Cubre</th></tr></thead>
+  <tbody>
+    <tr><td>PC</td><td>Proceso consolidado</td><td>19 a 20</td></tr>
+    <tr><td>PA</td><td>Proceso avanzado</td><td>17 a 18</td></tr>
+    <tr><td>PI</td><td>Proceso intermedio</td><td>14 a 16</td></tr>
+    <tr><td>PD</td><td>Proceso con dificultad</td><td>10 a 13</td></tr>
+    <tr><td>NP</td><td>No cumplió el proceso</td><td>1 a 9</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="ojo">
+  <span class="ojo-titulo">Cambia cómo se lee, no lo que se carga</span>
+  <p>
+    Los docentes siguen cargando <strong>números del 1 al 20</strong>. La rúbrica
+    solo decide qué palabra sale impresa. Y el rango se define por el
+    <em>desde</em>: el resto se calcula solo, así que no quedan huecos entre
+    niveles.
+  </p>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">Un colegio puede usar tres niveles en vez de cinco</span>
+  <p>
+    Se borran los que sobren y se ajusta el «desde». «Volver a la propuesta de
+    SIGA» devuelve los cinco de arriba si algo queda raro.
+  </p>
+</div>
+
+<h2 id="familia"><span class="numero">La familia · 33</span>Portal del representante</h2>
+<span class="quien quien--familia">Lo usa la familia</span>
+
+<p>
+  Es a quien apunta el producto. Una madre entra con su correo y ve
+  <strong>a sus representados</strong>, nada más.
+</p>
+
+<figure>
+<img loading="lazy" alt="«Mis representados». Con hijos en dos colegios, arriba aparece el selector — cada colegio con su matrícula aparte." src="/manual/capturas/familia.jpg">
+<figcaption>«Mis representados». Con hijos en dos colegios, arriba aparece el selector — cada colegio con su matrícula aparte.</figcaption>
+</figure>
+
+<ol class="pasos">
+  <li>Entra con su correo y la clave que activó con el código.</li>
+  <li>Toca al hijo del que quiere ver las notas.</li>
+  <li>Ve el lapso, las materias y el detalle de cada evaluación.</li>
+</ol>
+
+<div class="ojo">
+  <span class="ojo-titulo">Ve las notas, no el boletín</span>
+  <p>
+    Lo que aparece es el estado al día de hoy. El <strong>boletín</strong> es el
+    papel que emite el colegio, con su firma y su código — y solo existe cuando
+    el colegio lo emite.
+  </p>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">Una madre sin correo también existe en SIGA</span>
+  <p>
+    Sale en el listado del colegio y en los papeles del alumno; simplemente no
+    entra hasta que el colegio le cargue un correo y le genere el código.
+  </p>
+</div>
+
+<h2 id="portal-alumno"><span class="numero">La familia · 34</span>Portal del alumno</h2>
+<span class="quien quien--familia">Lo usa el alumno</span>
+
+<p>
+  Un muchacho de bachillerato con correo puede entrar y ver lo suyo. Es un
+  <strong>extra</strong>, no el camino principal: un niño de ocho años no tiene
+  correo, y quien consulta sus notas es su mamá.
+</p>
+
+<figure>
+<img loading="lazy" alt="Su panel: las materias del lapso con su nota, y el número de expediente arriba." src="/manual/capturas/alumno_portal.jpg">
+<figcaption>Su panel: las materias del lapso con su nota, y el número de expediente arriba.</figcaption>
+</figure>
+
+<figure>
+<img loading="lazy" alt="El detalle: cada evaluación con su fecha, su peso y su nota, y el promedio del lapso arriba." src="/manual/capturas/alumno_notas.jpg">
+<figcaption>El detalle: cada evaluación con su fecha, su peso y su nota, y el promedio del lapso arriba.</figcaption>
+</figure>
+
+<div class="ojo">
+  <span class="ojo-titulo">«Pendiente» se escribe con letras</span>
+  <p>
+    Una evaluación sin corregir nunca sale como un cero. El contador de arriba
+    —«evaluaciones sin corregir»— existe para que el alumno sepa que falta algo,
+    no para que crea que reprobó.
+  </p>
+</div>
+
+<h2 id="buscar"><span class="numero">Día a día · 35</span>Buscar</h2>
+<span class="quien quien--direccion">Lo usa todo el colegio</span>
+
+<p>
+  El buscador de arriba encuentra personas escribiendo cualquier parte de su
+  nombre o de su cédula, y sugiere mientras se teclea.
+</p>
+
+<figure>
+<img loading="lazy" alt="Buscando «lopez» en Alumnos: diecisiete, con acento y sin acento. El buscador vive en la cabecera de cada listado." src="/manual/capturas/buscar.jpg">
+<figcaption>Buscando «lopez» en Alumnos: diecisiete, con acento y sin acento. El buscador vive en la cabecera de cada listado.</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Si escribe</th><th>Encuentra</th></tr></thead>
+  <tbody>
+    <tr><td><code>lopez</code></td><td>López, Lópéz y lopez — <strong>los acentos no importan</strong></td></tr>
+    <tr><td><code>lopez guzman</code></td><td>Solo a quien tenga los dos apellidos: escribir más <strong>acota</strong></td></tr>
+    <tr><td><code>17078125</code></td><td>A esa persona, con puntos o sin puntos</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="truco">
+  <span class="truco-titulo">Palabra por palabra, y cada una donde caiga</span>
+  <p>
+    «López Guzmán» son dos columnas distintas —primer apellido y segundo—, así
+    que se busca cada palabra por separado y se exige que estén todas. Buscar el
+    texto entero contra una sola columna no encontraría a nadie.
+  </p>
+</div>
+
+<h2 id="auditoria"><span class="numero">Día a día · 36</span>La auditoría</h2>
+<span class="quien quien--direccion">La mira la dirección</span>
+
+<p>
+  Quién hizo qué, cuándo y desde dónde. Es la pantalla que contesta «¿por qué mi
+  hijo quedó en 2do Año B?» y «¿quién le cambió esa nota?».
+</p>
+
+<figure>
+<img loading="lazy" alt="El registro de actividad, con filtro por tipo de acción y por rango de fechas." src="/manual/capturas/auditoria.jpg">
+<figcaption>El registro de actividad, con filtro por tipo de acción y por rango de fechas.</figcaption>
+</figure>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Guarda</th><th>No guarda</th></tr></thead>
+  <tbody>
+    <tr><td>Inicios de sesión</td><td>El contenido de los correos</td></tr>
+    <tr><td>Altas, cambios y bajas</td><td>Contraseñas ni códigos</td></tr>
+    <tr><td>Emisiones de documentos</td><td>Lo que se miró sin tocar</td></tr>
+    <tr><td>Importaciones y promociones</td><td></td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="ojo">
+  <span class="ojo-titulo">De un correo enviado queda el asunto, no el texto</span>
+  <p>
+    La bitácora responde «¿se le avisó?», no «¿qué le dijeron?». El mensaje
+    completo vive en la ficha de la persona, que es otra pregunta.
+  </p>
+</div>
+
+<h2 id="cuenta"><span class="numero">Día a día · 37</span>Su cuenta</h2>
+<span class="quien quien--direccion">Lo hace cada quien</span>
+
+<p>
+  Cambiar la contraseña propia. Hace falta la actual: tener la sesión abierta no
+  alcanza.
+</p>
+
+<figure>
+<img loading="lazy" alt="«Mi cuenta». El correo se muestra pero no se cambia desde aquí — es la llave con la que se entra." src="/manual/capturas/cuenta.jpg">
+<figcaption>«Mi cuenta». El correo se muestra pero no se cambia desde aquí — es la llave con la que se entra.</figcaption>
+</figure>
+
+<div class="truco">
+  <span class="truco-titulo">Si la olvidó, no hace falta llamar al colegio</span>
+  <p>
+    «Olvidé mi contraseña» en la pantalla de entrada manda un enlace al correo,
+    válido por <strong>seis horas</strong>. El código que da el colegio es otra
+    cosa: sirve para <em>activar</em> el acceso la primera vez, y dura 72.
+  </p>
+</div>
+
+<h2 id="cierre"><span class="numero">Para cerrar</span>Lo que hay que recordar</h2>
+
+<div class="tabla-envuelta">
+<table>
+  <thead><tr><th>Si pasa esto</th><th>Es porque</th></tr></thead>
+  <tbody>
+    <tr><td>El panel dice «0 alumnos»</td><td>Está parado en el año que aún no empieza. Cambie el año arriba.</td></tr>
+    <tr><td>Faltan grados en un desplegable</td><td>Hay un nivel elegido arriba. Ponga «Todos».</td></tr>
+    <tr><td>Un alumno sale sin nota</td><td>Sin nota no es cero: falta cargarla.</td></tr>
+    <tr><td>No aparece el botón de calificar</td><td>El plan Inicial es gratis y no incluye calificar.</td></tr>
+    <tr><td>Los promedios quedaron viejos</td><td>El recálculo va en cola; si tarda, el colegio nos escribe.</td></tr>
+    <tr><td>Un profesor no puede entrar</td><td>No tiene correo cargado, o no se le generó el código.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="entradilla" style="margin-top:2.4rem">
+  Y una sola regla que resume el resto: <strong>nada masivo se escribe sin que
+  usted vea antes la cuenta</strong> — importar, copiar el año, promover y emitir
+  muestran primero qué va a pasar, y después preguntan.
+</p>
+
+</div>
+</main>
+
+</body>
+</html>
