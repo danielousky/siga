@@ -104,13 +104,26 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     # Y un login flaky es el peor de todos: hace fallar CUALQUIER test, en un
     # punto cualquiera, con un mensaje que no menciona el login. Enseña a
     # volver a correr en vez de a mirar.
+    # ⚠️ Y el reintento cubre TAMBIÉN que el campo no esté.
+    #
+    # Fallaba con «Unable to find field "user_email"», que no es lo mismo que
+    # «el clic no llegó»: es que la página del login todavía no estaba ahí
+    # cuando se la pidió. Con el `rescue` fuera del bucle, ese caso se comía el
+    # reintento entero y hacía fallar un test que no habla de login.
     3.times do |intento|
-      visit new_user_session_path
-      fill_in "user_email", with: usuario.email
-      fill_in "user_password", with: clave
-      tocando { find(".acceso-enviar").click }
+      begin
+        visit new_user_session_path
+        fill_in "user_email", with: usuario.email
+        fill_in "user_password", with: clave
+        tocando { find(".acceso-enviar").click }
 
-      break if page.has_no_current_path?(new_user_session_path, wait: 5)
+        break if page.has_no_current_path?(new_user_session_path, wait: 5)
+      rescue Capybara::ElementNotFound => e
+        raise "no cargó el login para #{usuario.email}: #{e.message}" if intento == 2
+
+        next
+      end
+
       raise "no se pudo entrar como #{usuario.email}" if intento == 2
     end
 
