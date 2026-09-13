@@ -43,3 +43,16 @@
 # Archivos subidos en desarrollo (logos de colegio). Los escudos de ejemplo
 # viven en db/seeds_assets y esos SÍ se versionan.
 /storage/
+
+# El manual: lo INTERMEDIO se regenera, lo PUBLICADO se despliega.
+#
+#   png/ opt/                  las capturas crudas y optimizadas (~48 MB)
+#   manual_de_siga.html/.pdf   la versión de una pieza, para el artifact
+#
+# ⚠️ `docs/manual/publicado/` y `public/manual/capturas/` SÍ se versionan: son
+# lo que sirve `/manual`, y Dokku despliega desde git — lo que no esté acá no
+# llega al servidor.
+docs/manual/png/
+docs/manual/opt/
+docs/manual/manual_de_siga.html
+docs/manual/manual_de_siga.pdf
