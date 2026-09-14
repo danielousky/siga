@@ -67,6 +67,22 @@ Rails.application.routes.draw do
   # salía con el HTML adentro y `Content-Type: text/html`.
   get "manual", to: "manual#show", as: :manual
 
+  # ── Los pagos de la familia (spec: docs/specs/pagos-de-la-familia.md) ──────
+  #
+  # Dos puertas para el mismo hecho, porque son dos trabajos distintos:
+  #
+  #   /pagos      la FAMILIA ve su tarjeta y reporta
+  #   /finanzas   la OFICINA revisa el voucher y valida
+  resources :pagos, path: "pagos", only: [ :index, :new, :create ],
+            path_names: { new: "reportar" }
+
+  resources :finanzas, path: "finanzas", only: [ :index, :show ] do
+    member do
+      patch :validar
+      patch :rechazar
+    end
+  end
+
   # ⚠️ NO hay registro público. Ver MOR-101.
   #
   # `:registerable` viene puesto por `rails generate devise User` y no es una

@@ -1,0 +1,88 @@
+-# El formulario del reporte (spec: `docs/specs/pagos-de-la-familia.md`).
+-#
+-# ⚠️ El orden es el del trabajo real: primero QUÉ estoy pagando, después CÓMO
+-# lo pagué y al final el respaldo. Al revés —los datos del banco arriba— la
+-# familia llena ocho campos antes de descubrir que marcó el mes equivocado.
+- content_for :titulo, "Reportar un pago"
+
+.card-academic
+  = render "shared/cabecera", titulo: "Reportar un pago"
+
+  %p.nota-ayuda
+    Para
+    %strong= @inscripcion.student.user.apellidos_y_nombres
+    ·
+    = "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
+
+  = form_with model: @reporte, url: pagos_path, method: :post, multipart: true do |f|
+    = render "shared/errors", object: @reporte
+    = f.hidden_field :enrollment_id, value: @inscripcion.id
+
+    -# ── 1 · qué se paga ────────────────────────────────────────────────────
+    %fieldset.form-group
+      %legend.form-label Qué está pagando
+      - if @cobros.empty?
+        %p.nota-ayuda
+          No hay cuotas pendientes de reportar. Si ya reportó un pago, está en
+          revisión.
+      - else
+        .cuotas-a-marcar
+          - @cobros.each do |cobro|
+            %label.cuota-a-marcar
+              = check_box_tag "cobros[]", cobro.id, false, id: "cobro_#{cobro.id}"
+              %span.cuota-nombre= cobro.fee&.nombre
+              %span.cuota-monto= numero_en_dolares(cobro.monto)
+              = pastilla_de_cobro(cobro)
+        %p.nota-ayuda Puede marcar varias si transfirió todo junto.
+
+    -# ── 2 · cómo se pagó ───────────────────────────────────────────────────
+    .form-row
+      .form-group
+        = con_pista("Es lo que el colegio busca en su estado de cuenta. Solo letras, números y guion.") { f.label :referencia, "Referencia de la transferencia", class: "form-label" }
+        = f.text_field :referencia, class: "form-control campo-mayuscula", required: true,
+                       maxlength: 30, placeholder: "Ej.: 0012345678",
+                       data: { controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9-" }
+      .form-group
+        = f.label :banco, "Banco de origen", class: "form-label"
+        = f.select :banco, Banco.para_elegir, { include_blank: "Elija su banco" },
+                   class: "form-control", required: true
+
+    .form-row
+      .form-group
+        = f.label :monto, "Monto transferido", class: "form-label"
+        = f.number_field :monto, class: "form-control", step: "0.01", min: "0.01",
+                         required: true, placeholder: "45,00"
+      .form-group
+        -# ⚠️ El calendario NO ofrece el año pasado. Daniel: «del último mes
+        -# hacia adelante». Corta el dedazo de año antes de que se envíe.
+        = con_pista("Cuándo salió el dinero de su banco, no cuándo lo está reportando.") { f.label :pagado_el, "Fecha del pago", class: "form-label" }
+        = f.date_field :pagado_el, class: "form-control", required: true,
+                       **limites_del_calendario_de_pago
+
+    -# ── 3 · quién pagó ─────────────────────────────────────────────────────
+    .form-row
+      .form-group
+        = con_pista("Casi nunca es el representante: suele ser el papá, la abuela o un tío.") { f.label :depositante_nombre, "Nombre de quien transfirió", class: "form-label" }
+        = f.text_field :depositante_nombre, class: "form-control campo-mayuscula", required: true
+      .form-group
+        = f.label :depositante_documento, "Su cédula", class: "form-label"
+        = f.text_field :depositante_documento, class: "form-control",
+                       data: { controller: "campo-filtrado", campo_filtrado_permite_value: "0-9" }
+
+    -# ── 4 · el respaldo ────────────────────────────────────────────────────
+    .form-group
+      = f.label :voucher, "Foto del comprobante", class: "form-label"
+      = f.file_field :voucher, class: "form-control", accept: "image/*,application/pdf",
+                     capture: "environment"
+      %p.nota-ayuda
+        La foto de la pantalla del banco sirve. Se guarda más liviana, sin perder
+        el número de referencia.
+
+    .form-group
+      = f.label :nota, "Algo que agregar (opcional)", class: "form-label"
+      = f.text_area :nota, class: "form-control", rows: 2,
+                    placeholder: "Ej.: pagué septiembre y octubre juntos"
+
+    .form-acciones
+      = f.submit "Reportar el pago", class: "btn btn-guardar"
+      = boton "Volver", pagos_path, icono: :volver, tono: :secondary

@@ -2453,6 +2453,114 @@ nav.pagy a.gap {
    Boletines y su verificación pública
    ============================================ */
 
+/* ---- Los pagos de la familia --------------------------------------------
+   spec: docs/specs/pagos-de-la-familia.md
+
+   ⚠️ El COLOR lo lleva el dato, nunca el control (regla de color, MOR-135).
+   Acá el dato es «este mes está pagado / vencido / esperando», así que son
+   pastillas de texto —no botones de colores— y el verde, el ámbar y el rojo
+   se usan justamente donde sí les toca: sobre un hecho. */
+.pastilla-de-cobro {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.estado-pagado, .estado-validado {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+.estado-en-revision {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+.estado-en-mora, .estado-rechazado {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+.estado-por-vencer {
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+/* El número vencido, en el tono del dato que hay que mirar. */
+.dato-en-mora { color: var(--danger-text); font-weight: 600; }
+
+/* ---- La tarjeta de pago -------------------------------------------------
+   Daniel: «eso se acostumbraba mucho hace años… una tarjeta de pago donde la
+   persona veía que había pagado y qué le faltaba». La barra es lo que se lee
+   de un vistazo; la tabla, lo que se consulta. */
+.tarjeta-de-pago { margin-bottom: var(--space-lg); }
+
+.barra-de-pago {
+  height: 10px;
+  margin: var(--space-md) 0 6px;
+  border-radius: 999px;
+  background: var(--surface-hover);
+  overflow: hidden;
+}
+.barra-de-pago-lleno {
+  height: 100%;
+  background: var(--success-text);
+  border-radius: 999px;
+  transition: width var(--transition-base);
+}
+
+/* ---- Marcar qué cuotas se pagan -----------------------------------------
+   ⚠️ La fila entera es el control, no solo la casilla: en un teléfono una
+   casilla de 16 px es el objetivo más difícil de la pantalla. */
+.cuotas-a-marcar { display: grid; gap: 8px; margin-top: var(--space-sm); }
+.cuota-a-marcar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 11px 14px;
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-height: 44px;
+}
+.cuota-a-marcar:has(input:checked) {
+  border-color: var(--brand-primary);
+  background: var(--brand-subtle);
+}
+.cuota-a-marcar:has(input:focus-visible) { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+.cuota-nombre { flex: 1; font-weight: 600; }
+.cuota-monto { font-variant-numeric: tabular-nums; }
+
+/* ---- El comprobante -----------------------------------------------------
+   Se ve junto a los datos, no en una lupa aparte: el trabajo de la oficina es
+   comparar el número de la pantalla con el de la foto. */
+.voucher {
+  display: block;
+  max-width: 460px;
+  width: 100%;
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+}
+
+.decidir-el-pago {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+  align-items: flex-start;
+}
+.decidir-el-pago .rechazo {
+  display: grid;
+  gap: 6px;
+  min-width: 280px;
+  flex: 1;
+}
+
+/* El aviso de «falta ponerse al día»: ámbar, no rojo. Quien lo lee no hizo
+   nada malo — casi siempre es alguien a quien se le pasó la fecha. */
+.al-dia { border-left: 3px solid var(--warning-text); }
+.al-dia-detalle { font-size: 15px; }
+.al-dia-acciones { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-top: var(--space-md); }
+
 /* ---- El directorio público de planteles ---------------------------------
    Cuatro pantallas que vive cualquiera sin sesión, con el MISMO sistema de
    diseño del panel: `card-academic`, `shared/cabecera` y `table-academic`. No

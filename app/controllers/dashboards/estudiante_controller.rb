@@ -8,6 +8,8 @@
 # por evaluación y el año completo — pero la respuesta a la pregunta con la que
 # entró se ve sin hacer clic.
 class Dashboards::EstudianteController < ApplicationController
+  include ExigeEstarAlDia
+
   before_action :require_estudiante!
 
   def index
@@ -41,6 +43,10 @@ class Dashboards::EstudianteController < ApplicationController
   def cargar_notas_del_lapso
     @inscripcion = @enrollments.first
     return if @inscripcion.nil?
+
+    # La misma deuda que bloquea a su representante lo bloquea a él: es la
+    # deuda de SU inscripción, no de quien la mira.
+    return if exigir_estar_al_dia!(@inscripcion)
 
     @lapsos = EvaluationMoment.where(academic_period_id: @inscripcion.section.academic_period_id)
                               .order(:id).to_a

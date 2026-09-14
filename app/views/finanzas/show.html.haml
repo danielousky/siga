@@ -1,0 +1,96 @@
+-# Un reporte, con su voucher al lado (spec: `docs/specs/pagos-de-la-familia.md`).
+-#
+-# ⚠️ El voucher y los datos van JUNTOS en la misma pantalla, no en una lupa que
+-# hay que abrir: el trabajo de la oficina es comparar el número de la pantalla
+-# con el de la foto, y hacerlo en dos pestañas es cómo se valida el pago
+-# equivocado.
+- content_for :titulo, "Revisar un pago"
+
+.card-academic
+  = render layout: "shared/cabecera", locals: { titulo: "Pago de #{@reporte.enrollment.student.user.apellidos_y_nombres}" } do
+    = boton "Volver", finanzas_path, icono: :volver, tono: :secondary
+
+  .detail-row
+    .detail-item
+      .detail-label Referencia
+      .detail-value= @reporte.referencia
+    .detail-item
+      .detail-label Banco
+      .detail-value= @reporte.banco_a_la_vista
+    .detail-item
+      .detail-label Monto
+      .detail-value= numero_en_dolares(@reporte.monto)
+
+  .detail-row
+    .detail-item
+      .detail-label Fecha del pago
+      .detail-value= l(@reporte.pagado_el, format: :long)
+    .detail-item
+      .detail-label Reportado
+      .detail-value= l(@reporte.created_at.to_date, format: :long)
+    .detail-item
+      .detail-label Situación
+      .detail-value= pastilla_de_reporte(@reporte)
+
+  .detail-row
+    .detail-item
+      .detail-label Quien transfirió
+      .detail-value= @reporte.depositante_nombre
+    .detail-item
+      .detail-label Su cédula
+      .detail-value= @reporte.depositante_documento.presence || "—"
+
+  - if @reporte.nota.present?
+    .detail-item
+      .detail-label Lo que agregó la familia
+      .detail-value= @reporte.nota
+
+.card-academic
+  = render "shared/cabecera", titulo: "Qué cuotas paga", nivel: 2
+  %table.table-academic
+    %thead
+      %tr
+        %th Cuota
+        %th Vence
+        %th Monto
+    %tbody
+      - @cobros.each do |cobro|
+        %tr
+          %td= cobro.fee&.nombre
+          %td= l(cobro.vence_el, format: :long)
+          %td= numero_en_dolares(cobro.monto)
+  %p.nota-ayuda
+    Suman
+    %strong= numero_en_dolares(@cobros.sum(&:monto))
+    - if @cobros.sum(&:monto) != @reporte.monto
+      -# ⚠️ Si no cuadra se DICE, y no se impide validar: la familia puede haber
+      -# transferido de más a cuenta del mes siguiente, o el banco cobró
+      -# comisión. Quien decide es quien mira el voucher.
+      %span.dato-en-mora= " — y el reporte dice #{numero_en_dolares(@reporte.monto)}"
+
+.card-academic
+  = render "shared/cabecera", titulo: "El comprobante", nivel: 2
+  - if @reporte.voucher.attached?
+    - if @reporte.voucher.image?
+      = link_to url_for(@reporte.voucher), target: "_blank", rel: "noopener" do
+        = image_tag url_for(@reporte.voucher), class: "voucher", alt: "Comprobante de #{@reporte.referencia}"
+    - else
+      = boton "Abrir el PDF", url_for(@reporte.voucher), icono: :documento, tono: :documento
+  - else
+    %p.nota-ayuda La familia no adjuntó comprobante.
+
+- if @reporte.esperando_revision?
+  .card-academic
+    = render "shared/cabecera", titulo: "Decidir", nivel: 2
+    .decidir-el-pago
+      = button_to "Validar el pago", validar_finanza_path(@reporte), method: :patch,
+                  class: "btn btn-guardar",
+                  data: { turbo_confirm: "Al validar, la familia vuelve a ver todo. ¿Seguimos?" }
+
+      = form_with url: rechazar_finanza_path(@reporte), method: :patch, class: "rechazo" do
+        -# ⚠️ El motivo es obligatorio: un rechazo sin explicación deja a la
+        -# familia reportando lo mismo otra vez.
+        = label_tag :motivo, "Si se rechaza, ¿por qué?", class: "form-label"
+        = text_field_tag :motivo, nil, class: "form-control", required: true,
+                         placeholder: "Ej.: la referencia no aparece en el banco"
+        = submit_tag "Rechazar", class: "btn btn-danger"

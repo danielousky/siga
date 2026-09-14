@@ -405,6 +405,45 @@ ALTER SEQUENCE public.attendances_id_seq OWNED BY public.attendances.id;
 
 
 --
+-- Name: charges; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.charges (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    fee_id bigint NOT NULL,
+    monto numeric(10,2) NOT NULL,
+    vence_el date NOT NULL,
+    pagado_el timestamp(6) without time zone,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    payment_report_id bigint
+);
+
+ALTER TABLE ONLY public.charges FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: charges_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.charges_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: charges_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.charges_id_seq OWNED BY public.charges.id;
+
+
+--
 -- Name: competencies; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -628,6 +667,44 @@ CREATE SEQUENCE public.evaluation_moments_id_seq
 --
 
 ALTER SEQUENCE public.evaluation_moments_id_seq OWNED BY public.evaluation_moments.id;
+
+
+--
+-- Name: fees; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.fees (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    academic_period_id bigint NOT NULL,
+    nombre character varying NOT NULL,
+    monto numeric(10,2) NOT NULL,
+    vence_el date NOT NULL,
+    orden integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.fees FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: fees_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.fees_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: fees_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.fees_id_seq OWNED BY public.fees.id;
 
 
 --
@@ -1019,6 +1096,52 @@ CREATE SEQUENCE public.moment_grades_id_seq
 --
 
 ALTER SEQUENCE public.moment_grades_id_seq OWNED BY public.moment_grades.id;
+
+
+--
+-- Name: payment_reports; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.payment_reports (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    representative_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    referencia character varying NOT NULL,
+    banco character varying NOT NULL,
+    monto numeric(10,2) NOT NULL,
+    pagado_el date NOT NULL,
+    depositante_nombre character varying NOT NULL,
+    depositante_documento character varying,
+    nota text,
+    estado character varying DEFAULT 'en_revision'::character varying NOT NULL,
+    revisado_por_id bigint,
+    revisado_el timestamp(6) without time zone,
+    motivo text,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.payment_reports FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: payment_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.payment_reports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: payment_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.payment_reports_id_seq OWNED BY public.payment_reports.id;
 
 
 --
@@ -2046,6 +2169,13 @@ ALTER TABLE ONLY public.attendances ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
+-- Name: charges id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.charges ALTER COLUMN id SET DEFAULT nextval('public.charges_id_seq'::regclass);
+
+
+--
 -- Name: competencies id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2085,6 +2215,13 @@ ALTER TABLE ONLY public.evaluation_activities ALTER COLUMN id SET DEFAULT nextva
 --
 
 ALTER TABLE ONLY public.evaluation_moments ALTER COLUMN id SET DEFAULT nextval('public.evaluation_moments_id_seq'::regclass);
+
+
+--
+-- Name: fees id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fees ALTER COLUMN id SET DEFAULT nextval('public.fees_id_seq'::regclass);
 
 
 --
@@ -2155,6 +2292,13 @@ ALTER TABLE ONLY public.mensajes_entrantes ALTER COLUMN id SET DEFAULT nextval('
 --
 
 ALTER TABLE ONLY public.moment_grades ALTER COLUMN id SET DEFAULT nextval('public.moment_grades_id_seq'::regclass);
+
+
+--
+-- Name: payment_reports id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payment_reports ALTER COLUMN id SET DEFAULT nextval('public.payment_reports_id_seq'::regclass);
 
 
 --
@@ -2435,6 +2579,14 @@ ALTER TABLE ONLY public.attendances
 
 
 --
+-- Name: charges charges_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.charges
+    ADD CONSTRAINT charges_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: competencies competencies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2480,6 +2632,14 @@ ALTER TABLE ONLY public.evaluation_activities
 
 ALTER TABLE ONLY public.evaluation_moments
     ADD CONSTRAINT evaluation_moments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: fees fees_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fees
+    ADD CONSTRAINT fees_pkey PRIMARY KEY (id);
 
 
 --
@@ -2560,6 +2720,14 @@ ALTER TABLE ONLY public.mensajes
 
 ALTER TABLE ONLY public.moment_grades
     ADD CONSTRAINT moment_grades_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: payment_reports payment_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payment_reports
+    ADD CONSTRAINT payment_reports_pkey PRIMARY KEY (id);
 
 
 --
@@ -2953,6 +3121,55 @@ CREATE INDEX index_attendances_on_school_id_and_date ON public.attendances USING
 
 
 --
+-- Name: index_charges_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_charges_on_enrollment_id ON public.charges USING btree (enrollment_id);
+
+
+--
+-- Name: index_charges_on_enrollment_id_and_vence_el; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_charges_on_enrollment_id_and_vence_el ON public.charges USING btree (enrollment_id, vence_el);
+
+
+--
+-- Name: index_charges_on_fee_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_charges_on_fee_id ON public.charges USING btree (fee_id);
+
+
+--
+-- Name: index_charges_on_payment_report_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_charges_on_payment_report_id ON public.charges USING btree (payment_report_id);
+
+
+--
+-- Name: index_charges_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_charges_on_school_id ON public.charges USING btree (school_id);
+
+
+--
+-- Name: index_charges_on_school_id_and_pagado_el_and_vence_el; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_charges_on_school_id_and_pagado_el_and_vence_el ON public.charges USING btree (school_id, pagado_el, vence_el);
+
+
+--
+-- Name: index_charges_uno_por_concepto; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_charges_uno_por_concepto ON public.charges USING btree (enrollment_id, fee_id);
+
+
+--
 -- Name: index_competencies_on_evaluation_moment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3111,6 +3328,34 @@ CREATE INDEX index_evaluation_moments_on_academic_period_id_and_starts_on ON pub
 --
 
 CREATE INDEX index_evaluation_moments_on_school_id ON public.evaluation_moments USING btree (school_id);
+
+
+--
+-- Name: index_fees_on_academic_period_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_fees_on_academic_period_id ON public.fees USING btree (academic_period_id);
+
+
+--
+-- Name: index_fees_on_academic_period_id_and_orden; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_fees_on_academic_period_id_and_orden ON public.fees USING btree (academic_period_id, orden);
+
+
+--
+-- Name: index_fees_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_fees_on_school_id ON public.fees USING btree (school_id);
+
+
+--
+-- Name: index_fees_sin_repetir; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_fees_sin_repetir ON public.fees USING btree (academic_period_id, nombre);
 
 
 --
@@ -3405,6 +3650,55 @@ CREATE INDEX index_moment_grades_on_school_id_and_origen ON public.moment_grades
 --
 
 CREATE INDEX index_moment_grades_on_subject_id ON public.moment_grades USING btree (subject_id);
+
+
+--
+-- Name: index_payment_reports_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payment_reports_on_enrollment_id ON public.payment_reports USING btree (enrollment_id);
+
+
+--
+-- Name: index_payment_reports_on_enrollment_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payment_reports_on_enrollment_id_and_created_at ON public.payment_reports USING btree (enrollment_id, created_at);
+
+
+--
+-- Name: index_payment_reports_on_representative_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payment_reports_on_representative_id ON public.payment_reports USING btree (representative_id);
+
+
+--
+-- Name: index_payment_reports_on_revisado_por_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payment_reports_on_revisado_por_id ON public.payment_reports USING btree (revisado_por_id);
+
+
+--
+-- Name: index_payment_reports_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payment_reports_on_school_id ON public.payment_reports USING btree (school_id);
+
+
+--
+-- Name: index_payment_reports_on_school_id_and_estado_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_payment_reports_on_school_id_and_estado_and_created_at ON public.payment_reports USING btree (school_id, estado, created_at);
+
+
+--
+-- Name: index_payment_reports_sin_repetir; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_payment_reports_sin_repetir ON public.payment_reports USING btree (school_id, referencia);
 
 
 --
@@ -3938,6 +4232,14 @@ ALTER TABLE ONLY public.informes
 
 
 --
+-- Name: payment_reports fk_rails_0fd16cb2c9; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payment_reports
+    ADD CONSTRAINT fk_rails_0fd16cb2c9 FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
 -- Name: schools fk_rails_107a55d48b; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3978,6 +4280,14 @@ ALTER TABLE ONLY public.representatives
 
 
 --
+-- Name: fees fk_rails_1afff34592; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fees
+    ADD CONSTRAINT fk_rails_1afff34592 FOREIGN KEY (academic_period_id) REFERENCES public.academic_periods(id);
+
+
+--
 -- Name: competencies fk_rails_1f14a26005; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4015,6 +4325,14 @@ ALTER TABLE ONLY public.mensaje_eventos
 
 ALTER TABLE ONLY public.rubrics
     ADD CONSTRAINT fk_rails_28ec4c65ca FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
+-- Name: payment_reports fk_rails_2b4c392868; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payment_reports
+    ADD CONSTRAINT fk_rails_2b4c392868 FOREIGN KEY (enrollment_id) REFERENCES public.enrollments(id);
 
 
 --
@@ -4074,6 +4392,14 @@ ALTER TABLE ONLY public.solid_queue_failed_executions
 
 
 --
+-- Name: charges fk_rails_3b6d69438a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.charges
+    ADD CONSTRAINT fk_rails_3b6d69438a FOREIGN KEY (enrollment_id) REFERENCES public.enrollments(id);
+
+
+--
 -- Name: grade_subjects fk_rails_3d59e815d2; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4087,6 +4413,14 @@ ALTER TABLE ONLY public.grade_subjects
 
 ALTER TABLE ONLY public.activity_grades
     ADD CONSTRAINT fk_rails_3e875748a2 FOREIGN KEY (evaluation_activity_id) REFERENCES public.evaluation_activities(id);
+
+
+--
+-- Name: payment_reports fk_rails_41538ce2ec; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payment_reports
+    ADD CONSTRAINT fk_rails_41538ce2ec FOREIGN KEY (revisado_por_id) REFERENCES public.users(id);
 
 
 --
@@ -4127,6 +4461,14 @@ ALTER TABLE ONLY public.solid_queue_blocked_executions
 
 ALTER TABLE ONLY public.departments
     ADD CONSTRAINT fk_rails_4ce931b154 FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
+-- Name: fees fk_rails_53ded9bf76; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.fees
+    ADD CONSTRAINT fk_rails_53ded9bf76 FOREIGN KEY (school_id) REFERENCES public.schools(id);
 
 
 --
@@ -4215,6 +4557,14 @@ ALTER TABLE ONLY public.sections
 
 ALTER TABLE ONLY public.mensajes
     ADD CONSTRAINT fk_rails_622a2754de FOREIGN KEY (destinatario_id) REFERENCES public.users(id);
+
+
+--
+-- Name: charges fk_rails_67a14fb8d2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.charges
+    ADD CONSTRAINT fk_rails_67a14fb8d2 FOREIGN KEY (school_id) REFERENCES public.schools(id);
 
 
 --
@@ -4410,6 +4760,14 @@ ALTER TABLE ONLY public.teachers
 
 
 --
+-- Name: payment_reports fk_rails_ada2a78a0c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payment_reports
+    ADD CONSTRAINT fk_rails_ada2a78a0c FOREIGN KEY (representative_id) REFERENCES public.representatives(id);
+
+
+--
 -- Name: mensajes_entrantes fk_rails_aff705a7c6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4487,6 +4845,14 @@ ALTER TABLE ONLY public.solid_queue_scheduled_executions
 
 ALTER TABLE ONLY public.teacher_sections
     ADD CONSTRAINT fk_rails_c4f969cf66 FOREIGN KEY (section_id) REFERENCES public.sections(id);
+
+
+--
+-- Name: charges fk_rails_c6396d4e77; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.charges
+    ADD CONSTRAINT fk_rails_c6396d4e77 FOREIGN KEY (fee_id) REFERENCES public.fees(id);
 
 
 --
@@ -4602,6 +4968,14 @@ ALTER TABLE ONLY public.moment_grades
 
 
 --
+-- Name: charges fk_rails_ece5ea7a0d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.charges
+    ADD CONSTRAINT fk_rails_ece5ea7a0d FOREIGN KEY (payment_report_id) REFERENCES public.payment_reports(id);
+
+
+--
 -- Name: evaluation_activities fk_rails_eea9a40e62; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4714,6 +5088,13 @@ CREATE POLICY aislamiento_por_colegio ON public.attendances USING (((current_set
 
 
 --
+-- Name: charges aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.charges USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
 -- Name: competencies aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -4746,6 +5127,13 @@ CREATE POLICY aislamiento_por_colegio ON public.evaluation_activities USING (((c
 --
 
 CREATE POLICY aislamiento_por_colegio ON public.evaluation_moments USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
+-- Name: fees aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.fees USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
 
 
 --
@@ -4816,6 +5204,13 @@ CREATE POLICY aislamiento_por_colegio ON public.mensajes_entrantes USING (((curr
 --
 
 CREATE POLICY aislamiento_por_colegio ON public.moment_grades USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
+-- Name: payment_reports aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.payment_reports USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
 
 
 --
@@ -4895,6 +5290,12 @@ CREATE POLICY aislamiento_por_colegio ON public.teachers USING (((current_settin
 ALTER TABLE public.attendances ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: charges; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.charges ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: competencies; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -4923,6 +5324,12 @@ ALTER TABLE public.evaluation_activities ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.evaluation_moments ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: fees; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.fees ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: final_grade_books; Type: ROW SECURITY; Schema: public; Owner: -
@@ -4983,6 +5390,12 @@ ALTER TABLE public.mensajes_entrantes ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.moment_grades ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: payment_reports; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.payment_reports ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: report_cards; Type: ROW SECURITY; Schema: public; Owner: -
@@ -5051,6 +5464,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260913120000'),
 ('20260912005350'),
 ('20260911233604'),
 ('20260911202756'),

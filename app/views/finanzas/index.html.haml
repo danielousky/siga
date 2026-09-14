@@ -1,0 +1,74 @@
+-# La bandeja de la oficina (spec: `docs/specs/pagos-de-la-familia.md`).
+- content_for :titulo, "Pagos"
+
+= render "shared/cabecera", titulo: "Pagos reportados"
+
+.card-academic
+  = render "shared/cabecera", titulo: "Esperando revisión", nivel: 2
+
+  - if @esperando.empty?
+    .empty-state
+      %h3 No hay nada esperando
+      %p Cuando una familia reporte un pago, aparece acá.
+  - else
+    %table.table-academic
+      %thead
+        %tr
+          %th Alumno
+          %th Referencia
+          %th Banco
+          %th Pagado el
+          %th Monto
+          %th Reportado
+          %th
+      %tbody
+        - @esperando.each do |reporte|
+          %tr
+            %td= reporte.enrollment.student.user.apellidos_y_nombres
+            %td= reporte.referencia
+            %td= reporte.banco_a_la_vista
+            %td= l(reporte.pagado_el, format: :long)
+            %td= numero_en_dolares(reporte.monto)
+            -# ⚠️ Cuántos días lleva esperando, no la fecha: es lo que dice si
+            -# hay una familia bloqueada desde el martes.
+            %td= "hace #{distance_of_time_in_words_to_now(reporte.created_at)}"
+            %td= boton "Revisar", finanza_path(reporte), icono: :ver, tono: :ver
+
+- if @en_mora.any?
+  .card-academic
+    = render "shared/cabecera", titulo: "Quién está en mora", nivel: 2
+    %p.nota-ayuda
+      Cuotas vencidas y sin reportar. Una familia en mora no ve notas,
+      asistencia ni constancias.
+    %table.table-academic
+      %thead
+        %tr
+          %th Alumno
+          %th Cuota
+          %th Venció
+          %th Monto
+      %tbody
+        - @en_mora.each do |cobro|
+          %tr
+            %td= cobro.enrollment.student.user.apellidos_y_nombres
+            %td= cobro.fee&.nombre
+            %td.dato-en-mora= l(cobro.vence_el, format: :long)
+            %td= numero_en_dolares(cobro.monto)
+
+- if @revisados.any?
+  .card-academic
+    = render "shared/cabecera", titulo: "Ya revisados", nivel: 2
+    %table.table-academic
+      %thead
+        %tr
+          %th Alumno
+          %th Referencia
+          %th Situación
+          %th Quién
+      %tbody
+        - @revisados.each do |reporte|
+          %tr
+            %td= reporte.enrollment.student.user.apellidos_y_nombres
+            %td= link_to reporte.referencia, finanza_path(reporte)
+            %td= pastilla_de_reporte(reporte)
+            %td= reporte.revisado_por&.apellidos_y_nombres

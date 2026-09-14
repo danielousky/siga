@@ -1,0 +1,37 @@
+-# El aviso que ve una familia en mora, en lugar de las notas, la asistencia o
+-# las constancias (spec: `docs/specs/pagos-de-la-familia.md`).
+-#
+-# ⚠️ Daniel lo pidió así: *«debería parecerle un mensaje agradable, sutil que
+-# diga que presenta deudas y que debe ponerse al día»*.
+-#
+-# ⚠️ Y por eso NO lleva el tono `danger` ni el rojo del dato. Quien lo lee no
+-# hizo nada malo: casi siempre es alguien a quien se le pasó la fecha. El ámbar
+-# dice «falta algo» sin acusar a nadie.
+- estado = @estado_de_cuenta
+- inscripcion = @inscripcion_bloqueada
+
+.card-academic.al-dia
+  = render "shared/cabecera", titulo: "Falta ponerse al día", nivel: 2
+
+  %p
+    Para ver esta información hace falta estar al día con
+    = succeed "." do
+      %strong= inscripcion&.student&.user&.apellidos_y_nombres || "su representado"
+
+  - if estado&.meses_que_debe&.any?
+    %p.al-dia-detalle
+      Pendiente:
+      %strong= estado.meses_que_debe.to_sentence(two_words_connector: " y ", last_word_connector: " y ")
+      - if estado.deuda.to_f.positive?
+        = succeed "." do
+          — un total de
+          %strong= numero_en_dolares(estado.deuda)
+
+  %p.nota-ayuda
+    Si ya pagó, repórtelo y el colegio lo valida. Apenas quede validado vuelve a
+    ver todo.
+
+  .al-dia-acciones
+    = boton "Reportar un pago", new_pago_path(inscripcion: inscripcion&.id),
+            icono: :agregar, tono: :guardar
+    = boton "Ver mi tarjeta de pago", pagos_path, icono: :ver, tono: :ver

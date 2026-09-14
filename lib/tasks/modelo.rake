@@ -153,6 +153,7 @@ namespace :modelo do
     evaluation_activities activity_competencies activity_grades
     moment_grades final_grade_books rubrics
     attendances report_cards informes
+    fees charges payment_reports
     importaciones mensajes mensaje_eventos mensajes_entrantes
     activity_logs demo_requests
     planteles_oficiales
