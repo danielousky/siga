@@ -196,7 +196,54 @@ class PagosTest < ActiveSupport::TestCase
     end
   end
 
+  # ── el voucher ────────────────────────────────────────────────────────────
+
+  # ⚠️ ESTE TEST FALTABA, y su ausencia dejó la función sin hacer nada.
+  #
+  # `EncogeElVoucher` tiene un `rescue StandardError` a propósito —perder el
+  # reporte por no poder encoger una foto sería mucho peor que guardarla
+  # entera— y eso se tragó un «invalid source»: `ImageProcessing::Vips.source`
+  # no acepta un `StringIO`. El voucher se guardaba de 714 KB, el log decía una
+  # línea que nadie leyó, y nada fallaba.
+  #
+  # Un rescue así SOLO es aceptable con un test que compare los bytes.
+  test "el voucher se guarda encogido, no como salió del teléfono" do
+    con_el_colegio(@colegio) do
+      reporte = nuevo_reporte
+      reporte.save!
+      reporte.voucher.attach(io: File.open(voucher_de_prueba), filename: "voucher.jpg",
+                             content_type: "image/jpeg")
+      antes = reporte.voucher.blob.byte_size
+      assert_operator antes, :>, EncogeElVoucher::DESDE, "el de prueba tiene que ser grande"
+
+      EncogeElVoucher.new(reporte.voucher).encoger!
+
+      despues = reporte.reload.voucher.blob.byte_size
+      assert_operator despues, :<, antes / 2, "de #{antes} bytes a #{despues} no es encoger"
+      assert_equal "image/jpeg", reporte.voucher.blob.content_type
+    end
+  end
+
+  # ⚠️ Un PDF no se toca: redibujarlo como imagen le quita el texto
+  # seleccionable, que es justo lo que hace fácil buscar la referencia.
+  test "un PDF se guarda tal cual" do
+    con_el_colegio(@colegio) do
+      reporte = nuevo_reporte
+      reporte.save!
+      reporte.voucher.attach(io: StringIO.new("%PDF-1.4\n" + ("x" * 500_000)),
+                             filename: "comprobante.pdf", content_type: "application/pdf")
+      antes = reporte.voucher.blob.byte_size
+
+      EncogeElVoucher.new(reporte.voucher).encoger!
+
+      assert_equal antes, reporte.reload.voucher.blob.byte_size
+      assert_equal "application/pdf", reporte.voucher.blob.content_type
+    end
+  end
+
   private
+
+  def voucher_de_prueba = Rails.root.join("db/qa/voucher_de_prueba.jpg")
 
   def crear_concepto(nombre, monto, vence_el)
     Fee.create!(academic_period: @esc.periodo, nombre: nombre, monto: monto, vence_el: vence_el)

@@ -60,17 +60,33 @@ class EncogeElVoucher
     @adjunto.blob.byte_size > DESDE
   end
 
+  # ⚠️ `source` NO acepta un `StringIO`, y el `rescue` de arriba se lo tragaba.
+  #
+  # `ImageProcessing::Vips.source(StringIO.new(...))` levanta «invalid source» —
+  # quiere un archivo de verdad: `File`, `Tempfile`, `Pathname` o `Vips::Image`.
+  # Con el rescue puesto, eso era una línea en el log y un voucher que se
+  # guardaba entero: la función no hacía NADA y nada fallaba.
+  #
+  # El rescue sigue estando y es correcto —perder el reporte por no poder
+  # encoger una foto sería mucho peor— pero por eso existe el test que compara
+  # los bytes de antes y los de después.
   def redibujar(blob)
     require "image_processing/vips"
 
+    original = Tempfile.new([ "voucher", ".bin" ], binmode: true)
+    original.write(blob.download)
+    original.flush
+
     procesada = ImageProcessing::Vips
-                .source(StringIO.new(blob.download))
+                .source(original)
                 .resize_to_limit(LADO_MAYOR, LADO_MAYOR)
                 .convert("jpeg")
                 .saver(quality: CALIDAD, strip: true)   # `strip` se lleva el GPS
                 .call
 
     File.open(procesada.path, "rb")
+  ensure
+    original&.close
   end
 
   # ⚠️ Se le cambia la extensión: quedó JPEG, y un `voucher.png` que por dentro
