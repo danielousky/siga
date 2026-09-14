@@ -196,6 +196,7 @@ module MenuHelper
       Grupo.new(titulo: "Académico", enlaces: enlaces_academicos),
       Grupo.new(titulo: "Día a día", enlaces: enlaces_del_dia),
       Grupo.new(titulo: "Reportes", enlaces: enlaces_de_reportes),
+      Grupo.new(titulo: "Finanzas", enlaces: enlaces_de_finanzas),
       Grupo.new(titulo: "Configuración", enlaces: enlaces_de_configuracion)
     ].reject { |grupo| grupo.enlaces.empty? }
   end
@@ -633,6 +634,24 @@ module MenuHelper
     enlaces << Enlace.new(nombre: "Registro de actividad", icono: :auditoria,
                           ruta: dashboards_activity_logs_path)
     enlaces
+  end
+
+  # Los pagos que reportó la familia (spec: `docs/specs/pagos-de-la-familia.md`).
+  #
+  # ⚠️ Grupo PROPIO, no un enlace dentro de «Día a día» ni de «Reportes».
+  #
+  # No es un reporte —no se consulta, se DECIDE sobre él— y no es día a día: es
+  # el trabajo de otra persona. En un colegio, quien cobra no es quien pasa
+  # lista, y meterlo con lo demás le pone el dinero delante a la coordinadora
+  # cada vez que abre el menú.
+  #
+  # ⚠️ Y por eso el grupo entero no existe para quien no cobra: `puede_cobrar?`
+  # es la misma lista de cargos que `FinanzasController`. Un grupo vacío en el
+  # menú es una puerta que se ve y no abre.
+  def enlaces_de_finanzas
+    return [] unless puede_cobrar?
+
+    [ Enlace.new(nombre: "Pagos reportados", icono: :inscripciones, ruta: finanzas_path) ]
   end
 
   def enlaces_de_configuracion

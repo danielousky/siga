@@ -53,7 +53,10 @@
               %th Monto
               %th Situación
           %tbody
-            - estado.cobros.each do |cobro|
+            -# ⚠️ Lo reciente arriba: en trece cuotas, el mes en curso es lo
+            -# que la familia viene a mirar, y con el orden del calendario
+            -# queda al final.
+            - estado.cobros_recientes_primero.each do |cobro|
               %tr
                 %td= cobro.fee&.nombre
                 %td= l(cobro.vence_el, format: :long)

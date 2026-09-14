@@ -17,6 +17,17 @@ class Charge < ApplicationRecord
   scope :pendientes, -> { where(pagado_el: nil) }
   scope :pagados,    -> { where.not(pagado_el: nil) }
   scope :en_orden,   -> { order(:vence_el, :id) }
+  # ⚠️ Lo RECIENTE arriba, y es otro orden a propósito.
+  #
+  # Daniel: *«el listado de los pagos debe ser en el orden: más reciente a menos
+  # reciente»*. En una tarjeta de trece cuotas, lo que la familia viene a mirar
+  # es el mes en curso — y con el orden del calendario queda al final, después
+  # de scrollear los ocho que ya pagó.
+  #
+  # ⚠️ NO reemplaza a `en_orden`: para ELEGIR qué pagar el orden correcto sigue
+  # siendo del más viejo al más nuevo, porque se paga lo atrasado primero. Son
+  # dos preguntas distintas y cada pantalla usa la suya.
+  scope :recientes_primero, -> { order(vence_el: :desc, id: :desc) }
   # ⚠️ En mora es VENCIDO y sin pagar. Lo que vence la semana que viene no es
   # deuda: cobrarle a alguien por algo que todavía no toca es la manera más
   # rápida de que un colegio deje de usar esto.

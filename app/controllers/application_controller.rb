@@ -198,6 +198,21 @@ class ApplicationController < ActionController::Base
       end
   end
 
+  # Quién cobra: finanzas, el director y el desarrollador.
+  #
+  # ⚠️ La coordinadora y la secretaria NO, aunque las dos administren alumnos:
+  # el dinero es otra gaveta. Y vive acá —no en `FinanzasController`— porque el
+  # MENÚ tiene que hacerse la misma pregunta: un grupo «Finanzas» que se ve y
+  # rebota enseña que los enlaces de este sistema a veces no funcionan.
+  CARGOS_QUE_COBRAN = %w[desarrollador director finanzas].freeze
+
+  def puede_cobrar?
+    return false if current_user.nil?
+
+    CARGOS_QUE_COBRAN.include?(current_user.admin&.role)
+  end
+  helper_method :puede_cobrar?
+
   def estudiante?
     current_user_type == :estudiante
   end

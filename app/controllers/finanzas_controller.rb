@@ -51,13 +51,11 @@ class FinanzasController < ApplicationController
 
   private
 
-  # ⚠️ Quién cobra: finanzas, el director y el desarrollador. La coordinadora y
-  # la secretaria NO —el dinero es otra gaveta— aunque las dos administren
-  # alumnos.
-  CARGOS = %w[desarrollador director finanzas].freeze
-
+  # ⚠️ La misma pregunta que se hace el MENÚ —`puede_cobrar?`, en
+  # `ApplicationController`— y no una copia. Dos listas de cargos se separan, y
+  # el día que se separen el menú ofrece una puerta que rebota.
   def require_finanzas!
-    return if current_user&.admin && CARGOS.include?(current_user.admin.role)
+    return if puede_cobrar?
 
     redirect_to dashboard_path_for_user, alert: "Esta sección es de la administración financiera."
   end

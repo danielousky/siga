@@ -32,7 +32,24 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
     assert_select ".pastilla-de-cobro", text: "Vencido"
   end
 
-  # ⚠️ La tarjeta es lo ÚNICO que no se bloquea por deuda: es la pantalla que
+  # ⚠️ Daniel: *«el listado de los pagos debe ser en el orden: más reciente a
+  # menos reciente»*. En trece cuotas, el mes en curso es lo que la familia
+  # viene a mirar, y con el orden del calendario queda al final.
+  test "las cuotas se listan de la más reciente a la más vieja" do
+    con_el_colegio(@colegio) do
+      Fee.create!(academic_period: @esc.periodo, nombre: "Octubre", monto: 45,
+                  vence_el: Date.current - 5)
+      Charge.emitir_para(@esc.inscripcion)
+    end
+    sign_in @rep_usuario
+
+    get pagos_path
+
+    cuotas = css_select(".tarjeta-de-pago tbody td:first-child").map(&:text)
+    assert_equal [ "Octubre", "Septiembre" ], cuotas.first(2)
+  end
+
+    # ⚠️ La tarjeta es lo ÚNICO que no se bloquea por deuda: es la pantalla que
   # explica la deuda y permite salir de ella.
   test "la tarjeta se ve AUNQUE haya deuda" do
     sign_in @rep_usuario
@@ -199,6 +216,24 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to finanza_path(reporte)
     con_el_colegio(@colegio) { assert reporte.reload.esperando_revision? }
+  end
+
+  # ⚠️ Un grupo «Finanzas» que se ve y rebota enseña que los enlaces de este
+  # sistema a veces no funcionan. El menú se hace la MISMA pregunta que el
+  # controller.
+  test "el menú de quien cobra lleva a finanzas; el de quien no, no lo muestra" do
+    sign_in @dir_usuario
+    get dashboards_administrador_path
+    assert_select "a[href=?]", finanzas_path, minimum: 1
+
+    coordinadora = con_el_colegio(@colegio) do
+      u = usuario("coord2", @colegio.id)
+      Admin.create!(user: u, school: @colegio, role: :coordinador)
+      u
+    end
+    sign_in coordinadora
+    get dashboards_administrador_path
+    assert_select "a[href=?]", finanzas_path, 0
   end
 
   # ⚠️ El dinero es otra gaveta: la coordinadora administra alumnos y NO valida

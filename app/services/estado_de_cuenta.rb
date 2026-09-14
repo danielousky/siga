@@ -23,6 +23,11 @@ class EstadoDeCuenta
 
   def cobros = @cobros ||= Charge.where(enrollment_id: enrollment.id).en_orden.includes(:fee).to_a
 
+  # ⚠️ El mismo conjunto, al revés: es lo que se DIBUJA en la tarjeta. Los
+  # cálculos de arriba siguen sobre `cobros` —el orden no les importa— y así no
+  # hay dos consultas para lo mismo.
+  def cobros_recientes_primero = cobros.reverse
+
   def pagados     = cobros.select(&:pagado?)
   def pendientes  = cobros.reject(&:pagado?)
   def en_revision = cobros.select(&:reportado?)
