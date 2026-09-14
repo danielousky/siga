@@ -4,7 +4,7 @@ require "test_helper"
 # en mora NO puede ver (spec: `docs/specs/pagos-de-la-familia.md`).
 class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
   setup do
-    @esc = escenario_academico(nombre: "Colegio de Pagos")
+    @esc = escenario_academico(nombre: "Colegio de Pagos", alumnos: 2)
     @colegio = @esc.colegio
 
     con_el_colegio(@colegio) do
@@ -54,6 +54,26 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
     assert_select ".al-dia"
     assert_select ".al-dia", /ponerse al día/
     assert_select "a[href=?]", pagos_path, minimum: 1, message: "tiene que haber salida"
+  end
+
+  # ⚠️ La lista de representados NO se bloquea —hay que poder ver a los hijos—
+  # pero SÍ dice cuál está atrasado. Callarlo manda a la madre a chocar contra
+  # el aviso, y con dos hijos ni siquiera sabe por cuál de los dos era.
+  test "la lista de representados marca al que está en mora" do
+    # ⚠️ Con DOS hijos: con uno solo la lista no se dibuja —se entra directo a
+    # su pantalla, que es un paso menos para el caso común— así que el caso que
+    # hay que probar es justamente el de la madre que tiene dos.
+    con_el_colegio(@colegio) do
+      otro = @esc.alumnos.last
+      StudentRepresentative.create!(student: otro, representative: @representante)
+      Charge.emitir_para(@esc.inscripciones.last)
+    end
+    sign_in @rep_usuario
+
+    get representante_path
+
+    assert_response :success
+    assert_select ".portal-tarjeta-hijo .pastilla-de-cobro", /Falta ponerse al día/
   end
 
   test "el aviso dice QUÉ mes se debe, no solo que hay deuda" do

@@ -2495,6 +2495,11 @@ nav.pagy a.gap {
    de un vistazo; la tabla, lo que se consulta. */
 .tarjeta-de-pago { margin-bottom: var(--space-lg); }
 
+/* La pastilla de deuda en la lista de representados: va debajo del grado, no
+   al lado del nombre. Al lado compite con el nombre del hijo, que es lo que la
+   madre viene a buscar. */
+.portal-tarjeta-hijo .pastilla-de-cobro { align-self: flex-start; margin-top: 6px; }
+
 .barra-de-pago {
   height: 10px;
   margin: var(--space-md) 0 6px;
