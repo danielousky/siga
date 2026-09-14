@@ -62,6 +62,25 @@ class Grade < ApplicationRecord
   # hay plan de evaluación que armar.
   def planifica? = !califica_con_texto?
 
+  # ⚠️ Si la nota se LEE como un nivel de la rúbrica —«PA (18)»— o como el
+  # número a secas.
+  #
+  # Daniel, 14 de septiembre: *«la calificación de los de Media es únicamente
+  # numérica, no lleva el PD - NP»*. Y el modelo ya lo decía en otro sitio:
+  # `la_media_se_califica_por_numero` rechaza la escala literal en bachillerato
+  # con las palabras «no existe la calificación literal en secundaria».
+  #
+  # La rúbrica es de PRIMARIA, y la razón es del dominio, no del código: existe
+  # porque una familia de primaria no lee un 17 —lee «va bien»— y en
+  # bachillerato la nota numérica ES el lenguaje, hasta en la constancia.
+  #
+  # ⚠️ Existe como pregunta PROPIA y no como `if por_competencias?`, aunque hoy
+  # devuelvan lo mismo. Son dos cosas distintas: una es cómo se PLANIFICA el
+  # lapso y la otra cómo se LEE la nota. El día que un colegio quiera la rúbrica
+  # sin competencias —o al revés— se cambia una línea y no se sale a buscar
+  # cuáles de los cinco `por_competencias?` hablaban de la rúbrica.
+  def califica_con_rubrica? = primaria?
+
   # Con qué escala se califica este grado (MOR-129).
   #
   # Cuelga del GRADO y no del colegio: un mismo colegio tiene primaria por

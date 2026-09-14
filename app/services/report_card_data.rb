@@ -330,9 +330,19 @@ class ReportCardData
     Rubric.para(nota, rubricas)&.code
   end
 
+  # ⚠️ VACÍA cuando el grado no se lee con rúbrica, y esa es toda la corrección.
+  #
+  # De acá cuelgan las tres cosas: `nivel_de_rubrica` devuelve nil, `rubrica`
+  # devuelve nil, y el PDF titula la columna «CALIFICACIÓN» en vez de «NIVEL» y
+  # no dibuja la leyenda. Un boletín de bachillerato salía con «PD (10)» y su
+  # tabla de cinco niveles al pie.
   def rubricas
+    return @rubricas = [] unless grado&.califica_con_rubrica?
+
     @rubricas ||= Rubric.en_orden.to_a
   end
+
+  def grado = @grado ||= @enrollment&.section&.grade
 
   # El informe descriptivo de ESTE lapso (MOR-216).
   #
