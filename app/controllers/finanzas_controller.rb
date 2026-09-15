@@ -35,6 +35,24 @@ class FinanzasController < ApplicationController
   # ⚠️ Vale sobre un rechazado si sus cuotas siguen libres: la referencia es
   # única por colegio, así que una familia a la que le rechazaron un pago bueno
   # NO puede volver a reportarlo. Quien se equivocó fue la oficina.
+  # El estado de cuenta de un alumno, con a quién llamar.
+  #
+  # ⚠️ Lo que la oficina hace DESPUÉS de ver que alguien debe es llamar a la
+  # casa. Una pantalla de cobranza que muestra la deuda y no el teléfono manda a
+  # buscarlo a la ficha del representante, que está en otro menú.
+  def deudor
+    @inscripcion = Enrollment.includes(section: [ :grade, :academic_period ], student: :user)
+                             .find(params[:id])
+    @estado = EstadoDeCuenta.de(@inscripcion)
+    @responsables = StudentRepresentative.where(student_id: @inscripcion.student_id)
+                                         .includes(representative: :user)
+                                         .to_a
+    @reportes = PaymentReport.where(id: Charge.where(enrollment_id: @inscripcion.id)
+                                              .where.not(payment_report_id: nil)
+                                              .select(:payment_report_id))
+                             .recientes_primero
+  end
+
   def validar
     unless @reporte.se_puede_validar?
       return redirect_to finanza_path(@reporte),

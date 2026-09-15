@@ -86,6 +86,13 @@ Rails.application.routes.draw do
     end
   end
 
+  # El estado de cuenta de UN alumno, para la oficina. Daniel, mirando la lista
+  # de morosos: *«esta lista debería tener enlaces al detalle del deudor»*.
+  #
+  # ⚠️ Por INSCRIPCIÓN y no por alumno: la deuda es de un año escolar, y el
+  # mismo muchacho puede deber de 1er Año y estar al día en 2do.
+  get "finanzas/deudor/:id", to: "finanzas#deudor", as: :deudor
+
   # ⚠️ NO hay registro público. Ver MOR-101.
   #
   # `:registerable` viene puesto por `rails generate devise User` y no es una

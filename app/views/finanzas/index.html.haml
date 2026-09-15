@@ -75,7 +75,12 @@
       %tbody
         - @en_mora.each do |cobro|
           %tr
-            %td= cobro.enrollment.student.user.apellidos_y_nombres
+            -# ⚠️ Enlazado al detalle. Daniel: «esta lista debería tener enlaces
+            -# al detalle del deudor». Una lista de cobranza que no lleva a
+            -# ningún lado obliga a buscar al alumno por el menú de Usuarios,
+            -# que es otro camino y otra pantalla.
+            %td
+              = link_to cobro.enrollment.student.user.apellidos_y_nombres, deudor_path(cobro.enrollment_id)
             %td= cobro.fee&.nombre
             %td.dato-en-mora= l(cobro.vence_el, format: :long)
             %td= numero_en_dolares(cobro.monto)

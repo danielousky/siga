@@ -1,0 +1,98 @@
+-# El estado de cuenta de un alumno, para la oficina (spec:
+-# `docs/specs/pagos-de-la-familia.md`).
+-#
+-# Daniel, mirando la lista de morosos: *«esta lista debería tener enlaces al
+-# detalle del deudor»*.
+-#
+-# ⚠️ El orden es el del trabajo: primero A QUIÉN LLAMAR, después qué debe.
+-# Quien abre esta pantalla ya sabe que hay una deuda —viene de la lista de
+-# morosos—: lo que necesita es el teléfono. Poner la tabla arriba obliga a
+-# scrollear trece filas para llegar a lo único accionable.
+- content_for :titulo, "Estado de cuenta"
+- persona = @inscripcion.student.user
+
+.card-academic
+  = render layout: "shared/cabecera", locals: { titulo: persona.apellidos_y_nombres } do
+    = boton "Volver", finanzas_path, icono: :volver, tono: :secondary
+
+  .detail-row
+    .detail-item
+      .detail-label Sección
+      .detail-value= "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
+    .detail-item
+      .detail-label Año escolar
+      .detail-value= @inscripcion.section.academic_period.name
+    .detail-item
+      .detail-label Vencido
+      .detail-value{ class: ("dato-en-mora" if @estado.deuda.to_f.positive?) }
+        = numero_en_dolares(@estado.deuda)
+
+  - if @estado.en_mora?
+    %p.nota-ayuda
+      Debe
+      %strong= @estado.meses_que_debe.to_sentence(two_words_connector: " y ", last_word_connector: " y ")
+      \. Mientras tanto no ve notas, asistencia ni constancias.
+
+.card-academic
+  = render "shared/cabecera", titulo: "A quién llamar", nivel: 2
+  - if @responsables.any?
+    %ul.ficha-responsables
+      - @responsables.each do |vinculo|
+        - responsable = vinculo.representative.user
+        %li.ficha-responsable
+          %div
+            %span.ficha-responsable-nombre= responsable.nombre_completo
+            %span.ficha-responsable-vinculo= vinculo.etiqueta
+            - if vinculo.principal?
+              %span.ficha-principal Principal
+          .ficha-responsable-contacto
+            - if vinculo.representative.phone.present?
+              = link_to vinculo.representative.phone, "tel:#{vinculo.representative.phone.gsub(/\s/, '')}", class: "ficha-telefono"
+              -# ⚠️ Solo si es un móvil: un enlace de WhatsApp hacia un 0212 abre
+              -# la app con un chat hacia nadie.
+              - if (wa = Contacto.whatsapp_url(vinculo.representative.phone, "Buenos días, le escribo de #{Current.school.name} por el pago de #{persona.first_name}."))
+                = boton "WhatsApp", wa, icono: :representantes, tono: :accion, sm: true, target: "_blank", rel: "noopener", tooltip: "Escribirle por WhatsApp"
+            - else
+              %span.dato-secundario Sin teléfono cargado
+  - else
+    %p.nota-ayuda
+      Este alumno no tiene representante vinculado. Hay que cargarlo desde su
+      ficha para poder cobrarle a alguien.
+
+.card-academic
+  = render "shared/cabecera", titulo: "Sus cuotas", nivel: 2
+  %table.table-academic
+    %thead
+      %tr
+        %th Cuota
+        %th Vence
+        %th Monto
+        %th Situación
+    %tbody
+      - @estado.cobros_recientes_primero.each do |cobro|
+        %tr
+          %td= cobro.fee&.nombre
+          %td= l(cobro.vence_el, format: :long)
+          %td= numero_en_dolares(cobro.monto)
+          %td= pastilla_de_cobro(cobro)
+
+- if @reportes.any?
+  .card-academic
+    = render "shared/cabecera", titulo: "Pagos reportados por la familia", nivel: 2
+    %table.table-academic
+      %thead
+        %tr
+          %th Referencia
+          %th Por quién
+          %th Pagado el
+          %th Monto
+          %th Situación
+      %tbody
+        - @reportes.each do |reporte|
+          %tr
+            %td= link_to reporte.referencia, finanza_path(reporte)
+            -# Un pago puede cubrir a varios hijos: se dice a quiénes.
+            %td= reporte.por_quienes
+            %td= l(reporte.pagado_el, format: :long)
+            %td= numero_en_dolares(reporte.monto)
+            %td= pastilla_de_reporte(reporte)

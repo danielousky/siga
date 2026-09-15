@@ -492,6 +492,43 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # ⚠️ Daniel: *«esta lista debería tener enlaces al detalle del deudor»*. Una
+  # lista de cobranza que no lleva a ningún lado obliga a buscar al alumno por
+  # el menú de Usuarios, que es otro camino y otra pantalla.
+  test "la lista de morosos enlaza al estado de cuenta del alumno" do
+    sign_in @dir_usuario
+
+    get finanzas_path
+
+    assert_select "a[href=?]", deudor_path(@esc.inscripcion), minimum: 1
+  end
+
+  # ⚠️ Lo que la oficina hace DESPUÉS de ver que alguien debe es LLAMAR. Una
+  # pantalla de cobranza que muestra la deuda y no el teléfono manda a buscarlo
+  # a otro menú.
+  test "el detalle del deudor trae a quién llamar y qué debe" do
+    con_el_colegio(@colegio) do
+      @representante.update!(phone: "0414-1234567")
+      StudentRepresentative.create!(student: @esc.alumno, representative: @representante,
+                                    parentesco: :madre) unless StudentRepresentative.exists?(student_id: @esc.alumno.id, representative_id: @representante.id)
+    end
+    sign_in @dir_usuario
+
+    get deudor_path(@esc.inscripcion)
+
+    assert_response :success
+    assert_select "a[href^=?]", "tel:", minimum: 1, message: "hace falta el teléfono para cobrar"
+    assert_select ".pastilla-de-cobro", text: "Vencido", minimum: 1
+  end
+
+  test "solo quien cobra ve el detalle del deudor" do
+    sign_in @rep_usuario
+
+    get deudor_path(@esc.inscripcion)
+
+    assert_response :redirect
+  end
+
   # ⚠️ El dinero es otra gaveta: la coordinadora administra alumnos y NO valida
   # pagos.
   test "una coordinadora no entra a finanzas" do
