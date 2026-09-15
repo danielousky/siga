@@ -9,12 +9,17 @@
 #
 # Acá la orden no lleva comillas: `bin/rails soporte:cuentas`.
 #
-# ## ⚠️ Solo LEE
+# ## ⚠️ `cuentas` solo LEE
 #
 # No cambia contraseñas, no borra roles y no toca correos. Lo que muestra son
 # los correos y los roles de un colegio —datos que un director ya ve en su
-# panel— y nada de alumnos ni notas. Cualquier arreglo se hace a la vista, con
-# una orden aparte y decidida por una persona.
+# panel— y nada de alumnos ni notas.
+#
+# ## ⚠️ `acceso` SÍ escribe, y por eso pide el correo a mano
+#
+# Reparte una llave. No tiene valor por defecto —ni siquiera el del fundador—
+# porque una tarea que al correrla sin argumentos entrega acceso de fundador es
+# una que alguien va a correr sin argumentos.
 namespace :soporte do
   desc "Lista los usuarios con acceso de un colegio (por defecto, el último creado)"
   task cuentas: :environment do
@@ -82,6 +87,41 @@ namespace :soporte do
       end
 
       puts "  ✓ listo. La persona y sus otros roles quedan intactos."
+    end
+  end
+
+  desc "Genera un código de acceso de un solo uso (CORREO=alguien@dominio)"
+  task acceso: :environment do
+    correo = ENV["CORREO"].to_s.strip.downcase
+    abort "Falta el correo: bin/rails soporte:acceso CORREO=alguien@dominio" if correo.empty?
+
+    Current.sin_aislamiento do
+      persona = User.find_by(email: correo)
+      abort "No hay nadie con #{correo}." if persona.nil?
+
+      # ⚠️ Solo a quien YA tiene un rol. El alumno SÍ va en la lista: su correo
+      # es opcional —un niño de ocho años no tiene— pero el que lo tiene entra y
+      # ve sus notas (§ 6). Dejarlo afuera acá le negaría soporte a un acceso
+      # que el producto sí da; lo probé y me rebotó a un alumno de bachillerato.
+      #
+      # Lo que la lista impide es repartir una llave a una fila de `users` sin
+      # ningún rol: alguien a quien el sistema no le dio entrada.
+      con_rol = [ SigaStaff, Admin, Teacher, Representative, Student ]
+                .any? { |m| m.where(user_id: persona.id).exists? }
+      abort "#{correo} no tiene ningún rol que entre al sistema." unless con_rol
+
+      # ⚠️ `set_reset_password_token` devuelve el código EN CLARO y guarda el
+      # digest. Leer `persona.reset_password_token` después devuelve el digest,
+      # y el enlace no abre nada (§ 6.5).
+      codigo = persona.send(:set_reset_password_token)
+      host = ENV.fetch("SIGA_HOST", "localhost:3000")
+
+      puts
+      puts "  ── Acceso para #{persona.apellidos_y_nombres} ─────────────────"
+      puts "  #{correo}"
+      puts "  https://#{host}/activar/#{codigo}"
+      puts "  (elige su contraseña ahí; el código dura 6 horas y es de un solo uso)"
+      puts "  ───────────────────────────────────────────────────────────────"
     end
   end
 end
