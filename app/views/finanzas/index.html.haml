@@ -18,7 +18,7 @@
           %th Referencia
           %th Banco
           %th Pagado el
-          %th Monto
+          %th Transfirió
           %th Reportado
           %th.columna-de-decidir
       %tbody
@@ -28,7 +28,7 @@
             %td= reporte.referencia
             %td= reporte.banco_a_la_vista
             %td= l(reporte.pagado_el, format: :long)
-            %td= numero_en_dolares(reporte.monto)
+            %td= importe_transferido(reporte.monto)
             -# ⚠️ Cuántos días lleva esperando, no la fecha: es lo que dice si
             -# hay una familia bloqueada desde el martes.
             %td

@@ -56,7 +56,7 @@
                                 corrigiendo && cobro.payment_report_id == @reporte.id,
                                 id: "cobro_#{cobro.id}"
                 %span.cuota-nombre= cobro.fee&.nombre
-                %span.cuota-monto= numero_en_dolares(cobro.monto)
+                %span.cuota-monto= importe_para_la_familia(cobro.monto)
                 = pastilla_de_cobro(cobro)
         %p.nota-ayuda
           - if varios
@@ -92,9 +92,14 @@
 
     .form-row
       .form-group
-        = f.label :monto, "Monto transferido", class: "form-label"
+        -# ⚠️ Lo que dice el VOUCHER, en bolívares: es lo que se transfirió.
+        -#
+        -# No es lo mismo que lo que se debe —el colegio lleva sus cuentas en
+        -# dólares— y por eso no se comparan: quien hace el puente es la persona
+        -# de finanzas al validar.
+        = con_pista("El monto tal como aparece en su comprobante, en bolívares.") { f.label :monto, "Monto transferido (Bs)", class: "form-label" }
         = f.number_field :monto, class: "form-control", step: "0.01", min: "0.01",
-                         required: true, placeholder: "45,00"
+                         required: true, placeholder: "1.620,00"
       .form-group
         -# ⚠️ El calendario NO ofrece el año pasado. Daniel: «del último mes
         -# hacia adelante». Corta el dedazo de año antes de que se envíe.

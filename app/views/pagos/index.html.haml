@@ -28,14 +28,14 @@
     .detail-row
       .detail-item
         .detail-label Pagado
-        .detail-value= numero_en_dolares(total_pagado)
+        .detail-value= importe_para_la_familia(total_pagado)
       .detail-item
         .detail-label Por pagar
-        .detail-value= numero_en_dolares(total_por_pagar)
+        .detail-value= importe_para_la_familia(total_por_pagar)
       .detail-item
         .detail-label Vencido
         .detail-value{ class: ("dato-en-mora" if total_vencido.positive?) }
-          = numero_en_dolares(total_vencido)
+          = importe_para_la_familia(total_vencido)
 
     - if total_vencido.positive?
       %p.nota-ayuda
@@ -86,7 +86,7 @@
           %tr
             %td= cobro.fee&.nombre
             %td= l(cobro.vence_el, format: :long)
-            %td= numero_en_dolares(cobro.monto)
+            %td= importe_para_la_familia(cobro.monto)
             %td= pastilla_de_cobro(cobro)
 
 - if @reportes.any?
@@ -110,7 +110,7 @@
             %td= reporte.por_quienes
             %td= reporte.banco_a_la_vista
             %td= l(reporte.pagado_el, format: :long)
-            %td= numero_en_dolares(reporte.monto)
+            %td= importe_transferido(reporte.monto)
             %td
               = pastilla_de_reporte(reporte)
               - if reporte.la_familia_puede_corregir?

@@ -20,8 +20,8 @@
       .detail-label Banco
       .detail-value= @reporte.banco_a_la_vista
     .detail-item
-      .detail-label Monto
-      .detail-value= numero_en_dolares(@reporte.monto)
+      .detail-label Transfirió
+      .detail-value= importe_transferido(@reporte.monto)
 
   .detail-row
     .detail-item
@@ -66,14 +66,25 @@
           %td= cobro.fee&.nombre
           %td= l(cobro.vence_el, format: :long)
           %td= numero_en_dolares(cobro.monto)
+  -# ⚠️ Las DOS cifras, separadas, y SIN compararlas.
+  -#
+  -# Lo que se debe está en dólares —la unidad de cuenta del colegio— y lo que
+  -# se transfirió, en bolívares. Restarlas no significa nada, y el aviso de «no
+  -# cuadra» que había saltaba siempre.
+  -#
+  -# Daniel: *«si el personal de finanzas avala un pago, quiere decir que ese
+  -# pago tiene su equivalente en dólares»*. El puente lo hace esta persona, con
+  -# el voucher y su estado de cuenta delante: validar ES avalar la
+  -# equivalencia. Por eso SIGA no guarda ninguna tasa.
+  .detail-row.equivalencia
+    .detail-item
+      .detail-label Estas cuotas cubren
+      .detail-value= numero_en_dolares(@cobros.sum(&:monto))
+    .detail-item
+      .detail-label La familia transfirió
+      .detail-value= importe_transferido(@reporte.monto)
   %p.nota-ayuda
-    Suman
-    %strong= numero_en_dolares(@cobros.sum(&:monto))
-    - if @cobros.sum(&:monto) != @reporte.monto
-      -# ⚠️ Si no cuadra se DICE, y no se impide validar: la familia puede haber
-      -# transferido de más a cuenta del mes siguiente, o el banco cobró
-      -# comisión. Quien decide es quien mira el voucher.
-      %span.dato-en-mora= " — y el reporte dice #{numero_en_dolares(@reporte.monto)}"
+    Al validar usted deja constancia de que esos bolívares cubren esas cuotas.
 
 .card-academic
   = render "shared/cabecera", titulo: "El comprobante", nivel: 2

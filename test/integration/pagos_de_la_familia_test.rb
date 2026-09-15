@@ -122,6 +122,38 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
                     "un año sin cuotas cargadas no es una tarjeta, es ruido")
   end
 
+  # ── la moneda ─────────────────────────────────────────────────────────────
+  #
+  # Daniel: *«hay un vacío legal en el país… lo más salomónico es ocultarle al
+  # representante la unidad de pago»*. En la práctica el colegio lleva sus
+  # cuentas en dólares y la familia transfiere en bolívares.
+
+  # ⚠️ A la familia, el número desnudo: SIGA no afirma una moneda que hoy no
+  # puede respaldar.
+  test "al representante no se le muestra la unidad" do
+    sign_in @rep_usuario
+
+    get pagos_path
+
+    assert_no_match(/\d,\d\d\s*\$/, response.body,
+                    "la pantalla de la familia no lleva el símbolo del dólar")
+  end
+
+  # ⚠️ Adentro SÍ, porque quien cobra tiene que ver la unidad de cuenta para
+  # poder avalar la equivalencia.
+  test "finanzas ve lo que cubre en $ y lo transferido en Bs, sin compararlos" do
+    reporte = reportar!
+    sign_in @dir_usuario
+
+    get finanza_path(reporte)
+
+    assert_select ".equivalencia .detail-value", /\$/, "la unidad de cuenta del colegio"
+    assert_select ".equivalencia .detail-value", /Bs/, "lo que dice el voucher"
+    # Restar bolívares de dólares no significa nada: el aviso de «no cuadra» se
+    # cayó a propósito.
+    assert_no_match(/y el reporte dice/, response.body)
+  end
+
   # ── el bloqueo ────────────────────────────────────────────────────────────
 
   # ⚠️ Daniel: *«ellos deben siempre poder ingresar a la sesión»*. Se entra, no

@@ -7,10 +7,37 @@ module PagosHelper
   #
   # ⚠️ Y el símbolo va DETRÁS, separado. Delante es la convención gringa; acá el
   # precio se dice «cuarenta y cinco dólares».
-  def numero_en_dolares(monto)
-    number_to_currency(monto.to_f, unit: "$", format: "%n %u",
-                                   separator: ",", delimiter: ".", precision: 2)
+  def numero_en_dolares(monto) = importe(monto, unidad: "$")
+
+  # ⚠️ Al REPRESENTANTE se le muestra el número sin unidad.
+  #
+  # Daniel: *«hay un vacío legal en el país que en este momento se está
+  # discutiendo… lo más salomónico es ocultarle al representante la unidad de
+  # pago»*. En la práctica el colegio expresa sus cuentas en dólares y la
+  # familia transfiere en bolívares; mientras eso no esté resuelto, SIGA no
+  # afirma una moneda que no puede respaldar.
+  #
+  # ⚠️ Adentro SÍ lleva el «$»: es la unidad de cuenta del colegio, y quien
+  # cobra tiene que verla para poder avalar la equivalencia.
+  def importe_para_la_familia(monto) = importe(monto, unidad: nil)
+
+  # Lo que dice el VOUCHER: bolívares, porque es lo que se transfirió.
+  #
+  # ⚠️ Y no se compara con lo que se debe. Son monedas distintas, y quien hace
+  # el puente es la persona de finanzas al validar: avalar un pago ES decir
+  # «estos bolívares cubren estos dólares». Por eso SIGA no guarda ninguna tasa
+  # —no le hace falta— y el día que se resuelva el vacío legal no hay nada que
+  # migrar: la equivalencia siempre estuvo en el acto de validar.
+  def importe_transferido(monto) = importe(monto, unidad: "Bs")
+
+  private
+
+  def importe(monto, unidad:)
+    numero = number_with_precision(monto.to_f, precision: 2, separator: ",", delimiter: ".")
+    unidad ? "#{numero} #{unidad}" : numero
   end
+
+  public
 
   # El color del estado de un cobro.
   #

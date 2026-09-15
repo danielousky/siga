@@ -2489,6 +2489,11 @@ nav.pagy a.gap {
 /* El número vencido, en el tono del dato que hay que mirar. */
 .dato-en-mora { color: var(--danger-text); font-weight: 600; }
 
+/* Las dos cifras del pago, una al lado de la otra: lo que cubre (en la unidad
+   de cuenta del colegio) y lo que se transfirió (lo que dice el voucher). No se
+   comparan — son monedas distintas, y el puente lo hace quien valida. */
+.equivalencia { background: var(--brand-subtle); border-radius: var(--radius-md); padding: var(--space-md); }
+
 /* ---- La tarjeta de pago -------------------------------------------------
    Daniel: «eso se acostumbraba mucho hace años… una tarjeta de pago donde la
    persona veía que había pagado y qué le faltaba». La barra es lo que se lee
