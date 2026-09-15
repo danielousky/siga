@@ -79,18 +79,24 @@
   - else
     %p.nota-ayuda La familia no adjuntó comprobante.
 
-- if @reporte.esperando_revision?
+-# ⚠️ También cuando YA está validado, y eso es lo que hace responsable al botón
+-# rápido de la bandeja: si la oficina validó de más, acá lo deshace. Rechazar
+-# suelta los cobros Y les quita la fecha de pago, así que la familia vuelve a
+-# deber exactamente lo que debía.
+- if @reporte.esperando_revision? || @reporte.validado?
   .card-academic
-    = render "shared/cabecera", titulo: "Decidir", nivel: 2
+    = render "shared/cabecera", titulo: @reporte.validado? ? "Deshacer" : "Decidir", nivel: 2
     .decidir-el-pago
-      = button_to "Validar el pago", validar_finanza_path(@reporte), method: :patch,
-                  class: "btn btn-guardar",
-                  data: { turbo_confirm: "Al validar, la familia vuelve a ver todo. ¿Seguimos?" }
+      - if @reporte.esperando_revision?
+        = button_to "Validar el pago", validar_finanza_path(@reporte), method: :patch,
+                    class: "btn btn-guardar",
+                    data: { turbo_confirm: "Al validar, la familia vuelve a ver todo. ¿Seguimos?" }
 
       = form_with url: rechazar_finanza_path(@reporte), method: :patch, class: "rechazo" do
         -# ⚠️ El motivo es obligatorio: un rechazo sin explicación deja a la
         -# familia reportando lo mismo otra vez.
-        = label_tag :motivo, "Si se rechaza, ¿por qué?", class: "form-label"
+        = label_tag :motivo, @reporte.validado? ? "¿Por qué se revierte?" : "Si se rechaza, ¿por qué?",
+                    class: "form-label"
         = text_field_tag :motivo, nil, class: "form-control", required: true,
                          placeholder: "Ej.: la referencia no aparece en el banco"
-        = submit_tag "Rechazar", class: "btn btn-danger"
+        = submit_tag(@reporte.validado? ? "Revertir la validación" : "Rechazar", class: "btn btn-danger")

@@ -44,9 +44,13 @@ class FinanzasController < ApplicationController
       return redirect_to finanza_path(@reporte), alert: "Diga por qué se rechaza."
     end
 
+    revertido = @reporte.validado?
     @reporte.rechazar!(por: current_user, motivo: motivo)
-    registrar_cambio(:actualizado, @reporte, "Pago rechazado · #{@reporte.referencia}")
-    redirect_to finanzas_path, notice: "Rechazado. La familia puede volver a reportarlo."
+    registrar_cambio(:actualizado, @reporte,
+                     "#{revertido ? 'Validación revertida' : 'Pago rechazado'} · #{@reporte.referencia}")
+    redirect_to finanzas_path,
+                notice: revertido ? "Listo. Esas cuotas vuelven a deberse." :
+                                    "Rechazado. La familia puede volver a reportarlo."
   end
 
   private

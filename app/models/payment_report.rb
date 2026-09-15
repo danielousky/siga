@@ -84,10 +84,18 @@ class PaymentReport < ApplicationRecord
   # ⚠️ Al rechazar, los cobros se SUELTAN: vuelven a estar sin reportar, así la
   # familia puede reportarlos de nuevo con la referencia correcta. Dejarlos
   # colgando del reporte rechazado los deja en un limbo que nadie sabe sacar.
+  # ⚠️ Y limpia `pagado_el`, que es lo que lo convierte en DESHACER.
+  #
+  # Rechazar un reporte que ya se había validado dejaba los cobros pagados y
+  # sueltos: la familia seguía viendo todo, el dinero seguía contado, y no había
+  # forma de darse cuenta. Sin eso, validar rápido desde la bandeja sería una
+  # decisión sin vuelta atrás.
   def rechazar!(por:, motivo:, cuando: Time.current)
     transaction do
+      afectados = charges.to_a
       update!(estado: "rechazado", revisado_por: por, revisado_el: cuando, motivo: motivo)
-      charges.update_all(payment_report_id: nil, updated_at: cuando)
+      Charge.where(id: afectados.map(&:id))
+            .update_all(payment_report_id: nil, pagado_el: nil, updated_at: cuando)
     end
   end
 

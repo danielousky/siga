@@ -2547,6 +2547,13 @@ nav.pagy a.gap {
   border-radius: var(--radius-md);
 }
 
+/* Las dos salidas de una fila de la bandeja. «Validar» primero: es la que se
+   usa 390 de cada 400 veces, y en una tabla la primera es la que el pulgar
+   alcanza. */
+.decidir-en-la-fila { display: flex; gap: 8px; justify-content: flex-end; }
+.decidir-en-la-fila form { margin: 0; }
+.columna-de-decidir { width: 1%; white-space: nowrap; }
+
 .decidir-el-pago {
   display: flex;
   flex-wrap: wrap;

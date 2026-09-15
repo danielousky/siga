@@ -20,7 +20,7 @@
           %th Pagado el
           %th Monto
           %th Reportado
-          %th
+          %th.columna-de-decidir
       %tbody
         - @esperando.each do |reporte|
           %tr
@@ -32,7 +32,23 @@
             -# ⚠️ Cuántos días lleva esperando, no la fecha: es lo que dice si
             -# hay una familia bloqueada desde el martes.
             %td= "hace #{distance_of_time_in_words_to_now(reporte.created_at)}"
-            %td= boton "Revisar", finanza_path(reporte), icono: :ver, tono: :ver
+            -# ⚠️ DOS salidas, y la de la izquierda es la que se usa 390 veces.
+            -#
+            -# Daniel: *«si tiene que revisar 400 vouchers en un día… si lo
+            -# comparas contra el banco y ves que todo está ok, no necesitas
+            -# revisar»*. La oficina tiene el estado de cuenta del banco
+            -# abierto al lado: busca la referencia, la ve, y valida. Abrir el
+            -# voucher es para las que NO cuadran.
+            -#
+            -# ⚠️ Y esta NO pregunta «¿está seguro?». Un diálogo por fila son
+            -# 400 clics de más, que es exactamente el trabajo que este botón
+            -# viene a quitar. Lo que la hace responsable es que se pueda
+            -# DESHACER: ver «Revertir la validación» en la ficha.
+            %td.decidir-en-la-fila
+              = button_to validar_finanza_path(reporte), method: :patch, class: "btn btn-guardar" do
+                = icono(:ok, tamano: 16)
+                %span Validar
+              = boton "Revisar", finanza_path(reporte), icono: :ver, tono: :ver
 
 - if @en_mora.any?
   .card-academic

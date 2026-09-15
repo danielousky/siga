@@ -207,6 +207,36 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
     assert_select ".dato-secundario", /no aparece en el banco/
   end
 
+  # ⚠️ Daniel: *«si tiene que revisar 400 vouchers en un día… si lo comparas
+  # contra el banco y ves que todo está ok, no necesitas revisar»*. La bandeja
+  # valida sin abrir la ficha.
+  test "se valida desde la bandeja, sin abrir el reporte" do
+    reportar!
+    sign_in @dir_usuario
+
+    get finanzas_path
+    assert_select "form[action=?] input[type=submit], form[action=?] button",
+                  validar_finanza_path(PaymentReport.last), validar_finanza_path(PaymentReport.last)
+  end
+
+  # ⚠️ Lo que hace RESPONSABLE al botón rápido: si la oficina validó de más, se
+  # deshace. Sin esto, validar sin abrir sería una decisión sin vuelta atrás.
+  test "revertir una validación devuelve la deuda tal como estaba" do
+    reporte = reportar!
+    sign_in @dir_usuario
+    patch validar_finanza_path(reporte)
+    con_el_colegio(@colegio) { assert Charge.first.reload.pagado? }
+
+    patch rechazar_finanza_path(reporte), params: { motivo: "me equivoqué de fila" }
+
+    con_el_colegio(@colegio) do
+      cobro = Charge.first.reload
+      assert_nil cobro.pagado_el, "un cobro revertido no puede quedar pagado"
+      assert_nil cobro.payment_report_id
+      assert EstadoDeCuenta.de(@esc.inscripcion).en_mora?, "vuelve a deber"
+    end
+  end
+
   # ⚠️ Un rechazo sin explicación deja a la familia reportando lo mismo otra vez.
   test "no se rechaza sin decir por qué" do
     reporte = reportar!
