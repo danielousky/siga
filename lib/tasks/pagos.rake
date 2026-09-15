@@ -128,7 +128,7 @@ namespace :pagos do
     reporte.voucher.attach(io: File.open(VOUCHER), filename: "voucher.jpg",
                            content_type: "image/jpeg")
     reporte.save!
-    cobro&.update!(payment_report: reporte)
+    reporte.declarar!([ cobro ].compact)
     reporte
   end
 end

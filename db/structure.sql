@@ -1119,7 +1119,8 @@ CREATE TABLE public.payment_reports (
     revisado_el timestamp(6) without time zone,
     motivo text,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    cobros_declarados jsonb DEFAULT '[]'::jsonb NOT NULL
 );
 
 ALTER TABLE ONLY public.payment_reports FORCE ROW LEVEL SECURITY;
@@ -5464,6 +5465,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260914210000'),
 ('20260913120000'),
 ('20260912005350'),
 ('20260911233604'),

@@ -69,15 +69,52 @@ class PaymentReport < ApplicationRecord
   def self.desde = DESDE_HACE.ago.to_date
   def self.hasta = Date.current
 
+  # ── Lo que dijo pagar, aunque se haya rechazado ───────────────────────────
+
+  # ⚠️ `charges` es el enlace VIVO y se suelta al rechazar; esto es la HISTORIA.
+  #
+  # Sin ella, un reporte rechazado no dice de qué era —la oficina lo abre y ve
+  # un monto sin cuotas— y no se puede volver a validar. Se escribe al crearlo y
+  # no se toca más.
+  def declarar!(cobros)
+    ids = Array(cobros).map { |c| c.respond_to?(:id) ? c.id : c.to_i }
+    update!(cobros_declarados: ids)
+    Charge.where(id: ids).update_all(payment_report_id: id, updated_at: Time.current)
+  end
+
+  # Los cobros que declaró y que HOY se pueden dar por pagados: los que siguen
+  # sin pagar y sin estar en manos de otro reporte.
+  #
+  # ⚠️ Si la familia ya volvió a reportarlos —porque el rechazo fue correcto y
+  # los pagó de nuevo— acá no salen, y revalidar el viejo no pisa el nuevo.
+  # ⚠️ Cae en el enlace VIVO cuando no hay historia, y no es cortesía con los
+  # datos viejos: un reporte creado por otra puerta —una tarea, una consola— que
+  # enlace los cobros sin declararlos se validaría marcando NADA, en silencio, y
+  # la familia quedaría bloqueada después de que le validaron el pago.
+  def cobros_recuperables
+    ids = cobros_declarados.presence || charges.pluck(:id)
+
+    Charge.where(id: ids, pagado_el: nil).where(payment_report_id: [ nil, id ])
+  end
+
+  def se_puede_validar? = en_revision? || (rechazado? && cobros_recuperables.any?)
+
   # ── Lo que hace la oficina ────────────────────────────────────────────────
 
   # ⚠️ Todo junto o nada: marcar los cobros y cambiar el estado son un solo
   # hecho. A medias queda un reporte validado con cobros que siguen debiendo, y
   # la familia bloqueada después de haber pagado.
+  #
+  # ⚠️ Vale también sobre un RECHAZADO, y esa es la salida del callejón: la
+  # referencia es única por colegio, así que una familia a la que le rechazaron
+  # un pago bueno no puede volver a reportarlo con el mismo número. Quien se
+  # equivocó fue la oficina, y es la oficina la que lo arregla.
   def validar!(por:, cuando: Time.current)
     transaction do
+      recuperables = cobros_recuperables.to_a
       update!(estado: "validado", revisado_por: por, revisado_el: cuando, motivo: nil)
-      charges.update_all(pagado_el: cuando, updated_at: cuando)
+      Charge.where(id: recuperables.map(&:id))
+            .update_all(payment_report_id: id, pagado_el: cuando, updated_at: cuando)
     end
   end
 
@@ -92,9 +129,10 @@ class PaymentReport < ApplicationRecord
   # decisión sin vuelta atrás.
   def rechazar!(por:, motivo:, cuando: Time.current)
     transaction do
-      afectados = charges.to_a
       update!(estado: "rechazado", revisado_por: por, revisado_el: cuando, motivo: motivo)
-      Charge.where(id: afectados.map(&:id))
+      # ⚠️ Se suelta el enlace VIVO; `cobros_declarados` no se toca, que es lo
+      # que permite volver a validarlo si el rechazo fue el error.
+      Charge.where(payment_report_id: id)
             .update_all(payment_report_id: nil, pagado_el: nil, updated_at: cuando)
     end
   end

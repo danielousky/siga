@@ -54,8 +54,10 @@ class PagosController < ApplicationController
     guardado = PaymentReport.transaction do
       next false unless @reporte.save
 
-      Charge.where(id: elegidos.map(&:id)).update_all(payment_report_id: @reporte.id,
-                                                      updated_at: Time.current)
+      # ⚠️ `declarar!` y no un `update_all` suelto: deja además la HISTORIA de
+      # qué dijo pagar, que es lo que permite validarlo si un rechazo fue el
+      # error. Ver `PaymentReport#cobros_declarados`.
+      @reporte.declarar!(elegidos)
       true
     end
 

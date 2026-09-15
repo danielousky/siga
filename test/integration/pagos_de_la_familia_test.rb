@@ -266,6 +266,47 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", finanzas_path, 0
   end
 
+  # ⚠️ Sin esto hay un CALLEJÓN SIN SALIDA: la referencia es única por colegio,
+  # así que a una familia a la que le rechazaron un pago bueno no le queda
+  # ninguna puerta — no puede volver a reportar el mismo número.
+  test "un rechazado por error se valida después" do
+    reporte = reportar!
+    sign_in @dir_usuario
+    patch rechazar_finanza_path(reporte), params: { motivo: "no la vi en el banco" }
+    con_el_colegio(@colegio) { assert_not Charge.first.reload.pagado? }
+
+    patch validar_finanza_path(reporte)
+
+    con_el_colegio(@colegio) do
+      assert reporte.reload.validado?
+      assert Charge.first.reload.pagado?, "las cuotas que declaró vuelven a quedar pagadas"
+    end
+  end
+
+  # ⚠️ Pero NO pisa un reporte nuevo: si el rechazo fue correcto y la familia ya
+  # volvió a reportar esas cuotas, revalidar el viejo las robaría del nuevo.
+  test "revalidar un rechazado no pisa lo que la familia reportó después" do
+    viejo = reportar!
+    sign_in @dir_usuario
+    patch rechazar_finanza_path(viejo), params: { motivo: "referencia equivocada" }
+
+    nuevo = con_el_colegio(@colegio) do
+      r = PaymentReport.create!(representative: @representante, enrollment: @esc.inscripcion,
+                                referencia: "REF99999", banco: "0102", monto: 45,
+                                pagado_el: Date.current, depositante_nombre: "María Pérez")
+      r.declarar!(Charge.where(enrollment_id: @esc.inscripcion.id))
+      r
+    end
+
+    patch validar_finanza_path(viejo)
+
+    assert_redirected_to finanza_path(viejo)
+    con_el_colegio(@colegio) do
+      assert viejo.reload.rechazado?, "no se revalida sobre cuotas que ya son de otro"
+      assert_equal nuevo.id, Charge.first.reload.payment_report_id
+    end
+  end
+
   # ⚠️ El dinero es otra gaveta: la coordinadora administra alumnos y NO valida
   # pagos.
   test "una coordinadora no entra a finanzas" do
@@ -295,7 +336,7 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
       reporte = PaymentReport.create!(representative: @representante, enrollment: @esc.inscripcion,
                                       referencia: "REF12345", banco: "0102", monto: 45,
                                       pagado_el: Date.current, depositante_nombre: "María Pérez")
-      Charge.where(enrollment_id: @esc.inscripcion.id).update_all(payment_report_id: reporte.id)
+      reporte.declarar!(Charge.where(enrollment_id: @esc.inscripcion.id))
       reporte
     end
   end

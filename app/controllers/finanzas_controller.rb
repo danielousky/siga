@@ -30,7 +30,15 @@ class FinanzasController < ApplicationController
     @estado = EstadoDeCuenta.de(@reporte.enrollment)
   end
 
+  # ⚠️ Vale sobre un rechazado si sus cuotas siguen libres: la referencia es
+  # única por colegio, así que una familia a la que le rechazaron un pago bueno
+  # NO puede volver a reportarlo. Quien se equivocó fue la oficina.
   def validar
+    unless @reporte.se_puede_validar?
+      return redirect_to finanza_path(@reporte),
+                         alert: "Esas cuotas ya no están libres: la familia volvió a reportarlas."
+    end
+
     @reporte.validar!(por: current_user)
     registrar_cambio(:actualizado, @reporte, "Pago validado · #{@reporte.referencia}")
     redirect_to finanzas_path, notice: "Pago validado. La familia ya puede ver todo."

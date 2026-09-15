@@ -275,8 +275,7 @@ class PagosTest < ActiveSupport::TestCase
   def reportar!(**cambios)
     reporte = nuevo_reporte(**cambios)
     reporte.save!
-    Charge.where(enrollment_id: @esc.inscripcion.id).sin_reportar
-          .update_all(payment_report_id: reporte.id)
+    reporte.declarar!(Charge.where(enrollment_id: @esc.inscripcion.id).sin_reportar)
     reporte
   end
 end

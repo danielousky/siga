@@ -81,6 +81,7 @@
           %th Referencia
           %th Situación
           %th Quién
+          %th.columna-de-decidir
       %tbody
         - @revisados.each do |reporte|
           %tr
@@ -88,3 +89,11 @@
             %td= link_to reporte.referencia, finanza_path(reporte)
             %td= pastilla_de_reporte(reporte)
             %td= reporte.revisado_por&.apellidos_y_nombres
+            -# ⚠️ Un rechazado con sus cuotas libres se valida desde acá: es el
+            -# caso de «me equivoqué de fila» y no tiene por qué costar tres
+            -# pantallas.
+            %td.decidir-en-la-fila
+              - if reporte.rechazado? && reporte.se_puede_validar?
+                = button_to validar_finanza_path(reporte), method: :patch, class: "btn btn-guardar" do
+                  = icono(:ok, tamano: 16)
+                  %span Validar
