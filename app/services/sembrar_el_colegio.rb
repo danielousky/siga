@@ -57,12 +57,32 @@ class SembrarElColegio
       grados   = SembrarGrados.para(@colegio, niveles: @niveles)
       materias = SembrarMaterias.para(@colegio)
       anios    = SembrarAniosEscolares.para(@colegio, hoy: @hoy)
+      sembrar_la_rubrica
 
       Resultado.new(grados: grados, materias: materias, anios: anios, resumen: contar)
     end
   end
 
   private
+
+  # ⚠️ La rúbrica FALTABA, y el colegio nuevo emitía las boletas de primaria sin
+  # nivel.
+  #
+  # `restablecer_la_rubrica!` solo se llamaba desde el botón «Volver a la
+  # propuesta de SIGA» y desde los seeds, así que un colegio registrado por el
+  # formulario nacía con CERO filas. Y sin rúbrica, `ReportCardData#rubricas`
+  # queda vacía y la boleta imprime el número pelado — que es exactamente lo
+  # contrario de lo que MOR-136 vino a dar: «en primaria la familia no lee un
+  # 17, lee un nivel».
+  #
+  # Lo vio Cyndi en la prueba de campo, en la boleta de 5to Grado.
+  #
+  # ⚠️ Solo si NO tiene ninguna: `restablecer_la_rubrica!` borra y vuelve a
+  # crear, así que llamarlo a ciegas le pisaría al colegio los niveles que haya
+  # ajustado. Correr el andamiaje dos veces no puede deshacer trabajo hecho.
+  def sembrar_la_rubrica
+    @colegio.restablecer_la_rubrica! if @colegio.rubrics.none?
+  end
 
   # ⚠️ El resumen cuenta lo que HAY, no lo que se creó en esta pasada.
   #

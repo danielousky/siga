@@ -142,8 +142,18 @@ class ReportCardData
 
   ETIQUETAS_DE_NIVEL = NIVELES.map(&:last).freeze
 
+  # ⚠️ En PRIMARIA no va, y no es una preferencia de diseño.
+  #
+  # Cyndi, en la prueba de campo: *«en Primaria, la situación con respecto a la
+  # sección NO VA»*. En primaria la boleta habla de un PROCESO —el nivel de la
+  # rúbrica y lo que el niño logró— y una tabla que ranquea a un niño de ocho
+  # años contra el promedio de su salón es de otra conversación.
+  #
+  # En bachillerato sí: ahí la nota numérica ES el lenguaje y saber dónde se
+  # está parado respecto del grupo es información que la familia usa.
   def comparacion
     return nil if @lapso.nil?   # el anual compara contra tres lapsos, no contra la clase
+    return nil if grado&.califica_con_rubrica?
 
     promedios = promedios_de_la_seccion
     return nil if promedios.empty?
