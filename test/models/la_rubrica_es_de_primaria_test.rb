@@ -53,6 +53,39 @@ class LaRubricaEsDePrimariaTest < ActiveSupport::TestCase
     assert datos["rubrica"].present?, "en primaria la familia lee el nivel, no el 17"
   end
 
+  # ⚠️ Un colegio REGISTRADO por el formulario nacía con CERO rúbricas.
+  #
+  # `restablecer_la_rubrica!` solo se llamaba desde el botón «Volver a la
+  # propuesta de SIGA» y desde los seeds. Sin rúbrica, la boleta de primaria
+  # imprime el número pelado — lo contrario de lo que MOR-136 vino a dar.
+  #
+  # Lo vio Cyndi en la prueba de campo, en la boleta de 5to Grado.
+  test "un colegio recién sembrado nace con su rúbrica" do
+    Current.sin_aislamiento do
+      colegio = School.create!(name: "U.E. RECIÉN NACIDA")
+      assert_equal 0, colegio.rubrics.count
+
+      SembrarElColegio.para(colegio, niveles: [ :primaria ])
+
+      assert_equal Rubric::POR_DEFECTO.size, colegio.rubrics.reload.count
+    end
+  end
+
+  # ⚠️ Y correrlo dos veces NO le pisa al colegio los niveles que haya ajustado:
+  # `restablecer_la_rubrica!` borra y vuelve a crear, así que llamarlo a ciegas
+  # deshace trabajo hecho.
+  test "sembrar de nuevo respeta la rúbrica que el colegio ajustó" do
+    Current.sin_aislamiento do
+      colegio = School.create!(name: "U.E. CON RÚBRICA PROPIA")
+      SembrarElColegio.para(colegio, niveles: [ :primaria ])
+      colegio.rubrics.first.update!(name: "Lo logró con creces")
+
+      SembrarElColegio.para(colegio, niveles: [ :primaria ])
+
+      assert_equal "Lo logró con creces", colegio.rubrics.reload.first.name
+    end
+  end
+
   private
 
   def grado_de(nivel)

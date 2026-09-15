@@ -54,7 +54,15 @@
                 - if @anual
                   = EscalaLiteral.mostrar(valor, escala: fila[:escala])
                 - elsif fila[:nivel]
-                  = "#{fila[:nivel]} (#{valor})"
+                  -# ⚠️ SOLO el nivel, sin el número al lado.
+                  -#
+                  -# Daniel, después de revisarlo: *«por ley debe aparecer la
+                  -# rúbrica y no la numérica»*. Cambia una decisión anterior
+                  -# —«los dos, no uno: la niña sacó 19, por eso tiene PC»— y se
+                  -# cambia a sabiendas: lo que la familia LEE en primaria es el
+                  -# nivel, y el número sigue disponible para el colegio, que es
+                  -# quien tiene que poder verificarlo.
+                  = fila[:nivel]
                 - else
                   = valor
             - else
