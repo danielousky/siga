@@ -83,6 +83,37 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     nil
   end
 
+  # Tocar algo que TIENE que llevar a otra pantalla, y asegurarse de que llevó.
+  #
+  # ## ⚠️ El clic puede no hacer nada, y eso NO es un error de Selenium
+  #
+  # `tocando` cubre el clic que revienta —el elemento se movió, otro lo tapó, el
+  # nodo quedó viejo— y `esperando_la_pagina` cubre la línea siguiente. Queda un
+  # tercer caso que ninguno de los dos ve: **Turbo se traga el clic**.
+  #
+  # Turbo intercepta los enlaces con un listener que instala al hidratar. Un
+  # clic que llega en esa rendija no lo atiende nadie: Selenium reporta éxito
+  # —tocó el elemento correcto— el navegador no navega, y el test falla tres
+  # líneas después con «expected "/secciones/1090" to equal
+  # "/secciones/1090/asistencia"», que parece un problema de rutas.
+  #
+  # Se comprobó que no era ambigüedad: `all(:link_or_button, "Asistencia")`
+  # devuelve UNA coincidencia, y es el `a.pestana` correcto.
+  #
+  # ⚠️ Por eso lo que se reintenta es el CLIC, no la aserción. Y solo aparece
+  # bajo carga —dentro de `bin/ci`, después de los mil quinientos tests de
+  # unidad— porque ahí la hidratación tarda más y la rendija se ensancha.
+  def tocar_para_ir_a(destino, intentos: 3, &clic)
+    intentos.times do
+      tocando(&clic)
+      esperando_la_pagina
+      return if page.has_current_path?(destino, ignore_query: true, wait: 3)
+    end
+
+    # Que falle con el mensaje de Capybara, que dice a dónde se llegó.
+    assert_current_path destino, ignore_query: true
+  end
+
   # Entrar por el formulario, como una persona. Un test de sistema que se saltea
   # el login no prueba la pantalla que de verdad se ve al llegar.
   #

@@ -49,7 +49,7 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
     assert_equal [ "Octubre", "Septiembre" ], cuotas.first(2)
   end
 
-    # ⚠️ La tarjeta es lo ÚNICO que no se bloquea por deuda: es la pantalla que
+  # ⚠️ La tarjeta es lo ÚNICO que no se bloquea por deuda: es la pantalla que
   # explica la deuda y permite salir de ella.
   test "la tarjeta se ve AUNQUE haya deuda" do
     sign_in @rep_usuario
