@@ -1106,7 +1106,6 @@ CREATE TABLE public.payment_reports (
     id bigint NOT NULL,
     school_id bigint NOT NULL,
     representative_id bigint NOT NULL,
-    enrollment_id bigint NOT NULL,
     referencia character varying NOT NULL,
     banco character varying NOT NULL,
     monto numeric(10,2) NOT NULL,
@@ -3655,20 +3654,6 @@ CREATE INDEX index_moment_grades_on_subject_id ON public.moment_grades USING btr
 
 
 --
--- Name: index_payment_reports_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_payment_reports_on_enrollment_id ON public.payment_reports USING btree (enrollment_id);
-
-
---
--- Name: index_payment_reports_on_enrollment_id_and_created_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_payment_reports_on_enrollment_id_and_created_at ON public.payment_reports USING btree (enrollment_id, created_at);
-
-
---
 -- Name: index_payment_reports_on_representative_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4327,14 +4312,6 @@ ALTER TABLE ONLY public.mensaje_eventos
 
 ALTER TABLE ONLY public.rubrics
     ADD CONSTRAINT fk_rails_28ec4c65ca FOREIGN KEY (school_id) REFERENCES public.schools(id);
-
-
---
--- Name: payment_reports fk_rails_2b4c392868; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payment_reports
-    ADD CONSTRAINT fk_rails_2b4c392868 FOREIGN KEY (enrollment_id) REFERENCES public.enrollments(id);
 
 
 --
@@ -5466,6 +5443,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260915100000'),
 ('20260915090000'),
 ('20260914210000'),
 ('20260913120000'),

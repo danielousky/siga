@@ -2489,6 +2489,11 @@ nav.pagy a.gap {
 /* El número vencido, en el tono del dato que hay que mirar. */
 .dato-en-mora { color: var(--danger-text); font-weight: 600; }
 
+/* Las dos cifras del pago, una al lado de la otra: lo que cubre (en la unidad
+   de cuenta del colegio) y lo que se transfirió (lo que dice el voucher). No se
+   comparan — son monedas distintas, y el puente lo hace quien valida. */
+.equivalencia { background: var(--brand-subtle); border-radius: var(--radius-md); padding: var(--space-md); }
+
 /* ---- La tarjeta de pago -------------------------------------------------
    Daniel: «eso se acostumbraba mucho hace años… una tarjeta de pago donde la
    persona veía que había pagado y qué le faltaba». La barra es lo que se lee
@@ -2517,6 +2522,19 @@ nav.pagy a.gap {
 /* ---- Marcar qué cuotas se pagan -----------------------------------------
    ⚠️ La fila entera es el control, no solo la casilla: en un teléfono una
    casilla de 16 px es el objetivo más difícil de la pantalla. */
+/* El nombre del hijo, sobre sus cuotas. Solo cuando hay más de uno: con uno
+   solo sería un rótulo que no distingue nada. */
+.cuotas-de-quien {
+  margin: var(--space-md) 0 0;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* El punto de «tiene cuotas vencidas» en su pestaña: el color lo lleva el DATO
+   (regla de color, MOR-135), y la pestaña sigue siendo navegación. */
+.pestana-en-mora { color: var(--danger-text); margin-left: 6px; font-size: 11px; }
+
 .cuotas-a-marcar { display: grid; gap: 8px; margin-top: var(--space-sm); }
 .cuota-a-marcar {
   display: flex;

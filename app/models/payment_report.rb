@@ -13,10 +13,11 @@
 # escriba cualquier número de referencia se libera el acceso a las notas.
 class PaymentReport < ApplicationRecord
   include SchoolScoped
-  derives_school_from :enrollment
+  # ⚠️ Del REPRESENTANTE y no de una inscripción: un reporte puede cubrir a
+  # varios hijos, así que no hay UNA inscripción de la que colgar el colegio.
+  derives_school_from :representative
 
   belongs_to :representative
-  belongs_to :enrollment
   belongs_to :revisado_por, class_name: "User", optional: true
   has_many :charges, dependent: :nullify
 
@@ -55,6 +56,20 @@ class PaymentReport < ApplicationRecord
   before_validation :encoger_el_voucher
 
   scope :recientes_primero, -> { order(created_at: :desc) }
+
+  # A qué hijos alcanza este pago. Sale de sus CUOTAS, que ya saben su
+  # inscripción: el reporte no lo repite, y repetirlo era lo que obligaba a
+  # partir una transferencia en dos.
+  def inscripciones
+    Enrollment.where(id: Charge.where(id: cobros_declarados).select(:enrollment_id))
+              .includes(:student, section: :grade)
+  end
+
+  # «Sofía y Daniela», para la bandeja de la oficina y la tarjeta de la familia.
+  def por_quienes
+    inscripciones.map { |i| i.student.user.apellidos_y_nombres }
+                 .to_sentence(two_words_connector: " y ", last_word_connector: " y ")
+  end
   scope :esperando, -> { where(estado: "en_revision").order(:created_at) }
 
   # ⚠️ Hasta dónde atrás admite el calendario.

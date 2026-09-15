@@ -18,17 +18,17 @@
           %th Referencia
           %th Banco
           %th Pagado el
-          %th Monto
+          %th Transfirió
           %th Reportado
           %th.columna-de-decidir
       %tbody
         - @esperando.each do |reporte|
           %tr
-            %td= reporte.enrollment.student.user.apellidos_y_nombres
+            %td= reporte.por_quienes
             %td= reporte.referencia
             %td= reporte.banco_a_la_vista
             %td= l(reporte.pagado_el, format: :long)
-            %td= numero_en_dolares(reporte.monto)
+            %td= importe_transferido(reporte.monto)
             -# ⚠️ Cuántos días lleva esperando, no la fecha: es lo que dice si
             -# hay una familia bloqueada desde el martes.
             %td
@@ -75,7 +75,12 @@
       %tbody
         - @en_mora.each do |cobro|
           %tr
-            %td= cobro.enrollment.student.user.apellidos_y_nombres
+            -# ⚠️ Enlazado al detalle. Daniel: «esta lista debería tener enlaces
+            -# al detalle del deudor». Una lista de cobranza que no lleva a
+            -# ningún lado obliga a buscar al alumno por el menú de Usuarios,
+            -# que es otro camino y otra pantalla.
+            %td
+              = link_to cobro.enrollment.student.user.apellidos_y_nombres, deudor_path(cobro.enrollment_id)
             %td= cobro.fee&.nombre
             %td.dato-en-mora= l(cobro.vence_el, format: :long)
             %td= numero_en_dolares(cobro.monto)
@@ -94,7 +99,7 @@
       %tbody
         - @revisados.each do |reporte|
           %tr
-            %td= reporte.enrollment.student.user.apellidos_y_nombres
+            %td= reporte.por_quienes
             %td= link_to reporte.referencia, finanza_path(reporte)
             %td= pastilla_de_reporte(reporte)
             %td= reporte.revisado_por&.apellidos_y_nombres

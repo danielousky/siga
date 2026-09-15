@@ -25,7 +25,7 @@
       - if estado.deuda.to_f.positive?
         = succeed "." do
           — un total de
-          %strong= numero_en_dolares(estado.deuda)
+          %strong= importe_para_la_familia(estado.deuda)
 
   %p.nota-ayuda
     Si ya pagó, repórtelo y el colegio lo valida. Apenas quede validado vuelve a
