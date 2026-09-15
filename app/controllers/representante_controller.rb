@@ -99,7 +99,10 @@ class RepresentanteController < ApplicationController
         escala: grado.escala,
         # El nivel de la rúbrica del colegio y el plan que se trabajó (MOR-136).
         # Es lo que la madre lee: no un 17, sino «PA» y qué se evaluó.
-        nivel: Rubric.para(del_lapso, rubricas_del_colegio)&.code,
+        # ⚠️ Solo donde la nota se LEE como nivel. Daniel: *«la calificación de
+        # los de Media es únicamente numérica, no lleva el PD - NP»*. Un
+        # muchacho de 1er Año salía con «PD (10)» en la pantalla de su mamá.
+        nivel: nivel_de_rubrica(grado, del_lapso),
         competencias: competencias_de(inscripcion, materia, lapso)
       }
     end
@@ -107,6 +110,17 @@ class RepresentanteController < ApplicationController
 
   def rubricas_del_colegio
     @rubricas_del_colegio ||= Rubric.en_orden.to_a
+  end
+
+  # ⚠️ Se pregunta por el GRADO, no por el colegio.
+  #
+  # `rubricas_del_colegio` tiene filas siempre que el colegio haya definido su
+  # rúbrica —y la trae sembrada— así que preguntarle a ella si hay nivel que
+  # mostrar responde «sí» para bachillerato. Quien lo decide es el grado.
+  def nivel_de_rubrica(grado, nota)
+    return nil unless grado&.califica_con_rubrica?
+
+    Rubric.para(nota, rubricas_del_colegio)&.code
   end
   helper_method :rubricas_del_colegio
 
@@ -130,7 +144,7 @@ class RepresentanteController < ApplicationController
       nota = nota_de_la_competencia(competencia, inscripcion)
       { texto: competencia.descripcion,
         indicadores: competencia.indicators.map(&:descripcion),
-        nivel: Rubric.para(nota, rubricas_del_colegio)&.code }
+        nivel: nivel_de_rubrica(inscripcion.section.grade, nota) }
     end
   end
 

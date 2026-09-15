@@ -83,7 +83,8 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
       # `expected "/secciones/4328" to equal "/secciones/4328/planificar"` —
       # la URL nunca cambió porque nadie llegó a pulsar nada.
       en_la_seccion
-      click_on nombre
+      tocando { click_on nombre }
+      esperando_la_pagina
 
       # ⚠️ La URL PRIMERO, y no es ceremonia: sin esperar a que Turbo termine
       # la navegación, Capybara encuentra `.pestana.activa` en la página
@@ -123,7 +124,8 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
     visit section_path(@a.seccion)
     en_la_seccion(area: nil)
 
-    click_on "Planificar"
+    tocando { click_on "Planificar" }
+    esperando_la_pagina
 
     # ⚠️ La URL primero. Sin esto, `.pestana.activa` se lee en la página vieja
     # y devuelve «Calificar» — el fallo intermitente de este test.
@@ -136,8 +138,14 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
 
   # La sección, asentada: estamos en su URL y su fila de pestañas ya está
   # dibujada. Es la precondición de cualquier `click_on` de este archivo.
+  # ⚠️ Con los DOS ayudantes de `ApplicationSystemTestCase`, que es lo que a este
+  # archivo le faltaba: `tocando` absorbe el clic que llega mientras el
+  # documento cambia, y `esperando_la_pagina` evita que la línea siguiente
+  # pregunte por un DOM a medio instalar. Son las dos mitades del mismo
+  # problema, y con una sola el error se mueve de sitio en vez de irse.
   def en_la_seccion(area: @area.id)
     visit section_path(@a.seccion, area: area) unless current_path == section_path(@a.seccion)
+    esperando_la_pagina
     assert_current_path section_path(@a.seccion), ignore_query: true
     assert_selector ".pestana", minimum: 3
   end
