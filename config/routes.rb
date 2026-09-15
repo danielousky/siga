@@ -67,6 +67,25 @@ Rails.application.routes.draw do
   # salía con el HTML adentro y `Content-Type: text/html`.
   get "manual", to: "manual#show", as: :manual
 
+  # ── Los pagos de la familia (spec: docs/specs/pagos-de-la-familia.md) ──────
+  #
+  # Dos puertas para el mismo hecho, porque son dos trabajos distintos:
+  #
+  #   /pagos      la FAMILIA ve su tarjeta y reporta
+  #   /finanzas   la OFICINA revisa el voucher y valida
+  # ⚠️ `edit`, `update` y `destroy` son para que la familia CORRIJA su propio
+  # reporte mientras nadie lo ha mirado. Daniel: *«el error humano es posible,
+  # entonces deben poder corregir»*. Ver `PaymentReport#la_familia_puede_corregir?`.
+  resources :pagos, path: "pagos", only: [ :index, :new, :create, :edit, :update, :destroy ],
+            path_names: { new: "reportar", edit: "corregir" }
+
+  resources :finanzas, path: "finanzas", only: [ :index, :show ] do
+    member do
+      patch :validar
+      patch :rechazar
+    end
+  end
+
   # ⚠️ NO hay registro público. Ver MOR-101.
   #
   # `:registerable` viene puesto por `rails generate devise User` y no es una

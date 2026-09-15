@@ -1,0 +1,121 @@
+-# Un reporte, con su voucher al lado (spec: `docs/specs/pagos-de-la-familia.md`).
+-#
+-# ⚠️ El voucher y los datos van JUNTOS en la misma pantalla, no en una lupa que
+-# hay que abrir: el trabajo de la oficina es comparar el número de la pantalla
+-# con el de la foto, y hacerlo en dos pestañas es cómo se valida el pago
+-# equivocado.
+- content_for :titulo, "Revisar un pago"
+
+.card-academic
+  = render layout: "shared/cabecera", locals: { titulo: "Pago de #{@reporte.enrollment.student.user.apellidos_y_nombres}" } do
+    = boton "Volver", finanzas_path, icono: :volver, tono: :secondary
+
+  .detail-row
+    .detail-item
+      .detail-label Referencia
+      .detail-value= @reporte.referencia
+    .detail-item
+      .detail-label Banco
+      .detail-value= @reporte.banco_a_la_vista
+    .detail-item
+      .detail-label Monto
+      .detail-value= numero_en_dolares(@reporte.monto)
+
+  .detail-row
+    .detail-item
+      .detail-label Fecha del pago
+      .detail-value= l(@reporte.pagado_el, format: :long)
+    .detail-item
+      .detail-label Reportado
+      .detail-value= l(@reporte.created_at.to_date, format: :long)
+    .detail-item
+      .detail-label Situación
+      .detail-value
+        = pastilla_de_reporte(@reporte)
+        - if @reporte.corregido?
+          %span.dato-secundario= " · la familia lo corrigió el #{l(@reporte.corregido_el.to_date, format: :long)}"
+
+  .detail-row
+    .detail-item
+      .detail-label Quien transfirió
+      .detail-value= @reporte.depositante_nombre
+    .detail-item
+      .detail-label Su cédula
+      .detail-value= @reporte.depositante_documento.presence || "—"
+
+  - if @reporte.nota.present?
+    .detail-item
+      .detail-label Lo que agregó la familia
+      .detail-value= @reporte.nota
+
+.card-academic
+  = render "shared/cabecera", titulo: "Qué cuotas paga", nivel: 2
+  %table.table-academic
+    %thead
+      %tr
+        %th Cuota
+        %th Vence
+        %th Monto
+    %tbody
+      - @cobros.each do |cobro|
+        %tr
+          %td= cobro.fee&.nombre
+          %td= l(cobro.vence_el, format: :long)
+          %td= numero_en_dolares(cobro.monto)
+  %p.nota-ayuda
+    Suman
+    %strong= numero_en_dolares(@cobros.sum(&:monto))
+    - if @cobros.sum(&:monto) != @reporte.monto
+      -# ⚠️ Si no cuadra se DICE, y no se impide validar: la familia puede haber
+      -# transferido de más a cuenta del mes siguiente, o el banco cobró
+      -# comisión. Quien decide es quien mira el voucher.
+      %span.dato-en-mora= " — y el reporte dice #{numero_en_dolares(@reporte.monto)}"
+
+.card-academic
+  = render "shared/cabecera", titulo: "El comprobante", nivel: 2
+  - if @reporte.voucher.attached?
+    - if @reporte.voucher.image?
+      = link_to url_for(@reporte.voucher), target: "_blank", rel: "noopener" do
+        = image_tag url_for(@reporte.voucher), class: "voucher", alt: "Comprobante de #{@reporte.referencia}"
+    - else
+      = boton "Abrir el PDF", url_for(@reporte.voucher), icono: :documento, tono: :documento
+  - else
+    %p.nota-ayuda La familia no adjuntó comprobante.
+
+-# ⚠️ También cuando YA está validado, y eso es lo que hace responsable al botón
+-# rápido de la bandeja: si la oficina validó de más, acá lo deshace. Rechazar
+-# suelta los cobros Y les quita la fecha de pago, así que la familia vuelve a
+-# deber exactamente lo que debía.
+-# ⚠️ Tres situaciones, no dos:
+-#
+-#   en revisión  validar o rechazar
+-#   validado     revertir — es lo que hace responsable al botón rápido
+-#   rechazado    VALIDAR, si sus cuotas siguen libres. La referencia es única
+-#                por colegio, así que a una familia a la que le rechazaron un
+-#                pago bueno no le queda ninguna puerta: quien se equivocó fue
+-#                la oficina y es la oficina la que lo arregla.
+- if @reporte.se_puede_validar? || @reporte.validado?
+  .card-academic
+    = render "shared/cabecera", titulo: @reporte.validado? ? "Deshacer" : "Decidir", nivel: 2
+    - if @reporte.rechazado?
+      %p.nota-ayuda
+        Este pago se rechazó
+        = succeed "." do
+          = "el #{l(@reporte.revisado_el.to_date, format: :long)}"
+        Si el rechazo fue el error, valídelo: sus cuotas siguen libres.
+    .decidir-el-pago
+      - if @reporte.se_puede_validar?
+        = button_to(@reporte.rechazado? ? "Validarlo de todos modos" : "Validar el pago",
+                    validar_finanza_path(@reporte), method: :patch, class: "btn btn-guardar",
+                    data: { turbo_confirm: "Al validar, la familia vuelve a ver todo. ¿Seguimos?" })
+
+      -# Rechazar lo ya rechazado no hace nada; lo que falta ahí es validarlo.
+      - unless @reporte.rechazado?
+        -# ⚠️ El motivo es obligatorio: un rechazo sin explicación deja a la
+        -# familia reportando lo mismo otra vez.
+        = form_with url: rechazar_finanza_path(@reporte), method: :patch, class: "rechazo" do
+          = label_tag :motivo, @reporte.validado? ? "¿Por qué se revierte?" : "Si se rechaza, ¿por qué?",
+                      class: "form-label"
+          = text_field_tag :motivo, nil, class: "form-control", required: true,
+                           placeholder: "Ej.: la referencia no aparece en el banco"
+          = submit_tag(@reporte.validado? ? "Revertir la validación" : "Rechazar", class: "btn btn-danger")

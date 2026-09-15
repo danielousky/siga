@@ -83,14 +83,10 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
       # `expected "/secciones/4328" to equal "/secciones/4328/planificar"` —
       # la URL nunca cambió porque nadie llegó a pulsar nada.
       en_la_seccion
-      tocando { click_on nombre }
-      esperando_la_pagina
-
-      # ⚠️ La URL PRIMERO, y no es ceremonia: sin esperar a que Turbo termine
-      # la navegación, Capybara encuentra `.pestana.activa` en la página
-      # ANTERIOR y le lee el texto mientras el DOM se reemplaza debajo. De ahí
-      # el fallo intermitente con «<<ERROR>>» en vez de «Asistencia».
-      assert_current_path send(ruta, @a.seccion), ignore_query: true
+      # ⚠️ La URL PRIMERO, y el clic se REINTENTA hasta llegar: Turbo se traga
+      # el clic que cae mientras hidrata, y Selenium reporta éxito igual. Ver
+      # `tocar_para_ir_a`.
+      tocar_para_ir_a(send(ruta, @a.seccion)) { click_on nombre }
       assert_selector ".pestana.activa", text: nombre
       assert_selector ".cabecera-de-lista-titulo", text: /#{@a.seccion.grade.name}/
       assert_selector ".detail-label", text: "PROFESOR GUÍA"
@@ -124,12 +120,7 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
     visit section_path(@a.seccion)
     en_la_seccion(area: nil)
 
-    tocando { click_on "Planificar" }
-    esperando_la_pagina
-
-    # ⚠️ La URL primero. Sin esto, `.pestana.activa` se lee en la página vieja
-    # y devuelve «Calificar» — el fallo intermitente de este test.
-    assert_current_path planificar_section_path(@a.seccion), ignore_query: true
+    tocar_para_ir_a(planificar_section_path(@a.seccion)) { click_on "Planificar" }
     assert_selector ".pestana.activa", text: "Planificar"
     assert_no_text "Elige primero un área"
   end

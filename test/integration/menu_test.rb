@@ -104,7 +104,12 @@ class MenuTest < ActionDispatch::IntegrationTest
 
     titulos = css_select(".sidebar-index .sidebar-section-title").map(&:text).map(&:strip)
 
-    assert_equal [ "Usuarios", "Académico", "Día a día", "Reportes", "Configuración" ], titulos
+    # ⚠️ «Finanzas» va entre Reportes y Configuración, y es un grupo propio: no
+    # es un reporte —no se consulta, se DECIDE sobre él— y no es día a día. En
+    # un colegio, quien cobra no es quien pasa lista, y el dinero delante de la
+    # coordinadora cada vez que abre el menú es ruido que además no puede tocar.
+    assert_equal [ "Usuarios", "Académico", "Día a día", "Reportes", "Finanzas", "Configuración" ],
+                 titulos
   end
 
   # ⚠️ Heredado de `MOR-135`, y sigue siendo el riesgo más caro de este menú.

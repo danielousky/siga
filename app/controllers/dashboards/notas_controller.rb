@@ -21,6 +21,8 @@
 #
 # Ver MOR-97.
 class Dashboards::NotasController < ApplicationController
+  include ExigeEstarAlDia
+
   before_action :require_estudiante!
 
   # Una materia con todo lo que el alumno necesita saber de ella en un lapso.
@@ -37,6 +39,10 @@ class Dashboards::NotasController < ApplicationController
     @student    = current_user.student
     @enrollment = inscripcion_vigente
     return if @enrollment.nil?
+
+    # La misma deuda que bloquea a su representante lo bloquea a él: es la
+    # deuda de SU inscripción, no de quien la mira.
+    return if exigir_estar_al_dia!(@enrollment)
 
     @seccion = @enrollment.section
     @lapsos  = EvaluationMoment.where(academic_period_id: @seccion.academic_period_id).order(:id).to_a

@@ -42,7 +42,18 @@ class NombresDeLasAccionesTest < ActiveSupport::TestCase
   # sube. Es la misma excepción que los verbos de `PasosDeArranque`.
   # Y `departments`, que desde MOR-205 no tiene botón de cabecera: su alta es un
   # campo dentro de la propia lista, así que no hay nombre que comparar.
-  SIN_ALTA_UNICA = %w[importaciones departments].freeze
+  # Y `pagos`, por DOS razones y ninguna es una excusa:
+  #
+  # 1. No tiene UN alta. El botón vive dentro de la tarjeta de cada
+  #    representado, porque un pago se reporta contra UNA inscripción: una madre
+  #    con dos hijos ve dos botones, y tiene que ver dos.
+  #
+  # 2. Y dice «Reportar un pago», no «Registrar». No es descuido: para la madre
+  #    que lo pulsa, «registrar» suena a que el pago QUEDÓ ASENTADO, y lo que
+  #    pasa es que queda esperando a que la oficina lo valide. La palabra tiene
+  #    que decir la verdad del estado. Es la misma excepción que los verbos de
+  #    `PasosDeArranque`: enseñan qué es la acción.
+  SIN_ALTA_UNICA = %w[importaciones departments pagos].freeze
 
   # Cada carpeta con `index` + `new`: el botón de la cabecera y el título.
   def altas

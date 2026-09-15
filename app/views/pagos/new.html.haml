@@ -1,0 +1,128 @@
+-# El formulario del reporte (spec: `docs/specs/pagos-de-la-familia.md`).
+-#
+-# ⚠️ El orden es el del trabajo real: primero QUÉ estoy pagando, después CÓMO
+-# lo pagué y al final el respaldo. Al revés —los datos del banco arriba— la
+-# familia llena ocho campos antes de descubrir que marcó el mes equivocado.
+-# ⚠️ La MISMA plantilla reporta y corrige. Dos copias se separan, y la que se
+-# usa menos —corregir— es la que se queda vieja: quien la abriera tendría el
+-# formulario de hace tres versiones.
+- corrigiendo = @reporte.persisted?
+- content_for :titulo, corrigiendo ? "Corregir un pago" : "Reportar un pago"
+
+.card-academic
+  = render "shared/cabecera", titulo: corrigiendo ? "Corregir un pago" : "Reportar un pago"
+
+  - if corrigiendo
+    %p.nota-ayuda
+      Todavía nadie lo ha revisado, así que puede cambiar lo que haga falta. Si
+      el error fue reportar por el representado equivocado, retírelo y empiece
+      de nuevo.
+
+  %p.nota-ayuda
+    Para
+    %strong= @inscripcion.student.user.apellidos_y_nombres
+    ·
+    = "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
+
+  = form_with model: @reporte, url: (corrigiendo ? pago_path(@reporte) : pagos_path),
+              method: (corrigiendo ? :patch : :post), multipart: true do |f|
+    = render "shared/errors", object: @reporte
+    = f.hidden_field :enrollment_id, value: @inscripcion.id
+
+    -# ── 1 · qué se paga ────────────────────────────────────────────────────
+    %fieldset.form-group
+      %legend.form-label Qué está pagando
+      - if @cobros.empty?
+        %p.nota-ayuda
+          No hay cuotas pendientes de reportar. Si ya reportó un pago, está en
+          revisión.
+      - else
+        .cuotas-a-marcar
+          - @cobros.each do |cobro|
+            %label.cuota-a-marcar
+              -# ⚠️ Al corregir vienen MARCADAS las que este reporte ya tomó.
+              -# Sin esto, abrir «Corregir» muestra todo en blanco y guardar
+              -# suelta las cuotas que la familia sí había reportado.
+              = check_box_tag "cobros[]", cobro.id, cobro.payment_report_id == @reporte.id,
+                              id: "cobro_#{cobro.id}"
+              %span.cuota-nombre= cobro.fee&.nombre
+              %span.cuota-monto= numero_en_dolares(cobro.monto)
+              = pastilla_de_cobro(cobro)
+        %p.nota-ayuda Puede marcar varias si transfirió todo junto.
+
+    -# ── 2 · cómo se pagó ───────────────────────────────────────────────────
+    .form-row
+      .form-group
+        = con_pista("Es lo que el colegio busca en su estado de cuenta. Solo letras, números y guion.") { f.label :referencia, "Referencia de la transferencia", class: "form-label" }
+        -# ⚠️ Las TRES capas, y faltaba la primera: el `action`.
+        -#
+        -# `campo-filtrado` no se dispara solo — `filtrar` es un método que
+        -# alguien tiene que llamar—. Sin `input->campo-filtrado#filtrar` el
+        -# controlador se conecta, limpia UNA vez al cargar y después se queda
+        -# mirando: se podía teclear «1.0.}+}}+QWE@@¡"£¡.∞ÑÑÑ.» y descubrirlo al
+        -# enviar. Nada falla; simplemente no pasa nada.
+        = f.text_field :referencia, class: "form-control campo-mayuscula", required: true,
+                       maxlength: 30, placeholder: "Ej.: 0012345678",
+                       pattern: "[A-Za-z0-9-]{4,30}",
+                       autocapitalize: "characters",
+                       data: { tooltip: "Solo letras, números y guion",
+                               controller: "campo-filtrado",
+                               campo_filtrado_permite_value: "A-Za-z0-9-",
+                               campo_filtrado_mayuscula_value: true,
+                               action: "input->campo-filtrado#filtrar" }
+      .form-group
+        = f.label :banco, "Banco de origen", class: "form-label"
+        = f.select :banco, Banco.para_elegir, { include_blank: "Elija su banco" },
+                   class: "form-control", required: true
+
+    .form-row
+      .form-group
+        = f.label :monto, "Monto transferido", class: "form-label"
+        = f.number_field :monto, class: "form-control", step: "0.01", min: "0.01",
+                         required: true, placeholder: "45,00"
+      .form-group
+        -# ⚠️ El calendario NO ofrece el año pasado. Daniel: «del último mes
+        -# hacia adelante». Corta el dedazo de año antes de que se envíe.
+        = con_pista("Cuándo salió el dinero de su banco, no cuándo lo está reportando.") { f.label :pagado_el, "Fecha del pago", class: "form-label" }
+        = f.date_field :pagado_el, class: "form-control", required: true,
+                       **limites_del_calendario_de_pago
+
+    -# ── 3 · quién pagó ─────────────────────────────────────────────────────
+    .form-row
+      .form-group
+        = con_pista("Casi nunca es el representante: suele ser el papá, la abuela o un tío.") { f.label :depositante_nombre, "Nombre de quien transfirió", class: "form-label" }
+        = f.text_field :depositante_nombre, class: "form-control campo-mayuscula", required: true
+      .form-group
+        = f.label :depositante_documento, "Su cédula", class: "form-label"
+        = f.text_field :depositante_documento, class: "form-control",
+                       inputmode: "numeric", pattern: "[0-9]{6,9}", maxlength: 9,
+                       data: { controller: "campo-filtrado", campo_filtrado_permite_value: "0-9",
+                               action: "input->campo-filtrado#filtrar" }
+
+    -# ── 4 · el respaldo ────────────────────────────────────────────────────
+    .form-group
+      = f.label :voucher, "Foto del comprobante", class: "form-label"
+      = f.file_field :voucher, class: "form-control", accept: "image/*,application/pdf",
+                     capture: "environment"
+      %p.nota-ayuda
+        La foto de la pantalla del banco sirve. Se guarda más liviana, sin perder
+        el número de referencia.
+        - if corrigiendo && @reporte.voucher.attached?
+          %br
+          Ya hay uno subido: solo elija otro si quiere reemplazarlo.
+
+    .form-group
+      = f.label :nota, "Algo que agregar (opcional)", class: "form-label"
+      = f.text_area :nota, class: "form-control", rows: 2,
+                    placeholder: "Ej.: pagué septiembre y octubre juntos"
+
+    .form-acciones
+      = f.submit(corrigiendo ? "Guardar la corrección" : "Reportar el pago", class: "btn btn-guardar")
+      = boton "Volver", pagos_path, icono: :volver, tono: :secondary
+      - if corrigiendo
+        -# ⚠️ Retirar va con `turbo_confirm` y el rápido de la bandeja no, y no
+        -# es incoherencia: acá se BORRA un dato —no hay «des-retirar»— y se
+        -# hace una vez, no cuatrocientas.
+        = button_to "Retirar el reporte", pago_path(@reporte), method: :delete,
+                    class: "btn btn-danger",
+                    data: { turbo_confirm: "Se borra el reporte y sus cuotas vuelven a quedar libres. ¿Seguimos?" }

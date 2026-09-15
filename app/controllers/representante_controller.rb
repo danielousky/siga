@@ -21,6 +21,8 @@
 # controller no expone ningún verbo que no sea GET, así que aunque alguien
 # construya la petición a mano no hay nada que llamar.
 class RepresentanteController < ApplicationController
+  include ExigeEstarAlDia
+
   before_action :require_representante!
   before_action :set_representante
 
@@ -43,6 +45,13 @@ class RepresentanteController < ApplicationController
 
     @inscripcion = @hijo[:inscripcion]
     return if @inscripcion.nil?
+
+    # ⚠️ Acá viven las TRES cosas que Daniel mandó bloquear —las notas, la
+    # asistencia y los boletines— así que el corte va en una sola puerta.
+    #
+    # ⚠️ Y es por INSCRIPCIÓN: una madre con dos hijos puede estar al día con
+    # uno y deber por el otro, y `/representante` sigue mostrándole los dos.
+    return if exigir_estar_al_dia!(@inscripcion)
 
     @lapsos  = EvaluationMoment.where(academic_period_id: @inscripcion.section.academic_period_id).order(:id).to_a
     @lapso   = @lapsos.find { |l| l.id == params[:lapso].to_i } || @lapsos.first

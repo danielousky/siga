@@ -43,9 +43,15 @@
           %tr.rubrica-fila
             %td
               = r.hidden_field :id
+              -# ⚠️ Sin el `action` el controlador no filtra nada: «PC» y «P.C.»
+              -# entraban los dos, y el código es lo que sale impreso en la
+              -# boleta de primaria.
               = r.text_field :code, class: "form-control campo-rubrica-codigo",
                   maxlength: 4, required: true, "aria-label": "Código del nivel",
-                  data: { controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9" }
+                  data: { controller: "campo-filtrado",
+                          campo_filtrado_permite_value: "A-Za-z0-9",
+                          campo_filtrado_mayuscula_value: true,
+                          action: "input->campo-filtrado#filtrar" }
             %td
               = r.text_field :name, class: "form-control", required: true,
                   "aria-label": "Nombre del nivel",

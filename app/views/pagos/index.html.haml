@@ -1,0 +1,95 @@
+-# La tarjeta de pago de la familia (spec: `docs/specs/pagos-de-la-familia.md`).
+-#
+-# Daniel: *«eso se acostumbraba mucho hace años… era una tarjeta de pago donde
+-# la persona veía que había pagado y qué le faltaba por pagar en función del año
+-# escolar»*.
+- content_for :titulo, "Mis pagos"
+
+= render "shared/cabecera", titulo: "Mis pagos"
+
+- @inscripciones.each do |inscripcion|
+  - estado = @estados[inscripcion]
+  .card-academic.tarjeta-de-pago
+    = render layout: "shared/cabecera", locals: { titulo: inscripcion.student.user.apellidos_y_nombres, nivel: 2 } do
+      = boton "Reportar un pago", new_pago_path(inscripcion: inscripcion.id),
+              icono: :agregar, tono: :guardar
+
+    %p.dato-secundario
+      = "#{inscripcion.section.grade.name} – #{inscripcion.section.name}"
+      ·
+      = inscripcion.section.academic_period.name
+
+    - if estado.sin_conceptos?
+      -# ⚠️ El colegio todavía no cargó lo que cobra. No es un error de la
+      -# familia y por eso no se le pide nada: se le dice.
+      .empty-state
+        %h3 Este año todavía no tiene cuotas cargadas
+        %p El colegio las carga al abrir el año escolar.
+    - else
+      .detail-row
+        .detail-item
+          .detail-label Pagado
+          .detail-value= numero_en_dolares(estado.pagado)
+        .detail-item
+          .detail-label Por pagar
+          .detail-value= numero_en_dolares(estado.por_pagar)
+        .detail-item
+          .detail-label Vencido
+          .detail-value{ class: ("dato-en-mora" if estado.deuda.to_f.positive?) }
+            = numero_en_dolares(estado.deuda)
+
+      -# ⚠️ La barra usa `style` con INTERPOLACIÓN, que sí admite el sistema de
+      -# diseño: el ancho es un DATO, no una decisión de estilo.
+      .barra-de-pago{ role: "img", "aria-label": "#{estado.porcentaje_pagado} % del año pagado" }
+        .barra-de-pago-lleno{ style: "width: #{estado.porcentaje_pagado}%" }
+      %p.nota-ayuda= "#{estado.porcentaje_pagado} % del año escolar"
+
+      .tabla-de-cuotas
+        %table.table-academic
+          %thead
+            %tr
+              %th Cuota
+              %th Vence
+              %th Monto
+              %th Situación
+          %tbody
+            -# ⚠️ Lo reciente arriba: en trece cuotas, el mes en curso es lo
+            -# que la familia viene a mirar, y con el orden del calendario
+            -# queda al final.
+            - estado.cobros_recientes_primero.each do |cobro|
+              %tr
+                %td= cobro.fee&.nombre
+                %td= l(cobro.vence_el, format: :long)
+                %td= numero_en_dolares(cobro.monto)
+                %td= pastilla_de_cobro(cobro)
+
+- if @reportes.any?
+  .card-academic
+    = render "shared/cabecera", titulo: "Lo que he reportado", nivel: 2
+    %table.table-academic
+      %thead
+        %tr
+          %th Referencia
+          %th Banco
+          %th Pagado el
+          %th Monto
+          %th Situación
+      %tbody
+        - @reportes.each do |reporte|
+          %tr
+            %td= reporte.referencia
+            %td= reporte.banco_a_la_vista
+            %td= l(reporte.pagado_el, format: :long)
+            %td= numero_en_dolares(reporte.monto)
+            %td
+              = pastilla_de_reporte(reporte)
+              -# ⚠️ Solo mientras nadie lo haya mirado: después, corregirlo
+              -# cambiaría el papel que la oficina ya comparó con el banco.
+              - if reporte.la_familia_puede_corregir?
+                = link_to "Corregir", edit_pago_path(reporte), class: "corregir-el-pago"
+              -# ⚠️ El motivo del rechazo se ve acá y no en un correo: es lo que
+              -# evita que la familia vuelva a reportar exactamente lo mismo.
+              - if reporte.rechazado? && reporte.motivo.present?
+                -# ⚠️ `.dato-secundario` y no `.nota-ayuda`: esto es un DATO —lo
+                -# que la oficina escribió— no una explicación de la pantalla.
+                %p.dato-secundario= reporte.motivo

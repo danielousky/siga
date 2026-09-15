@@ -36,3 +36,12 @@
               = "#{fila[:inscripcion].section.grade.name} – #{fila[:inscripcion].section.name}"
             - else
               Sin inscripción activa
+          -# ⚠️ La deuda se DICE acá, en la lista.
+          -#
+          -# Esta pantalla no se bloquea —hay que poder ver a los hijos— pero
+          -# callar cuál está atrasado manda a la madre a chocar contra el
+          -# aviso, y con dos hijos ni siquiera sabe por cuál de los dos era.
+          -# Daniel lo vio de una: entró, no había nada, y preguntó dónde estaba
+          -# el bloqueo.
+          - if fila[:inscripcion] && bloqueado_por_deuda?(fila[:inscripcion])
+            %span.pastilla-de-cobro.estado-en-mora Falta ponerse al día

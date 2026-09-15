@@ -224,6 +224,21 @@ es:
     academic_period: Año escolar
     evaluation_moment: Lapso
     evaluation_activity: Actividad evaluativa
+
+    # ⚠️ Los pagos de la familia. Sin esto, un director que intenta borrar un
+    # concepto de cobro con cuotas emitidas lee «todavía tiene Charges».
+    fee: Concepto de cobro
+    charge: Cuota
+    charges: cuotas emitidas
+    payment_report: Reporte de pago
+    referencia: Referencia
+    banco: Banco
+    pagado_el: Fecha del pago
+    depositante_nombre: Nombre de quien transfirió
+    depositante_documento: Cédula de quien transfirió
+    vence_el: Vence el
+    monto: Monto
+    voucher: Comprobante
     leader_teacher: Profesor guía
     coordinator_teacher: Coordinador del grado
     user: Usuario

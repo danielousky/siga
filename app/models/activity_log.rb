@@ -70,6 +70,16 @@ class ActivityLog < ApplicationRecord
     "pensum_importada"     => "Materias y profesores importados",
     "login"                => "Inicio de sesión",
     "enrollment_created"   => "Inscripción creada",
+    # ⚠️ Los pagos. «Reportado» y no «creado»: para la familia el hecho es que
+    # AVISÓ que pagó, y para la oficina que tiene algo que revisar. Y el de la
+    # oficina dice «revisado», que es lo que hizo — validar o rechazar se ve en
+    # la descripción de la fila.
+    "reporte_created"      => "Pago reportado",
+    "reporte_updated"      => "Pago revisado",
+    # ⚠️ «Retirado» y no «eliminado»: lo borró la propia familia porque se
+    # equivocó de reporte, no el colegio limpiando. Quien lea la bitácora tiene
+    # que poder distinguirlo de un rechazo.
+    "reporte_destroyed"    => "Pago retirado por la familia",
     "enrollment_destroyed" => "Inscripción anulada",
     "teacher_assigned"     => "Profesor asignado",
     "teacher_removed"      => "Profesor removido",
