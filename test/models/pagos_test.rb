@@ -267,7 +267,7 @@ class PagosTest < ActiveSupport::TestCase
   end
 
   def nuevo_reporte(**cambios)
-    PaymentReport.new({ representative: representante_del_alumno, enrollment: @esc.inscripcion,
+    PaymentReport.new({ representative: representante_del_alumno,
                         referencia: "REF#{rand(100_000)}", banco: "0102", monto: 45,
                         pagado_el: Date.current, depositante_nombre: "María Pérez" }.merge(cambios))
   end

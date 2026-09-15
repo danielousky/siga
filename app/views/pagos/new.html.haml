@@ -19,36 +19,51 @@
       de nuevo.
 
   %p.nota-ayuda
-    Para
-    %strong= @inscripcion.student.user.apellidos_y_nombres
-    ·
-    = "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
+    Marque todo lo que cubre esta transferencia. Puede ser de más de un
+    representado: es como paga la mayoría.
 
   = form_with model: @reporte, url: (corrigiendo ? pago_path(@reporte) : pagos_path),
               method: (corrigiendo ? :patch : :post), multipart: true do |f|
     = render "shared/errors", object: @reporte
-    = f.hidden_field :enrollment_id, value: @inscripcion.id
 
     -# ── 1 · qué se paga ────────────────────────────────────────────────────
     %fieldset.form-group
       %legend.form-label Qué está pagando
-      - if @cobros.empty?
+      - if @cobros_por_hijo.values.flatten.empty?
         %p.nota-ayuda
           No hay cuotas pendientes de reportar. Si ya reportó un pago, está en
           revisión.
       - else
-        .cuotas-a-marcar
-          - @cobros.each do |cobro|
-            %label.cuota-a-marcar
-              -# ⚠️ Al corregir vienen MARCADAS las que este reporte ya tomó.
-              -# Sin esto, abrir «Corregir» muestra todo en blanco y guardar
-              -# suelta las cuotas que la familia sí había reportado.
-              = check_box_tag "cobros[]", cobro.id, cobro.payment_report_id == @reporte.id,
-                              id: "cobro_#{cobro.id}"
-              %span.cuota-nombre= cobro.fee&.nombre
-              %span.cuota-monto= numero_en_dolares(cobro.monto)
-              = pastilla_de_cobro(cobro)
-        %p.nota-ayuda Puede marcar varias si transfirió todo junto.
+        -# ⚠️ Agrupadas POR HIJO, y con un solo grupo NO se pone el nombre: sería
+        -# un rótulo que no distingue nada.
+        - varios = @cobros_por_hijo.size > 1
+        - @cobros_por_hijo.each do |inscripcion, cobros|
+          - if varios
+            %h4.cuotas-de-quien
+              = inscripcion.student.user.apellidos_y_nombres
+              %span.dato-secundario= " · #{inscripcion.section.grade.name} – #{inscripcion.section.name}"
+          .cuotas-a-marcar
+            - cobros.each do |cobro|
+              %label.cuota-a-marcar
+                -# ⚠️ Al CORREGIR vienen marcadas las que este reporte ya tomó;
+                -# al reportar, ninguna.
+                -#
+                -# `cobro.payment_report_id == @reporte.id` a secas decía que sí
+                -# para TODAS en un reporte nuevo: los dos lados son `nil`, y
+                -# `nil == nil` es verdadero. El formulario abría con las trece
+                -# cuotas marcadas.
+                = check_box_tag "cobros[]", cobro.id,
+                                corrigiendo && cobro.payment_report_id == @reporte.id,
+                                id: "cobro_#{cobro.id}"
+                %span.cuota-nombre= cobro.fee&.nombre
+                %span.cuota-monto= numero_en_dolares(cobro.monto)
+                = pastilla_de_cobro(cobro)
+        %p.nota-ayuda
+          - if varios
+            Puede marcar cuotas de varios representados en el mismo pago: un
+            padre transfiere una vez y cubre a los dos.
+          - else
+            Puede marcar varias si transfirió todo junto.
 
     -# ── 2 · cómo se pagó ───────────────────────────────────────────────────
     .form-row

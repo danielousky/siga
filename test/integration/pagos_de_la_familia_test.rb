@@ -28,7 +28,7 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
     get pagos_path
 
     assert_response :success
-    assert_select ".tarjeta-de-pago"
+    assert_select ".detail-label", text: "Vencido"
     assert_select ".pastilla-de-cobro", text: "Vencido"
   end
 
@@ -45,7 +45,7 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
 
     get pagos_path
 
-    cuotas = css_select(".tarjeta-de-pago tbody td:first-child").map(&:text)
+    cuotas = css_select("table.table-academic tbody td:first-child").map(&:text)
     assert_equal [ "Octubre", "Septiembre" ], cuotas.first(2)
   end
 
@@ -57,6 +57,69 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select ".al-dia", 0
+  end
+
+  # ⚠️ Daniel: *«yo tengo dos hijos… cuando hago un pago no hago un pago para
+  # uno y un pago para el otro. Hago el pago de los dos. Eso es lo natural»*.
+  test "un solo pago cubre cuotas de dos representados" do
+    segunda = con_el_colegio(@colegio) do
+      otra = @esc.inscripciones.last
+      StudentRepresentative.create!(student: otra.student, representative: @representante)
+      Charge.emitir_para(otra)
+      Charge.where(enrollment_id: otra.id).first
+    end
+    primera = con_el_colegio(@colegio) { Charge.where(enrollment_id: @esc.inscripcion.id).first }
+    sign_in @rep_usuario
+
+    post pagos_path, params: {
+      cobros: [ primera.id, segunda.id ],
+      payment_report: { referencia: "0012-8888", banco: "0102", monto: 90,
+                        pagado_el: Date.current, depositante_nombre: "María Pérez" }
+    }
+
+    assert_redirected_to pagos_path
+    con_el_colegio(@colegio) do
+      reporte = PaymentReport.last
+      assert_equal 2, reporte.charges.count
+      assert_equal 2, reporte.inscripciones.count, "el pago alcanza a los dos hijos"
+      assert_includes reporte.por_quienes, " y ", "dice a quiénes cubre"
+    end
+  end
+
+  # ⚠️ La deuda es UNA. Daniel: *«debe ser vista y reportada como tal, sin
+  # importar los hijos que se tengan estudiando»*.
+  test "la tarjeta suma la deuda de todos los hijos y ofrece UN botón" do
+    con_el_colegio(@colegio) do
+      otra = @esc.inscripciones.last
+      StudentRepresentative.create!(student: otra.student, representative: @representante)
+      Charge.emitir_para(otra)
+    end
+    sign_in @rep_usuario
+
+    get pagos_path
+
+    assert_select "a[href=?]", new_pago_path, 1, "un solo botón, general"
+    assert_select ".pestanas .pestana", 2, "una pestaña por hijo"
+    # 45 de cada uno: la deuda del colegio es 90, no dos de 45.
+    assert_select ".detail-item", /90,00/
+  end
+
+  # ⚠️ Un año sin cuotas cargadas no es una tarjeta: es ruido. Daniel: «esa
+  # información debería estar en un histórico».
+  test "un año sin cuotas no se muestra" do
+    vieja = con_el_colegio(@colegio) do
+      periodo = AcademicPeriod.create!(name: "2023-2024", start_date: Date.new(2023, 9, 15),
+                                       end_date: Date.new(2024, 7, 31))
+      seccion = Section.create!(grade: @esc.grado, academic_period: periodo, name: "Z", capacity: 30)
+      Enrollment.create!(student: @esc.alumno, section: seccion, enrollment_date: Date.new(2023, 9, 20))
+    end
+    sign_in @rep_usuario
+
+    get pagos_path
+
+    assert_select ".pestana", text: /#{vieja.section.academic_period.name}/, count: 0
+    assert_no_match(/todavía no tiene cuotas/, response.body,
+                    "un año sin cuotas cargadas no es una tarjeta, es ruido")
   end
 
   # ── el bloqueo ────────────────────────────────────────────────────────────
@@ -136,7 +199,6 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
 
     assert_difference "con_el_colegio(@colegio) { PaymentReport.count }", 1 do
       post pagos_path, params: {
-        inscripcion: @esc.inscripcion.id,
         cobros: [ cobro.id ],
         payment_report: { referencia: "0012-3456", banco: "0102", monto: 45,
                           pagado_el: Date.current, depositante_nombre: "María Pérez" }
@@ -158,7 +220,6 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
 
     assert_no_difference "con_el_colegio(@colegio) { PaymentReport.count }" do
       post pagos_path, params: {
-        inscripcion: @esc.inscripcion.id,
         payment_report: { referencia: "0012-3456", banco: "0102", monto: 45,
                           pagado_el: Date.current, depositante_nombre: "María Pérez" }
       }
@@ -169,15 +230,27 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
 
   # ⚠️ Cambiar el id en la URL no puede dejar reportar contra la inscripción de
   # otro alumno — ni mirar su estado de cuenta.
-  test "no se reporta por un alumno ajeno" do
-    otro = escenario_academico(nombre: "Otro Colegio")
+  # ⚠️ Un reporte ya no nombra una inscripción: lo que hay que impedir es que se
+  # marque la CUOTA de otra familia mandando su id a mano.
+  test "no se reporta una cuota de otra familia" do
+    # El segundo alumno del escenario NO es representado de @representante, así
+    # que sus cuotas son «de otra familia».
+    ajena = con_el_colegio(@colegio) do
+      otra = @esc.inscripciones.last
+      Charge.emitir_para(otra)
+      Charge.where(enrollment_id: otra.id).first
+    end
     sign_in @rep_usuario
 
-    get new_pago_path(inscripcion: otro.inscripcion.id)
+    assert_no_difference "con_el_colegio(@colegio) { PaymentReport.count }" do
+      post pagos_path, params: {
+        cobros: [ ajena.id ],
+        payment_report: { referencia: "0012-7777", banco: "0102", monto: 45,
+                          pagado_el: Date.current, depositante_nombre: "María Pérez" }
+      }
+    end
 
-    # Cae en SU inscripción, no en la ajena.
-    assert_response :success
-    assert_select "input[name='payment_report[enrollment_id]'][value=?]", @esc.inscripcion.id.to_s
+    assert_response :unprocessable_entity
   end
 
   # ── corregir, del lado de la familia ──────────────────────────────────────
@@ -186,6 +259,21 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
   # dijo de las DOS partes. La madre copia la referencia del SMS y baila dos
   # dígitos; sin esto no puede editar, no puede retirar y no puede volver a
   # reportar (la referencia es única), así que solo le queda esperar el rechazo.
+
+  # ⚠️ Y al REPORTAR no viene ninguna marcada.
+  #
+  # `cobro.payment_report_id == @reporte.id` decía que sí para todas en un
+  # reporte nuevo —los dos lados son `nil`, y `nil == nil` es verdadero— así que
+  # el formulario abría con las trece cuotas marcadas y un descuido las reportaba
+  # todas.
+  test "reportar abre con las cuotas SIN marcar" do
+    sign_in @rep_usuario
+
+    get new_pago_path
+
+    assert_select "input[name='cobros[]']", minimum: 1
+    assert_select "input[name='cobros[]'][checked]", 0
+  end
 
   # ⚠️ Sin esto, abrir «Corregir» muestra las cuotas EN BLANCO y guardar suelta
   # las que la familia sí había reportado. Lo vi en pantalla, no en un test: el
@@ -388,7 +476,7 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
     patch rechazar_finanza_path(viejo), params: { motivo: "referencia equivocada" }
 
     nuevo = con_el_colegio(@colegio) do
-      r = PaymentReport.create!(representative: @representante, enrollment: @esc.inscripcion,
+      r = PaymentReport.create!(representative: @representante,
                                 referencia: "REF99999", banco: "0102", monto: 45,
                                 pagado_el: Date.current, depositante_nombre: "María Pérez")
       r.declarar!(Charge.where(enrollment_id: @esc.inscripcion.id))
@@ -430,7 +518,7 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
 
   def reportar!
     con_el_colegio(@colegio) do
-      reporte = PaymentReport.create!(representative: @representante, enrollment: @esc.inscripcion,
+      reporte = PaymentReport.create!(representative: @representante,
                                       referencia: "REF12345", banco: "0102", monto: 45,
                                       pagado_el: Date.current, depositante_nombre: "María Pérez")
       reporte.declarar!(Charge.where(enrollment_id: @esc.inscripcion.id))

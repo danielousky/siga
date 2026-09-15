@@ -19,15 +19,17 @@ class FinanzasController < ApplicationController
   # días debajo de los de hoy, y ese es justamente el que tiene a una familia
   # sin ver las notas.
   def index
-    @esperando = PaymentReport.esperando.includes(:enrollment, enrollment: :student)
+    @esperando = PaymentReport.esperando
     @revisados = PaymentReport.where.not(estado: "en_revision")
-                              .includes(:enrollment, :revisado_por).recientes_primero.limit(25)
+                              .includes(:revisado_por).recientes_primero.limit(25)
     @en_mora = Charge.en_mora.includes(enrollment: :student).en_orden.limit(50)
   end
 
   def show
-    @cobros = @reporte.charges.en_orden.includes(:fee)
-    @estado = EstadoDeCuenta.de(@reporte.enrollment)
+    @cobros = @reporte.charges.en_orden.includes(:fee, enrollment: { student: :user })
+    # ⚠️ UN estado de cuenta por hijo: el pago puede cubrir a varios, y sumar
+    # sus deudas en un número escondería cuál de los dos está en mora.
+    @estados = @reporte.inscripciones.index_with { |i| EstadoDeCuenta.de(i) }
   end
 
   # ⚠️ Vale sobre un rechazado si sus cuotas siguen libres: la referencia es

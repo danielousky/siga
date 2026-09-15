@@ -7,7 +7,9 @@
 - content_for :titulo, "Revisar un pago"
 
 .card-academic
-  = render layout: "shared/cabecera", locals: { titulo: "Pago de #{@reporte.enrollment.student.user.apellidos_y_nombres}" } do
+  -# ⚠️ «Pago de Sofía y Daniela»: un padre transfiere una vez y cubre a los
+  -# dos, así que el título dice a QUIÉNES alcanza.
+  = render layout: "shared/cabecera", locals: { titulo: "Pago de #{@reporte.por_quienes}" } do
     = boton "Volver", finanzas_path, icono: :volver, tono: :secondary
 
   .detail-row
@@ -53,12 +55,14 @@
   %table.table-academic
     %thead
       %tr
+        %th Alumno
         %th Cuota
         %th Vence
         %th Monto
     %tbody
       - @cobros.each do |cobro|
         %tr
+          %td= cobro.enrollment.student.user.apellidos_y_nombres
           %td= cobro.fee&.nombre
           %td= l(cobro.vence_el, format: :long)
           %td= numero_en_dolares(cobro.monto)

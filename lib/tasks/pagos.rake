@@ -87,7 +87,11 @@ namespace :pagos do
   # familia con seis reportes y ninguna manera de ver el caso limpio.
   def montar(estado, inscripcion, rep)
     cobros = Charge.where(enrollment_id: inscripcion.id).en_orden.to_a
-    PaymentReport.where(enrollment_id: inscripcion.id).destroy_all
+    # ⚠️ Un reporte ya no cuelga de una inscripción: se llega a él por sus
+    # cuotas, que son las que saben de quién son.
+    PaymentReport.where(id: Charge.where(enrollment_id: inscripcion.id)
+                                  .where.not(payment_report_id: nil)
+                                  .select(:payment_report_id)).destroy_all
     Charge.where(id: cobros.map(&:id)).update_all(pagado_el: nil, payment_report_id: nil)
 
     case estado
@@ -117,7 +121,7 @@ namespace :pagos do
   # índice hizo exactamente lo que tiene que hacer.
   def reportar(inscripcion, rep, cobro, prefijo)
     reporte = PaymentReport.create!(
-      representative: rep, enrollment: inscripcion,
+      representative: rep,
       referencia: "#{prefijo}-#{format('%04d', inscripcion.id % 10_000)}",
       banco: "0134", monto: cobro&.monto || 45, pagado_el: Date.current - 1,
       depositante_nombre: "José Ramos", depositante_documento: "12345678",

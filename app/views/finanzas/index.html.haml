@@ -24,7 +24,7 @@
       %tbody
         - @esperando.each do |reporte|
           %tr
-            %td= reporte.enrollment.student.user.apellidos_y_nombres
+            %td= reporte.por_quienes
             %td= reporte.referencia
             %td= reporte.banco_a_la_vista
             %td= l(reporte.pagado_el, format: :long)
@@ -94,7 +94,7 @@
       %tbody
         - @revisados.each do |reporte|
           %tr
-            %td= reporte.enrollment.student.user.apellidos_y_nombres
+            %td= reporte.por_quienes
             %td= link_to reporte.referencia, finanza_path(reporte)
             %td= pastilla_de_reporte(reporte)
             %td= reporte.revisado_por&.apellidos_y_nombres
