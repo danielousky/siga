@@ -1,6 +1,7 @@
 # Los pagos de la familia
 
-**Estado:** en construcción · **Rama:** `feat/pagos-de-la-familia`
+**Estado:** construido y revisado · **Ramas:** `feat/pagos-de-la-familia`,
+`feat/un-pago-para-varios-hijos`
 **Pedido por Daniel**, 13 de septiembre de 2026.
 
 > *«El representante reporta y el administrador, la parte financiera de la
@@ -150,6 +151,104 @@ configurar, respaldar y pagar; con el volumen actual no hace falta todavía.
 
 ---
 
+---
+
+## Lo que cambió al revisarlo con Daniel
+
+### La deuda con el colegio es UNA
+
+> *«La deuda con el colegio es una, debe ser vista y reportada como tal, sin
+> importar los hijos que se tengan estudiando.»*
+
+Era una tarjeta por hijo, cada una con su total y su botón: la madre tenía que
+sumar de cabeza y decidir por cuál empezar. Ahora es un encabezado con el total
+del colegio y una pestaña por hijo, con un punto que marca cuál está en mora.
+
+### Y un pago cubre a varios hijos
+
+> *«Yo tengo dos hijos, uno en el liceo y otro en primaria, y cuando hago un
+> pago no hago un pago para uno y un pago para el otro. Hago el pago de los dos.
+> Eso es lo natural.»*
+
+Se borró `payment_reports.enrollment_id`: era un duplicado —la inscripción ya
+viaja en cada cuota— y era justo lo que obligaba a partir una transferencia en
+dos. Lo que ya existía y no se perdió:
+
+```
+   UN reporte  ──►  MUCHAS cuotas     ya funcionaba
+   UNA cuota   ──►  UN reporte        ya funcionaba
+```
+
+⚠️ **N:N queda para después.** Una cuota pagada por dos reportes son ABONOS
+PARCIALES: cada enlace necesita su monto, la cuota gana estados intermedios, y
+«al día / en mora» —que es lo que bloquea el acceso— deja de ser sí/no.
+
+### Corregir después de equivocarse, por las DOS partes
+
+> *«El error humano es posible, entonces deben poder corregir.»*
+
+```
+   LA FAMILIA, antes de que lo miren     LA OFICINA, después
+   ─────────────────────────────────     ───────────────────
+   corregir cualquier dato               revertir una validación
+   retirar el reporte entero             revalidar un rechazo
+```
+
+⚠️ El corte es la **revisión**, no el tiempo: antes no se aplicó nada, así que
+cambiar la referencia no deshace ninguna decisión. Después sí — un validado que
+la familia edita convierte el papel que la oficina ya comparó con el banco en
+otro papel.
+
+⚠️ Y la oficina **ve** que se corrigió (`corregido hace 3 minutos`). El caso que
+muerde no es que la familia se equivoque: es que finanzas abra el reporte, se
+vaya al banco a buscar la referencia, y al volver valide unos números que nunca
+leyó.
+
+⚠️ Revalidar un rechazado **no pisa** lo que la familia reportó después: solo
+recupera las cuotas que siguen libres.
+
+### Validar sin abrir el voucher
+
+> *«Si tiene que revisar 400 vouchers en un día… si lo comparas contra el banco
+> y ves que todo está ok, no necesitas revisar.»*
+
+La bandeja valida de a uno, **sin diálogo de confirmación** —cuatrocientos clics
+de más son el trabajo que el botón viene a quitar— y lo que lo hace responsable
+es «Revertir la validación».
+
+### El vacío legal de la moneda
+
+> *«Hay un vacío legal en el país que en este momento se está discutiendo… si el
+> personal de finanzas avala un pago, quiere decir que ese pago tiene su
+> equivalente en dólares.»*
+
+```
+   LO QUE SE DEBE        en $     la unidad de cuenta del colegio
+   LO QUE SE TRANSFIERE  en Bs    lo que dice el voucher
+   LA VALIDACIÓN         el puente
+```
+
+⚠️ **SIGA no guarda ninguna tasa, y no le hace falta**: la equivalencia no es un
+dato, es un ACTO. Y el día que se resuelva el vacío legal no hay nada que
+migrar.
+
+⚠️ A la familia se le muestra el número **sin unidad** —SIGA no afirma una
+moneda que hoy no puede respaldar—; adentro sí, porque quien cobra necesita ver
+la unidad de cuenta para avalar la equivalencia.
+
+⚠️ Y **no se comparan**: restar bolívares de dólares no significa nada, y el
+aviso de «no cuadra» habría saltado siempre.
+
+### La lista de morosos lleva a algún lado
+
+> *«Esta lista debería tener enlaces al detalle del deudor.»*
+
+`/finanzas/deudor/:inscripcion`, y el orden de esa pantalla es el del trabajo:
+primero **a quién llamar** —con `tel:` y WhatsApp— y después qué debe. Quien la
+abre ya sabe que hay una deuda; lo que necesita es el teléfono.
+
+---
+
 ## Lo que NO entra en esta primera etapa
 
 - **Cobrar dentro de SIGA.** Esto registra pagos hechos por fuera; no hay
@@ -159,3 +258,9 @@ configurar, respaldar y pagar; con el volumen actual no hace falta todavía.
 - **Recargos por mora, descuentos por hermano, becas.** Se anotan a mano bajando
   el monto del cobro.
 - **Conciliación bancaria automática.** La oficina compara a ojo con el voucher.
+- **Abonos parciales** (N:N entre cuota y reporte). Ver arriba.
+- **Una tasa de cambio.** La equivalencia la avala quien valida.
+- **Factura.** Daniel: «más adelante deberíamos tener una factura, pero eso es
+  aparte».
+- **El histórico de años anteriores.** Hoy un año sin cuotas cargadas
+  simplemente no se muestra.
