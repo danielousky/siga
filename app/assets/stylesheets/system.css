@@ -2551,6 +2551,11 @@ nav.pagy a.gap {
    usa 390 de cada 400 veces, y en una tabla la primera es la que el pulgar
    alcanza. */
 .decidir-en-la-fila { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* «Corregir», al lado de la pastilla del estado en la tarjeta de la familia.
+   Es un enlace y no un botón: compite con «Reportar un pago», que es la acción
+   de esa pantalla. */
+.corregir-el-pago { margin-left: 10px; font-size: 13px; text-decoration: underline; }
 .decidir-en-la-fila form { margin: 0; }
 .columna-de-decidir { width: 1%; white-space: nowrap; }
 

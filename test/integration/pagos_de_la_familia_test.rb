@@ -180,6 +180,103 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
     assert_select "input[name='payment_report[enrollment_id]'][value=?]", @esc.inscripcion.id.to_s
   end
 
+  # ── corregir, del lado de la familia ──────────────────────────────────────
+  #
+  # Daniel: *«el error humano es posible, entonces deben poder corregir»* — y lo
+  # dijo de las DOS partes. La madre copia la referencia del SMS y baila dos
+  # dígitos; sin esto no puede editar, no puede retirar y no puede volver a
+  # reportar (la referencia es única), así que solo le queda esperar el rechazo.
+
+  # ⚠️ Sin esto, abrir «Corregir» muestra las cuotas EN BLANCO y guardar suelta
+  # las que la familia sí había reportado. Lo vi en pantalla, no en un test: el
+  # reemplazo que lo ponía no aplicó y no se quejó.
+  test "corregir abre con las cuotas que ya había marcado" do
+    reporte = reportar!
+    sign_in @rep_usuario
+
+    get edit_pago_path(reporte)
+
+    marcadas = css_select("input[name='cobros[]'][checked]").map { |i| i["value"].to_i }
+    assert_equal con_el_colegio(@colegio) { reporte.charges.pluck(:id).sort }, marcadas.sort
+    assert marcadas.any?, "el formulario de corregir no puede abrir en blanco"
+  end
+
+  test "la familia corrige su reporte mientras nadie lo ha mirado" do
+    reporte = reportar!
+    sign_in @rep_usuario
+    cobro = con_el_colegio(@colegio) { Charge.first }
+
+    patch pago_path(reporte), params: {
+      cobros: [ cobro.id ],
+      payment_report: { referencia: "0012-9999", banco: "0102", monto: 45,
+                        pagado_el: Date.current, depositante_nombre: "María Pérez" }
+    }
+
+    assert_redirected_to pagos_path
+    con_el_colegio(@colegio) do
+      assert_equal "0012-9999", reporte.reload.referencia
+      assert reporte.corregido?, "queda la marca de que se tocó"
+    end
+  end
+
+  # ⚠️ Después de la revisión NO: editar un validado convierte el papel que la
+  # oficina ya comparó con el banco en otro papel, y nadie se entera. Quien se
+  # equivocó ahí lo arregla por el otro lado —revertir o revalidar—.
+  test "un pago ya revisado no lo corrige la familia" do
+    reporte = reportar!
+    sign_in @dir_usuario
+    patch validar_finanza_path(reporte)
+
+    sign_in @rep_usuario
+    get edit_pago_path(reporte)
+
+    assert_redirected_to pagos_path
+  end
+
+  # ⚠️ Cambiar el id en la URL no puede dejar corregir el reporte de otra
+  # familia.
+  test "no se corrige el reporte de otro representante" do
+    reporte = reportar!
+    otra = con_el_colegio(@colegio) do
+      u = usuario("otrarep", @colegio.id)
+      Representative.create!(user: u, school: @colegio)
+      u
+    end
+    sign_in otra
+
+    get edit_pago_path(reporte)
+
+    assert_response :not_found
+  end
+
+  # Retirarlo entero: el error no fue un dato, fue el reporte completo.
+  test "retirar el reporte deja las cuotas libres otra vez" do
+    reporte = reportar!
+    sign_in @rep_usuario
+
+    assert_difference "con_el_colegio(@colegio) { PaymentReport.count }", -1 do
+      delete pago_path(reporte)
+    end
+
+    con_el_colegio(@colegio) do
+      assert_nil Charge.first.reload.payment_report_id
+      assert EstadoDeCuenta.de(@esc.inscripcion).en_mora?, "vuelve a deber"
+    end
+  end
+
+  # ⚠️ El caso que muerde no es que la familia se equivoque: es que la oficina
+  # abra el reporte, se vaya al banco a buscar la referencia, y mientras tanto
+  # la familia la cambie. Vuelve, valida, y validó números que nunca leyó.
+  test "la bandeja avisa que un reporte se corrigió" do
+    reporte = reportar!
+    con_el_colegio(@colegio) { reporte.update!(corregido_el: Time.current) }
+    sign_in @dir_usuario
+
+    get finanzas_path
+
+    assert_select ".dato-secundario", /corregido hace/
+  end
+
   # ── validar ───────────────────────────────────────────────────────────────
 
   test "finanzas valida y la familia vuelve a ver todo" do

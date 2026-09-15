@@ -3,10 +3,20 @@
 -# ⚠️ El orden es el del trabajo real: primero QUÉ estoy pagando, después CÓMO
 -# lo pagué y al final el respaldo. Al revés —los datos del banco arriba— la
 -# familia llena ocho campos antes de descubrir que marcó el mes equivocado.
-- content_for :titulo, "Reportar un pago"
+-# ⚠️ La MISMA plantilla reporta y corrige. Dos copias se separan, y la que se
+-# usa menos —corregir— es la que se queda vieja: quien la abriera tendría el
+-# formulario de hace tres versiones.
+- corrigiendo = @reporte.persisted?
+- content_for :titulo, corrigiendo ? "Corregir un pago" : "Reportar un pago"
 
 .card-academic
-  = render "shared/cabecera", titulo: "Reportar un pago"
+  = render "shared/cabecera", titulo: corrigiendo ? "Corregir un pago" : "Reportar un pago"
+
+  - if corrigiendo
+    %p.nota-ayuda
+      Todavía nadie lo ha revisado, así que puede cambiar lo que haga falta. Si
+      el error fue reportar por el representado equivocado, retírelo y empiece
+      de nuevo.
 
   %p.nota-ayuda
     Para
@@ -14,7 +24,8 @@
     ·
     = "#{@inscripcion.section.grade.name} – #{@inscripcion.section.name}"
 
-  = form_with model: @reporte, url: pagos_path, method: :post, multipart: true do |f|
+  = form_with model: @reporte, url: (corrigiendo ? pago_path(@reporte) : pagos_path),
+              method: (corrigiendo ? :patch : :post), multipart: true do |f|
     = render "shared/errors", object: @reporte
     = f.hidden_field :enrollment_id, value: @inscripcion.id
 
@@ -29,7 +40,11 @@
         .cuotas-a-marcar
           - @cobros.each do |cobro|
             %label.cuota-a-marcar
-              = check_box_tag "cobros[]", cobro.id, false, id: "cobro_#{cobro.id}"
+              -# ⚠️ Al corregir vienen MARCADAS las que este reporte ya tomó.
+              -# Sin esto, abrir «Corregir» muestra todo en blanco y guardar
+              -# suelta las cuotas que la familia sí había reportado.
+              = check_box_tag "cobros[]", cobro.id, cobro.payment_report_id == @reporte.id,
+                              id: "cobro_#{cobro.id}"
               %span.cuota-nombre= cobro.fee&.nombre
               %span.cuota-monto= numero_en_dolares(cobro.monto)
               = pastilla_de_cobro(cobro)
@@ -77,6 +92,9 @@
       %p.nota-ayuda
         La foto de la pantalla del banco sirve. Se guarda más liviana, sin perder
         el número de referencia.
+        - if corrigiendo && @reporte.voucher.attached?
+          %br
+          Ya hay uno subido: solo elija otro si quiere reemplazarlo.
 
     .form-group
       = f.label :nota, "Algo que agregar (opcional)", class: "form-label"
@@ -84,5 +102,12 @@
                     placeholder: "Ej.: pagué septiembre y octubre juntos"
 
     .form-acciones
-      = f.submit "Reportar el pago", class: "btn btn-guardar"
+      = f.submit(corrigiendo ? "Guardar la corrección" : "Reportar el pago", class: "btn btn-guardar")
       = boton "Volver", pagos_path, icono: :volver, tono: :secondary
+      - if corrigiendo
+        -# ⚠️ Retirar va con `turbo_confirm` y el rápido de la bandeja no, y no
+        -# es incoherencia: acá se BORRA un dato —no hay «des-retirar»— y se
+        -# hace una vez, no cuatrocientas.
+        = button_to "Retirar el reporte", pago_path(@reporte), method: :delete,
+                    class: "btn btn-danger",
+                    data: { turbo_confirm: "Se borra el reporte y sus cuotas vuelven a quedar libres. ¿Seguimos?" }

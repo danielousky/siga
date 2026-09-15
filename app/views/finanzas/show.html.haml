@@ -30,7 +30,10 @@
       .detail-value= l(@reporte.created_at.to_date, format: :long)
     .detail-item
       .detail-label Situación
-      .detail-value= pastilla_de_reporte(@reporte)
+      .detail-value
+        = pastilla_de_reporte(@reporte)
+        - if @reporte.corregido?
+          %span.dato-secundario= " · la familia lo corrigió el #{l(@reporte.corregido_el.to_date, format: :long)}"
 
   .detail-row
     .detail-item

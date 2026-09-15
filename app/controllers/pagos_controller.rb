@@ -14,6 +14,7 @@ class PagosController < ApplicationController
   before_action :require_representante!
   before_action :set_representante
   before_action :set_inscripcion, only: [ :new, :create ]
+  before_action :set_reporte, only: [ :edit, :update, :destroy ]
 
   # ⚠️ La tarjeta NO se bloquea por deuda, y es lo único que no.
   #
@@ -69,7 +70,87 @@ class PagosController < ApplicationController
     end
   end
 
+  # ── Corregir lo que se reportó, mientras nadie lo ha mirado ───────────────
+  #
+  # Daniel: *«el error humano es posible, entonces deben poder corregir»*. La
+  # madre copia la referencia del SMS del banco y baila dos dígitos; sin esto no
+  # puede editar, no puede retirar y no puede volver a reportar —la referencia
+  # es única por colegio— así que solo le queda esperar a que se lo RECHACEN.
+
+  def edit
+    @inscripcion = @reporte.enrollment
+    @cobros = cobros_para(@reporte)
+  end
+
+  def update
+    @inscripcion = @reporte.enrollment
+    @cobros = cobros_para(@reporte)
+    elegidos = @cobros.select { |c| cobros_elegidos.include?(c.id) }
+
+    if elegidos.empty?
+      @reporte.errors.add(:base, "Marque qué cuotas está pagando.")
+      return render :edit, status: :unprocessable_entity
+    end
+
+    guardado = PaymentReport.transaction do
+      next false unless @reporte.update(datos_del_reporte.merge(corregido_el: Time.current))
+
+      # ⚠️ Se sueltan los que ya no marcó y se toman los nuevos. Sin la primera
+      # mitad, una cuota desmarcada seguiría figurando como reportada y la
+      # familia no podría volver a reportarla nunca.
+      Charge.where(payment_report_id: @reporte.id).update_all(payment_report_id: nil)
+      @reporte.declarar!(elegidos)
+      true
+    end
+
+    if guardado
+      registrar_cambio(:actualizado, @reporte, "Pago corregido · #{@reporte.referencia}")
+      redirect_to pagos_path, notice: "Corregido. El colegio lo va a revisar con los datos nuevos."
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  # Retirar el reporte entero: es lo que hace falta cuando el error no es un
+  # dato sino el reporte completo —se reportó por el hijo equivocado— y deja las
+  # cuotas libres para volver a empezar.
+  def destroy
+    referencia = @reporte.referencia
+    PaymentReport.transaction do
+      Charge.where(payment_report_id: @reporte.id).update_all(payment_report_id: nil)
+      @reporte.destroy!
+    end
+
+    registrar_cambio(:eliminado, @reporte, "Pago retirado · #{referencia}")
+    redirect_to pagos_path, notice: "Retirado. Puede reportarlo de nuevo cuando quiera."
+  end
+
   private
+
+  # ⚠️ SOLO los suyos, y solo mientras nadie los haya mirado.
+  #
+  # Lo primero impide corregir el reporte de otra familia cambiando el id; lo
+  # segundo, que se edite un pago que la oficina ya comparó con el banco —eso
+  # convertiría el papel revisado en otro papel sin que nadie se entere—.
+  def set_reporte
+    @reporte = PaymentReport.find_by(id: params[:id], representative_id: @representante.id)
+    raise ActiveRecord::RecordNotFound if @reporte.nil?
+
+    return if @reporte.la_familia_puede_corregir?
+
+    redirect_to pagos_path,
+                alert: "Ese pago ya lo revisó el colegio. Si hay un error, escríbales."
+  end
+
+  # Las cuotas que puede marcar al corregir: las libres MÁS las que este mismo
+  # reporte ya tenía tomadas. Sin la segunda mitad, abrir «corregir» mostraría
+  # el formulario con todo desmarcado.
+  def cobros_para(reporte)
+    Charge.where(enrollment_id: reporte.enrollment_id)
+          .pendientes
+          .where(payment_report_id: [ nil, reporte.id ])
+          .en_orden.includes(:fee).to_a
+  end
 
   def set_representante
     @representante = Representative.find_by(user_id: current_user.id)

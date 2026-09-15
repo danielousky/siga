@@ -73,8 +73,11 @@ Rails.application.routes.draw do
   #
   #   /pagos      la FAMILIA ve su tarjeta y reporta
   #   /finanzas   la OFICINA revisa el voucher y valida
-  resources :pagos, path: "pagos", only: [ :index, :new, :create ],
-            path_names: { new: "reportar" }
+  # ⚠️ `edit`, `update` y `destroy` son para que la familia CORRIJA su propio
+  # reporte mientras nadie lo ha mirado. Daniel: *«el error humano es posible,
+  # entonces deben poder corregir»*. Ver `PaymentReport#la_familia_puede_corregir?`.
+  resources :pagos, path: "pagos", only: [ :index, :new, :create, :edit, :update, :destroy ],
+            path_names: { new: "reportar", edit: "corregir" }
 
   resources :finanzas, path: "finanzas", only: [ :index, :show ] do
     member do

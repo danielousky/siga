@@ -83,6 +83,10 @@
             %td= numero_en_dolares(reporte.monto)
             %td
               = pastilla_de_reporte(reporte)
+              -# ⚠️ Solo mientras nadie lo haya mirado: después, corregirlo
+              -# cambiaría el papel que la oficina ya comparó con el banco.
+              - if reporte.la_familia_puede_corregir?
+                = link_to "Corregir", edit_pago_path(reporte), class: "corregir-el-pago"
               -# ⚠️ El motivo del rechazo se ve acá y no en un correo: es lo que
               -# evita que la familia vuelva a reportar exactamente lo mismo.
               - if reporte.rechazado? && reporte.motivo.present?

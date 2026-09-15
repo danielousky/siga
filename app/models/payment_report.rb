@@ -138,6 +138,21 @@ class PaymentReport < ApplicationRecord
   end
 
   def esperando_revision? = en_revision?
+
+  # ⚠️ La familia corrige MIENTRAS NADIE LO HA MIRADO, y solo entonces.
+  #
+  # Daniel: *«el error humano es posible, entonces deben poder corregir»*. Antes
+  # de la revisión no se aplicó nada —los cobros están reportados, no pagados—
+  # así que cambiar la referencia no deshace ninguna decisión. Después sí: un
+  # validado que la madre edita convierte el papel que la oficina ya comparó con
+  # el banco en otro papel, y nadie se entera.
+  #
+  # Quien se equivocó DESPUÉS de la revisión lo arregla por el otro lado:
+  # revertir la validación o revalidar el rechazo. Son dos personas y dos
+  # momentos, y por eso son dos puertas.
+  def la_familia_puede_corregir? = en_revision?
+
+  def corregido? = corregido_el.present?
   def banco_a_la_vista = Banco.nombre(banco)
 
   private

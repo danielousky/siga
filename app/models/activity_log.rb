@@ -76,6 +76,10 @@ class ActivityLog < ApplicationRecord
     # la descripción de la fila.
     "reporte_created"      => "Pago reportado",
     "reporte_updated"      => "Pago revisado",
+    # ⚠️ «Retirado» y no «eliminado»: lo borró la propia familia porque se
+    # equivocó de reporte, no el colegio limpiando. Quien lea la bitácora tiene
+    # que poder distinguirlo de un rechazo.
+    "reporte_destroyed"    => "Pago retirado por la familia",
     "enrollment_destroyed" => "Inscripción anulada",
     "teacher_assigned"     => "Profesor asignado",
     "teacher_removed"      => "Profesor removido",

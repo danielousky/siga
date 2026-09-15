@@ -31,7 +31,16 @@
             %td= numero_en_dolares(reporte.monto)
             -# ⚠️ Cuántos días lleva esperando, no la fecha: es lo que dice si
             -# hay una familia bloqueada desde el martes.
-            %td= "hace #{distance_of_time_in_words_to_now(reporte.created_at)}"
+            %td
+              = "hace #{distance_of_time_in_words_to_now(reporte.created_at)}"
+              -# ⚠️ Que se CORRIGIÓ tiene que verse antes de abrirlo.
+              -#
+              -# El caso que muerde no es que la familia se equivoque: es que la
+              -# oficina abra el reporte, se vaya al banco a buscar «0098-7745»,
+              -# y mientras tanto la familia lo cambie a «0098-7754». Vuelve,
+              -# valida, y validó unos números que nunca leyó.
+              - if reporte.corregido?
+                %span.dato-secundario= "corregido hace #{distance_of_time_in_words_to_now(reporte.corregido_el)}"
             -# ⚠️ DOS salidas, y la de la izquierda es la que se usa 390 veces.
             -#
             -# Daniel: *«si tiene que revisar 400 vouchers en un día… si lo

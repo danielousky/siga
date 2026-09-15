@@ -141,9 +141,24 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     # «el clic no llegó»: es que la página del login todavía no estaba ahí
     # cuando se la pidió. Con el `rescue` fuera del bucle, ese caso se comía el
     # reintento entero y hacía fallar un test que no habla de login.
+    # ⚠️ Y se ESPERA a que el campo exista, en vez de pedirlo y ver si está.
+    #
+    # `visit` devuelve en cuanto el navegador acepta la orden, no cuando la
+    # página está: `fill_in` llegaba a un documento vacío, fallaba, y los tres
+    # intentos se consumían en tres carreras perdidas contra lo mismo. Bajo
+    # carga —dentro de `bin/ci`, después de mil quinientos tests— eso pasó de
+    # raro a frecuente. `has_field?` espera; `fill_in` no.
     3.times do |intento|
       begin
         visit new_user_session_path
+        esperando_la_pagina
+
+        unless page.has_field?("user_email", wait: Capybara.default_max_wait_time)
+          raise "no cargó el login para #{usuario.email}" if intento == 2
+
+          next
+        end
+
         fill_in "user_email", with: usuario.email
         fill_in "user_password", with: clave
         tocando { find(".acceso-enviar").click }
