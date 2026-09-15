@@ -71,6 +71,13 @@ namespace :prueba do
     )
     colegio = resultado.colegio
     puts "✓ #{colegio.name} · #{resultado.andamiaje.resumen}"
+    # ⚠️ Con el plan ACTIVO, o la prueba de campo no puede probar nada.
+    #
+    # Un colegio recién registrado nace en `gratis`, y el plan gratis no
+    # incluye calificar, pasar lista ni emitir documentos (§ 7). O sea que la
+    # maestra entraba a su sección y leía «Calificar se activa con un plan» —
+    # que es exactamente lo que venía a probar. Le pasó a Cyndi.
+    puts "✓ #{activar_el_plan(colegio)}"
 
     Current.en_el_colegio(colegio) do
       grado  = Grade.find_by!(name: "5to Grado")
@@ -139,6 +146,16 @@ namespace :prueba do
       puts "              (elige su contraseña ahí; el código dura 6 horas)"
       puts "  ─────────────────────────────────────────────────────────────"
     end
+    end
+  end
+
+  desc "Le activa el plan al colegio de prueba, para que pueda calificar"
+  task activar_plan: :environment do
+    Current.sin_aislamiento do
+      colegio = School.find_by(name: COLEGIO_DE_PRUEBA)
+      abort "No existe «#{COLEGIO_DE_PRUEBA}»." if colegio.nil?
+
+      puts "✓ #{activar_el_plan(colegio)}"
     end
   end
 
@@ -219,5 +236,22 @@ namespace :prueba do
     end
 
     puts "✓ «#{COLEGIO_DE_PRUEBA}» borrado."
+  end
+
+  # El plan de pago del colegio de prueba. NO es `gratis`: lo que se viene a
+  # probar —calificar, pasar lista, emitir— es justamente lo que gratis no
+  # incluye.
+  #
+  # ⚠️ Y un plan pagado, no «sin fila». Un colegio sin suscripción tiene acceso
+  # completo a propósito —es el piloto— pero ese camino no es el que recorre un
+  # cliente: probar por ahí deja sin mirar todo lo que la suscripción gobierna.
+  def activar_el_plan(colegio)
+    suscripcion = Subscription.find_or_initialize_by(school_id: colegio.id)
+    antes = suscripcion.plan || "(sin fila)"
+    suscripcion.plan = :basico
+    suscripcion.status = :activa
+    suscripcion.save!
+
+    "plan #{antes} → #{suscripcion.plan} (#{suscripcion.status})"
   end
 end
