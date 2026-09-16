@@ -1,0 +1,60 @@
+-# Una constancia de estudios verificada.
+-#
+-# ⚠️ Lo que se afirma acá NO es lo mismo que en un boletín, y la diferencia
+-# tiene que leerse.
+-#
+-# El boletín certifica calificaciones: lo que decía en diciembre sigue
+-# diciéndolo en marzo. La constancia certifica una situación DEL DÍA en que se
+-# emitió. Así que esta pantalla confirma que el colegio emitió ESE papel ESE
+-# día —que es lo que necesita una embajada con el documento en la mano— y no
+-# que hoy siga siendo cierto. Prometer lo otro sería mentir sobre un papel.
+- datos = @constancia.snapshot
+- content_for :titulo, "Constancia verificada"
+
+.card-academic
+  = render layout: "shared/cabecera", locals: { titulo: "Constancia verificada" } do
+    %span.verificacion-sello ✓ Auténtica
+
+  %p.nota-ayuda
+    Este documento lo emitió el plantel el
+    = succeed "." do
+      %strong= l(@constancia.created_at.to_date, format: :long)
+    Lo que sigue es exactamente lo que decía el papel ese día.
+
+  .detail-row
+    .detail-item
+      .detail-label Colegio
+      .detail-value= datos.dig("colegio", "nombre")
+    .detail-item
+      .detail-label Código DEA
+      .detail-value= datos.dig("colegio", "dea") || "—"
+
+  .detail-row
+    .detail-item
+      .detail-label Alumno
+      .detail-value= datos.dig("alumno", "nombre")
+    .detail-item
+      .detail-label Documento
+      .detail-value= datos.dig("alumno", "documento") || datos.dig("alumno", "cedula_escolar") || "—"
+
+  .detail-row
+    .detail-item
+      .detail-label Grado y sección
+      .detail-value= "#{datos['grado']} – #{datos['seccion']}"
+    .detail-item
+      .detail-label Año escolar
+      .detail-value= datos["anio"]
+    .detail-item
+      .detail-label La emitió
+      .detail-value= datos["emitida_por"]
+
+  -# ⚠️ Se dice qué NO garantiza esto. Un verificador que calla el límite de lo
+  -# que afirma invita a leerlo como «este alumno estudia aquí hoy», que es
+  -# justo lo que una constancia con fecha no puede sostener.
+  %p.nota-ayuda
+    Una constancia refleja la situación del día en que se emitió. Para saber la
+    situación de hoy, pídale al plantel una constancia nueva.
+
+  %p.dato-secundario
+    Código de verificación:
+    %strong= @constancia.code

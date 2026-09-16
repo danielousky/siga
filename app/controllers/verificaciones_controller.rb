@@ -28,10 +28,17 @@ class VerificacionesController < ApplicationController
     @codigo = params[:code].to_s.strip.upcase
     return render(:buscar) if @codigo.blank?
 
-    @boletin = Current.sin_aislamiento do
-      ReportCard.unscoped.includes(:evaluation_moment).find_by(code: @codigo)
+    # ⚠️ El mismo código resuelve las DOS cosas, y por eso la ruta es una sola:
+    # quien tiene el papel en la mano teclea lo que dice, sin saber si es un
+    # boletín o una constancia. Los prefijos —BOL- y CON-— son para el ojo, no
+    # para la búsqueda: un documento nuevo no puede obligar a cambiar la URL
+    # que ya está impresa en cientos de papeles.
+    Current.sin_aislamiento do
+      @boletin = ReportCard.unscoped.includes(:evaluation_moment).find_by(code: @codigo)
+      @constancia = Constancia.unscoped.find_by(code: @codigo) if @boletin.nil?
     end
 
+    return render :constancia if @constancia
     render :no_encontrado, status: :not_found if @boletin.nil?
   end
 end

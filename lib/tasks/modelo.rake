@@ -152,7 +152,7 @@ namespace :modelo do
     evaluation_moments competencies indicators
     evaluation_activities activity_competencies activity_grades
     moment_grades final_grade_books rubrics
-    attendances report_cards informes
+    attendances report_cards constancias informes
     fees charges payment_reports
     importaciones mensajes mensaje_eventos mensajes_entrantes
     activity_logs demo_requests
@@ -175,6 +175,8 @@ namespace :modelo do
     "users.cedula_escolar"           => "la asigna el MPPE; acompaña al alumno de plantel",
     "users.last_name"                => "el PRIMER apellido — es el que valida el SAIME",
     "schools.dea_code"               => "lo asigna el MPPE; único global",
+    "constancias.code"               => "único GLOBAL: se teclea en /verificar sin sesión",
+    "constancias.snapshot"           => "lo que decía el papel el día que se emitió",
     "schools.tope_de_arrastre"       => "materias pendientes que aún promueven — 2",
     "schools.pasos_omitidos"         => "lo ÚNICO que el arranque guarda",
     "students.school_card"           => "el carnet del plantel; único POR COLEGIO",

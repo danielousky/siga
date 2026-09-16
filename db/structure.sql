@@ -483,6 +483,43 @@ ALTER SEQUENCE public.competencies_id_seq OWNED BY public.competencies.id;
 
 
 --
+-- Name: constancias; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.constancias (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    enrollment_id bigint NOT NULL,
+    issued_by_id bigint NOT NULL,
+    code character varying NOT NULL,
+    snapshot jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.constancias FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: constancias_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.constancias_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: constancias_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.constancias_id_seq OWNED BY public.constancias.id;
+
+
+--
 -- Name: demo_requests; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2184,6 +2221,13 @@ ALTER TABLE ONLY public.competencies ALTER COLUMN id SET DEFAULT nextval('public
 
 
 --
+-- Name: constancias id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.constancias ALTER COLUMN id SET DEFAULT nextval('public.constancias_id_seq'::regclass);
+
+
+--
 -- Name: demo_requests id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2593,6 +2637,14 @@ ALTER TABLE ONLY public.charges
 
 ALTER TABLE ONLY public.competencies
     ADD CONSTRAINT competencies_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: constancias constancias_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.constancias
+    ADD CONSTRAINT constancias_pkey PRIMARY KEY (id);
 
 
 --
@@ -3210,6 +3262,41 @@ CREATE INDEX index_competencies_on_subject_id ON public.competencies USING btree
 --
 
 CREATE UNIQUE INDEX index_competencies_sin_repetir_en_el_plan ON public.competencies USING btree (section_id, subject_id, evaluation_moment_id, descripcion_canonica);
+
+
+--
+-- Name: index_constancias_on_code; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_constancias_on_code ON public.constancias USING btree (code);
+
+
+--
+-- Name: index_constancias_on_enrollment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_constancias_on_enrollment_id ON public.constancias USING btree (enrollment_id);
+
+
+--
+-- Name: index_constancias_on_enrollment_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_constancias_on_enrollment_id_and_created_at ON public.constancias USING btree (enrollment_id, created_at);
+
+
+--
+-- Name: index_constancias_on_issued_by_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_constancias_on_issued_by_id ON public.constancias USING btree (issued_by_id);
+
+
+--
+-- Name: index_constancias_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_constancias_on_school_id ON public.constancias USING btree (school_id);
 
 
 --
@@ -4179,6 +4266,22 @@ CREATE UNIQUE INDEX index_users_on_rif ON public.users USING btree (rif) WHERE (
 
 
 --
+-- Name: constancias fk_rails_0184f413b6; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.constancias
+    ADD CONSTRAINT fk_rails_0184f413b6 FOREIGN KEY (enrollment_id) REFERENCES public.enrollments(id);
+
+
+--
+-- Name: constancias fk_rails_01f6a4e477; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.constancias
+    ADD CONSTRAINT fk_rails_01f6a4e477 FOREIGN KEY (issued_by_id) REFERENCES public.users(id);
+
+
+--
 -- Name: student_representatives fk_rails_08e2b9969f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4560,6 +4663,14 @@ ALTER TABLE ONLY public.activity_logs
 
 ALTER TABLE ONLY public.report_cards
     ADD CONSTRAINT fk_rails_6c37a9cb2c FOREIGN KEY (issued_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: constancias fk_rails_6d96c87395; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.constancias
+    ADD CONSTRAINT fk_rails_6d96c87395 FOREIGN KEY (school_id) REFERENCES public.schools(id);
 
 
 --
@@ -5081,6 +5192,13 @@ CREATE POLICY aislamiento_por_colegio ON public.competencies USING (((current_se
 
 
 --
+-- Name: constancias aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.constancias USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
 -- Name: departments aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -5281,6 +5399,12 @@ ALTER TABLE public.charges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.competencies ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: constancias; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.constancias ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: departments; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -5443,6 +5567,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260916090000'),
 ('20260915100000'),
 ('20260915090000'),
 ('20260914210000'),

@@ -65,7 +65,7 @@ class ConstanciasTest < ActionDispatch::IntegrationTest
 
   test "el texto sale con el grado y el año escolar de la inscripción" do
     con_el_colegio(@a.colegio) do
-      pdf = ConstanciaDeEstudiosPdf.new([@a.inscripcion]).render
+      pdf = ConstanciaDeEstudiosPdf.new([ Constancia.emitir!(@a.inscripcion, por: @a.director) ]).render
 
       assert pdf.start_with?("%PDF")
       assert pdf.bytesize > 1_000, "un PDF de menos de 1 KB no tiene texto adentro"
@@ -91,7 +91,7 @@ class ConstanciasTest < ActionDispatch::IntegrationTest
       @a.alumno.user.update!(last_name: "Pérez & <Asociados>")
 
       assert_nothing_raised do
-        pdf = ConstanciaDeEstudiosPdf.new([@a.inscripcion]).render
+        pdf = ConstanciaDeEstudiosPdf.new([ Constancia.emitir!(@a.inscripcion, por: @a.director) ]).render
         assert pdf.start_with?("%PDF")
       end
     end
@@ -101,7 +101,7 @@ class ConstanciasTest < ActionDispatch::IntegrationTest
     con_el_colegio(@a.colegio) do
       Current.sin_aislamiento { @a.colegio.update!(name: "U.E. Andrés Bello & Cía.") }
 
-      assert_nothing_raised { ConstanciaDeEstudiosPdf.new([@a.inscripcion]).render }
+      assert_nothing_raised { ConstanciaDeEstudiosPdf.new([ Constancia.emitir!(@a.inscripcion, por: @a.director) ]).render }
     end
   end
 
