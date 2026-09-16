@@ -67,6 +67,18 @@ Rails.application.routes.draw do
   # salía con el HTML adentro y `Content-Type: text/html`.
   get "manual", to: "manual#show", as: :manual
 
+  # El vistazo final antes de que la familia vea su boletín (ver
+  # `RevisionDeBoletinesController`). Va colgado de `/boletines` y no como un
+  # recurso propio: es una etapa de la emisión, no otra cosa.
+  get   "boletines/revisar",  to: "revision_de_boletines#show",     as: :revisar_boletines
+  patch "boletines/liberar",  to: "revision_de_boletines#liberar",  as: :liberar_boletines
+  patch "boletines/esconder", to: "revision_de_boletines#esconder", as: :esconder_boletines
+
+  # ⚠️ La descarga de UN boletín, por su id. La usa la FAMILIA, así que el
+  # controller comprueba las dos cosas: que sea de su representado y que esté
+  # liberado. Un boletín emitido y sin revisar no es de nadie todavía.
+  get "boletines/:id", to: "boletines#show", as: :boletin
+
   # ── Los pagos de la familia (spec: docs/specs/pagos-de-la-familia.md) ──────
   #
   # Dos puertas para el mismo hecho, porque son dos trabajos distintos:

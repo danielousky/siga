@@ -62,7 +62,11 @@ class RepresentanteController < ApplicationController
     # cruza tres y ponerle el del primero sería mentir sobre los otros dos.
     @informe     = (Informe.para(@inscripcion.id, @lapso&.id) unless @anual)
     @asistencia  = resumen_de_asistencia(@inscripcion)
-    @boletines   = ReportCard.where(enrollment_id: @inscripcion.id).order(created_at: :desc).limit(5)
+    # ⚠️ Solo los LIBERADOS. Un boletín emitido y sin revisar existe pero
+    # todavía no es de la familia: la oficina tiene que darle el vistazo final
+    # antes de que alguien lo lea (ver `RevisionDeBoletinesController`).
+    @boletines   = ReportCard.where(enrollment_id: @inscripcion.id)
+                             .liberados.order(created_at: :desc).limit(5)
   end
 
   # Cambiar de colegio cuando se tienen hijos en más de uno.

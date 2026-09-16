@@ -2453,6 +2453,26 @@ nav.pagy a.gap {
    Boletines y su verificación pública
    ============================================ */
 
+/* ---- Revisar boletines, uno por uno -------------------------------------
+   El vistazo final antes de liberarlos. Las flechas a los lados y el nombre en
+   el medio: es como se revisa un taco de papeles, y con treinta alumnos lo que
+   importa es no perder de vista en cuál se va. */
+.revisar-navegacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.revisar-quien { text-align: center; }
+.revisar-estado {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: var(--space-md) 0;
+}
+
 /* ---- Los pagos de la familia --------------------------------------------
    spec: docs/specs/pagos-de-la-familia.md
 

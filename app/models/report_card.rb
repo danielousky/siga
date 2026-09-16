@@ -11,6 +11,7 @@ class ReportCard < ApplicationRecord
   belongs_to :enrollment
   belongs_to :evaluation_moment, optional: true   # nil = boletín anual
   belongs_to :issued_by, class_name: "User", optional: true
+  belongs_to :liberado_por, class_name: "User", optional: true
   llega_al_anio_por enrollment: :section
   llega_al_nivel_por enrollment: { section: :grade }
   derives_school_from :enrollment
@@ -20,8 +21,31 @@ class ReportCard < ApplicationRecord
   before_validation :asignar_codigo, on: :create
 
   scope :recientes, -> { order(created_at: :desc) }
+  scope :liberados, -> { where.not(liberado_el: nil) }
+  scope :sin_liberar, -> { where(liberado_el: nil) }
 
   def anual? = evaluation_moment_id.nil?
+
+  # ── Liberar: el vistazo final antes de que lo vea la familia ──────────────
+  #
+  # Daniel: *«las boletas deberán pasar por una revisión por parte de Admin
+  # antes de ser mostradas al representante»*.
+  #
+  # ⚠️ Emitir CONGELA; liberar PUBLICA. Son dos hechos: con una sola columna,
+  # corregir un error obligaría a re-emitir, y re-emitir reescribe el documento
+  # que ya se revisó.
+  def liberado? = liberado_el.present?
+
+  def liberar!(por:, cuando: Time.current)
+    update!(liberado_el: cuando, liberado_por: por)
+  end
+
+  # ⚠️ Reversible a propósito: si al liberar aparece un error, se vuelve a
+  # esconder con el mismo clic. Un botón de una sola dirección obliga a que
+  # alguien escriba a soporte por un dedazo.
+  def esconder!
+    update!(liberado_el: nil, liberado_por: nil)
+  end
 
   def titulo
     anual? ? "Boletín Anual" : evaluation_moment.name

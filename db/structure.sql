@@ -1230,7 +1230,9 @@ CREATE TABLE public.report_cards (
     snapshot jsonb DEFAULT '{}'::jsonb NOT NULL,
     issued_by_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    liberado_el timestamp(6) without time zone,
+    liberado_por_id bigint
 );
 
 ALTER TABLE ONLY public.report_cards FORCE ROW LEVEL SECURITY;
@@ -3804,6 +3806,13 @@ CREATE INDEX index_report_cards_on_enrollment_id ON public.report_cards USING bt
 
 
 --
+-- Name: index_report_cards_on_enrollment_id_and_liberado_el; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_report_cards_on_enrollment_id_and_liberado_el ON public.report_cards USING btree (enrollment_id, liberado_el);
+
+
+--
 -- Name: index_report_cards_on_evaluation_moment_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3815,6 +3824,13 @@ CREATE INDEX index_report_cards_on_evaluation_moment_id ON public.report_cards U
 --
 
 CREATE INDEX index_report_cards_on_issued_by_id ON public.report_cards USING btree (issued_by_id);
+
+
+--
+-- Name: index_report_cards_on_liberado_por_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_report_cards_on_liberado_por_id ON public.report_cards USING btree (liberado_por_id);
 
 
 --
@@ -4898,6 +4914,14 @@ ALTER TABLE ONLY public.moment_grades
 
 
 --
+-- Name: report_cards fk_rails_bd63f07a5c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.report_cards
+    ADD CONSTRAINT fk_rails_bd63f07a5c FOREIGN KEY (liberado_por_id) REFERENCES public.users(id);
+
+
+--
 -- Name: activity_competencies fk_rails_c15f814dcb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5567,6 +5591,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260916100000'),
 ('20260916090000'),
 ('20260915100000'),
 ('20260915090000'),
