@@ -132,8 +132,8 @@ class PistasTest < ActionDispatch::IntegrationTest
   # ⚠️ El «por qué funciona así» va plegado, no escondido (MOR-161).
   #
   # Son explicaciones buenas y se leen UNA vez: quien emite la constancia número
-  # treinta ya sabe por qué no se archiva como el boletín. El título dice de qué
-  # se trata, y quien quiera la respuesta la abre.
+  # treinta ya sabe qué comprueba su código. El título dice de qué se trata, y
+  # quien quiera la respuesta la abre.
   #
   # `<details>` nativo, como los grupos del menú: anda sin JavaScript y responde
   # al teclado solo. Lo que este test sostiene es que el CONTENIDO viaje en el
@@ -146,7 +146,10 @@ class PistasTest < ActionDispatch::IntegrationTest
 
     assert_select "details.mas-detalle summary", { minimum: 1 },
                   "el bloque de «por qué» dejó de ser plegable"
-    assert_match(/certifica una/, response.body,
+    # ⚠️ Se busca un trozo del CUERPO, no del título: lo que este test sostiene
+    # es que el contenido plegado viaje en el HTML. Que el texto haya cambiado
+    # —la constancia ahora lleva código y QR— no lo debilita.
+    assert_match(/situación del día/, response.body,
                  "el texto no está en la página: si se pidiera después, un lector " \
                  "de pantalla y un buscador se quedarían sin él")
   end

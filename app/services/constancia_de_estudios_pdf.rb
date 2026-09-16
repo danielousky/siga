@@ -25,8 +25,13 @@
 class ConstanciaDeEstudiosPdf
   MARGEN = 54
 
-  def initialize(enrollments)
-    @inscripciones = Array(enrollments)
+  # ⚠️ Recibe las CONSTANCIAS EMITIDAS, no las inscripciones.
+  #
+  # Cada una trae su código de verificación, que es lo que le da al papel un QR
+  # que un tercero puede escanear. Antes recibía inscripciones y el documento
+  # salía sin manera de comprobarlo.
+  def initialize(constancias)
+    @constancias = Array(constancias)
   end
 
   def render
@@ -34,9 +39,9 @@ class ConstanciaDeEstudiosPdf
       Title: "Constancia de estudios", Creator: "SIGA", CreationDate: Time.current
     })
 
-    @inscripciones.each_with_index do |inscripcion, i|
+    @constancias.each_with_index do |constancia, i|
       documento.start_new_page if i.positive?
-      pagina(documento, inscripcion)
+      pagina(documento, constancia)
     end
 
     documento.render
@@ -44,7 +49,8 @@ class ConstanciaDeEstudiosPdf
 
   private
 
-  def pagina(pdf, inscripcion)
+  def pagina(pdf, constancia)
+    inscripcion = constancia.enrollment
     colegio = inscripcion.section.grade.school
     alumno  = inscripcion.student
 
@@ -52,6 +58,55 @@ class ConstanciaDeEstudiosPdf
     titulo(pdf)
     cuerpo(pdf, colegio, alumno, inscripcion)
     firma(pdf, colegio)
+    verificacion(pdf, constancia)
+  end
+
+  # El código de verificación con su QR, igual que en el boletín.
+  #
+  # ⚠️ El QR lleva la URL COMPLETA: un papel impreso no tiene contexto, y
+  # «/verificar/CON-…» no le sirve a nadie que lo escanee.
+  #
+  # ⚠️ Y el texto dice qué se comprueba, que NO es lo mismo que el boletín: una
+  # constancia dice la situación del día en que se emitió. El verificador
+  # confirma que el colegio emitió ESE papel ESE día — no que hoy siga siendo
+  # cierto. Prometer lo otro sería mentir en un documento.
+  def verificacion(pdf, constancia)
+    host = ENV.fetch("SIGA_HOST", "localhost:3000")
+    url = "https://#{host}/verificar/#{constancia.code}"
+    alto = pdf.cursor
+
+    pdf.bounding_box([ 0, alto ], width: pdf.bounds.width - 70, height: 44) do
+      pdf.text "Código de verificación: <b>#{constancia.code}</b>", size: 8, inline_format: true
+      pdf.move_down 2
+      pdf.text "Escanee el código o entre a #{url} para comprobar que este documento " \
+               "fue emitido por el plantel el " \
+               "#{I18n.l(constancia.created_at.to_date, format: :long)}.",
+               size: 7, color: "666666"
+    end
+
+    qr(pdf, url, en: [ pdf.bounds.width - 58, alto + 4 ], lado: 54)
+  end
+
+  # El QR como VECTORES y no como imagen: sale nítido a cualquier tamaño de
+  # impresión y no arrastra una gema de imágenes al PDF.
+  #
+  # ⚠️ La zona de silencio —el margen blanco— no es decorativa: sin ella muchos
+  # lectores no enganchan el código. El estándar pide cuatro módulos.
+  def qr(pdf, texto, en:, lado:)
+    matriz = RQRCodeCore::QRCode.new(texto, level: :m)
+    modulos = matriz.module_count
+    silencio = 4
+    paso = lado.to_f / (modulos + silencio * 2)
+
+    pdf.fill_color "000000"
+    modulos.times do |fila|
+      modulos.times do |columna|
+        next unless matriz.checked?(fila, columna)
+
+        pdf.fill_rectangle([ en[0] + (columna + silencio) * paso,
+                             en[1] - (fila + silencio) * paso ], paso, paso)
+      end
+    end
   end
 
   def membrete(pdf, colegio)

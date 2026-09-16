@@ -34,9 +34,14 @@ class ConstanciasController < ApplicationController
     return redirect_to(constancias_path(section_id: seccion.id),
                        alert: "Esa sección no tiene alumnos inscritos.") if inscripciones.empty?
 
+    # ⚠️ Se EMITE y queda el rastro, con su código. Ver `Constancia`: lo que se
+    # guarda no es «este alumno estudia aquí» —eso es de hoy y cambia— sino «el
+    # colegio emitió este papel ese día, y decía esto», que es lo que un tercero
+    # necesita comprobar.
+    constancias = inscripciones.map { |i| Constancia.emitir!(i, por: current_user) }
     registrar(inscripciones, seccion)
 
-    send_data ConstanciaDeEstudiosPdf.new(inscripciones).render,
+    send_data ConstanciaDeEstudiosPdf.new(constancias).render,
               filename: nombre_del_archivo(seccion, inscripciones),
               type: "application/pdf", disposition: "attachment"
   end

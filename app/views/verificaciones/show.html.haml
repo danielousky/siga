@@ -75,6 +75,19 @@
     Escala del 1 al 20. Calificación mínima aprobatoria: 10 (Art. 108 del
     Reglamento General de la Ley Orgánica de Educación).
 
+  -# ⚠️ El informe descriptivo FALTABA acá, y estaba congelado en el boletín
+  -# desde el principio.
+  -#
+  -# Lo vio Cyndi: «el informe descriptivo no aparece en el verificador de
+  -# boletines». En primaria es la mitad del documento —lo que la maestra
+  -# escribió sobre el niño— así que un boletín verificado que lo calla no
+  -# coincide con el papel que la familia tiene en la mano, que es exactamente
+  -# lo que el verificador existe para comprobar.
+  - if datos["informe"].present?
+    .verificacion-informe
+      %h3 Informe descriptivo
+      %p= simple_format(datos["informe"])
+
   %p.dato-secundario
     Código de verificación:
     %strong= @boletin.code

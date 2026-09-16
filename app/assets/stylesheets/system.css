@@ -2634,6 +2634,22 @@ nav.pagy a.gap {
   color: var(--brand-primary);
 }
 
+/* El informe descriptivo dentro del boletín verificado: es texto corrido y en
+   primaria es la mitad del documento, así que se lee como un párrafo y no como
+   un dato más de la tabla. */
+.verificacion-informe {
+  margin-top: var(--space-lg);
+  padding: var(--space-md);
+  border-left: 3px solid var(--brand-primary);
+  background: var(--surface-hover);
+}
+.verificacion-informe h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-serif);
+  font-size: 17px;
+}
+.verificacion-informe p { margin: 0; max-width: 68ch; }
+
 .verificacion-sello {
   display: inline-flex;
   align-items: center;
