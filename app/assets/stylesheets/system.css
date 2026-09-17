@@ -2473,6 +2473,14 @@ nav.pagy a.gap {
   margin: var(--space-md) 0;
 }
 
+/* ---- Lo que el colegio cobra -------------------------------------------
+   Se edita en la MISMA fila donde se lee: son trece cuotas y corregir un monto
+   no vale una pantalla aparte. Cada fila es su propio formulario. */
+.fila-de-cobro { display: contents; }
+.fila-de-cobro .form-control { min-width: 0; }
+.acciones-de-cobro { display: flex; gap: 6px; white-space: nowrap; }
+.acciones-de-cobro form { margin: 0; }
+
 /* ---- Los pagos de la familia --------------------------------------------
    spec: docs/specs/pagos-de-la-familia.md
 

@@ -1,0 +1,92 @@
+-# Lo que el colegio cobra en un año escolar.
+-#
+-# ⚠️ Era el hueco que impedía cobrar: los conceptos existían en la base y solo
+-# los creaba una tarea de demostración. Un director abría la bandeja de pagos y
+-# no tenía dónde decir cuánto cuesta la inscripción.
+- content_for :titulo, "Lo que se cobra"
+
+.card-academic
+  = render "shared/cabecera", titulo: "Lo que se cobra en #{@periodo.name}"
+
+  - if @conceptos.empty?
+    .empty-state
+      %h3 Todavía no hay nada cargado
+      %p
+        Mientras no haya cuotas, las familias no ven nada que pagar y nadie
+        queda en mora.
+
+  - else
+    %table.table-academic
+      %thead
+        %tr
+          %th Cuota
+          %th Vence
+          %th Monto
+          %th Emitidas
+          %th
+      %tbody
+        - @conceptos.each do |concepto|
+          %tr
+            = form_with model: concepto, url: cobro_path(concepto), method: :patch, class: "fila-de-cobro" do |f|
+              %td= f.text_field :nombre, class: "form-control campo-mayuscula", required: true
+              %td= f.date_field :vence_el, class: "form-control", required: true
+              %td= f.number_field :monto, class: "form-control", step: "0.01", min: "0.01", required: true
+              %td
+                -# ⚠️ Cuántos alumnos ya la deben: es lo que dice si tocarla es
+                -# inocuo o si hay trescientas familias mirando ese número.
+                = @emitidos[concepto.id].to_i
+              %td.acciones-de-cobro
+                = f.submit "Guardar", class: "btn btn-guardar btn-sm"
+                = button_to "Eliminar", cobro_path(concepto), method: :delete,
+                            class: "btn btn-danger btn-sm",
+                            data: { turbo_confirm: "Se quita «#{concepto.nombre}» del año. ¿Seguimos?" }
+
+    -# ⚠️ Lo primero que un director asume al revés.
+    %p.nota-ayuda
+      Cambiar un monto NO cambia lo que un alumno ya debe: su cuota copió el
+      monto el día que se emitió, igual que un boletín copia sus notas. Lo nuevo
+      aplica a las cuotas que se emitan después.
+
+.card-academic
+  = render "shared/cabecera", titulo: "Agregar una cuota", nivel: 2
+  = form_with model: @concepto, url: academic_period_cobros_path(@periodo) do |f|
+    = render "shared/errors", object: @concepto
+    .form-row
+      .form-group
+        = f.label :nombre, "Cómo se llama", class: "form-label"
+        = f.text_field :nombre, class: "form-control campo-mayuscula", required: true,
+                       placeholder: "Inscripción · Septiembre · Seguro escolar"
+      .form-group
+        = f.label :monto, "Cuánto vale", class: "form-label"
+        = f.number_field :monto, class: "form-control", step: "0.01", min: "0.01", required: true
+      .form-group
+        = f.label :vence_el, "Vence el", class: "form-label"
+        = f.date_field :vence_el, class: "form-control", required: true
+    .form-acciones
+      = f.submit "Agregar", class: "btn btn-guardar"
+
+- if @conceptos.empty?
+  .card-academic
+    = render "shared/cabecera", titulo: "O cargue el calendario de una vez", nivel: 2
+    %p
+      El calendario habitual de un colegio venezolano: la inscripción y once
+      mensualidades. Después corrija lo que sea distinto en su caso.
+
+    -# ⚠️ Solo cuando NO hay nada cargado: correrlo sobre un calendario ya
+    -# armado duplicaría los meses, y el índice único lo rechazaría a mitad
+    -# dejando medio calendario nuevo y medio viejo.
+    = form_with url: proponer_academic_period_cobros_path(@periodo) do
+      .form-row
+        .form-group
+          = label_tag :inscripcion, "Cuánto vale la inscripción", class: "form-label"
+          = number_field_tag :inscripcion, nil, class: "form-control", step: "0.01", min: "0"
+        .form-group
+          = label_tag :mensualidad, "Cuánto vale la mensualidad", class: "form-label"
+          = number_field_tag :mensualidad, nil, class: "form-control", step: "0.01", min: "0.01", required: true
+      .form-acciones
+        = submit_tag "Proponer el calendario", class: "btn btn-accion"
+
+      -# ⚠️ La regla que nadie recuerda al cargarlo a mano.
+      %p.nota-ayuda
+        Agosto vence en julio —y solo agosto—: es el mes en que se inscribe para
+        el año siguiente.
