@@ -84,6 +84,33 @@
   = render "competencies/chips", evaluacion: evaluacion, contexto: contexto,
            competencia: local_assigns[:competencia], competencias: competencias
 
+  -# ⚠️ QUÉ INDICADORES mide, debajo de su fila (MOR-136, segunda mitad).
+  -#
+  -# Es lo que la posición NO puede decir: la fila ya está bajo su competencia,
+  -# pero cuál de los cinco indicadores de esa competencia mide ESTA evaluación
+  -# —y no la de al lado— no se deduce de nada. Regla de Daniel: *«los
+  -# indicadores no se repiten entre evaluaciones»*, así que los de arriba y los
+  -# de abajo son distintos y hay que verlos.
+  -#
+  -# ⚠️ Se filtran por la competencia BAJO LA QUE está dibujada la fila. Una
+  -# evaluación que mide dos sale dos veces, y listar los cinco en las dos
+  -# apariciones diría que el examen mide bajo «Interpreta gráficos» un
+  -# indicador que es de adición.
+  - bajo   = local_assigns[:competencia]
+  - miden  = evaluacion.indicators.select { |i| bajo.nil? || i.competency_id == bajo.id }
+  - if miden.any?
+    %ul.plan-evaluacion-indicadores
+      - miden.each do |indicador|
+        %li= indicador.descripcion
+  - elsif profesor? && bajo.present?
+    -# ⚠️ AVISO y no error: la evaluación existe y cuenta para el promedio. Lo
+    -# que no puede hacer la boleta es decir qué se midió — y eso es exactamente
+    -# lo que hay que enterarse, igual que `MOR-229` avisa la competencia sin
+    -# evaluaciones. Las nacidas después de esta regla ya no pueden estar así.
+    %p.plan-evaluacion-sin-indicador
+      = icono(:alerta, tamano: 12)
+      %span No dice qué indicadores mide.
+
   -# ⚠️ El error se dice EN LA FILA y el campo vuelve a su valor viejo.
   -#
   -# Sin esto el campo se queda con lo que el profesor escribió y él se va

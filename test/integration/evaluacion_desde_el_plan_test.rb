@@ -119,7 +119,8 @@ class EvaluacionDesdeElPlanTest < ActionDispatch::IntegrationTest
           asignacion: @asignacion, evaluation_moment_id: @lapso.id,
           description: "Examen del plan", weight_percentage: 40,
           date_scheduled: Date.new(2025, 11, 10),
-          competency_ids: [ @competencia.id ]
+          competency_ids: [ @competencia.id ],
+          indicator_ids: con_el_colegio(@a.colegio) { @competencia.indicators.libres.pluck(:id) }
         }
       }
     end

@@ -19,6 +19,7 @@
 #     las evaluaciones, con su peso
 #       y su fecha
 #     qué competencia mide cada una
+#     qué INDICADORES mide cada una
 #
 # ⚠️ Copiar competencias ya existía; **las evaluaciones son lo que faltaba**, y
 # son la mitad más pesada del trabajo de septiembre: un profesor con tres
@@ -61,7 +62,22 @@ class ReplicarLaPlanificacion
     new(desde, hacia, lapso).replicar
   end
 
-  # ⚠️ Del AÑO PASADO: TAMBIÉN las evaluaciones, con la fecha corrida un año.
+  # ⚠️ Del AÑO PASADO: las evaluaciones SOLO si las dictaba el mismo profesor.
+  #
+  # Daniel, 17 de septiembre: *«cuando se trae la planificación del año
+  # anterior, solo debería traer las competencias e indicadores; las
+  # evaluaciones no. Esas deben ser agregadas nuevas, a menos que sea el mismo
+  # profe, en ese caso se deben clonar para que haga el ajuste directamente
+  # él»*.
+  #
+  # **Una evaluación es una decisión pedagógica de quien evalúa** —el peso del
+  # examen, la fecha, qué mide— y heredarla de otro le pone al profesor nuevo un
+  # criterio ajeno en su plan, que además no va a revisar porque vino puesto.
+  # Las competencias sí se heredan: describen qué enseña el GRADO.
+  #
+  # Entre HERMANAS no hay decisión que tomar: `otras_secciones` son las
+  # asignaciones de ESE mismo profesor, así que `para` siempre las trae.
+  #
   #
   # La primera versión traía solo las competencias, con el argumento de que las
   # fechas del año pasado son de otro calendario. Daniel lo corrigió, y tenía
@@ -77,32 +93,34 @@ class ReplicarLaPlanificacion
   # Quedarse en las competencias dejaba la mitad del trabajo sin resolver: el
   # examen del 40 %, el taller del 30 y la participación del 30 se volvían a
   # escribir igual, todos los años.
-  def self.del_ano_pasado(desde:, lapso_de_origen:, hacia:, lapso:)
-    new(desde, hacia, lapso, lapso_de_origen: lapso_de_origen).replicar
+  def self.del_ano_pasado(desde:, lapso_de_origen:, hacia:, lapso:, con_evaluaciones: false)
+    new(desde, hacia, lapso, lapso_de_origen: lapso_de_origen,
+        con_evaluaciones: con_evaluaciones).replicar
   end
 
   # `desde` y `hacia` son asignaciones (`TeacherSection`): sección + área.
   #
   # `lapso_de_origen` solo difiere al traer de otro año; entre hermanas es el
   # mismo, y por eso su valor por defecto es `lapso`.
-  def initialize(desde, hacia, lapso, lapso_de_origen: nil)
+  def initialize(desde, hacia, lapso, lapso_de_origen: nil, con_evaluaciones: true)
     @desde = desde
     @hacia = hacia
     @lapso = lapso
     @lapso_de_origen = lapso_de_origen || lapso
+    @con_evaluaciones = con_evaluaciones
     @avisos = []
   end
 
   def replicar
     copiadas = copiar_competencias
-    hechas   = copiar_evaluaciones
+    hechas   = con_evaluaciones ? copiar_evaluaciones : 0
 
     Resultado.new(competencias: copiadas, evaluaciones: hechas, avisos: @avisos)
   end
 
   private
 
-  attr_reader :desde, :hacia, :lapso, :lapso_de_origen
+  attr_reader :desde, :hacia, :lapso, :lapso_de_origen, :con_evaluaciones
 
   # ── Las competencias, con sus indicadores ─────────────────────────────────
 
@@ -136,14 +154,23 @@ class ReplicarLaPlanificacion
       # «Examen del lapso». Es la misma regla que `CopiarLaEstructura`.
       next false if ya_estan.include?(Normaliza.para_comparar(vieja.description))
 
+      competencias = equivalentes_de(vieja)
+      indicadores  = indicadores_equivalentes_de(vieja)
+      next anotar_que_no_mide(vieja) if exige_plan? && (competencias.empty? || indicadores.empty?)
+
       en_su_savepoint do
-        nueva = EvaluationActivity.create!(
+        nueva = EvaluationActivity.new(
           section_id: hacia.section_id, subject_id: hacia.subject_id,
           evaluation_moment_id: lapso.id, description: vieja.description,
           weight_percentage: vieja.weight_percentage,
           date_scheduled: fecha_trasladada(vieja.date_scheduled)
         )
-        nueva.competency_ids = equivalentes_de(vieja)
+        # ⚠️ ANTES de guardar, no después: una evaluación de primaria tiene que
+        # medir una competencia y un indicador, y eso se valida al crear. Con la
+        # asignación después del `create!`, la copia quedaba rechazada siempre.
+        nueva.competency_ids = competencias
+        nueva.indicators     = indicadores
+        nueva.save!
         ya_estan << Normaliza.para_comparar(nueva.description)
         true
       end || anotar_que_no_cupo(vieja)
@@ -162,6 +189,33 @@ class ReplicarLaPlanificacion
 
     competencias_del_destino.values_at(*canonicas).compact
   end
+
+  # ⚠️ Los INDICADORES también se re-apuntan, un escalón más adentro.
+  #
+  # Una evaluación no mide la competencia entera: mide algunos de sus
+  # indicadores, y no se repiten entre evaluaciones. Copiar sin esto dejaba el
+  # plan del destino con las evaluaciones sin decir qué miden —y desde la regla
+  # de Daniel, ni siquiera se podrían guardar—.
+  #
+  # Se busca por el PAR (canónica de la competencia, canónica del indicador):
+  # el id es de la otra sección, y la canónica sola se repite entre competencias
+  # («Participa en clase» puede estar en las dos).
+  #
+  # ⚠️ Y solo si está LIBRE en el destino. Si el profesor ya armó allá una
+  # evaluación que mide ese indicador, tomarlo se lo QUITARÍA a la suya —
+  # callado, porque la columna admite un solo dueño y el último gana.
+  def indicadores_equivalentes_de(vieja)
+    vieja.indicators.filter_map do |viejo|
+      destino = indicadores_del_destino[[ viejo.competency.descripcion_canonica, viejo.descripcion_canonica ]]
+      next if destino.nil? || destino.evaluation_activity_id.present?
+
+      destino
+    end
+  end
+
+  # Si el destino se planifica por competencias. En bachillerato no hay plan, y
+  # una evaluación sin competencias es lo normal — no un aviso.
+  def exige_plan? = hacia.section.grade.por_competencias?
 
   # ⚠️ La fecha se CORRE los años que separan los dos calendarios.
   #
@@ -201,7 +255,7 @@ class ReplicarLaPlanificacion
     @evaluaciones_de_origen ||= EvaluationActivity
                                 .where(section_id: desde.section_id, subject_id: desde.subject_id,
                                        evaluation_moment_id: lapso_de_origen.id)
-                                .includes(:competencies)
+                                .includes(:competencies, indicators: :competency)
                                 .order(:date_scheduled, :id).to_a
   end
 
@@ -216,6 +270,19 @@ class ReplicarLaPlanificacion
     @competencias_del_destino ||=
       Competency.del_plan(hacia.section_id, hacia.subject_id, lapso.id)
                 .pluck(:descripcion_canonica, :id).to_h
+  end
+
+  # ⚠️ Se lee DESPUÉS de copiar las competencias, como su hermana de arriba: los
+  # indicadores que acaban de crearse son justamente a los que hay que apuntar.
+  #
+  # ⚠️ Se memoiza con los OBJETOS, y eso es lo que impide robar dos veces el
+  # mismo: al guardar, Rails le escribe el `evaluation_activity_id` al objeto en
+  # memoria, así que la evaluación siguiente lo ve tomado.
+  def indicadores_del_destino
+    @indicadores_del_destino ||=
+      Indicator.where(competency_id: competencias_del_destino.values)
+               .includes(:competency)
+               .index_by { |i| [ i.competency.descripcion_canonica, i.descripcion_canonica ] }
   end
 
   def descripciones_de_evaluaciones_del_destino
@@ -238,6 +305,17 @@ class ReplicarLaPlanificacion
   # las otras tres, que sí cabían.
   def anotar_que_no_cupo(vieja)
     @avisos << "«#{vieja.description}» no cabe: #{hacia.section.name} ya tiene su ponderación completa."
+    false
+  end
+
+  # El otro caso de «no se pudo»: la evaluación del ORIGEN no dice qué mide.
+  #
+  # Pasa con lo escrito antes de que existiera la relación. Copiarla dejaría en
+  # el destino el mismo hueco, y crearla ni siquiera se puede: una evaluación de
+  # primaria mide una competencia y un indicador. Se dice dónde arreglarlo, que
+  # es lo único accionable.
+  def anotar_que_no_mide(vieja)
+    @avisos << "«#{vieja.description}» no se copió: en #{desde.section.name} no dice qué indicadores mide."
     false
   end
 end

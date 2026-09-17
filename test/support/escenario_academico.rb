@@ -133,11 +133,45 @@ module EscenarioAcademico
   end
 
   # Una actividad evaluativa de la sección, con su ponderación dentro del lapso.
-  def actividad(esc, lapso:, peso:, descripcion: "Evaluación")
-    EvaluationActivity.create!(
+  #
+  # ⚠️ En PRIMARIA una evaluación mide una competencia y un indicador, o no se
+  # guarda (`MOR-136`, segunda mitad). Cuando el test no dice cuál, el escenario
+  # arma el mínimo: lo que se prueba ahí es el promedio, no el plan.
+  #
+  # ⚠️ Y cada evaluación se lleva un indicador PROPIO: no se repiten entre
+  # evaluaciones, así que dos actividades de la misma competencia no pueden
+  # medir el mismo. Por eso el indicador lleva el nombre de la evaluación.
+  #
+  # `mide:` es una `Competency` para el test que sí habla del plan: con eso la
+  # evaluación queda enganchada sin un `ActivityCompetency.create!` aparte —que
+  # además ya no alcanzaría, porque faltaría el indicador.
+  def actividad(esc, lapso:, peso:, descripcion: "Evaluación", mide: nil)
+    actividad = EvaluationActivity.new(
       section: esc.seccion, subject: esc.materia, evaluation_moment: lapso,
       description: descripcion, weight_percentage: peso, date_scheduled: Date.new(2025, 10, 1)
     )
+
+    if esc.grado.por_competencias?
+      competencia = mide || competencia_minima(esc, lapso)
+      actividad.competency_ids = [ competencia.id ]
+      actividad.indicators     = [ indicador_libre_de(competencia, descripcion) ]
+    end
+
+    actividad.save!
+    actividad
+  end
+
+  # La competencia que el escenario arma solo: una por sección, materia y lapso.
+  def competencia_minima(esc, lapso)
+    Competency.del_plan(esc.seccion.id, esc.materia.id, lapso.id).first ||
+      Competency.create!(section: esc.seccion, subject: esc.materia, evaluation_moment: lapso,
+                         descripcion: "Competencia del escenario")
+  end
+
+  def indicador_libre_de(competencia, descripcion)
+    competencia.indicators.libres.first ||
+      competencia.indicators.create!(descripcion: "Indicador de #{descripcion}",
+                                     orden: (competencia.indicators.maximum(:orden) || -1) + 1)
   end
 
   def nota(actividad, alumno, puntaje)

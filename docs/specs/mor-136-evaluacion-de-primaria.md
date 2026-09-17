@@ -476,3 +476,112 @@ Pesos entre competencias · catálogo compartido entre colegios · taxonomías �
 aprobación del plan por la coordinadora · gráficos de progreso · marcar
 indicadores uno por uno. Cyndi lo advirtió sin que se le preguntara: *«hay un
 montón de cosas que son innecesarias que uno no utiliza»*.
+
+---
+
+## 11 · La segunda mitad: la evaluación mide INDICADORES
+
+**17 de septiembre de 2026.** La § 10 cerraba diciendo que marcar indicadores
+uno por uno **no se construyó**. Daniel lo reabrió, y con una razón que el spec
+original no había visto:
+
+> *«La idea es que la profesora, a una nueva evaluación, pueda asignarle
+> competencias ya creadas y a su vez agregar también otros indicadores.»*
+
+Y en el mismo intercambio, las dos reglas que le dan forma:
+
+> *«La evaluación debe tener al menos un indicador y una competencia.»*
+>
+> *«Pero ojo, los indicadores no se repiten entre evaluaciones.»*
+
+### Por qué la § 10 se equivocaba
+
+No era un capricho de precisión. El plan de un lapso se trabaja en varias
+evaluaciones de la MISMA competencia, y cada una toma un pedazo distinto:
+
+```
+   Resuelve problemas de adición
+     ∘ Suma con reagrupación      ──►  Examen del lapso   40 %
+     ∘ Estima antes de calcular   ──►  Examen del lapso
+     ∘ Resuelve en dos pasos      ──►  Taller en equipo   30 %
+     ∘ Compara dos estrategias    ──►  libre
+```
+
+**La competencia se repite entre evaluaciones; el indicador la REPARTE.** Sin la
+relación, la boleta imprimía los cuatro indicadores bajo las dos evaluaciones —
+diciendo que el taller midió algo que nadie tomó ahí.
+
+### El modelo: una COLUMNA, no una tabla intermedia
+
+```
+   ANTES                          AHORA
+   ─────                          ─────
+   Indicator ──► Competency       Indicator ──► Competency
+                                       │
+                                       └──► EvaluationActivity  (opcional)
+```
+
+La primera versión fue `activity_indicators`, una N:N. Sobra: si un indicador lo
+mide **una sola** evaluación, la relación es 1:N y vive en la fila del
+indicador. Una tabla intermedia admite el estado que la regla prohíbe y obliga a
+defenderlo con un índice único que la columna trae de nacimiento.
+
+⚠️ **Nulo es «libre»**, y es el estado normal de septiembre: el plan se escribe
+antes que las evaluaciones. Y borrar una evaluación **suelta** sus indicadores
+(`dependent: :nullify`), no se los lleva: el texto lo escribió la maestra.
+
+⚠️ **El indicador nuevo nace en la COMPETENCIA.** Se escribe en el panel del
+alta por comodidad, pero queda en el plan y la próxima evaluación lo ve en la
+lista. Colgándolo de la evaluación habría que reescribirlo en cada una — el
+trabajo de septiembre que este issue vino a quitar.
+
+### La regla «mide algo», y dónde NO aplica
+
+`EvaluationActivity#mide_una_competencia_y_un_indicador`, **`on: :create`** y
+solo si `section.grade.por_competencias?`.
+
+| | por qué |
+|---|---|
+| **`on: :create`** | Siempre rompería la edición en línea de todo lo escrito antes: corregirle una tilde al nombre fallaría con un error sobre indicadores. Lo que ya está se **avisa** en el plan; lo que nace, nace completo. |
+| **solo primaria** | En bachillerato no hay plan por competencias. Sin la guarda, todos sus profesores quedarían sin poder crear una evaluación. |
+
+Y el aviso para lo viejo, con la misma forma que el de `MOR-229`:
+
+```
+   Participación            20 %   12 nov   🗑
+     ⚠ No dice qué indicadores mide.
+```
+
+### Traer el plan del año pasado: qué viene y qué no
+
+Daniel, el mismo día:
+
+> *«Cuando se trae la planificación del año anterior, SOLO debería traer las
+> competencias e indicadores, las evaluaciones no. Esas deben ser agregadas
+> nuevas, a menos que sea el mismo profe, en ese caso se deben clonar para que
+> haga el ajuste directamente él.»*
+
+```
+   LO DICTABA ÉL           →  competencias + indicadores + EVALUACIONES
+                              con su peso y la fecha corrida un año
+   LO DICTABA OTRO         →  competencias + indicadores, y nada más
+```
+
+**La razón es de dominio, no de permisos:** una evaluación es una decisión
+pedagógica de **quien evalúa** —el peso del examen, la fecha, qué mide— y
+heredarla de otro le pone al profesor nuevo un criterio ajeno que además no va a
+revisar, porque vino puesto. La competencia sí se hereda: describe qué enseña el
+GRADO.
+
+Entre **hermanas** no hay decisión que tomar —`otras_secciones` son las
+asignaciones de ese mismo profesor— así que `ReplicarLaPlanificacion.para`
+siempre trae todo.
+
+### Lo que SIGUE sin construirse
+
+Pesos entre competencias · catálogo compartido entre colegios · taxonomías ·
+aprobación del plan por la coordinadora · gráficos de progreso.
+
+Y una decisión **abierta a propósito**: la boleta sigue imprimiendo **todos** los
+indicadores de la competencia, no solo los que se midieron en ese lapso.
+Cambiarlo altera un documento que va a una casa, y no se hace sin decidirlo.

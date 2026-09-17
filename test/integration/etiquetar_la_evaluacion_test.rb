@@ -18,7 +18,12 @@ class EtiquetarLaEvaluacionTest < ActionDispatch::IntegrationTest
   # primero, y cualquier otra choca contra la validación de ponderación.
   test "crear una evaluación con lo que evalúa la deja etiquetada" do
     segundo = @a.escenario.lapso(2)
-    competencia = con_el_colegio(@a.colegio) { competencia_con(2, lapso: segundo) }
+    # ⚠️ El id del indicador se lee DENTRO del bloque: `Indicator` es
+    # `SchoolScoped`, y afuera el RLS devuelve cero filas —no un error—.
+    competencia, indicador = con_el_colegio(@a.colegio) do
+      c = competencia_con(2, lapso: segundo)
+      [ c, c.indicators.first ]
+    end
     sign_in @a.profesor
 
     assert_difference "Current.sin_aislamiento { ActivityCompetency.unscoped.count }", 1 do
@@ -27,7 +32,10 @@ class EtiquetarLaEvaluacionTest < ActionDispatch::IntegrationTest
           asignacion: @asignacion, evaluation_moment_id: segundo.id,
           description: "Prueba de fracciones", weight_percentage: 20,
           date_scheduled: Date.new(2025, 11, 5),
-          competency_ids: [ competencia.id ]
+          competency_ids: [ competencia.id ],
+          # ⚠️ Y los INDICADORES: desde `MOR-136` una evaluación de primaria mide
+          # una competencia y al menos uno de sus indicadores, o no se guarda.
+          indicator_ids: [ indicador.id ]
         }
       }
     end
@@ -107,8 +115,14 @@ class EtiquetarLaEvaluacionTest < ActionDispatch::IntegrationTest
     }
 
     con_el_colegio(@a.colegio) do
-      assert_empty @a.actividad.reload.competency_ids,
-                   "el plan del segundo lapso no puede etiquetar una evaluación del primero"
+      # ⚠️ Se comprueba que NO ESTÉ la ajena, no que la lista quede vacía.
+      #
+      # Vaciarla ya no es un resultado posible: desde `MOR-136` una evaluación
+      # de primaria mide al menos una competencia, así que una petición cuyo
+      # único id se filtra se RECHAZA y queda lo que había. Con `assert_empty`,
+      # este test pasaría a exigir justo lo que la regla prohíbe.
+      assert_not_includes @a.actividad.reload.competency_ids, de_otro_lapso.id,
+                          "el plan del segundo lapso no puede etiquetar una evaluación del primero"
     end
   end
 
@@ -125,7 +139,7 @@ class EtiquetarLaEvaluacionTest < ActionDispatch::IntegrationTest
   end
 
   test "el formulario de primaria trae el plan embebido" do
-    con_el_colegio(@a.colegio) { competencia_con(1) }
+    mia = con_el_colegio(@a.colegio) { competencia_con(1, "Interpreta gráficos") }
     sign_in @a.profesor
 
     get new_evaluation_activity_path
@@ -134,7 +148,15 @@ class EtiquetarLaEvaluacionTest < ActionDispatch::IntegrationTest
       planes = JSON.parse(formularios.first["data-que-evalua-planes-value"])
       clave = "#{@a.seccion.id}:#{@a.escenario.materia.id}:#{@lapso.id}"
       assert planes.key?(clave), "el plan de la sección tiene que viajar en el formulario"
-      assert_equal 1, planes[clave].size
+
+      # ⚠️ El plan trae DOS: la del escenario —que su evaluación ya mide— y esta.
+      suya = planes[clave].find { |c| c["texto"] == "Interpreta gráficos" }
+      assert suya, "la competencia recién escrita tiene que estar en el plan embebido"
+
+      # ⚠️ Y cada indicador viaja con su ESTADO, no solo con su texto: el
+      # formulario necesita saber cuáles están libres para poder marcarlos.
+      assert_equal [ true ], suya["indicadores"].map { |i| i["libre"] }
+      assert suya["indicadores"].first["id"].present?
     end
   end
 
@@ -143,13 +165,8 @@ class EtiquetarLaEvaluacionTest < ActionDispatch::IntegrationTest
   test "borrar la evaluación se lleva sus etiquetas" do
     segundo = @a.escenario.lapso(2)
     sin_notas = con_el_colegio(@a.colegio) do
-      competencia = competencia_con(0, lapso: segundo)
-      actividad = EvaluationActivity.create!(
-        section: @a.seccion, subject: @a.escenario.materia, evaluation_moment: segundo,
-        description: "Sin notas", weight_percentage: 5, date_scheduled: Date.new(2025, 11, 6)
-      )
-      ActivityCompetency.create!(competency: competencia, evaluation_activity: actividad)
-      actividad
+      competencia = competencia_con(1, lapso: segundo)
+      actividad(@a.escenario, lapso: segundo, peso: 5, descripcion: "Sin notas", mide: competencia)
     end
     sign_in @a.profesor
 

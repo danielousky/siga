@@ -79,8 +79,7 @@ class ReplicarLaPlanificacionTest < ActiveSupport::TestCase
     original = con_el_colegio(@esc.colegio) do
       c = Competency.create!(section: @esc.seccion, subject: @esc.materia,
                              evaluation_moment: @lapso, descripcion: "Resuelve problemas")
-      e = actividad(@esc, lapso: @lapso, peso: 40, descripcion: "Examen")
-      ActivityCompetency.create!(competency: c, evaluation_activity: e)
+      actividad(@esc, lapso: @lapso, peso: 40, descripcion: "Examen", mide: c)
       c
     end
 
@@ -138,9 +137,18 @@ class ReplicarLaPlanificacionTest < ActiveSupport::TestCase
       actividad(@esc, lapso: @lapso, peso: 30, descripcion: "Taller")
       # El destino ya tiene el 70 % comprometido: el Examen del 60 no entra,
       # pero el Taller del 30 cierra justo en 100.
-      EvaluationActivity.create!(section_id: @destino.section_id, subject_id: @destino.subject_id,
-                                 evaluation_moment: @lapso, description: "Lo suyo",
-                                 weight_percentage: 70, date_scheduled: Date.new(2025, 10, 1))
+      #
+      # ⚠️ Lo suyo también mide algo: es primaria, y desde `MOR-136` una
+      # evaluación sin competencia ni indicador no se guarda.
+      suya = Competency.create!(section_id: @destino.section_id, subject_id: @destino.subject_id,
+                                evaluation_moment: @lapso, descripcion: "Lo que ya tenía")
+      suya.indicators.create!(descripcion: "Su indicador", orden: 0)
+      lo_suyo = EvaluationActivity.new(section_id: @destino.section_id, subject_id: @destino.subject_id,
+                                       evaluation_moment: @lapso, description: "Lo suyo",
+                                       weight_percentage: 70, date_scheduled: Date.new(2025, 10, 1))
+      lo_suyo.competency_ids = [ suya.id ]
+      lo_suyo.indicators     = suya.indicators.to_a
+      lo_suyo.save!
     end
 
     resultado = replicar
@@ -159,7 +167,9 @@ class ReplicarLaPlanificacionTest < ActiveSupport::TestCase
   # fechas del año pasado son de otro calendario. Daniel lo corrigió: la fecha
   # no es un obstáculo, es una traducción —mismo día y mes, el año que
   # corresponde—. Y es literalmente lo que pedía Cyndi.
-  test "del año pasado viene todo, con la fecha corrida un año" do
+  # ⚠️ «Todo» solo si lo dictaba EL MISMO profesor (`con_evaluaciones: true`).
+  # Quién lo decide es el controller; acá se prueba que el servicio obedezca.
+  test "del año pasado del mismo profesor viene todo, con la fecha corrida un año" do
     anterior, lapso_anterior = con_el_colegio(@esc.colegio) do
       periodo = AcademicPeriod.create!(name: "2024-2025", start_date: Date.new(2024, 9, 1),
                                        end_date: Date.new(2025, 7, 31))
@@ -170,16 +180,19 @@ class ReplicarLaPlanificacionTest < ActiveSupport::TestCase
       c = Competency.create!(section: seccion, subject: @esc.materia,
                              evaluation_moment: lapso, descripcion: "Resuelve problemas")
       c.indicators.create!(descripcion: "Suma con reagrupación", orden: 0)
-      e = EvaluationActivity.create!(section: seccion, subject: @esc.materia,
-                                     evaluation_moment: lapso, description: "Examen",
-                                     weight_percentage: 40, date_scheduled: Date.new(2024, 11, 8))
-      ActivityCompetency.create!(competency: c, evaluation_activity: e)
+      e = EvaluationActivity.new(section: seccion, subject: @esc.materia,
+                                 evaluation_moment: lapso, description: "Examen",
+                                 weight_percentage: 40, date_scheduled: Date.new(2024, 11, 8))
+      e.competency_ids = [ c.id ]
+      e.indicators     = c.indicators.to_a
+      e.save!
       [ Struct.new(:section_id, :subject_id).new(seccion.id, @esc.materia.id), lapso ]
     end
 
     hecho = con_el_colegio(@esc.colegio) do
       ReplicarLaPlanificacion.del_ano_pasado(desde: anterior, lapso_de_origen: lapso_anterior,
-                                             hacia: @destino, lapso: @lapso)
+                                             hacia: @destino, lapso: @lapso,
+                                             con_evaluaciones: true)
     end
 
     assert_equal 1, hecho.competencias
@@ -196,6 +209,51 @@ class ReplicarLaPlanificacionTest < ActiveSupport::TestCase
     medidas = con_el_colegio(@esc.colegio) { copiada.competencies.to_a }
     assert_equal 1, medidas.size
     assert_equal @destino.section_id, medidas.first.section_id
+  end
+
+  # ⚠️ Y de OTRO profesor vienen solo las competencias con sus indicadores.
+  #
+  # Daniel, 17 de septiembre: *«las evaluaciones no. Esas deben ser agregadas
+  # nuevas, a menos que sea el mismo profe»*. Una evaluación es una decisión
+  # pedagógica de quien evalúa —el peso, la fecha, qué mide— y heredarla de otro
+  # le pone al profesor nuevo un criterio ajeno que además no va a revisar,
+  # porque vino puesto. La competencia sí: describe qué enseña el grado.
+  test "del año pasado de OTRO profesor vienen solo las competencias" do
+    anterior, lapso_anterior = con_el_colegio(@esc.colegio) do
+      periodo = AcademicPeriod.create!(name: "2024-2025", start_date: Date.new(2024, 9, 1),
+                                       end_date: Date.new(2025, 7, 31))
+      lapso = EvaluationMoment.create!(academic_period: periodo, name: "2do Lapso")
+      seccion = Section.create!(grade: @esc.seccion.grade, academic_period: periodo,
+                                name: "A", capacity: 30)
+      c = Competency.create!(section: seccion, subject: @esc.materia,
+                             evaluation_moment: lapso, descripcion: "Resuelve problemas")
+      c.indicators.create!(descripcion: "Suma con reagrupación", orden: 0)
+      e = EvaluationActivity.new(section: seccion, subject: @esc.materia,
+                                 evaluation_moment: lapso, description: "Examen de la otra",
+                                 weight_percentage: 40, date_scheduled: Date.new(2024, 11, 8))
+      e.competency_ids = [ c.id ]
+      e.indicators     = c.indicators.to_a
+      e.save!
+      [ Struct.new(:section_id, :subject_id).new(seccion.id, @esc.materia.id), lapso ]
+    end
+
+    hecho = con_el_colegio(@esc.colegio) do
+      ReplicarLaPlanificacion.del_ano_pasado(desde: anterior, lapso_de_origen: lapso_anterior,
+                                             hacia: @destino, lapso: @lapso)
+    end
+
+    assert_equal 1, hecho.competencias, "las competencias sí se heredan: describen qué enseña el grado"
+    assert_equal 0, hecho.evaluaciones
+    assert_empty evaluaciones_del_destino,
+                 "el peso y la fecha del examen de otro profesor no son un plan que heredar"
+
+    # Y el indicador llegó igual, LIBRE: la profesora nueva decide qué evaluación
+    # lo mide.
+    con_el_colegio(@esc.colegio) do
+      copiada = Competency.del_plan(@destino.section_id, @destino.subject_id, @lapso.id).first
+      assert_equal [ "Suma con reagrupación" ], copiada.indicators.map(&:descripcion)
+      assert_equal 1, copiada.indicators.libres.count
+    end
   end
 
   # ⚠️ Los indicadores también viajan: son la mitad de lo que Cyndi no quería

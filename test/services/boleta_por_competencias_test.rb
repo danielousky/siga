@@ -46,14 +46,16 @@ class BoletaPorCompetenciasTest < ActiveSupport::TestCase
   test "las competencias salen con sus indicadores y su nivel" do
     con_el_colegio(@esc.colegio) do
       @esc.colegio.restablecer_la_rubrica!
-      actividad = actividad(@esc, lapso: @lapso, peso: 100)
-      nota(actividad, @esc.alumno, 19)
-
+      # ⚠️ La competencia va PRIMERO y la evaluación dice que la mide: desde
+      # `MOR-136` una evaluación de primaria mide una competencia y un
+      # indicador, y engancharla después ya no alcanza.
       competencia = Competency.create!(section: @esc.seccion, subject: @esc.materia,
                                        evaluation_moment: @lapso,
                                        descripcion: "Resuelve problemas de adición")
       competencia.indicators.create!(descripcion: "Suma con reagrupación", orden: 0)
-      ActivityCompetency.create!(competency: competencia, evaluation_activity: actividad)
+
+      actividad = actividad(@esc, lapso: @lapso, peso: 100, mide: competencia)
+      nota(actividad, @esc.alumno, 19)
 
       datos = ReportCardData.para(enrollment: @esc.inscripcion, evaluation_moment: @lapso)
       plan = datos["materias"].find { |m| m["materia"] == @esc.materia.name }["competencias"]
@@ -72,8 +74,9 @@ class BoletaPorCompetenciasTest < ActiveSupport::TestCase
     con_el_colegio(@esc.colegio) do
       @esc.colegio.restablecer_la_rubrica!
       # ⚠️ Hace falta UNA actividad para que la materia entre al boletín
-      # (`Enrollment#materias_del_boletin`), pero la competencia no la etiqueta:
-      # eso es justo lo que se está probando.
+      # (`Enrollment#materias_del_boletin`), y desde `MOR-136` esa actividad
+      # mide la suya —el escenario se la arma—. La que se está probando es OTRA,
+      # la que nadie etiquetó: por eso el plan trae dos y se busca por nombre.
       actividad(@esc, lapso: @lapso, peso: 100)
       Competency.create!(section: @esc.seccion, subject: @esc.materia,
                          evaluation_moment: @lapso, descripcion: "Nadie la evaluó todavía")
@@ -81,8 +84,8 @@ class BoletaPorCompetenciasTest < ActiveSupport::TestCase
       datos = ReportCardData.para(enrollment: @esc.inscripcion, evaluation_moment: @lapso)
       plan = datos["materias"].find { |m| m["materia"] == @esc.materia.name }["competencias"]
 
-      assert_equal 1, plan.size
-      assert_nil plan.first["nivel_de_rubrica"],
+      sin_evaluar = plan.find { |c| c["texto"] == "Nadie la evaluó todavía" }
+      assert_nil sin_evaluar["nivel_de_rubrica"],
                  "sin evaluar NO es NP: el más bajo reprueba, y a este alumno no le tomaron nada"
     end
   end
@@ -93,14 +96,14 @@ class BoletaPorCompetenciasTest < ActiveSupport::TestCase
   test "el nivel de la competencia pondera las evaluaciones que la miden" do
     con_el_colegio(@esc.colegio) do
       @esc.colegio.restablecer_la_rubrica!
-      pesada = actividad(@esc, lapso: @lapso, peso: 70, descripcion: "Examen")
-      liviana = actividad(@esc, lapso: @lapso, peso: 30, descripcion: "Taller")
-      nota(pesada, @esc.alumno, 20)
-      nota(liviana, @esc.alumno, 10)
-
       competencia = Competency.create!(section: @esc.seccion, subject: @esc.materia,
                                        evaluation_moment: @lapso, descripcion: "Con dos evaluaciones")
-      [ pesada, liviana ].each { |a| ActivityCompetency.create!(competency: competencia, evaluation_activity: a) }
+      # ⚠️ Un indicador POR EVALUACIÓN: no se repiten entre evaluaciones, así
+      # que las dos de esta competencia miden cosas distintas de ella.
+      pesada  = actividad(@esc, lapso: @lapso, peso: 70, descripcion: "Examen", mide: competencia)
+      liviana = actividad(@esc, lapso: @lapso, peso: 30, descripcion: "Taller", mide: competencia)
+      nota(pesada, @esc.alumno, 20)
+      nota(liviana, @esc.alumno, 10)
 
       datos = ReportCardData.para(enrollment: @esc.inscripcion, evaluation_moment: @lapso)
       plan = datos["materias"].find { |m| m["materia"] == @esc.materia.name }["competencias"]
@@ -166,12 +169,11 @@ class BoletaPorCompetenciasTest < ActiveSupport::TestCase
   test "el PDF se genera con competencias y rúbrica" do
     boletin = con_el_colegio(@esc.colegio) do
       @esc.colegio.restablecer_la_rubrica!
-      actividad = actividad(@esc, lapso: @lapso, peso: 100)
-      nota(actividad, @esc.alumno, 19)
       competencia = Competency.create!(section: @esc.seccion, subject: @esc.materia,
                                        evaluation_moment: @lapso, descripcion: "Resuelve problemas")
       competencia.indicators.create!(descripcion: "Suma con reagrupación", orden: 0)
-      ActivityCompetency.create!(competency: competencia, evaluation_activity: actividad)
+      actividad = actividad(@esc, lapso: @lapso, peso: 100, mide: competencia)
+      nota(actividad, @esc.alumno, 19)
 
       ReportCard.create!(
         enrollment: @esc.inscripcion, evaluation_moment: @lapso,

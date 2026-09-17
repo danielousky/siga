@@ -127,7 +127,10 @@ class CompetenciesController < ApplicationController
 
     hecho = ReplicarLaPlanificacion.del_ano_pasado(
       desde: origen[:asignacion], lapso_de_origen: origen[:lapso],
-      hacia: asignacion, lapso: lapso
+      hacia: asignacion, lapso: lapso,
+      # ⚠️ Las evaluaciones solo si ESTE profesor dictaba esa sección el año
+      # pasado. Ver `MuestraElPlan#plan_sugerido_con_evaluaciones?`.
+      con_evaluaciones: origen[:mismo_profesor]
     )
 
     redirect_to plan_path, notice: resumen_de_lo_traido(hecho),
@@ -424,7 +427,11 @@ class CompetenciesController < ApplicationController
     partes << helpers.contar(hecho.competencias, "competencia", "competencias") if hecho.competencias.positive?
     partes << helpers.contar(hecho.evaluaciones, "evaluación", "evaluaciones") if hecho.evaluaciones.positive?
 
-    "Se trajo #{partes.join(' y ')} del año pasado. Revisa las fechas y ajusta lo que haga falta."
+    # ⚠️ El cierre cambia según haya venido o no la ponderación: sin
+    # evaluaciones, «revisa las fechas» habla de algo que no llegó, y lo que
+    # sigue es otra cosa — armarlas.
+    cierre = hecho.evaluaciones.positive? ? "Revisa las fechas y ajusta lo que haga falta." : "Ahora arma tus evaluaciones sobre ese plan."
+    "Se trajo #{partes.join(' y ')} del año pasado. #{cierre}"
   end
 
   # ⚠️ Idempotente: la que ya está en el plan se salta. Copiar dos veces no

@@ -74,8 +74,17 @@ class EvaluationActivitiesController < ApplicationController
       return render :new, status: :unprocessable_entity
     end
 
+    # ⚠️ Lo que mide se arma ANTES de guardar, en memoria.
+    #
+    # No es una preferencia: `mide_una_competencia_y_un_indicador` valida al
+    # crear, y una validación no puede mirar filas que todavía no se escriben.
+    # Sobre un registro NUEVO esto no escribe nada —Rails guarda las etiquetas
+    # después del padre— así que el «una evaluación rechazada dejaba las
+    # etiquetas puestas» de `update` no aplica acá.
+    etiquetar_lo_que_evalua(@evaluation_activity)
+    apuntar_los_indicadores(@evaluation_activity)
+
     if @evaluation_activity.save
-      etiquetar_lo_que_evalua(@evaluation_activity)
       # ⚠️ A la LIBRETA de su sección, no a la ficha suelta.
       #
       # Es lo que hace que el `turbo_frame` funcione: el redirect vuelve a la
@@ -99,11 +108,20 @@ class EvaluationActivitiesController < ApplicationController
   # campo y hay que devolver un pedacito; desde el formulario llegan todos y hay
   # que volver a la pantalla. Un `respond_to` y la misma línea de guardado.
   def update
+    # ⚠️ Se comprueba ANTES de escribir nada.
+    #
+    # Dejarlo para después guardaría el nombre y el peso y recién ahí diría que
+    # no: el profesor lee un error habiendo cambiado la mitad de lo que pidió.
+    return responder_al_fallo if quiere_quedarse_sin_competencias?
+
     unless @evaluation_activity.update(evaluation_activity_params)
       return responder_al_fallo
     end
 
-    etiquetar_lo_que_evalua(@evaluation_activity) if params[:evaluation_activity].key?(:competency_ids)
+    if params[:evaluation_activity].key?(:competency_ids)
+      etiquetar_lo_que_evalua(@evaluation_activity)
+      apuntar_los_indicadores(@evaluation_activity)
+    end
     responder_al_exito
   end
 
@@ -427,6 +445,97 @@ class EvaluationActivitiesController < ApplicationController
     del_plan = Competency.del_plan(actividad.section_id, actividad.subject_id,
                                    actividad.evaluation_moment_id).pluck(:id)
     actividad.competency_ids = pedidas & del_plan
+
+    # ⚠️ Los indicadores de una competencia que ya no mide se SUELTAN.
+    #
+    # Sin esto queda un indicador apuntando a una evaluación que no mide su
+    # competencia: nadie lo ve, `Indicator` lo rechazaría si alguien lo tocara,
+    # y la boleta imprimiría una línea bajo una competencia que esa evaluación
+    # no midió. Se sueltan, no se borran: el texto es del plan.
+    return if actividad.new_record?
+
+    actividad.indicators.where.not(competency_id: actividad.competency_ids)
+             .update_all(evaluation_activity_id: nil)
+  end
+
+  # Qué INDICADORES de esas competencias mide (MOR-136, segunda mitad).
+  #
+  # Daniel: *«puede asignarle competencias ya creadas y a su vez agregar también
+  # otros indicadores»*, con la regla que decide la forma: *«los indicadores no
+  # se repiten entre evaluaciones»*.
+  #
+  # ⚠️ Solo se pueden tomar los LIBRES —o los que ya son suyos, al editar—. Un
+  # id de un indicador que otra evaluación mide simplemente no está en la lista:
+  # es el mismo filtro que `etiquetar_lo_que_evalua` le hace a las competencias,
+  # y por la misma razón — acá es una lista que no incluye lo ajeno, no una
+  # excepción a mitad de un guardado.
+  #
+  # ⚠️ `[ nil, actividad.id ].uniq` y no `.compact`. En un alta el id es nil, y
+  # `.compact` dejaría la lista vacía: `IN ()` no devuelve nada y el profesor
+  # vería «marca al menos un indicador» con todos marcados. `uniq` deja `[nil]`,
+  # que es «los libres» — justo lo que corresponde al crear.
+  def apuntar_los_indicadores(actividad)
+    return unless params[:evaluation_activity].key?(:indicator_ids) ||
+                  params[:evaluation_activity].key?(:indicadores_nuevos)
+
+    del_plan = actividad.competency_ids
+    pedidos  = Array(params[:evaluation_activity][:indicator_ids]).compact_blank.map(&:to_i)
+
+    actividad.indicators = Indicator.where(competency_id: del_plan, id: pedidos)
+                                    .where(evaluation_activity_id: [ nil, actividad.id ].uniq)
+                                    .to_a
+    indicadores_escritos(del_plan).each { |atributos| actividad.indicators.build(**atributos) }
+  end
+
+  # Los que el profesor ESCRIBE en el mismo formulario, uno por línea.
+  #
+  # ⚠️ Nacen en la COMPETENCIA, no en la evaluación. La evaluación dice cuál
+  # mide; el texto queda en el plan y la próxima evaluación lo ve en la lista.
+  # Si colgaran de la evaluación habría que reescribirlos en cada una, que es el
+  # trabajo de septiembre que `MOR-136` vino a quitar.
+  #
+  # ⚠️ Uno por LÍNEA, como el formulario completo del plan: una maestra ya tiene
+  # sus indicadores escritos en un documento y los pega de una vez.
+  def indicadores_escritos(del_plan)
+    escritos = params[:evaluation_activity][:indicadores_nuevos]
+    return [] if escritos.blank?
+
+    escritos.to_unsafe_h.flat_map do |competency_id, texto|
+      competencia = competency_id.to_i
+      next [] unless del_plan.include?(competencia)
+
+      desde = (Indicator.where(competency_id: competencia).maximum(:orden) || -1) + 1
+      texto.to_s.lines.map(&:strip).compact_blank.each_with_index.map do |linea, i|
+        { competency_id: competencia, descripcion: linea, orden: desde + i }
+      end
+    end
+  end
+
+  # ⚠️ Desmarcar la última competencia deja una evaluación que no mide nada.
+  #
+  # El chip del plan no puede llegar acá —dibuja «las OTRAS», así que nunca
+  # ofrece quitar la única—, pero el formulario completo sí: se desmarcan las
+  # casillas y se guarda. La regla es la misma que al crear, y el error se dice
+  # con las palabras de esa pantalla.
+  # ⚠️ Se mira la lista YA FILTRADA contra el plan, no la que llegó.
+  #
+  # Con la lista cruda alcanzaba con mandar el id de una competencia ajena —de
+  # otro colegio, de otra sección— para que el filtro la dejara en cero y la
+  # evaluación terminara sin medir nada. Pasar el filtro acá es además lo que
+  # hace que este control y `etiquetar_lo_que_evalua` no puedan discrepar.
+  def quiere_quedarse_sin_competencias?
+    return false unless params[:evaluation_activity]&.key?(:competency_ids)
+    return false unless @evaluation_activity.por_competencias?
+    return false if competencias_pedidas_del_plan.any?
+
+    @evaluation_activity.errors.add(:base, "Marca la competencia que mide: sin eso no puede salir en la boleta.")
+    true
+  end
+
+  def competencias_pedidas_del_plan
+    pedidas = Array(params[:evaluation_activity][:competency_ids]).compact_blank.map(&:to_i)
+    pedidas & Competency.del_plan(@evaluation_activity.section_id, @evaluation_activity.subject_id,
+                                  @evaluation_activity.evaluation_moment_id).pluck(:id)
   end
 
   # La libreta de la primera sección que dicta. Es a donde va un profesor que
@@ -495,14 +604,20 @@ class EvaluationActivitiesController < ApplicationController
     return {} if asignaciones_por_competencias.empty?
 
     planes = Competency.where(section_id: asignaciones_por_competencias.map(&:section_id))
-                       .includes(:indicators).order(:orden, :id)
+                       .includes(indicators: :evaluation_activity).order(:orden, :id)
 
     planes.each_with_object({}) do |competencia, mapa|
       clave = "#{competencia.section_id}:#{competencia.subject_id}:#{competencia.evaluation_moment_id}"
       (mapa[clave] ||= []) << {
         id: competencia.id,
         texto: competencia.descripcion,
-        indicadores: competencia.indicators.map(&:descripcion)
+        # ⚠️ Cada indicador con su ESTADO, no solo su texto. Antes iban de
+        # contexto —para reconocer cuál competencia era cuál— y ahora se marcan:
+        # el formulario necesita saber cuáles están libres y quién mide el resto.
+        indicadores: competencia.indicators.map do |i|
+          { id: i.id, texto: i.descripcion, libre: !i.medido?,
+            mide: (i.evaluation_activity&.description if i.medido?) }
+        end
       }
     end
   end
@@ -545,6 +660,26 @@ class EvaluationActivitiesController < ApplicationController
     end
   end
   helper_method :competencias_marcadas
+
+  # Las competencias marcadas, con sus indicadores, para el panel del alta.
+  #
+  # ⚠️ Los indicadores vienen con su evaluación precargada: la lista los separa
+  # en LIBRES —los que esta evaluación puede tomar— y los que ya mide otra, y
+  # esos últimos se nombran con quién los mide. Esconderlos dejaría al profesor
+  # preguntándose dónde quedó «Suma con reagrupación».
+  def competencias_a_medir
+    @competencias_a_medir ||= Competency.where(id: competencias_marcadas)
+                                        .includes(indicators: :evaluation_activity)
+                                        .order(:orden, :id)
+  end
+  helper_method :competencias_a_medir
+
+  # Los indicadores que esta evaluación YA mide, para que lleguen marcados al
+  # editarla. En un alta es una lista vacía: nada mide nada todavía.
+  def indicadores_marcados
+    @indicadores_marcados ||= @evaluation_activity&.indicator_ids || []
+  end
+  helper_method :indicadores_marcados
 
   def competencia_del_enlace
     return [] unless contexto_del_enlace? && params[:competencia].present?

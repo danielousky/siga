@@ -25,7 +25,12 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     # bachillerato la pantalla dice justamente que no aplica.
     @a, @b = dos_colegios_completos(nivel: :primaria)
     @asignacion = "#{@a.seccion.id}:#{@a.escenario.materia.id}"
-    @lapso = @a.escenario.lapso(1)
+    # ⚠️ El SEGUNDO lapso, y no el primero: el escenario arma su evaluación en
+    # el primero, y desde `MOR-136` una evaluación de primaria mide una
+    # competencia — o sea que el primer lapso ya NO tiene el plan vacío. Media
+    # docena de estos tests hablan justamente de un lapso sin plan: «ofrece
+    # duplicar el del año pasado», «copiar a la hermana», «no hay pestañas».
+    @lapso = @a.escenario.lapso(2)
   end
 
   test "el profesor ve el plan de la sección que dicta" do
@@ -43,8 +48,12 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
   test "escribe una competencia con sus indicadores, uno por línea" do
     sign_in @a.profesor
 
-    assert_difference [ "Competency.count" ], 1 do
-      assert_difference "Indicator.count", 3 do
+    # ⚠️ `cantidad` y no `Competency.count`: antes de la petición `Current.school`
+    # es nil y el RLS devuelve CERO, así que los dos conteos se miden en
+    # contextos de inquilino distintos y la diferencia mide eso. Pasaba por
+    # casualidad mientras el colegio no tenía competencias propias.
+    assert_difference -> { cantidad(Competency) }, 1 do
+      assert_difference -> { cantidad(Indicator) }, 3 do
         post competencies_path(asignacion: @asignacion, lapso: @lapso.id), params: {
           competency: { descripcion: "Resuelve problemas de adición y sustracción",
                         indicadores: "Suma con reagrupación\nResuelve problemas de dos pasos\n\nEstima antes de calcular" }
@@ -91,6 +100,62 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
       # ⚠️ Se COPIA el texto, no se referencia: corregirlo este año no puede
       # reescribir la boleta que ya salió.
       assert_not_equal del_ano_pasado.id, traida.id
+    end
+  end
+
+  # ── Qué viene, y qué no ───────────────────────────────────────────────────
+  #
+  # Daniel, 17 de septiembre: *«cuando se trae la planificación del año
+  # anterior, solo debería traer las competencias e indicadores; las
+  # evaluaciones no. Esas deben ser agregadas nuevas, a menos que sea el mismo
+  # profe, en ese caso se deben clonar para que haga el ajuste directamente
+  # él»*.
+  #
+  # **Una evaluación es una decisión pedagógica de quien evalúa** —el peso, la
+  # fecha, qué mide— y heredarla de otro le pone al profesor nuevo un criterio
+  # ajeno que además no va a revisar, porque vino puesto. La competencia sí se
+  # hereda: describe qué enseña el grado.
+  test "de otro profesor vienen las competencias, no sus evaluaciones" do
+    con_el_colegio(@a.colegio) { plan_viejo(con_evaluacion: true) }
+    sign_in @a.profesor
+
+    get planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
+    assert_select ".plan-sugerido .nota-ayuda", /la dictó otro profesor/
+
+    post traer_competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+
+    con_el_colegio(@a.colegio) do
+      assert_equal 1, Competency.del_plan(@a.seccion.id, @a.escenario.materia.id, @lapso.id).count
+      assert_empty EvaluationActivity.where(section_id: @a.seccion.id,
+                                            subject_id: @a.escenario.materia.id,
+                                            evaluation_moment_id: @lapso.id),
+                   "el peso y la fecha del examen de otro profesor no son un plan que heredar"
+    end
+  end
+
+  test "del MISMO profesor vienen también sus evaluaciones, con la fecha corrida" do
+    con_el_colegio(@a.colegio) do
+      vieja = plan_viejo(con_evaluacion: true)
+      # Lo que cambia todo: ESA sección de ese año la dictaba él.
+      TeacherSection.create!(teacher: @a.registro_de_profesor, section: vieja.section,
+                             subject: @a.escenario.materia)
+    end
+    sign_in @a.profesor
+
+    get planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
+    assert_select ".plan-sugerido .nota-ayuda", /lo dictaste tú/
+
+    post traer_competencies_path(asignacion: @asignacion, lapso: @lapso.id)
+
+    con_el_colegio(@a.colegio) do
+      copiada = EvaluationActivity.find_by(section_id: @a.seccion.id,
+                                           subject_id: @a.escenario.materia.id,
+                                           evaluation_moment_id: @lapso.id)
+      assert copiada, "la evaluación del año pasado tiene que clonarse para que él la ajuste"
+      assert_equal 40, copiada.weight_percentage
+      # Mismo día y mes, el año que corresponde: 8 nov 2024 → 8 nov 2025.
+      assert_equal Date.new(2025, 11, 8), copiada.date_scheduled
+      assert_equal [ "Su indicador" ], copiada.indicators.map(&:descripcion)
     end
   end
 
@@ -305,14 +370,14 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
   # ⚠️ Borrar una competencia etiquetada cambiaría lo que dice una boleta hacia
   # atrás.
   test "no se borra una competencia que ya etiqueta una evaluación" do
-    c = con_el_colegio(@a.colegio) do
-      comp = competencia_con(0)
-      ActivityCompetency.create!(competency: comp, evaluation_activity: @a.actividad)
-      comp
-    end
+    # ⚠️ La del ESCENARIO, que ya la mide su evaluación: desde `MOR-136` toda
+    # evaluación de primaria etiqueta una, así que no hace falta —ni se puede—
+    # engancharle otra a mano.
+    primer_lapso = @a.escenario.lapso(1)
+    c = con_el_colegio(@a.colegio) { @a.actividad.competencies.first }
     sign_in @a.profesor
 
-    delete competency_path(c, asignacion: @asignacion, lapso: @lapso.id)
+    delete competency_path(c, asignacion: @asignacion, lapso: primer_lapso.id)
 
     # ⚠️ Se comprueba que la FILA siga ahí, no un conteo: `Competency.count` es
     # `SchoolScoped`, y antes de la petición `Current.school` todavía es nil —
@@ -371,7 +436,10 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
   private
 
   # El mismo grado y la misma materia, un año antes.
-  def plan_viejo
+  # `con_evaluacion:` agrega una evaluación que mide esa competencia: es lo que
+  # separa los dos casos de «traer el plan del año pasado» —el mismo profesor se
+  # la lleva, otro no—.
+  def plan_viejo(con_evaluacion: false)
     periodo = AcademicPeriod.create!(name: "2024-2025", start_date: Date.new(2024, 9, 15),
                                      end_date: Date.new(2025, 7, 31))
     lapso   = EvaluationMoment.create!(academic_period: periodo, name: @lapso.name)
@@ -379,6 +447,14 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     c = Competency.create!(section: seccion, subject: @a.escenario.materia,
                            evaluation_moment: lapso, descripcion: "Competencia del año pasado")
     c.indicators.create!(descripcion: "Su indicador", orden: 0)
+    return c unless con_evaluacion
+
+    e = EvaluationActivity.new(section: seccion, subject: @a.escenario.materia,
+                               evaluation_moment: lapso, description: "Examen del año pasado",
+                               weight_percentage: 40, date_scheduled: Date.new(2024, 11, 8))
+    e.competency_ids = [ c.id ]
+    e.indicators     = c.indicators.to_a
+    e.save!
     c
   end
 end

@@ -74,12 +74,17 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
   # habría llenado con una pantalla que no es la libreta.
   test "al guardar, la columna aparece en la libreta" do
     lapso = @a.escenario.lapso(2)
-    con_el_colegio(@a.colegio) { competencia_con(0, "Resuelve problemas", lapso: lapso) }
+    plan = con_el_colegio(@a.colegio) { competencia_con(0, "Resuelve problemas", lapso: lapso) }
     visit planificar_section_path(@a.seccion, area: @area.id, lapso: lapso.id)
     all("a", text: "Agregar evaluación").first.click
 
     within(".alta-en-linea") do
       fill_in "evaluation_activity[description]", with: "Prueba corta"
+      # ⚠️ La competencia todavía no tiene indicadores, así que se escriben en
+      # el mismo panel: es la otra mitad de lo que pidió Daniel —«asignarle
+      # competencias ya creadas y a su vez agregar también otros indicadores»—
+      # y sin uno la evaluación no se guarda.
+      fill_in "evaluation_activity[indicadores_nuevos][#{plan.id}]", with: "Suma con reagrupación"
       click_on "Agregar"
     end
     visit section_path(@a.seccion, area: @area.id, lapso: lapso.id)
@@ -97,7 +102,9 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
   # «plan» ni el «libreta». Cancelar desde la pestaña se llevaba la pantalla.
   test "cancelar el alta de una evaluación devuelve el plan" do
     visit planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
-    click_on "Agregar evaluación"
+    # ⚠️ `all(...).first`: hay un «Agregar evaluación» por competencia y otro al
+    # pie para las que no miden ninguna. Con el plan vacío había uno solo.
+    all("a", text: "Agregar evaluación").first.click
     assert_selector "input[name='evaluation_activity[description]']"
 
     click_on "Cancelar"
@@ -125,7 +132,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
   # con su frame restaurado del snapshot, no recargado.
   test "el botón atrás del navegador deja la pantalla entera" do
     visit planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
-    click_on "Agregar evaluación"
+    all("a", text: "Agregar evaluación").first.click
     assert_selector "input[name='evaluation_activity[description]']"
 
     page.go_back

@@ -11,8 +11,11 @@ class AltaEnLineaSystemTest < ApplicationSystemTestCase
     @a, = dos_colegios_completos(nivel: :primaria)
     @lapso = @a.escenario.lapso(2)
     @competencia = con_el_colegio(@a.colegio) do
-      c = competencia_con(0, "El niño debe graficar funciones", lapso: @lapso)
-      actividad(@a.escenario, lapso: @lapso, peso: 40, descripcion: "Examen").competencies = [ c ]
+      # ⚠️ DOS indicadores: el «Examen» se lleva uno —desde `MOR-136` toda
+      # evaluación de primaria mide alguno— y el otro queda libre para que el
+      # alta tenga qué ofrecer.
+      c = competencia_con(2, "El niño debe graficar funciones", lapso: @lapso)
+      actividad(@a.escenario, lapso: @lapso, peso: 40, descripcion: "Examen", mide: c)
       c
     end
     entrar_como @a.profesor
@@ -38,13 +41,17 @@ class AltaEnLineaSystemTest < ApplicationSystemTestCase
   # ⚠️ Los campos FALTANTES y solo esos: la sección, el área, el lapso y la
   # competencia ya están elegidos. Volver a preguntarlos daría además la
   # oportunidad de crear la evaluación en otra sección sin darse cuenta.
-  test "solo pregunta título, peso y fecha" do
+  test "solo pregunta título, peso, fecha y qué indicadores mide" do
     all("a", text: "Agregar evaluación").first.click
 
     within(".alta-en-linea") do
       assert_selector "input[name='evaluation_activity[description]']"
       assert_selector "input[name='evaluation_activity[weight_percentage]']"
       assert_selector "input[name='evaluation_activity[date_scheduled]']"
+      # ⚠️ Y los indicadores libres de ESA competencia, que es lo único que
+      # queda por decidir: la sección, el área, el lapso y la competencia ya
+      # están puestos.
+      assert_selector "input[name='evaluation_activity[indicator_ids][]']"
       assert_no_selector "select[name='evaluation_activity[asignacion]']"
       assert_no_selector "select[name='evaluation_activity[evaluation_moment_id]']"
     end
@@ -73,6 +80,7 @@ class AltaEnLineaSystemTest < ApplicationSystemTestCase
     all("a", text: "Agregar evaluación").first.click
     within(".alta-en-linea") do
       fill_in "evaluation_activity[description]", with: "Prueba corta"
+      first("input[name='evaluation_activity[indicator_ids][]']").check
       click_on "Agregar"
     end
 
@@ -90,6 +98,7 @@ class AltaEnLineaSystemTest < ApplicationSystemTestCase
     all("a", text: "Agregar evaluación").first.click
     within(".alta-en-linea") do
       fill_in "evaluation_activity[description]", with: "Prueba corta"
+      first("input[name='evaluation_activity[indicator_ids][]']").check
       click_on "Agregar"
     end
 

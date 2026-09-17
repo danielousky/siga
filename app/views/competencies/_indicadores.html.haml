@@ -7,9 +7,24 @@
 -# ⚠️ El último campo va VACÍO, y escribir en él crea el siguiente. Es cómo se
 -# escribe una lista en cualquier sitio donde uno escriba listas, y ahorra el
 -# botón «agregar indicador» que habría que buscar cada vez.
+-#
+-# ## ⚠️ Cada uno dice QUÉ EVALUACIÓN lo mide, y un indicador lo mide UNA sola
+-#
+-# Regla de Daniel: *«los indicadores no se repiten entre evaluaciones»*. Los
+-# indicadores REPARTEN la competencia entre sus evaluaciones —la competencia se
+-# repite, ellos no— así que el renglón de al lado contesta la pregunta que hace
+-# un profesor mirando su plan: cuáles ya están cubiertos y cuáles le faltan.
+-#
+-#     ∘ Suma con reagrupación        Examen del lapso
+-#     ∘ Estima antes de calcular     Examen del lapso
+-#     ∘ Resuelve en dos pasos        sin evaluación   ← lo que falta
+-#
+-# ⚠️ `competencia.indicators` y no `.en_orden`: la asociación YA viene ordenada
+-# —`has_many :indicators, -> { order(:orden, :id) }`— y precargada por el plan.
+-# Encadenar un scope la vuelve a consultar, dos veces por indicador.
 %ul.plan-indicadores
-  - competencia.indicators.en_orden.each do |indicador|
-    %li.plan-indicador
+  - competencia.indicators.each do |indicador|
+    %li.plan-indicador{ class: ("plan-indicador--libre" unless indicador.medido?) }
       - if profesor?
         = form_with model: indicador,
                     url: competency_indicator_path(competencia, indicador, contexto),
@@ -36,6 +51,12 @@
       - else
         %span= indicador.descripcion
 
+      - if indicador.medido?
+        %span.plan-indicador-mide{ data: { tooltip: "Lo mide «#{indicador.evaluation_activity.description}»" } }
+          = indicador.evaluation_activity.description
+      - else
+        %span.plan-indicador-libre sin evaluación
+
   - if profesor?
     %li.plan-indicador.plan-indicador--nuevo
       -# ⚠️ Nace vacío en CADA render, no con lo que se acaba de escribir: la
@@ -44,7 +65,12 @@
       = form_with url: competency_indicators_path(competencia, contexto),
                   method: :post, class: "plan-indicador-campo",
                   data: { controller: "edicion-en-linea" } do
+        -# ⚠️ El `id` lleva el número de la competencia. Sin eso, un plan de dos
+        -# competencias dibuja DOS campos con `id="indicator_descripcion"`: el
+        -# `<label>` apunta al primero, un lector de pantalla lee el segundo como
+        -# si fuera el mismo, y `ids_unicos_test` lo caza. Se veía con una sola.
         = text_area_tag "indicator[descripcion]", nil, rows: 1, class: "plan-indicador-texto",
+                        id: "indicador_nuevo_#{competencia.id}",
                         placeholder: "escribe un indicador…", autocomplete: "off",
                         "aria-label": "Agregar un indicador",
                         data: { edicion_en_linea_target: "campo",
