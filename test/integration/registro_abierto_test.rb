@@ -74,6 +74,27 @@ class RegistroAbiertoTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # ⚠️ LAS TRES opciones dan permisos de dirección, y «Otro cargo» no los daba.
+  #
+  # Mapeaba a `coordinador`, que no está en `DIRECCION`: quien lo elegía quedaba
+  # ENCERRADA —sin poder cargar profesores, ni tocar la configuración académica,
+  # ni entrar a `/administradores` para corregirse el rol—. Un callejón sin
+  # salida en el minuto uno, y le pasó a la primera directora real.
+  test "las tres opciones del registro dan permisos de dirección" do
+    Admin::CARGOS_AL_REGISTRARSE.each_key do |cargo|
+      rol = Admin.rol_al_registrarse(cargo)
+
+      assert_includes ApplicationController::DIRECCION, rol,
+                      "«#{Admin::CARGOS_AL_REGISTRARSE[cargo]}» deja a quien registra sin permisos"
+    end
+  end
+
+  test "«Otro cargo» queda como asistente, no como coordinador" do
+    registrarse(cargo: "otro")
+
+    Current.en_el_colegio(nuevo_colegio) { assert_equal "asistente", Admin.first.role }
+  end
+
   # ⚠️ Un cargo que no se ofrece no se acepta: el formulario manda tres valores,
   # y sin filtrar alguien podría pedir `desarrollador`.
   test "un cargo inventado cae en director" do

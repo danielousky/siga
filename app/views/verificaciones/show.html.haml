@@ -1,4 +1,3 @@
-- datos = @boletin.snapshot
 
 .card-academic
   = render layout: "shared/cabecera", locals: { titulo: "Boletín verificado" } do
@@ -11,83 +10,4 @@
     Lo que sigue es exactamente lo que dice el documento impreso. Si el papel que
     tiene en la mano no coincide, no salió de aquí.
 
-  .detail-row
-    .detail-item
-      .detail-label Colegio
-      .detail-value= datos.dig("colegio", "nombre")
-    .detail-item
-      .detail-label Código DEA
-      .detail-value= datos.dig("colegio", "dea")
-
-  .detail-row
-    .detail-item
-      .detail-label Alumno
-      .detail-value= datos.dig("alumno", "nombre")
-    .detail-item
-      .detail-label Carnet
-      .detail-value= datos.dig("alumno", "carnet")
-
-  .detail-row
-    .detail-item
-      .detail-label Grado y sección
-      .detail-value= "#{datos.dig('seccion', 'grado')} – #{datos.dig('seccion', 'seccion')}"
-    .detail-item
-      .detail-label Boletín
-      .detail-value= "#{@boletin.titulo} · #{datos.dig('seccion', 'periodo')}"
-
-.card-academic
-  = render "shared/cabecera", titulo: "Calificaciones", nivel: 2
-
-  %table.table-academic
-    %thead
-      %tr
-        %th= Subject.model_name.human
-        - if datos["tipo"] == "anual"
-          - datos["lapsos"].each do |nombre|
-            %th= nombre
-          %th Anual
-          %th Reparación
-          %th Definitiva
-        - else
-          %th Calificación
-    %tbody
-      - datos["materias"].each do |materia|
-        %tr
-          %td= materia["materia"]
-          - if datos["tipo"] == "anual"
-            - materia["lapsos"].each do |nota|
-              %td= nota || "Sin nota"
-            %td= materia["anual"] || "Sin nota"
-            %td= materia["reparacion"] || "—"
-            %td= materia["definitiva"] || "Sin nota"
-          - else
-            %td= materia["nota"] || "Sin nota"
-      %tr
-        %td
-          %strong= datos["tipo"] == "anual" ? "PROMEDIO GENERAL" : "PROMEDIO DEL LAPSO"
-        - if datos["tipo"] == "anual"
-          - (datos["lapsos"].size + 2).times do
-            %td
-        %td
-          %strong= datos["promedio"] || "Sin nota"
-
-  %p.nota-ayuda
-    Escala del 1 al 20. Calificación mínima aprobatoria: 10 (Art. 108 del
-    Reglamento General de la Ley Orgánica de Educación).
-
-  -# ⚠️ El informe descriptivo FALTABA acá, y estaba congelado en el boletín
-  -# desde el principio.
-  -#
-  -# Lo vio Cyndi: «el informe descriptivo no aparece en el verificador de
-  -# boletines». En primaria es la mitad del documento —lo que la maestra
-  -# escribió sobre el niño— así que un boletín verificado que lo calla no
-  -# coincide con el papel que la familia tiene en la mano, que es exactamente
-  -# lo que el verificador existe para comprobar.
-  - if datos["informe"].present?
-    .verificacion-informe
-      %h3 Informe descriptivo
-      %p= simple_format(datos["informe"])
-
-  %p.dato-secundario
-    Código de verificación:
-    %strong= @boletin.code
+  = render "shared/boletin_emitido", boletin: @boletin

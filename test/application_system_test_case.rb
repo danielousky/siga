@@ -124,6 +124,15 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   #
   # Y esperar el resultado no es opcional: `visit` no espera a que el submit
   # termine, así que sin esto la primera medición sale sobre la página vieja.
+  # ⚠️ El login espera MÁS que el resto, y no es paciencia: es otra cosa.
+  #
+  # `default_max_wait_time` está calibrado para una interacción —un clic, un
+  # campo que aparece— y acá lo que se espera es que el servidor de pruebas
+  # ARRANQUE: la primera visita levanta Puma y resuelve los assets. Dentro de
+  # `bin/ci`, después de mil seiscientos tests de unidad, eso pasa de un
+  # segundo a varios, y los tres intentos se consumían esperando lo mismo.
+  ESPERA_DEL_LOGIN = 15
+
   def entrar_como(usuario, clave = "123123")
     # ⚠️ REINTENTA el envío, y no es paranoia: fallaba una de cada cinco
     # corridas con «expected "/users/sign_in" not to equal "/users/sign_in"».
@@ -153,8 +162,16 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
         visit new_user_session_path
         esperando_la_pagina
 
-        unless page.has_field?("user_email", wait: Capybara.default_max_wait_time)
-          raise "no cargó el login para #{usuario.email}" if intento == 2
+        unless page.has_field?("user_email", wait: ESPERA_DEL_LOGIN)
+          # ⚠️ El mensaje dice QUÉ había, no solo que no estaba.
+          #
+          # «No cargó el login» manda a buscar una lentitud, y lo que suele
+          # haber es otra cosa: una página de error de Rails, una redirección a
+          # otro sitio, o el documento en blanco. Sin el contenido, cada fallo
+          # cuesta media hora de reproducir a ciegas.
+          raise "no cargó el login para #{usuario.email}.\n" \
+                "  URL:   #{page.current_url}\n" \
+                "  Texto: #{page.text.to_s[0, 300].inspect}" if intento == 2
 
           next
         end

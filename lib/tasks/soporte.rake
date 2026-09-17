@@ -124,4 +124,30 @@ namespace :soporte do
       puts "  ───────────────────────────────────────────────────────────────"
     end
   end
+
+  desc "Cambia el rol de un administrador (CORREO=… ROL=director|asistente|…)"
+  task rol: :environment do
+    correo = ENV["CORREO"].to_s.strip.downcase
+    rol = ENV["ROL"].to_s.strip
+    abort "Falta: bin/rails soporte:rol CORREO=… ROL=director" if correo.empty? || rol.empty?
+    abort "Rol desconocido. Los que hay: #{Admin.roles.keys.join(', ')}" unless Admin.roles.key?(rol)
+
+    Current.sin_aislamiento do
+      persona = User.find_by(email: correo)
+      abort "No hay nadie con #{correo}." if persona.nil?
+
+      admins = Admin.where(user_id: persona.id)
+      abort "#{correo} no es administrador de ningún colegio." if admins.empty?
+
+      # ⚠️ Se dice en QUÉ colegio, y se listan todos. Una persona puede
+      # administrar dos planteles (MOR-138), y cambiarle el rol «a secas»
+      # tocaría uno de los dos sin que nadie sepa cuál.
+      admins.each do |admin|
+        colegio = School.find(admin.school_id)
+        antes = admin.role
+        admin.update!(role: rol)
+        puts "  ✓ #{persona.apellidos_y_nombres} · #{colegio.name}: #{antes} → #{rol}"
+      end
+    end
+  end
 end

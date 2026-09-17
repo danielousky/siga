@@ -1,0 +1,12 @@
+= "Buen día,"
+\
+= "El #{@titulo} de #{Normaliza.titulo(@alumno.nombre_completo)} ya está listo en SIGA."
+\
+- if @al_dia
+  = "Puede verlo y descargarlo cuando quiera desde su cuenta:"
+- else
+  = "Para poder verlo hace falta estar al día con el colegio. Si ya hizo el pago, repórtelo desde su cuenta y el colegio lo valida:"
+\
+= @url
+\
+= @colegio.name

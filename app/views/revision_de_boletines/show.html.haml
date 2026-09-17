@@ -1,0 +1,103 @@
+-# El vistazo final antes de que la familia vea su boletín.
+-#
+-# ⚠️ El orden es el del trabajo: primero cuántos hay y cómo van, después el
+-# boletín de uno, y al final el botón que los libera a todos. Quien entra acá
+-# viene a MIRAR: el botón arriba invitaría a liberar sin haber visto ninguno.
+- content_for :titulo, "Revisar boletines"
+
+.card-academic
+  = render layout: "shared/cabecera", locals: { titulo: "Revisar boletines" } do
+    = boton "Volver", report_cards_path, icono: :volver, tono: :secondary
+
+  %p.dato-secundario
+    = "#{@seccion.grade.name} – #{@seccion.name}"
+    ·
+    = @seccion.academic_period.name
+
+  .form-group
+    %span.form-label Lapso
+    .opciones-en-botones
+      - @lapsos.each do |lapso|
+        = link_to lapso.name, revisar_boletines_path(seccion: @seccion.id, lapso: lapso.id),
+                  class: "opcion-boton #{'activo' if lapso.id == @lapso.id}"
+
+  .detail-row
+    .detail-item
+      .detail-label Emitidos
+      .detail-value= "#{@boletines.emitidos.size} de #{@fichas.size}"
+    .detail-item
+      .detail-label Completos
+      .detail-value= @boletines.completos.size
+    .detail-item
+      .detail-label A la vista de las familias
+      .detail-value= @boletines.liberados.size
+
+  - if @boletines.incompletos.any?
+    -# ⚠️ Se DICE quiénes, no solo cuántos: «faltan 2» manda a revisar treinta
+    -# fichas para encontrarlos.
+    %p.nota-ayuda
+      Sin calificar al 100 %:
+      %strong= @boletines.incompletos.map { |f| f.alumno.apellidos_y_nombres }.to_sentence(two_words_connector: " y ", last_word_connector: " y ")
+
+- if @elegida.nil?
+  .card-academic
+    .empty-state
+      %h3 Esta sección no tiene alumnos inscritos
+- else
+  .card-academic
+    -# Uno por uno, con las flechas. Es como se revisa un taco de papeles.
+    %nav.revisar-navegacion{ "aria-label": "Alumnos" }
+      - anterior = @fichas[@posicion - 1] if @posicion.positive?
+      - siguiente = @fichas[@posicion + 1]
+      - if anterior
+        = link_to "← Anterior", revisar_boletines_path(seccion: @seccion.id, lapso: @lapso.id, alumno: anterior.inscripcion.id), class: "btn btn-secondary"
+      - else
+        %span
+      %span.revisar-quien
+        %strong= @elegida.alumno.apellidos_y_nombres
+        %span.dato-secundario= " #{@posicion + 1} de #{@fichas.size}"
+      - if siguiente
+        = link_to "Siguiente →", revisar_boletines_path(seccion: @seccion.id, lapso: @lapso.id, alumno: siguiente.inscripcion.id), class: "btn btn-secondary"
+      - else
+        %span
+
+    .revisar-estado
+      - if @elegida.completo?
+        %span.pastilla-de-cobro.estado-pagado Calificado al 100 %
+      - else
+        %span.pastilla-de-cobro.estado-en-mora= "Faltan #{contar(@elegida.faltan, 'materia', 'materias')}"
+      - if @elegida.liberado?
+        %span.pastilla-de-cobro.estado-validado La familia ya lo ve
+      - elsif @elegida.emitido?
+        %span.pastilla-de-cobro.estado-en-revision Emitido, sin liberar
+      - else
+        %span.pastilla-de-cobro.estado-por-vencer Todavía no se emite
+
+    - if @elegida.emitido?
+      -# ⚠️ El boletín se ve TAL COMO lo verá la familia, y no un resumen: el
+      -# vistazo final es contra el documento, no contra sus datos.
+      = render "report_cards/emitido", boletin: @elegida.boletin
+    - else
+      %p.nota-ayuda
+        Este boletín todavía no se emitió. Emítalo desde
+        = succeed "," do
+          = link_to "Documentos", report_cards_path
+        y vuelva a revisarlo.
+
+  - if @boletines.emitidos.any?
+    .card-academic
+      = render "shared/cabecera", titulo: "Cuando esté todo revisado", nivel: 2
+      .decidir-el-pago
+        - if @boletines.hay_para_liberar?
+          = button_to "Liberar #{@lapso.name} · #{@seccion.grade.name} #{@seccion.name}",
+                      liberar_boletines_path(seccion: @seccion.id, lapso: @lapso.id),
+                      method: :patch, class: "btn btn-guardar",
+                      data: { turbo_confirm: "Las familias van a poder ver estos boletines y se les avisa por correo. ¿Seguimos?" }
+          %p.nota-ayuda
+            = "Se liberan #{contar(@boletines.emitidos.reject(&:liberado?).size, 'boletín', 'boletines')}"
+            \. A cada familia le llega un correo.
+        - if @boletines.liberados.any?
+          -# ⚠️ Reversible: si al liberar aparece un error, se vuelve a esconder.
+          = button_to "Volver a esconderlos", esconder_boletines_path(seccion: @seccion.id, lapso: @lapso.id),
+                      method: :patch, class: "btn btn-danger",
+                      data: { turbo_confirm: "Las familias dejan de verlos. ¿Seguimos?" }
