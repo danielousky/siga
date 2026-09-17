@@ -198,19 +198,13 @@ class ApplicationController < ActionController::Base
       end
   end
 
-  # Quién cobra: finanzas, el director y el desarrollador.
+  # Quién cobra. ⚠️ La coordinadora y la secretaria NO, aunque las dos
+  # administren alumnos: el dinero es otra gaveta.
   #
-  # ⚠️ La coordinadora y la secretaria NO, aunque las dos administren alumnos:
-  # el dinero es otra gaveta. Y vive acá —no en `FinanzasController`— porque el
-  # MENÚ tiene que hacerse la misma pregunta: un grupo «Finanzas» que se ve y
-  # rebota enseña que los enlaces de este sistema a veces no funcionan.
-  CARGOS_QUE_COBRAN = %w[desarrollador director finanzas].freeze
-
-  def puede_cobrar?
-    return false if current_user.nil?
-
-    CARGOS_QUE_COBRAN.include?(current_user.admin&.role)
-  end
+  # Vive acá —y no en `FinanzasController`— porque el MENÚ tiene que hacerse la
+  # misma pregunta: un grupo «Finanzas» que se ve y rebota enseña que los
+  # enlaces de este sistema a veces no funcionan.
+  def puede_cobrar? = puede?(:cobrar)
   helper_method :puede_cobrar?
 
   def estudiante?
@@ -254,17 +248,65 @@ class ApplicationController < ActionController::Base
   # estructura académica, por ejemplo— este es el único lugar donde se cambia.
   DIRECCION = %w[desarrollador director asistente].freeze
 
-  def can_manage_students?
-    administrador? && (DIRECCION + %w[secretaria coordinador]).include?(rol_de_admin)
-  end
+  # ⚠️ Los tres GRUPOS de trabajo de un colegio, y las funciones repartidas
+  # entre ellos como un DATO.
+  #
+  # Daniel, definiendo el modelo: *«Directivo (Director: ve y hace todo,
+  # inclusive crear otros admins y usuarios), Finanzas: para la parte de
+  # cobranzas y pagos (no ve mucho más de eso), y el otro el que vendría siendo
+  # el académico, que hace las gestiones generales del plantel (secretarias,
+  # coordinadores, control de estudio)»*.
+  #
+  #     DIRECTIVO   desarrollador · director · asistente
+  #     ACADÉMICO   coordinador · secretaria
+  #     FINANZAS    finanzas
+  #
+  # ⚠️ El ENUM no se toca. Daniel: *«no es un rol nuevo… hay que revisar lo que
+  # se le permite a cada quien»*. Renumerar `Admin.roles` rompería las filas ya
+  # guardadas, que apuntan al número y no al nombre; lo que cambia es el reparto.
+  #
+  # ⚠️ Y el reparto vive en UNA tabla, no en cinco métodos con su lista a mano.
+  #
+  # Estaba escrito como `DIRECCION + %w[secretaria coordinador]` en un método y
+  # `DIRECCION + %w[coordinador]` en otro, así que la respuesta a «¿qué puede
+  # hacer una secretaria?» había que armarla leyendo cinco cuerpos. Con la tabla
+  # se lee de un vistazo, que es lo que hace posible discutirla con un director.
+  ACADEMICO = %w[coordinador secretaria].freeze
+  FINANZAS  = %w[finanzas].freeze
 
-  def can_manage_teachers?
-    administrador? && DIRECCION.include?(rol_de_admin)
-  end
+  PERMISOS = {
+    # Lo que distingue al DIRECTIVO: crear a la gente que entra al sistema.
+    # Daniel: *«inclusive crear otros admins y usuarios»*.
+    manage_teachers: DIRECCION,
+    manage_admins: DIRECCION,
+    # Y ver la bitácora: es donde se contesta «¿quién le cambió esa nota?».
+    recent_activity: DIRECCION,
 
-  def can_manage_sections?
-    administrador? && (DIRECCION + %w[coordinador]).include?(rol_de_admin)
-  end
+    # Lo ACADÉMICO: la gestión del plantel.
+    manage_students: DIRECCION + ACADEMICO,
+    manage_sections: DIRECCION + ACADEMICO,
+    manage_academic_config: DIRECCION + ACADEMICO,
+    # ⚠️ Cerrar la calificación es de ACADÉMICO, no del director.
+    #
+    # Daniel: *«control de estudio es quien cierra la calificación»* y *«al
+    # definir los roles de Admin, a alguno hay que darle esa responsabilidad»*.
+    # En un colegio venezolano el vistazo final lo da control de estudio, que
+    # acá es coordinación o secretaría — no quien firma.
+    emitir_documentos: DIRECCION + ACADEMICO,
+
+    # El DINERO es otra gaveta. La coordinadora administra alumnos y NO valida
+    # pagos; finanzas cobra y no toca la estructura académica.
+    cobrar: DIRECCION + FINANZAS
+  }.freeze
+
+  def puede?(que) = administrador? && PERMISOS.fetch(que).include?(rol_de_admin)
+  helper_method :puede?
+
+  def can_manage_students? = puede?(:manage_students)
+
+  def can_manage_teachers? = puede?(:manage_teachers)
+
+  def can_manage_sections? = puede?(:manage_sections)
 
   # La estructura del colegio —su identidad, sus niveles, sus grados— la
   # administra la dirección. Vive acá y no en un controller porque lo necesitan
@@ -276,13 +318,9 @@ class ApplicationController < ActionController::Base
                 alert: "Esta parte del colegio la administra la dirección."
   end
 
-  def can_manage_academic_config?
-    administrador? && DIRECCION.include?(rol_de_admin)
-  end
+  def can_manage_academic_config? = puede?(:manage_academic_config)
 
-  def show_recent_activity?
-    administrador? && DIRECCION.include?(rol_de_admin)
-  end
+  def show_recent_activity? = puede?(:recent_activity)
 
   def dashboard_path_for_user
     # El equipo de SIGA no tiene rol de colegio, así que va a su propia

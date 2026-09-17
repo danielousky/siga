@@ -32,8 +32,10 @@ class CargoDeAsistenteTest < ActionDispatch::IntegrationTest
                    "coordinador" => 3, "secretaria" => 4, "asistente" => 5 }, Admin.roles)
   end
 
-  test "el registro ofrece director, asistente y otro" do
-    assert_equal %w[director asistente otro], Admin::CARGOS_AL_REGISTRARSE.keys
+  # ⚠️ DOS, no tres: «Asistente de dirección» y «Otro cargo» se guardaban igual,
+  # así que la pregunta ofrecía una distinción que no existe.
+  test "el registro ofrece solo director u otro cargo" do
+    assert_equal %w[director otro], Admin::CARGOS_AL_REGISTRARSE.keys
   end
 
   # ⚠️ «Otro cargo» mapeaba a `coordinador`, que NO está en `DIRECCION`: quien

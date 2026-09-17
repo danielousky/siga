@@ -631,8 +631,13 @@ module MenuHelper
       enlaces << Enlace.new(nombre: "Documentos", icono: :boletines,
                             ruta: report_cards_path, tambien_en: %w[constancias])
     end
-    enlaces << Enlace.new(nombre: "Registro de actividad", icono: :auditoria,
-                          ruta: dashboards_activity_logs_path)
+    # ⚠️ Solo a quien la puede abrir. Se ofrecía a CUALQUIER admin —finanzas
+    # incluida— mientras el panel escondía el bloque de actividad reciente: el
+    # menú prometía una pantalla que ahora rebota.
+    if show_recent_activity?
+      enlaces << Enlace.new(nombre: "Registro de actividad", icono: :auditoria,
+                            ruta: dashboards_activity_logs_path)
+    end
     enlaces
   end
 
@@ -663,7 +668,11 @@ module MenuHelper
     # Va en Configuración aunque se use una vez al año, porque esa vez es la
     # PRIMERA semana del colegio en SIGA — y para esa semana el camino no es el
     # menú: es el estado vacío de Alumnos, que lo ofrece cuando hace falta.
-    enlaces << Enlace.new(nombre: "Importar datos", icono: :subir, ruta: importaciones_path)
+    # ⚠️ Y solo a quien administra alumnos: importar CREA alumnos, profesores y
+    # notas. Se ofrecía a cualquier admin, finanzas incluida.
+    if can_manage_students?
+      enlaces << Enlace.new(nombre: "Importar datos", icono: :subir, ruta: importaciones_path)
+    end
     if can_manage_academic_config?
       # ⚠️ La rúbrica va en Configuración y no en Académico, aunque hable de
       # notas: no se toca durante el año. Se define una vez, al arrancar, y
