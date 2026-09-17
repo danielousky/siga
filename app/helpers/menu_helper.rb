@@ -656,7 +656,15 @@ module MenuHelper
   def enlaces_de_finanzas
     return [] unless puede_cobrar?
 
-    [ Enlace.new(nombre: "Pagos reportados", icono: :inscripciones, ruta: finanzas_path) ]
+    enlaces = [ Enlace.new(nombre: "Pagos reportados", icono: :inscripciones, ruta: finanzas_path) ]
+
+    # ⚠️ Cuelga del AÑO de la sesión: los montos cambian cada año, y los del año
+    # pasado tienen que seguir diciendo lo que decían.
+    if Current.academic_period
+      enlaces << Enlace.new(nombre: "Lo que se cobra", icono: :lapsos,
+                            ruta: academic_period_cobros_path(Current.academic_period))
+    end
+    enlaces
   end
 
   def enlaces_de_configuracion

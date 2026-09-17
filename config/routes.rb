@@ -67,6 +67,16 @@ Rails.application.routes.draw do
   # salía con el HTML adentro y `Content-Type: text/html`.
   get "manual", to: "manual#show", as: :manual
 
+  # Lo que el colegio cobra en un año escolar. Cuelga del AÑO y no del colegio:
+  # los montos cambian cada año, y los del año pasado tienen que seguir
+  # diciendo lo que decían. Ver `CobrosController`.
+  resources :academic_periods, only: [] do
+    resources :cobros, path: "cobros", only: [ :index, :create ] do
+      post :proponer, on: :collection
+    end
+  end
+  resources :cobros, only: [ :update, :destroy ]
+
   # El vistazo final antes de que la familia vea su boletín (ver
   # `RevisionDeBoletinesController`). Va colgado de `/boletines` y no como un
   # recurso propio: es una etapa de la emisión, no otra cosa.
