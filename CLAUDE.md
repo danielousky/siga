@@ -643,8 +643,12 @@ y otra vez el 25):
   lo mira DOKKU; `/salud` dice que la cola avanza y lo mira un monitor. Si Dokku
   mirara `/salud`, un worker caído impediría desplegar la corrección que lo
   arregla.
-- **Producción corre con los datos de demo** (`MOR-146`). Es lo más urgente del backlog: hay
-  usuarios con contraseña `123123` y 290 alumnos inventados en la base que ve el mundo.
+- ~~**Producción corre con los datos de demo** (`MOR-146`)~~ → **hecho**, el 17 de
+  septiembre de 2026. La base quedó vacía —898 personas, 4 colegios, 9.512 notas— con
+  respaldo verificado antes. El catálogo de planteles se resembró aparte: `demo:limpiar`
+  se lo lleva y no es de ningún colegio.
+  ⚠️ Lo que queda de esa decisión: **ya no hay datos para MOSTRAR SIGA**. Una demo a un
+  colegio nuevo se monta con `prueba:campo`, que nace vacío a propósito.
 - **Colisión de nombres:** `Grade` es "grado escolar", pero `ActivityLog::LABELS` traduce
   `grade_created` como "Calificación registrada". Dos conceptos, un nombre.
 - **El worker hay que levantarlo.** El `Procfile` declara `web` y `worker`; si el segundo no
@@ -1101,6 +1105,21 @@ que poder saberse qué había dentro.
 
 ⚠️ **`/salud` devuelve las DOS**: `version` es qué producto es y `revision` el
 commit desplegado. Confundirlas hace que una versión signifique cuarenta builds.
+
+## 🔧 Operar producción
+
+Las tareas están en [`docs/tareas-de-operacion.md`](docs/tareas-de-operacion.md):
+quién entra, qué cuentas hay, cambiar un rol, montar una prueba de campo, limpiar
+la demo y respaldar.
+
+⚠️ **`bin/rails runner` NO sirve contra producción por `dokku run`.** La orden pasa
+por dos shells —el segundo se come las comillas y los bloques— y, peor, **su salida
+no vuelve**: el comando corre y no se ve nada. Las tareas `rake` sí devuelven su
+texto. Por eso cada cosa que haya que hacer allá se escribe como tarea.
+
+⚠️ Y las variables de entorno **no se pueden pasar en la misma línea del `run`**: el
+`env` del contenedor parte el valor en el primer espacio. Se ponen con
+`config:set --no-restart`, se corre, y se quitan.
 
 Backlog completo en `BACKLOG.md`. Diagrama del modelo actual y objetivo:
 https://claude.ai/code/artifact/0e167ba9-8e21-4264-ac29-f7a2d9fe5523

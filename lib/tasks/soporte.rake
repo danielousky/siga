@@ -150,4 +150,50 @@ namespace :soporte do
       end
     end
   end
+
+  desc "Da de alta a alguien del equipo de SIGA (CORREO=… NOMBRE=… APELLIDO=… [ROL=fundador])"
+  task equipo: :environment do
+    correo = ENV["CORREO"].to_s.strip.downcase
+    nombre = ENV["NOMBRE"].to_s.strip
+    apellido = ENV["APELLIDO"].to_s.strip
+    rol = ENV.fetch("ROL", "fundador")
+
+    if correo.empty? || nombre.empty? || apellido.empty?
+      abort "Falta algo: bin/rails soporte:equipo CORREO=… NOMBRE=… APELLIDO=… [ROL=fundador]"
+    end
+    abort "Rol desconocido. Los que hay: #{SigaStaff.roles.keys.join(', ')}" unless SigaStaff.roles.key?(rol)
+
+    Current.sin_aislamiento do
+      # ⚠️ Se busca por CORREO y se reutiliza la persona: `users.email` es único
+      # en toda la plataforma (§ MOR-142), así que crear a ciegas choca contra
+      # el índice con un error que no explica nada.
+      persona = User.find_or_initialize_by(email: correo)
+      persona.first_name = nombre
+      persona.last_name = apellido
+      # ⚠️ Una contraseña que NADIE conoce, ni siquiera quien corre la tarea.
+      #
+      # La persona elige la suya con el código de abajo. Poner una conocida
+      # —aunque sea «temporal»— deja una cuenta con rol de plataforma abierta a
+      # cualquiera que lea el historial de la terminal.
+      persona.password = SecureRandom.alphanumeric(32) if persona.new_record?
+      persona.save!
+
+      staff = SigaStaff.find_or_initialize_by(user_id: persona.id)
+      antes = staff.persisted? ? staff.role : "(nuevo)"
+      staff.role = rol
+      staff.save!
+
+      # ⚠️ El código sale acá mismo: sin él la persona queda creada y sin poder
+      # entrar, y hay que correr otra tarea para lo que es el mismo trámite.
+      codigo = persona.send(:set_reset_password_token)
+      host = ENV.fetch("SIGA_HOST", "localhost:3000")
+
+      puts ""
+      puts "  ── #{persona.apellidos_y_nombres} · equipo de SIGA ──────────────"
+      puts "  #{correo}   rol: #{antes} → #{rol}"
+      puts "  https://#{host}/activar/#{codigo}"
+      puts "  (elige su contraseña ahí; el código dura 6 horas)"
+      puts "  ───────────────────────────────────────────────────────────────"
+    end
+  end
 end
