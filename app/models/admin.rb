@@ -25,11 +25,33 @@ class Admin < ApplicationRecord
   # ⚠️ Quien abre la cuenta de un colegio es quien lo dirige o quien lo ayuda a
   # dirigirlo. Ofrecerle «finanzas» o «desarrollador» en su primer minuto es
   # pedirle que entienda el modelo de permisos antes de haber entrado.
+  # ⚠️ Las TRES dan permisos de dirección, y «Otro cargo» mapeaba a
+  # `coordinador`, que NO los tiene.
+  #
+  # Quien abre la cuenta de un colegio es su PRIMER administrador, y no hay
+  # nadie más que pueda darle permisos: eligiendo «Otro cargo» quedaba
+  # encerrada —sin poder cargar profesores, ni tocar la configuración académica,
+  # ni entrar a `/administradores` para corregirse el rol—. Un callejón sin
+  # salida en el minuto uno.
+  #
+  # Le pasó a Yoleima, la primera directora real que registró un colegio.
+  #
+  # ⚠️ El cargo sigue siendo un DATO —qué es esta persona en el colegio— y por
+  # eso se guarda distinto; lo que no puede es decidir si puede trabajar. El
+  # día que el colegio tenga varios administradores, el director reparte los
+  # roles acotados desde `/administradores`.
   CARGOS_AL_REGISTRARSE = {
     "director" => "Director o directora",
     "asistente" => "Asistente de dirección",
-    "coordinador" => "Otro cargo"
+    "otro" => "Otro cargo"
   }.freeze
+
+  # ⚠️ «otro» no es un valor del enum: es una etiqueta del formulario. Se guarda
+  # como `asistente`, que es el rol de dirección sin ser el director.
+  CARGO_AL_ROL = { "director" => "director", "asistente" => "asistente",
+                   "otro" => "asistente" }.freeze
+
+  def self.rol_al_registrarse(cargo) = CARGO_AL_ROL.fetch(cargo.to_s, "asistente")
 
   belongs_to :user
   belongs_to :school

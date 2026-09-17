@@ -134,9 +134,12 @@ class RegistrosController < Devise::RegistrationsController
 
   # ⚠️ Igual con el cargo: solo los tres que se ofrecen. Un `role` cualquiera
   # llegado por el formulario podría pedir `desarrollador`.
+  # ⚠️ Y se traduce al ROL. «Otro cargo» es una etiqueta del formulario, no un
+  # valor del enum: se guarda como `asistente`, que es dirección sin ser el
+  # director. Ver `Admin::CARGO_AL_ROL`.
   def cargo_elegido
     cargo = params[:cargo].to_s
-    Admin::CARGOS_AL_REGISTRARSE.key?(cargo) ? cargo : "director"
+    Admin.rol_al_registrarse(Admin::CARGOS_AL_REGISTRARSE.key?(cargo) ? cargo : "director")
   end
 
   def redirigir_si_ya_entro

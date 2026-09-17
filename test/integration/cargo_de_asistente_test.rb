@@ -33,7 +33,18 @@ class CargoDeAsistenteTest < ActionDispatch::IntegrationTest
   end
 
   test "el registro ofrece director, asistente y otro" do
-    assert_equal %w[director asistente coordinador], Admin::CARGOS_AL_REGISTRARSE.keys
+    assert_equal %w[director asistente otro], Admin::CARGOS_AL_REGISTRARSE.keys
+  end
+
+  # ⚠️ «Otro cargo» mapeaba a `coordinador`, que NO está en `DIRECCION`: quien
+  # lo elegía al registrar su colegio quedaba encerrada —sin poder cargar
+  # profesores ni entrar a `/administradores` para corregirse el rol—. Le pasó
+  # a la primera directora real.
+  test "las tres opciones del registro dan permisos de dirección" do
+    Admin::CARGOS_AL_REGISTRARSE.each_key do |cargo|
+      assert_includes ApplicationController::DIRECCION, Admin.rol_al_registrarse(cargo),
+                      "«#{Admin::CARGOS_AL_REGISTRARSE[cargo]}» deja sin permisos a quien registra"
+    end
   end
 
   test "un asistente puede administrar su colegio" do
