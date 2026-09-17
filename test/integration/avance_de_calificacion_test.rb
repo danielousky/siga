@@ -85,9 +85,17 @@ class AvanceDeCalificacionTest < ActionDispatch::IntegrationTest
       completa = actividad(@esc, lapso: @lapso, peso: 100, descripcion: "Al día")
       Enrollment.where(section: @esc.seccion).map(&:student).each { |a| nota(completa, a, 15) }
 
-      EvaluationActivity.create!(section: @esc.seccion, subject: otra, evaluation_moment: @lapso,
-                                 description: "Sin empezar", weight_percentage: 100,
-                                 date_scheduled: Date.new(2025, 11, 6))
+      # ⚠️ También mide algo: es primaria, y desde `MOR-136` una evaluación sin
+      # competencia ni indicador no se guarda.
+      plan = Competency.create!(section: @esc.seccion, subject: otra, evaluation_moment: @lapso,
+                                descripcion: "Comprende lo que lee")
+      plan.indicators.create!(descripcion: "Lee en voz alta", orden: 0)
+      sin_empezar = EvaluationActivity.new(section: @esc.seccion, subject: otra,
+                                           evaluation_moment: @lapso, description: "Sin empezar",
+                                           weight_percentage: 100, date_scheduled: Date.new(2025, 11, 6))
+      sin_empezar.competency_ids = [ plan.id ]
+      sin_empezar.indicators     = plan.indicators.to_a
+      sin_empezar.save!
     end
 
     sign_in @profesor

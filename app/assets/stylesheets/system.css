@@ -8207,9 +8207,10 @@ a.subject-avance:hover { filter: brightness(0.9); }
 
 .que-evalua-competencia span { flex: 1 1 0; min-width: 0; }
 
-/* Los indicadores describen, no se marcan: sin casilla, sangrados y en el tono
-   secundario. Si tuvieran casilla, prometerían una precisión que el modelo no
-   guarda — su nivel en la boleta es el de su competencia. */
+/* ⚠️ Los indicadores SÍ se marcan desde MOR-136 (segunda mitad): se elige cuál
+   mide esta evaluación. Lo que sigue siendo cierto es que no se CALIFICAN
+   aparte — su nivel en la boleta es el de su competencia. Van sangrados bajo
+   ella porque describen; la casilla dice cuál se mide, no cuánto vale. */
 .que-evalua-indicadores {
   margin: var(--space-micro) 0 0 calc(18px + var(--space-xs));
   padding-left: var(--space-md);
@@ -9519,9 +9520,10 @@ a.subject-avance:hover { filter: brightness(0.9); }
 
 .que-evalua-competencia span { flex: 1 1 0; min-width: 0; }
 
-/* Los indicadores describen, no se marcan: sin casilla, sangrados y en el tono
-   secundario. Si tuvieran casilla, prometerían una precisión que el modelo no
-   guarda — su nivel en la boleta es el de su competencia. */
+/* ⚠️ Los indicadores SÍ se marcan desde MOR-136 (segunda mitad): se elige cuál
+   mide esta evaluación. Lo que sigue siendo cierto es que no se CALIFICAN
+   aparte — su nivel en la boleta es el de su competencia. Van sangrados bajo
+   ella porque describen; la casilla dice cuál se mide, no cuánto vale. */
 .que-evalua-indicadores {
   margin: var(--space-micro) 0 0 calc(18px + var(--space-xs));
   padding-left: var(--space-md);
@@ -9530,6 +9532,49 @@ a.subject-avance:hover { filter: brightness(0.9); }
 }
 
 .que-evalua-indicadores li { margin-top: 2px; }
+
+/* Lo que se despliega al marcar la competencia: sus indicadores y el campo para
+   escribir otros. Escondido mientras no esté marcada — quien no la mide no
+   tiene nada que elegir ahí. */
+.que-evalua-mide {
+  margin-left: calc(18px + var(--space-xs));
+  padding-top: var(--space-xs);
+}
+
+.que-evalua-indicador {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  min-height: 34px;
+  align-content: center;
+  flex-wrap: wrap;
+  padding: 3px 0;
+  cursor: pointer;
+}
+
+.que-evalua-indicador input {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--brand-primary);
+}
+
+.que-evalua-indicador span { flex: 1 1 0; min-width: 0; }
+
+/* Los que ya mide otra evaluación: se ven —o el profesor los busca— y no se
+   pueden marcar. El nombre de quién los mide es lo que contesta la pregunta. */
+.que-evalua-indicadores--tomados li {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+.que-evalua-mide .form-label { display: block; margin: var(--space-xs) 0 2px; }
+
 
 /* Lo que la evaluación ya evalúa, en su ficha. */
 .evalua-chips {
@@ -11098,6 +11143,73 @@ a.subject-avance:hover { filter: brightness(0.9); }
   margin-top: var(--space-sm);
 }
 
+/* ── Qué mide la evaluación que se está creando ──────────────────────────── */
+/* La competencia ya viene puesta —el botón cuelga de ella— así que lo que queda
+   por elegir son sus INDICADORES. Y un indicador lo mide una sola evaluación:
+   los que ya tomó otra se ven, apagados y con el nombre de quién los mide. */
+.alta-mide {
+  margin-top: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-canvas);
+}
+
+.alta-mide-titulo {
+  padding: 0 4px;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+}
+
+.alta-mide-titulo strong {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text-secondary);
+}
+
+.alta-mide-lista,
+.alta-mide-tomados {
+  margin: var(--space-xs) 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ⚠️ La casilla y su texto van en UNA etiqueta: en el teléfono el blanco de
+   45 px de alto es el área que se toca, y una casilla suelta son 13 px. */
+.alta-mide-opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  min-height: 34px;
+  padding: 5px 4px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.alta-mide-opcion:hover { background: var(--surface-hover); }
+.alta-mide-opcion input { margin-top: 2px; flex: 0 0 auto; }
+
+/* Los que ya mide otra evaluación: se ven, no se marcan, y dicen quién. */
+.alta-mide-tomados li {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  padding: 3px 4px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.alta-mide-tomado { text-decoration: line-through; }
+.alta-mide-quien { font-size: 11px; font-style: italic; }
+
+.alta-mide .form-label { display: block; margin: var(--space-xs) 0 2px; }
+
 /* ── La planilla de Educación Inicial ────────────────────────────────────── */
 /* La calificación de ese nivel es un TEXTO por área: ni 1–20, ni A/B/C, ni la
    rúbrica. Daniel: «los niños en Inicial no sacan ni A, ni B, ni C, ni PC, ni
@@ -11363,6 +11475,68 @@ a.subject-avance:hover { filter: brightness(0.9); }
   color: var(--text-secondary);
   font-size: 14px;
   line-height: 1.55;
+}
+
+/* ── Quién mide cada indicador ───────────────────────────────────────────── */
+/* Un indicador lo mide UNA evaluación y no se repite en otra: los indicadores
+   REPARTEN la competencia entre sus evaluaciones. Por eso el renglón dice cuál
+   lo mide — es la pregunta que hace un profesor mirando su plan: qué ya está
+   cubierto y qué le falta.
+
+   ⚠️ El nombre va en gris y sin caja: es un DATO al margen, no un control. Con
+   forma de chip competiría con la × que sí hace algo. */
+.plan-indicador-mide,
+.plan-indicador-libre {
+  flex: 0 0 auto;
+  max-width: 14rem;
+  overflow: hidden;
+  padding-top: 3px;
+  font-size: 11px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-tertiary);
+}
+
+/* ⚠️ «sin evaluación» NO va en ámbar. Es el estado normal de septiembre —el
+   plan se escribe antes que las evaluaciones— y pintar de alarma lo normal
+   enseña a ignorar el color. La regla de MOR-135 al revés: acá el dato no es
+   un problema todavía. */
+.plan-indicador-libre { font-style: italic; opacity: 0.75; }
+
+/* ── Qué indicadores mide una evaluación, bajo su fila ───────────────────── */
+/* La fila ya está debajo de su competencia; cuál de sus cinco indicadores mide
+   ESTA evaluación y no la de al lado no se deduce de nada. */
+.plan-evaluacion-indicadores {
+  flex: 1 0 100%;
+  margin: 2px 0 0;
+  padding-left: 22px;
+  list-style: none;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+}
+
+.plan-evaluacion-indicadores li { position: relative; padding-left: 10px; }
+
+.plan-evaluacion-indicadores li::before {
+  content: "·";
+  position: absolute;
+  left: 2px;
+}
+
+/* ⚠️ AVISO y no error: la evaluación cuenta para el promedio igual. Lo que no
+   puede hacer la boleta es decir qué se midió. Las nacidas después de la regla
+   no pueden estar así, así que esto solo alcanza a lo que ya existía. */
+.plan-evaluacion-sin-indicador {
+  flex: 1 0 100%;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin: 2px 0 0;
+  padding-left: 22px;
+  font-size: 11px;
+  color: var(--warning-text);
 }
 
 .plan-acciones {

@@ -22,8 +22,7 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
 
   test "el plan dice qué evaluaciones miden cada competencia" do
     con_el_colegio(@a.colegio) do
-      examen = actividad(@a.escenario, lapso: @lapso, peso: 60, descripcion: "Examen")
-      ActivityCompetency.create!(competency: @competencia, evaluation_activity: examen)
+      actividad(@a.escenario, lapso: @lapso, peso: 60, descripcion: "Examen", mide: @competencia)
     end
     sign_in @a.profesor
 
@@ -43,7 +42,14 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
   # Y se dice la CONSECUENCIA, no el síntoma. «Ninguna evaluación todavía» —que
   # es lo que decía— no significa nada para quien está armando su plan.
   test "una competencia sin evaluaciones lo dice, no lo calla" do
-    con_el_colegio(@a.colegio) { actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Suelta") }
+    # ⚠️ La que queda sin evaluar es OTRA: desde `MOR-136` toda evaluación de
+    # primaria mide alguna, así que ya no se puede armar el caso dejando la
+    # evaluación suelta — hay que escribir una competencia que nadie mida, que
+    # además es el caso real de septiembre.
+    con_el_colegio(@a.colegio) do
+      actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Suelta", mide: @competencia)
+      competencia_con(1, "Nadie la mide todavía", lapso: @lapso)
+    end
     sign_in @a.profesor
 
     get competencies_path(asignacion: @asignacion, lapso: @lapso.id)
@@ -75,33 +81,45 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
     con_el_colegio(@a.colegio) { evaluacion.reload.competency_ids }
   end
 
-  test "enganchar una evaluación a una competencia" do
-    examen = con_el_colegio(@a.colegio) do
-      actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen")
+  test "enganchar una evaluación a otra competencia" do
+    # ⚠️ Se AGREGA una segunda, no se engancha la primera: desde `MOR-136` la
+    # evaluación nace midiendo una, así que lo que queda por probar es que se
+    # le pueda sumar otra — que es el caso del chip [+] del plan.
+    examen, otra = con_el_colegio(@a.colegio) do
+      [ actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen", mide: @competencia),
+        competencia_con(1, "Interpreta gráficos", lapso: @lapso) ]
     end
     sign_in @a.profesor
 
     assert_difference "Current.sin_aislamiento { ActivityCompetency.unscoped.count }", 1 do
-      enganchar(examen, [ @competencia.id ])
+      enganchar(examen, [ @competencia.id, otra.id ])
     end
 
-    assert_equal [ @competencia.id ], competencias_de(examen)
+    assert_equal [ @competencia.id, otra.id ].sort, competencias_de(examen).sort
     # Vuelve al plan entero: el enganche MUEVE la fila de sitio.
     assert_redirected_to planificar_section_path(@a.seccion, area: @a.escenario.materia.id,
                                                  lapso: @lapso.id)
   end
 
-  test "desenganchar todas deja la evaluación sin competencias" do
+  # ⚠️ Desenganchar TODAS se rechaza, y esto probaba lo contrario.
+  #
+  # Regla de Daniel: *«la evaluación debe tener al menos un indicador y una
+  # competencia»*. Una evaluación sin competencia cuenta para el promedio del
+  # lapso y la boleta no puede explicar qué midió — que es justo el estado que
+  # `MOR-229` avisaba y que ahora, en primaria, ya no se puede crear.
+  #
+  # El chip del plan no llega acá —dibuja «las OTRAS», así que nunca ofrece
+  # quitar la única— pero el formulario completo sí, desmarcando las casillas.
+  test "desenganchar todas se rechaza: una evaluación de primaria mide algo" do
     examen = con_el_colegio(@a.colegio) do
-      e = actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen")
-      ActivityCompetency.create!(competency: @competencia, evaluation_activity: e)
-      e
+      actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen", mide: @competencia)
     end
     sign_in @a.profesor
 
     enganchar(examen, [])
 
-    assert_empty competencias_de(examen)
+    assert_equal [ @competencia.id ], competencias_de(examen),
+                 "quedarse sin competencias no es un resultado posible en primaria"
   end
 
   # ⚠️ El campo vacío es lo que permite desenganchar TODAS: sin él, un
@@ -109,9 +127,7 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
   # entera de que hay que desenganchar.
   test "sin la clave, el enganche no se toca" do
     examen = con_el_colegio(@a.colegio) do
-      e = actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen")
-      ActivityCompetency.create!(competency: @competencia, evaluation_activity: e)
-      e
+      actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen", mide: @competencia)
     end
     sign_in @a.profesor
 
@@ -131,7 +147,10 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
 
     enganchar(examen, [ de_otro_lapso.id ])
 
-    assert_empty competencias_de(examen)
+    # ⚠️ Se comprueba que NO ESTÉ la ajena, no que la lista quede vacía: desde
+    # `MOR-136` una petición cuyo único id se filtra se RECHAZA, y queda lo que
+    # había. Exigir la lista vacía sería exigir justo lo que la regla prohíbe.
+    assert_not_includes competencias_de(examen), de_otro_lapso.id
   end
 
   test "ni una de otro colegio" do
@@ -144,7 +163,7 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
 
     enganchar(examen, [ ajena.id ])
 
-    assert_empty competencias_de(examen)
+    assert_not_includes competencias_de(examen), ajena.id
   end
 
   test "no se toca una evaluación de otro colegio" do

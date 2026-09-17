@@ -51,10 +51,15 @@ class PlanAnidadoTest < ActionDispatch::IntegrationTest
     assert_select ".plan-sin-evaluar", /sin nivel en la boleta/
   end
 
+  # ⚠️ Ya no se puede CREAR una así en primaria —`MOR-136` exige competencia e
+  # indicador— pero el bloque tiene que seguir existiendo: alcanza a lo escrito
+  # antes de la regla, y es exactamente donde hay que verlo para arreglarlo.
   test "una evaluación que no mide nada sale aparte, con su aviso" do
     con_el_colegio(@a.colegio) do
       competencia_con(1, lapso: @lapso)
-      actividad(@a.escenario, lapso: @lapso, peso: 20, descripcion: "Participación")
+      suelta = actividad(@a.escenario, lapso: @lapso, peso: 20, descripcion: "Participación")
+      suelta.activity_competencies.destroy_all
+      suelta.indicators.update_all(evaluation_activity_id: nil)
     end
 
     plan
@@ -119,7 +124,8 @@ class PlanAnidadoTest < ActionDispatch::IntegrationTest
          params: { evaluation_activity: { asignacion: @asignacion, evaluation_moment_id: @lapso.id,
                                           description: "Taller", weight_percentage: 30,
                                           date_scheduled: Date.current,
-                                          competency_ids: [ competencia.id ] } },
+                                          competency_ids: [ competencia.id ],
+                                          indicator_ids: indicadores_de(competencia) } },
          headers: { "Turbo-Frame" => "plan" }
 
     assert_redirected_to planificar_section_path(@a.seccion, area: @a.escenario.materia.id,
@@ -127,12 +133,24 @@ class PlanAnidadoTest < ActionDispatch::IntegrationTest
   end
 
   test "creada desde la libreta, la vuelta es a la libreta" do
+    competencia = con_el_colegio(@a.colegio) { competencia_con(1, lapso: @lapso) }
+
     post evaluation_activities_path,
          params: { evaluation_activity: { asignacion: @asignacion, evaluation_moment_id: @lapso.id,
                                           description: "Taller", weight_percentage: 30,
-                                          date_scheduled: Date.current } },
+                                          date_scheduled: Date.current,
+                                          competency_ids: [ competencia.id ],
+                                          indicator_ids: indicadores_de(competencia) } },
          headers: { "Turbo-Frame" => "libreta" }
 
     assert_redirected_to section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
+  end
+
+  private
+
+  # ⚠️ Los ids se leen DENTRO del colegio: `Indicator` es `SchoolScoped` y sin
+  # contexto de inquilino el RLS devuelve cero filas, no un error.
+  def indicadores_de(competencia)
+    con_el_colegio(@a.colegio) { competencia.indicators.libres.pluck(:id) }
   end
 end

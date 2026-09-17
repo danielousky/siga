@@ -68,8 +68,10 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
     # sus indicadores se editan en su sitio, así que su texto ya no está en la
     # página — está dentro de un `<input>`.
     assert_selector ".plan-competencia-descripcion-campo", wait: 6
-    assert_equal "Resuelve problemas de proporcionalidad directa",
-                 find(".plan-competencia-descripcion-campo").value
+    # ⚠️ Entre TODAS: el plan ya trae la competencia que mide la evaluación del
+    # escenario, así que `find` singular es ambiguo desde `MOR-136`.
+    assert_includes all(".plan-competencia-descripcion-campo").map(&:value),
+                    "Resuelve problemas de proporcionalidad directa"
     assert_includes all(".plan-indicador-texto").map(&:value), "Calcula porcentajes"
     assert_includes all(".plan-indicador-texto").map(&:value), "Interpreta una tabla"
   end
@@ -84,10 +86,14 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
   # ⚠️ Cambió de puerta el 9 de septiembre: se engancha desde la EVALUACIÓN,
   # con los chips de su fila. El `<details>` colgado de la competencia
   # —«Cambiar cuáles la miden»— preguntaba al revés y se retiró.
-  test "engancha una competencia desde la fila de la evaluación" do
+  test "engancha una SEGUNDA competencia desde la fila de la evaluación" do
     # ⚠️ Se reusa la evaluación del escenario y no se crea otra: el lapso ya
     # tiene el 100 % de la ponderación repartido, y una segunda al 100 % la
     # rechaza el modelo — que es justo lo que tiene que hacer.
+    #
+    # ⚠️ Y desde `MOR-136` esa evaluación YA mide una competencia: una de
+    # primaria no puede no medir ninguna. Lo que se engancha acá es la SEGUNDA,
+    # que es para lo que existe el menú [+] de la fila.
     evaluacion  = @a.actividad
     competencia = con_el_colegio(@a.colegio) do
       Competency.create!(section: @a.seccion, subject: @a.escenario.materia,
@@ -98,9 +104,10 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
     visit planificar_section_path(@a.seccion, area: @a.escenario.materia.id,
                                   lapso: @a.escenario.lapso(1).id)
 
-    # La evaluación no mide nada todavía, y la competencia lo dice.
+    # A la competencia nueva no la mide nadie, y el plan lo dice con su
+    # consecuencia: saldrá sin nivel en la boleta.
     assert_selector ".plan-competencia--sin-evaluar"
-    assert_text "no mide ninguna competencia"
+    assert_text "sin nivel en la boleta"
 
     # El menú viene cerrado: la opción no se puede tocar hasta abrirlo.
     assert_no_selector ".plan-evaluacion-mas-opcion", visible: true
@@ -108,10 +115,9 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
     find(".plan-evaluacion-mas-abrir").click
     click_on competencia.descripcion
 
-    # Enganchada, la evaluación pasa a colgar DENTRO de la competencia y los dos
-    # avisos desaparecen: es el mismo hecho contado en un solo sitio.
-    assert_selector ".plan-competencia .plan-evaluacion-nombre-campo[value='#{evaluacion.description}']"
+    # Enganchada, la evaluación cuelga de las DOS y el aviso desaparece.
     assert_no_selector ".plan-competencia--sin-evaluar"
-    assert_no_text "no mide ninguna competencia"
+    assert_equal 2, all(".plan-competencia .plan-evaluacion-nombre-campo[value='#{evaluacion.description}']").size,
+                 "una evaluación que mide dos competencias sale bajo cada una"
   end
 end

@@ -57,6 +57,54 @@
       = f.date_field :date_scheduled, class: "form-control",
                      min: periodo_del_plan.start_date, max: periodo_del_plan.end_date
 
+  -# ⚠️ QUÉ MIDE se pregunta ACÁ, no después de crearla.
+  -#
+  -# Daniel: *«la idea es que la profesora, a una nueva evaluación, pueda
+  -# asignarle competencias ya creadas y a su vez agregar también otros
+  -# indicadores»*. La competencia ya viene puesta —el botón cuelga de ella— así
+  -# que lo que queda por elegir son sus indicadores.
+  -#
+  -# ## ⚠️ Solo los LIBRES se pueden marcar
+  -#
+  -# *«Los indicadores no se repiten entre evaluaciones»*. Los que ya mide otra
+  -# se listan igual, apagados y CON EL NOMBRE de quién los mide: esconderlos
+  -# dejaría al profesor buscando dónde quedó «Suma con reagrupación», y
+  -# ofrecerlos prometería algo que el guardado va a rechazar.
+  - competencias_a_medir.each do |competencia|
+    %fieldset.alta-mide
+      %legend.alta-mide-titulo
+        Qué mide de
+        %strong= competencia.descripcion.truncate(80)
+      - libres  = competencia.indicators.reject(&:medido?)
+      - tomados = competencia.indicators.select(&:medido?)
+
+      - if libres.any?
+        %ul.alta-mide-lista
+          - libres.each do |indicador|
+            %li
+              %label.alta-mide-opcion
+                = check_box_tag "evaluation_activity[indicator_ids][]", indicador.id, false,
+                                id: "indicador_#{indicador.id}"
+                %span= indicador.descripcion
+
+      - if tomados.any?
+        %ul.alta-mide-tomados
+          - tomados.each do |indicador|
+            %li
+              %span.alta-mide-tomado= indicador.descripcion
+              %span.alta-mide-quien= "lo mide «#{indicador.evaluation_activity.description.truncate(30)}»"
+
+      -# ⚠️ Uno por LÍNEA, como el formulario completo del plan: una maestra ya
+      -# tiene sus indicadores escritos en un documento y los pega de una vez.
+      -# Nacen en la COMPETENCIA —quedan para las próximas evaluaciones— y esta
+      -# los toma.
+      - rotulo = libres.any? ? "Y otros indicadores, uno por línea" : "Qué indicadores mide, uno por línea"
+      = label_tag "indicadores_nuevos_#{competencia.id}", rotulo, class: "form-label"
+      = text_area_tag "evaluation_activity[indicadores_nuevos][#{competencia.id}]", nil, rows: 2,
+                      class: "form-control", id: "indicadores_nuevos_#{competencia.id}",
+                      placeholder: "Estima el resultado antes de calcular",
+                      autocomplete: "off"
+
   .alta-en-linea-acciones
     = f.submit "Agregar", class: "btn btn-guardar btn-sm"
     = link_to "Cancelar", plan_path, class: "btn btn-secondary btn-sm"

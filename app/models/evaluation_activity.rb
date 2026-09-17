@@ -22,11 +22,20 @@ class EvaluationActivity < ApplicationRecord
   has_many :activity_competencies, dependent: :destroy
   has_many :competencies, through: :activity_competencies
 
+  # Qué INDICADORES de esas competencias mide (MOR-136, segunda mitad).
+  #
+  # ⚠️ `nullify` y no `destroy`: borrar la evaluación SUELTA sus indicadores,
+  # no se los lleva. El texto —«Suma con reagrupación»— lo escribió la maestra
+  # en el plan; la evaluación solo decía cuál de ellos medía. Con `destroy`,
+  # borrar un examen para volver a armarlo le borraría media competencia.
+  has_many :indicators, dependent: :nullify
+
   validates :description, presence: true
   validates :weight_percentage, presence: true, numericality: { greater_than: 0, less_than_or_equal_to: 100 }
   validates :date_scheduled, presence: true
   validate :total_weight_must_not_exceed_100
   validate :el_lapso_pertenece_al_periodo_de_la_seccion
+  validate :mide_una_competencia_y_un_indicador, on: :create
 
   # Cambiar la ponderación no afecta a un alumno: afecta a los treinta. Si el
   # examen pasa de 40 % a 50 %, el promedio del lapso cambia para toda la sección.
@@ -63,6 +72,12 @@ class EvaluationActivity < ApplicationRecord
     grupo.sum(:weight_percentage)
   end
 
+  # Si esta evaluación pertenece a un grado que se planifica por competencias.
+  #
+  # ⚠️ Es del GRADO, no del colegio: el mismo plantel dicta primaria y
+  # bachillerato, y su profesor de Matemática da los dos. Ver `Grade`.
+  def por_competencias? = section&.grade&.por_competencias?
+
   # Lo que queda libre en el lapso, contando esta actividad como si no existiera.
   def peso_disponible
     return nil if section_id.blank? || subject_id.blank? || evaluation_moment_id.blank?
@@ -74,6 +89,31 @@ class EvaluationActivity < ApplicationRecord
   end
 
   private
+
+  # ⚠️ Una evaluación de primaria mide algo, o no es una evaluación.
+  #
+  # Regla de Daniel: *«la evaluación debe tener al menos un indicador y una
+  # competencia»*. Sin competencia, la boleta la suma al promedio y no puede
+  # explicar qué midió; sin indicador, la competencia sale con nivel pero sin
+  # una sola línea que diga por qué.
+  #
+  # ⚠️ Solo `on: :create`, y no siempre. Siempre rompería la EDICIÓN EN LÍNEA de
+  # todo lo que ya existe: corregirle una tilde al nombre de una evaluación
+  # escrita antes de esta regla fallaría con un error sobre indicadores, el
+  # campo volvería a su valor viejo y el profesor no entendería nada. Lo que ya
+  # está se avisa en el plan —como `MOR-229` avisa la competencia sin
+  # evaluaciones—; lo que nace, nace completo.
+  #
+  # ⚠️ Y solo donde el plan EXISTE. En bachillerato no hay competencias, así que
+  # esta validación sin la guarda dejaría a todos sus profesores sin poder crear
+  # una evaluación — la misma trampa que `Grade#por_competencias?` existe para
+  # evitar.
+  def mide_una_competencia_y_un_indicador
+    return unless por_competencias?
+
+    errors.add(:base, "Marca la competencia que mide: sin eso no puede salir en la boleta.") if competency_ids.empty?
+    errors.add(:base, "Marca o escribe al menos un indicador: es lo que esta evaluación mide.") if indicators.empty?
+  end
 
   def recalcular_la_seccion
     RecalcularSeccionJob.perform_later(section, subject)

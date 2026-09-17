@@ -916,7 +916,8 @@ CREATE TABLE public.indicators (
     descripcion_canonica text NOT NULL,
     orden integer DEFAULT 0 NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    evaluation_activity_id bigint
 );
 
 ALTER TABLE ONLY public.indicators FORCE ROW LEVEL SECURITY;
@@ -3568,6 +3569,13 @@ CREATE INDEX index_indicators_on_competency_id ON public.indicators USING btree 
 
 
 --
+-- Name: index_indicators_on_evaluation_activity_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_indicators_on_evaluation_activity_id ON public.indicators USING btree (evaluation_activity_id);
+
+
+--
 -- Name: index_indicators_on_school_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4682,6 +4690,14 @@ ALTER TABLE ONLY public.report_cards
 
 
 --
+-- Name: indicators fk_rails_6cf160e817; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.indicators
+    ADD CONSTRAINT fk_rails_6cf160e817 FOREIGN KEY (evaluation_activity_id) REFERENCES public.evaluation_activities(id);
+
+
+--
 -- Name: constancias fk_rails_6d96c87395; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5591,6 +5607,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260917093000'),
 ('20260916100000'),
 ('20260916090000'),
 ('20260915100000'),

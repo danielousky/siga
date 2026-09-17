@@ -84,4 +84,45 @@ class RegistrarEvaluacionSystemTest < ApplicationSystemTestCase
     assert find(".que-evalua-competencia input[type=checkbox]").checked?,
            "la competencia que trajo el enlace tiene que llegar marcada"
   end
+
+  # ── Los indicadores, en el formulario completo (MOR-136, segunda mitad) ────
+  #
+  # ⚠️ Esto se prueba en un navegador de verdad porque la lista la dibuja
+  # Stimulus: el plan viaja embebido en el formulario y `que-evalua` lo pinta al
+  # elegir la sección y el lapso. Un test de integración ve el JSON y pasaría
+  # igual con el controlador sin conectar — que en este proyecto ya pasó dos
+  # veces, en silencio.
+  test "marcar la competencia despliega sus indicadores, y desmarcarla los guarda" do
+    competencia = con_el_colegio(@a.colegio) { competencia_con(2, lapso: @lapso) }
+
+    visit new_evaluation_activity_path(asignacion: @asignacion, lapso: @lapso.id)
+
+    # Sin marcarla, sus indicadores no estorban.
+    assert_no_selector ".que-evalua-mide", visible: true
+
+    find(".que-evalua-competencia input[type=checkbox]").check
+
+    assert_selector ".que-evalua-indicador", count: 2
+    assert_selector "textarea[name='evaluation_activity[indicadores_nuevos][#{competencia.id}]']"
+
+    find(".que-evalua-competencia input[type=checkbox]").uncheck
+    assert_no_selector ".que-evalua-mide", visible: true
+  end
+
+  # ⚠️ Un indicador lo mide UNA evaluación: el que otra ya tomó se ve —o el
+  # profesor lo busca— y no se puede marcar.
+  test "el indicador que otra evaluación mide se ve apagado y dice quién" do
+    competencia = con_el_colegio(@a.colegio) do
+      c = competencia_con(2, lapso: @lapso)
+      actividad(@a.escenario, lapso: @lapso, peso: 40, descripcion: "Examen del lapso", mide: c)
+      c
+    end
+
+    visit new_evaluation_activity_path(asignacion: @asignacion, lapso: @lapso.id,
+                                       competencia: competencia.id)
+
+    # De los dos, uno quedó libre y el otro lo mide el examen.
+    assert_selector ".que-evalua-indicador", count: 1
+    assert_selector ".que-evalua-indicadores--tomados", text: "lo mide «Examen del lapso»"
+  end
 end

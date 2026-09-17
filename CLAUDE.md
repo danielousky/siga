@@ -529,6 +529,32 @@ borra la calificación que quedó sin respaldo; la planilla borra la fila al vac
 vista del alumno escribe "Pendiente" en letras, nunca un número. Confundirlos reprueba a una
 sección entera a mitad de lapso, y le hace perder la confianza a la familia.
 
+⚠️ **En PRIMARIA, una evaluación mide una competencia y al menos un indicador**
+(`MOR-136`, segunda mitad). Los indicadores cuelgan de la competencia y **no se
+repiten entre evaluaciones**: la competencia se repite, ellos la REPARTEN —el
+examen mide «suma con reagrupación» y el taller, «estima antes de calcular»—.
+Por eso es una columna en `indicators` y no una tabla intermedia.
+
+```
+   Resuelve problemas de adición
+     ∘ Suma con reagrupación      ──►  Examen del lapso   40 %
+     ∘ Resuelve en dos pasos      ──►  Taller en equipo   30 %
+     ∘ Compara dos estrategias    ──►  libre
+```
+
+La validación es **`on: :create` y solo si `Grade#por_competencias?`**. Siempre
+rompería la edición en línea de lo escrito antes de la regla; sin la guarda de
+nivel dejaría a todo bachillerato sin poder crear una evaluación. Lo viejo se
+**avisa** en el plan, como `MOR-229` avisa la competencia sin evaluaciones.
+Borrar una evaluación **suelta** sus indicadores (`nullify`), no los borra.
+
+⚠️ **Traer el plan del año pasado trae las evaluaciones SOLO si lo dictaba el
+mismo profesor.** Decisión de Daniel: una evaluación es una decisión pedagógica
+de quien evalúa —el peso, la fecha, qué mide— y heredarla de otro le pone un
+criterio ajeno que no va a revisar. Las competencias sí se heredan: describen
+qué enseña el grado. Entre hermanas siempre va todo, porque son del mismo
+profesor.
+
 **Qué recalcula qué:**
 
 ```

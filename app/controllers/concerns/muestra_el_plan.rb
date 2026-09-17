@@ -26,6 +26,7 @@ module MuestraElPlan
   # de un concern, `helper_method` en el cuerpo del módulo no existe todavía —
   # es un método de clase del controller, y el módulo no es uno.
   included do
+    helper_method :plan_sugerido_con_evaluaciones?
     helper_method :lapsos, :lapso, :otras_secciones, :contexto,
                   :hermanas_con_plan, :hermanas_sin_plan, :evaluaciones_del_lapso,
                   :evaluaciones_de, :evaluaciones_sueltas, :peso_del_lapso,
@@ -199,7 +200,10 @@ module MuestraElPlan
   def competencias_del_lapso
     return [] if seccion_del_plan.nil? || area_del_plan.nil? || lapso.nil?
 
-    @competencias_del_lapso ||= Competency.del_plan(seccion_del_plan.id, area_del_plan.id, lapso.id).to_a
+    # ⚠️ Los indicadores con SU evaluación: la lista dice cuál mide cada uno, y
+    # sin precargarla son dos consultas por indicador en un plan de veinte.
+    @competencias_del_lapso ||= Competency.del_plan(seccion_del_plan.id, area_del_plan.id, lapso.id)
+                                          .includes(indicators: :evaluation_activity).to_a
   end
 
   # Lo que falta para cerrar el lapso: es lo que el alta propone, porque el
@@ -277,7 +281,32 @@ module MuestraElPlan
     return nil if primera.nil?
 
     { asignacion: Struct.new(:section_id, :subject_id).new(primera.section_id, primera.subject_id),
-      lapso: primera.evaluation_moment }
+      lapso: primera.evaluation_moment,
+      mismo_profesor: lo_dictaba_yo?(primera.section_id, primera.subject_id) }
+  end
+
+  # ⚠️ Si el plan del año pasado trae también sus EVALUACIONES.
+  #
+  # Daniel: *«cuando se trae la planificación del año anterior, solo debería
+  # traer las competencias e indicadores; las evaluaciones no. Esas deben ser
+  # agregadas nuevas, a menos que sea el mismo profe, en ese caso se deben
+  # clonar para que haga el ajuste directamente él»*.
+  #
+  # La razón es de dominio y no de permisos: **una evaluación es una decisión
+  # pedagógica de quien evalúa**. El peso del examen, la fecha y qué mide son de
+  # ese profesor; heredarlas de otro le pone en su plan un criterio que no es
+  # suyo y que además no va a revisar —vino puesto, luego está bien—. Las
+  # competencias no: describen qué enseña el GRADO, y esas sí se heredan.
+  #
+  # Es la misma frontera que ya está en `EvaluationActivitiesController`, donde
+  # la dirección ve las ponderaciones y no las edita.
+  def plan_sugerido_con_evaluaciones? = origen_del_ano_pasado&.fetch(:mismo_profesor, false) || false
+
+  def lo_dictaba_yo?(section_id, subject_id)
+    return false unless profesor?
+
+    TeacherSection.exists?(teacher_id: current_user.teacher.id,
+                           section_id: section_id, subject_id: subject_id)
   end
 
   def por_competencia
@@ -298,7 +327,9 @@ module MuestraElPlan
                                 # evaluación con notas NO se puede borrar— y
                                 # sin esto son treinta consultas en un plan de
                                 # treinta evaluaciones.
-                                .includes(:competencies, :activity_grades)
+                                # ⚠️ Y `indicators`: la fila dice qué mide, que
+                                # es la mitad nueva de `MOR-136`.
+                                .includes(:competencies, :activity_grades, :indicators)
                                 .order(:date_scheduled, :id)
                                 .to_a
   end

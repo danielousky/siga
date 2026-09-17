@@ -22,17 +22,94 @@ PONDERACION = [ [ "Examen", 40.0 ], [ "Taller", 30.0 ], [ "Participación", 30.0
 # Los lapsos venezolanos cierran en diciembre, abril y julio (Art. 110).
 MESES_POR_LAPSO = [ [ 2025, 11 ], [ 2026, 3 ], [ 2026, 6 ] ].freeze
 
+PLAN_DE_PRIMARIA = {
+  "MAT" => [
+    [ "Resuelve problemas de adición y sustracción con números naturales",
+      [ "Suma y resta con reagrupación", "Resuelve problemas de dos pasos",
+        "Estima el resultado antes de calcular" ] ],
+    [ "Reconoce y compara figuras geométricas del entorno",
+      [ "Identifica figuras planas por sus lados", "Compara tamaños y posiciones" ] ]
+  ],
+  "LEN" => [
+    [ "Lee en voz alta con fluidez y comprende lo leído",
+      [ "Respeta los signos de puntuación", "Responde preguntas sobre el texto",
+        "Reconstruye la secuencia de los hechos" ] ],
+    [ "Produce textos escritos con intención comunicativa",
+      [ "Separa las palabras correctamente", "Usa mayúscula al iniciar la oración" ] ]
+  ],
+  "CNA" => [
+    [ "Reconoce los seres vivos de su entorno y sus necesidades",
+      [ "Distingue seres vivos de objetos inertes", "Nombra lo que necesita una planta" ] ]
+  ]
+}.freeze
+
+# ⚠️ El plan se escribe ANTES que las evaluaciones, y no es orden de gusto.
+#
+# Desde `MOR-136` (segunda mitad) una evaluación de primaria mide una competencia
+# y al menos un indicador, o no se guarda. Los seeds creaban las evaluaciones
+# primero y etiquetaban después: en ese orden ninguna se podía crear.
+#
+# Y es además el orden REAL del trabajo del docente —escribe su plan, arma sus
+# evaluaciones—, así que la demo se parece más a un colegio de verdad.
+#
+# Para las áreas que no están en `PLAN_DE_PRIMARIA` se arma una competencia
+# genérica: sin ella, esas materias no podrían tener ni una evaluación.
+def plan_de(seccion, materia, lapso)
+  return [] unless seccion.grade.por_competencias?
+
+  escrito = PLAN_DE_PRIMARIA[materia.code] || [
+    [ "Alcanza los objetivos de #{materia.name}",
+      [ "Participa en las actividades de la clase", "Cumple con las asignaciones" ] ]
+  ]
+
+  escrito.map.with_index do |(descripcion, indicadores), orden|
+    competencia = Competency.find_or_create_by!(
+      section: seccion, subject: materia, evaluation_moment: lapso, descripcion: descripcion
+    ) { |c| c.orden = orden }
+
+    indicadores.each_with_index do |texto, i|
+      Indicator.find_or_create_by!(competency: competencia, descripcion: texto) { |ind| ind.orden = i }
+    end
+    competencia.reload
+  end
+end
+
+# ⚠️ Un indicador PROPIO por evaluación: no se repiten entre evaluaciones, así
+# que dos actividades de la misma competencia miden cosas distintas de ella. Si
+# el plan escrito se queda corto, se escribe uno más — que es exactamente lo que
+# hace la maestra en el panel del alta.
+def un_indicador_libre(competencia, nombre)
+  competencia.indicators.libres.first ||
+    competencia.indicators.create!(descripcion: "Lo que se evalúa en «#{nombre}»",
+                                   orden: (competencia.indicators.maximum(:orden) || -1) + 1)
+end
+
 def actividades_de(seccion, materia, lapso, indice, cuantas: PONDERACION.size)
   anio, mes = MESES_POR_LAPSO[indice]
 
+  plan = plan_de(seccion, materia, lapso)
+
   PONDERACION.first(cuantas).map.with_index do |(nombre, peso), i|
-    EvaluationActivity.find_or_create_by!(
+    actividad = EvaluationActivity.find_or_initialize_by(
       section: seccion, subject: materia, evaluation_moment: lapso,
       description: "#{nombre} — #{lapso.name}"
-    ) do |a|
-      a.weight_percentage = peso
-      a.date_scheduled    = Date.new(anio, mes, 5 + i * 7)
+    )
+    next actividad if actividad.persisted?
+
+    actividad.weight_percentage = peso
+    actividad.date_scheduled    = Date.new(anio, mes, 5 + i * 7)
+
+    # ⚠️ Se reparten las competencias del plan entre las tres evaluaciones, y
+    # cada una se lleva un indicador distinto. En bachillerato `plan` viene
+    # vacío y esto no hace nada: allá no hay competencias.
+    if plan.any?
+      competencia = plan[i % plan.size]
+      actividad.competency_ids = [ competencia.id ]
+      actividad.indicators     = [ un_indicador_libre(competencia, nombre) ]
     end
+
+    actividad.save!
+    actividad
   end
 end
 
@@ -333,92 +410,44 @@ puts "   ✓ #{inscripciones_viejas.size} inscripciones en 2024-2025 · #{libros
 # imprimen en la boleta; no se califican aparte.
 paso "🧩 Plan de evaluación por competencias"
 
-PLAN_DE_PRIMARIA = {
-  "MAT" => [
-    [ "Resuelve problemas de adición y sustracción con números naturales",
-      [ "Suma y resta con reagrupación", "Resuelve problemas de dos pasos",
-        "Estima el resultado antes de calcular" ] ],
-    [ "Reconoce y compara figuras geométricas del entorno",
-      [ "Identifica figuras planas por sus lados", "Compara tamaños y posiciones" ] ]
-  ],
-  "LEN" => [
-    [ "Lee en voz alta con fluidez y comprende lo leído",
-      [ "Respeta los signos de puntuación", "Responde preguntas sobre el texto",
-        "Reconstruye la secuencia de los hechos" ] ],
-    [ "Produce textos escritos con intención comunicativa",
-      [ "Separa las palabras correctamente", "Usa mayúscula al iniciar la oración" ] ]
-  ],
-  "CNA" => [
-    [ "Reconoce los seres vivos de su entorno y sus necesidades",
-      [ "Distingue seres vivos de objetos inertes", "Nombra lo que necesita una planta" ] ]
-  ]
-}.freeze
+# ⚠️ El plan ya está escrito: nace con las evaluaciones, más arriba (`plan_de`).
+#
+# Antes se escribía acá y se etiquetaba después. Desde `MOR-136` (segunda mitad)
+# ese orden es imposible: una evaluación de primaria mide una competencia y un
+# indicador, o no se guarda. Lo que queda por sembrar acá son los dos estados
+# que el orden normal NO produce solo.
 
 Current.school = bolivar
-competencias = 0
 
-[ [ bolivar, "4to Grado", lapsos_bol ], [ bolivar, "1er Grado", lapsos_bol ] ].each do |colegio, grado, lapsos|
-  Current.school = colegio
-  seccion = seccion_de(colegio, grado, "A", SEMILLA[:anio_bolivar])
-  next if seccion.nil?
-
-  PLAN_DE_PRIMARIA.each do |codigo, plan|
-    materia = seccion.grade.subjects.find_by(code: codigo)
-    next if materia.nil?
-
-    # Solo el PRIMER lapso: el plan se escribe lapso por lapso, y tenerlos los
-    # tres llenos escondería el botón de «traer el del lapso anterior».
-    plan.each_with_index do |(descripcion, indicadores), orden|
-      competencia = Competency.find_or_create_by!(
-        section: seccion, subject: materia, evaluation_moment: lapsos.first,
-        descripcion: descripcion
-      ) { |c| c.orden = orden }
-      competencias += 1
-
-      indicadores.each_with_index do |texto, i|
-        Indicator.find_or_create_by!(competency: competencia, descripcion: texto) { |ind| ind.orden = i }
-      end
+# ── 1. Una competencia que ninguna evaluación mide ───────────────────────────
+#
+# Sale en la boleta SIN nivel, y es un estado que hay que poder ver: es lo que
+# el plan avisa con «saldrá sin nivel en la boleta» (`MOR-229`). Con el plan
+# entero conectado no aparecería nunca — la misma razón por la que hay secciones
+# sin notas y representantes sin correo.
+suelta = nil
+cuarto_a = seccion_de(bolivar, "4to Grado", "A", SEMILLA[:anio_bolivar])
+if cuarto_a
+  materia = cuarto_a.grade.subjects.find_by(code: "MAT")
+  if materia
+    suelta = Competency.find_or_create_by!(
+      section: cuarto_a, subject: materia, evaluation_moment: lapsos_bol.first,
+      descripcion: "Interpreta tablas y gráficos sencillos"
+    ) { |c| c.orden = 9 }
+    [ "Lee los datos de una tabla", "Explica lo que muestra un gráfico" ].each_with_index do |texto, i|
+      Indicator.find_or_create_by!(competency: suelta, descripcion: texto) { |ind| ind.orden = i }
     end
   end
 end
 
-# ── Etiquetar las evaluaciones con lo que evalúan ────────────────────────────
+# ── 2. Indicadores que todavía no mide nadie ─────────────────────────────────
 #
-# El enganche entre el PLAN y la NOTA. Sin esto las competencias existen y no
-# aparecen en ninguna boleta — que es para lo único que existen.
-#
-# ⚠️ Se etiquetan las del PRIMER lapso, que es donde está el plan. Las de los
-# otros dos quedan sin etiqueta a propósito: es el estado normal de un año en
-# curso, y hace visible que una evaluación sin etiquetar sigue funcionando.
-Current.school = bolivar
-etiquetadas = 0
-
-[ [ bolivar, "4to Grado" ], [ bolivar, "1er Grado" ] ].each do |colegio, grado|
-  Current.school = colegio
-  seccion = seccion_de(colegio, grado, "A", SEMILLA[:anio_bolivar])
-  next if seccion.nil?
-
-  primer_lapso = lapsos_bol.first
-  EvaluationActivity.where(section_id: seccion.id, evaluation_moment_id: primer_lapso.id)
-                    .find_each do |actividad|
-    plan = Competency.del_plan(actividad.section_id, actividad.subject_id,
-                               actividad.evaluation_moment_id).to_a
-    next if plan.empty?
-
-    # ⚠️ Se etiquetan casi todas, pero NO todas: la última competencia del plan
-    # de 4to Grado queda suelta a propósito.
-    #
-    # «Ninguna evaluación todavía» es un estado que hay que poder ver —esa
-    # competencia sale en la boleta sin nivel— y con el plan entero conectado no
-    # aparece nunca. Es la misma razón por la que hay secciones sin notas y
-    # representantes sin correo.
-    competencia = plan[etiquetadas % plan.size]
-    next if competencia == plan.last && seccion.grade.name == "4to Grado"
-
-    ActivityCompetency.find_or_create_by!(competency: competencia, evaluation_activity: actividad)
-    etiquetadas += 1
-  end
-end
+# El reparto de arriba le da UNO a cada evaluación, y una competencia con tres
+# queda con dos libres. Es el estado normal de un lapso a medias, y es lo que
+# hace visible para qué sirve la columna: se ve qué falta por evaluar.
+competencias = Current.sin_aislamiento { Competency.unscoped.count }
+libres = Current.sin_aislamiento { Indicator.unscoped.where(evaluation_activity_id: nil).count }
+medidos = Current.sin_aislamiento { Indicator.unscoped.where.not(evaluation_activity_id: nil).count }
 
 # ── Los informes descriptivos (MOR-216) ──────────────────────────────────────
 #
@@ -473,5 +502,6 @@ Current.school = bolivar
 puts "   ✓ #{escritos} informes escritos · el tercio restante queda SIN informe, a propósito"
 
 Current.school = bolivar
-puts "   ✓ #{competencias} competencias con sus indicadores, en 1er y 4to Grado"
-puts "     #{etiquetadas} evaluaciones del 1er lapso etiquetadas con lo que evalúan"
+puts "   ✓ #{competencias} competencias con sus indicadores, en toda la primaria"
+puts "     #{medidos} indicadores medidos por una evaluación · #{libres} todavía libres"
+puts "     «#{suelta&.descripcion}» queda sin evaluar a propósito: sale sin nivel en la boleta" if suelta
