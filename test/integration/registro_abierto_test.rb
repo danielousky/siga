@@ -65,7 +65,7 @@ class RegistroAbiertoTest < ActionDispatch::IntegrationTest
   end
 
   test "queda con su cargo y su plan Inicial" do
-    registrarse(cargo: "asistente")
+    registrarse(cargo: "otro")
 
     Current.en_el_colegio(nuevo_colegio) do
       assert_equal "asistente", Admin.first.role

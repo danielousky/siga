@@ -109,8 +109,12 @@ class ReportCardsController < ApplicationController
     partes.join("-").parameterize + ".pdf"
   end
 
+  # ⚠️ `emitir_documentos`, no `manage_students`: son dos permisos distintos y
+  # compartían uno. El día que un colegio quiera que la secretaria cargue
+  # alumnos pero no emita boletines, la tabla de `ApplicationController` cambia
+  # en una línea en vez de desenredar tres controllers.
   def require_emisor!
-    return if can_manage_students?
+    return if puede?(:emitir_documentos)
 
     redirect_to dashboard_path_for_user,
                 alert: "Los boletines los emite la dirección o la secretaría del colegio."

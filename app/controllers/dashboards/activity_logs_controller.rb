@@ -25,9 +25,15 @@ class Dashboards::ActivityLogsController < ApplicationController
 
   private
 
+  # ⚠️ `administrador?` a secas dejaba entrar a CUALQUIER admin —finanzas, la
+  # secretaria— mientras el panel escondía el bloque de actividad reciente con
+  # `show_recent_activity?`, que pide dirección.
+  #
+  # Dos respuestas distintas a la misma pregunta: el bloque no se veía y la URL
+  # sí abría. Y lo que hay detrás es quién tocó qué nota, desde qué IP.
   def require_admin!
-    unless administrador?
-      redirect_to dashboard_path_for_user, alert: "Acceso no autorizado."
-    end
+    return if puede?(:recent_activity)
+
+    redirect_to dashboard_path_for_user, alert: "Acceso no autorizado."
   end
 end

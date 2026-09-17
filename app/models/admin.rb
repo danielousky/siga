@@ -40,16 +40,21 @@ class Admin < ApplicationRecord
   # eso se guarda distinto; lo que no puede es decidir si puede trabajar. El
   # día que el colegio tenga varios administradores, el director reparte los
   # roles acotados desde `/administradores`.
+  # ⚠️ DOS opciones, no tres. Daniel: *«¿para qué poner 3 en ese caso?»*.
+  #
+  # Tenía «Asistente de dirección» y «Otro cargo» por separado, y las dos se
+  # guardan igual —`asistente`— así que la pregunta ofrecía una distinción que
+  # no existe. Lo único que el registro necesita saber es si quien abre la
+  # cuenta ES el director o lo ayuda: de ahí en adelante, el propio colegio
+  # reparte los cargos finos desde `/administradores`.
   CARGOS_AL_REGISTRARSE = {
     "director" => "Director o directora",
-    "asistente" => "Asistente de dirección",
     "otro" => "Otro cargo"
   }.freeze
 
   # ⚠️ «otro» no es un valor del enum: es una etiqueta del formulario. Se guarda
   # como `asistente`, que es el rol de dirección sin ser el director.
-  CARGO_AL_ROL = { "director" => "director", "asistente" => "asistente",
-                   "otro" => "asistente" }.freeze
+  CARGO_AL_ROL = { "director" => "director", "otro" => "asistente" }.freeze
 
   def self.rol_al_registrarse(cargo) = CARGO_AL_ROL.fetch(cargo.to_s, "asistente")
 
