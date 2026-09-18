@@ -19,9 +19,96 @@ programa: si una entrada no se puede explicar sin nombrar un archivo, no va acá
 
 ## Por salir · 1.0.0
 
-- **Sacar los datos de demostración de producción** (`MOR-146`). Es lo único que
-  falta para el 1.0: hoy la base que ve el mundo tiene 290 alumnos inventados y
-  usuarios con la contraseña de los seeds.
+- ~~Sacar los datos de demostración de producción~~ (`MOR-146`) — **hecho el 17
+  de septiembre**, con respaldo verificado antes. La base que ve el mundo quedó
+  vacía.
+- **Que un colegio entre y opere.** Es lo que significa el número: *«1.0.0 no
+  significa "está completo": significa que un colegio real opera con esto»*.
+  Hoy no hay ninguno —la limpieza se llevó también los dos de las pruebas de
+  campo— así que el 1.0 espera al primero de verdad.
+
+## 0.10.0 — 18 de septiembre de 2026
+
+**El colegio ya puede cobrar.** Era lo único de la tabla de entrada que los tres
+competidores tienen y SIGA no: la suscripción sabía si el colegio estaba al día,
+pero no había nada que cobrara. Ahora la familia reporta su pago, la oficina lo
+valida, y la deuda tiene consecuencia.
+
+Y dos cosas más que estaban a medias: la boleta pasa por un vistazo antes de
+llegar a la casa, y el plan de primaria dice **qué indicador** midió cada
+evaluación.
+
+### Cobrarle a las familias
+
+- **La familia reporta su pago** desde su portal: monto, referencia, fecha y la
+  foto del comprobante. La oficina lo ve en su bandeja y lo **valida o lo
+  rechaza**, con el motivo.
+- **La deuda con el colegio es UNA.** Una madre con tres hijos ve un solo saldo
+  y **un pago cubre a varios**: el recibo del banco es uno, y pedirle tres
+  reportes por la misma transferencia es hacerle el trabajo del colegio.
+- **El que debe no ve las notas** —ni la familia ni el alumno—, con cinco días
+  de gracia y una pantalla que explica qué hacer. El bloqueo es **por
+  inscripción**: el hijo que está al día no paga por el hermano que no.
+- **Un reporte se puede corregir**, y no solo desde la oficina: mientras esté en
+  revisión, la familia arregla la referencia que tecleó mal.
+- **Un rechazo por error se deshace.** Rechazar y volver a validar deja todo
+  como estaba — antes, rechazar una vez cerraba la puerta.
+- **Validar sin abrir el comprobante**, desde la bandeja, y deshacerlo ahí
+  mismo. Cincuenta pagos un lunes por la mañana no son cincuenta pantallas.
+- **La lista de representados dice cuál está atrasado**, y la de morosos lleva
+  al detalle del deudor con un clic.
+- **El colegio dice lo que cobra**: matrícula, mensualidades y cuotas del año,
+  en una pantalla.
+- **Tres maneras de mostrar un monto, y cada una es distinta.** La deuda va en
+  dólares, la transferencia en bolívares, y el reporte de la familia **sin
+  unidad**: SIGA no guarda tasa de cambio, y **validar el pago ES el acto de
+  cambio** — ponerle una moneda a lo que la familia escribe sería inventar una
+  conversión que nadie hizo.
+- **El comprobante se encoge al subirlo.** Una foto de teléfono pesa tres megas;
+  la que se guarda, ochenta kilos.
+
+### El plan de evaluación de primaria
+
+- **Una evaluación dice qué indicadores mide**, no solo qué competencia. Y **un
+  indicador no se repite entre evaluaciones**: la competencia se repite, los
+  indicadores la reparten — el examen mide «suma con reagrupación» y el taller,
+  «estima antes de calcular».
+- Al crear una evaluación se **marcan los indicadores que ya están escritos** y
+  se pueden **agregar otros ahí mismo**, sin salir del plan. Los nuevos quedan
+  en la competencia para las próximas.
+- **En la boleta, cada indicador sale con su propio nivel** —el de la evaluación
+  que lo midió—, y salen solo los que se midieron. La competencia conserva el
+  suyo, que es el ponderado de sus evaluaciones.
+- **Traer el plan del año pasado trae las evaluaciones solo si lo dictaba el
+  mismo profesor.** El peso de un examen y su fecha son una decisión de quien
+  evalúa; las competencias sí se heredan, porque describen qué enseña el grado.
+
+### Los documentos
+
+- **La boleta pasa por un vistazo final** antes de que la vea la familia: se
+  revisa el lapso completo y se libera. Antes salía sola.
+- **El verificador comprueba constancias**, no solo boletines, y muestra el
+  informe descriptivo.
+- **En bachillerato la nota es el número**, sin la rúbrica: los niveles
+  —«PA», «PC»— son de primaria, porque una familia de primaria no lee un 17,
+  lee «va bien».
+
+### Quién puede qué
+
+- **Tres grupos de administración**, en una sola tabla: dirección, académico y
+  finanzas. Quien lleva el dinero no ve el registro de actividad ni importa
+  datos; quien coordina no crea usuarios.
+- Al registrar un colegio hay **dos cargos y no tres**: director o directora, y
+  otro cargo. Con tres, quien elegía el del medio quedaba **encerrada en su
+  propio colegio**, sin poder crear ni siquiera al director.
+
+### Que te encuentren
+
+- **Directorio público de los 13.434 planteles** del país, por estado y
+  municipio, con la ficha de cada uno. Son 13.434 páginas que traen a un
+  director buscando el nombre de su colegio.
+- **El manual completo vive en el servidor**, con su PDF de 72 páginas para
+  descargar. Un enlace que se comparte, no un archivo que se manda.
 
 ## 0.9.0 — 12 de septiembre de 2026
 
