@@ -1131,10 +1131,20 @@ depende ninguna API:
    PARCHE   un arreglo o un ajuste             nadie tiene que enterarse
 ```
 
-⚠️ **`1.0.0` no significa «está completo»: significa que un colegio real opera
-con esto.** El único portón es sacar los datos de demostración de producción
-(`MOR-146`). La cobranza dentro de la app (`MOR-128`) **no** lo es: hoy se vende
-igual y la suscripción ya lleva su estado.
+⚠️ **El número COMUNICA, y ese es su primer trabajo.** Daniel, 18 de septiembre:
+*«lo que quiero con estas versiones es que se genere confianza; un producto en
+0.algo se ve como una beta»*. De ahí el salto de **0.10 a 1.5**: SIGA opera un
+año escolar completo desde hace semanas y el número decía lo contrario.
+
+⚠️ **Y me corrijo, porque el criterio anterior lo inventé yo.** El commit
+`91abda4` escribió que «1.0.0 significa que un colegio real opera con esto» y lo
+citó después como si fuera norma. No lo es de nadie: `semver.org` dice casi lo
+contrario —*«if your software is being used in production, it should probably
+already be 1.0.0»*— y SIGA no tiene API pública que estabilizar. El criterio que
+manda es el de arriba.
+
+⚠️ **Del 1.5.0 en adelante los tres significados sí aplican**, y el MAYOR se
+reserva para lo que dice la tabla: que cambie **cómo trabaja** el colegio.
 
 ⚠️ **Subir el número son tres cosas, no una**: la constante, la entrada en
 [`CHANGELOG.md`](CHANGELOG.md) y el tag `vX.Y.Z`. Lo cuida `version_test`, que
