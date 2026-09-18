@@ -289,45 +289,18 @@ class ReportCardData
   # nivel. Es información del plan —«esto se trabajó este lapso»— y esconderla
   # dejaría a la familia sin saber qué se evaluó. «Sin evaluar» se escribe en
   # letras, nunca NP y nunca cero.
+  #
+  # ⚠️ Sus INDICADORES, en cambio, salen solo si alguna evaluación los midió, y
+  # cada uno con su propio nivel (`PlanEvaluado`). Decisión de Daniel, 18 de
+  # septiembre: un indicador sin medir no tiene nivel que mostrar y el renglón
+  # vacío alarga una boleta que ya tiene ocho materias.
   def competencias_de(materia)
     return [] if @lapso.nil?          # el anual no lleva plan: cruza tres lapsos
-    return [] if plan_del_lapso.empty?
+    return [] unless grado&.califica_con_rubrica?
 
-    plan_del_lapso.fetch(materia.id, []).map do |competencia|
-      {
-        "texto"        => competencia.descripcion,
-        "indicadores"  => competencia.indicators.map(&:descripcion),
-        "nivel_de_rubrica" => nivel_de_rubrica(nota_de_la_competencia(competencia))
-      }.compact
-    end
-  end
-
-  def plan_del_lapso
-    @plan_del_lapso ||= begin
-      Competency.where(section_id: @seccion.id, evaluation_moment_id: @lapso&.id)
-                .includes(:indicators).order(:orden, :id).group_by(&:subject_id)
-    end
-  end
-
-  # El promedio ponderado de las actividades que evalúan esta competencia.
-  #
-  # ⚠️ Devuelve `nil` —no cero— cuando el alumno no tiene ninguna nota en ellas.
-  # Sin nota no es reprobado: es que nadie evaluó todavía, y confundirlos le
-  # pone un «NP» a un niño al que no le tomaron nada.
-  def nota_de_la_competencia(competencia)
-    actividades = competencia.evaluation_activities_con_peso
-    return nil if actividades.empty?
-
-    notas = ActivityGrade.where(student_id: @alumno.id,
-                                evaluation_activity_id: actividades.keys)
-                         .pluck(:evaluation_activity_id, :score).to_h
-    return nil if notas.empty?
-
-    peso_total = notas.keys.sum { |id| actividades[id] }
-    return nil if peso_total.zero?
-
-    suma = notas.sum { |id, nota| nota * actividades[id] }
-    GradeCalculator.redondear(suma / peso_total)
+    PlanEvaluado.de(section_id: @seccion.id, subject_id: materia.id,
+                    evaluation_moment_id: @lapso.id, student_id: @alumno.id,
+                    rubricas: rubricas)
   end
 
   # ⚠️ El nombre lleva «de_rubrica» a propósito: `nivel_de` ya existe en esta

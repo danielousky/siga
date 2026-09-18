@@ -39,7 +39,8 @@ PLAN_DE_PRIMARIA = {
   ],
   "CNA" => [
     [ "Reconoce los seres vivos de su entorno y sus necesidades",
-      [ "Distingue seres vivos de objetos inertes", "Nombra lo que necesita una planta" ] ]
+      [ "Distingue seres vivos de objetos inertes", "Nombra lo que necesita una planta",
+        "Explica para qué sirven las partes de la planta" ] ]
   ]
 }.freeze
 
@@ -57,9 +58,14 @@ PLAN_DE_PRIMARIA = {
 def plan_de(seccion, materia, lapso)
   return [] unless seccion.grade.por_competencias?
 
+  # ⚠️ TRES indicadores, uno por evaluación del lapso. Con dos, la tercera se
+  # quedaba sin ninguno libre y `un_indicador_libre` le inventaba uno con el
+  # nombre de la evaluación —«Lo que se evalúa en “Participación”»—, que es un
+  # texto de relleno saliendo impreso en una boleta de demostración.
   escrito = PLAN_DE_PRIMARIA[materia.code] || [
     [ "Alcanza los objetivos de #{materia.name}",
-      [ "Participa en las actividades de la clase", "Cumple con las asignaciones" ] ]
+      [ "Participa en las actividades de la clase", "Cumple con las asignaciones",
+        "Trabaja en equipo con sus compañeros" ] ]
   ]
 
   escrito.map.with_index do |(descripcion, indicadores), orden|
