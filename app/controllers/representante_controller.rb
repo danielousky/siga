@@ -148,34 +148,11 @@ class RepresentanteController < ApplicationController
   # Acá se muestra lo de HOY: es la pantalla, no el documento.
   def competencias_de(inscripcion, materia, lapso)
     return [] if @anual || lapso.nil? || rubricas_del_colegio.empty?
+    return [] unless inscripcion.section.grade.califica_con_rubrica?
 
-    plan = Competency.where(section_id: inscripcion.section_id, subject_id: materia.id,
-                            evaluation_moment_id: lapso.id)
-                     .includes(:indicators).order(:orden, :id)
-
-    plan.map do |competencia|
-      nota = nota_de_la_competencia(competencia, inscripcion)
-      { texto: competencia.descripcion,
-        indicadores: competencia.indicators.map(&:descripcion),
-        nivel: nivel_de_rubrica(inscripcion.section.grade, nota) }
-    end
-  end
-
-  # ⚠️ `nil` y no cero cuando el alumno no tiene notas en las evaluaciones que
-  # la miden. Sin evaluar no es reprobado, y el nivel más bajo SÍ reprueba.
-  def nota_de_la_competencia(competencia, inscripcion)
-    actividades = competencia.evaluation_activities_con_peso
-    return nil if actividades.empty?
-
-    notas = ActivityGrade.where(student_id: inscripcion.student_id,
-                                evaluation_activity_id: actividades.keys)
-                         .pluck(:evaluation_activity_id, :score).to_h
-    return nil if notas.empty?
-
-    peso = notas.keys.sum { |id| actividades[id] }
-    return nil if peso.zero?
-
-    GradeCalculator.redondear(notas.sum { |id, nota| nota * actividades[id] } / peso)
+    PlanEvaluado.de(section_id: inscripcion.section_id, subject_id: materia.id,
+                    evaluation_moment_id: lapso.id, student_id: inscripcion.student_id,
+                    rubricas: rubricas_del_colegio)
   end
 
   def resumen_de_asistencia(inscripcion)

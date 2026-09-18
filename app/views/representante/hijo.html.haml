@@ -75,18 +75,29 @@
             entiendan qué se evaluó, no solo con qué nota salió.
           - if fila[:competencias].present?
             %ul.portal-competencias
+              -# ⚠️ Claves de TEXTO, no símbolos: la pantalla y el boletín emitido
+                comparten `PlanEvaluado`, y su salida es la misma que se
+                congela en el `snapshot` —que es JSON y no tiene símbolos—.
               - fila[:competencias].each do |competencia|
                 %li.portal-competencia
                   .portal-competencia-fila
-                    %span= competencia[:texto]
+                    %span= competencia["texto"]
                     -# «Sin evaluar» en LETRAS, nunca el nivel más bajo: ése
                       reprueba, y esto es que todavía no le tomaron nada.
                     %span.portal-competencia-nivel
-                      = competencia[:nivel] || "Sin evaluar"
-                  - if competencia[:indicadores].any?
+                      = competencia["nivel_de_rubrica"] || "Sin evaluar"
+                  -# ⚠️ Solo los indicadores que alguna evaluación MIDIÓ, cada
+                    uno con el nivel de esa evaluación. Un indicador lo mide una
+                    sola, así que el nivel es una lectura y no un promedio
+                    inventado — ver `PlanEvaluado`.
+                  - medidos = PlanEvaluado.indicadores_de(competencia)
+                  - if medidos.any?
                     %ul.portal-indicadores
-                      - competencia[:indicadores].each do |indicador|
-                        %li= indicador
+                      - medidos.each do |indicador|
+                        %li.portal-indicador
+                          %span= indicador["texto"]
+                          - if indicador["nivel_de_rubrica"]
+                            %span.portal-indicador-nivel= indicador["nivel_de_rubrica"]
 
     -# ⚠️ La leyenda de la rúbrica está OCULTA por ahora (Daniel, 10 de sept:
     -# «de momento, vamos a ocultar ese panel»).

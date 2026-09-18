@@ -548,6 +548,18 @@ nivel dejaría a todo bachillerato sin poder crear una evaluación. Lo viejo se
 **avisa** en el plan, como `MOR-229` avisa la competencia sin evaluaciones.
 Borrar una evaluación **suelta** sus indicadores (`nullify`), no los borra.
 
+⚠️ **En la BOLETA, cada indicador lleva SU nivel** —el de la evaluación que lo
+midió— y salen **solo los medidos**. La competencia conserva el suyo, que es el
+ponderado de sus evaluaciones. Hasta esta regla el nivel por indicador era
+imposible: habría exigido una regla de agregación —moda, promedio, mínimo— que
+ninguna norma define. Con un indicador por evaluación es una **lectura**, no una
+cuenta. Vive en `PlanEvaluado`, que usan la boleta y el portal de la familia.
+
+⚠️ **Un boletín EMITIDO no cambia**: los `snapshot` viejos guardaron los
+indicadores como una lista de textos y `PlanEvaluado.indicadores_de` los sigue
+leyendo así. No se migran — reescribir un documento emitido es lo que el
+snapshot existe para impedir.
+
 ⚠️ **Traer el plan del año pasado trae las evaluaciones SOLO si lo dictaba el
 mismo profesor.** Decisión de Daniel: una evaluación es una decisión pedagógica
 de quien evalúa —el peso, la fecha, qué mide— y heredarla de otro le pone un

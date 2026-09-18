@@ -582,6 +582,25 @@ siempre trae todo.
 Pesos entre competencias · catálogo compartido entre colegios · taxonomías ·
 aprobación del plan por la coordinadora · gráficos de progreso.
 
-Y una decisión **abierta a propósito**: la boleta sigue imprimiendo **todos** los
-indicadores de la competencia, no solo los que se midieron en ese lapso.
-Cambiarlo altera un documento que va a una casa, y no se hace sin decidirlo.
+### La boleta: cerrada el 18 de septiembre
+
+Quedaba abierta a propósito —cambia un documento que va a una casa— y Daniel la
+cerró con tres decisiones:
+
+```
+   Matemática                                   17     PA
+     • Resuelve problemas de adición                   PA   ← ① la competencia
+         – Suma con reagrupación                       PC   ← ② el indicador, con SU nivel
+         – Resuelve en dos pasos                       PD   ← ③ sin nombrar la evaluación
+```
+
+| | decisión |
+|---|---|
+| **①** | La competencia **conserva** su nivel: el ponderado de sus evaluaciones. Es el resumen de un vistazo; el detalle va debajo. |
+| **②** | Solo los indicadores **medidos**. El que nadie midió no tiene nivel que mostrar, y el renglón vacío alarga una boleta de ocho materias. El plan completo se sigue viendo en la pantalla del profesor. |
+| **③** | **No** se nombra la evaluación al lado. La boleta queda limpia; si la familia pregunta, el colegio lo consulta en el plan. |
+
+⚠️ **Un boletín EMITIDO no cambia.** Los `snapshot` anteriores guardaron los
+indicadores como una lista de TEXTOS y se siguen leyendo así
+(`PlanEvaluado.indicadores_de`). No se migran: reescribir un documento emitido
+es exactamente lo que el snapshot existe para impedir.

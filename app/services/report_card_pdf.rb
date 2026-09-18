@@ -229,15 +229,24 @@ class ReportCardPdf
   # ⚠️ Una competencia sin nivel dice «Sin evaluar», en letras. Nunca «NP» y
   # nunca cero: `NP` es reprobado —*«el docente está obligado a evaluar»*— y
   # esto es que todavía no le tomaron nada.
+  #
+  # ⚠️ Y cada INDICADOR lleva el suyo (`MOR-136`, segunda mitad). Un indicador
+  # lo mide una sola evaluación, así que su nivel es el de esa nota: una
+  # lectura, no un promedio inventado. Salen solo los que se midieron.
+  #
+  # ⚠️ `PlanEvaluado.indicadores_de` y no `competencia["indicadores"]` a secas:
+  # los boletines emitidos ANTES de esto los guardaron como una lista de textos,
+  # y leerlos como hashes dejaría en blanco la boleta de diciembre.
   def filas_de_competencias(materia, con_rubrica)
     Array(materia["competencias"]).flat_map do |competencia|
       nivel = con_rubrica ? (competencia["nivel_de_rubrica"] || "Sin evaluar") : ""
       fila  = [ { content: "   • #{texto(competencia['texto'])}", size: 7.5, text_color: "555555" },
                 { content: nivel.to_s, size: 7.5, align: :center, text_color: "555555" } ]
 
-      indicadores = Array(competencia["indicadores"]).map do |indicador|
-        [ { content: "        – #{texto(indicador)}", size: 7, text_color: "888888" },
-          { content: "", size: 7 } ]
+      indicadores = PlanEvaluado.indicadores_de(competencia).map do |indicador|
+        suyo = con_rubrica ? indicador["nivel_de_rubrica"].to_s : ""
+        [ { content: "        – #{texto(indicador['texto'])}", size: 7, text_color: "888888" },
+          { content: suyo, size: 7, align: :center, text_color: "888888" } ]
       end
 
       [ fila ] + indicadores

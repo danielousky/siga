@@ -7531,6 +7531,35 @@ a.subject-avance:hover { filter: brightness(0.9); }
   color: var(--text-tertiary);
 }
 
+/* Cada indicador con SU nivel (MOR-136, segunda mitad). Un indicador lo mide
+   una sola evaluación, así que el nivel es el de esa nota — una lectura, no un
+   promedio inventado. Salen solo los que se midieron: el renglón sin nivel
+   alarga una boleta que ya tiene ocho materias. */
+.portal-indicador {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+}
+
+/* Se apoya en la línea de puntos para que el ojo llegue del texto a su nivel
+   sin que la columna tenga que estar alineada — los indicadores son de largos
+   muy distintos. */
+.portal-indicador::after {
+  content: "";
+  flex: 1 1 auto;
+  min-width: var(--space-sm);
+  border-bottom: 1px dotted var(--border-subtle);
+  transform: translateY(-3px);
+}
+
+.portal-indicador-nivel {
+  order: 3;
+  flex: 0 0 auto;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
 .portal-leyenda {
   list-style: none;
   margin: 0;
@@ -9460,6 +9489,35 @@ a.subject-avance:hover { filter: brightness(0.9); }
   padding-left: var(--space-md);
   font-size: 13px;
   color: var(--text-tertiary);
+}
+
+/* Cada indicador con SU nivel (MOR-136, segunda mitad). Un indicador lo mide
+   una sola evaluación, así que el nivel es el de esa nota — una lectura, no un
+   promedio inventado. Salen solo los que se midieron: el renglón sin nivel
+   alarga una boleta que ya tiene ocho materias. */
+.portal-indicador {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+}
+
+/* Se apoya en la línea de puntos para que el ojo llegue del texto a su nivel
+   sin que la columna tenga que estar alineada — los indicadores son de largos
+   muy distintos. */
+.portal-indicador::after {
+  content: "";
+  flex: 1 1 auto;
+  min-width: var(--space-sm);
+  border-bottom: 1px dotted var(--border-subtle);
+  transform: translateY(-3px);
+}
+
+.portal-indicador-nivel {
+  order: 3;
+  flex: 0 0 auto;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .portal-leyenda {

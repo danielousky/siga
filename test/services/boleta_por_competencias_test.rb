@@ -62,9 +62,80 @@ class BoletaPorCompetenciasTest < ActiveSupport::TestCase
 
       assert_equal 1, plan.size
       assert_equal "Resuelve problemas de adición", plan.first["texto"]
-      assert_equal [ "Suma con reagrupación" ], plan.first["indicadores"]
       assert_equal "PC", plan.first["nivel_de_rubrica"]
+      # ⚠️ Cada indicador con SU nivel: el de la evaluación que lo midió.
+      assert_equal [ { "texto" => "Suma con reagrupación", "nivel_de_rubrica" => "PC" } ],
+                   plan.first["indicadores"]
     end
+  end
+
+  # ⚠️ El nivel de un indicador es una LECTURA, no una cuenta.
+  #
+  # Un indicador lo mide una sola evaluación (`MOR-136`, segunda mitad), así que
+  # su nivel es el de esa nota. Dos indicadores de la misma competencia, medidos
+  # por evaluaciones distintas, salen con niveles distintos — y eso es lo que la
+  # boleta no podía decir antes: imprimía los dos bajo el nivel de la
+  # competencia, que es el ponderado de las dos.
+  test "cada indicador sale con el nivel de la evaluación que lo midió" do
+    con_el_colegio(@esc.colegio) do
+      @esc.colegio.restablecer_la_rubrica!
+      competencia = Competency.create!(section: @esc.seccion, subject: @esc.materia,
+                                       evaluation_moment: @lapso, descripcion: "Con dos")
+      bien  = competencia.indicators.create!(descripcion: "Lo que salió bien", orden: 0)
+      flojo = competencia.indicators.create!(descripcion: "Lo que salió flojo", orden: 1)
+
+      examen = actividad(@esc, lapso: @lapso, peso: 50, descripcion: "Examen", mide: competencia)
+      taller = actividad(@esc, lapso: @lapso, peso: 50, descripcion: "Taller", mide: competencia)
+      nota(examen, @esc.alumno, 19)
+      nota(taller, @esc.alumno, 11)
+
+      datos = ReportCardData.para(enrollment: @esc.inscripcion, evaluation_moment: @lapso)
+      plan = datos["materias"].find { |m| m["materia"] == @esc.materia.name }["competencias"]
+      suya = plan.find { |c| c["texto"] == "Con dos" }
+
+      # ⚠️ El escenario reparte un indicador por evaluación, en orden.
+      niveles = suya["indicadores"].to_h { |i| [ i["texto"], i["nivel_de_rubrica"] ] }
+      assert_equal "PC", niveles[bien.reload.descripcion]
+      assert_equal "PD", niveles[flojo.reload.descripcion]
+
+      # Y la competencia conserva el suyo: el ponderado de las dos (15 → PI).
+      assert_equal "PI", suya["nivel_de_rubrica"]
+    end
+  end
+
+  # ⚠️ Decisión de Daniel, 18 de septiembre: el indicador que nadie midió NO
+  # sale. No tiene nivel que mostrar, y el renglón vacío alarga una boleta que
+  # ya tiene ocho materias. El plan completo se ve en la pantalla del profesor.
+  test "el indicador que ninguna evaluación midió no sale en la boleta" do
+    con_el_colegio(@esc.colegio) do
+      @esc.colegio.restablecer_la_rubrica!
+      competencia = Competency.create!(section: @esc.seccion, subject: @esc.materia,
+                                       evaluation_moment: @lapso, descripcion: "Una sola medida")
+      competencia.indicators.create!(descripcion: "Este sí se midió", orden: 0)
+      competencia.indicators.create!(descripcion: "Este no lo midió nadie", orden: 1)
+
+      examen = actividad(@esc, lapso: @lapso, peso: 100, descripcion: "Examen", mide: competencia)
+      nota(examen, @esc.alumno, 18)
+
+      datos = ReportCardData.para(enrollment: @esc.inscripcion, evaluation_moment: @lapso)
+      plan = datos["materias"].find { |m| m["materia"] == @esc.materia.name }["competencias"]
+      suya = plan.find { |c| c["texto"] == "Una sola medida" }
+
+      assert_equal [ "Este sí se midió" ], suya["indicadores"].map { |i| i["texto"] }
+    end
+  end
+
+  # ⚠️ Un boletín EMITIDO no cambia, y los viejos guardaron los indicadores como
+  # una lista de TEXTOS. Leerlos como hashes dejaría la boleta de diciembre con
+  # los indicadores en blanco — y reescribir el `snapshot` es exactamente lo que
+  # el `snapshot` existe para impedir.
+  test "un boletín emitido antes de esto sigue mostrando sus indicadores" do
+    viejo = { "texto" => "Del formato anterior",
+              "indicadores" => [ "Suma con reagrupación", "Estima antes de calcular" ] }
+
+    assert_equal [ { "texto" => "Suma con reagrupación", "nivel_de_rubrica" => nil },
+                   { "texto" => "Estima antes de calcular", "nivel_de_rubrica" => nil } ],
+                 PlanEvaluado.indicadores_de(viejo)
   end
 
   # ⚠️ Una competencia que ninguna evaluación etiquetó SÍ se imprime, sin nivel.
