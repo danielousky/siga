@@ -10,24 +10,20 @@ los colegios la tienen. Ver `Siga::VERSION` en `config/application.rb`.
    PARCHE   un arreglo o un ajuste             nadie tiene que enterarse
 ```
 
-⚠️ **`1.0.0` no significa «está completo»: significa que un colegio real opera
-con esto.** Y esta lista se escribe para quien usa SIGA, no para quien lo
-programa: si una entrada no se puede explicar sin nombrar un archivo, no va acá
-— va en el mensaje del commit, que es donde vive el detalle técnico.
+⚠️ **El número comunica.** Daniel, 18 de septiembre: *«lo que quiero con estas
+versiones es que se genere confianza; un producto en 0.algo se ve como una
+beta»*. SIGA no lo es: opera un año escolar completo, con los documentos del
+ministerio, desde hace semanas. Por eso el **salto de 0.10 a 1.5**, que es
+deliberado y no esconde versiones que falten — nunca existieron la 1.0 ni la
+1.4, y esta lista no las inventa.
+
+⚠️ Y esta lista se escribe para quien usa SIGA, no para quien lo programa: si
+una entrada no se puede explicar sin nombrar un archivo, no va acá — va en el
+mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
-## Por salir · 1.0.0
-
-- ~~Sacar los datos de demostración de producción~~ (`MOR-146`) — **hecho el 17
-  de septiembre**, con respaldo verificado antes. La base que ve el mundo quedó
-  vacía.
-- **Que un colegio entre y opere.** Es lo que significa el número: *«1.0.0 no
-  significa "está completo": significa que un colegio real opera con esto»*.
-  Hoy no hay ninguno —la limpieza se llevó también los dos de las pruebas de
-  campo— así que el 1.0 espera al primero de verdad.
-
-## 0.10.0 — 18 de septiembre de 2026
+## 1.5.0 — 18 de septiembre de 2026
 
 **El colegio ya puede cobrar.** Era lo único de la tabla de entrada que los tres
 competidores tienen y SIGA no: la suscripción sabía si el colegio estaba al día,
@@ -37,6 +33,10 @@ valida, y la deuda tiene consecuencia.
 Y dos cosas más que estaban a medias: la boleta pasa por un vistazo antes de
 llegar a la casa, y el plan de primaria dice **qué indicador** midió cada
 evaluación.
+
+⚠️ **El número saltó de 0.10 a 1.5**, y es a propósito. No falta ninguna
+versión: la 1.0 y la 1.4 nunca existieron. Lo que había era un producto
+terminado escondido detrás de un número que decía «beta».
 
 ### Cobrarle a las familias
 
