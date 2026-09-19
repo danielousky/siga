@@ -13,6 +13,61 @@ class InformeDescriptivoTest < ActionDispatch::IntegrationTest
     con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: @a.registro_de_profesor) }
   end
 
+  # ── Dónde vive la pantalla (QA de Cyndi) ──────────────────────────────────
+  #
+  # ⚠️ Es una PESTAÑA de la sección, no un botón en la cabecera de «Calificar».
+  # El informe se escribe junto con las notas, en el mismo lapso y la misma
+  # sección: es otro sitio donde trabajar, y eso es lo que dice una pestaña. Un
+  # botón en la cabecera se lee como una acción sobre lo que ya está en pantalla.
+  test "el informe es una pestaña de la sección, y llega marcada" do
+    sign_in @a.profesor
+
+    get section_informes_path(@a.seccion, lapso: @lapso.id)
+
+    assert_response :success
+    assert_select ".pestana.activa", text: "Informes"
+    # Y las otras siguen ahí: es la misma sección vista de otro ángulo.
+    assert_select ".pestana", text: "Calificar"
+    assert_select ".pestana", text: "Alumnos"
+  end
+
+  # ⚠️ Dos puertas a lo mismo es como se llegó a siete formas de título: el
+  # botón de la cabecera se retiró al volverse pestaña.
+  test "ya no hay botón de informes en la cabecera de calificar" do
+    sign_in @a.profesor
+
+    get section_path(@a.seccion, area: @a.escenario.materia.id)
+
+    assert_response :success
+    assert_select "a", { text: "Informes descriptivos", count: 0 },
+                  "el botón se retiró: ahora es una pestaña"
+    assert_select ".pestana", text: "Informes"
+  end
+
+  # ⚠️ Un profesor que NO es guía no ve la pestaña, igual que no entra a la
+  # pantalla. Ofrecérsela y después negársela enseña a desconfiar del menú.
+  test "el que no es guía no ve la pestaña" do
+    otro = con_el_colegio(@a.colegio) do
+      usuario = User.create!(first_name: "Otro", last_name: "Docente",
+                             email: "otro.docente@bolivar.test", password: "123123")
+      registro = Teacher.create!(user: usuario, school: @a.colegio)
+      # ⚠️ OTRA materia: el par sección–materia es único, y la del escenario ya
+      # la dicta el guía.
+      otra = Subject.create!(department: @a.escenario.materia.department,
+                             code: "LEN", name: "Castellano")
+      GradeSubject.create!(grade: @a.grado, subject: otra)
+      TeacherSection.create!(teacher: registro, section: @a.seccion, subject: otra)
+      [ usuario, otra ]
+    end
+    usuario, area = otro
+    sign_in usuario
+
+    get section_path(@a.seccion, area: area.id)
+
+    assert_response :success
+    assert_select ".pestana", { text: "Informes", count: 0 }
+  end
+
   test "el guía escribe el informe de un alumno y se guarda solo" do
     sign_in @a.profesor
 

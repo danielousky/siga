@@ -421,6 +421,23 @@ module MenuHelper
     if seccion.grade.planifica?
       pestanas << [ "Planificar", planificar_section_path(seccion, contexto), activa == :planificar ]
     end
+
+    # ⚠️ Los informes descriptivos son una PESTAÑA, no un botón de la cabecera.
+    #
+    # Cyndi, en la prueba de campo: el informe descriptivo es parte del trabajo
+    # del lapso —se escribe junto con las notas, en la misma sección— y estaba
+    # detrás de un botón en la esquina. Un botón en la cabecera se lee como una
+    # ACCIÓN sobre lo que la pantalla muestra; esto es otro sitio donde trabajar,
+    # y eso es exactamente lo que una pestaña dice.
+    #
+    # ⚠️ Lo escribe el GUÍA, no cualquier profesor. En bachillerato son doce
+    # profesores y ninguno ve al alumno entero; el guía sí. La dirección también,
+    # porque una sección puede no tener guía y esos alumnos se quedarían sin
+    # informe para siempre. Es la misma condición de `InformesController`.
+    if guio?(seccion) || can_manage_sections?
+      pestanas << [ "Informes", section_informes_path(seccion, contexto), activa == :informes ]
+    end
+
     pestanas << [ "Alumnos", alumnos_section_path(seccion, contexto), activa == :alumnos ]
     pestanas
   end
