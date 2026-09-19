@@ -29,6 +29,15 @@
     - peso = @evaluation_activity.weight_percentage
     %span.carga-peso= "#{porcentaje(peso)} del lapso"
 
+  - if lapso_cerrado?
+    -# ⚠️ Se dice ARRIBA, antes de escribir. El modelo ya lo impide, pero
+    -# descubrirlo nota por nota es aprender el límite a golpes.
+    %p.plan-sin-evaluar
+      = icono(:alerta, tamano: 15)
+      %span
+        Control de Estudio cerró #{@evaluation_activity.evaluation_moment.name}: las notas ya no se
+        pueden cambiar. Si hay un error, la dirección puede reabrir el lapso.
+
   = render "shared/progreso_de_la_planilla", hechas: @notas_por_alumno.size,
            total: @inscripciones.size, nombre: "cargadas"
 
@@ -78,6 +87,7 @@
                                inputmode: "numeric", placeholder: "—", class: "carga-input",
                                autocomplete: "off",
                                "aria-label": "Nota de #{alumno.user.nombre_completo}",
+                               readonly: lapso_cerrado?,
                                data: { planilla_target: "campo",
                                        action: "change->planilla#guardar input->planilla#escribir keydown->planilla#navegar" }
           -# ⚠️ La marca va FUERA del formulario. Adentro, reemplazarla por

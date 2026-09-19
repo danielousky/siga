@@ -46,10 +46,74 @@ class BoletinesDelLapso
   def todo_liberado? = emitidos.any? && emitidos.all?(&:liberado?)
   def hay_para_liberar? = emitidos.any? { |f| !f.liberado? }
 
+  # ── En qué estado está el lapso de esta sección ──────────────────────────
+  #
+  # Daniel: *«por defecto está en "Por calificar"; cuando el profe califica pasa
+  # a calificada, y cuando CE corrobora pasa a "Cerrada"»*.
+  #
+  # ⚠️ Los dos primeros se DEDUCEN de las notas y el tercero se guarda. Guardar
+  # los tres sería un segundo lugar donde vive la misma verdad: el día que
+  # entre la nota que faltaba, la columna seguiría diciendo «por calificar».
+  ESTADOS = {
+    por_calificar: "Por calificar",
+    calificada:    "Calificada",
+    cerrada:       "Cerrada"
+  }.freeze
+
+  def estado
+    return :cerrada if cerrada?
+    return :calificada if fichas.any? && incompletos.empty?
+
+    :por_calificar
+  end
+
+  def nombre_del_estado = ESTADOS.fetch(estado)
+
+  def cierre
+    return @cierre if defined?(@cierre)
+
+    @cierre = SectionClosure.find_by(section_id: @seccion.id, evaluation_moment_id: @lapso.id)
+  end
+
+  def cerrada? = cierre.present?
+
+  # ⚠️ Se puede cerrar solo cuando está CALIFICADA, y eso es un cambio de
+  # criterio respecto de «liberar».
+  #
+  # Liberar dejaba salir lo emitido aunque faltaran notas en otros boletines,
+  # con el argumento de no perseguir a un profesor para entregar los otros
+  # veinte. Daniel lo revirtió: *«Admin debe validar que TODAS las boletas están
+  # completas y dar el visto bueno antes de que sean liberadas»*. Cerrar no es
+  # entregar veinte boletines: es declarar terminado el lapso, y un lapso con
+  # una materia en blanco no está terminado.
+  def se_puede_cerrar? = estado == :calificada
+
+  # Cuántos alumnos NO tienen todavía su informe descriptivo.
+  #
+  # ⚠️ Es un AVISO, no un impedimento. El informe es opcional por diseño
+  # (`MOR-216`) y exigirlo convertiría un texto libre en un trámite; pero quien
+  # está por cerrar el lapso tiene que poder enterarse de que veinte boletines
+  # van a salir sin una sola línea del docente.
+  def sin_informe
+    @sin_informe ||= begin
+      escritos = Informe.where(enrollment_id: fichas.map { |f| f.inscripcion.id },
+                               evaluation_moment_id: @lapso.id)
+                        .where.not(cuerpo: [ nil, "" ]).pluck(:enrollment_id).to_set
+      fichas.reject { |f| escritos.include?(f.inscripcion.id) }
+    end
+  end
+
   private
 
+  # ⚠️ Solo los REGULARES, y eso es lo que hace que un lapso se pueda cerrar.
+  #
+  # Un alumno retirado en octubre no tiene notas de diciembre y nunca las va a
+  # tener: contándolo, la sección se quedaba en «por calificar» para siempre y
+  # el visto bueno de Control de Estudio no llegaba nunca. Tampoco se le emite
+  # boletín —`ReportCardsController` ya filtra por `regular`— así que contarlo
+  # acá era, además, contar algo que no se iba a imprimir.
   def inscripciones
-    @inscripciones ||= Enrollment.where(section_id: @seccion.id)
+    @inscripciones ||= Enrollment.where(section_id: @seccion.id, status: :regular)
                                  .includes(student: :user)
                                  .then { |scope| Enrollment.en_orden_de_lista(scope) }
   end

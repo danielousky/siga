@@ -48,6 +48,22 @@ class ActivityGradesController < ApplicationController
       .to_h
   end
 
+  # ⚠️ Cerrado el lapso, la planilla se LEE pero no se escribe.
+  #
+  # El modelo ya lo impide (`SeCierraConElLapso`), y esto no lo reemplaza: lo
+  # anticipa. Sin el aviso, el profesor escribe las treinta notas y las treinta
+  # le rebotan de a una — descubrir el límite a golpes, cuando la pantalla lo
+  # podía decir arriba.
+  def lapso_cerrado?
+    return @lapso_cerrado if defined?(@lapso_cerrado)
+
+    @lapso_cerrado = SectionClosure.cerrado?(
+      section_id: @evaluation_activity.section_id,
+      evaluation_moment_id: @evaluation_activity.evaluation_moment_id
+    )
+  end
+  helper_method :lapso_cerrado?
+
   def update
     inscripcion = inscripcion_del_alumno
     return head(:not_found) if inscripcion.nil?

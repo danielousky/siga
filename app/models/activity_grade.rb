@@ -1,6 +1,11 @@
 class ActivityGrade < ApplicationRecord
   include SchoolScoped
 
+  # ⚠️ Cerrado el lapso, esta nota no se toca — ni se cambia ni se borra.
+  # Daniel: *«al dar el visto bueno… el profe ya no puede modificar las notas»*.
+  include SeCierraConElLapso
+  se_cierra_con_el_lapso :evaluation_activity
+
   belongs_to :evaluation_activity
   belongs_to :student, foreign_key: :student_id
   llega_al_anio_por evaluation_activity: :section

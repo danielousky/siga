@@ -81,8 +81,12 @@ Rails.application.routes.draw do
   # `RevisionDeBoletinesController`). Va colgado de `/boletines` y no como un
   # recurso propio: es una etapa de la emisión, no otra cosa.
   get   "boletines/revisar",  to: "revision_de_boletines#show",     as: :revisar_boletines
-  patch "boletines/liberar",  to: "revision_de_boletines#liberar",  as: :liberar_boletines
-  patch "boletines/esconder", to: "revision_de_boletines#esconder", as: :esconder_boletines
+  # ⚠️ «Cerrar» reemplaza a «liberar» (QA de Cyndi). Liberar dejaba salir lo
+  # emitido aunque faltaran notas; cerrar declara terminado el lapso —exige el
+  # 100 %— y de ahí cuelgan las otras tres cosas: se emiten los que falten, sale
+  # el correo, y el profesor deja de poder cargar.
+  patch "boletines/cerrar",  to: "revision_de_boletines#cerrar",  as: :cerrar_lapso
+  patch "boletines/reabrir", to: "revision_de_boletines#reabrir", as: :reabrir_lapso
 
   # ⚠️ La descarga de UN boletín, por su id. La usa la FAMILIA, así que el
   # controller comprueba las dos cosas: que sea de su representado y que esté

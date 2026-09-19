@@ -13,6 +13,7 @@ class ValoracionesController < ApplicationController
   include PlanillaQueSeGuardaSola
   before_action :set_seccion
   before_action :require_acceso!
+  before_action :require_lapso_abierto!, only: :update
 
   def update
     valoracion = MomentGrade.find_or_initialize_by(
@@ -83,6 +84,20 @@ class ValoracionesController < ApplicationController
   # En Educación Inicial la maestra dicta las tres áreas, así que basta con que
   # tenga la sección. Y la dirección también, porque una sección puede no tener
   # profesor asignado todavía y esos niños se quedarían sin valoración.
+  # ⚠️ En Educación Inicial la valoración ES la calificación, y se guarda en
+  # `MomentGrade` — la misma tabla donde `GradeCalculator` escribe los promedios
+  # de primaria y media. Por eso la guarda vive acá y no en el modelo: una
+  # validación en `MomentGrade` chocaría con el recálculo, que es automático y
+  # no es «el profe modificando notas».
+  #
+  # El resto de los niveles lo cuida `SeCierraConElLapso` en `ActivityGrade` y
+  # `EvaluationActivity`, que sí son escrituras humanas.
+  def require_lapso_abierto!
+    return unless SectionClosure.cerrado?(section_id: @seccion.id, evaluation_moment_id: lapso&.id)
+
+    render json: { error: "Control de Estudio ya cerró este lapso." }, status: :unprocessable_entity
+  end
+
   def require_acceso!
     return if can_manage_sections?
     return if profesor? && TeacherSection.exists?(section_id: @seccion.id,

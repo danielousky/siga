@@ -22,6 +22,14 @@
                   class: "opcion-boton #{'activo' if lapso.id == @lapso.id}"
 
   .detail-row
+    -# ⚠️ EL ESTADO primero, y con nombre propio. Daniel lo pidió así: *«por
+    -# defecto está en "Por calificar", cuando el profe califica pasa a
+    -# calificada y cuando CE corrobora pasa a "Cerrada"»*. Es la pregunta que
+    -# trae a esta pantalla, y estaba respondida solo de a pedazos —cuántos
+    -# emitidos, cuántos completos— sin que nadie dijera la palabra.
+    .detail-item
+      .detail-label= "#{@lapso.name} está"
+      .detail-value= @boletines.nombre_del_estado
     .detail-item
       .detail-label Emitidos
       .detail-value= "#{@boletines.emitidos.size} de #{@fichas.size}"
@@ -32,12 +40,9 @@
       .detail-label A la vista de las familias
       .detail-value= @boletines.liberados.size
 
-  - if @boletines.incompletos.any?
-    -# ⚠️ Se DICE quiénes, no solo cuántos: «faltan 2» manda a revisar treinta
-    -# fichas para encontrarlos.
-    %p.nota-ayuda
-      Sin calificar al 100 %:
-      %strong= @boletines.incompletos.map { |f| f.alumno.apellidos_y_nombres }.to_sentence(two_words_connector: " y ", last_word_connector: " y ")
+  -# ⚠️ Quiénes faltan se dice ABAJO, en la lista del bloque de cerrar: acá era
+  -# un párrafo con treinta nombres seguidos, y quien lo lee no puede tacharlos
+  -# a medida que los resuelve.
 
 - if @elegida.nil?
   .card-academic
@@ -69,9 +74,11 @@
       - if @elegida.liberado?
         %span.pastilla-de-cobro.estado-validado La familia ya lo ve
       - elsif @elegida.emitido?
-        %span.pastilla-de-cobro.estado-en-revision Emitido, sin liberar
+        %span.pastilla-de-cobro.estado-en-revision Emitido, sin cerrar
       - else
-        %span.pastilla-de-cobro.estado-por-vencer Todavía no se emite
+        -# ⚠️ Ya no es un callejón: cerrar emite los que falten. Antes había que
+        -# salir a «Documentos», emitirlo y volver.
+        %span.pastilla-de-cobro.estado-por-vencer Se emite al cerrar
 
     - if @elegida.emitido?
       -# ⚠️ El boletín se ve TAL COMO lo verá la familia, y no un resumen: el
@@ -79,25 +86,64 @@
       = render "report_cards/emitido", boletin: @elegida.boletin
     - else
       %p.nota-ayuda
-        Este boletín todavía no se emitió. Emítalo desde
-        = succeed "," do
-          = link_to "Documentos", report_cards_path
-        y vuelva a revisarlo.
+        Este boletín se emite solo al cerrar el lapso, con la foto de las notas
+        de ese momento.
 
-  - if @boletines.emitidos.any?
-    .card-academic
-      = render "shared/cabecera", titulo: "Cuando esté todo revisado", nivel: 2
+  -# ── El visto bueno de Control de Estudio ─────────────────────────────────
+  -#
+  -# Daniel: *«CE mira las boletas y da por "cerrado" el proceso de carga y
+  -# completación de la calificación»*. El bloque está SIEMPRE, también cuando
+  -# todavía no se puede cerrar: esconderlo dejaría a quien revisa sin saber qué
+  -# falta para poder hacerlo, que es justo la pregunta que trae a esta pantalla.
+  .card-academic
+    = render "shared/cabecera", titulo: "Cuando esté todo revisado", nivel: 2
+
+    - if @boletines.cerrada?
+      %p.nota-ayuda
+        = "#{@lapso.name} está cerrado desde el #{l(@boletines.cierre.cerrado_el.to_date, format: :long)}"
+        = "· lo cerró #{@boletines.cierre.cerrado_por.nombre_completo}."
+        Las familias ya lo ven y el profesor no puede cambiar las notas.
       .decidir-el-pago
-        - if @boletines.hay_para_liberar?
-          = button_to "Liberar #{@lapso.name} · #{@seccion.grade.name} #{@seccion.name}",
-                      liberar_boletines_path(seccion: @seccion.id, lapso: @lapso.id),
-                      method: :patch, class: "btn btn-guardar",
-                      data: { turbo_confirm: "Las familias van a poder ver estos boletines y se les avisa por correo. ¿Seguimos?" }
-          %p.nota-ayuda
-            = "Se liberan #{contar(@boletines.emitidos.reject(&:liberado?).size, 'boletín', 'boletines')}"
-            \. A cada familia le llega un correo.
-        - if @boletines.liberados.any?
-          -# ⚠️ Reversible: si al liberar aparece un error, se vuelve a esconder.
-          = button_to "Volver a esconderlos", esconder_boletines_path(seccion: @seccion.id, lapso: @lapso.id),
-                      method: :patch, class: "btn btn-danger",
-                      data: { turbo_confirm: "Las familias dejan de verlos. ¿Seguimos?" }
+        -# ⚠️ Reabrir existe porque un error en una nota se descubre DESPUÉS de
+        -# cerrar. Lo que no deshace es el correo, y el aviso lo dice.
+        = button_to "Reabrir el lapso", reabrir_lapso_path(seccion: @seccion.id, lapso: @lapso.id),
+                    method: :patch, class: "btn btn-danger",
+                    data: { turbo_confirm: "Las familias dejan de ver los boletines y el profesor vuelve a poder cargar notas. El correo que ya salió no se puede deshacer. ¿Seguimos?" }
+
+    - elsif @boletines.se_puede_cerrar?
+      -# ⚠️ Se dice TODO lo que dispara el botón antes de tocarlo: cuatro cosas,
+      -# y tres no se ven en la pantalla que queda.
+      %p.nota-ayuda
+        Al cerrar: se emiten los boletines que falten, las familias los ven,
+        %strong a cada una le llega un correo
+        y el profesor deja de poder cambiar las notas de #{@lapso.name.downcase}.
+      - if @boletines.sin_informe.any?
+        -# ⚠️ AVISO y no impedimento: el informe descriptivo es opcional por
+        -# diseño (`MOR-216`) y exigirlo convertiría un texto libre en trámite.
+        -# Pero quien cierra tiene que poder enterarse de que salen sin él.
+        %p.plan-sin-evaluar
+          = icono(:alerta, tamano: 15)
+          %span
+            = "#{contar(@boletines.sin_informe.size, 'alumno sale', 'alumnos salen')} sin informe descriptivo."
+            = link_to "Escribirlos", section_informes_path(@seccion, lapso: @lapso.id)
+      .decidir-el-pago
+        = button_to "Cerrar #{@lapso.name} · #{@seccion.grade.name} #{@seccion.name}",
+                    cerrar_lapso_path(seccion: @seccion.id, lapso: @lapso.id),
+                    method: :patch, class: "btn btn-guardar",
+                    data: { turbo_confirm: "Las familias van a ver estos boletines, se les avisa por correo y el profesor no podrá cambiar las notas. ¿Seguimos?" }
+
+    - else
+      -# ⚠️ Dice QUIÉNES faltan, no «no se puede»: quien revisa tiene que saber a
+      -# quién perseguir, y con un mensaje genérico le toca buscarlo alumno por
+      -# alumno en la lista de arriba.
+      %p.nota-ayuda
+        = "#{@lapso.name} no se puede cerrar todavía:"
+        %strong= "#{contar(@boletines.incompletos.size, 'alumno tiene', 'alumnos tienen')} materias sin nota"
+        \. El lapso se cierra cuando están todas.
+      %ul.revisar-faltantes
+        - @boletines.incompletos.first(8).each do |ficha|
+          %li
+            %span= ficha.alumno.apellidos_y_nombres
+            %span.dato-secundario= contar(ficha.faltan, "materia", "materias")
+        - if @boletines.incompletos.size > 8
+          %li.dato-secundario= "y #{contar(@boletines.incompletos.size - 8, 'alumno más', 'alumnos más')}"

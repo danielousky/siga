@@ -1383,6 +1383,43 @@ ALTER SEQUENCE public.schools_id_seq OWNED BY public.schools.id;
 
 
 --
+-- Name: section_closures; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.section_closures (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    section_id bigint NOT NULL,
+    evaluation_moment_id bigint NOT NULL,
+    cerrado_por_id bigint NOT NULL,
+    cerrado_el timestamp(6) without time zone NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.section_closures FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: section_closures_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.section_closures_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: section_closures_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.section_closures_id_seq OWNED BY public.section_closures.id;
+
+
+--
 -- Name: sections; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2385,6 +2422,13 @@ ALTER TABLE ONLY public.schools ALTER COLUMN id SET DEFAULT nextval('public.scho
 
 
 --
+-- Name: section_closures id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_closures ALTER COLUMN id SET DEFAULT nextval('public.section_closures_id_seq'::regclass);
+
+
+--
 -- Name: sections id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2832,6 +2876,14 @@ ALTER TABLE ONLY public.schema_migrations
 
 ALTER TABLE ONLY public.schools
     ADD CONSTRAINT schools_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: section_closures section_closures_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_closures
+    ADD CONSTRAINT section_closures_pkey PRIMARY KEY (id);
 
 
 --
@@ -3905,6 +3957,41 @@ CREATE INDEX index_schools_on_registrado_por_id ON public.schools USING btree (r
 
 
 --
+-- Name: index_section_closures_on_cerrado_por_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_section_closures_on_cerrado_por_id ON public.section_closures USING btree (cerrado_por_id);
+
+
+--
+-- Name: index_section_closures_on_evaluation_moment_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_section_closures_on_evaluation_moment_id ON public.section_closures USING btree (evaluation_moment_id);
+
+
+--
+-- Name: index_section_closures_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_section_closures_on_school_id ON public.section_closures USING btree (school_id);
+
+
+--
+-- Name: index_section_closures_on_section_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_section_closures_on_section_id ON public.section_closures USING btree (section_id);
+
+
+--
+-- Name: index_section_closures_sin_repetir; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_section_closures_sin_repetir ON public.section_closures USING btree (section_id, evaluation_moment_id);
+
+
+--
 -- Name: index_sections_on_academic_period_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4314,6 +4401,14 @@ ALTER TABLE ONLY public.student_representatives
 
 
 --
+-- Name: section_closures fk_rails_092136f7d4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_closures
+    ADD CONSTRAINT fk_rails_092136f7d4 FOREIGN KEY (cerrado_por_id) REFERENCES public.users(id);
+
+
+--
 -- Name: students fk_rails_0adebddbd5; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4402,6 +4497,14 @@ ALTER TABLE ONLY public.fees
 
 
 --
+-- Name: section_closures fk_rails_1ee722cee7; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_closures
+    ADD CONSTRAINT fk_rails_1ee722cee7 FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
 -- Name: competencies fk_rails_1f14a26005; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4423,6 +4526,14 @@ ALTER TABLE ONLY public.mensajes
 
 ALTER TABLE ONLY public.student_representatives
     ADD CONSTRAINT fk_rails_244edf660a FOREIGN KEY (representative_id) REFERENCES public.representatives(id);
+
+
+--
+-- Name: section_closures fk_rails_24d0222fff; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_closures
+    ADD CONSTRAINT fk_rails_24d0222fff FOREIGN KEY (evaluation_moment_id) REFERENCES public.evaluation_moments(id);
 
 
 --
@@ -4879,6 +4990,14 @@ ALTER TABLE ONLY public.teacher_sections
 
 ALTER TABLE ONLY public.teachers
     ADD CONSTRAINT fk_rails_a8c1458420 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: section_closures fk_rails_aa2481a674; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.section_closures
+    ADD CONSTRAINT fk_rails_aa2481a674 FOREIGN KEY (section_id) REFERENCES public.sections(id);
 
 
 --
@@ -5372,6 +5491,13 @@ CREATE POLICY aislamiento_por_colegio ON public.rubrics USING (((current_setting
 
 
 --
+-- Name: section_closures aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.section_closures USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
 -- Name: sections aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -5559,6 +5685,12 @@ ALTER TABLE public.representatives ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.rubrics ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: section_closures; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.section_closures ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: sections; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -5607,6 +5739,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20260919010000'),
 ('20260917093000'),
 ('20260916100000'),
 ('20260916090000'),
