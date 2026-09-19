@@ -2466,6 +2466,28 @@ nav.pagy a.gap {
   border-bottom: 1px solid var(--border-subtle);
 }
 .revisar-quien { text-align: center; }
+/* Quiénes faltan para poder cerrar el lapso. Se listan con nombre porque quien
+   revisa tiene que saber a quién perseguir: con un «faltan 3 alumnos» le toca
+   buscarlos uno por uno en la lista de arriba. */
+.revisar-faltantes {
+  margin: var(--space-xs) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.revisar-faltantes li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.revisar-faltantes li:last-child { border-bottom: 0; }
+.revisar-faltantes li span:first-child { flex: 1 1 auto; }
+
 .revisar-estado {
   display: flex;
   flex-wrap: wrap;

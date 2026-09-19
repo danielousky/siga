@@ -1,11 +1,18 @@
 require "test_helper"
 
-# El vistazo final antes de que la familia vea su boletín.
+# Control de Estudio cierra el lapso (QA de Cyndi).
 #
-# Daniel: *«las boletas deberán pasar por una revisión por parte de Admin antes
-# de ser mostradas al representante… y cuando considere que todo está OK,
-# liberar con un solo clic»*.
-class LiberarBoletinesTest < ActionDispatch::IntegrationTest
+# Daniel, 18 de septiembre: *«CE mira las boletas y da por "cerrado" el proceso
+# de carga y completación de la calificación. Al dar el visto bueno se envía el
+# correo al representante y ya puede entrar a ver sus notas, y a su vez el profe
+# ya no puede modificar las notas»*.
+#
+#     POR CALIFICAR ──► CALIFICADA ──► CERRADA
+#      falta una nota   están todas    alguien miró y firmó
+#
+# ⚠️ Cerrar REEMPLAZÓ a liberar, y no es el mismo botón con otro nombre:
+# liberar dejaba salir lo emitido aunque faltaran notas en otros boletines.
+class CerrarElLapsoTest < ActionDispatch::IntegrationTest
   setup do
     # ⚠️ DOS alumnos: con uno solo, «el boletín de otro» es el mismo y el test
     # pasaría sin probar nada.
@@ -57,28 +64,114 @@ class LiberarBoletinesTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", boletin_path(boletin), 1
   end
 
-  test "un clic libera todo el lapso de la sección" do
-    emitir!
+  # ── cerrar ────────────────────────────────────────────────────────────────
+
+  test "un clic cierra el lapso: emite, libera, avisa y traba las notas" do
+    calificar_todo!
     sign_in @director
 
-    assert_emails 1 do
-      patch liberar_boletines_path(seccion: @esc.seccion.id, lapso: @esc.lapso(1).id)
+    assert_difference -> { cantidad(SectionClosure) }, 1 do
+      patch cerrar_lapso_path(seccion: @esc.seccion.id, lapso: @esc.lapso(1).id)
     end
 
-    con_el_colegio(@esc.colegio) { assert ReportCard.first.reload.liberado? }
+    con_el_colegio(@esc.colegio) do
+      # Se emitieron los DOS, aunque no hubiera ninguno antes.
+      boletines = ReportCard.where(evaluation_moment_id: @esc.lapso(1).id)
+      assert_equal 2, boletines.count, "cerrar emite los que falten"
+      assert boletines.all?(&:liberado?), "y los libera: la familia tiene que poder verlos"
+
+      cierre = SectionClosure.find_by(section_id: @esc.seccion.id,
+                                      evaluation_moment_id: @esc.lapso(1).id)
+      assert_equal @director.id, cierre.cerrado_por_id, "queda quién dio el visto bueno"
+    end
+
+    get revisar_boletines_path(seccion: @esc.seccion.id, lapso: @esc.lapso(1).id)
+    assert_select ".detail-value", text: "Cerrada"
   end
 
-  # ⚠️ Reversible: si al liberar aparece un error, se vuelve a esconder con el
-  # mismo clic. Un botón de una sola dirección obliga a escribir a soporte por
-  # un dedazo.
-  test "liberar se deshace" do
-    boletin = emitir!
+  # ⚠️ Lo que Daniel pidió y el código hacía al revés: liberar dejaba salir lo
+  # emitido aunque faltaran notas. Cerrar exige el 100 %.
+  test "no se cierra un lapso con materias sin nota" do
     sign_in @director
-    patch liberar_boletines_path(seccion: @esc.seccion.id, lapso: @esc.lapso(1).id)
 
-    patch esconder_boletines_path(seccion: @esc.seccion.id, lapso: @esc.lapso(1).id)
+    assert_no_difference -> { cantidad(SectionClosure) } do
+      patch cerrar_lapso_path(seccion: @esc.seccion.id, lapso: @esc.lapso(1).id)
+    end
 
-    con_el_colegio(@esc.colegio) { assert_not boletin.reload.liberado? }
+    assert_match(/sin nota/i, flash[:alert])
+  end
+
+  # ⚠️ Y la pantalla dice QUIÉNES faltan, no «no se puede»: quien revisa tiene
+  # que saber a quién perseguir.
+  test "la pantalla lista a los que le faltan notas" do
+    sign_in @director
+
+    get revisar_boletines_path(seccion: @esc.seccion.id, lapso: @esc.lapso(1).id)
+
+    assert_response :success
+    assert_select ".revisar-faltantes li", 2
+    assert_select "form[action*=?]", "cerrar", 0, "sin el 100 % no hay botón de cerrar"
+    # ⚠️ Y el estado se dice con su nombre, que es lo que Daniel pidió.
+    assert_select ".detail-value", text: "Por calificar"
+  end
+
+  # ⚠️ Es lo que hace que el cierre signifique algo: sin esto, el profesor
+  # cambia una nota y el boletín que la familia ya descargó dice otra cosa.
+  test "cerrado el lapso, el profesor no puede tocar las notas" do
+    calificar_todo!
+    sign_in @director
+    patch cerrar_lapso_path(seccion: @esc.seccion.id, lapso: @esc.lapso(1).id)
+
+    con_el_colegio(@esc.colegio) do
+      nota = ActivityGrade.first
+      nota.score = 5
+
+      assert_not nota.save, "la nota se guardó con el lapso cerrado"
+      assert_match(/cerró este lapso/i, nota.errors.full_messages.to_sentence)
+
+      # Borrar también es cambiar: vaciar el campo de la planilla es un destroy.
+      assert_not nota.destroy, "la nota se borró con el lapso cerrado"
+
+      # Y la EVALUACIÓN tampoco: cambiarle el peso recalcula a los treinta.
+      actividad = EvaluationActivity.first
+      actividad.weight_percentage = 50
+      assert_not actividad.save, "se cambió la ponderación con el lapso cerrado"
+    end
+  end
+
+  # ⚠️ Reabrir existe porque un error en una nota se descubre DESPUÉS de cerrar.
+  # Sin esta puerta, la única salida sería tocar la base.
+  test "reabrir deshace el cierre y el profesor vuelve a poder cargar" do
+    calificar_todo!
+    sign_in @director
+    patch cerrar_lapso_path(seccion: @esc.seccion.id, lapso: @esc.lapso(1).id)
+
+    assert_difference -> { cantidad(SectionClosure) }, -1 do
+      patch reabrir_lapso_path(seccion: @esc.seccion.id, lapso: @esc.lapso(1).id)
+    end
+
+    con_el_colegio(@esc.colegio) do
+      assert ReportCard.where(evaluation_moment_id: @esc.lapso(1).id).none?(&:liberado?),
+             "las familias dejan de verlos"
+      nota = ActivityGrade.first
+      nota.score = 5
+      assert nota.save, "el profesor tiene que volver a poder cargar"
+    end
+  end
+
+  # ⚠️ Un alumno RETIRADO no tiene notas y nunca las va a tener. Contándolo, la
+  # sección se quedaba en «por calificar» para siempre y el visto bueno no
+  # llegaba nunca — y tampoco se le emite boletín.
+  test "un alumno retirado no impide cerrar el lapso" do
+    con_el_colegio(@esc.colegio) do
+      @esc.inscripciones.last.update!(status: :retirado)
+      calificar!(solo: [ @esc.inscripcion ])
+    end
+    sign_in @director
+
+    assert_difference -> { cantidad(SectionClosure) }, 1 do
+      patch cerrar_lapso_path(seccion: @esc.seccion.id, lapso: @esc.lapso(1).id)
+    end
   end
 
   # ── la descarga ───────────────────────────────────────────────────────────
@@ -174,5 +267,13 @@ class LiberarBoletinesTest < ActionDispatch::IntegrationTest
                          snapshot: ReportCardData.para(enrollment: @esc.inscripcion,
                                                        evaluation_moment: @esc.lapso(1)))
     end
+  end
+
+  # Deja el lapso CALIFICADA: la única materia del grado con nota para todos.
+  def calificar_todo! = con_el_colegio(@esc.colegio) { calificar!(solo: @esc.inscripciones) }
+
+  def calificar!(solo:)
+    examen = actividad(@esc, lapso: @esc.lapso(1), peso: 100, descripcion: "Examen")
+    solo.each { |inscripcion| nota(examen, inscripcion.student, 16) }
   end
 end

@@ -25,37 +25,68 @@ class RevisionDeBoletinesController < ApplicationController
     @posicion = @fichas.index(@elegida)
   end
 
-  # ⚠️ Libera lo EMITIDO, aunque falten notas en otros.
+  # ⚠️ CERRAR el lapso: el visto bueno de Control de Estudio, y todo lo que
+  # cuelga de él.
   #
-  # Bloquear la liberación entera por un boletín incompleto obliga a perseguir a
-  # un profesor para poder entregarle los otros veinte que sí están. La pantalla
-  # dice cuántos faltan; la decisión es de quien revisa.
-  def liberar
-    cuantos = ReportCard.where(id: sin_liberar.map(&:id)).count
-    ReportCard.where(id: sin_liberar.map(&:id))
+  # Daniel, 18 de septiembre: *«CE mira las boletas y da por "cerrado" el
+  # proceso de carga y completación de la calificación. Al dar el visto bueno se
+  # envía el correo al representante y ya puede entrar a ver sus notas, y a su
+  # vez el profe ya no puede modificar las notas»*.
+  #
+  #     1 · se EMITEN los boletines que falten
+  #     2 · se LIBERAN todos                     → la familia los ve
+  #     3 · sale el correo a cada representante
+  #     4 · el profesor deja de poder tocar las notas del lapso
+  #
+  # ⚠️ Y esto REEMPLAZA a «liberar», que dejaba salir lo emitido aunque
+  # faltaran notas en otros boletines. El argumento de entonces —no perseguir a
+  # un profesor para poder entregar los otros veinte— lo revirtió Daniel:
+  # *«Admin debe validar que TODAS las boletas están completas y dar el visto
+  # bueno antes de que sean liberadas»*. Cerrar no es entregar veinte
+  # boletines: es declarar terminado el lapso, y un lapso con una materia en
+  # blanco no está terminado.
+  def cerrar
+    boletines = BoletinesDelLapso.de(@seccion, @lapso)
+
+    unless boletines.se_puede_cerrar?
+      return redirect_to(revisar_boletines_path(contexto),
+                         alert: motivo_por_el_que_no_se_puede_cerrar(boletines))
+    end
+
+    emitidos = emitir_los_que_falten(boletines)
+    ReportCard.where(id: todos_los_boletines(boletines).map(&:id))
               .update_all(liberado_el: Time.current, liberado_por_id: current_user.id)
 
-    avisar_a_las_familias(sin_liberar)
-    registrar("boletines_liberados",
-              "#{current_user.nombre_completo} liberó #{helpers.contar(cuantos, 'boletín', 'boletines')} " \
-              "de #{@seccion.grade.name} – #{@seccion.name} · #{@lapso.name}")
+    SectionClosure.create!(section: @seccion, evaluation_moment: @lapso,
+                           cerrado_por: current_user, cerrado_el: Time.current)
 
-    redirect_to revisar_boletines_path(contexto),
-                notice: "Listo. #{helpers.contar(cuantos, 'boletín', 'boletines')} a la vista de las familias."
+    avisar_a_las_familias(todos_los_boletines(boletines))
+    registrar("lapso_cerrado",
+              "#{current_user.nombre_completo} cerró #{@lapso.name} de " \
+              "#{@seccion.grade.name} – #{@seccion.name}: " \
+              "#{helpers.contar(todos_los_boletines(boletines).size, 'boletín liberado', 'boletines liberados')}")
+
+    redirect_to revisar_boletines_path(contexto), notice: aviso_del_cierre(boletines, emitidos)
   end
 
-  # ⚠️ Reversible: si al liberar aparece un error, se vuelve a esconder.
-  def esconder
+  # ⚠️ Reabrir existe, y no es una concesión: un error en una nota se descubre
+  # DESPUÉS de cerrar, y sin esta puerta la única salida sería tocar la base.
+  #
+  # Deshace las tres cosas: esconde los boletines, borra el cierre y el profesor
+  # vuelve a poder cargar. Lo que NO deshace es el correo que ya salió — por eso
+  # el aviso lo dice.
+  def reabrir
     liberados = BoletinesDelLapso.de(@seccion, @lapso).liberados.filter_map(&:boletin)
     ReportCard.where(id: liberados.map(&:id)).update_all(liberado_el: nil, liberado_por_id: nil)
+    SectionClosure.where(section_id: @seccion.id, evaluation_moment_id: @lapso.id).destroy_all
 
-    registrar("boletines_escondidos",
-              "#{current_user.nombre_completo} volvió a esconder " \
-              "#{helpers.contar(liberados.size, 'boletín', 'boletines')} de " \
-              "#{@seccion.grade.name} – #{@seccion.name} · #{@lapso.name}")
+    registrar("lapso_reabierto",
+              "#{current_user.nombre_completo} reabrió #{@lapso.name} de " \
+              "#{@seccion.grade.name} – #{@seccion.name}")
 
     redirect_to revisar_boletines_path(contexto),
-                notice: "Escondidos. Las familias dejan de verlos."
+                notice: "Lapso reabierto. Las familias dejan de ver los boletines y el profesor " \
+                        "vuelve a poder cargar notas. El correo que ya salió no se puede deshacer."
   end
 
   private
@@ -70,9 +101,44 @@ class RevisionDeBoletinesController < ApplicationController
     @lapsos = EvaluationMoment.where(academic_period_id: @seccion.academic_period_id).order(:id)
   end
 
-  def sin_liberar
-    @sin_liberar ||= BoletinesDelLapso.de(@seccion, @lapso)
-                                      .emitidos.reject(&:liberado?).filter_map(&:boletin)
+  # ⚠️ Se emiten los que falten ANTES de liberar: sin boletín no hay nada que
+  # ver, y el correo prometería una pantalla vacía.
+  #
+  # Cada emisión congela su propia foto de las notas (`snapshot`), que es lo que
+  # hace que corregir algo en marzo no reescriba el papel de diciembre.
+  def emitir_los_que_falten(boletines)
+    boletines.fichas.reject(&:emitido?).map do |ficha|
+      ReportCard.create!(enrollment: ficha.inscripcion, evaluation_moment: @lapso,
+                         issued_by: current_user,
+                         snapshot: ReportCardData.para(enrollment: ficha.inscripcion,
+                                                       evaluation_moment: @lapso))
+    end
+  end
+
+  # ⚠️ Se relee: `boletines` se armó antes de emitir, y sus fichas no conocen
+  # los que acaban de nacer.
+  def todos_los_boletines(_boletines)
+    @todos_los_boletines ||= BoletinesDelLapso.de(@seccion.reload, @lapso)
+                                              .fichas.filter_map(&:boletin)
+  end
+
+  def motivo_por_el_que_no_se_puede_cerrar(boletines)
+    return "Esta sección no tiene alumnos inscritos." if boletines.fichas.empty?
+    return "Este lapso ya está cerrado." if boletines.cerrada?
+
+    faltan = boletines.incompletos.size
+    "Todavía #{helpers.contar(faltan, 'alumno tiene', 'alumnos tienen')} materias sin nota. " \
+      "El lapso se cierra cuando están todas."
+  end
+
+  # ⚠️ Dice lo que PASÓ, no «listo»: cerrar dispara cuatro cosas y tres de
+  # ellas no se ven en la pantalla que queda.
+  def aviso_del_cierre(boletines, emitidos)
+    partes = [ "#{@lapso.name} cerrado." ]
+    partes << "Se emitieron #{helpers.contar(emitidos.size, 'boletín', 'boletines')}." if emitidos.any?
+    partes << "Las familias ya pueden verlos y les salió el aviso por correo."
+    partes << "El profesor no puede cambiar más las notas de este lapso."
+    partes.join(" ")
   end
 
   def contexto = { seccion: @seccion.id, lapso: @lapso.id }

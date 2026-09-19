@@ -23,6 +23,37 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.7.0 — 19 de septiembre de 2026
+
+**Control de Estudio cierra el lapso.** Las notas de un lapso nunca terminaban
+de estar terminadas: se podían cambiar en marzo y el boletín que la familia
+descargó en diciembre decía otra cosa. Y del otro lado, la familia se enteraba
+por WhatsApp de que había notas.
+
+```
+   POR CALIFICAR   falta alguna nota            ──►
+   CALIFICADA      están todas                  ──►
+   CERRADA         Control de Estudio dio el visto bueno
+```
+
+- **Un lapso solo se cierra con el 100 % cargado.** Antes se podían liberar los
+  boletines emitidos aunque a otros alumnos les faltaran materias. La pantalla
+  **dice quiénes faltan y cuántas materias**, para poder perseguirlos por
+  nombre en vez de buscarlos uno por uno.
+- **Al cerrar pasan cuatro cosas de una vez:** se emiten los boletines que
+  falten, las familias los ven, a cada una le llega su correo, y el profesor
+  deja de poder cambiar las notas de ese lapso.
+- **El profesor lo sabe antes de escribir.** La planilla de notas de un lapso
+  cerrado se lee pero no se escribe, y lo dice arriba — no nota por nota.
+- **Se puede reabrir.** Un error se descubre después de cerrar, y sin esa puerta
+  la única salida sería llamar a soporte. ⚠️ Lo que no se deshace es el correo
+  que ya salió, y el aviso lo advierte antes.
+- **El informe descriptivo avisa, no impide.** Quien cierra ve cuántos alumnos
+  salen sin una línea del docente, con el enlace para escribirlos — pero el
+  informe sigue siendo opcional.
+- Un **alumno retirado ya no bloquea** el cierre: no tiene notas, nunca las va a
+  tener, y tampoco se le emite boletín.
+
 ## 1.6.0 — 18 de septiembre de 2026
 
 - **El informe descriptivo es una pestaña de la sección**, al lado de

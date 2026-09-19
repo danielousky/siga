@@ -1,6 +1,12 @@
 class EvaluationActivity < ApplicationRecord
   include SchoolScoped
 
+  # ⚠️ Y la EVALUACIÓN tampoco, no solo la nota. Cambiarle el peso a un examen
+  # después del cierre recalcula el promedio de los treinta alumnos y deja los
+  # boletines emitidos diciendo otra cosa que la pantalla.
+  include SeCierraConElLapso
+  se_cierra_con_el_lapso
+
   belongs_to :subject
   belongs_to :section
   belongs_to :evaluation_moment
