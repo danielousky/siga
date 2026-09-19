@@ -23,6 +23,17 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.6.0 — 18 de septiembre de 2026
+
+- **El informe descriptivo es una pestaña de la sección**, al lado de
+  Asistencia, Calificar y Planificar. Estaba detrás de un botón en la esquina de
+  «Calificar», donde se lee como una acción sobre lo que la pantalla muestra —
+  y no lo es: es otro sitio donde trabajar, en el mismo lapso y la misma
+  sección. Lo pidió Cyndi en la prueba de campo.
+- La pestaña aparece **para el guía y para la dirección**, que son quienes lo
+  escriben. Un profesor que solo dicta un área no la ve: ofrecerla y después
+  negarla enseña a desconfiar del menú.
+
 ## 1.5.0 — 18 de septiembre de 2026
 
 **El colegio ya puede cobrar.** Era lo único de la tabla de entrada que los tres

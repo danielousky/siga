@@ -21,7 +21,11 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
     entrar_como @a.profesor
   end
 
-  test "el orden es el del ciclo, y Asistencia solo aparece para el guía" do
+  # ⚠️ Asistencia e Informes son las dos del GUÍA, y aparecen juntas: quien pasa
+  # lista de esos alumnos es quien los ve enteros, y por eso es quien escribe el
+  # informe descriptivo. Un profesor que solo dicta un área no ve ninguna de las
+  # dos.
+  test "el orden es el del ciclo, y las del guía solo aparecen para el guía" do
     visit section_path(@a.seccion, area: @area.id)
 
     assert_equal [ "Calificar", "Planificar", "Alumnos" ],
@@ -30,7 +34,7 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
     con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: @a.registro_de_profesor) }
     visit section_path(@a.seccion, area: @area.id)
 
-    assert_equal [ "Asistencia", "Calificar", "Planificar", "Alumnos" ],
+    assert_equal [ "Asistencia", "Calificar", "Planificar", "Informes", "Alumnos" ],
                  all(".pestana").map(&:text)
   end
 

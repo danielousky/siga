@@ -4,11 +4,17 @@
 -# veinticinco seguidos, y con una pantalla por alumno son cincuenta clics de
 -# navegación además de lo que escribe. Es lo mismo que resolvió la planilla de
 -# notas, con la misma solución.
-.card-academic
-  = render "shared/cabecera", titulo: "Informes descriptivos",
-           detalle: "#{@seccion.grade.name} #{@seccion.name} · #{@seccion.academic_period.name}"
-
-.card-academic
+-# ⚠️ Va DENTRO del marco de la sección, como pestaña (QA de Cyndi).
+-#
+-# Era una pantalla suelta a la que se llegaba por un botón en la cabecera de
+-# «Calificar». Un botón ahí se lee como una ACCIÓN sobre lo que la pantalla
+-# muestra; esto es otro sitio donde trabajar —el informe se escribe junto con
+-# las notas, en el mismo lapso y la misma sección— y eso es lo que dice una
+-# pestaña. De paso, la cabecera con el nombre de la sección ya no se repite:
+-# la pone el marco.
+= render layout: "sections/marco",
+         locals: { seccion: @seccion, area: nil, activa: :informes,
+                   inscritos: @inscripciones.size } do
   - if @lapsos.many?
     = render "shared/pastillas", etiqueta: "Lapso",
              opciones: @lapsos.map { |l| [ l.name, section_informes_path(@seccion, lapso: l.id), l.id == @lapso&.id ] }
@@ -18,48 +24,47 @@
     %strong al final de la boleta
     \, debajo de las calificaciones. Se guarda solo mientras escribe.
 
-- if @inscripciones.empty?
-  .card-academic
+  - if @inscripciones.empty?
     .empty-state
       %h3 Esta sección no tiene alumnos inscritos
       %p Cuando se inscriban, aparecen acá para escribirles su informe.
 
-- else
-  .card-academic{ data: { controller: "planilla" } }
-    %ol.informes-lista
-      - @inscripciones.each_with_index do |inscripcion, i|
-        - informe = @informes[inscripcion.id]
-        %li.informe-fila{ data: { planilla_target: "fila" } }
-          .informe-cabecera
-            = numero_de_fila(i)
-            %span.informe-alumno= inscripcion.student.user.apellidos_y_nombres
-            -# ⚠️ El promedio al lado del nombre, y no es decorado: escribiendo
-            -# veinticinco informes seguidos hay que poder recordar de quién se
-            -# habla sin salir de la pantalla.
-            - promedio = @promedios[inscripcion.id]
-            - if promedio
-              %span.informe-promedio
-                - nivel = Rubric.para(promedio, @rubricas)
-                - if nivel
-                  = "#{nivel.code} · #{promedio}"
-                - else
-                  = promedio
-            - else
-              %span.informe-promedio.dato-secundario Sin notas
-            = render "shared/estado_de_la_fila", id: "estado_#{inscripcion.id}",
-                     estado: (informe ? :guardado : :vacio)
+  - else
+    %div{ data: { controller: "planilla" } }
+      %ol.informes-lista
+        - @inscripciones.each_with_index do |inscripcion, i|
+          - informe = @informes[inscripcion.id]
+          %li.informe-fila{ data: { planilla_target: "fila" } }
+            .informe-cabecera
+              = numero_de_fila(i)
+              %span.informe-alumno= inscripcion.student.user.apellidos_y_nombres
+              -# ⚠️ El promedio al lado del nombre, y no es decorado: escribiendo
+              -# veinticinco informes seguidos hay que poder recordar de quién se
+              -# habla sin salir de la pantalla.
+              - promedio = @promedios[inscripcion.id]
+              - if promedio
+                %span.informe-promedio
+                  - nivel = Rubric.para(promedio, @rubricas)
+                  - if nivel
+                    = "#{nivel.code} · #{promedio}"
+                  - else
+                    = promedio
+              - else
+                %span.informe-promedio.dato-secundario Sin notas
+              = render "shared/estado_de_la_fila", id: "estado_#{inscripcion.id}",
+                       estado: (informe ? :guardado : :vacio)
 
-          = form_with url: section_informe_path(@seccion, inscripcion.id, lapso: @lapso&.id),
-                      method: :patch,
-                      data: { action: "turbo:submit-start->planilla#enviando turbo:submit-end->planilla#llego turbo:fetch-request-error->planilla#sinRed" } do
-            -# ⚠️ El campo CRECE con lo escrito: tres líneas fijas esconden lo ya
-            -# escrito justo cuando se relee para corregir. Lo hace
-            -# `campo-que-crece`, el mismo de Educación Inicial y del plan.
-            = text_area_tag :cuerpo, informe&.cuerpo, id: "informe_#{inscripcion.id}",
-                rows: 3, class: "form-control informe-campo",
-                placeholder: "Cómo le fue en el lapso: qué logró, en qué avanzó, qué conviene reforzar…",
-                data: { planilla_target: "campo",
-                        controller: "campo-que-crece",
-                        action: "input->campo-que-crece#crecer input->planilla#escribir blur->planilla#guardar keydown->planilla#navegar" }
+            = form_with url: section_informe_path(@seccion, inscripcion.id, lapso: @lapso&.id),
+                        method: :patch,
+                        data: { action: "turbo:submit-start->planilla#enviando turbo:submit-end->planilla#llego turbo:fetch-request-error->planilla#sinRed" } do
+              -# ⚠️ El campo CRECE con lo escrito: tres líneas fijas esconden lo ya
+              -# escrito justo cuando se relee para corregir. Lo hace
+              -# `campo-que-crece`, el mismo de Educación Inicial y del plan.
+              = text_area_tag :cuerpo, informe&.cuerpo, id: "informe_#{inscripcion.id}",
+                  rows: 3, class: "form-control informe-campo",
+                  placeholder: "Cómo le fue en el lapso: qué logró, en qué avanzó, qué conviene reforzar…",
+                  data: { planilla_target: "campo",
+                          controller: "campo-que-crece",
+                          action: "input->campo-que-crece#crecer input->planilla#escribir blur->planilla#guardar keydown->planilla#navegar" }
 
-    = render "shared/aviso_de_la_planilla"
+      = render "shared/aviso_de_la_planilla"

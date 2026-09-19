@@ -12,9 +12,11 @@
 -# qué competencia pertenece, así que nacía sin medir ninguna.
 -#
 -# Dos puertas a lo mismo es como se llegó a siete formas de título.
+-# ⚠️ El botón «Informes descriptivos» se retiró: ahora es una PESTAÑA.
+-#
+-# Dos puertas a lo mismo es como se llegó a siete formas de título — lo dice el
+-# comentario de arriba sobre el botón de competencias, y volvió a pasar acá.
 - acciones = capture do
-  - if can_manage_sections? || guio?(@section)
-    = boton "Informes descriptivos", section_informes_path(@section), icono: :notas, tono: :secondary
   - if administrador?
     -# «Eliminar» vive en la pantalla de edición, en el bloque que explica qué
     -# se pierde y solo aparece si va a funcionar (`shared/_borrar`).
