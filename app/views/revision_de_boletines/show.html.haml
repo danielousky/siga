@@ -117,15 +117,6 @@
         Al cerrar: se emiten los boletines que falten, las familias los ven,
         %strong a cada una le llega un correo
         y el profesor deja de poder cambiar las notas de #{@lapso.name.downcase}.
-      - if @boletines.sin_informe.any?
-        -# ⚠️ AVISO y no impedimento: el informe descriptivo es opcional por
-        -# diseño (`MOR-216`) y exigirlo convertiría un texto libre en trámite.
-        -# Pero quien cierra tiene que poder enterarse de que salen sin él.
-        %p.plan-sin-evaluar
-          = icono(:alerta, tamano: 15)
-          %span
-            = "#{contar(@boletines.sin_informe.size, 'alumno sale', 'alumnos salen')} sin informe descriptivo."
-            = link_to "Escribirlos", section_informes_path(@seccion, lapso: @lapso.id)
       .decidir-el-pago
         = button_to "Cerrar #{@lapso.name} · #{@seccion.grade.name} #{@seccion.name}",
                     cerrar_lapso_path(seccion: @seccion.id, lapso: @lapso.id),
@@ -136,14 +127,36 @@
       -# ⚠️ Dice QUIÉNES faltan, no «no se puede»: quien revisa tiene que saber a
       -# quién perseguir, y con un mensaje genérico le toca buscarlo alumno por
       -# alumno en la lista de arriba.
-      %p.nota-ayuda
-        = "#{@lapso.name} no se puede cerrar todavía:"
-        %strong= "#{contar(@boletines.incompletos.size, 'alumno tiene', 'alumnos tienen')} materias sin nota"
-        \. El lapso se cierra cuando están todas.
-      %ul.revisar-faltantes
-        - @boletines.incompletos.first(8).each do |ficha|
-          %li
-            %span= ficha.alumno.apellidos_y_nombres
-            %span.dato-secundario= contar(ficha.faltan, "materia", "materias")
-        - if @boletines.incompletos.size > 8
-          %li.dato-secundario= "y #{contar(@boletines.incompletos.size - 8, 'alumno más', 'alumnos más')}"
+      -#
+      -# ⚠️ Y son DOS cosas: las notas y el informe descriptivo. Las notas van
+      -# primero — mandar a escribir informes de un lapso a medio calificar es
+      -# pedir el trabajo en el orden equivocado.
+      - if @boletines.incompletos.any?
+        %p.nota-ayuda
+          = "#{@lapso.name} no se puede cerrar todavía:"
+          %strong= "#{contar(@boletines.incompletos.size, 'alumno tiene', 'alumnos tienen')} materias sin nota"
+          \. El lapso se cierra cuando están todas.
+        %ul.revisar-faltantes
+          - @boletines.incompletos.first(8).each do |ficha|
+            %li
+              %span= ficha.alumno.apellidos_y_nombres
+              %span.dato-secundario= contar(ficha.faltan, "materia", "materias")
+          - if @boletines.incompletos.size > 8
+            %li.dato-secundario= "y #{contar(@boletines.incompletos.size - 8, 'alumno más', 'alumnos más')}"
+      - else
+        -# ⚠️ Las notas están; lo que falta es el informe. Decisión de Daniel,
+        -# 19 de septiembre: *«el informe debe ser obligatorio para cerrar»*.
+        -# Una boleta sin una línea del docente es una factura.
+        %p.nota-ayuda
+          = "#{@lapso.name} tiene todas sus notas, pero"
+          %strong= "#{contar(@boletines.sin_informe.size, 'alumno está', 'alumnos están')} sin informe descriptivo"
+          \. El lapso se cierra cuando todos lo tienen.
+        %ul.revisar-faltantes
+          - @boletines.sin_informe.first(8).each do |ficha|
+            %li
+              %span= ficha.alumno.apellidos_y_nombres
+              %span.dato-secundario sin informe
+          - if @boletines.sin_informe.size > 8
+            %li.dato-secundario= "y #{contar(@boletines.sin_informe.size - 8, 'alumno más', 'alumnos más')}"
+        = boton "Escribir los informes", section_informes_path(@seccion, lapso: @lapso.id),
+                icono: :notas, tono: :accion

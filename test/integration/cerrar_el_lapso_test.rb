@@ -101,6 +101,38 @@ class CerrarElLapsoTest < ActionDispatch::IntegrationTest
     assert_match(/sin nota/i, flash[:alert])
   end
 
+  # ⚠️ El informe descriptivo también IMPIDE cerrar, no solo avisa.
+  #
+  # Daniel, 19 de septiembre: *«sí, el informe debe ser obligatorio para
+  # cerrar»*. Una boleta sin una línea del docente es una factura: el «PA» dice
+  # en qué banda cayó el niño y el informe dice que lee mejor que en octubre.
+  test "con las notas completas pero sin informes, tampoco se cierra" do
+    solo_las_notas!
+    sign_in @director
+
+    assert_no_difference -> { cantidad(SectionClosure) } do
+      patch cerrar_lapso_path(seccion: @esc.seccion.id, lapso: @esc.lapso(1).id)
+    end
+
+    assert_match(/sin informe descriptivo/i, flash[:alert])
+  end
+
+  # ⚠️ Y la pantalla lo dice con las palabras de ese estado: las notas están, lo
+  # que falta es otra cosa. Con el mensaje de las notas mandaría a buscar algo
+  # que ya está hecho.
+  test "la pantalla dice que lo que falta son los informes" do
+    solo_las_notas!
+    sign_in @director
+
+    get revisar_boletines_path(seccion: @esc.seccion.id, lapso: @esc.lapso(1).id)
+
+    assert_response :success
+    assert_select ".detail-value", text: "Calificada"
+    assert_select ".revisar-faltantes li", 2
+    assert_select "a[href*=?]", "informes", true, "y lleva a escribirlos"
+    assert_select "form[action*=?]", "cerrar", 0
+  end
+
   # ⚠️ Y la pantalla dice QUIÉNES faltan, no «no se puede»: quien revisa tiene
   # que saber a quién perseguir.
   test "la pantalla lista a los que le faltan notas" do
@@ -269,11 +301,27 @@ class CerrarElLapsoTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # Deja el lapso CALIFICADA: la única materia del grado con nota para todos.
+  # Deja el lapso LISTO PARA CERRAR: todas las notas y todos los informes.
+  #
+  # ⚠️ Los dos, desde el 19 de septiembre: *«el informe debe ser obligatorio
+  # para cerrar»*. Con las notas solas el botón ya no aparece.
   def calificar_todo! = con_el_colegio(@esc.colegio) { calificar!(solo: @esc.inscripciones) }
 
   def calificar!(solo:)
     examen = actividad(@esc, lapso: @esc.lapso(1), peso: 100, descripcion: "Examen")
-    solo.each { |inscripcion| nota(examen, inscripcion.student, 16) }
+    solo.each do |inscripcion|
+      nota(examen, inscripcion.student, 16)
+      Informe.create!(enrollment: inscripcion, evaluation_moment: @esc.lapso(1),
+                      cuerpo: "Avanzó bien en el lapso.", escrito_por: @director)
+    end
+  end
+
+  # Solo las notas: el estado anterior al informe, que es donde el botón
+  # todavía no está.
+  def solo_las_notas!
+    con_el_colegio(@esc.colegio) do
+      examen = actividad(@esc, lapso: @esc.lapso(1), peso: 100, descripcion: "Examen")
+      @esc.inscripciones.each { |i| nota(examen, i.student, 16) }
+    end
   end
 end

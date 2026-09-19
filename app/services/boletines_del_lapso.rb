@@ -77,23 +77,27 @@ class BoletinesDelLapso
 
   def cerrada? = cierre.present?
 
-  # ⚠️ Se puede cerrar solo cuando está CALIFICADA, y eso es un cambio de
-  # criterio respecto de «liberar».
+  # ⚠️ Se cierra con las notas COMPLETAS y el informe de cada alumno escrito.
   #
-  # Liberar dejaba salir lo emitido aunque faltaran notas en otros boletines,
-  # con el argumento de no perseguir a un profesor para entregar los otros
-  # veinte. Daniel lo revirtió: *«Admin debe validar que TODAS las boletas están
-  # completas y dar el visto bueno antes de que sean liberadas»*. Cerrar no es
-  # entregar veinte boletines: es declarar terminado el lapso, y un lapso con
-  # una materia en blanco no está terminado.
-  def se_puede_cerrar? = estado == :calificada
+  # Dos cambios de criterio, los dos de Daniel:
+  #
+  #   1 · Liberar dejaba salir lo emitido aunque faltaran notas en otros, para
+  #       no perseguir a un profesor. *«Admin debe validar que TODAS las boletas
+  #       están completas»*: cerrar no es entregar veinte boletines, es declarar
+  #       terminado el lapso, y uno con una materia en blanco no lo está.
+  #
+  #   2 · El informe descriptivo era un aviso. *«Sí, el informe debe ser
+  #       obligatorio para cerrar»* (19 de septiembre). Una boleta sin una línea
+  #       del docente es una factura: el «PA» dice en qué banda cayó el niño, y
+  #       el informe dice que lee mejor que en octubre.
+  def se_puede_cerrar? = estado == :calificada && sin_informe.empty?
 
-  # Cuántos alumnos NO tienen todavía su informe descriptivo.
+  # Los alumnos que NO tienen todavía su informe descriptivo.
   #
-  # ⚠️ Es un AVISO, no un impedimento. El informe es opcional por diseño
-  # (`MOR-216`) y exigirlo convertiría un texto libre en un trámite; pero quien
-  # está por cerrar el lapso tiene que poder enterarse de que veinte boletines
-  # van a salir sin una sola línea del docente.
+  # ⚠️ IMPIDE cerrar, no solo avisa — cambió el 19 de septiembre. El informe
+  # sigue siendo opcional en el MODELO: un lapso a medias tiene alumnos sin
+  # informe y eso no es un error. Lo que no se puede es dar por TERMINADO el
+  # lapso mientras falte uno.
   def sin_informe
     @sin_informe ||= begin
       escritos = Informe.where(enrollment_id: fichas.map { |f| f.inscripcion.id },

@@ -52,7 +52,7 @@ Daniel, en dos mensajes que dicen lo mismo:
 | 1 | ¿Se guardan los tres estados? | **Solo «cerrada»** | Los otros dos los contestan las notas. Guardarlos sería un segundo lugar donde vive la misma verdad: entra la nota que faltaba y la columna sigue diciendo «por calificar». |
 | 2 | ¿Es una columna de `sections`? | **No: una fila por (sección, lapso)** | Una sección tiene tres lapsos y cada uno cierra por su cuenta. Una columna obligaría a tres, y a renombrarlas el día que un colegio use dos semestres. |
 | 3 | ¿Se puede cerrar con notas faltando? | **No** | Revierte el criterio de «liberar», que dejaba salir lo emitido. Cerrar no es entregar veinte boletines: es declarar terminado el lapso. |
-| 4 | ¿Exige el informe descriptivo? | **No: avisa** | El informe es opcional por diseño (`MOR-216`) y exigirlo convertiría un texto libre en trámite. Pero quien cierra tiene que enterarse de que veinte boletines salen sin una línea del docente. |
+| 4 | ¿Exige el informe descriptivo? | **Sí** | Revisado el 19 de septiembre. Salió como aviso —el informe es opcional por diseño (`MOR-216`)— y Daniel lo cerró: *«sí, el informe debe ser obligatorio para cerrar»*. Una boleta sin una línea del docente es una factura: el «PA» dice en qué banda cayó el niño; el informe dice que lee mejor que en octubre. ⚠️ Sigue siendo opcional en el MODELO: un lapso a medias tiene alumnos sin informe y eso no es un error. Lo que no se puede es darlo por TERMINADO. |
 | 5 | ¿Se puede reabrir? | **Sí** | Un error en una nota se descubre DESPUÉS de cerrar. Sin esa puerta, la única salida es tocar la base. ⚠️ Lo que no deshace es el correo que ya salió, y el aviso lo dice. |
 | 6 | ¿El alumno retirado bloquea? | **No cuenta** | No tiene notas y nunca las va a tener: contándolo, la sección se queda en «por calificar» para siempre. Tampoco se le emite boletín. |
 
@@ -113,4 +113,15 @@ trajo a esta pantalla.
   el anual es otra conversación y otra pantalla.
 - **Cerrar varias secciones de una vez.** La coordinadora de primaria revisa lo
   suyo; un botón que cierra diecinueve secciones cierra también las que no miró.
-- **Exigir el informe descriptivo.** Ver la decisión 4.
+
+## 8 · La consecuencia que hay que mirar
+
+⚠️ Con el informe obligatorio, **un guía de bachillerato escribe treinta textos
+por lapso**, noventa al año, para poder cerrar. En primaria es la misma maestra
+que ya conoce a sus veinticinco y el texto sale solo; en Media son doce
+profesores y el guía es el único que ve al alumno entero.
+
+No es una objeción a la regla —Daniel la decidió sabiendo lo que pide— sino lo
+que hay que mirar en la primera prueba de campo: si el cierre se atasca ahí, la
+salida no es aflojar la regla, es hacer que escribir treinta informes cueste
+menos (la planilla ya guarda sola; lo que falta sería sugerir un borrador).
