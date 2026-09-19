@@ -23,6 +23,16 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.8.0 — 19 de septiembre de 2026
+
+- **El informe descriptivo es obligatorio para cerrar el lapso.** Salió como un
+  aviso y Daniel lo cerró: una boleta sin una línea del docente es una factura
+  — el «PA» dice en qué banda cayó el niño, y el informe dice que lee mejor que
+  en octubre. La pantalla dice **cuáles alumnos** están sin informe y lleva
+  directo a escribirlos.
+- Cuando las notas ya están completas, el aviso **habla de los informes y no de
+  las notas**: mandar a buscar algo que ya está hecho es peor que no decir nada.
+
 ## 1.7.0 — 19 de septiembre de 2026
 
 **Control de Estudio cierra el lapso.** Las notas de un lapso nunca terminaban

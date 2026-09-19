@@ -122,13 +122,21 @@ class RevisionDeBoletinesController < ApplicationController
                                               .fichas.filter_map(&:boletin)
   end
 
+  # ⚠️ Dice CUÁL de las dos cosas falta, y las notas van primero: sin notas no
+  # tiene sentido mandar a escribir informes de un lapso a medio calificar.
   def motivo_por_el_que_no_se_puede_cerrar(boletines)
     return "Esta sección no tiene alumnos inscritos." if boletines.fichas.empty?
     return "Este lapso ya está cerrado." if boletines.cerrada?
 
-    faltan = boletines.incompletos.size
-    "Todavía #{helpers.contar(faltan, 'alumno tiene', 'alumnos tienen')} materias sin nota. " \
-      "El lapso se cierra cuando están todas."
+    if boletines.incompletos.any?
+      faltan = boletines.incompletos.size
+      return "Todavía #{helpers.contar(faltan, 'alumno tiene', 'alumnos tienen')} materias sin nota. " \
+             "El lapso se cierra cuando están todas."
+    end
+
+    sin_informe = boletines.sin_informe.size
+    "Todavía #{helpers.contar(sin_informe, 'alumno está', 'alumnos están')} sin informe descriptivo. " \
+      "El lapso se cierra cuando todos lo tienen."
   end
 
   # ⚠️ Dice lo que PASÓ, no «listo»: cerrar dispara cuatro cosas y tres de
