@@ -202,7 +202,14 @@ class LaEvaluacionMideIndicadoresTest < ActionDispatch::IntegrationTest
 
   # ── Y se VE en el plan ────────────────────────────────────────────────────
 
-  test "el plan dice qué indicadores mide cada evaluación y cuáles quedan sueltos" do
+  # ⚠️ Los indicadores se DIBUJAN DENTRO de su evaluación (21 de septiembre).
+  #
+  # Daniel: *«los componentes, luego evaluaciones dentro del componente
+  # respectivo, y finalmente los indicadores sobre cada evaluación»*. Antes
+  # colgaban de la competencia y decían al margen qué evaluación los medía; con
+  # la jerarquía puesta ese renglón sobra —la posición ya lo dice— y `.plan-
+  # indicador-mide` se retiró con él.
+  test "el plan dibuja los indicadores DENTRO de su evaluación" do
     con_el_colegio(@a.colegio) do
       actividad(@a.escenario, lapso: @lapso, peso: 40, descripcion: "Examen", mide: @competencia)
     end
@@ -211,9 +218,16 @@ class LaEvaluacionMideIndicadoresTest < ActionDispatch::IntegrationTest
     get planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
 
     assert_response :success
-    assert_select ".plan-evaluacion-indicadores li", 1
-    assert_select ".plan-indicador-mide", /Examen/
-    # Los otros dos todavía no los mide nadie, y eso es lo que falta por hacer.
-    assert_select ".plan-indicador-libre", 2
+    # El bloque cuelga de la evaluación, y el indicador que mide va adentro.
+    assert_select ".plan-evaluacion .plan-evaluacion-mide .plan-indicador", 2,
+                  "el que mide, más el campo vacío para escribir el siguiente"
+    assert_select ".plan-evaluacion-mide .plan-rotulo--indicadores", "Indicadores que mide"
+    # ⚠️ Y el campo nuevo manda la EVALUACIÓN: es lo que impide que nazca suelto.
+    assert_select "form[action*=?]", "evaluacion=", true,
+                  "el alta del indicador tiene que llevar su evaluación"
+
+    # Los otros dos quedaron sueltos: el bloque ámbar los hace visibles, porque
+    # no salen en la boleta y sin él no se verían en ninguna parte.
+    assert_select ".plan-indicadores--huerfanos .plan-indicador", 2
   end
 end

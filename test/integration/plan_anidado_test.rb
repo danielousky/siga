@@ -33,7 +33,10 @@ class PlanAnidadoTest < ActionDispatch::IntegrationTest
 
     # Dentro: el selector exige que la evaluación esté BAJO la competencia y no
     # en cualquier parte de la página, que es justamente lo que cambió.
-    assert_select ".plan-competencia .plan-evaluaciones .plan-evaluacion-nombre-campo[value=?]",
+    # ⚠️ Sin `.plan-evaluaciones`: el `<ul>` se retiró el 21 de septiembre. Cada
+    # evaluación es su propia tarjeta con los indicadores dentro, no un renglón
+    # de una lista.
+    assert_select ".plan-competencia .plan-evaluacion .plan-evaluacion-nombre-campo[value=?]",
                   "Examen del lapso"
     # ⚠️ «40», no «40.0»: el decimal donde nadie escribió un decimal fue lo que
     # hizo dudar a Daniel de que el campo fuera editable.

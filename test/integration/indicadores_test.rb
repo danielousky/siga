@@ -1,28 +1,76 @@
 require "test_helper"
 
-# Los indicadores, uno por uno (QA del 9 de septiembre).
+# Los indicadores, uno por uno y DENTRO de su evaluación.
+#
+# ⚠️ Desde el 21 de septiembre el alta exige la evaluación que lo mide. Daniel:
+# *«al crear un nuevo indicador debe estar asociado a su respectiva evaluación;
+# ahorita al agregarlo queda suelto, asociado únicamente al componente»*.
 class IndicadoresTest < ActionDispatch::IntegrationTest
   setup do
     @a, = dos_colegios_completos(nivel: :primaria)
     @lapso = @a.escenario.lapso(2)
     @contexto = { asignacion: "#{@a.seccion.id}:#{@a.escenario.materia.id}", lapso: @lapso.id }
-    @competencia = con_el_colegio(@a.colegio) { competencia_con(0, "Resuelve problemas", lapso: @lapso) }
+    @competencia, @evaluacion = con_el_colegio(@a.colegio) do
+      c = competencia_con(1, "Resuelve problemas", lapso: @lapso)
+      # ⚠️ La evaluación necesita un indicador para nacer, así que la
+      # competencia trae uno y el test agrega los suyos encima.
+      [ c, actividad(@a.escenario, lapso: @lapso, peso: 40, descripcion: "Examen", mide: c) ]
+    end
     sign_in @a.profesor
   end
 
-  def agregar(texto)
-    post competency_indicators_path(@competencia, **@contexto),
+  def agregar(texto, a: @evaluacion, de: @competencia)
+    post competency_indicators_path(de, **@contexto, evaluacion: a&.id),
          params: { indicator: { descripcion: texto } },
          headers: { "Turbo-Frame" => "plan" }
   end
 
-  def indicadores = con_el_colegio(@a.colegio) { @competencia.indicators.en_orden.map(&:descripcion) }
+  # Los que agregó el test, sin el que trajo la competencia para poder crear la
+  # evaluación.
+  def indicadores
+    con_el_colegio(@a.colegio) do
+      @competencia.indicators.en_orden.map(&:descripcion).grep_v(/\AIndicador \d/)
+    end
+  end
 
-  test "se agregan en orden" do
+  test "se agregan en orden, midiendo su evaluación" do
     agregar "Suma con reagrupación"
     agregar "Resta con préstamo"
 
     assert_equal [ "Suma con reagrupación", "Resta con préstamo" ], indicadores
+    con_el_colegio(@a.colegio) do
+      assert @competencia.indicators.reload.all?(&:medido?),
+             "ninguno puede quedar suelto: uno sin evaluación no sale en la boleta"
+    end
+  end
+
+  # ⚠️ El agujero que reportó Daniel: sin la evaluación, el indicador quedaba
+  # colgado solo de la competencia — invisible en la pantalla y ausente de la
+  # boleta, que solo imprime los medidos.
+  test "sin evaluación no se crea, y lo dice" do
+    assert_no_difference -> { cantidad(Indicator) } do
+      agregar "Suelto", a: nil
+    end
+
+    assert_response :unprocessable_entity
+    assert_select ".plan-competencia-error", /Falta la evaluación/
+  end
+
+  # ⚠️ Y la evaluación tiene que medir ESTA competencia: la de otra no está en
+  # la lista, así que el alta se rechaza sin tener que comprobar nada a mano.
+  test "no se cuela la evaluación de otra competencia" do
+    suya = con_el_colegio(@a.colegio) do
+      c = competencia_con(1, "Interpreta gráficos", lapso: @lapso)
+      actividad(@a.escenario, lapso: @lapso, peso: 30, descripcion: "Taller", mide: c)
+    end
+
+    assert_no_difference -> { cantidad(Indicator) } do
+      agregar "De la otra", a: suya, de: @competencia
+    end
+
+    assert_response :unprocessable_entity
+    assert_select ".plan-competencia-error", /Falta la evaluación/,
+                  "la de otra competencia no está en la lista: es como no mandar ninguna"
   end
 
   # ⚠️ Repetir uno reventaba con `ActiveRecord::RecordNotUnique` —la pantalla
@@ -52,14 +100,16 @@ class IndicadoresTest < ActionDispatch::IntegrationTest
   end
 
   test "el mismo indicador SÍ puede estar en otra competencia" do
-    otra = con_el_colegio(@a.colegio) { competencia_con(0, "Interpreta gráficos", lapso: @lapso) }
+    otra, suya = con_el_colegio(@a.colegio) do
+      c = competencia_con(0, "Interpreta gráficos", lapso: @lapso)
+      [ c, actividad(@a.escenario, lapso: @lapso, peso: 30, descripcion: "Taller", mide: c) ]
+    end
     agregar "Suma con reagrupación"
 
-    post competency_indicators_path(otra, **@contexto),
-         params: { indicator: { descripcion: "Suma con reagrupación" } },
-         headers: { "Turbo-Frame" => "plan" }
+    agregar "Suma con reagrupación", a: suya, de: otra
 
-    assert_equal 1, con_el_colegio(@a.colegio) { otra.indicators.count }
+    assert_includes con_el_colegio(@a.colegio) { otra.indicators.reload.map(&:descripcion) },
+                    "Suma con reagrupación"
   end
 
   test "vacío no crea nada, y lo dice" do
@@ -70,11 +120,10 @@ class IndicadoresTest < ActionDispatch::IntegrationTest
   end
 
   test "un indicador de otro colegio no se toca" do
-    ajena = con_el_colegio(@a.colegio) { competencia_con(0, "Del colegio A", lapso: @lapso) }
     _, b = dos_colegios_completos(nivel: :primaria)
     sign_in b.profesor
 
-    post competency_indicators_path(ajena, **@contexto),
+    post competency_indicators_path(@competencia, **@contexto, evaluacion: @evaluacion.id),
          params: { indicator: { descripcion: "Colado" } }
 
     assert_response :not_found

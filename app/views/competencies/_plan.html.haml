@@ -105,9 +105,10 @@
       %h3 Todavía no hay nada planificado en este lapso
       - if con_competencias?
         %p
-          Empieza por las competencias: son lo que vas a evaluar. Cada una lleva
-          sus indicadores —que describen qué significa, se imprimen en la boleta y
-          no se califican aparte— y las evaluaciones que la miden.
+          %strong Empieza por las competencias:
+          son lo que vas a evaluar. A cada una le agregas sus evaluaciones —con
+          su peso y su fecha— y dentro de cada evaluación escribes los
+          indicadores que mide, que son los que salen en la boleta.
       - else
         -# ⚠️ En Educación Media el plan son las evaluaciones y su ponderación
         -# —el 70/30 del Artículo 111—, sin competencias. Ver `planificar`.
@@ -128,11 +129,13 @@
     -# ⚠️ Los tres rótulos son del MISMO nivel visual —competencias, indicadores
     -# y evaluaciones— aunque uno esté dentro de otro. No son una jerarquía de
     -# importancia: son tres cosas distintas que había que poder nombrar.
+    -# ⚠️ La lista entera va dentro de `con_competencias?`: en Educación Media el
+    -# plan son las evaluaciones y su ponderación, sin componentes.
     - if con_competencias?
       %h4.plan-rotulo.plan-rotulo--seccion Competencias
-    %ol.plan-competencias
-      = render partial: "competencies/competencia", collection: @competencias, as: :competencia,
-               locals: { contexto: contexto, competencias: competencias_del_lapso }
+      %ol.plan-competencias
+        = render partial: "competencies/competencia", collection: @competencias, as: :competencia,
+                 locals: { contexto: contexto, competencias: competencias_del_lapso }
     - if evaluaciones_sueltas.any?
       -# ⚠️ Las que no miden ninguna competencia. Cuentan para el promedio igual
       -# —el peso es el peso— pero no describen nada, así que la boleta las suma
@@ -163,9 +166,18 @@
         - if con_competencias?
           = boton "Agregar competencia", new_competency_path(contexto), icono: :agregar,
                   tono: :guardar, data: { turbo_frame: "alta_competencia_nueva" }
-        = boton "Agregar evaluación", new_evaluation_activity_path(contexto),
-                icono: :agregar, tono: (con_competencias? ? :accion : :guardar),
-                data: { turbo_frame: "alta_evaluacion_nueva" }
+        - else
+          -# ⚠️ El alta de evaluación SUELTA solo existe donde no hay
+          -# componentes, o sea en Educación Media.
+          -#
+          -# En primaria una evaluación mide un componente y un indicador —o no
+          -# se guarda—, así que este botón ofrecía un formulario que iba a
+          -# rechazar lo que se escribiera en él: nace sin componente porque en
+          -# el pie del plan no hay ninguno del que colgar. El de cada
+          -# componente sí lo lleva puesto.
+          = boton "Agregar evaluación", new_evaluation_activity_path(contexto),
+                  icono: :agregar, tono: :guardar,
+                  data: { turbo_frame: "alta_evaluacion_nueva" }
       -# Los dos frames del final: no cuelgan de ninguna competencia, por eso
       -# `nueva` en vez de un número.
       = turbo_frame_tag "alta_competencia_nueva"

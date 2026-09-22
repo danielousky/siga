@@ -1,30 +1,30 @@
--# Los indicadores de una competencia, uno por uno (QA del 9 de septiembre).
+-# Los indicadores que mide UNA evaluación, uno por uno.
 -#
--# Describen qué significa la competencia. Se imprimen en la boleta para que el
--# representante entienda, pero NO se califican aparte: la nota es de la
--# competencia.
+-# Describen qué se midió. Se imprimen en la boleta con el nivel de esa
+-# evaluación (`MOR-136`, segunda mitad).
+-#
+-# ## ⚠️ Viven DENTRO de su evaluación, y ahí se escriben
+-#
+-# Daniel, 21 de septiembre: *«los componentes, luego evaluaciones dentro del
+-# componente respectivo, y finalmente los indicadores sobre cada evaluación»* —
+-# *«al crear un nuevo indicador debe estar asociado a su respectiva
+-# evaluación»*.
+-#
+-#     COMPONENTE
+-#       EVALUACIÓN               40 %   5 nov
+-#         · Identifica figuras planas por sus lados
+-#         · escribe un indicador…        ← nace midiendo ESTA evaluación
+-#
+-# Antes colgaban de la competencia y decían al margen qué evaluación los medía.
+-# Con la jerarquía puesta ese renglón sobra: la posición ya lo dice, y decirlo
+-# dos veces en el mismo sitio es lo que este rediseño vino a quitar.
 -#
 -# ⚠️ El último campo va VACÍO, y escribir en él crea el siguiente. Es cómo se
 -# escribe una lista en cualquier sitio donde uno escriba listas, y ahorra el
 -# botón «agregar indicador» que habría que buscar cada vez.
--#
--# ## ⚠️ Cada uno dice QUÉ EVALUACIÓN lo mide, y un indicador lo mide UNA sola
--#
--# Regla de Daniel: *«los indicadores no se repiten entre evaluaciones»*. Los
--# indicadores REPARTEN la competencia entre sus evaluaciones —la competencia se
--# repite, ellos no— así que el renglón de al lado contesta la pregunta que hace
--# un profesor mirando su plan: cuáles ya están cubiertos y cuáles le faltan.
--#
--#     ∘ Suma con reagrupación        Examen del lapso
--#     ∘ Estima antes de calcular     Examen del lapso
--#     ∘ Resuelve en dos pasos        sin evaluación   ← lo que falta
--#
--# ⚠️ `competencia.indicators` y no `.en_orden`: la asociación YA viene ordenada
--# —`has_many :indicators, -> { order(:orden, :id) }`— y precargada por el plan.
--# Encadenar un scope la vuelve a consultar, dos veces por indicador.
-%ul.plan-indicadores
-  - competencia.indicators.each do |indicador|
-    %li.plan-indicador{ class: ("plan-indicador--libre" unless indicador.medido?) }
+.plan-indicadores
+  - indicadores.each do |indicador|
+    .plan-indicador
       - if profesor?
         = form_with model: indicador,
                     url: competency_indicator_path(competencia, indicador, contexto),
@@ -49,30 +49,28 @@
                     data: { tooltip: "Quitar este indicador" }, "aria-label": "Quitar este indicador" do
           ×
       - else
-        %span= indicador.descripcion
-
-      - if indicador.medido?
-        %span.plan-indicador-mide{ data: { tooltip: "Lo mide «#{indicador.evaluation_activity.description}»" } }
-          = indicador.evaluation_activity.description
-      - else
-        %span.plan-indicador-libre sin evaluación
+        %span.plan-indicador-texto-fijo= indicador.descripcion
 
   - if profesor?
-    %li.plan-indicador.plan-indicador--nuevo
+    .plan-indicador.plan-indicador--nuevo
       -# ⚠️ Nace vacío en CADA render, no con lo que se acaba de escribir: la
       -# respuesta trae el indicador ya creado arriba, y si el campo conservara
       -# el texto habría dos.
-      = form_with url: competency_indicators_path(competencia, contexto),
+      -#
+      -# ⚠️ `evaluacion:` en la URL es lo que lo hace nacer midiéndola. Sin ese
+      -# parámetro el controller lo rechaza — un indicador sin evaluación no se
+      -# imprime en la boleta ni se ve en esta pantalla: es un dato invisible.
+      = form_with url: competency_indicators_path(competencia, contexto.merge(evaluacion: evaluacion.id)),
                   method: :post, class: "plan-indicador-campo",
                   data: { controller: "edicion-en-linea" } do
-        -# ⚠️ El `id` lleva el número de la competencia. Sin eso, un plan de dos
-        -# competencias dibuja DOS campos con `id="indicator_descripcion"`: el
-        -# `<label>` apunta al primero, un lector de pantalla lee el segundo como
-        -# si fuera el mismo, y `ids_unicos_test` lo caza. Se veía con una sola.
+        -# ⚠️ El `id` lleva el número de la EVALUACIÓN, no el de la competencia.
+        -# Una competencia con dos evaluaciones dibuja dos campos, y con el id de
+        -# la competencia los dos se llamarían igual: el `<label>` apunta al
+        -# primero y `ids_unicos_test` lo caza.
         = text_area_tag "indicator[descripcion]", nil, rows: 1, class: "plan-indicador-texto",
-                        id: "indicador_nuevo_#{competencia.id}",
+                        id: "indicador_nuevo_#{evaluacion.id}",
                         placeholder: "escribe un indicador…", autocomplete: "off",
-                        "aria-label": "Agregar un indicador",
+                        "aria-label": "Agregar un indicador a #{evaluacion.description}",
                         data: { edicion_en_linea_target: "campo",
                                 controller: "campo-que-crece",
                                 action: "input->campo-que-crece#crecer keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }

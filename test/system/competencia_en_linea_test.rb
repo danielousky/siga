@@ -6,18 +6,26 @@ require "application_system_test_case"
 # indicadores»*. Misma regla: Enter guarda, Escape descarta, salir guarda — y
 # solo si cambió.
 #
-# ⚠️ Los indicadores van UNO POR UNO. El formulario completo los sigue
-# recibiendo juntos —separados por líneas, para escribir el plan de cero o
-# pegar los que uno ya tiene— pero eso REEMPLAZA los tres: corregir una tilde
-# en el tercero volvía a escribir los otros dos.
+# ⚠️ Los indicadores van UNO POR UNO, y DENTRO de la evaluación que los mide
+# (21 de septiembre). El textarea del formulario completo —uno por línea— se
+# retiró: lo que naciera ahí quedaría sin evaluación, o sea sin salir en la
+# boleta y sin aparecer en el plan.
 class CompetenciaEnLineaSystemTest < ApplicationSystemTestCase
   setup do
     @a, = dos_colegios_completos(nivel: :primaria)
     @lapso = @a.escenario.lapso(2)
     @competencia = con_el_colegio(@a.colegio) do
       c = competencia_con(0, "Resuelve problemas de adición", lapso: @lapso)
-      c.indicators.create!(descripcion: "Suma con reagrupación", orden: 0)
-      c.indicators.create!(descripcion: "Resta con préstamo", orden: 1)
+      # ⚠️ Los indicadores cuelgan de la EVALUACIÓN, no de la competencia: sin
+      # ella quedan sueltos y la pantalla los dibuja en el bloque de huérfanos,
+      # que es de solo lectura — no habría campo que editar.
+      examen = actividad(@a.escenario, lapso: @lapso, peso: 40, descripcion: "Examen", mide: c)
+      # ⚠️ El escenario le pone UNO para poder crearla —una evaluación de
+      # primaria nace midiendo algo— y acá se cambia por los dos del test, que
+      # es lo que hace exactos los conteos de abajo.
+      examen.indicators.destroy_all
+      examen.indicators.create!(competency: c, descripcion: "Suma con reagrupación", orden: 0)
+      examen.indicators.create!(competency: c, descripcion: "Resta con préstamo", orden: 1)
       c
     end
     entrar_como @a.profesor

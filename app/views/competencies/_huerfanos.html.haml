@@ -1,0 +1,18 @@
+-# Los indicadores que no mide ninguna evaluación.
+-#
+-# ⚠️ Es un bloque de EXCEPCIÓN, no parte del flujo: desde el 21 de septiembre
+-# un indicador nace dentro de su evaluación y borrar la evaluación se lleva los
+-# suyos. Si aparece alguno —un dato viejo, un import— no se imprime en la
+-# boleta ni se ve en ningún otro sitio, o sea que sería basura invisible.
+-#
+-# Solo se puede LEER y BORRAR: reasignarlo a una evaluación sería un control
+-# más para un caso que no debería volver a ocurrir, y escribirlo de nuevo en su
+-# evaluación cuesta lo mismo.
+.plan-indicadores.plan-indicadores--huerfanos
+  - indicadores.each do |indicador|
+    .plan-indicador
+      %span.plan-indicador-texto-fijo= indicador.descripcion
+      = button_to competency_indicator_path(competencia, indicador, contexto),
+                  method: :delete, class: "plan-indicador-quitar",
+                  data: { tooltip: "Borrar este indicador" }, "aria-label": "Borrar este indicador" do
+        ×

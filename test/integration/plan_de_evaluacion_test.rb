@@ -42,46 +42,47 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     # ⚠️ El título es el de la SECCIÓN: el plan vive en su pestaña, y ahí lo que
     # hay que confirmar de un vistazo es dónde estoy parado.
     assert_select "h1", /#{@a.seccion.grade.name}/
-    assert_select ".pestana.activa", text: "Planificar"
+    assert_select ".pestana.activa", text: "Plan de Evaluación"
   end
 
-  test "escribe una competencia con sus indicadores, uno por línea" do
+  # ⚠️ El formulario ya NO recibe indicadores, y los dos tests que lo probaban
+  # —«uno por línea» y «editar los reemplaza»— se retiraron con el campo.
+  #
+  # Desde el 21 de septiembre un indicador cuelga de la EVALUACIÓN que lo mide.
+  # Lo que naciera en el formulario de la competencia quedaría sin evaluación:
+  # sin salir en la boleta —solo se imprimen los medidos— y sin aparecer en el
+  # plan, que los dibuja dentro de su evaluación. Un segundo lugar donde
+  # escribirlos era un segundo lugar donde perderlos.
+  #
+  # El alta y la edición uno por uno se prueban en `indicadores_test`.
+  test "la competencia se escribe sola, sin pedir indicadores" do
     sign_in @a.profesor
 
-    # ⚠️ `cantidad` y no `Competency.count`: antes de la petición `Current.school`
-    # es nil y el RLS devuelve CERO, así que los dos conteos se miden en
-    # contextos de inquilino distintos y la diferencia mide eso. Pasaba por
-    # casualidad mientras el colegio no tenía competencias propias.
     assert_difference -> { cantidad(Competency) }, 1 do
-      assert_difference -> { cantidad(Indicator) }, 3 do
+      assert_no_difference -> { cantidad(Indicator) } do
         post competencies_path(asignacion: @asignacion, lapso: @lapso.id), params: {
-          competency: { descripcion: "Resuelve problemas de adición y sustracción",
-                        indicadores: "Suma con reagrupación\nResuelve problemas de dos pasos\n\nEstima antes de calcular" }
+          competency: { descripcion: "Resuelve problemas de adición y sustracción" }
         }
       end
     end
 
     assert_redirected_to planificar_section_path(@a.seccion, area: @a.escenario.materia.id,
                                                  lapso: @lapso.id)
-    con_el_colegio(@a.colegio) do
-      assert_equal [ "Suma con reagrupación", "Resuelve problemas de dos pasos", "Estima antes de calcular" ],
-                   Competency.last.indicators.en_orden.map(&:descripcion),
-                   "la línea en blanco tiene que ignorarse, no crear un indicador vacío"
-    end
   end
 
-  # ⚠️ Al editar, los indicadores se REEMPLAZAN. La maestra ve la lista
-  # completa: si borra una línea, esa línea desaparece — no quedan seis.
-  test "editar reemplaza los indicadores, no los suma" do
+  # ⚠️ Y editarla no toca los suyos: había un `destroy_all` para el textarea, y
+  # borrarlos ahora sería tirar el trabajo de tres evaluaciones por una tilde.
+  test "editar la competencia no toca sus indicadores" do
     c = con_el_colegio(@a.colegio) { competencia_con(2) }
     sign_in @a.profesor
 
     patch competency_path(c, asignacion: @asignacion, lapso: @lapso.id), params: {
-      competency: { descripcion: c.descripcion, indicadores: "Solo este" }
+      competency: { descripcion: "Con otro nombre" }
     }
 
     con_el_colegio(@a.colegio) do
-      assert_equal [ "Solo este" ], c.reload.indicators.map(&:descripcion)
+      assert_equal 2, c.reload.indicators.count
+      assert_equal "Con otro nombre", c.descripcion
     end
   end
 

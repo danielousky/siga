@@ -28,13 +28,13 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
   test "el orden es el del ciclo, y las del guía solo aparecen para el guía" do
     visit section_path(@a.seccion, area: @area.id)
 
-    assert_equal [ "Calificar", "Planificar", "Alumnos" ],
+    assert_equal [ "Calificar", "Plan de Evaluación", "Alumnos" ],
                  all(".pestana").map(&:text)
 
     con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: @a.registro_de_profesor) }
     visit section_path(@a.seccion, area: @area.id)
 
-    assert_equal [ "Asistencia", "Calificar", "Planificar", "Informes", "Alumnos" ],
+    assert_equal [ "Asistencia", "Calificar", "Plan de Evaluación", "Informes", "Alumnos" ],
                  all(".pestana").map(&:text)
   end
 
@@ -78,7 +78,7 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
     con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: @a.registro_de_profesor) }
     visit section_path(@a.seccion, area: @area.id)
 
-    [ [ "Planificar", :planificar_section_path ], [ "Asistencia", :asistencia_section_path ] ].each do |nombre, ruta|
+    [ [ "Plan de Evaluación", :planificar_section_path ], [ "Asistencia", :asistencia_section_path ] ].each do |nombre, ruta|
       # ⚠️ Se ESPERA a estar en la sección antes de tocar la pestaña.
       #
       # `click_on` espera a que el enlace exista, pero en la segunda vuelta el
@@ -124,8 +124,8 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
     visit section_path(@a.seccion)
     en_la_seccion(area: nil)
 
-    tocar_para_ir_a(planificar_section_path(@a.seccion)) { click_on "Planificar" }
-    assert_selector ".pestana.activa", text: "Planificar"
+    tocar_para_ir_a(planificar_section_path(@a.seccion)) { click_on "Plan de Evaluación" }
+    assert_selector ".pestana.activa", text: "Plan de Evaluación"
     assert_no_text "Elige primero un área"
   end
 
