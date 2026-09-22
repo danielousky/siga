@@ -23,6 +23,15 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.9.1 — 22 de septiembre de 2026
+
+- **Cada evaluación dice cuántas notas tiene**, de cuántos alumnos: «notas 18 de
+  21», en verde si están todas, ámbar si faltan y rojo si no hay ninguna. Antes
+  eso solo se sabía intentando borrar la evaluación y leyendo el error de que no
+  se podía. Es el mismo lenguaje de la libreta y del menú.
+- **La competencia nueva se agrega al final del plan**, no en el medio. Nacía
+  sin número de orden, así que caía entre las primeras.
+
 ## 1.9.0 — 21 de septiembre de 2026
 
 **El plan de evaluación se reordenó**, después de verlo en uso: primero el

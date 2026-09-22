@@ -361,6 +361,42 @@ module ApplicationHelper
 
   # El id DOM de una fila del plan.
   #
+  # Cuántos alumnos tienen ya su nota en esta evaluación, de cuántos hay.
+  #
+  # Daniel, 22 de septiembre, después de que el plan le negara borrar una
+  # evaluación: *«me surgió la necesidad de colocar un elemento que indique si
+  # ya tiene notas cargadas, o cuántas de cuántos»*. Hasta ahora eso solo se
+  # sabía intentando borrarla y leyendo el error.
+  #
+  # ⚠️ Vive en el HELPER y no en `MuestraElPlan`, aunque solo lo use el plan.
+  #
+  # La fila de la evaluación la dibujan DOS controllers: el del plan, que
+  # incluye el concern, y `EvaluationActivitiesController`, que no lo incluye
+  # —ni debe: arrastraría `asignacion`, las hermanas y el plan del año pasado—.
+  # Un `helper_method` del concern deja al segundo con la fila rota, y eso
+  # revienta justo en la respuesta al FALLO de un guardado: el único camino que
+  # ningún ojo mira dos veces.
+  #
+  # ⚠️ `.size` y no `.count`: `activity_grades` viene precargada por el plan, así
+  # que esto no consulta. Con `.count` serían treinta consultas en un plan de
+  # treinta evaluaciones.
+  #
+  # ⚠️ Y los inscritos se cuentan UNA VEZ POR SECCIÓN, no por fila: un plan de
+  # treinta evaluaciones es una sola sección.
+  def avance_de(evaluacion)
+    CargaDeNotas::Avance.new(puestas: evaluacion.activity_grades.size,
+                             total: inscritos_de(evaluacion.section_id),
+                             primera_incompleta: nil)
+  end
+
+  # ⚠️ Solo los REGULARES, que son los que salen en la planilla de notas: un
+  # retirado no tiene nota y nunca la va a tener, así que contándolo ninguna
+  # evaluación llegaría jamás a «completa».
+  def inscritos_de(section_id)
+    @inscritos_de ||= {}
+    @inscritos_de[section_id] ||= Enrollment.where(section_id: section_id, status: :regular).count
+  end
+
   # ⚠️ Lleva la competencia bajo la que está dibujada, y no puede llevar solo el
   # de la evaluación: una que mide dos competencias sale dos veces —a propósito—
   # y con `dom_id(evaluacion)` a secas quedaban DOS elementos con el mismo `id`.
