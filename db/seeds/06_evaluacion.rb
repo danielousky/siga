@@ -80,6 +80,26 @@ def plan_de(seccion, materia, lapso)
   end
 end
 
+# Reparte entre sus evaluaciones los indicadores que quedaron sueltos.
+#
+# ⚠️ Ninguno puede quedar sin evaluación en la demo. Desde el 21 de septiembre
+# un indicador vive DENTRO de la evaluación que lo mide: uno suelto no se
+# imprime en la boleta —solo salen los medidos— y en el plan aparece en el
+# bloque ámbar de «indicadores sin evaluación», que es un aviso de dato viejo.
+# Una demo llena de esos avisos enseña justo lo contrario de cómo se usa.
+#
+# El reparto es cíclico: tres indicadores entre dos evaluaciones quedan 2 y 1.
+def repartir_los_indicadores_sueltos(seccion)
+  Competency.where(section_id: seccion.id).includes(:indicators, :evaluation_activities).find_each do |competencia|
+    miden = competencia.evaluation_activities.to_a
+    next if miden.empty?
+
+    competencia.indicators.reject(&:medido?).each_with_index do |indicador, i|
+      indicador.update!(evaluation_activity: miden[i % miden.size])
+    end
+  end
+end
+
 # ⚠️ Un indicador PROPIO por evaluación: no se repiten entre evaluaciones, así
 # que dos actividades de la misma competencia miden cosas distintas de ella. Si
 # el plan escrito se queda corto, se escribe uno más — que es exactamente lo que
@@ -196,6 +216,11 @@ def evaluar_seccion!(seccion, lapsos, hasta_el_lapso: 3, casos: {}, objetivo: ni
   alumnos = alumnos_de(seccion)
   return if alumnos.empty?
 
+  # ⚠️ Al final de la sección se reparten los indicadores que quedaron sueltos
+  # (ver `repartir_los_indicadores_sueltos`). Se hace acá y no al crear cada
+  # evaluación porque el reparto necesita saber CUÁNTAS evaluaciones miden cada
+  # competencia, y eso solo se sabe cuando están las tres.
+
   filas = []
   materias = seccion.grade.subjects.order(:code).to_a
 
@@ -228,6 +253,7 @@ def evaluar_seccion!(seccion, lapsos, hasta_el_lapso: 3, casos: {}, objetivo: ni
     end
   end
 
+  repartir_los_indicadores_sueltos(seccion)
   cargar_notas!(filas)
   GradeCalculator.calculate_all_for_section(seccion)
   filas.size
@@ -436,13 +462,13 @@ cuarto_a = seccion_de(bolivar, "4to Grado", "A", SEMILLA[:anio_bolivar])
 if cuarto_a
   materia = cuarto_a.grade.subjects.find_by(code: "MAT")
   if materia
+    # ⚠️ SIN indicadores, y eso es lo coherente desde el 21 de septiembre: un
+    # indicador cuelga de la evaluación que lo mide, así que una competencia que
+    # ninguna evaluación mide no puede tener ninguno todavía.
     suelta = Competency.find_or_create_by!(
       section: cuarto_a, subject: materia, evaluation_moment: lapsos_bol.first,
       descripcion: "Interpreta tablas y gráficos sencillos"
     ) { |c| c.orden = 9 }
-    [ "Lee los datos de una tabla", "Explica lo que muestra un gráfico" ].each_with_index do |texto, i|
-      Indicator.find_or_create_by!(competency: suelta, descripcion: texto) { |ind| ind.orden = i }
-    end
   end
 end
 

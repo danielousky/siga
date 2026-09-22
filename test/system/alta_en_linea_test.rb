@@ -102,7 +102,7 @@ class AltaEnLineaSystemTest < ApplicationSystemTestCase
       click_on "Agregar"
     end
 
-    assert_selector ".pestana.activa", text: "Planificar"
+    assert_selector ".pestana.activa", text: "Plan de Evaluación"
   end
 
   test "cancelar cierra el panel y deja el plan como estaba" do
@@ -132,18 +132,15 @@ class AltaEnLineaSystemTest < ApplicationSystemTestCase
                     "Interpreta gráficos de barras"
   end
 
-  # ⚠️ Un `<details>` nativo NO se cierra al hacer clic fuera, y como su panel es
-  # `position: absolute` quedaba flotando sobre la fila de abajo. Daniel: «clic
-  # fuera del elemento destruye la acción».
-  test "el menú de competencias se cierra al hacer clic fuera" do
-    con_el_colegio(@a.colegio) { competencia_con(0, "Otra competencia", lapso: @lapso) }
-    ir_al_plan
-
-    find(".plan-evaluacion-mas-abrir", match: :first).click
-    assert_selector ".plan-evaluacion-mas-opcion", visible: true
-
-    find(".plan-rotulo", text: "COMPETENCIAS", match: :first).click
-
-    assert_no_selector ".plan-evaluacion-mas-opcion", visible: true
-  end
+  # ⚠️ El test del MENÚ FLOTANTE se retiró con los chips (21 de septiembre).
+  #
+  # Probaba que un `<details>` se cierre al hacer clic fuera —Daniel: «clic
+  # fuera del elemento destruye la acción»— y su único uso era el menú [+] de la
+  # fila, que ofrecía engancharle a una evaluación cualquier competencia del
+  # plan. Se retiró porque contradice la jerarquía anidada.
+  #
+  # El controlador `menu-flotante` se queda registrado: es genérico —un
+  # `<details>` que se cierra al hacer clic fuera— y el día que haga falta otro
+  # menú, la lección de las tres veces que este proyecto se tropezó con el
+  # `position: absolute` de un `<details>` cerrado ya está aprendida.
 end

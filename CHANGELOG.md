@@ -23,6 +23,34 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.9.0 — 21 de septiembre de 2026
+
+**El plan de evaluación se reordenó**, después de verlo en uso: primero el
+componente, dentro sus evaluaciones, y dentro de cada evaluación los
+indicadores que mide. Cada nivel en su propio contenedor.
+
+```
+   ┌ Resuelve problemas de adición ──────────────────┐
+   │   EVALUACIONES                                  │
+   │   ┌ Examen                    40 %   5 nov ─┐   │
+   │   │   INDICADORES QUE MIDE                  │   │
+   │   │     · Suma con reagrupación             │   │
+   │   │     · escribe un indicador…             │   │
+   │   └─────────────────────────────────────────┘   │
+   └─────────────────────────────────────────────────┘
+```
+
+- **Un indicador nuevo nace midiendo su evaluación.** Antes quedaba colgado
+  solo del componente, o sea sin salir en la boleta y sin verse en el plan.
+- **Se retiró el menú que ofrecía competencias ajenas.** Bajo una evaluación de
+  «Reconoce figuras geométricas» ofrecía engancharle «Resuelve problemas de
+  adición»: contradecía lo que la pantalla enseña.
+- **Los indicadores ya no se escriben desde el formulario del componente.** Un
+  segundo lugar donde escribirlos era un segundo lugar donde perderlos.
+- **Borrar una evaluación no borra sus indicadores**, y el aviso lo dice: quedan
+  listados en ámbar dentro de su componente, para copiarlos o borrarlos.
+- La pestaña se llama **«Plan de Evaluación»**, no «Planificar».
+
 ## 1.8.0 — 19 de septiembre de 2026
 
 - **El informe descriptivo es obligatorio para cerrar el lapso.** Salió como un

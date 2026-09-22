@@ -23,7 +23,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
   end
 
   test "el formulario aparece dentro de la pestaña, sin cambiar de página" do
-    assert_selector ".pestana.activa", text: "Planificar"
+    assert_selector ".pestana.activa", text: "Plan de Evaluación"
 
     click_on "Agregar competencia"
 
@@ -32,7 +32,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     assert_current_path planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
     assert_selector "textarea[name='competency[descripcion]']"
     # Y sigo en la sección: la pestaña y el título están donde estaban.
-    assert_selector ".pestana.activa", text: "Planificar"
+    assert_selector ".pestana.activa", text: "Plan de Evaluación"
   end
 
   # ⚠️ El alta desde el plan ya no es esta pantalla: desde el 9 de septiembre se
@@ -66,7 +66,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
 
     click_on "Ir a planificar"
 
-    assert_selector ".pestana.activa", text: "Planificar"
+    assert_selector ".pestana.activa", text: "Plan de Evaluación"
   end
 
   # ⚠️ Al guardar, el frame se reemplaza por la LIBRETA con su columna nueva.
@@ -124,7 +124,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     within(".alta-en-linea") { click_on "Cancelar" }
 
     assert_no_text "Content missing"
-    assert_selector ".pestana.activa", text: "Planificar"
+    assert_selector ".pestana.activa", text: "Plan de Evaluación"
   end
 
   # ⚠️ Y el botón ATRÁS del navegador, que es la otra mitad de lo mismo: dentro

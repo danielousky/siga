@@ -10,6 +10,13 @@
 -#                                         │      └─ calendario del año escolar
 -#                                         └─ sube y baja de 1 en 1
 -#
+-# ## ⚠️ Y debajo, los INDICADORES que mide
+-#
+-# Daniel, 21 de septiembre: *«los componentes, luego evaluaciones dentro del
+-# componente respectivo, y finalmente los indicadores sobre cada evaluación»*.
+-# Antes los indicadores colgaban de la competencia y cada uno decía al margen
+-# qué evaluación lo medía; con la jerarquía puesta, ese renglón sobra.
+-#
 -# ## ⚠️ El input está SIEMPRE en el DOM, sin aspecto de caja
 -#
 -# La alternativa —cambiar el `<span>` por un `<input>` al hacer clic— obliga a
@@ -26,11 +33,12 @@
 -# tiene que saber bajo QUÉ competencia está dibujada, o su chip repite la de
 -# arriba en vez de nombrar la otra.
 - aqui = contexto.merge(en_linea: true, bajo: local_assigns[:competencia]&.id).compact
-%li.plan-evaluacion{ id: id_de_la_fila(evaluacion, local_assigns[:competencia]),
-                     class: [ ("plan-evaluacion--con-error" if error),
-                              ("plan-evaluacion--guardada" if guardada) ].compact }
+.plan-evaluacion{ id: id_de_la_fila(evaluacion, local_assigns[:competencia]),
+                  class: [ ("plan-evaluacion--con-error" if error),
+                           ("plan-evaluacion--guardada" if guardada) ].compact }
   -# El nombre ya no puede ser el enlace a la planilla —ahora se escribe encima—
   -# así que el enlace se muda al margen, donde no compite con nada.
+
   = link_to evaluation_activity_notas_path(evaluacion, desde: contexto[:desde]),
             class: "plan-evaluacion-ir", data: { turbo_frame: "_top", tooltip: "Cargar las notas" },
             "aria-label": "Cargar las notas de #{evaluacion.description}" do
@@ -41,9 +49,9 @@
                 method: :patch, class: "plan-evaluacion-campo plan-evaluacion-campo--nombre",
                 data: { controller: "edicion-en-linea" } do |f|
       = f.text_field :description, class: "plan-evaluacion-nombre-campo",
-                     "aria-label": "Nombre de la evaluación", autocomplete: "off",
-                     data: { edicion_en_linea_target: "campo",
-                             action: "keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }
+                    "aria-label": "Nombre de la evaluación", autocomplete: "off",
+                    data: { edicion_en_linea_target: "campo",
+                            action: "keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }
   - else
     %span.plan-evaluacion-descripcion= evaluacion.description
 
@@ -56,11 +64,11 @@
                 method: :patch, class: "plan-evaluacion-campo plan-evaluacion-campo--peso",
                 data: { controller: "edicion-en-linea", turbo_stream: true } do |f|
       = f.number_field :weight_percentage, value: entero_si_lo_es(evaluacion.weight_percentage),
-                       step: 1, min: 1, max: 100, class: "plan-evaluacion-peso-campo",
-                       "aria-label": "Peso de #{evaluacion.description}, en porcentaje",
-                       data: { edicion_en_linea_target: "campo", reparto_target: "peso",
-                               id: evaluacion.id,
-                               action: "input->reparto#recalcular keydown->edicion-en-linea#tecla blur->reparto#ajustar blur->edicion-en-linea#salir" }
+                      step: 1, min: 1, max: 100, class: "plan-evaluacion-peso-campo",
+                      "aria-label": "Peso de #{evaluacion.description}, en porcentaje",
+                      data: { edicion_en_linea_target: "campo", reparto_target: "peso",
+                              id: evaluacion.id,
+                              action: "input->reparto#recalcular keydown->edicion-en-linea#tecla blur->reparto#ajustar blur->edicion-en-linea#salir" }
       %span.plan-evaluacion-peso-signo %
   - else
     %span.plan-evaluacion-peso-fijo= porcentaje(evaluacion.weight_percentage)
@@ -73,7 +81,15 @@
       -# consulta, y en el turbo_stream de UNA fila hace la única que hace falta.
       -# `.count` iría a la base siempre, treinta veces en un plan de treinta.
       - notas = evaluacion.activity_grades.size
-      - aviso = notas.zero? ? "¿Borrar «#{evaluacion.description}»? Deja de contar en el promedio del lapso." : "«#{evaluacion.description}» tiene #{contar(notas, 'nota cargada', 'notas cargadas')} y no se puede borrar hasta que se vacíen desde su planilla."
+      -# ⚠️ El aviso dice qué pasa con los INDICADORES: no se borran, quedan
+      -# sueltos. El texto lo escribió la maestra y `dependent: :nullify` es
+      -# deliberado — borrar el examen para rehacerlo no puede costarle los
+      -# cuatro indicadores que acababa de escribir. Aparecen en el bloque
+      -# ámbar de la competencia, para copiarlos o borrarlos.
+      - suyos = evaluacion.indicators.size
+      - borrar = "¿Borrar «#{evaluacion.description}»? Deja de contar en el promedio del lapso."
+      - borrar += " Sus #{contar(suyos, 'indicador queda', 'indicadores quedan')} sin evaluación, sin borrarse." if suyos.positive?
+      - aviso = notas.zero? ? borrar : "«#{evaluacion.description}» tiene #{contar(notas, 'nota cargada', 'notas cargadas')} y no se puede borrar hasta que se vacíen desde su planilla."
       = button_to evaluation_activity_path(evaluacion, contexto),
                   method: :delete, class: "btn btn-danger btn-sm btn-solo-icono",
                   form: { data: { turbo_confirm: aviso } },
@@ -81,35 +97,42 @@
                   "aria-label": "Borrar" do
         = icono(:borrar, tamano: 14)
 
-  = render "competencies/chips", evaluacion: evaluacion, contexto: contexto,
-           competencia: local_assigns[:competencia], competencias: competencias
-
-  -# ⚠️ QUÉ INDICADORES mide, debajo de su fila (MOR-136, segunda mitad).
+  -# ── Los indicadores que mide esta evaluación ────────────────────────────
   -#
-  -# Es lo que la posición NO puede decir: la fila ya está bajo su competencia,
-  -# pero cuál de los cinco indicadores de esa competencia mide ESTA evaluación
-  -# —y no la de al lado— no se deduce de nada. Regla de Daniel: *«los
-  -# indicadores no se repiten entre evaluaciones»*, así que los de arriba y los
-  -# de abajo son distintos y hay que verlos.
+  -# ⚠️ El contenedor va SIEMPRE, también vacío: el campo «escribe un
+  -# indicador…» es la única manera de agregar el primero, así que esconderlo
+  -# cuando no hay ninguno deja a la evaluación sin forma de tener indicadores.
   -#
   -# ⚠️ Se filtran por la competencia BAJO LA QUE está dibujada la fila. Una
-  -# evaluación que mide dos sale dos veces, y listar los cinco en las dos
+  -# evaluación que mide dos sale dos veces, y listar todos en las dos
   -# apariciones diría que el examen mide bajo «Interpreta gráficos» un
   -# indicador que es de adición.
+  -#
+  -# ⚠️ Los chips de «también mide» se retiraron. Ofrecían enganchar a esta
+  -# evaluación una competencia CUALQUIERA del plan —Daniel: *«¿por qué me está
+  -# permitiendo agregar indicadores de otra competencia?»*— y con la jerarquía
+  -# anidada eso contradice lo que la pantalla enseña: la evaluación está DENTRO
+  -# de su componente.
   - bajo   = local_assigns[:competencia]
   - miden  = evaluacion.indicators.select { |i| bajo.nil? || i.competency_id == bajo.id }
-  - if miden.any?
+  - if bajo.present?
+    .plan-evaluacion-mide
+      %h5.plan-rotulo.plan-rotulo--indicadores Indicadores que mide
+      - if miden.empty? && profesor?
+        -# ⚠️ AVISO y no error: la evaluación cuenta para el promedio igual. Lo
+        -# que no puede hacer la boleta es decir qué se midió. Alcanza a lo
+        -# escrito antes de esta regla: lo que nace ahora nace con el suyo.
+        %p.plan-sin-indicador
+          = icono(:alerta, tamano: 13)
+          %span Todavía no dice qué mide. Escribe abajo el primer indicador.
+      = render "competencies/indicadores", competencia: bajo, evaluacion: evaluacion,
+               indicadores: miden, contexto: contexto
+  - elsif miden.any?
+    -# Sin competencia no hay dónde escribirlos —el alta cuelga de ella— así que
+    -# acá solo se leen: es una evaluación heredada, del bloque de las sueltas.
     %ul.plan-evaluacion-indicadores
       - miden.each do |indicador|
         %li= indicador.descripcion
-  - elsif profesor? && bajo.present?
-    -# ⚠️ AVISO y no error: la evaluación existe y cuenta para el promedio. Lo
-    -# que no puede hacer la boleta es decir qué se midió — y eso es exactamente
-    -# lo que hay que enterarse, igual que `MOR-229` avisa la competencia sin
-    -# evaluaciones. Las nacidas después de esta regla ya no pueden estar así.
-    %p.plan-evaluacion-sin-indicador
-      = icono(:alerta, tamano: 12)
-      %span No dice qué indicadores mide.
 
   -# ⚠️ El error se dice EN LA FILA y el campo vuelve a su valor viejo.
   -#

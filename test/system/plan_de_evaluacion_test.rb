@@ -17,48 +17,37 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
     entrar_como(@a.profesor)
   end
 
-  test "el campo de indicadores crece con lo que se escribe" do
-    visit new_competency_path(asignacion: "#{@a.seccion.id}:#{@a.escenario.materia.id}",
-                              lapso: @a.escenario.lapso(1).id)
+  # ⚠️ El campo que crece es el del INDICADOR, dentro de su evaluación.
+  #
+  # Era el textarea de «uno por línea» del formulario de la competencia, y ese
+  # campo se retiró el 21 de septiembre: un indicador cuelga de la evaluación
+  # que lo mide. Lo que se prueba es lo mismo y donde ahora vive — que el
+  # controlador de Stimulus conecte, porque en este proyecto ya falló dos veces
+  # EN SILENCIO y el síntoma es un campo de alto fijo que esconde lo escrito.
+  test "el campo del indicador crece con lo que se escribe" do
+    lapso = @a.escenario.lapso(2)
+    con_el_colegio(@a.colegio) do
+      c = competencia_con(0, "Resuelve problemas de adición", lapso: lapso)
+      actividad(@a.escenario, lapso: lapso, peso: 40, descripcion: "Examen", mide: c)
+    end
 
-    campo = find("textarea[name='competency[indicadores]']")
+    visit planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: lapso.id)
+
+    campo = first(".plan-indicador-texto")
     alto_inicial = campo.evaluate_script("this.offsetHeight")
 
-    campo.fill_in with: (1..6).map { |i| "Indicador número #{i}" }.join("\n")
+    campo.set((1..6).map { |i| "una frase larga número #{i}" }.join(" "))
 
     assert_operator campo.evaluate_script("this.offsetHeight"), :>, alto_inicial,
                     "el campo no creció: el controlador de Stimulus no conectó"
   end
 
-  # ⚠️ Y al EDITAR llega con las líneas ya puestas desde el servidor. Sin
-  # ajustar al conectar, el campo aparece recortado y la maestra cree que perdió
-  # indicadores.
-  test "al editar, el campo abre mostrando todos los indicadores" do
-    competencia = con_el_colegio(@a.colegio) do
-      c = Competency.create!(section: @a.seccion, subject: @a.escenario.materia,
-                             evaluation_moment: @a.escenario.lapso(1),
-                             descripcion: "Resuelve problemas de adición")
-      5.times { |i| c.indicators.create!(descripcion: "Indicador número #{i + 1}", orden: i) }
-      c
-    end
-
-    visit edit_competency_path(competencia, asignacion: "#{@a.seccion.id}:#{@a.escenario.materia.id}",
-                                            lapso: @a.escenario.lapso(1).id)
-
-    campo = find("textarea[name='competency[indicadores]']")
-    # Cinco líneas no caben en el alto por defecto de tres.
-    assert_operator campo.evaluate_script("this.offsetHeight"), :>=,
-                    campo.evaluate_script("this.scrollHeight"),
-                    "el campo abrió recortado: se ven menos indicadores de los que hay"
-  end
-
   # Lo que el issue promete, de punta a punta y con el navegador.
-  test "escribe una competencia con sus indicadores y la ve en el plan" do
+  test "escribe una competencia y la ve en el plan" do
     visit new_competency_path(asignacion: "#{@a.seccion.id}:#{@a.escenario.materia.id}",
                               lapso: @a.escenario.lapso(1).id)
 
     fill_in "competency[descripcion]", with: "Resuelve problemas de proporcionalidad directa"
-    fill_in "competency[indicadores]", with: "Calcula porcentajes\nInterpreta una tabla"
     click_on "Crear"
 
     # ⚠️ Con margen: crear redirige al plan DENTRO del frame, y desde que la
@@ -72,52 +61,20 @@ class PlanDeEvaluacionSystemTest < ApplicationSystemTestCase
     # escenario, así que `find` singular es ambiguo desde `MOR-136`.
     assert_includes all(".plan-competencia-descripcion-campo").map(&:value),
                     "Resuelve problemas de proporcionalidad directa"
-    assert_includes all(".plan-indicador-texto").map(&:value), "Calcula porcentajes"
-    assert_includes all(".plan-indicador-texto").map(&:value), "Interpreta una tabla"
-  end
-
-  # ── Conectar evaluaciones desde el plan (MOR-136, el enganche) ─────────────
-  #
-  # ⚠️ Se prueba en un navegador de verdad porque el menú es un `<details>`, y
-  # este proyecto ya se tropezó TRES veces con lo mismo: un `<details>` cerrado
-  # **no** esconde a un hijo con `position: absolute`. El marcado sale perfecto,
-  # el panel «cerrado» y sus opciones encima de la pantalla.
-  #
-  # ⚠️ Cambió de puerta el 9 de septiembre: se engancha desde la EVALUACIÓN,
-  # con los chips de su fila. El `<details>` colgado de la competencia
-  # —«Cambiar cuáles la miden»— preguntaba al revés y se retiró.
-  test "engancha una SEGUNDA competencia desde la fila de la evaluación" do
-    # ⚠️ Se reusa la evaluación del escenario y no se crea otra: el lapso ya
-    # tiene el 100 % de la ponderación repartido, y una segunda al 100 % la
-    # rechaza el modelo — que es justo lo que tiene que hacer.
-    #
-    # ⚠️ Y desde `MOR-136` esa evaluación YA mide una competencia: una de
-    # primaria no puede no medir ninguna. Lo que se engancha acá es la SEGUNDA,
-    # que es para lo que existe el menú [+] de la fila.
-    evaluacion  = @a.actividad
-    competencia = con_el_colegio(@a.colegio) do
-      Competency.create!(section: @a.seccion, subject: @a.escenario.materia,
-                         evaluation_moment: @a.escenario.lapso(1),
-                         descripcion: "Resuelve problemas de adición")
-    end
-
-    visit planificar_section_path(@a.seccion, area: @a.escenario.materia.id,
-                                  lapso: @a.escenario.lapso(1).id)
-
-    # A la competencia nueva no la mide nadie, y el plan lo dice con su
-    # consecuencia: saldrá sin nivel en la boleta.
+    # ⚠️ Nace SIN indicadores, y eso es lo correcto: cuelgan de la evaluación
+    # que los mide, y esta competencia todavía no tiene ninguna.
     assert_selector ".plan-competencia--sin-evaluar"
-    assert_text "sin nivel en la boleta"
-
-    # El menú viene cerrado: la opción no se puede tocar hasta abrirlo.
-    assert_no_selector ".plan-evaluacion-mas-opcion", visible: true
-
-    find(".plan-evaluacion-mas-abrir").click
-    click_on competencia.descripcion
-
-    # Enganchada, la evaluación cuelga de las DOS y el aviso desaparece.
-    assert_no_selector ".plan-competencia--sin-evaluar"
-    assert_equal 2, all(".plan-competencia .plan-evaluacion-nombre-campo[value='#{evaluacion.description}']").size,
-                 "una evaluación que mide dos competencias sale bajo cada una"
   end
+
+  # ── Los chips se retiraron el 21 de septiembre ────────────────────────────
+  #
+  # Eran el menú [+] de la fila: le ofrecían a una evaluación CUALQUIER
+  # competencia del plan. Daniel, viendo el menú abierto bajo una evaluación de
+  # «Reconoce figuras geométricas» que le ofrecía «Resuelve problemas de
+  # adición»: *«¿por qué me está permitiendo agregar indicadores de otra
+  # competencia?»*.
+  #
+  # Con el plan anidado —componente ▸ evaluación ▸ indicadores— el chip
+  # contradecía lo que la pantalla enseña. Su test de navegador se va con él; el
+  # `<details>` que sí quedó se prueba en `alta_en_linea_test`.
 end

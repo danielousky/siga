@@ -5,15 +5,27 @@
 -# siempre en el DOM sin aspecto de caja, Enter guarda, Escape descarta, salir
 -# guarda — y solo si cambió.
 -#
--#     1. │Resuelve problemas de adición y sustracción▌│              🗑
--#          ∘ │Suma con reagrupación▌│                            ×
--#          ∘ │Resuelve problemas de dos pasos▌│                   ×
--#          ∘ │escribe un indicador…▌│      ← escribir crea el siguiente
+-# ## ⚠️ Tres niveles, y cada uno dentro del anterior
 -#
--# ⚠️ Los indicadores van UNO POR UNO y no en un textarea con saltos de línea.
--# El formulario completo los sigue recibiendo juntos —para escribir el plan de
--# cero o pegar los que uno ya tiene— pero eso REEMPLAZA los tres: corregir una
--# tilde en el tercero volvía a escribir los otros dos.
+-# Daniel, 21 de septiembre: *«los componentes, luego evaluaciones dentro del
+-# componente respectivo, y finalmente los indicadores sobre cada evaluación…
+-# cada componente está en un contenedor que contiene la evaluación y los
+-# indicadores»*.
+-#
+-#     ┌ 1. │Resuelve problemas de adición▌│                       🗑 ┐
+-#     │    EVALUACIONES                                             │
+-#     │      ┌ Examen                        40 %   5 nov      🗑 ┐ │
+-#     │      │  INDICADORES QUE MIDE                             │ │
+-#     │      │    ∘ │Suma con reagrupación▌│                  ×  │ │
+-#     │      │    ∘ │escribe un indicador…▌│  ← nace midiendo   │ │
+-#     │      └────────────────────────────────  este examen ────┘ │
+-#     │      [+ Agregar evaluación]                                │
+-#     └─────────────────────────────────────────────────────────────┘
+-#
+-# ⚠️ Los indicadores YA NO cuelgan de la competencia: cuelgan de la evaluación
+-# que los mide. Un indicador sin evaluación no se imprime en la boleta —solo
+-# salen los medidos— y desde esta jerarquía tampoco se ve, así que dejar donde
+-# escribirlos sueltos era ofrecer un dato invisible.
 - suyas    = evaluaciones_de(competencia)
 - error    = local_assigns[:error]
 - guardada = local_assigns[:guardada]
@@ -27,6 +39,7 @@
     -# campo de formulario es un elemento reemplazado y no admite
     -# pseudoelementos. Lo pinta el contador CSS, que se recalcula solo cuando
     -# una competencia se borra o vuelve por turbo_stream.
+
     %span.plan-competencia-numero{ "aria-hidden": true }
     .plan-competencia-texto
       - if profesor?
@@ -71,14 +84,13 @@
         = icono(:alerta, tamano: 13)
         %span= error
 
-    %h5.plan-rotulo Indicadores
-    = render "competencies/indicadores", competencia: competencia, contexto: contexto
-
     %h5.plan-rotulo Evaluaciones
     - if suyas.any?
-      %ul.plan-evaluaciones
-        = render partial: "competencies/evaluacion", collection: suyas, as: :evaluacion,
-                 locals: { contexto: contexto, competencia: competencia, competencias: competencias }
+      -# ⚠️ Sin `<ul>`: cada evaluación es su propia tarjeta con los indicadores
+      -# dentro, no un renglón de una lista. La lista con `gap: 1px` sobre fondo
+      -# gris servía cuando eran filas de una línea.
+      = render partial: "competencies/evaluacion", collection: suyas, as: :evaluacion,
+               locals: { contexto: contexto, competencia: competencia, competencias: competencias }
     - else
       -# ⚠️ Es un AVISO, no un error: el plan se guarda igual. Pero dice la
       -# consecuencia y no el síntoma — «sin evaluaciones» no significa nada,
@@ -86,6 +98,24 @@
       %p.plan-sin-evaluar
         = icono(:alerta, tamano: 15)
         %span Sin evaluaciones — esta competencia saldrá sin nivel en la boleta.
+
+    -# ⚠️ Los que quedaron SIN evaluación, y solo si hay.
+    -#
+    -# Ninguna pantalla los crea desde el 21 de septiembre, y borrar una
+    -# evaluación se lleva los suyos. Pero si aparecen —un import, un dato
+    -# viejo— no se imprimen en la boleta ni se ven en ningún otro sitio: serían
+    -# basura invisible. El bloque existe para poder borrarlos, y desaparece
+    -# solo cuando no queda ninguno.
+    - huerfanos = competencia.indicators.reject(&:medido?)
+    - if huerfanos.any? && profesor?
+      %h5.plan-rotulo Indicadores sin evaluación
+      %p.nota-ayuda
+        Ninguna evaluación los mide, así que
+        %strong no salen en la boleta
+        \. Quedan de una evaluación borrada o de antes de este cambio: escríbelos
+        dentro de la evaluación que corresponda y bórralos de acá.
+      = render "competencies/huerfanos", competencia: competencia, contexto: contexto,
+               indicadores: huerfanos
 
     - if profesor?
       -# ⚠️ El formulario se despliega EN SU SITIO, en un frame propio debajo del

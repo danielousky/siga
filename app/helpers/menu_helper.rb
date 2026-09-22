@@ -419,7 +419,7 @@ module MenuHelper
     # bachillerato caen juntos y a la maestra de 1er Nivel se le pedía un
     # «Examen 40 %» para un niño de tres años.
     if seccion.grade.planifica?
-      pestanas << [ "Planificar", planificar_section_path(seccion, contexto), activa == :planificar ]
+      pestanas << [ "Plan de Evaluación", planificar_section_path(seccion, contexto), activa == :planificar ]
     end
 
     # ⚠️ Los informes descriptivos son una PESTAÑA, no un botón de la cabecera.

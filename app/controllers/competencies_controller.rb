@@ -70,21 +70,13 @@ class CompetenciesController < ApplicationController
     end
   end
 
-  # ⚠️ Los indicadores se REEMPLAZAN, no se agregan.
+  # ⚠️ Editar una competencia YA NO toca sus indicadores.
   #
-  # Llegan como un textarea —uno por línea— así que lo que la maestra ve al
-  # editar es la lista completa: si borró una línea, esa línea tiene que
-  # desaparecer. Con `indicators_attributes` a secas se agregarían los tres de
-  # nuevo y quedarían seis.
-  # ⚠️ Los indicadores se reemplazan SOLO si vienen en la petición.
-  #
-  # El `destroy_all` era incondicional, y desde que la competencia se edita en
-  # su sitio (9 de septiembre) llega una petición con la descripción sola —
-  # que le habría borrado los tres indicadores sin decir nada. El formulario
-  # completo sigue mandándolos todos y ahí sí se reemplazan enteros.
+  # Había un `destroy_all` condicional para el textarea del formulario completo,
+  # que los reemplazaba enteros. Ese campo se retiró: los indicadores cuelgan de
+  # su evaluación y se editan ahí, uno por uno. Borrarlos desde esta acción
+  # ahora sería borrar el trabajo de tres evaluaciones por corregir una tilde.
   def update
-    @competency.indicators.destroy_all if params[:competency].key?(:indicadores)
-
     unless @competency.update(datos_de_la_competencia)
       return en_linea? ? fila_con_el_error : render(:edit, status: :unprocessable_entity)
     end
@@ -465,19 +457,16 @@ class CompetenciesController < ApplicationController
                                   evaluation_moment_id: lapso.id)
   end
 
-  # ⚠️ Los indicadores entran como TEXTO, uno por línea, y no como campos que se
-  # agregan de a uno con JavaScript.
+  # ⚠️ Solo la descripción: los indicadores NO se escriben desde acá.
   #
-  # Una maestra escribiendo tres indicadores en un teléfono los escribe de un
-  # tirón; obligarla a tocar «+ Agregar» entre cada uno es tres toques y una
-  # pantalla que salta. Y sin JS, funciona con la conexión caída.
+  # Entraban como texto, uno por línea, pensado para pegar los cinco que la
+  # maestra ya tenía escritos. Desde el 21 de septiembre un indicador cuelga de
+  # la EVALUACIÓN que lo mide, así que lo que naciera acá quedaría sin ninguna:
+  # sin salir en la boleta —solo se imprimen los medidos— y sin aparecer en el
+  # plan, que los dibuja dentro de su evaluación. Un segundo lugar donde
+  # escribirlos era un segundo lugar donde perderlos.
   def datos_de_la_competencia
-    permitidos = params.require(:competency).permit(:descripcion, :orden)
-    lineas = params[:competency][:indicadores].to_s.lines.map(&:strip).compact_blank
-
-    permitidos.merge(indicators_attributes: lineas.each_with_index.map { |texto, i|
-      { descripcion: texto, orden: i }
-    })
+    params.require(:competency).permit(:descripcion, :orden)
   end
 
   # ── Quién entra ───────────────────────────────────────────────────────────

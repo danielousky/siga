@@ -7598,30 +7598,13 @@ a.subject-avance:hover { filter: brightness(0.9); }
    evaluaciones juntas?». Eran dos pantallas, y qué evalúa qué era una lista de
    chips que había que ir a buscar. */
 
-.plan-evaluaciones {
-  list-style: none;
-  margin: var(--space-sm) 0 0;
-  padding: 0;
-  display: grid;
-  gap: 1px;
-  background: var(--border-subtle);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-}
+/* ⚠️ `.plan-evaluaciones` se retiró con el `<ul>` (21 de septiembre).
+   Era una grilla con `gap: 1px` sobre fondo gris, que es lo correcto para
+   FILAS de una línea. Desde que cada evaluación lleva sus indicadores dentro,
+   ya no es una fila: es una tarjeta, y se separan con su propio margen. */
 
-/* ⚠️ SIN `overflow: hidden`. Estaba, para que las filas no se salieran de las
-   esquinas redondeadas, y desde que la fila tiene calendario eso lo RECORTA: el
-   panel se abre hacia abajo, fuera de la lista, y quedaba cortado a la mitad —
-   Capybara ni siquiera lo veía. Las esquinas se resuelven en la primera y la
-   última fila, que es donde el problema existe de verdad. */
-.plan-evaluacion:first-child { border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
-.plan-evaluacion:last-child  { border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
-.plan-evaluacion:only-child  { border-radius: var(--radius-sm); }
-
-/* Las filas se separan con el fondo del contenedor asomando por el `gap`: una
-   sola regla en vez de un `border-bottom` con su excepción para la última. */
 /* ⚠️ `flex-wrap: wrap` es obligatorio, no una comodidad para el teléfono.
-   Los chips de «qué mide» piden `flex: 1 0 100%` para caer en su propio
+   El bloque de indicadores pide `flex: 1 0 100%` para caer en su propio
    renglón; sin envoltura ese 100 % no puede bajar, se queda en la misma línea
    y comprime al nombre —que lleva `min-width: 0`— hasta dejarlo en un
    rectángulo de diez píxeles. Se vio en pantalla el 9 de septiembre. */
@@ -7630,9 +7613,42 @@ a.subject-avance:hover { filter: brightness(0.9); }
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-sm);
-  padding: 6px var(--space-sm);
+  margin-top: var(--space-sm);
+  padding: var(--space-sm);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  /* ⚠️ Crema sobre el blanco de su componente, no blanco sobre blanco: tres
+     niveles anidados necesitan que cada uno se distinga del de afuera, y
+     alternar el fondo lo hace sin sumar un tercer borde. */
+  background: var(--surface-canvas);
+}
+
+/* ── Los indicadores que mide, dentro de su evaluación ───────────────────── */
+/* Daniel, 21 de septiembre: «cada componente está en un contenedor que contiene
+   la evaluación y los indicadores». El bloque vuelve al blanco: alternado con
+   el crema de la evaluación, los tres niveles se leen sin bordes apilados. */
+.plan-evaluacion-mide {
+  flex: 1 0 100%;
+  margin-top: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm) var(--space-sm);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
   background: var(--surface-elevated);
 }
+
+/* ⚠️ AVISO y no error: la evaluación cuenta para el promedio igual. Lo que no
+   puede hacer la boleta es decir qué se midió. Alcanza a lo escrito antes de
+   la regla; lo que nace ahora nace con su indicador. */
+.plan-sin-indicador {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 var(--space-xs);
+  font-size: 11.5px;
+  color: var(--warning-text);
+}
+
+.plan-sin-indicador svg { flex: 0 0 auto; }
 
 /* Y el nombre no baja de un ancho legible: comprimido, un `<input>` no se ve
    vacío — se ve roto, que es lo que parecía. */
@@ -11114,10 +11130,26 @@ a.subject-avance:hover { filter: brightness(0.9); }
   counter-reset: competencia;
 }
 
+/* ⚠️ Una TARJETA, no un renglón separado por una línea (21 de septiembre).
+   Daniel: «ve el detalle de que cada componente está en un contenedor, que
+   contiene la evaluación y los indicadores». Con las evaluaciones y sus
+   indicadores anidados dentro, un separador gris no alcanzaba para decir dónde
+   termina una competencia y empieza la siguiente. */
 .plan-competencia {
-  padding: var(--space-md) 0;
-  border-top: 1px solid var(--border-subtle);
+  margin-bottom: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
   counter-increment: competencia;
+}
+
+.plan-competencia:last-child { margin-bottom: 0; }
+
+@media (max-width: 700px) {
+  /* A 390 px el padding de la tarjeta, la sangría del cuerpo y el de la
+     evaluación se suman y no queda ancho para el texto. */
+  .plan-competencia { padding: var(--space-sm); }
 }
 
 /* ── El número, y lo que va DENTRO ───────────────────────────────────────── */
@@ -11150,7 +11182,6 @@ a.subject-avance:hover { filter: brightness(0.9); }
   .plan-competencia-cuerpo { padding-left: var(--space-sm); }
 }
 
-.plan-competencia:first-child { border-top: 0; }
 
 /* ⚠️ El flex es la CABECERA, no la competencia entera. Desde que las
    evaluaciones van anidadas debajo (8 de septiembre), tener el flex arriba
@@ -11407,8 +11438,22 @@ a.subject-avance:hover { filter: brightness(0.9); }
   color: var(--text-tertiary);
 }
 
-/* El de más arriba abre la lista, así que no lleva el margen superior. */
-.plan-rotulo--seccion { margin-top: 0; }
+/* Tres niveles de rótulo, uno por nivel de la jerarquía. Decrecen para que el
+   ojo sepa dónde está parado sin leer:
+
+     COMPETENCIAS            la sección — abre la lista, sin margen arriba
+       EVALUACIONES          dentro de una competencia
+         INDICADORES QUE MIDE   dentro de una evaluación   */
+.plan-rotulo--seccion {
+  margin-top: 0;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.plan-rotulo--indicadores {
+  margin: 0 0 4px;
+  font-size: 10.5px;
+}
 
 /* ── La competencia, editable en su sitio ────────────────────────────────── */
 /* Daniel: «elevar el modelo que aplicamos a evaluaciones a competencias e
@@ -11484,6 +11529,32 @@ a.subject-avance:hover { filter: brightness(0.9); }
 }
 
 .plan-indicador-campo { flex: 1; min-width: 0; display: flex; }
+
+/* La dirección MIRA el plan y no lo escribe, así que sus indicadores no son
+   campos. Mismo tamaño y mismo color que el campo, para que la pantalla no
+   cambie de forma según quién entra. */
+.plan-indicador-texto-fijo {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 5px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* ── Los que quedaron sin evaluación ─────────────────────────────────────── */
+/* Bloque de EXCEPCIÓN: ninguna pantalla los crea desde el 21 de septiembre y
+   borrar una evaluación se lleva los suyos. Si aparece alguno no se imprime en
+   la boleta ni se ve en otro sitio, o sea que sería basura invisible — este
+   bloque existe para poder borrarlos, y desaparece solo cuando no queda uno.
+
+   ⚠️ En ámbar y no en rojo: no está roto, está incompleto. */
+.plan-indicadores--huerfanos {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px dashed var(--warning-text);
+  border-radius: var(--radius-sm);
+  background: var(--warning-bg);
+}
 
 /* ⚠️ Es un `<textarea>`: un indicador puede ser un párrafo, y en una línea sola
    se lee por una ventanita. El alto lo lleva `campo-que-crece` con el

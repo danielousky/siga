@@ -548,6 +548,20 @@ nivel dejaría a todo bachillerato sin poder crear una evaluación. Lo viejo se
 **avisa** en el plan, como `MOR-229` avisa la competencia sin evaluaciones.
 Borrar una evaluación **suelta** sus indicadores (`nullify`), no los borra.
 
+⚠️ **La jerarquía del plan es COMPONENTE ▸ EVALUACIÓN ▸ INDICADORES**, cada uno
+en su contenedor (21 de septiembre). El indicador **nace dentro de la
+evaluación que lo mide** —el alta la exige— porque uno sin evaluación no se
+imprime en la boleta ni se ve en el plan: es un dato invisible. Por eso el
+textarea de «un indicador por línea» del formulario de la competencia **se
+retiró**, y por eso los chips de «también mide» también: le ofrecían a una
+evaluación cualquier competencia del plan, contradiciendo lo que la pantalla
+enseña.
+
+⚠️ Borrar una evaluación **no** borra sus indicadores (`nullify`): el texto lo
+escribió la maestra. Quedan en el bloque ámbar de «indicadores sin evaluación»
+de su competencia, que existe para que no sean basura invisible y desaparece
+solo cuando no queda ninguno.
+
 ⚠️ **En la BOLETA, cada indicador lleva SU nivel** —el de la evaluación que lo
 midió— y salen **solo los medidos**. La competencia conserva el suyo, que es el
 ponderado de sus evaluaciones. Hasta esta regla el nivel por indicador era

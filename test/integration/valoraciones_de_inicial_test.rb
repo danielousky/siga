@@ -45,7 +45,7 @@ class ValoracionesDeInicialTest < ActionDispatch::IntegrationTest
     calificar
 
     assert_response :success
-    assert_select "a", { text: "Planificar", count: 0 },
+    assert_select "a", { text: "Plan de Evaluación", count: 0 },
                   # en Inicial no hay evaluaciones con peso que armar
                   "la pestaña le pediría una ponderación que no existe"
     assert_select "a", text: "Calificar"

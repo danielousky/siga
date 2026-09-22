@@ -176,35 +176,22 @@ class EngancheDeEvaluacionesTest < ActionDispatch::IntegrationTest
   end
 
   # ── Lo que se ve en la fila ───────────────────────────────────────────────
-  test "la fila ofrece las competencias que la evaluación TODAVÍA no mide" do
-    con_el_colegio(@a.colegio) do
-      competencia_con(1, "Interpreta gráficos de barras", lapso: @lapso)
-      e = actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen")
-      e.competencies = [ @competencia ]
-    end
-    sign_in @a.profesor
-
-    get planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
-
-    # La que ya mide no se ofrece otra vez; la otra sí.
-    assert_select ".plan-evaluacion-mas-opcion", "Interpreta gráficos de barras"
-    assert_select ".plan-evaluacion-mas-opcion", { count: 1 }, "no se ofrece la que ya mide"
-  end
-
-  # ⚠️ El chip dice las OTRAS, no todas: en el anidado la evaluación ya está
-  # DEBAJO de la que mide, y repetirlo es decir dos veces lo mismo.
-  test "el chip nombra la otra competencia, no la de arriba" do
-    otra = con_el_colegio(@a.colegio) { competencia_con(1, "Interpreta gráficos", lapso: @lapso) }
-    con_el_colegio(@a.colegio) do
-      e = actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen")
-      e.competencies = [ @competencia, otra ]
-    end
-    sign_in @a.profesor
-
-    get planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
-
-    # Sale dos veces —una bajo cada competencia— y cada una nombra a la otra.
-    assert_select ".plan-evaluacion-chip", 2
-    assert_select ".plan-evaluacion-chips-etiqueta", "también mide"
-  end
+  #
+  # ⚠️ LOS CHIPS SE RETIRARON el 21 de septiembre, y con ellos sus dos tests.
+  #
+  # Eran el menú [+] de la fila y la etiqueta «también mide»: ofrecían
+  # engancharle a una evaluación CUALQUIER competencia del plan. Daniel, viendo
+  # el menú abierto bajo una evaluación de «Reconoce figuras geométricas» que le
+  # ofrecía «Resuelve problemas de adición»: *«¿por qué me está permitiendo
+  # agregar indicadores de otra competencia? Debería estar asociado a cada
+  # competencia»*.
+  #
+  # Con el plan anidado —componente ▸ evaluación ▸ indicadores— el chip
+  # contradecía lo que la propia pantalla enseña: la evaluación está DENTRO de
+  # su componente, y engancharla a otro la saca de donde se está mirando.
+  #
+  # La relación N:N sigue en el modelo y `enganchar` sigue probada arriba: lo
+  # que se retiró es el control que la ofrecía sin contexto. Una evaluación que
+  # mide dos competencias sale bajo cada una, y eso se prueba en
+  # `plan_anidado_test`.
 end

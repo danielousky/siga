@@ -7,32 +7,15 @@
     = f.text_area :descripcion, rows: 3, class: clase_de_campo(competency, :descripcion),
         required: true, placeholder: "Resuelve problemas de proporcionalidad directa…"
 
-  .form-group
-    -# ⚠️ Un indicador por LÍNEA, no un campo que se agrega de a uno.
-    -#
-    -# Una maestra escribiendo tres indicadores en un teléfono los escribe de un
-    -# tirón; obligarla a tocar «+ Agregar» entre cada uno son tres toques y una
-    -# pantalla que salta. Y sin JavaScript funciona con la conexión caída.
-    = etiqueta_con_pista "competency[indicadores]", "Indicadores",
-        pista: "Describen qué significa esa competencia. Se imprimen en la boleta para que el representante entienda, pero NO se califican aparte: la nota es de la competencia."
-    -# ⚠️ Un textarea y NO un campo por indicador, y la razón que decide es
-    -# PEGAR: una maestra ya tiene sus indicadores escritos en un documento.
-    -# Con una línea por indicador, pega los cinco y quedan cinco. Con un campo
-    -# por indicador los cinco caen en uno solo y le toca separarlos a mano —
-    -# o sea peor que lo que hace hoy.
-    -#
-    -# Lo demás cae del mismo lado: escribir tres seguidos es UN acto, reordenar
-    -# es cortar y pegar una línea, borrar es borrar una línea, y funciona sin
-    -# JavaScript. Un campo por indicador cuesta un toque entre cada uno, y en un
-    -# teléfono cada toque baja y sube el teclado.
-    = text_area_tag "competency[indicadores]",
-        competency.indicators.en_orden.map(&:descripcion).join("\n"),
-        rows: 3, class: "form-control",
-        data: { controller: "campo-que-crece", action: "input->campo-que-crece#crecer" },
-        placeholder: "Suma y resta con reagrupación\nResuelve problemas de dos pasos\nEstima antes de calcular"
-    %p.nota-ayuda
-      Uno por línea, los que necesites. Si ya los tienes escritos, puedes pegarlos
-      todos de una vez.
+  -# ⚠️ Acá NO se piden los indicadores, y desde el 21 de septiembre tampoco se
+  -# pueden escribir: cuelgan de la EVALUACIÓN que los mide, no de la
+  -# competencia.
+  -#
+  -# Había un textarea con uno por línea, pensado para pegar los cinco que la
+  -# maestra ya tenía escritos. El argumento sigue siendo bueno y el sitio dejó
+  -# de serlo: lo que naciera acá quedaría sin evaluación, o sea sin salir en la
+  -# boleta y sin aparecer en el plan. Un segundo lugar donde escribirlos era un
+  -# segundo lugar donde perderlos.
 
   .form-actions
     = f.submit class: "btn btn-guardar"

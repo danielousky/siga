@@ -582,6 +582,49 @@ siempre trae todo.
 Pesos entre competencias · catálogo compartido entre colegios · taxonomías ·
 aprobación del plan por la coordinadora · gráficos de progreso.
 
+### La jerarquía, cerrada el 21 de septiembre
+
+Los indicadores colgaban de la competencia y cada uno decía al margen qué
+evaluación lo medía. Daniel lo reordenó después de verlo en pantalla:
+
+> *«Los componentes → luego Evaluaciones, dentro del componente respectivo, y
+> finalmente los Indicadores sobre cada Evaluación… ve el detalle de que cada
+> componente está en un contenedor, que contiene la evaluación y los
+> indicadores.»*
+
+```
+   ANTES                          AHORA
+   ─────                          ─────
+   COMPETENCIA                    ┌ COMPETENCIA ──────────────────┐
+     INDICADORES                  │   EVALUACIONES                │
+       · Suma…   Examen  ←margen  │   ┌ Examen      40 %   5 nov ┐│
+       · Estima… sin evaluación   │   │  INDICADORES QUE MIDE    ││
+     EVALUACIONES                 │   │    · Suma con reagrupac. ││
+       Examen    40 %   5 nov     │   │    · escribe uno…        ││
+                                  │   └──────────────────────────┘│
+                                  └───────────────────────────────┘
+```
+
+**Y el bug que lo destapó:** el menú `+` de la fila ofrecía engancharle a una
+evaluación **cualquier** competencia del plan. Daniel, con el menú abierto bajo
+una evaluación de «Reconoce figuras geométricas» que le ofrecía «Resuelve
+problemas de adición»: *«¿por qué me está permitiendo agregar indicadores de
+otra competencia?»*. Los chips se retiraron: contradecían lo que la propia
+pantalla enseña.
+
+| # | decisión | por qué |
+|---|---|---|
+| 1 | El indicador **nace dentro de su evaluación** | Era el otro bug: *«al agregarlo queda suelto, asociado únicamente al componente»*. Uno sin evaluación no se imprime —solo salen los medidos— y en esta jerarquía tampoco se ve: era un dato invisible. El alta lo **exige**. |
+| 2 | El textarea de «un indicador por línea» **se retiró** del formulario de la competencia | Lo que naciera ahí quedaría sin evaluación. Un segundo lugar donde escribirlos era un segundo lugar donde perderlos. |
+| 3 | Borrar una evaluación **no borra** sus indicadores (`nullify`) | El texto lo escribió la maestra: borrar el examen para rehacerlo no puede costarle los cuatro que acababa de escribir. El aviso de borrado lo dice. |
+| 4 | Los sueltos se ven en un **bloque ámbar** | Con (3), pueden aparecer. Sin el bloque serían basura invisible: no salen en la boleta ni en el plan. Solo se leen y se borran — y el bloque desaparece cuando no queda ninguno. |
+| 5 | El alta de evaluación **suelta** solo existe en Media | En primaria una evaluación mide un componente y un indicador o no se guarda, así que el botón del pie del plan ofrecía un formulario que iba a rechazar lo escrito: nace sin componente porque ahí no hay ninguno del que colgar. |
+
+⚠️ **La relación N:N sigue en el modelo.** Una evaluación puede medir dos
+competencias y sale bajo cada una; lo que se retiró es el control que lo
+ofrecía sin contexto. `evaluation_activities#update` sigue aceptando
+`competency_ids`.
+
 ### La boleta: cerrada el 18 de septiembre
 
 Quedaba abierta a propósito —cambia un documento que va a una casa— y Daniel la
