@@ -75,12 +75,39 @@
 
   = render "competencies/fecha", evaluacion: evaluacion, contexto: contexto
 
+  -# ⚠️ CUÁNTAS NOTAS tiene ya, y es un DATO, no un control.
+  -#
+  -# Daniel, 22 de septiembre, después de que el plan le negara borrar una
+  -# evaluación: *«me surgió la necesidad de colocar un elemento que indique si
+  -# ya tiene notas cargadas, o cuántas de cuántos»*. Hasta ahora eso solo se
+  -# sabía intentando borrarla y leyendo el error — o pasando el ratón por el
+  -# botón de borrar, que es donde nadie busca.
+  -#
+  -# ⚠️ Mismo vocabulario que la libreta y el menú —«20 de 20 en verde, 20 de 30
+  -# en amarillo, nada en rojo»— y no uno nuevo: ya se aprendió a leerlo en las
+  -# otras dos pantallas. Y el COLOR es del dato, no del control (`MOR-135`):
+  -# quien va a cargar notas usa la flecha de la izquierda.
+  - avance = avance_de(evaluacion)
+  - if avance.sin_nada_que_calificar?
+    -# Sin alumnos inscritos no hay «de cuántos», y «0 de 0» en rojo diría que
+    -# el profesor no hizo algo que no tenía que hacer.
+    %span.plan-evaluacion-avance.plan-evaluacion-avance--sin-alumnos{ data: { tooltip: "Esta sección todavía no tiene alumnos inscritos" } }
+      sin alumnos
+  - else
+    -# ⚠️ Con la palabra «notas» delante, y no el número solo.
+    -#
+    -# En la libreta «1 de 2» se entiende porque está bajo el encabezado de la
+    -# columna de esa evaluación, en una tabla de notas. Acá el renglón ya
+    -# lleva «40 %» y «5 de nov» al lado, así que un tercer par de números sin
+    -# etiqueta se lee como cualquier cosa — se vio en pantalla.
+    %span.plan-evaluacion-avance{ class: "libreta-avance--#{avance.estado == :completo ? 'completa' : (avance.vacio? ? 'vacia' : 'a_medias')}",
+                                  data: { tooltip: (avance.vacio? ? "Todavía no tiene notas cargadas" : "#{contar(avance.puestas, 'alumno tiene', 'alumnos tienen')} nota de #{avance.total}") } }
+      %span.plan-evaluacion-avance-rotulo notas
+      = "#{avance.puestas} de #{avance.total}"
+
   - if profesor?
     .plan-evaluacion-acciones
-      -# ⚠️ `.size` y no `.count`: con la asociación precargada por el plan no
-      -# consulta, y en el turbo_stream de UNA fila hace la única que hace falta.
-      -# `.count` iría a la base siempre, treinta veces en un plan de treinta.
-      - notas = evaluacion.activity_grades.size
+      - notas = avance.puestas
       -# ⚠️ El aviso dice qué pasa con los INDICADORES: no se borran, quedan
       -# sueltos. El texto lo escribió la maestra y `dependent: :nullify` es
       -# deliberado — borrar el examen para rehacerlo no puede costarle los

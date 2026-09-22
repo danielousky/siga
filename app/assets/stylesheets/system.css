@@ -7623,6 +7623,46 @@ a.subject-avance:hover { filter: brightness(0.9); }
   background: var(--surface-canvas);
 }
 
+/* ── Cuántas notas tiene ya esta evaluación ──────────────────────────────── */
+/* Daniel: «colocar un elemento que indique si ya tiene notas cargadas, o
+   cuántas de cuántos». Hasta ahora solo se sabía intentando borrarla.
+
+   ⚠️ Es un DATO, no un control: el color lo lleva el número (`MOR-135`), y
+   quien va a cargar notas usa la flecha de la izquierda. Los tonos son los
+   mismos de la libreta —`.libreta-avance--*`, reusadas tal cual— porque el
+   profesor ya aprendió a leerlos ahí. */
+.plan-evaluacion-avance {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  /* Separado del botón de borrar: pegado, el número se leía como su etiqueta. */
+  margin-right: var(--space-xs);
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ⚠️ La palabra va DELANTE y en gris: el renglón ya lleva «40 %» y «5 de nov»,
+   así que un tercer par de números sin etiqueta se lee como cualquier cosa.
+   En la libreta no hace falta porque está bajo el encabezado de su columna. */
+.plan-evaluacion-avance-rotulo {
+  font-size: 10px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+}
+
+/* Sin alumnos inscritos no hay «de cuántos»: en gris, porque no es un estado
+   del profesor — es que la sección está vacía. */
+.plan-evaluacion-avance--sin-alumnos {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-tertiary);
+}
+
 /* ── Los indicadores que mide, dentro de su evaluación ───────────────────── */
 /* Daniel, 21 de septiembre: «cada componente está en un contenedor que contiene
    la evaluación y los indicadores». El bloque vuelve al blanco: alternado con

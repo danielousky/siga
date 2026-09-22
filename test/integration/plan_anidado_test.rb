@@ -71,6 +71,63 @@ class PlanAnidadoTest < ActionDispatch::IntegrationTest
     assert_select ".plan-sueltas-titulo", /1 evaluación sin competencia/
   end
 
+  # ── Cuántas notas tiene ya cada evaluación (22 de septiembre) ────────────
+  #
+  # Daniel, después de que el plan le negara borrar una evaluación: *«me surgió
+  # la necesidad de colocar un elemento que indique si ya tiene notas cargadas,
+  # o cuántas de cuántos»*. Antes eso solo se sabía intentando borrarla y
+  # leyendo el error — o pasando el ratón por el botón de borrar.
+  test "la fila dice cuántas notas tiene, de cuántos alumnos" do
+    con_el_colegio(@a.colegio) do
+      c = competencia_con(1, lapso: @lapso)
+      examen = actividad(@a.escenario, lapso: @lapso, peso: 50, descripcion: "Examen", mide: c)
+      nota(examen, @a.escenario.alumno(1), 16)
+      # El segundo alumno queda sin nota: es el caso que hay que poder ver.
+      actividad(@a.escenario, lapso: @lapso, peso: 50, descripcion: "Taller", mide: c)
+    end
+
+    plan
+
+    # ⚠️ El chip lleva la palabra «notas» delante en su propio `<span>`, así que
+    # el texto viene en dos líneas: se normalizan los espacios para compararlo.
+    textos = css_select(".plan-evaluacion-avance").map { |e| e.text.squish }
+    assert_includes textos, "notas 1 de 2", "el examen tiene una nota de dos alumnos"
+    assert_includes textos, "notas 0 de 2", "el taller no tiene ninguna"
+
+    # ⚠️ El color va en el DATO y con el vocabulario de la libreta, que es donde
+    # el profesor ya lo aprendió a leer: verde completo, ámbar a medias, rojo sin
+    # empezar.
+    assert_select ".plan-evaluacion-avance.libreta-avance--a_medias", 1
+    assert_select ".plan-evaluacion-avance.libreta-avance--vacia", 1
+  end
+
+  # ⚠️ «0 de 0» en rojo diría que el profesor no hizo algo que no tenía que
+  # hacer: sin alumnos inscritos no hay notas que cargar.
+  test "sin alumnos inscritos, la fila no reclama notas" do
+    vacia = con_el_colegio(@a.colegio) do
+      s = Section.create!(grade: @a.grado, academic_period: @a.escenario.periodo,
+                          name: "Z", capacity: 30)
+      TeacherSection.create!(teacher: @a.registro_de_profesor, section: s,
+                             subject: @a.escenario.materia)
+      c = Competency.create!(section: s, subject: @a.escenario.materia,
+                             evaluation_moment: @lapso, descripcion: "Sin alumnos")
+      c.indicators.create!(descripcion: "El suyo", orden: 0)
+      e = EvaluationActivity.new(section: s, subject: @a.escenario.materia,
+                                 evaluation_moment: @lapso, description: "Examen",
+                                 weight_percentage: 100, date_scheduled: Date.new(2025, 11, 5))
+      e.competency_ids = [ c.id ]
+      e.indicators = c.indicators.to_a
+      e.save!
+      s
+    end
+    sign_in @a.profesor
+
+    get planificar_section_path(vacia, area: @a.escenario.materia.id, lapso: @lapso.id)
+
+    assert_select ".plan-evaluacion-avance--sin-alumnos", text: "sin alumnos"
+    assert_select ".libreta-avance--vacia", 0
+  end
+
   # ⚠️ El peso se suma sobre las evaluaciones del lapso, NO sobre el anidado:
   # ahí una evaluación de dos competencias está dos veces y su 40 % contaría 80.
   test "la ponderación cuenta una vez la evaluación que mide dos competencias" do

@@ -70,6 +70,29 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
                                                  lapso: @lapso.id)
   end
 
+  # ⚠️ La competencia nueva va AL FINAL del plan.
+  #
+  # `competencies.orden` tiene `DEFAULT 0` y el alta no lo mandaba, así que toda
+  # nueva nacía con cero y `order(:orden, :id)` la metía entre las que ya tenían
+  # 0 y las que tenían 1. Daniel lo vio al agregar la tercera y aparecer de
+  # segunda: *«el orden de las competencias debe ser por creación, supongo»*.
+  test "la competencia nueva se agrega al final, no en el medio" do
+    con_el_colegio(@a.colegio) do
+      competencia_con(0, "La primera", lapso: @lapso)
+      competencia_con(0, "La segunda", lapso: @lapso).update!(orden: 1)
+    end
+    sign_in @a.profesor
+
+    post competencies_path(asignacion: @asignacion, lapso: @lapso.id),
+         params: { competency: { descripcion: "La tercera" } }
+
+    con_el_colegio(@a.colegio) do
+      assert_equal [ "La primera", "La segunda", "La tercera" ],
+                   Competency.del_plan(@a.seccion.id, @a.escenario.materia.id, @lapso.id)
+                             .map(&:descripcion)
+    end
+  end
+
   # ⚠️ Y editarla no toca los suyos: había un `destroy_all` para el textarea, y
   # borrarlos ahora sería tirar el trabajo de tres evaluaciones por una tilde.
   test "editar la competencia no toca sus indicadores" do

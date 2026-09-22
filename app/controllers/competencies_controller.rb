@@ -454,7 +454,28 @@ class CompetenciesController < ApplicationController
 
     datos_de_la_competencia.merge(section_id: asignacion.section_id,
                                   subject_id: asignacion.subject_id,
-                                  evaluation_moment_id: lapso.id)
+                                  evaluation_moment_id: lapso.id,
+                                  orden: siguiente_orden)
+  end
+
+  # ⚠️ La competencia nueva va AL FINAL del plan.
+  #
+  # `competencies.orden` tiene `DEFAULT 0` y el alta no lo mandaba, así que toda
+  # competencia nueva nacía con cero — y `order(:orden, :id)` la ponía entre las
+  # que ya tenían 0 y las que tenían 1. Daniel lo vio al agregar la tercera y
+  # aparecer de segunda: *«el orden de las competencias debe ser por creación,
+  # supongo»*. Sí: se escriben en el orden en que se planifica.
+  #
+  # ⚠️ Se respeta el `orden` que venga en el formulario, si viene: la columna
+  # existe para poder reordenarlas, y pisarla acá cerraría esa puerta antes de
+  # abrirla.
+  def siguiente_orden
+    pedido = params.dig(:competency, :orden)
+    return pedido if pedido.present?
+
+    ultimo = Competency.del_plan(asignacion.section_id, asignacion.subject_id, lapso.id)
+                       .maximum(:orden)
+    (ultimo || -1) + 1
   end
 
   # ⚠️ Solo la descripción: los indicadores NO se escriben desde acá.
