@@ -153,10 +153,13 @@ class EtiquetarLaEvaluacionTest < ActionDispatch::IntegrationTest
       suya = planes[clave].find { |c| c["texto"] == "Interpreta gráficos" }
       assert suya, "la competencia recién escrita tiene que estar en el plan embebido"
 
-      # ⚠️ Y cada indicador viaja con su ESTADO, no solo con su texto: el
-      # formulario necesita saber cuáles están libres para poder marcarlos.
-      assert_equal [ true ], suya["indicadores"].map { |i| i["libre"] }
-      assert suya["indicadores"].first["id"].present?
+      # ⚠️ Los indicadores viajan de CONTEXTO, solo con su texto: sirven para
+      # reconocer cuál competencia es cuál cuando dos se parecen. Llegaron a
+      # llevar su estado —libre, quién lo mide— para poder marcarlos acá, y eso
+      # duró dos días: era una segunda manera de hacer lo que la fila del plan
+      # ya hace uno por uno.
+      assert_equal [ "Indicador 1" ], suya["indicadores"].map { |i| i["texto"] }
+      assert_nil suya["indicadores"].first["libre"]
     end
   end
 

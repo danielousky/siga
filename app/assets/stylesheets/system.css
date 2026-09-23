@@ -7627,41 +7627,89 @@ a.subject-avance:hover { filter: brightness(0.9); }
 /* Daniel: «colocar un elemento que indique si ya tiene notas cargadas, o
    cuántas de cuántos». Hasta ahora solo se sabía intentando borrarla.
 
-   ⚠️ Es un DATO, no un control: el color lo lleva el número (`MOR-135`), y
-   quien va a cargar notas usa la flecha de la izquierda. Los tonos son los
-   mismos de la libreta —`.libreta-avance--*`, reusadas tal cual— porque el
-   profesor ya aprendió a leerlos ahí. */
+   ⚠️ PASTILLA con icono, y no texto al margen. Salió como un número pequeño al
+   lado del peso y Daniel no lo encontró: «no lo conseguía en la vista, me costó
+   de hecho». El renglón ya lleva «40 %» y «5 de nov», así que un tercer par de
+   números en el mismo gris se pierde entre ellos.
+
+   ⚠️ Y es un DATO, no un control: el color lo lleva el número (`MOR-135`).
+   Quien va a cargar notas usa la flecha de la izquierda. */
 .plan-evaluacion-avance {
   flex: 0 0 auto;
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 4px;
-  /* Separado del botón de borrar: pegado, el número se leía como su etiqueta. */
   margin-right: var(--space-xs);
-  font-size: 11.5px;
-  font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-/* ⚠️ La palabra va DELANTE y en gris: el renglón ya lleva «40 %» y «5 de nov»,
-   así que un tercer par de números sin etiqueta se lee como cualquier cosa.
-   En la libreta no hace falta porque está bajo el encabezado de su columna. */
-.plan-evaluacion-avance-rotulo {
-  font-size: 10px;
-  font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-tertiary);
-}
+.plan-evaluacion-avance svg { flex: 0 0 auto; opacity: 0.7; }
 
-/* Sin alumnos inscritos no hay «de cuántos»: en gris, porque no es un estado
-   del profesor — es que la sección está vacía. */
+/* Sin alumnos inscritos no hay «de cuántos»: sin pastilla y en gris, porque no
+   es un estado del profesor — es que la sección está vacía. */
 .plan-evaluacion-avance--sin-alumnos {
-  font-weight: 400;
+  padding: 0;
+  background: none;
+  font-size: 11.5px;
   font-style: italic;
   color: var(--text-tertiary);
 }
+
+/* ⚠️ `aria-disabled` y no `disabled`, así que el apagado se pinta acá.
+   SIN `pointer-events: none`: el tooltip es lo único que explica por qué el
+   botón no se puede tocar, y quitándole los eventos el tooltip no aparece —
+   quedaría un botón muerto sin razón. */
+.btn--apagado {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn--apagado:hover { opacity: 0.55; }
+
+/* ⚠️ El botón DESAPARECE mientras la fila nueva está abierta, y sin una línea
+   de JavaScript. Daniel: «al hacer clic en "Agregar evaluación" desaparece el
+   botón y aparece un nuevo form igual al de la edición».
+
+   Lo hace el orden del marcado —el frame va ANTES del botón— más `:not(:empty)`:
+   el `<turbo-frame>` está vacío hasta que llega la fila. Con el botón visible
+   al lado, la pantalla ofrece empezar una segunda antes de terminar la primera. */
+.plan-alta-de-evaluacion:not(:empty) + .plan-competencia-acciones { display: none; }
+
+/* ── La fila de una evaluación que todavía NO existe ─────────────────────── */
+/* Daniel: «al hacer clic en Agregar evaluación desaparece el botón y aparece un
+   nuevo form igual al de la edición, y una X al final parecida al basurero, de
+   modo que se entienda que aún no está creado».
+
+   ⚠️ Es la MISMA fila —las mismas clases, el mismo alto, los mismos campos— y
+   lo único que la distingue es el borde punteado: lo que está por existir se
+   dibuja con línea discontinua, que es como se dibuja lo provisional en
+   cualquier sitio. Un color distinto la habría sacado de la familia. */
+.plan-evaluacion--naciendo {
+  border-style: dashed;
+  border-color: var(--brand-primary);
+  background: var(--surface-elevated);
+}
+
+/* El hueco de la flecha de «cargar notas»: todavía no hay planilla a donde ir,
+   pero sin el hueco la fila se corre respecto de las de arriba. */
+.plan-evaluacion-ir--vacio {
+  color: var(--text-tertiary);
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ⚠️ En la fila nueva los campos se VEN, no esperan al hover: en las otras el
+   borde aparece al apuntar porque se leen mucho más de lo que se editan, y acá
+   es al revés — la fila existe para escribirla. */
+.plan-evaluacion--naciendo .plan-evaluacion-nombre-campo,
+.plan-evaluacion--naciendo .plan-evaluacion-peso-campo {
+  border-color: var(--border-standard);
+  background: var(--surface-canvas);
+}
+
+/* Y sus dos botones se ven siempre: son la única manera de terminar. */
+.plan-evaluacion--naciendo .plan-evaluacion-acciones { opacity: 1; }
 
 /* ── Los indicadores que mide, dentro de su evaluación ───────────────────── */
 /* Daniel, 21 de septiembre: «cada componente está en un contenedor que contiene
@@ -11469,13 +11517,31 @@ a.subject-avance:hover { filter: brightness(0.9); }
    nombrar. Un rótulo más grande arriba haría leer «indicadores» y
    «evaluaciones» como subordinados de la competencia, y la evaluación no es
    parte de la competencia — la mide. */
+/* ⚠️ Con PESO, no en gris claro. Daniel, 23 de septiembre: «resalta un poco
+   más las palabras Competencias, Evaluaciones e Indicadores, creo que se pierde
+   en la lectura». Eran tres rótulos de 11 px en `--text-tertiary` dentro de una
+   pantalla con tres niveles de tarjeta: se leían como fondo.
+
+   Lo que los ordena sigue siendo el tamaño —cada nivel uno menos— y ahora
+   además el color y una línea que los ancla a lo que encabezan. */
 .plan-rotulo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
   margin: var(--space-md) 0 var(--space-xs);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-tertiary);
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
+}
+
+/* La línea que sigue al texto ata el rótulo a su bloque sin encerrarlo. */
+.plan-rotulo::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--border-subtle);
 }
 
 /* Tres niveles de rótulo, uno por nivel de la jerarquía. Decrecen para que el
@@ -11486,13 +11552,16 @@ a.subject-avance:hover { filter: brightness(0.9); }
          INDICADORES QUE MIDE   dentro de una evaluación   */
 .plan-rotulo--seccion {
   margin-top: 0;
-  font-size: 12.5px;
-  color: var(--text-secondary);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--text-primary);
 }
 
 .plan-rotulo--indicadores {
   margin: 0 0 4px;
   font-size: 10.5px;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
 }
 
 /* ── La competencia, editable en su sitio ────────────────────────────────── */
@@ -11582,24 +11651,6 @@ a.subject-avance:hover { filter: brightness(0.9); }
   color: var(--text-secondary);
 }
 
-/* ── Los que quedaron sin evaluación ─────────────────────────────────────── */
-/* Bloque de EXCEPCIÓN: ninguna pantalla los crea desde el 21 de septiembre y
-   borrar una evaluación se lleva los suyos. Si aparece alguno no se imprime en
-   la boleta ni se ve en otro sitio, o sea que sería basura invisible — este
-   bloque existe para poder borrarlos, y desaparece solo cuando no queda uno.
-
-   ⚠️ En ámbar y no en rojo: no está roto, está incompleto. */
-.plan-indicadores--huerfanos {
-  padding: var(--space-xs) var(--space-sm);
-  border: 1px dashed var(--warning-text);
-  border-radius: var(--radius-sm);
-  background: var(--warning-bg);
-}
-
-/* ⚠️ Es un `<textarea>`: un indicador puede ser un párrafo, y en una línea sola
-   se lee por una ventanita. El alto lo lleva `campo-que-crece` con el
-   contenido; `resize: none` porque con la manija puesta el profesor puede
-   encoger el campo hasta tapar su propio texto. */
 .plan-indicador-texto {
   display: block;
   width: 100%;

@@ -94,35 +94,58 @@
     %span.plan-evaluacion-avance.plan-evaluacion-avance--sin-alumnos{ data: { tooltip: "Esta sección todavía no tiene alumnos inscritos" } }
       sin alumnos
   - else
-    -# ⚠️ Con la palabra «notas» delante, y no el número solo.
+    -# ⚠️ Una PASTILLA con su icono, no un número al margen.
     -#
-    -# En la libreta «1 de 2» se entiende porque está bajo el encabezado de la
-    -# columna de esa evaluación, en una tabla de notas. Acá el renglón ya
-    -# lleva «40 %» y «5 de nov» al lado, así que un tercer par de números sin
-    -# etiqueta se lee como cualquier cosa — se vio en pantalla.
-    %span.plan-evaluacion-avance{ class: "libreta-avance--#{avance.estado == :completo ? 'completa' : (avance.vacio? ? 'vacia' : 'a_medias')}",
-                                  data: { tooltip: (avance.vacio? ? "Todavía no tiene notas cargadas" : "#{contar(avance.puestas, 'alumno tiene', 'alumnos tienen')} nota de #{avance.total}") } }
-      %span.plan-evaluacion-avance-rotulo notas
+    -# Salió como texto pequeño al lado del peso y Daniel no lo encontró:
+    -# *«puede ser un label un poco más visual; no lo conseguía en la vista, me
+    -# costó de hecho»*. El renglón ya lleva «40 %» y «5 de nov», así que un
+    -# tercer par de números en el mismo gris se pierde entre ellos. La pastilla
+    -# le da fondo, el icono lo ancla a «notas» y el color dice cómo va.
+    - tono = avance.completo? ? "estado-pagado" : (avance.vacio? ? "estado-en-mora" : "estado-en-revision")
+    %span.pastilla-de-cobro.plan-evaluacion-avance{ class: tono,
+                                                    data: { tooltip: (avance.vacio? ? "Todavía no tiene notas cargadas" : "#{contar(avance.puestas, 'alumno tiene', 'alumnos tienen')} nota, de #{avance.total}") } }
+      = icono(:notas, tamano: 12)
       = "#{avance.puestas} de #{avance.total}"
 
   - if profesor?
     .plan-evaluacion-acciones
       - notas = avance.puestas
-      -# ⚠️ El aviso dice qué pasa con los INDICADORES: no se borran, quedan
-      -# sueltos. El texto lo escribió la maestra y `dependent: :nullify` es
-      -# deliberado — borrar el examen para rehacerlo no puede costarle los
-      -# cuatro indicadores que acababa de escribir. Aparecen en el bloque
-      -# ámbar de la competencia, para copiarlos o borrarlos.
+      -# ⚠️ CON NOTAS, el botón no se ofrece: se apaga y DICE por qué.
+      -#
+      -# Daniel, 22 de septiembre: *«una mejor UX es que el botón de eliminar
+      -# esté disabled si tiene notas, en lugar de intentar una acción que no va
+      -# a poder hacer. Lo que sí tenemos que indicarle es por qué está
+      -# bloqueada la eliminación»*. Antes se tocaba, el modelo lo rechazaba
+      -# (`restrict_with_error`) y el error aparecía arriba de la pantalla, lejos
+      -# de la fila que lo produjo.
+      -#
+      -# ⚠️ `aria-disabled` y no `disabled`: un botón deshabilitado de verdad no
+      -# recibe foco, y el tooltip de SIGA aparece con `:hover` y con
+      -# `:focus-visible` — o sea que en el teclado la explicación desaparecería
+      -# justo para quien más la necesita. El modelo sigue siendo quien impide
+      -# el borrado; esto es la pantalla diciéndolo antes.
       - suyos = evaluacion.indicators.size
-      - borrar = "¿Borrar «#{evaluacion.description}»? Deja de contar en el promedio del lapso."
-      - borrar += " Sus #{contar(suyos, 'indicador queda', 'indicadores quedan')} sin evaluación, sin borrarse." if suyos.positive?
-      - aviso = notas.zero? ? borrar : "«#{evaluacion.description}» tiene #{contar(notas, 'nota cargada', 'notas cargadas')} y no se puede borrar hasta que se vacíen desde su planilla."
-      = button_to evaluation_activity_path(evaluacion, contexto),
-                  method: :delete, class: "btn btn-danger btn-sm btn-solo-icono",
-                  form: { data: { turbo_confirm: aviso } },
-                  data: { tooltip: (notas.zero? ? "Borrar" : "Tiene notas cargadas") },
-                  "aria-label": "Borrar" do
-        = icono(:borrar, tamano: 14)
+      - if notas.positive?
+        -# ⚠️ `"true"` en texto y no `true`: Haml trata el booleano como un
+        -# atributo al estilo HTML5 y escribe `aria-disabled` a secas. Eso vale
+        -# para `disabled`, que ES booleano, pero ARIA exige el VALOR — sin él
+        -# un lector de pantalla no lo anuncia y el botón se lee como normal.
+        %button.btn.btn-danger.btn-sm.btn-solo-icono.btn--apagado{ type: "button", "aria-disabled": "true",
+                                                                   data: { tooltip: "No se puede borrar: tiene #{contar(notas, 'nota cargada', 'notas cargadas')}. Vacíalas desde su planilla." },
+                                                                   "aria-label": "No se puede borrar: tiene #{contar(notas, 'nota cargada', 'notas cargadas')}" }
+          = icono(:borrar, tamano: 14)
+      - else
+        -# ⚠️ El aviso dice que los INDICADORES se van con ella (22 de
+        -# septiembre). Daniel: *«se le puede indicar al usuario que al eliminar
+        -# las evaluaciones se van los indicadores respectivos»*. Es lo coherente
+        -# con la jerarquía: el indicador vive dentro de su evaluación.
+        - borrar = "¿Borrar «#{evaluacion.description}»? Deja de contar en el promedio del lapso."
+        - borrar += " Se borran también sus #{contar(suyos, 'indicador', 'indicadores')}." if suyos.positive?
+        = button_to evaluation_activity_path(evaluacion, contexto),
+                    method: :delete, class: "btn btn-danger btn-sm btn-solo-icono",
+                    form: { data: { turbo_confirm: borrar } },
+                    data: { tooltip: "Borrar" }, "aria-label": "Borrar" do
+          = icono(:borrar, tamano: 14)
 
   -# ── Los indicadores que mide esta evaluación ────────────────────────────
   -#

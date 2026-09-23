@@ -30,18 +30,27 @@ class EvaluationActivity < ApplicationRecord
 
   # Qué INDICADORES de esas competencias mide (MOR-136, segunda mitad).
   #
-  # ⚠️ `nullify` y no `destroy`: borrar la evaluación SUELTA sus indicadores,
-  # no se los lleva. El texto —«Suma con reagrupación»— lo escribió la maestra
-  # en el plan; la evaluación solo decía cuál de ellos medía. Con `destroy`,
-  # borrar un examen para volver a armarlo le borraría media competencia.
-  has_many :indicators, dependent: :nullify
+  # ⚠️ `destroy` y no `nullify`, y es un cambio de criterio (22 de septiembre).
+  #
+  # Salió con `nullify` —«el texto lo escribió la maestra, borrar el examen no
+  # puede costárselo»— y los indicadores quedaban sueltos, visibles en un bloque
+  # aparte. Daniel lo revirtió: *«no me parece que los indicadores queden
+  # sueltos; se le puede indicar al usuario que al eliminar las evaluaciones se
+  # van los indicadores respectivos»*.
+  #
+  # Tiene razón, y es lo coherente con la jerarquía que él mismo definió: el
+  # indicador vive DENTRO de su evaluación. Uno suelto no se imprime en la
+  # boleta —solo salen los medidos— ni se ve en el plan, así que «conservarlo»
+  # era guardar un dato que nadie iba a volver a encontrar. Lo que sí hace falta
+  # es DECIRLO antes de borrar, y el aviso lo dice.
+  has_many :indicators, dependent: :destroy
 
   validates :description, presence: true
   validates :weight_percentage, presence: true, numericality: { greater_than: 0, less_than_or_equal_to: 100 }
   validates :date_scheduled, presence: true
   validate :total_weight_must_not_exceed_100
   validate :el_lapso_pertenece_al_periodo_de_la_seccion
-  validate :mide_una_competencia_y_un_indicador, on: :create
+  validate :mide_una_competencia, on: :create
 
   # Cambiar la ponderación no afecta a un alumno: afecta a los treinta. Si el
   # examen pasa de 40 % a 50 %, el promedio del lapso cambia para toda la sección.
@@ -96,29 +105,31 @@ class EvaluationActivity < ApplicationRecord
 
   private
 
-  # ⚠️ Una evaluación de primaria mide algo, o no es una evaluación.
+  # ⚠️ Una evaluación de primaria nace midiendo una COMPETENCIA.
   #
-  # Regla de Daniel: *«la evaluación debe tener al menos un indicador y una
-  # competencia»*. Sin competencia, la boleta la suma al promedio y no puede
-  # explicar qué midió; sin indicador, la competencia sale con nivel pero sin
-  # una sola línea que diga por qué.
+  # Regla de Daniel, 17 de septiembre: *«la evaluación debe tener al menos un
+  # indicador y una competencia»*.
   #
-  # ⚠️ Solo `on: :create`, y no siempre. Siempre rompería la EDICIÓN EN LÍNEA de
-  # todo lo que ya existe: corregirle una tilde al nombre de una evaluación
-  # escrita antes de esta regla fallaría con un error sobre indicadores, el
-  # campo volvería a su valor viejo y el profesor no entendería nada. Lo que ya
-  # está se avisa en el plan —como `MOR-229` avisa la competencia sin
-  # evaluaciones—; lo que nace, nace completo.
+  # ⚠️ El INDICADOR dejó de exigirse el 23 de septiembre, y no es un retroceso:
+  # es que el orden del trabajo es otro. Daniel: *«si necesitas la evaluación
+  # para luego asociar los indicadores, entonces pon solo el form de la eva y
+  # luego agregas sobre el guardado la posibilidad de agregar indicadores»*.
+  #
+  # Un indicador cuelga de la evaluación que lo mide, así que exigirlo al crear
+  # obligaba a pedirlo en un formulario aparte —un textarea de «uno por línea»—
+  # que era una segunda manera de escribir lo que la fila ya sabe editar. La
+  # regla se conserva como AVISO: la fila dice «todavía no dice qué mide», igual
+  # que `MOR-229` avisa la competencia sin evaluaciones.
   #
   # ⚠️ Y solo donde el plan EXISTE. En bachillerato no hay competencias, así que
   # esta validación sin la guarda dejaría a todos sus profesores sin poder crear
   # una evaluación — la misma trampa que `Grade#por_competencias?` existe para
   # evitar.
-  def mide_una_competencia_y_un_indicador
+  def mide_una_competencia
     return unless por_competencias?
+    return if competency_ids.any?
 
-    errors.add(:base, "Marca la competencia que mide: sin eso no puede salir en la boleta.") if competency_ids.empty?
-    errors.add(:base, "Marca o escribe al menos un indicador: es lo que esta evaluación mide.") if indicators.empty?
+    errors.add(:base, "Marca la competencia que mide: sin eso no puede salir en la boleta.")
   end
 
   def recalcular_la_seccion

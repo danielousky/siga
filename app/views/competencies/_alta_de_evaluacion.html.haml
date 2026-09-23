@@ -1,110 +1,75 @@
--# El alta de una evaluación, SIN salir del plan (QA del 9 de septiembre).
+-# El alta de una evaluación: LA MISMA FILA de la edición, sin crear todavía.
 -#
--# Daniel: *«el "+ agregar evaluación" no debe ir a otra vista, puede agregarse
--# ahí mismo desplazando hacia abajo un panel con los campos faltantes: título,
--# % y fecha. No hace falta perderse a otra vista totalmente independiente»*.
+-# Daniel, 23 de septiembre: *«¿te parece bien que haya 2 maneras distintas de
+-# hacer lo mismo?… parece que fueran desarrollos distintos. Me apunto más
+-# porque el crear la evaluación sea como el de editarla, es más dinámico»*.
 -#
--# ## ⚠️ Los campos FALTANTES, y solo esos
+-#     ANTES                          AHORA
+-#     ─────                          ─────
+-#     un PANEL con sus campos        la MISMA fila, con ✓ y ✗
+-#     «Qué se evalúa» [        ]     →  [Agregar la nueva evaluación] 30 % 19 nov [✓][✗]
+-#     un textarea de indicadores
+-#     la lista tachada de los
+-#       que ya mide otra
 -#
--# La sección, el área y el lapso ya están elegidos —es la pestaña donde uno
--# está— y la competencia también, porque el botón cuelga de ella. Volver a
--# preguntarlos sería «no preguntemos lo deducible» al revés, y de paso daría la
--# oportunidad de crear la evaluación en otra sección sin darse cuenta.
+-# ## ⚠️ Los indicadores NO están acá, y por eso
 -#
--# El formulario completo sigue existiendo para quien llega desde `/evaluaciones`
--# sin contexto ninguno: ahí sí hay que preguntar las tres cosas.
--# ⚠️ El ENVÍO va al frame «plan», no al del alta.
+-# Un indicador cuelga de la evaluación que lo mide, y esa evaluación todavía no
+-# existe. Daniel: *«si necesitas la evaluación para luego asociar los
+-# indicadores, entonces pon solo el form de la eva y luego agregas sobre el
+-# guardado la posibilidad de agregar indicadores»*. Al guardar, la fila nace
+-# con su bloque «Indicadores que mide» y su campo vacío — el mismo de siempre.
 -#
--# El formulario vive en su propio frame —desplegado bajo el botón— pero al
--# guardar hay que refrescar el PLAN entero: la fila nueva aparece en la lista y
--# la barra de ponderación cambia. Sin esto, el `redirect_to plan_path` caería
--# en el frame del alta, que no contiene el plan, y Turbo escribiría «Content
--# missing» — el mismo patrón que ya mordió cuatro veces.
+-# ⚠️ Y con eso se fue la LISTA TACHADA de los que ya mide otra evaluación.
+-# Daniel: *«no sé si sea tan útil repetir los indicadores que tienes justo
+-# arriba, además esa lista tachada no tiene orden»*. Tenía razón dos veces:
+-# repetía lo que está tres centímetros más arriba, y los ordenaba por id.
+-#
+-# ⚠️ El ENVÍO va al frame «plan», no al del alta: al guardar hay que refrescar
+-# el PLAN entero —la fila nueva aparece y la barra de ponderación cambia—. Sin
+-# esto, el `redirect_to plan_path` caería en el frame del alta, que no contiene
+-# el plan, y Turbo escribiría «Content missing».
 = form_with model: @evaluation_activity, url: evaluation_activities_path(contexto),
-             class: "alta-en-linea", data: { controller: "reparto", turbo_frame: "plan" } do |f|
+             class: "plan-evaluacion plan-evaluacion--naciendo",
+             data: { controller: "reparto", turbo_frame: "plan" } do |f|
   = render "shared/errors", object: @evaluation_activity
   = f.hidden_field :asignacion, value: "#{@evaluation_activity.section_id}:#{@evaluation_activity.subject_id}"
   = f.hidden_field :evaluation_moment_id
   - Array(competencias_marcadas).each do |id|
     = hidden_field_tag "evaluation_activity[competency_ids][]", id
 
-  .alta-en-linea-campos
-    .alta-en-linea-campo.alta-en-linea-campo--titulo
-      = f.label :description, "Qué se evalúa", class: "form-label"
-      -# ⚠️ `autocomplete: "off"`: lo que se ve al escribir NO es un tooltip nuestro.
-      -#
-      -# Daniel, 9 de septiembre, señalando dos globos con estilos distintos: el de
-      -# arriba es el de SIGA y el de abajo es el AUTOCOMPLETADO DE CHROME, que
-      -# sugiere valores ya escritos en un campo con el mismo `name`. Medidos en el
-      -# navegador, los quince tooltips de la pantalla son idénticos —3 px de radio,
-      -# 12,5 px, mismo padding— y no hay un solo `title` nativo.
-      -#
-      -# Y no es solo estética: la sugerencia cae encima de lo que hay debajo y tapa
-      -# la interfaz. En un campo de dominio —«Examen del primer lapso»— tampoco
-      -# aporta: el profesor no está repitiendo un dato suyo, está nombrando otra cosa.
-      = f.text_field :description, class: "form-control", autofocus: true,
-                     autocomplete: "off", placeholder: "Examen del primer lapso"
-    .alta-en-linea-campo.alta-en-linea-campo--peso
-      = f.label :weight_percentage, "Peso (%)", class: "form-label"
-      -# ⚠️ Nace con lo que FALTA para cerrar el lapso, y el tope es ese mismo
-      -# número: el profesor casi siempre reparte lo que queda, y pedirle una
-      -# resta que el sistema ya tiene hecha es hacerle la cuenta a mano.
-      = f.number_field :weight_percentage, value: entero_si_lo_es(peso_libre),
-                       step: 1, min: 1, max: entero_si_lo_es(peso_libre),
-                       class: "form-control"
-    .alta-en-linea-campo
-      = f.label :date_scheduled, "Fecha", class: "form-label"
-      = f.date_field :date_scheduled, class: "form-control",
-                     min: periodo_del_plan.start_date, max: periodo_del_plan.end_date
+  -# La flecha de «cargar notas» no va: todavía no hay planilla a donde ir. El
+  -# hueco se conserva para que la fila no se corra respecto de las de arriba.
+  %span.plan-evaluacion-ir.plan-evaluacion-ir--vacio{ "aria-hidden": true }
+    = icono(:agregar, tamano: 14)
 
-  -# ⚠️ QUÉ MIDE se pregunta ACÁ, no después de crearla.
-  -#
-  -# Daniel: *«la idea es que la profesora, a una nueva evaluación, pueda
-  -# asignarle competencias ya creadas y a su vez agregar también otros
-  -# indicadores»*. La competencia ya viene puesta —el botón cuelga de ella— así
-  -# que lo que queda por elegir son sus indicadores.
-  -#
-  -# ## ⚠️ Solo los LIBRES se pueden marcar
-  -#
-  -# *«Los indicadores no se repiten entre evaluaciones»*. Los que ya mide otra
-  -# se listan igual, apagados y CON EL NOMBRE de quién los mide: esconderlos
-  -# dejaría al profesor buscando dónde quedó «Suma con reagrupación», y
-  -# ofrecerlos prometería algo que el guardado va a rechazar.
-  - competencias_a_medir.each do |competencia|
-    %fieldset.alta-mide
-      %legend.alta-mide-titulo
-        Qué mide de
-        %strong= competencia.descripcion.truncate(80)
-      - libres  = competencia.indicators.reject(&:medido?)
-      - tomados = competencia.indicators.select(&:medido?)
+  .plan-evaluacion-campo.plan-evaluacion-campo--nombre
+    = f.text_field :description, class: "plan-evaluacion-nombre-campo", autofocus: true,
+                   autocomplete: "off", placeholder: "Agregar la nueva evaluación",
+                   "aria-label": "Nombre de la evaluación nueva"
 
-      - if libres.any?
-        %ul.alta-mide-lista
-          - libres.each do |indicador|
-            %li
-              %label.alta-mide-opcion
-                = check_box_tag "evaluation_activity[indicator_ids][]", indicador.id, false,
-                                id: "indicador_#{indicador.id}"
-                %span= indicador.descripcion
+  .plan-evaluacion-campo.plan-evaluacion-campo--peso
+    -# ⚠️ Nace con lo que FALTA para cerrar el lapso, y el tope es ese mismo
+    -# número: el profesor casi siempre reparte lo que queda, y pedirle una
+    -# resta que el sistema ya tiene hecha es hacerle la cuenta a mano.
+    = f.number_field :weight_percentage, value: entero_si_lo_es(peso_libre),
+                     step: 1, min: 1, max: entero_si_lo_es(peso_libre),
+                     class: "plan-evaluacion-peso-campo",
+                     "aria-label": "Peso de la evaluación nueva, en porcentaje"
+    %span.plan-evaluacion-peso-signo %
 
-      - if tomados.any?
-        %ul.alta-mide-tomados
-          - tomados.each do |indicador|
-            %li
-              %span.alta-mide-tomado= indicador.descripcion
-              %span.alta-mide-quien= "lo mide «#{indicador.evaluation_activity.description.truncate(30)}»"
+  = render "competencies/fecha", evaluacion: @evaluation_activity, contexto: contexto, alta: true
 
-      -# ⚠️ Uno por LÍNEA, como el formulario completo del plan: una maestra ya
-      -# tiene sus indicadores escritos en un documento y los pega de una vez.
-      -# Nacen en la COMPETENCIA —quedan para las próximas evaluaciones— y esta
-      -# los toma.
-      - rotulo = libres.any? ? "Y otros indicadores, uno por línea" : "Qué indicadores mide, uno por línea"
-      = label_tag "indicadores_nuevos_#{competencia.id}", rotulo, class: "form-label"
-      = text_area_tag "evaluation_activity[indicadores_nuevos][#{competencia.id}]", nil, rows: 2,
-                      class: "form-control", id: "indicadores_nuevos_#{competencia.id}",
-                      placeholder: "Estima el resultado antes de calcular",
-                      autocomplete: "off"
-
-  .alta-en-linea-acciones
-    = f.submit "Agregar", class: "btn btn-guardar btn-sm"
-    = link_to "Cancelar", plan_path, class: "btn btn-secondary btn-sm"
+  -# ⚠️ El ✓ y la ✗ van donde va el basurero de las otras filas, y del mismo
+  -# tamaño. Daniel: *«una X al final parecida al basurero, de modo que se
+  -# entienda que aún no está creado; pero antes, el submit verde, pequeño en la
+  -# misma línea»*. La posición es lo que dice que esta fila es de la misma
+  -# familia que las de arriba.
+  .plan-evaluacion-acciones
+    %button.btn.btn-guardar.btn-sm.btn-solo-icono{ type: "submit",
+                                                   data: { tooltip: "Agregar la evaluación" },
+                                                   "aria-label": "Agregar la evaluación" }
+      = icono(:ok, tamano: 14)
+    = link_to plan_path, class: "btn btn-danger btn-sm btn-solo-icono",
+              data: { tooltip: "Descartar" }, "aria-label": "Descartar" do
+      = icono(:cerrar, tamano: 14)

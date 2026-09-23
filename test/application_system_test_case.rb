@@ -114,6 +114,46 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     assert_current_path destino, ignore_query: true
   end
 
+  # Tocar algo que TIENE que abrir un panel en su sitio, y asegurarse de que abrió.
+  #
+  # ## ⚠️ El hermano de `tocar_para_ir_a`, para lo que NO navega
+  #
+  # Turbo se traga el clic igual —la misma rendija de la hidratación— pero acá
+  # no hay URL que mirar: el `turbo_frame` se llena donde está y la barra de
+  # direcciones no cambia. `tocar_para_ir_a` no sirve, y con un `click` crudo el
+  # test falla con «Unable to find css .alta-en-linea», que se lee como «el
+  # panel no existe» cuando lo que pasó es que **nunca se pidió**.
+  #
+  # Costó encontrarlo porque el HTML era correcto: pidiendo el frame a mano, el
+  # formulario llegaba entero. Lo que fallaba era el clic, y solo bajo carga.
+  def tocar_para_ver(selector, intentos: 3, &clic)
+    intentos.times do
+      tocando(&clic)
+      esperando_la_pagina
+      return if page.has_css?(selector, wait: 3)
+    end
+
+    # Que falle con el mensaje de Capybara, que dice qué había en la página.
+    assert_selector selector
+  end
+
+  # Tocar algo que TIENE que cerrar un panel, y asegurarse de que cerró.
+  #
+  # ⚠️ El tercer hermano, y por la misma rendija: «Cancelar» dentro de un frame
+  # es un enlace que Turbo intercepta, así que el clic que cae mientras hidrata
+  # tampoco lo atiende nadie. El panel sigue abierto y el test falla con
+  # «expected not to find .alta-en-linea», que se lee como «el cancelar no
+  # funciona» cuando nunca se pulsó.
+  def tocar_para_cerrar(selector, intentos: 3, &clic)
+    intentos.times do
+      tocando(&clic)
+      esperando_la_pagina
+      return if page.has_no_css?(selector, wait: 3)
+    end
+
+    assert_no_selector selector
+  end
+
   # Entrar por el formulario, como una persona. Un test de sistema que se saltea
   # el login no prueba la pantalla que de verdad se ve al llegar.
   #
@@ -157,10 +197,27 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     # intentos se consumían en tres carreras perdidas contra lo mismo. Bajo
     # carga —dentro de `bin/ci`, después de mil quinientos tests— eso pasó de
     # raro a frecuente. `has_field?` espera; `fill_in` no.
+    # ⚠️ Y el reintento SE DA POR BUENO si la sesión ya está abierta.
+    #
+    # Esta era la causa de la intermitencia que quedaba, y estuvo a la vista
+    # todo el tiempo en el texto del error: «Ya has iniciado sesión».
+    #
+    #     1 · se envía el formulario y ENTRA
+    #     2 · Capybara no alcanza a ver el cambio de ruta en 5 s
+    #     3 · el reintento visita /users/sign_in… con sesión abierta
+    #     4 · Devise redirige al panel, no hay campo `user_email`
+    #     5 · el helper lo declara «no cargó el login» — y sí había cargado
+    #
+    # O sea que el reintento, que existe para tapar una carrera, creaba otra.
+    # Hacía fallar tests que no hablan de login, con un mensaje que tampoco
+    # hablaba de lo que pasaba: enseñaba a volver a correr en vez de a mirar.
     3.times do |intento|
       begin
         visit new_user_session_path
         esperando_la_pagina
+
+        # Sin campo de correo y con botón de salir: ya está adentro.
+        break if page.has_link?("Cerrar sesión", wait: 1)
 
         unless page.has_field?("user_email", wait: ESPERA_DEL_LOGIN)
           # ⚠️ El mensaje dice QUÉ había, no solo que no estaba.

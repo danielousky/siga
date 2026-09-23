@@ -11,18 +11,17 @@ import { Controller } from "@hotwired/stimulus"
 // diecinueve. Un profesor de bachillerato recibe un mapa vacío y el bloque ni
 // se dibuja.
 //
-// ⚠️ Se marcan la COMPETENCIA y sus INDICADORES (MOR-136, segunda mitad).
+// ⚠️ Se marcan COMPETENCIAS. Los indicadores se escriben en el PLAN, dentro de
+// su evaluación, y acá van de contexto — ayudan a reconocer cuál competencia es
+// cuál cuando dos se parecen.
 //
-// Acá decía que los indicadores eran solo contexto. Dejó de ser cierto: Daniel
-// pidió que una evaluación nueva pueda tomar competencias ya creadas «y a su vez
-// agregar también otros indicadores», con la regla que decide la forma — «los
-// indicadores no se repiten entre evaluaciones».
-//
-// Lo que NO cambió es el nivel: el indicador sigue sin calificarse aparte. Se
-// marca cuál MIDE esta evaluación, para poder imprimirlo debajo en la boleta.
+// Llegaron a marcarse acá también, y duró dos días: Daniel, 23 de septiembre,
+// *«¿te parece bien que haya 2 maneras distintas de hacer lo mismo?»*. Un
+// indicador cuelga de la evaluación que lo mide, y esta pantalla la está
+// creando: la manera de escribirlos es la fila del plan, una sola.
 export default class extends Controller {
   static targets = ["asignacion", "lapso", "lista", "vacio", "nueva"]
-  static values  = { planes: Object, marcadas: Array, marcados: Array, rutaNueva: String }
+  static values  = { planes: Object, marcadas: Array, rutaNueva: String }
 
   connect() {
     this.actualizar()
@@ -120,28 +119,8 @@ export default class extends Controller {
     })
   }
 
-  // ⚠️ Acotado a las casillas de COMPETENCIA.
-  //
-  // Era `input:checked` a secas, y desde que los indicadores también son
-  // casillas eso devolvía los ids de unos y otros mezclados: al cambiar de
-  // lapso, el id 7 de un indicador marcaba la competencia 7.
   #marcadasEnPantalla() {
-    return [...this.listaTarget.querySelectorAll('input[name*="competency_ids"]:checked')].map((c) => c.value)
-  }
-
-  #marcadosEnPantalla() {
-    return [...this.listaTarget.querySelectorAll('input[name*="indicator_ids"]:checked')].map((c) => c.value)
-  }
-
-  // Marcar la competencia despliega sus indicadores; desmarcarla los guarda.
-  //
-  // ⚠️ Se esconde, no se borra: quien marca, mira, se arrepiente y vuelve a
-  // marcar encuentra lo que había elegido. Y lo escondido no estorba — el
-  // servidor descarta los indicadores de una competencia que no se mide.
-  alternar(evento) {
-    const item = evento.target.closest(".que-evalua-item")
-    const mide = item?.querySelector(".que-evalua-mide")
-    if (mide) mide.hidden = !evento.target.checked
+    return [...this.listaTarget.querySelectorAll("input:checked")].map((c) => c.value)
   }
 
   #fila(id, texto, indicadores, marcada) {
@@ -156,99 +135,27 @@ export default class extends Controller {
     casilla.name = "evaluation_activity[competency_ids][]"
     casilla.value = id
     casilla.checked = marcada
-    casilla.dataset.action = "change->que-evalua#alternar"
 
     const nombre = document.createElement("span")
     nombre.textContent = texto
 
     etiqueta.append(casilla, nombre)
-    item.append(etiqueta, this.#queMide(id, indicadores, marcada))
+    item.appendChild(etiqueta)
+
+    // ⚠️ De CONTEXTO, sin casilla: dos competencias de la misma área se
+    // parecen, y sus indicadores son lo que las distingue. Marcarlos acá sería
+    // una segunda manera de hacer lo que la fila del plan ya hace.
+    if (indicadores.length > 0) {
+      const lista = document.createElement("ul")
+      lista.className = "que-evalua-indicadores"
+      indicadores.forEach(({ texto }) => {
+        const li = document.createElement("li")
+        li.textContent = texto
+        lista.appendChild(li)
+      })
+      item.appendChild(lista)
+    }
+
     return item
-  }
-
-  // Los indicadores de esa competencia: los libres se marcan, los que ya mide
-  // otra evaluación se ven apagados y dicen quién.
-  //
-  // ⚠️ Los de ESTA evaluación llegan con `libre: false` —los mide ella— así que
-  // lo que decide si se pueden marcar no es `libre` sino `libre || ya marcado`.
-  // Sin eso, editar una evaluación mostraba sus propios indicadores tachados y
-  // guardar los soltaba.
-  #queMide(id, indicadores, marcada) {
-    const marcados = new Set([...this.#marcadosEnPantalla(), ...this.marcadosValue.map(String)])
-    const caja = document.createElement("div")
-    caja.className = "que-evalua-mide"
-    caja.hidden = !marcada
-
-    const elegibles = indicadores.filter((i) => i.libre || marcados.has(String(i.id)))
-    const tomados   = indicadores.filter((i) => !elegibles.includes(i))
-
-    if (elegibles.length > 0) caja.appendChild(this.#elegibles(elegibles, marcados))
-    if (tomados.length > 0)   caja.appendChild(this.#tomados(tomados))
-    caja.append(...this.#escribirOtros(id, elegibles.length > 0))
-    return caja
-  }
-
-  #elegibles(indicadores, marcados) {
-    const lista = document.createElement("ul")
-    lista.className = "que-evalua-indicadores"
-
-    indicadores.forEach(({ id, texto }) => {
-      const casilla = document.createElement("input")
-      casilla.type = "checkbox"
-      casilla.name = "evaluation_activity[indicator_ids][]"
-      casilla.value = id
-      casilla.checked = marcados.has(String(id))
-
-      const nombre = document.createElement("span")
-      nombre.textContent = texto
-
-      const etiqueta = document.createElement("label")
-      etiqueta.className = "que-evalua-indicador"
-      etiqueta.append(casilla, nombre)
-
-      const li = document.createElement("li")
-      li.appendChild(etiqueta)
-      lista.appendChild(li)
-    })
-    return lista
-  }
-
-  #tomados(indicadores) {
-    const lista = document.createElement("ul")
-    lista.className = "que-evalua-indicadores que-evalua-indicadores--tomados"
-
-    indicadores.forEach(({ texto, mide }) => {
-      const nombre = document.createElement("span")
-      nombre.className = "alta-mide-tomado"
-      nombre.textContent = texto
-
-      const quien = document.createElement("span")
-      quien.className = "alta-mide-quien"
-      quien.textContent = `lo mide «${mide}»`
-
-      const li = document.createElement("li")
-      li.append(nombre, quien)
-      lista.appendChild(li)
-    })
-    return lista
-  }
-
-  // ⚠️ Uno por LÍNEA, como el formulario del plan: una maestra ya tiene sus
-  // indicadores escritos en un documento y los pega de una vez.
-  #escribirOtros(id, hayLibres) {
-    const campo = document.createElement("textarea")
-    campo.name = `evaluation_activity[indicadores_nuevos][${id}]`
-    campo.id = `indicadores_nuevos_${id}`
-    campo.rows = 2
-    campo.className = "form-control"
-    campo.placeholder = "Estima el resultado antes de calcular"
-    campo.autocomplete = "off"
-
-    const rotulo = document.createElement("label")
-    rotulo.className = "form-label"
-    rotulo.htmlFor = campo.id
-    rotulo.textContent = hayLibres ? "Y otros indicadores, uno por línea" : "Qué indicadores mide, uno por línea"
-
-    return [rotulo, campo]
   }
 }

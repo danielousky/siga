@@ -40,20 +40,32 @@ class ReplicarLaPlanificacionTest < ActiveSupport::TestCase
 
   # ── Lo que se copia ───────────────────────────────────────────────────────
 
-  test "copia las competencias con sus indicadores" do
+  # ⚠️ Los indicadores viajan CON SU EVALUACIÓN, no sueltos (22 de septiembre).
+  #
+  # Se copiaban al copiar la competencia y después se les buscaba dueño. Desde
+  # que el indicador vive dentro de su evaluación, eso dejaba huérfanos
+  # invisibles en el caso que importa: traer el plan de otro profesor, que viene
+  # sin evaluaciones.
+  test "copia las competencias, y sus indicadores con la evaluación que los mide" do
     con_el_colegio(@esc.colegio) do
       c = Competency.create!(section: @esc.seccion, subject: @esc.materia,
                              evaluation_moment: @lapso, descripcion: "Resuelve problemas")
-      c.indicators.create!(descripcion: "Suma con reagrupación", orden: 0)
-      c.indicators.create!(descripcion: "Estima el resultado", orden: 1)
+      examen = actividad(@esc, lapso: @lapso, peso: 40, descripcion: "Examen", mide: c)
+      examen.indicators.destroy_all
+      examen.indicators.create!(competency: c, descripcion: "Suma con reagrupación", orden: 0)
+      examen.indicators.create!(competency: c, descripcion: "Estima el resultado", orden: 1)
     end
 
     assert_equal 1, replicar.competencias
 
     copiada = plan_del_destino.first
     assert_equal "Resuelve problemas", copiada.descripcion
-    assert_equal [ "Suma con reagrupación", "Estima el resultado" ],
-                 con_el_colegio(@esc.colegio) { copiada.indicators.en_orden.map(&:descripcion) }
+    con_el_colegio(@esc.colegio) do
+      assert_equal [ "Suma con reagrupación", "Estima el resultado" ],
+                   copiada.indicators.en_orden.map(&:descripcion)
+      assert copiada.indicators.all?(&:medido?),
+             "ninguno puede llegar suelto: no se vería en el plan ni saldría en la boleta"
+    end
   end
 
   test "copia las evaluaciones con su peso y su fecha" do
@@ -247,18 +259,23 @@ class ReplicarLaPlanificacionTest < ActiveSupport::TestCase
     assert_empty evaluaciones_del_destino,
                  "el peso y la fecha del examen de otro profesor no son un plan que heredar"
 
-    # Y el indicador llegó igual, LIBRE: la profesora nueva decide qué evaluación
-    # lo mide.
+    # ⚠️ Y SIN indicadores, que es el cambio del 22 de septiembre.
+    #
+    # Antes llegaban sueltos «para que la profesora nueva decidiera qué
+    # evaluación los mide», y eso ya no es posible: un indicador sin evaluación
+    # no se ve en el plan ni sale en la boleta. Los escribe dentro de las
+    # evaluaciones que arme, que es donde ahora viven.
     con_el_colegio(@esc.colegio) do
       copiada = Competency.del_plan(@destino.section_id, @destino.subject_id, @lapso.id).first
-      assert_equal [ "Suma con reagrupación" ], copiada.indicators.map(&:descripcion)
-      assert_equal 1, copiada.indicators.libres.count
+      assert_empty copiada.indicators,
+                   "sin evaluaciones que los midan, los indicadores no tienen dónde vivir"
     end
   end
 
   # ⚠️ Los indicadores también viajan: son la mitad de lo que Cyndi no quería
-  # volver a escribir.
-  test "del año pasado vienen los indicadores" do
+  # volver a escribir. Y viajan CON SU EVALUACIÓN, o sea solo cuando el plan lo
+  # dictaba el mismo profesor.
+  test "del año pasado del mismo profesor vienen los indicadores" do
     anterior, lapso_anterior = con_el_colegio(@esc.colegio) do
       periodo = AcademicPeriod.create!(name: "2024-2025", start_date: Date.new(2024, 9, 1),
                                        end_date: Date.new(2025, 7, 31))
@@ -270,16 +287,25 @@ class ReplicarLaPlanificacionTest < ActiveSupport::TestCase
                              evaluation_moment: lapso, descripcion: "Resuelve problemas")
       c.indicators.create!(descripcion: "Suma con reagrupación", orden: 0)
       c.indicators.create!(descripcion: "Estima el resultado", orden: 1)
+      e = EvaluationActivity.new(section: seccion, subject: @esc.materia,
+                                 evaluation_moment: lapso, description: "Examen",
+                                 weight_percentage: 40, date_scheduled: Date.new(2024, 11, 8))
+      e.competency_ids = [ c.id ]
+      e.indicators     = c.indicators.to_a
+      e.save!
       [ Struct.new(:section_id, :subject_id).new(seccion.id, @esc.materia.id), lapso ]
     end
 
     con_el_colegio(@esc.colegio) do
       ReplicarLaPlanificacion.del_ano_pasado(desde: anterior, lapso_de_origen: lapso_anterior,
-                                             hacia: @destino, lapso: @lapso)
+                                             hacia: @destino, lapso: @lapso, con_evaluaciones: true)
     end
 
     copiada = plan_del_destino.first
-    assert_equal [ "Suma con reagrupación", "Estima el resultado" ],
-                 con_el_colegio(@esc.colegio) { copiada.indicators.en_orden.map(&:descripcion) }
+    con_el_colegio(@esc.colegio) do
+      assert_equal [ "Suma con reagrupación", "Estima el resultado" ],
+                   copiada.indicators.en_orden.map(&:descripcion)
+      assert copiada.indicators.all?(&:medido?), "llegan midiendo la evaluación copiada"
+    end
   end
 end

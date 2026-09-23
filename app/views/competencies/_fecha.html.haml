@@ -19,7 +19,19 @@
 -# ⚠️ Y los días de fuera se dibujan APAGADOS, no se esconden. Una cuadrícula a
 -# la que le faltan los primeros catorce días de septiembre se lee como un mes
 -# roto; con ellos en gris, se lee como lo que es — el año todavía no empezaba.
-- periodo = evaluacion.section.academic_period
+-# ⚠️ `alta:` — la MISMA fila, con la evaluación todavía sin crear.
+-#
+-# Daniel, 23 de septiembre: *«al agregarse una evaluación debería desplegarse
+-# un panel igual al de arriba, de hecho el mismo, solo que con las
+-# características de Crear en lugar de editar… parece que fueran desarrollos
+-# distintos»*. Tenía razón: el alta era un formulario con sus propios campos y
+-# la edición una fila, dos maneras de hacer lo mismo.
+-#
+-# En la edición cada dato es su propio formulario y elegir un día guarda solo.
+-# En el alta no hay a qué guardar todavía: el campo viaja dentro del formulario
+-# de la fila y quien envía es el ✓.
+- alta = local_assigns.fetch(:alta, false)
+- periodo = (evaluacion.section || seccion_del_plan).academic_period
 .plan-evaluacion-fecha{ data: { controller: "calendario-escolar",
                                 calendario_escolar_desde_value: periodo.start_date.iso8601,
                                 calendario_escolar_hasta_value: periodo.end_date.iso8601,
@@ -34,10 +46,18 @@
       - else
         %span.dato-vacio sin fecha
 
-    -# El formulario se envía solo al elegir un día: la fecha no tiene «Enter».
-    = form_with model: evaluacion, url: evaluation_activity_path(evaluacion, contexto.merge(en_linea: true)),
-                method: :patch, data: { calendario_escolar_target: "formulario" } do |f|
-      = f.hidden_field :date_scheduled, data: { calendario_escolar_target: "campo" }
+    - if alta
+      -# Sin formulario propio: el campo va dentro del de la fila, que es quien
+      -# envía. `hidden_field_tag` y no `f.hidden_field` porque acá no hay `f`.
+      = hidden_field_tag "evaluation_activity[date_scheduled]",
+                         evaluacion.date_scheduled&.iso8601,
+                         id: "alta_fecha_#{evaluacion.section_id}",
+                         data: { calendario_escolar_target: "campo" }
+    - else
+      -# El formulario se envía solo al elegir un día: la fecha no tiene «Enter».
+      = form_with model: evaluacion, url: evaluation_activity_path(evaluacion, contexto.merge(en_linea: true)),
+                  method: :patch, data: { calendario_escolar_target: "formulario" } do |f|
+        = f.hidden_field :date_scheduled, data: { calendario_escolar_target: "campo" }
 
     .plan-calendario{ hidden: true, data: { calendario_escolar_target: "panel" } }
       .plan-calendario-meses{ data: { calendario_escolar_target: "meses" } }

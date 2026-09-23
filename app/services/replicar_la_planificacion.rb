@@ -15,11 +15,10 @@
 #     SE COPIA                          NO SE COPIA
 #     ────────                          ───────────
 #     las competencias                  las NOTAS     ← son de los alumnos
-#     sus indicadores                   quién dicta   ← ya está asignado
-#     las evaluaciones, con su peso
+#     las evaluaciones, con su peso     quién dicta   ← ya está asignado
 #       y su fecha
 #     qué competencia mide cada una
-#     qué INDICADORES mide cada una
+#     sus INDICADORES, con su evaluación
 #
 # ⚠️ Copiar competencias ya existía; **las evaluaciones son lo que faltaba**, y
 # son la mitad más pesada del trabajo de septiembre: un profesor con tres
@@ -137,7 +136,17 @@ class ReplicarLaPlanificacion
         nueva = Competency.create!(section_id: hacia.section_id, subject_id: hacia.subject_id,
                                    evaluation_moment_id: lapso.id,
                                    descripcion: vieja.descripcion, orden: vieja.orden)
-        vieja.indicators.each { |i| nueva.indicators.create!(descripcion: i.descripcion, orden: i.orden) }
+        # ⚠️ SIN indicadores, y es un cambio del 22 de septiembre.
+        #
+        # Se copiaban acá, sueltos, y después `copiar_evaluaciones` les buscaba
+        # dueño. Desde que el indicador vive DENTRO de su evaluación eso deja
+        # huérfanos en el único caso que importa: traer el plan de OTRO
+        # profesor, que viene sin evaluaciones. Esos indicadores no se
+        # imprimían en la boleta ni se veían en el plan.
+        #
+        # Ahora viajan CON su evaluación, en `copiar_evaluaciones`: el mismo
+        # profesor se los lleva y el que hereda solo el plan recibe las
+        # competencias, que es lo que describe qué enseña el grado.
         ya_estan << nueva.descripcion_canonica
         true
       end
@@ -155,8 +164,11 @@ class ReplicarLaPlanificacion
       next false if ya_estan.include?(Normaliza.para_comparar(vieja.description))
 
       competencias = equivalentes_de(vieja)
-      indicadores  = indicadores_equivalentes_de(vieja)
-      next anotar_que_no_mide(vieja) if exige_plan? && (competencias.empty? || indicadores.empty?)
+      indicadores  = indicadores_copiados_de(vieja, competencias)
+      # ⚠️ Solo las COMPETENCIAS: desde el 23 de septiembre una evaluación nace
+      # sin indicadores y se le agregan después, así que exigirlos acá haría
+      # fallar la copia de un plan al que todavía no se los escribieron.
+      next anotar_que_no_mide(vieja) if exige_plan? && competencias.empty?
 
       en_su_savepoint do
         nueva = EvaluationActivity.new(
@@ -190,27 +202,39 @@ class ReplicarLaPlanificacion
     competencias_del_destino.values_at(*canonicas).compact
   end
 
-  # ⚠️ Los INDICADORES también se re-apuntan, un escalón más adentro.
+  # ⚠️ Los indicadores se COPIAN con su evaluación, no se buscan en el destino.
   #
-  # Una evaluación no mide la competencia entera: mide algunos de sus
-  # indicadores, y no se repiten entre evaluaciones. Copiar sin esto dejaba el
-  # plan del destino con las evaluaciones sin decir qué miden —y desde la regla
-  # de Daniel, ni siquiera se podrían guardar—.
+  # Antes se creaban sueltos al copiar la competencia y acá se les buscaba
+  # dueño. Desde que el indicador vive DENTRO de su evaluación (22 de
+  # septiembre) eso dejaba huérfanos invisibles en el caso que importa: traer el
+  # plan de otro profesor, que viene sin evaluaciones.
   #
-  # Se busca por el PAR (canónica de la competencia, canónica del indicador):
-  # el id es de la otra sección, y la canónica sola se repite entre competencias
-  # («Participa en clase» puede estar en las dos).
+  # ⚠️ Se copia el TEXTO, no se referencia: el del origen es de otra sección.
+  # Y solo los de las competencias que esta evaluación mide en el destino —un
+  # indicador bajo una competencia que no mide lo rechaza el modelo.
   #
-  # ⚠️ Y solo si está LIBRE en el destino. Si el profesor ya armó allá una
-  # evaluación que mide ese indicador, tomarlo se lo QUITARÍA a la suya —
-  # callado, porque la columna admite un solo dueño y el último gana.
-  def indicadores_equivalentes_de(vieja)
+  # ⚠️ Se saltan los que ya están en esa competencia del destino: el índice
+  # único es por (competencia, canónica), y un choque acá se reportaría como
+  # «no cupo por ponderación», que es mentira.
+  def indicadores_copiados_de(vieja, competencias_destino)
     vieja.indicators.filter_map do |viejo|
-      destino = indicadores_del_destino[[ viejo.competency.descripcion_canonica, viejo.descripcion_canonica ]]
-      next if destino.nil? || destino.evaluation_activity_id.present?
+      destino = competencias_del_destino[viejo.competency.descripcion_canonica]
+      next unless competencias_destino.include?(destino)
+      next if canonicas_de(destino).include?(viejo.descripcion_canonica)
 
-      destino
+      canonicas_de(destino) << viejo.descripcion_canonica
+      Indicator.new(competency_id: destino, descripcion: viejo.descripcion, orden: viejo.orden)
     end
+  end
+
+  # ⚠️ Se memoiza y se va llenando al copiar: dos evaluaciones del origen con el
+  # mismo indicador escrito chocarían contra el índice único si cada una
+  # preguntara por separado.
+  def canonicas_de(competency_id)
+    @canonicas_de ||= Hash.new do |cache, id|
+      cache[id] = Indicator.where(competency_id: id).pluck(:descripcion_canonica).to_set
+    end
+    @canonicas_de[competency_id]
   end
 
   # Si el destino se planifica por competencias. En bachillerato no hay plan, y
@@ -272,19 +296,6 @@ class ReplicarLaPlanificacion
                 .pluck(:descripcion_canonica, :id).to_h
   end
 
-  # ⚠️ Se lee DESPUÉS de copiar las competencias, como su hermana de arriba: los
-  # indicadores que acaban de crearse son justamente a los que hay que apuntar.
-  #
-  # ⚠️ Se memoiza con los OBJETOS, y eso es lo que impide robar dos veces el
-  # mismo: al guardar, Rails le escribe el `evaluation_activity_id` al objeto en
-  # memoria, así que la evaluación siguiente lo ve tomado.
-  def indicadores_del_destino
-    @indicadores_del_destino ||=
-      Indicator.where(competency_id: competencias_del_destino.values)
-               .includes(:competency)
-               .index_by { |i| [ i.competency.descripcion_canonica, i.descripcion_canonica ] }
-  end
-
   def descripciones_de_evaluaciones_del_destino
     EvaluationActivity.where(section_id: hacia.section_id, subject_id: hacia.subject_id,
                              evaluation_moment_id: lapso.id)
@@ -315,7 +326,7 @@ class ReplicarLaPlanificacion
   # primaria mide una competencia y un indicador. Se dice dónde arreglarlo, que
   # es lo único accionable.
   def anotar_que_no_mide(vieja)
-    @avisos << "«#{vieja.description}» no se copió: en #{desde.section.name} no dice qué indicadores mide."
+    @avisos << "«#{vieja.description}» no se copió: en #{desde.section.name} no mide ninguna competencia."
     false
   end
 end

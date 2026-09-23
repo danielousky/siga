@@ -23,9 +23,9 @@
 -#     └─────────────────────────────────────────────────────────────┘
 -#
 -# ⚠️ Los indicadores YA NO cuelgan de la competencia: cuelgan de la evaluación
--# que los mide. Un indicador sin evaluación no se imprime en la boleta —solo
--# salen los medidos— y desde esta jerarquía tampoco se ve, así que dejar donde
--# escribirlos sueltos era ofrecer un dato invisible.
+-# que los mide, nacen con ella y se van con ella. Uno sin evaluación no se
+-# imprime en la boleta —solo salen los medidos— y desde esta jerarquía tampoco
+-# se ve, así que un indicador suelto sería un dato invisible.
 - suyas    = evaluaciones_de(competencia)
 - error    = local_assigns[:error]
 - guardada = local_assigns[:guardada]
@@ -99,34 +99,31 @@
         = icono(:alerta, tamano: 15)
         %span Sin evaluaciones — esta competencia saldrá sin nivel en la boleta.
 
-    -# ⚠️ Los que quedaron SIN evaluación, y solo si hay.
+    -# ⚠️ EL BLOQUE DE HUÉRFANOS SE RETIRÓ el 22 de septiembre.
     -#
-    -# Ninguna pantalla los crea desde el 21 de septiembre, y borrar una
-    -# evaluación se lleva los suyos. Pero si aparecen —un import, un dato
-    -# viejo— no se imprimen en la boleta ni se ven en ningún otro sitio: serían
-    -# basura invisible. El bloque existe para poder borrarlos, y desaparece
-    -# solo cuando no queda ninguno.
-    - huerfanos = competencia.indicators.reject(&:medido?)
-    - if huerfanos.any? && profesor?
-      %h5.plan-rotulo Indicadores sin evaluación
-      %p.nota-ayuda
-        Ninguna evaluación los mide, así que
-        %strong no salen en la boleta
-        \. Quedan de una evaluación borrada o de antes de este cambio: escríbelos
-        dentro de la evaluación que corresponda y bórralos de acá.
-      = render "competencies/huerfanos", competencia: competencia, contexto: contexto,
-               indicadores: huerfanos
+    -# Existía porque borrar una evaluación SOLTABA sus indicadores
+    -# (`nullify`) y porque el copiador los creaba sueltos: sin el bloque eran
+    -# basura invisible —no salen en la boleta ni en el plan—. Las dos fuentes
+    -# se cerraron el mismo día: ahora se van con su evaluación y el copiador
+    -# los trae con ella. Un bloque defensivo que ya no puede dispararse es
+    -# código que nadie va a volver a leer.
 
     - if profesor?
-      -# ⚠️ El formulario se despliega EN SU SITIO, en un frame propio debajo del
-      -# botón. Daniel: *«no hace falta perderse a otra vista totalmente
-      -# independiente»*. El frame lleva el número de la competencia porque hay
-      -# uno por cada una — con un frame compartido, pulsar el botón de la
-      -# segunda abriría el formulario debajo de la primera.
+      -# ⚠️ El frame va ANTES del botón, y en ese orden por una razón concreta.
+      -#
+      -# La fila nueva es una evaluación más: tiene que aparecer donde va a
+      -# quedar —al final de la lista— y no debajo del botón que la pidió. Y el
+      -# orden es además lo que deja esconder el botón sin una línea de
+      -# JavaScript: `turbo-frame:not(:empty) + .plan-competencia-acciones`.
+      -# Daniel: *«al hacer clic en "Agregar evaluación" desaparece el botón»*.
+      -#
+      -# El frame lleva el número de la competencia porque hay uno por cada una:
+      -# con un frame compartido, pulsar el botón de la segunda abriría la fila
+      -# debajo de la primera.
       - marco = "alta_evaluacion_#{competencia.id}"
+      = turbo_frame_tag marco, class: "plan-alta-de-evaluacion"
       .plan-competencia-acciones
         = boton "Agregar evaluación",
                 new_evaluation_activity_path(contexto.merge(competencia: competencia.id)),
                 icono: :agregar, tono: :guardar, sm: true,
                 data: { turbo_frame: marco }
-      = turbo_frame_tag marco
