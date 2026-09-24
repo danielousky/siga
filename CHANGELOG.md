@@ -48,9 +48,9 @@ mensaje del commit, que es donde vive el detalle técnico.
   indicadores se agregan sobre ella, en su bloque «Indicadores que mide».
 - **Competencias, Evaluaciones e Indicadores se leen más**: los tres rótulos
   del plan ganaron peso y una línea que los separa de lo que cuelga de ellos.
-- **El peso se puede deslizar.** Al lado del número hay ahora una barrita: se
-  arrastra y el porcentaje cambia con ella, con la barra de ponderación
-  moviéndose al mismo tiempo. El número sigue estando para escribir uno exacto,
+- **El peso se puede deslizar.** Al lado del número hay ahora una barrita con
+  su punto: se arrastra y el porcentaje cambia con ella, con la barra de
+  ponderación moviéndose al mismo tiempo. El número sigue estando para escribir uno exacto,
   y es el único que queda en el teléfono — sesenta píxeles con el dedo encima no
   alcanzan para poner un 40.
 - **Lo que aparece y lo que se va ya no dan un salto**: la fila nueva, el panel

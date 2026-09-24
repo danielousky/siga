@@ -8350,10 +8350,20 @@ a.subject-avance:hover { filter: brightness(0.9); }
    CARRETERA y el PULGAR con su propio pseudoelemento. Y no se pueden juntar en
    un selector — un navegador descarta la regla ENTERA si no conoce uno de sus
    pseudos, así que webkit y firefox van separados aunque digan lo mismo. */
+/* ⚠️ El pulgar es GRANDE, y salió chico. Daniel, 24 de septiembre: «me gustaba
+   más el primer deslizador, el original; el punto nuevo es demasiado pequeño e
+   incómodo para precisar». Tenía razón y el error fue de escala: la fila es
+   compacta, así que encogí el control para que no pesara — pero un deslizador
+   no se mira, se AGARRA, y un punto de 12 px es más chico que la yema con la
+   que se toma. El de Bootstrap, que es el que él tenía delante, mide 16.
+
+   ⚠️ Y `box-sizing: border-box` en los dos pulgares, escrito a mano: webkit
+   suma el borde POR FUERA del ancho y firefox lo mete adentro, así que con el
+   mismo `width` el pulgar mide distinto en cada navegador. */
 .plan-evaluacion-peso-rango {
   flex: 0 0 auto;
-  width: 60px;
-  height: 14px;
+  width: 76px;
+  height: 18px;
   margin: 0;
   padding: 0;
   appearance: none;
@@ -8362,13 +8372,13 @@ a.subject-avance:hover { filter: brightness(0.9); }
 }
 
 .plan-evaluacion-peso-rango::-webkit-slider-runnable-track {
-  height: 4px;
+  height: 6px;
   border-radius: 999px;
   background: var(--border-standard);
 }
 
 .plan-evaluacion-peso-rango::-moz-range-track {
-  height: 4px;
+  height: 6px;
   border-radius: 999px;
   background: var(--border-standard);
 }
@@ -8376,27 +8386,32 @@ a.subject-avance:hover { filter: brightness(0.9); }
 /* Firefox es el único que rellena lo recorrido; en los demás la carretera va
    pareja y el pulgar dice dónde está. */
 .plan-evaluacion-peso-rango::-moz-range-progress {
-  height: 4px;
+  height: 6px;
   border-radius: 999px;
   background: var(--brand-primary);
 }
 
 .plan-evaluacion-peso-rango::-webkit-slider-thumb {
-  width: 12px;
-  height: 12px;
-  margin-top: -4px;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  /* Centrarlo en la carretera: la mitad de lo que sobresale, hacia arriba. */
+  margin-top: -5px;
   border: 2px solid var(--surface-elevated);
   border-radius: 50%;
   background: var(--brand-primary);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
   appearance: none;
 }
 
 .plan-evaluacion-peso-rango::-moz-range-thumb {
-  width: 8px;
-  height: 8px;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
   border: 2px solid var(--surface-elevated);
   border-radius: 50%;
   background: var(--brand-primary);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.2);
 }
 
 .plan-evaluacion-peso-rango:focus-visible {
