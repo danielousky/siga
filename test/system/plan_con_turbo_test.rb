@@ -91,6 +91,46 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     assert_no_selector "input[name='evaluation_activity[description]']"
   end
 
+  # ── Deslizar el peso (23 de septiembre) ───────────────────────────────────
+  #
+  # Daniel: *«en el porcentaje podemos agregar un rango en la misma línea,
+  # pequeño… que la persona deslice en lugar de escribir»*.
+  #
+  # ⚠️ En un navegador de verdad, porque son tres piezas hablándose y ninguna
+  # se ve desde un test de integración: el rango escribe en el número,
+  # `reparto` recalcula la barra con el `input` que el rango finge, y
+  # `edicion-en-linea` guarda con el `change` de soltar. Con el controlador sin
+  # conectar, el HTML sigue siendo correcto y no pasa nada — que en este
+  # proyecto ya ocurrió dos veces, en silencio.
+  #
+  # ⚠️ Con flechas y no arrastrando: el teclado mueve el rango de `step` en
+  # `step` y dispara los MISMOS dos eventos que el ratón, sin depender de dónde
+  # caiga el píxel.
+  test "deslizar el peso escribe el número y lo guarda" do
+    # ⚠️ El lapso 2 y no el 1: el 1 ya trae una actividad de peso 100, así que
+    # el tope de cualquier otra sería su propio valor y la flecha no movería
+    # nada — el test pasaría verde sin probar el deslizador.
+    lapso = @a.escenario.lapso(2)
+    evaluacion = con_el_colegio(@a.colegio) do
+      c = competencia_con(0, "Resuelve problemas", lapso: lapso)
+      e = actividad(@a.escenario, lapso: lapso, peso: 40, descripcion: "Examen del lapso")
+      e.competencies = [ c ]
+      e
+    end
+    visit planificar_section_path(@a.seccion, area: @area.id, lapso: lapso.id)
+
+    within(".plan-evaluacion") do
+      find("input[type=range]").send_keys(:arrow_right)
+      # El número acompaña en el acto: es el mismo dato visto dos veces.
+      assert_field "evaluation_activity[weight_percentage]", with: "41"
+    end
+
+    # Y soltar guarda: el `change` del rango entra por el mismo `salir` que usa
+    # el campo de texto, así que no hay un segundo camino de guardado.
+    assert_selector ".plan-evaluacion--guardada"
+    assert_equal 41, evaluacion.reload.weight_percentage
+  end
+
   # ── Salir del formulario sin guardar ──────────────────────────────────────
   #
   # Daniel, 9 de septiembre: *«al cancelar la evaluación o clic en atrás no

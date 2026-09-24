@@ -44,6 +44,32 @@ class PlanAnidadoTest < ActionDispatch::IntegrationTest
     assert_select ".plan-evaluacion-peso-campo[step=?]", "1"
   end
 
+  # ── El deslizador del peso (23 de septiembre) ─────────────────────────────
+  #
+  # Daniel: *«en el porcentaje podemos agregar un rango en la misma línea,
+  # pequeño… que la persona deslice en lugar de escribir»*.
+  #
+  # ⚠️ Lo que este test cuida NO es que el rango exista: es que NO lleve `name`.
+  # Con los dos controles enviando `weight_percentage`, el formulario mandaría
+  # el peso dos veces y el servidor se quedaría con el último del marcado — o
+  # sea, con el que el profesor no tocó. Es un fallo que no da error en ningún
+  # lado: guarda, y guarda otro número.
+  test "el peso se puede deslizar, y el deslizador no se envía" do
+    con_el_colegio(@a.colegio) do
+      competencia = competencia_con(0, lapso: @lapso)
+      evaluacion  = actividad(@a.escenario, lapso: @lapso, peso: 40, descripcion: "Examen del lapso")
+      evaluacion.competencies = [ competencia ]
+    end
+
+    plan
+
+    assert_select ".plan-evaluacion-campo--peso input[type=range][value=?]", "40"
+    assert_select ".plan-evaluacion-campo--peso input[type=range][name]", false,
+                  "el deslizador no puede tener name: enviaría el peso dos veces"
+    # Y el número sigue siendo el campo.
+    assert_select ".plan-evaluacion-peso-campo[name=?]", "evaluation_activity[weight_percentage]"
+  end
+
   test "una competencia sin evaluaciones avisa lo que le va a pasar en la boleta" do
     con_el_colegio(@a.colegio) { competencia_con(1, lapso: @lapso) }
 

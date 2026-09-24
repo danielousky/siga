@@ -68,7 +68,10 @@
         -# lo único que no se puede hacer escribiendo encima.
         = button_to competency_path(competencia, contexto),
                     method: :delete, class: "btn btn-danger btn-sm btn-solo-icono",
-                    form: { data: { turbo_confirm: "¿Borrar «#{competencia.descripcion.truncate(50)}» del plan?" } },
+                    form: { data: { turbo_confirm: "¿Borrar «#{competencia.descripcion.truncate(50)}» del plan?",
+                                    controller: "se-desvanece",
+                                    se_desvanece_de_value: ".plan-competencia",
+                                    action: "turbo:submit-start->se-desvanece#irse" } },
                     data: { tooltip: "Borrar la competencia" }, "aria-label": "Borrar la competencia" do
           = icono(:borrar, tamano: 15)
 
@@ -90,7 +93,8 @@
       -# dentro, no un renglón de una lista. La lista con `gap: 1px` sobre fondo
       -# gris servía cuando eran filas de una línea.
       = render partial: "competencies/evaluacion", collection: suyas, as: :evaluacion,
-               locals: { contexto: contexto, competencia: competencia, competencias: competencias }
+               locals: { contexto: contexto, competencia: competencia, competencias: competencias,
+                         recien: local_assigns[:recien] }
     - else
       -# ⚠️ Es un AVISO, no un error: el plan se guarda igual. Pero dice la
       -# consecuencia y no el síntoma — «sin evaluaciones» no significa nada,

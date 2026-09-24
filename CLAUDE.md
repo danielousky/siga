@@ -579,6 +579,26 @@ guardar un dato que nadie iba a volver a encontrar. Por lo mismo, **traer el
 plan de otro profesor ya no trae indicadores** — sin las evaluaciones que los
 midan no tienen dónde vivir.
 
+⚠️ **El peso se teclea Y se desliza, y el deslizador NO lleva `name`.** Daniel,
+23 de septiembre: *«podemos robarle un poco de espacio al texto y que la persona
+deslice en lugar de escribir»*. Con los dos controles enviando
+`weight_percentage`, el formulario mandaría el peso dos veces y el servidor se
+quedaría con el último del marcado — el que el profesor no tocó, y sin error en
+ningún lado. Los junta `peso-deslizante`, que además **copia el tope del número
+en vez de calcularlo otra vez**: el máximo es lo que QUEDA contando a las otras
+evaluaciones, lo recalcula `reparto` en vivo, y dos cuentas del mismo número se
+separan el día que una cambie.
+
+⚠️ **Entrar y salir suave son DOS mecanismos, porque el navegador solo regala
+uno.** Lo que APARECE se anima con `animation`, que corre al insertarse el
+elemento. Lo que SE VA no tiene ese momento: Turbo reemplaza el bloque y el nodo
+desaparece de golpe. Por eso el desvanecido lo empieza `se-desvanece` mientras la
+petición viaja — y con `turbo:submit-start` y **no** con el clic, que está antes
+del «¿Borrar…?»: decir que no dejaría la fila medio borrada en pantalla. Y entra
+solo lo que de verdad es nuevo (`--recien`, que pone el servidor y solo en el
+alta): el stream reemplaza la competencia entera, así que animar `.plan-indicador`
+a secas haría parpadear la lista completa al corregir una letra de cualquier otro.
+
 ⚠️ **Con notas cargadas, el botón de borrar se apaga con `aria-disabled` y su
 tooltip dice por qué.** No `disabled`: el nativo no recibe foco, y el tooltip
 —que ES la explicación— aparece con `:hover` y `:focus-visible`. Y la fila lleva

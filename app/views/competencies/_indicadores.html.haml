@@ -22,9 +22,15 @@
 -# ⚠️ El último campo va VACÍO, y escribir en él crea el siguiente. Es cómo se
 -# escribe una lista en cualquier sitio donde uno escriba listas, y ahorra el
 -# botón «agregar indicador» que habría que buscar cada vez.
+-# ⚠️ `recien` es el que ACABA de nacer, y solo ese se desvanece hacia adentro.
+-# El stream reemplaza la competencia ENTERA, así que animar `.plan-indicador` a
+-# secas haría parpadear toda la lista cada vez que se corrige una letra de
+-# cualquier otro. Es el mismo mecanismo que `guardada`: el servidor sabe qué
+-# pasó, y lo dice.
+- recien = local_assigns[:recien]
 .plan-indicadores
   - indicadores.each do |indicador|
-    .plan-indicador
+    .plan-indicador{ class: ("plan-indicador--recien" if recien == indicador.id) }
       - if profesor?
         = form_with model: indicador,
                     url: competency_indicator_path(competencia, indicador, contexto),
@@ -46,6 +52,9 @@
                                 action: "input->campo-que-crece#crecer keydown->edicion-en-linea#tecla blur->edicion-en-linea#salir" }
         = button_to competency_indicator_path(competencia, indicador, contexto),
                     method: :delete, class: "plan-indicador-quitar",
+                    form: { data: { controller: "se-desvanece",
+                                    se_desvanece_de_value: ".plan-indicador",
+                                    action: "turbo:submit-start->se-desvanece#irse" } },
                     data: { tooltip: "Quitar este indicador" }, "aria-label": "Quitar este indicador" do
           ×
       - else

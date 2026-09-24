@@ -48,14 +48,25 @@
                    autocomplete: "off", placeholder: "Agregar la nueva evaluación",
                    "aria-label": "Nombre de la evaluación nueva"
 
-  .plan-evaluacion-campo.plan-evaluacion-campo--peso
+  .plan-evaluacion-campo.plan-evaluacion-campo--peso{ data: { controller: "peso-deslizante" } }
     -# ⚠️ Nace con lo que FALTA para cerrar el lapso, y el tope es ese mismo
     -# número: el profesor casi siempre reparte lo que queda, y pedirle una
     -# resta que el sistema ya tiene hecha es hacerle la cuenta a mano.
+    -#
+    -# El deslizador es el MISMO de las filas de arriba, con el mismo tope: la
+    -# fila nueva se llena como se edita cualquier otra.
+    %input.plan-evaluacion-peso-rango{ type: "range", min: 1, step: 1,
+                                       max: entero_si_lo_es(peso_libre),
+                                       value: entero_si_lo_es(peso_libre),
+                                       "aria-label": "Peso de la evaluación nueva: deslizar",
+                                       data: { peso_deslizante_target: "rango",
+                                               action: "input->peso-deslizante#mover" } }
     = f.number_field :weight_percentage, value: entero_si_lo_es(peso_libre),
                      step: 1, min: 1, max: entero_si_lo_es(peso_libre),
                      class: "plan-evaluacion-peso-campo",
-                     "aria-label": "Peso de la evaluación nueva, en porcentaje"
+                     "aria-label": "Peso de la evaluación nueva, en porcentaje",
+                     data: { peso_deslizante_target: "numero",
+                             action: "input->peso-deslizante#escribir" }
     %span.plan-evaluacion-peso-signo %
 
   = render "competencies/fecha", evaluacion: @evaluation_activity, contexto: contexto, alta: true
@@ -70,6 +81,12 @@
                                                    data: { tooltip: "Agregar la evaluación" },
                                                    "aria-label": "Agregar la evaluación" }
       = icono(:ok, tamano: 14)
+    -# ⚠️ Acá el momento SÍ es el clic: descartar no pregunta nada, así que no
+    -# hay un «aceptar» que esperar. Donde hay confirmación —el basurero de las
+    -# filas de arriba— se espera a `turbo:submit-start`.
     = link_to plan_path, class: "btn btn-danger btn-sm btn-solo-icono",
-              data: { tooltip: "Descartar" }, "aria-label": "Descartar" do
+              data: { tooltip: "Descartar", controller: "se-desvanece",
+                      se_desvanece_de_value: ".plan-evaluacion",
+                      action: "click->se-desvanece#irse" },
+              "aria-label": "Descartar" do
       = icono(:cerrar, tamano: 14)

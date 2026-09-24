@@ -25,4 +25,7 @@
                     placeholder: "Resuelve problemas de proporcionalidad directa…"
   .alta-en-linea-acciones
     = f.submit "Agregar", class: "btn btn-guardar btn-sm"
-    = link_to "Cancelar", plan_path, class: "btn btn-secondary btn-sm"
+    -# Como la ✗ del alta de evaluación: sin confirmación, el momento es el clic.
+    = link_to "Cancelar", plan_path, class: "btn btn-secondary btn-sm",
+              data: { controller: "se-desvanece", se_desvanece_de_value: ".alta-en-linea",
+                      action: "click->se-desvanece#irse" }

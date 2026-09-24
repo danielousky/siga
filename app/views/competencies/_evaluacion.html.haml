@@ -62,13 +62,26 @@
     -# depende de lo que valgan las otras evaluaciones en este momento.
     = form_with model: evaluacion, url: evaluation_activity_path(evaluacion, aqui),
                 method: :patch, class: "plan-evaluacion-campo plan-evaluacion-campo--peso",
-                data: { controller: "edicion-en-linea", turbo_stream: true } do |f|
+                data: { controller: "edicion-en-linea peso-deslizante", turbo_stream: true } do |f|
+      -# ⚠️ SIN `name`, y por eso no se envía: con los dos mandando
+      -# `weight_percentage`, el servidor se quedaría con el último del marcado.
+      -# El número sigue siendo el campo; esto es otra manera de moverlo.
+      -#
+      -# ⚠️ Y `change` guarda, no `input`: arrastrando de 10 a 40 hay treinta
+      -# valores intermedios, y uno por uno serían treinta peticiones, treinta
+      -# recálculos de promedios y treinta líneas de auditoría. `change` en un
+      -# rango se dispara al soltar.
+      %input.plan-evaluacion-peso-rango{ type: "range", min: 1, max: 100, step: 1,
+                                         value: entero_si_lo_es(evaluacion.weight_percentage),
+                                         "aria-label": "Peso de #{evaluacion.description}: deslizar",
+                                         data: { peso_deslizante_target: "rango",
+                                                 action: "input->peso-deslizante#mover change->edicion-en-linea#salir" } }
       = f.number_field :weight_percentage, value: entero_si_lo_es(evaluacion.weight_percentage),
                       step: 1, min: 1, max: 100, class: "plan-evaluacion-peso-campo",
                       "aria-label": "Peso de #{evaluacion.description}, en porcentaje",
                       data: { edicion_en_linea_target: "campo", reparto_target: "peso",
-                              id: evaluacion.id,
-                              action: "input->reparto#recalcular keydown->edicion-en-linea#tecla blur->reparto#ajustar blur->edicion-en-linea#salir" }
+                              peso_deslizante_target: "numero", id: evaluacion.id,
+                              action: "input->reparto#recalcular input->peso-deslizante#escribir keydown->edicion-en-linea#tecla blur->reparto#ajustar blur->edicion-en-linea#salir" }
       %span.plan-evaluacion-peso-signo %
   - else
     %span.plan-evaluacion-peso-fijo= porcentaje(evaluacion.weight_percentage)
@@ -141,9 +154,14 @@
         -# con la jerarquía: el indicador vive dentro de su evaluación.
         - borrar = "¿Borrar «#{evaluacion.description}»? Deja de contar en el promedio del lapso."
         - borrar += " Se borran también sus #{contar(suyos, 'indicador', 'indicadores')}." if suyos.positive?
+        -# ⚠️ El desvanecido empieza al ACEPTAR la confirmación, no al hacer
+        -# clic: `turbo:submit-start` se dispara después del «¿Borrar…?», así
+        -# que decir que no deja la fila intacta.
         = button_to evaluation_activity_path(evaluacion, contexto),
                     method: :delete, class: "btn btn-danger btn-sm btn-solo-icono",
-                    form: { data: { turbo_confirm: borrar } },
+                    form: { data: { turbo_confirm: borrar, controller: "se-desvanece",
+                                    se_desvanece_de_value: ".plan-evaluacion",
+                                    action: "turbo:submit-start->se-desvanece#irse" } },
                     data: { tooltip: "Borrar" }, "aria-label": "Borrar" do
           = icono(:borrar, tamano: 14)
 
@@ -176,7 +194,7 @@
           = icono(:alerta, tamano: 13)
           %span Todavía no dice qué mide. Escribe abajo el primer indicador.
       = render "competencies/indicadores", competencia: bajo, evaluacion: evaluacion,
-               indicadores: miden, contexto: contexto
+               indicadores: miden, contexto: contexto, recien: local_assigns[:recien]
   - elsif miden.any?
     -# Sin competencia no hay dónde escribirlos —el alta cuelga de ella— así que
     -# acá solo se leen: es una evaluación heredada, del bloque de las sueltas.

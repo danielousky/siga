@@ -7739,8 +7739,13 @@ a.subject-avance:hover { filter: brightness(0.9); }
 .plan-sin-indicador svg { flex: 0 0 auto; }
 
 /* Y el nombre no baja de un ancho legible: comprimido, un `<input>` no se ve
-   vacío — se ve roto, que es lo que parecía. */
-.plan-evaluacion-campo--nombre { flex: 1 1 14rem; }
+   vacío — se ve roto, que es lo que parecía.
+
+   ⚠️ Son 11rem y no 14: el deslizador del peso sale de acá. Daniel: «podemos
+   robarle un poco de espacio al texto». Es `flex-basis`, o sea el punto de
+   partida — con sitio de sobra el nombre igual se estira, que es el caso
+   normal en una pantalla de escritorio. */
+.plan-evaluacion-campo--nombre { flex: 1 1 11rem; }
 
 /* ── Editar donde se lee (QA del 9 de septiembre) ────────────────────────── */
 /* Daniel: «al hacer clic en el elemento que deseo editar, como lo hace Linear».
@@ -7948,6 +7953,44 @@ a.subject-avance:hover { filter: brightness(0.9); }
 
 @media (prefers-reduced-motion: reduce) {
   .plan-evaluacion--guardada { animation: none; background: var(--success-bg); }
+}
+
+/* ── Entrar y salir suave (23 de septiembre) ─────────────────────────────── */
+/* Daniel: «puedes suavizar la entrada y salida de los elementos al agregar o
+   quitar (fade-in fade-out)».
+
+   ⚠️ Son DOS mecanismos, y no por gusto: el navegador solo regala uno. Lo que
+   APARECE se anima solo, porque una `animation` corre cuando el elemento entra
+   al DOM. Lo que SE VA no tiene ese momento — Turbo reemplaza el bloque y el
+   nodo desaparece de golpe, sin pasar por ningún estado intermedio. Por eso el
+   desvanecido lo EMPIEZA el controlador `se-desvanece` mientras la petición
+   viaja, y el reemplazo llega encima de algo que ya se apagó.
+
+   ⚠️ Y entra solo lo que de verdad es nuevo. El stream reemplaza la competencia
+   entera, así que animar `.plan-indicador` a secas haría parpadear la lista
+   completa cada vez que se corrige una letra de cualquier otro: `--recien` lo
+   pone el servidor, y solo en el alta. */
+@keyframes plan-aparece {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.plan-evaluacion--naciendo,
+.alta-en-linea,
+.plan-indicador--recien { animation: plan-aparece 180ms ease-out; }
+
+.se-esta-yendo {
+  opacity: 0;
+  transform: scale(0.985);
+  pointer-events: none;
+  transition: opacity 160ms ease-out, transform 160ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-evaluacion--naciendo,
+  .alta-en-linea,
+  .plan-indicador--recien { animation: none; }
+  .se-esta-yendo { transition: none; }
 }
 
 .plan-evaluacion-descripcion {
@@ -8290,6 +8333,82 @@ a.subject-avance:hover { filter: brightness(0.9); }
 .plan-evaluacion-peso-signo {
   font-size: 11px;
   color: var(--text-tertiary);
+}
+
+/* ── El peso también se arrastra (23 de septiembre) ──────────────────────── */
+/* Daniel: «en el porcentaje podemos agregar un rango en la misma línea,
+   pequeño; podemos robarle un poco de espacio al texto y que la persona
+   deslice en lugar de escribir».
+
+   ⚠️ El NÚMERO sigue siendo el campo —es el que se envía, el que lee un lector
+   de pantalla y el que permite poner un 37 exacto—; el rango es una segunda
+   manera de moverlo. Los mantiene juntos `peso-deslizante`, que además copia el
+   tope: el máximo de una evaluación es lo que QUEDA contando a las otras, no
+   100, y si el rango no lo respetara arrastrando se volvería a pasar del 100 %.
+
+   ⚠️ Un `<input type="range">` no se estila por fuera: cada motor pinta la
+   CARRETERA y el PULGAR con su propio pseudoelemento. Y no se pueden juntar en
+   un selector — un navegador descarta la regla ENTERA si no conoce uno de sus
+   pseudos, así que webkit y firefox van separados aunque digan lo mismo. */
+.plan-evaluacion-peso-rango {
+  flex: 0 0 auto;
+  width: 60px;
+  height: 14px;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+.plan-evaluacion-peso-rango::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border-standard);
+}
+
+.plan-evaluacion-peso-rango::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border-standard);
+}
+
+/* Firefox es el único que rellena lo recorrido; en los demás la carretera va
+   pareja y el pulgar dice dónde está. */
+.plan-evaluacion-peso-rango::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--brand-primary);
+}
+
+.plan-evaluacion-peso-rango::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  margin-top: -4px;
+  border: 2px solid var(--surface-elevated);
+  border-radius: 50%;
+  background: var(--brand-primary);
+  appearance: none;
+}
+
+.plan-evaluacion-peso-rango::-moz-range-thumb {
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--surface-elevated);
+  border-radius: 50%;
+  background: var(--brand-primary);
+}
+
+.plan-evaluacion-peso-rango:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* ⚠️ En el teléfono NO va, y el número se queda. Sesenta píxeles para repartir
+   de 1 a 100 son casi dos puntos por píxel: con el dedo encima, poner un 40
+   exacto es imposible — y el campo, que sí puede, está justo al lado. */
+@media (max-width: 640px) {
+  .plan-evaluacion-peso-rango { display: none; }
 }
 
 /* La dirección lee el plan pero no lo escribe: ve los mismos números, sin las
