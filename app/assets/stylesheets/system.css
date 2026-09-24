@@ -7741,11 +7741,20 @@ a.subject-avance:hover { filter: brightness(0.9); }
 /* Y el nombre no baja de un ancho legible: comprimido, un `<input>` no se ve
    vacío — se ve roto, que es lo que parecía.
 
-   ⚠️ Son 11rem y no 14: el deslizador del peso sale de acá. Daniel: «podemos
-   robarle un poco de espacio al texto». Es `flex-basis`, o sea el punto de
-   partida — con sitio de sobra el nombre igual se estira, que es el caso
-   normal en una pantalla de escritorio. */
-.plan-evaluacion-campo--nombre { flex: 1 1 11rem; }
+   ⚠️ Pero TAMPOCO pasa de la mitad de la fila. Daniel, 24 de septiembre, en un
+   monitor de escritorio: «el input del título es bastante laaargo, creo que
+   demasiado; podría funcionar con el 50 % del total del largo y así estiramos
+   un poco más el range para darle precisión».
+
+   Creciendo sin tope, el nombre se quedaba con todo el monitor para un texto
+   de cuatro palabras —«Examen — 1er Lapso»— mientras el deslizador, que es lo
+   único que NECESITA largo, se quedaba en sus 76 px. El 50 % es el reparto:
+   lo que el nombre ya no toma se lo lleva el peso, que es quien lo aprovecha.
+
+   ⚠️ `max-width` en porcentaje y no un `flex-basis` fijo: así las filas quedan
+   alineadas entre sí —todas cortan en el mismo punto— y en una ventana chica
+   el nombre sigue estirándose hasta su mitad en vez de quedarse en 11rem. */
+.plan-evaluacion-campo--nombre { flex: 1 1 11rem; max-width: 50%; }
 
 /* ── Editar donde se lee (QA del 9 de septiembre) ────────────────────────── */
 /* Daniel: «al hacer clic en el elemento que deseo editar, como lo hace Linear».
@@ -7754,7 +7763,12 @@ a.subject-avance:hover { filter: brightness(0.9); }
    elemento, se lleva el foco a mitad de camino y hace saltar el texto cuando la
    caja no calca la tipografía. */
 .plan-evaluacion-campo { display: flex; align-items: center; min-width: 0; }
-.plan-evaluacion-campo--peso { flex: 0 0 auto; gap: 2px; }
+
+/* ⚠️ El peso CRECE, y es la otra mitad del tope del nombre: el espacio que el
+   título dejó de tomar tiene que irse a alguna parte, y el único control de la
+   fila que mejora con largo es el deslizador. Lo absorbe él —`flex` en el
+   rango, abajo—, así que el número y el `%` no se mueven de su sitio. */
+.plan-evaluacion-campo--peso { flex: 1 1 auto; gap: 2px; }
 
 .plan-evaluacion-nombre-campo,
 .plan-evaluacion-peso-campo {
@@ -8361,8 +8375,14 @@ a.subject-avance:hover { filter: brightness(0.9); }
    suma el borde POR FUERA del ancho y firefox lo mete adentro, así que con el
    mismo `width` el pulgar mide distinto en cada navegador. */
 .plan-evaluacion-peso-rango {
-  flex: 0 0 auto;
-  width: 76px;
+  /* ⚠️ Crece con la fila, entre 76 y 220 px. Es el único control que gana algo
+     con el largo: 100 puntos repartidos en 76 px son 1,3 por píxel —y hay que
+     clavar el 40—; en 220 son casi tres píxeles por punto. El tope existe para
+     que en un monitor ancho el deslizador no se vuelva una regla de medio
+     metro, que es tan incómodo como el otro extremo. */
+  flex: 1 1 76px;
+  min-width: 76px;
+  max-width: 220px;
   height: 18px;
   margin: 0;
   padding: 0;
@@ -8424,6 +8444,11 @@ a.subject-avance:hover { filter: brightness(0.9); }
    exacto es imposible — y el campo, que sí puede, está justo al lado. */
 @media (max-width: 640px) {
   .plan-evaluacion-peso-rango { display: none; }
+
+  /* ⚠️ Y sin deslizador que lo absorba, el peso deja de crecer: creciendo, el
+     número quedaría pegado a la izquierda de una celda vacía y ancha, con la
+     fecha y la pastilla empujadas al borde. */
+  .plan-evaluacion-campo--peso { flex: 0 0 auto; }
 }
 
 /* La dirección lee el plan pero no lo escribe: ve los mismos números, sin las

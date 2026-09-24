@@ -23,6 +23,16 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.10.1 — 24 de septiembre de 2026
+
+- **El nombre de la evaluación ya no se come la fila.** En un monitor grande
+  crecía sin tope para un texto de cuatro palabras, mientras el deslizador del
+  peso se quedaba corto. Ahora el nombre llega hasta la mitad de la fila y lo
+  que sobra se lo lleva el deslizador, que es el único que mejora con el largo:
+  poner un 40 exacto pasó de 1,3 puntos por píxel a casi tres píxeles por punto.
+
+---
+
 ## 1.10.0 — 24 de septiembre de 2026
 
 - **El botón de borrar una evaluación se apaga cuando tiene notas**, y dice
