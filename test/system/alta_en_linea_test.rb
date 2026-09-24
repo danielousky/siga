@@ -26,105 +26,142 @@ class AltaEnLineaSystemTest < ApplicationSystemTestCase
     visit planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
   end
 
-  def panel = find(".alta-en-linea")
+  # ⚠️ El alta de una evaluación es AHORA LA MISMA FILA de la edición.
+  #
+  # Daniel, 23 de septiembre: *«¿te parece bien que haya 2 maneras distintas de
+  # hacer lo mismo?… parece que fueran desarrollos distintos. Me apunto más
+  # porque el crear la evaluación sea como el de editarla»*. Era un panel con
+  # sus propios campos —«Qué se evalúa», un textarea de indicadores «uno por
+  # línea», la lista tachada de los que ya mide otra— frente a una fila que se
+  # edita en su sitio.
+  #
+  # `.alta-en-linea` se queda para la COMPETENCIA, que sí es un panel: no tiene
+  # una fila equivalente a la que parecerse.
+  def fila_nueva = find(".plan-evaluacion--naciendo")
 
-  test "el formulario se despliega en el sitio, sin cambiar de página" do
-    all("a", text: "Agregar evaluación").first.click
+  def abrir_el_alta
+    tocar_para_ver(".plan-evaluacion--naciendo") { all("a", text: "Agregar evaluación").first.click }
+  end
 
-    assert_selector ".alta-en-linea"
+  test "la fila nueva se despliega en el sitio, sin cambiar de página" do
+    abrir_el_alta
+
+    assert_selector ".plan-evaluacion--naciendo"
     assert_current_path(/planificar/)
-    # ⚠️ El plan sigue ahí: no es otra pantalla, es un panel debajo del botón.
+    # ⚠️ El plan sigue ahí: no es otra pantalla, es una fila más en la lista.
     assert_selector ".plan-competencia-descripcion-campo"
     assert_selector ".plan-ponderacion"
+  end
+
+  # ⚠️ Y el BOTÓN desaparece mientras está abierta. Daniel: *«al hacer clic en
+  # "Agregar evaluación" desaparece el botón»*. Con los dos a la vez, la
+  # pantalla ofrece empezar una segunda antes de terminar la primera.
+  test "mientras la fila está abierta, el botón no está" do
+    assert_selector "a", text: "Agregar evaluación"
+
+    abrir_el_alta
+
+    assert_no_selector "a", text: "Agregar evaluación"
   end
 
   # ⚠️ Los campos FALTANTES y solo esos: la sección, el área, el lapso y la
   # competencia ya están elegidos. Volver a preguntarlos daría además la
   # oportunidad de crear la evaluación en otra sección sin darse cuenta.
-  test "solo pregunta título, peso, fecha y qué indicadores mide" do
-    all("a", text: "Agregar evaluación").first.click
+  #
+  # ⚠️ Y los INDICADORES no están: la evaluación todavía no existe, así que no
+  # hay a qué asociarlos. Se escriben después, en su propia fila.
+  test "pregunta título, peso y fecha — los indicadores van después" do
+    abrir_el_alta
 
-    within(".alta-en-linea") do
+    within(".plan-evaluacion--naciendo") do
       assert_selector "input[name='evaluation_activity[description]']"
       assert_selector "input[name='evaluation_activity[weight_percentage]']"
-      assert_selector "input[name='evaluation_activity[date_scheduled]']"
-      # ⚠️ Y los indicadores libres de ESA competencia, que es lo único que
-      # queda por decidir: la sección, el área, el lapso y la competencia ya
-      # están puestos.
-      assert_selector "input[name='evaluation_activity[indicator_ids][]']"
+      assert_selector "input[name='evaluation_activity[date_scheduled]']", visible: false
+      assert_no_selector "textarea"
       assert_no_selector "select[name='evaluation_activity[asignacion]']"
-      assert_no_selector "select[name='evaluation_activity[evaluation_moment_id]']"
     end
   end
 
   test "el peso nace con lo que falta para cerrar el lapso" do
-    all("a", text: "Agregar evaluación").first.click
+    abrir_el_alta
 
-    assert_equal "60", panel.find("input[name='evaluation_activity[weight_percentage]']").value,
+    assert_equal "60", fila_nueva.find("input[name='evaluation_activity[weight_percentage]']").value,
                  "el examen vale 40: quedan 60"
   end
 
   # ⚠️ Nacía en `Date.current`, y en septiembre de 2026 eso cae FUERA del año
-  # 2025-2026 —que terminó el 31 de julio—: el campo la rechazaba con «el valor
-  # debe ser igual o anterior a 31/07/2026» y el alta no se podía guardar sin
-  # tocar la fecha primero.
+  # 2025-2026 —que terminó el 31 de julio—: el campo la rechazaba y el alta no
+  # se podía guardar sin tocar la fecha primero.
   test "la fecha nace dentro del año escolar, aunque hoy quede fuera" do
-    all("a", text: "Agregar evaluación").first.click
+    abrir_el_alta
 
-    fecha = Date.parse(panel.find("input[name='evaluation_activity[date_scheduled]']").value)
+    campo = fila_nueva.find("input[name='evaluation_activity[date_scheduled]']", visible: false)
     periodo = con_el_colegio(@a.colegio) { @a.seccion.academic_period }
-    assert_includes (periodo.start_date..periodo.end_date), fecha
+    assert_includes (periodo.start_date..periodo.end_date), Date.parse(campo.value)
   end
 
-  test "al guardar, la evaluación aparece en su competencia y el panel se va" do
-    all("a", text: "Agregar evaluación").first.click
-    within(".alta-en-linea") do
-      fill_in "evaluation_activity[description]", with: "Prueba corta"
-      first("input[name='evaluation_activity[indicator_ids][]']").check
-      click_on "Agregar"
+  # ⚠️ Y al guardar aparece con su bloque de indicadores VACÍO y listo: es el
+  # orden del trabajo que pidió Daniel —«pon solo el form de la eva y luego
+  # agregas sobre el guardado la posibilidad de agregar indicadores»—.
+  test "al guardar, la evaluación aparece en su competencia lista para sus indicadores" do
+    abrir_el_alta
+    fila_nueva.find("input[name='evaluation_activity[description]']").set("Prueba corta")
+    tocar_para_cerrar(".plan-evaluacion--naciendo") do
+      find(".plan-evaluacion--naciendo button[type=submit]").click
     end
 
     assert_no_text "Content missing"
     assert_selector ".plan-competencia .plan-evaluacion-nombre-campo[value='Prueba corta']", wait: 5
-    assert_no_selector ".alta-en-linea"
-    # Y la barra la cuenta: 40 del examen + 60 de la nueva.
+    # La barra la cuenta: 40 del examen + 60 de la nueva.
     assert_selector ".plan-ponderacion-cuenta", text: "100 %"
+    # Y el botón vuelve, porque el frame quedó vacío.
+    assert_selector "a", text: "Agregar evaluación"
   end
 
   # ⚠️ Turbo manda en `Turbo-Frame` el frame CONTENEDOR del formulario, no el de
   # destino que dice `data-turbo-frame`. Comparando con `"plan"` a secas, la
   # vuelta se iba a la LIBRETA y dejaba el plan entero en «Content missing».
   test "la vuelta es al plan, no a la libreta" do
-    all("a", text: "Agregar evaluación").first.click
-    within(".alta-en-linea") do
-      fill_in "evaluation_activity[description]", with: "Prueba corta"
-      first("input[name='evaluation_activity[indicator_ids][]']").check
-      click_on "Agregar"
+    abrir_el_alta
+    fila_nueva.find("input[name='evaluation_activity[description]']").set("Prueba corta")
+    tocar_para_cerrar(".plan-evaluacion--naciendo") do
+      find(".plan-evaluacion--naciendo button[type=submit]").click
     end
 
     assert_selector ".pestana.activa", text: "Plan de Evaluación"
   end
 
-  test "cancelar cierra el panel y deja el plan como estaba" do
-    all("a", text: "Agregar evaluación").first.click
-    within(".alta-en-linea") { click_on "Cancelar" }
+  # ⚠️ La ✗ va donde va el basurero de las otras filas: es lo que dice que esta
+  # fila es de la misma familia, y que todavía no está creada.
+  test "descartar cierra la fila y deja el plan como estaba" do
+    abrir_el_alta
+    tocar_para_cerrar(".plan-evaluacion--naciendo") do
+      find(".plan-evaluacion--naciendo a[aria-label='Descartar']").click
+    end
 
-    assert_no_selector ".alta-en-linea"
+    assert_no_selector ".plan-evaluacion--naciendo"
     assert_no_text "Content missing"
     assert_selector ".plan-ponderacion"
+    assert_selector "a", text: "Agregar evaluación"
   end
 
   # ── Y la competencia ─────────────────────────────────────────────────────
   test "una competencia nueva se agrega ahí mismo" do
-    click_on "Agregar competencia"
+    tocar_para_ver(".alta-en-linea") { click_on "Agregar competencia" }
     within(".alta-en-linea") do
       # ⚠️ Los indicadores NO están en el alta: se escriben uno por uno en la
       # competencia ya creada. Pedirlos acá obligaría a tenerlos pensados antes
       # de escribir la competencia, que es al revés de como se planifica.
       assert_no_selector "textarea[name='competency[indicadores]']"
       fill_in "competency[descripcion]", with: "Interpreta gráficos de barras"
-      click_on "Agregar"
     end
+    # ⚠️ El envío también se reintenta: es el mismo clic dentro de un frame.
+    #
+    # ⚠️ Y SIN `within`: ése resuelve el panel a un nodo, Turbo lo reemplaza al
+    # guardar, y el reintento se encuentra con «Obsolete Element» — buscando el
+    # botón dentro de un elemento que ya no existe. El selector se resuelve
+    # entero en cada intento.
+    tocar_para_cerrar(".alta-en-linea") { find(".alta-en-linea input[type=submit]").click }
 
     assert_no_text "Content missing"
     assert_selector ".plan-competencia", count: 2, wait: 5

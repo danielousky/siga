@@ -11,7 +11,6 @@
                     ponderacion_asignaciones_value: ponderacion_de_mis_asignaciones.to_json,
                     que_evalua_planes_value: competencias_de_mis_asignaciones.to_json,
                     que_evalua_marcadas_value: competencias_marcadas.to_json,
-                    que_evalua_marcados_value: indicadores_marcados.to_json,
                     que_evalua_ruta_nueva_value: new_competency_path,
                     area_secciones_value: secciones_por_area.to_json }) do |f|
   = render "shared/errors", object: evaluation_activity
@@ -150,7 +149,7 @@
   - if asignaciones_por_competencias.any?
     .form-group.que-evalua
       .que-evalua-cabecera
-        = con_pista "Se marca la competencia y CUÁLES de sus indicadores mide esta evaluación. Un indicador lo mide una sola: los que ya tomó otra se ven apagados. No se califican aparte — se imprimen en la boleta con el nivel de su competencia." do
+        = con_pista "Se marca la COMPETENCIA. Sus indicadores se escriben después, en el plan, dentro de esta evaluación — acá van de contexto para reconocer cuál competencia es cuál." do
           %span.form-label Qué evalúa, del plan de esta sección
 
         -# ⚠️ Registrar una competencia SIN salir a buscarla (QA del 7 de sept.).

@@ -529,9 +529,9 @@ borra la calificación que quedó sin respaldo; la planilla borra la fila al vac
 vista del alumno escribe "Pendiente" en letras, nunca un número. Confundirlos reprueba a una
 sección entera a mitad de lapso, y le hace perder la confianza a la familia.
 
-⚠️ **En PRIMARIA, una evaluación mide una competencia y al menos un indicador**
-(`MOR-136`, segunda mitad). Los indicadores cuelgan de la competencia y **no se
-repiten entre evaluaciones**: la competencia se repite, ellos la REPARTEN —el
+⚠️ **En PRIMARIA, una evaluación mide UNA COMPETENCIA**, y sus indicadores
+nacen después (`MOR-136`, segunda mitad). Los indicadores cuelgan de la
+competencia y **no se repiten entre evaluaciones**: la competencia se repite, ellos la REPARTEN —el
 examen mide «suma con reagrupación» y el taller, «estima antes de calcular»—.
 Por eso es una columna en `indicators` y no una tabla intermedia.
 
@@ -546,21 +546,64 @@ La validación es **`on: :create` y solo si `Grade#por_competencias?`**. Siempre
 rompería la edición en línea de lo escrito antes de la regla; sin la guarda de
 nivel dejaría a todo bachillerato sin poder crear una evaluación. Lo viejo se
 **avisa** en el plan, como `MOR-229` avisa la competencia sin evaluaciones.
-Borrar una evaluación **suelta** sus indicadores (`nullify`), no los borra.
 
-⚠️ **La jerarquía del plan es COMPONENTE ▸ EVALUACIÓN ▸ INDICADORES**, cada uno
-en su contenedor (21 de septiembre). El indicador **nace dentro de la
-evaluación que lo mide** —el alta la exige— porque uno sin evaluación no se
-imprime en la boleta ni se ve en el plan: es un dato invisible. Por eso el
-textarea de «un indicador por línea» del formulario de la competencia **se
-retiró**, y por eso los chips de «también mide» también: le ofrecían a una
-evaluación cualquier competencia del plan, contradiciendo lo que la pantalla
-enseña.
+⚠️ **El indicador NO se exige al crear, y es lo que hace posible una sola
+pantalla.** Un indicador cuelga de la evaluación que lo mide, así que al nacer
+la evaluación todavía no hay dónde ponerlo: exigirlo obligaba a un formulario
+aparte que los pidiera de antemano —el textarea «uno por línea»— justo lo que
+Daniel objetó el 23 de septiembre. La evaluación nace con su competencia, y los
+indicadores se agregan sobre la fila ya guardada. Que falten **se avisa** en el
+plan, que es donde se ven.
 
-⚠️ Borrar una evaluación **no** borra sus indicadores (`nullify`): el texto lo
-escribió la maestra. Quedan en el bloque ámbar de «indicadores sin evaluación»
-de su competencia, que existe para que no sean basura invisible y desaparece
-solo cuando no queda ninguno.
+⚠️ **La jerarquía del plan es COMPETENCIA ▸ EVALUACIÓN ▸ INDICADORES**, cada
+uno en su contenedor (21 de septiembre). El indicador **nace dentro de la
+evaluación que lo mide** —el campo vive en esa fila— porque uno sin evaluación
+no se imprime en la boleta ni se ve en el plan: es un dato invisible. Por eso
+el textarea de «un indicador por línea» **se retiró**, y por eso los chips de
+«también mide» también: le ofrecían a una evaluación cualquier competencia del
+plan, contradiciendo lo que la pantalla enseña.
+
+⚠️ **Y hay UNA manera de dar de alta una evaluación: la fila del plan.**
+Daniel, 23 de septiembre: *«¿te parece bien que haya 2 maneras distintas de
+hacer lo mismo?… parece que fueran desarrollos distintos»*. Tocar «Agregar
+evaluación» abre **la misma fila de la edición** con borde punteado, ✓ para
+crear y ✗ donde va el basurero de las demás; el botón desaparece mientras está
+abierta. El formulario completo (`/evaluaciones/nueva`) sigue existiendo para
+lo que siempre hizo —decir qué competencia mide— y **no reparte indicadores**:
+eso era la segunda manera.
+
+⚠️ Borrar una evaluación **borra** sus indicadores (`destroy`), y el aviso lo
+dice antes. Salió con `nullify` y Daniel lo revirtió el 22 de septiembre: uno
+suelto no se imprime en la boleta ni se ve en el plan, así que «conservarlo» era
+guardar un dato que nadie iba a volver a encontrar. Por lo mismo, **traer el
+plan de otro profesor ya no trae indicadores** — sin las evaluaciones que los
+midan no tienen dónde vivir.
+
+⚠️ **El peso se teclea Y se desliza, y el deslizador NO lleva `name`.** Daniel,
+23 de septiembre: *«podemos robarle un poco de espacio al texto y que la persona
+deslice en lugar de escribir»*. Con los dos controles enviando
+`weight_percentage`, el formulario mandaría el peso dos veces y el servidor se
+quedaría con el último del marcado — el que el profesor no tocó, y sin error en
+ningún lado. Los junta `peso-deslizante`, que además **copia el tope del número
+en vez de calcularlo otra vez**: el máximo es lo que QUEDA contando a las otras
+evaluaciones, lo recalcula `reparto` en vivo, y dos cuentas del mismo número se
+separan el día que una cambie.
+
+⚠️ **Entrar y salir suave son DOS mecanismos, porque el navegador solo regala
+uno.** Lo que APARECE se anima con `animation`, que corre al insertarse el
+elemento. Lo que SE VA no tiene ese momento: Turbo reemplaza el bloque y el nodo
+desaparece de golpe. Por eso el desvanecido lo empieza `se-desvanece` mientras la
+petición viaja — y con `turbo:submit-start` y **no** con el clic, que está antes
+del «¿Borrar…?»: decir que no dejaría la fila medio borrada en pantalla. Y entra
+solo lo que de verdad es nuevo (`--recien`, que pone el servidor y solo en el
+alta): el stream reemplaza la competencia entera, así que animar `.plan-indicador`
+a secas haría parpadear la lista completa al corregir una letra de cualquier otro.
+
+⚠️ **Con notas cargadas, el botón de borrar se apaga con `aria-disabled` y su
+tooltip dice por qué.** No `disabled`: el nativo no recibe foco, y el tooltip
+—que ES la explicación— aparece con `:hover` y `:focus-visible`. Y la fila lleva
+una pastilla con **cuántas notas tiene de cuántos alumnos**, con el vocabulario
+de la libreta.
 
 ⚠️ **En la BOLETA, cada indicador lleva SU nivel** —el de la evaluación que lo
 midió— y salen **solo los medidos**. La competencia conserva el suyo, que es el

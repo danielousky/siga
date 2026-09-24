@@ -42,7 +42,9 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
   # WhatsApp y el botón de atrás tiene que volver a la anterior.
   test "cambiar de pestaña cambia la URL" do
     visit section_path(@a.seccion, area: @area.id)
-    click_on "Alumnos"
+    # ⚠️ El clic se REINTENTA hasta llegar: Turbo se traga el que cae mientras
+    # hidrata y Selenium reporta éxito igual. Ver `tocar_para_ir_a`.
+    tocar_para_ir_a(alumnos_section_path(@a.seccion)) { click_on "Alumnos" }
 
     assert_current_path alumnos_section_path(@a.seccion, area: @area.id)
     assert_selector ".pestana.activa", text: "Alumnos"

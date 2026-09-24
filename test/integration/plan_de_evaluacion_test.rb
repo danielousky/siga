@@ -120,7 +120,9 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     con_el_colegio(@a.colegio) do
       traida = Competency.del_plan(@a.seccion.id, @a.escenario.materia.id, @lapso.id).last
       assert_equal del_ano_pasado.descripcion, traida.descripcion
-      assert_equal del_ano_pasado.indicators.map(&:descripcion), traida.indicators.map(&:descripcion)
+      # ⚠️ SIN indicadores: `plan_viejo` no trae evaluaciones —lo dictó otro
+      # profesor— y desde el 22 de septiembre un indicador viaja con la suya.
+      assert_empty traida.indicators
       # ⚠️ Se COPIA el texto, no se referencia: corregirlo este año no puede
       # reescribir la boleta que ya salió.
       assert_not_equal del_ano_pasado.id, traida.id

@@ -44,6 +44,39 @@ class IndicadoresTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # ── Solo el recién nacido entra suave (23 de septiembre) ──────────────────
+  #
+  # Daniel: *«puedes suavizar la entrada y salida de los elementos al agregar o
+  # quitar (fade-in fade-out)»*.
+  #
+  # ⚠️ Lo que este test cuida es el ALCANCE, no la animación. La respuesta
+  # reemplaza la competencia ENTERA —es la única manera de que la lista, el
+  # campo vacío y el alto del bloque queden bien de una vez— así que la clase
+  # tiene que ir SOLO en el que acaba de nacer: puesta en todos, corregir una
+  # letra de cualquier indicador haría parpadear la lista completa.
+  test "solo el indicador que acaba de nacer se marca como recién llegado" do
+    agregar "Suma con reagrupación"
+    agregar "Resta con préstamo"
+
+    assert_select ".plan-indicador--recien", count: 1
+    # ⚠️ Por el CONTENIDO y no por `value`: un `<textarea>` guarda su valor
+    # como texto adentro, y Rails lo escribe con un salto de línea delante.
+    assert_select ".plan-indicador--recien textarea", /Resta con préstamo/
+  end
+
+  # Y corregir uno no marca a nadie: ahí no aparece nada, solo cambia un texto.
+  test "editar un indicador no lo hace entrar de nuevo" do
+    agregar "Suma con reagrupación"
+    indicador = con_el_colegio(@a.colegio) { @competencia.indicators.en_orden.last }
+
+    patch competency_indicator_path(@competencia, indicador, **@contexto),
+          params: { indicator: { descripcion: "Suma con reagrupación de decenas" } },
+          headers: { "Turbo-Frame" => "plan" }
+
+    assert_select ".plan-indicador--recien", false,
+                  "nada aparece al editar: el indicador ya estaba ahí"
+  end
+
   # ⚠️ El agujero que reportó Daniel: sin la evaluación, el indicador quedaba
   # colgado solo de la competencia — invisible en la pantalla y ausente de la
   # boleta, que solo imprime los medidos.

@@ -31,7 +31,14 @@ class LaEvaluacionMideIndicadoresTest < ActionDispatch::IntegrationTest
 
   # ── La regla, en el modelo ────────────────────────────────────────────────
 
-  test "una evaluación de primaria no se crea sin competencia ni indicador" do
+  # ⚠️ El INDICADOR dejó de exigirse el 23 de septiembre, y la competencia no.
+  #
+  # Daniel: *«si necesitas la evaluación para luego asociar los indicadores,
+  # entonces pon solo el form de la eva y luego agregas sobre el guardado la
+  # posibilidad de agregar indicadores»*. Exigirlo al crear obligaba a pedirlo
+  # en un formulario aparte —un textarea de «uno por línea»— que era una segunda
+  # manera de escribir lo que la fila del plan ya edita uno por uno.
+  test "una evaluación de primaria no se crea sin competencia" do
     con_el_colegio(@a.colegio) do
       sin_nada = EvaluationActivity.new(section: @a.seccion, subject: @a.escenario.materia,
                                         evaluation_moment: @lapso, description: "Suelta",
@@ -39,7 +46,19 @@ class LaEvaluacionMideIndicadoresTest < ActionDispatch::IntegrationTest
 
       assert_not sin_nada.valid?
       assert_match(/competencia que mide/, sin_nada.errors.full_messages.to_sentence)
-      assert_match(/al menos un indicador/, sin_nada.errors.full_messages.to_sentence)
+    end
+  end
+
+  # ⚠️ Y SIN indicadores sí se crea: se le agregan después, en su fila.
+  test "una evaluación nace sin indicadores, y se le agregan después" do
+    con_el_colegio(@a.colegio) do
+      nueva = EvaluationActivity.new(section: @a.seccion, subject: @a.escenario.materia,
+                                     evaluation_moment: @lapso, description: "Examen",
+                                     weight_percentage: 10, date_scheduled: Date.new(2025, 11, 5))
+      nueva.competency_ids = [ @competencia.id ]
+
+      assert nueva.save, nueva.errors.full_messages.to_sentence
+      assert_empty nueva.indicators, "nace sin ninguno, que es el orden del trabajo"
     end
   end
 
@@ -70,18 +89,25 @@ class LaEvaluacionMideIndicadoresTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # ⚠️ Borrar la evaluación SUELTA sus indicadores, no se los lleva. El texto lo
-  # escribió la maestra en el plan; la evaluación solo decía cuál medía.
-  test "borrar la evaluación devuelve sus indicadores al plan" do
+  # ⚠️ Borrar la evaluación se lleva SUS indicadores, y es un cambio del 22 de
+  # septiembre.
+  #
+  # Salió con `nullify` —«el texto lo escribió la maestra»— y Daniel lo
+  # revirtió: *«no me parece que los indicadores queden sueltos; se le puede
+  # indicar al usuario que al eliminar las evaluaciones se van los indicadores
+  # respectivos»*. Es lo coherente con la jerarquía: uno suelto no se imprime en
+  # la boleta ni se ve en el plan, o sea que «conservarlo» era guardar un dato
+  # que nadie iba a volver a encontrar.
+  test "borrar la evaluación se lleva sus indicadores" do
     con_el_colegio(@a.colegio) do
       examen = actividad(@a.escenario, lapso: @lapso, peso: 40, descripcion: "Examen",
                          mide: @competencia)
-      assert_equal 2, @competencia.indicators.reload.libres.count
+      suyo = examen.indicators.first.id
 
       examen.destroy
 
-      assert_equal 3, @competencia.indicators.reload.count, "se borró un indicador del plan"
-      assert_equal 3, @competencia.indicators.libres.count
+      assert_not Indicator.exists?(suyo), "el indicador de la evaluación se va con ella"
+      assert_equal 2, @competencia.indicators.reload.count, "los otros dos no se tocan"
     end
   end
 
@@ -104,75 +130,16 @@ class LaEvaluacionMideIndicadoresTest < ActionDispatch::IntegrationTest
 
   # ── El alta, desde el plan ────────────────────────────────────────────────
 
-  test "el alta ofrece los indicadores libres y nombra a quien tiene los demás" do
-    con_el_colegio(@a.colegio) do
-      actividad(@a.escenario, lapso: @lapso, peso: 40, descripcion: "Examen", mide: @competencia)
-    end
-    sign_in @a.profesor
-
-    # ⚠️ En el frame del PLAN: el alta se despliega bajo el botón de la
-    # competencia, y ese frame es el que trae el panel corto. Sin la cabecera,
-    # `new` devuelve el formulario completo, que es otra pantalla.
-    get new_evaluation_activity_path(asignacion: @asignacion, lapso: @lapso.id,
-                                     competencia: @competencia.id),
-        headers: { "Turbo-Frame" => "alta_evaluacion_#{@competencia.id}" }
-
-    assert_response :success
-    # Los dos que quedan libres se pueden marcar…
-    assert_select "input[name=?][type=checkbox]", "evaluation_activity[indicator_ids][]", 2
-    # …y el que ya mide el examen se ve, sin casilla y diciendo quién.
-    assert_select ".alta-mide-tomados li", 1
-    assert_select ".alta-mide-quien", /lo mide «Examen»/
-    # Y siempre hay dónde escribir otros.
-    assert_select "textarea[name=?]", "evaluation_activity[indicadores_nuevos][#{@competencia.id}]"
-  end
-
-  test "crear la evaluación con los indicadores marcados los deja midiéndolos" do
-    libres = con_el_colegio(@a.colegio) { @competencia.indicators.libres.pluck(:id).first(2) }
-    sign_in @a.profesor
-
-    post evaluation_activities_path(asignacion: @asignacion, lapso: @lapso.id), params: {
-      evaluation_activity: {
-        asignacion: @asignacion, evaluation_moment_id: @lapso.id,
-        description: "Taller en equipo", weight_percentage: 30,
-        date_scheduled: Date.new(2025, 11, 12),
-        competency_ids: [ @competencia.id ], indicator_ids: libres
-      }
-    }
-
-    con_el_colegio(@a.colegio) do
-      taller = EvaluationActivity.find_by(description: "Taller en equipo")
-      assert_equal libres.sort, taller.indicator_ids.sort
-      assert_equal 1, @competencia.indicators.reload.libres.count, "el tercero sigue libre"
-    end
-  end
-
-  # ⚠️ Nacen en la COMPETENCIA, no en la evaluación: quedan en el plan y la
-  # próxima evaluación los ve en la lista. Si colgaran de la evaluación habría
-  # que reescribirlos en cada una, que es el trabajo que MOR-136 vino a quitar.
-  test "los indicadores escritos en el alta quedan en la competencia" do
-    sign_in @a.profesor
-
-    assert_difference -> { cantidad(Indicator) }, 2 do
-      post evaluation_activities_path(asignacion: @asignacion, lapso: @lapso.id), params: {
-        evaluation_activity: {
-          asignacion: @asignacion, evaluation_moment_id: @lapso.id,
-          description: "Taller", weight_percentage: 30, date_scheduled: Date.new(2025, 11, 12),
-          competency_ids: [ @competencia.id ],
-          indicadores_nuevos: { @competencia.id.to_s => "Resuelve en dos pasos\n\nCompara dos estrategias" }
-        }
-      }
-    end
-
-    con_el_colegio(@a.colegio) do
-      taller = EvaluationActivity.find_by(description: "Taller")
-      assert_equal [ "Resuelve en dos pasos", "Compara dos estrategias" ],
-                   taller.indicators.order(:orden).map(&:descripcion)
-      assert_equal @competencia.id, taller.indicators.first.competency_id,
-                   "el indicador cuelga de la competencia, no de la evaluación"
-      assert_equal 5, @competencia.indicators.reload.count, "los tres de antes siguen ahí"
-    end
-  end
+  # ⚠️ LOS TRES TESTS DEL PANEL DE ALTA se retiraron el 23 de septiembre.
+  #
+  # Probaban un formulario que ya no existe: el alta ofrecía los indicadores
+  # libres con casilla, los tomados tachados, y un textarea de «uno por línea».
+  # Daniel: *«¿te parece bien que haya 2 maneras distintas de hacer lo mismo?…
+  # me apunto más porque el crear la evaluación sea como el de editarla»*.
+  #
+  # Ahora el alta es la MISMA fila de la edición, sin indicadores —la evaluación
+  # todavía no existe— y se le agregan después con `IndicatorsController`, que
+  # es lo que prueba `indicadores_test`.
 
   # ⚠️ Tomar uno que otra ya mide se lo QUITARÍA, y callado: la columna admite
   # un solo dueño y el último gana. El filtro es una lista que no incluye lo
@@ -226,8 +193,11 @@ class LaEvaluacionMideIndicadoresTest < ActionDispatch::IntegrationTest
     assert_select "form[action*=?]", "evaluacion=", true,
                   "el alta del indicador tiene que llevar su evaluación"
 
-    # Los otros dos quedaron sueltos: el bloque ámbar los hace visibles, porque
-    # no salen en la boleta y sin él no se verían en ninguna parte.
-    assert_select ".plan-indicadores--huerfanos .plan-indicador", 2
+    # ⚠️ Los otros dos NO se dibujan: no los mide ninguna evaluación, y desde
+    # esta jerarquía el único sitio donde un indicador se ve es dentro de la
+    # suya. Que existan es un dato viejo —ninguna pantalla los crea— y por eso
+    # el bloque que los mostraba se retiró.
+    assert_select ".plan-evaluacion-mide .plan-indicador-texto", 2,
+                  "solo el que mide, más el campo vacío"
   end
 end

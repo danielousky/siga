@@ -25,7 +25,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
   test "el formulario aparece dentro de la pestaña, sin cambiar de página" do
     assert_selector ".pestana.activa", text: "Plan de Evaluación"
 
-    click_on "Agregar competencia"
+    tocar_para_ver("textarea[name='competency[descripcion]']") { click_on "Agregar competencia" }
 
     # ⚠️ La URL NO cambia: es la prueba de que el frame hizo su trabajo. Con
     # Turbo apagado el navegador iría a `/competencias/new`.
@@ -44,8 +44,8 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
   # ⚠️ Cancelar devuelve la lista, no navega a `/competencias`. Es el mismo
   # frame: se pide el plan y reemplaza al formulario.
   test "cancelar devuelve la lista sin salir de la sección" do
-    click_on "Agregar competencia"
-    click_on "Cancelar"
+    tocar_para_ver(".alta-en-linea") { click_on "Agregar competencia" }
+    tocar_para_cerrar(".alta-en-linea") { click_on "Cancelar" }
 
     assert_current_path planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
     assert_no_selector ".form-actions"
@@ -64,7 +64,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     assert_text "Antes hace falta"
     assert_no_selector "a", text: "Agregar evaluación"
 
-    click_on "Ir a planificar"
+    tocar_para_ir_a(planificar_section_path(@a.seccion)) { click_on "Ir a planificar" }
 
     assert_selector ".pestana.activa", text: "Plan de Evaluación"
   end
@@ -74,23 +74,61 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
   # habría llenado con una pantalla que no es la libreta.
   test "al guardar, la columna aparece en la libreta" do
     lapso = @a.escenario.lapso(2)
-    plan = con_el_colegio(@a.colegio) { competencia_con(0, "Resuelve problemas", lapso: lapso) }
+    con_el_colegio(@a.colegio) { competencia_con(0, "Resuelve problemas", lapso: lapso) }
     visit planificar_section_path(@a.seccion, area: @area.id, lapso: lapso.id)
-    all("a", text: "Agregar evaluación").first.click
+    tocar_para_ver(".plan-evaluacion--naciendo") { all("a", text: "Agregar evaluación").first.click }
 
-    within(".alta-en-linea") do
+    # ⚠️ La fila nace SIN indicadores, y es a propósito: un indicador cuelga de
+    # la evaluación que lo mide, y esa evaluación todavía no existe. Se agregan
+    # sobre la fila ya guardada, en su bloque «Indicadores que mide».
+    within(".plan-evaluacion--naciendo") do
       fill_in "evaluation_activity[description]", with: "Prueba corta"
-      # ⚠️ La competencia todavía no tiene indicadores, así que se escriben en
-      # el mismo panel: es la otra mitad de lo que pidió Daniel —«asignarle
-      # competencias ya creadas y a su vez agregar también otros indicadores»—
-      # y sin uno la evaluación no se guarda.
-      fill_in "evaluation_activity[indicadores_nuevos][#{plan.id}]", with: "Suma con reagrupación"
-      click_on "Agregar"
+      find("button[type='submit']").click
     end
     visit section_path(@a.seccion, area: @area.id, lapso: lapso.id)
 
     assert_selector ".libreta-columna-nombre", text: "Prueba corta"
     assert_no_selector "input[name='evaluation_activity[description]']"
+  end
+
+  # ── Deslizar el peso (23 de septiembre) ───────────────────────────────────
+  #
+  # Daniel: *«en el porcentaje podemos agregar un rango en la misma línea,
+  # pequeño… que la persona deslice en lugar de escribir»*.
+  #
+  # ⚠️ En un navegador de verdad, porque son tres piezas hablándose y ninguna
+  # se ve desde un test de integración: el rango escribe en el número,
+  # `reparto` recalcula la barra con el `input` que el rango finge, y
+  # `edicion-en-linea` guarda con el `change` de soltar. Con el controlador sin
+  # conectar, el HTML sigue siendo correcto y no pasa nada — que en este
+  # proyecto ya ocurrió dos veces, en silencio.
+  #
+  # ⚠️ Con flechas y no arrastrando: el teclado mueve el rango de `step` en
+  # `step` y dispara los MISMOS dos eventos que el ratón, sin depender de dónde
+  # caiga el píxel.
+  test "deslizar el peso escribe el número y lo guarda" do
+    # ⚠️ El lapso 2 y no el 1: el 1 ya trae una actividad de peso 100, así que
+    # el tope de cualquier otra sería su propio valor y la flecha no movería
+    # nada — el test pasaría verde sin probar el deslizador.
+    lapso = @a.escenario.lapso(2)
+    evaluacion = con_el_colegio(@a.colegio) do
+      c = competencia_con(0, "Resuelve problemas", lapso: lapso)
+      e = actividad(@a.escenario, lapso: lapso, peso: 40, descripcion: "Examen del lapso")
+      e.competencies = [ c ]
+      e
+    end
+    visit planificar_section_path(@a.seccion, area: @area.id, lapso: lapso.id)
+
+    within(".plan-evaluacion") do
+      find("input[type=range]").send_keys(:arrow_right)
+      # El número acompaña en el acto: es el mismo dato visto dos veces.
+      assert_field "evaluation_activity[weight_percentage]", with: "41"
+    end
+
+    # Y soltar guarda: el `change` del rango entra por el mismo `salir` que usa
+    # el campo de texto, así que no hay un segundo camino de guardado.
+    assert_selector ".plan-evaluacion--guardada"
+    assert_equal 41, evaluacion.reload.weight_percentage
   end
 
   # ── Salir del formulario sin guardar ──────────────────────────────────────
@@ -104,10 +142,12 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     visit planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
     # ⚠️ `all(...).first`: hay un «Agregar evaluación» por competencia y otro al
     # pie para las que no miden ninguna. Con el plan vacío había uno solo.
-    all("a", text: "Agregar evaluación").first.click
+    tocar_para_ver(".plan-evaluacion--naciendo") { all("a", text: "Agregar evaluación").first.click }
     assert_selector "input[name='evaluation_activity[description]']"
 
-    click_on "Cancelar"
+    tocar_para_cerrar(".plan-evaluacion--naciendo") do
+      find(".plan-evaluacion--naciendo a[aria-label='Descartar']").click
+    end
 
     assert_no_text "Content missing"
     # ⚠️ Por la CLASE, no por el `name`: desde que la fila se edita en su sitio,
@@ -119,9 +159,11 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
 
   test "cancelar el alta devuelve el plan" do
     visit planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
-    all("a", text: "Agregar evaluación").first.click
+    tocar_para_ver(".plan-evaluacion--naciendo") { all("a", text: "Agregar evaluación").first.click }
 
-    within(".alta-en-linea") { click_on "Cancelar" }
+    tocar_para_cerrar(".plan-evaluacion--naciendo") do
+      find(".plan-evaluacion--naciendo a[aria-label='Descartar']").click
+    end
 
     assert_no_text "Content missing"
     assert_selector ".pestana.activa", text: "Plan de Evaluación"

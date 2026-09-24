@@ -23,6 +23,42 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.10.0 — 24 de septiembre de 2026
+
+- **El botón de borrar una evaluación se apaga cuando tiene notas**, y dice
+  cuántas lo impiden. Antes se podía tocar, la app lo rechazaba, y el error
+  aparecía arriba de la pantalla — lejos de la fila que lo produjo.
+- **Cuántas notas tiene cada evaluación se ve mejor**: una pastilla con su
+  icono y su color, en vez de un número al margen que se perdía entre el peso
+  y la fecha.
+- **Al borrar una evaluación se borran sus indicadores**, y el aviso lo dice
+  antes. Quedaban sueltos: sin salir en la boleta y sin verse en el plan.
+- **Traer el plan del año pasado de otro profesor ya no trae indicadores.** Sin
+  las evaluaciones que los midan no tienen dónde vivir; vienen las competencias,
+  que son las que describen qué enseña el grado.
+- **Agregar una evaluación se ve igual que editarla.** Eran dos pantallas
+  distintas para lo mismo: un panel aparte con sus campos, y en el plan una
+  fila que se edita en su sitio. Ahora al tocar «Agregar evaluación» aparece
+  la misma fila —nombre, peso y fecha en una línea— con el borde punteado de
+  lo que todavía no está guardado, un ✓ verde para crearla y una ✗ donde va el
+  basurero de las demás.
+- **Los indicadores se escriben en un solo lugar.** Al crear una evaluación se
+  pedían en un bloque de texto, uno por línea; al editarla, uno por campo. Se
+  quedó la segunda: la evaluación nace con su nombre y su peso, y los
+  indicadores se agregan sobre ella, en su bloque «Indicadores que mide».
+- **Competencias, Evaluaciones e Indicadores se leen más**: los tres rótulos
+  del plan ganaron peso y una línea que los separa de lo que cuelga de ellos.
+- **El peso se puede deslizar.** Al lado del número hay ahora una barrita: se
+  arrastra y el porcentaje cambia con ella, con la barra de ponderación
+  moviéndose al mismo tiempo. El número sigue estando para escribir uno exacto,
+  y es el único que queda en el teléfono — sesenta píxeles con el dedo encima no
+  alcanzan para poner un 40.
+- **Lo que aparece y lo que se va ya no dan un salto**: la fila nueva, el panel
+  de la competencia y el indicador recién escrito entran con un desvanecido, y
+  lo que se borra se apaga antes de irse.
+- Arreglada la **intermitencia del login en las pruebas**, que hacía fallar
+  pruebas que no hablaban de login. No afecta a la aplicación.
+
 ## 1.9.1 — 22 de septiembre de 2026
 
 - **Cada evaluación dice cuántas notas tiene**, de cuántos alumnos: «notas 18 de

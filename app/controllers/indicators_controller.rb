@@ -39,7 +39,10 @@ class IndicatorsController < ApplicationController
     nuevo.errors.add(:base, "Falta la evaluación que lo mide.") if nuevo.evaluation_activity.nil?
     nuevo.save if nuevo.errors.empty?
 
-    devolver_la_competencia(nuevo)
+    # ⚠️ `recien:` solo en el alta. La pantalla lo usa para desvanecer HACIA
+    # ADENTRO el que acaba de aparecer, y en un `update` no aparece nada: el
+    # indicador ya estaba ahí y animarlo diría que es nuevo.
+    devolver_la_competencia(nuevo, recien: nuevo.id)
   end
 
   def update
@@ -65,14 +68,14 @@ class IndicatorsController < ApplicationController
   # repetido desaparecía sin dejar rastro —o reventaba con la excepción de
   # PostgreSQL, según lo que fallara primero—. El bloque vuelve con el error
   # escrito, que es la única señal que hay en la edición en línea.
-  def devolver_la_competencia(registro = nil)
+  def devolver_la_competencia(registro = nil, recien: nil)
     error = registro&.errors&.full_messages&.to_sentence.presence
 
     render turbo_stream: turbo_stream.replace(
       helpers.dom_id(@competency), partial: "competencies/competencia",
       locals: { competencia: @competency.reload, contexto: contexto,
                 competencias: competencias_del_lapso,
-                guardada: error.nil?, error: error }
+                guardada: error.nil?, error: error, recien: (recien if error.nil?) }
     ), status: (error ? :unprocessable_entity : :ok)
   end
 

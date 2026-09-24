@@ -616,14 +616,21 @@ pantalla enseña.
 |---|---|---|
 | 1 | El indicador **nace dentro de su evaluación** | Era el otro bug: *«al agregarlo queda suelto, asociado únicamente al componente»*. Uno sin evaluación no se imprime —solo salen los medidos— y en esta jerarquía tampoco se ve: era un dato invisible. El alta lo **exige**. |
 | 2 | El textarea de «un indicador por línea» **se retiró** del formulario de la competencia | Lo que naciera ahí quedaría sin evaluación. Un segundo lugar donde escribirlos era un segundo lugar donde perderlos. |
-| 3 | Borrar una evaluación **no borra** sus indicadores (`nullify`) | El texto lo escribió la maestra: borrar el examen para rehacerlo no puede costarle los cuatro que acababa de escribir. El aviso de borrado lo dice. |
-| 4 | Los sueltos se ven en un **bloque ámbar** | Con (3), pueden aparecer. Sin el bloque serían basura invisible: no salen en la boleta ni en el plan. Solo se leen y se borran — y el bloque desaparece cuando no queda ninguno. |
+| 3 | Borrar una evaluación **borra** sus indicadores (`destroy`) | Revisado el 22 de septiembre. Salió con `nullify` —«el texto lo escribió la maestra»— y Daniel lo revirtió: *«no me parece que los indicadores queden sueltos; se le puede indicar al usuario que al eliminar las evaluaciones se van los indicadores respectivos»*. Es lo coherente con la jerarquía, y uno suelto no se imprime ni se ve: «conservarlo» era guardar un dato que nadie iba a volver a encontrar. El aviso lo dice antes. |
+| 4 | ~~Los sueltos se ven en un bloque ámbar~~ | **Retirado el 22 de septiembre**, con sus dos fuentes: (3) y el copiador, que creaba los indicadores al copiar la competencia y después les buscaba dueño. Ahora viajan con su evaluación. Un bloque defensivo que ya no puede dispararse es código que nadie va a volver a leer. |
+| 6 | Con notas cargadas, el botón de borrar **se apaga y dice por qué** | Daniel: *«una mejor UX es que el botón esté disabled si tiene notas, en lugar de intentar una acción que no va a poder hacer»*. ⚠️ `aria-disabled` y no `disabled`: el segundo no recibe foco, y el tooltip —que es la explicación— aparece con `:hover` y `:focus-visible`. |
+| 7 | La fila dice **cuántas notas tiene**, de cuántos alumnos | Antes eso solo se sabía intentando borrarla. Es una pastilla con icono y color, con el vocabulario de la libreta: salió como texto al margen y Daniel no lo encontró. |
 | 5 | El alta de evaluación **suelta** solo existe en Media | En primaria una evaluación mide un componente y un indicador o no se guarda, así que el botón del pie del plan ofrecía un formulario que iba a rechazar lo escrito: nace sin componente porque ahí no hay ninguno del que colgar. |
 
 ⚠️ **La relación N:N sigue en el modelo.** Una evaluación puede medir dos
 competencias y sale bajo cada una; lo que se retiró es el control que lo
 ofrecía sin contexto. `evaluation_activities#update` sigue aceptando
 `competency_ids`.
+
+⚠️ **Y traer el plan de OTRO profesor ya no trae indicadores.** Vienen las
+competencias —describen qué enseña el grado— y nada más: sin las evaluaciones
+que los midan, los indicadores no tendrían dónde vivir. Con el mismo profesor
+viajan las evaluaciones y ellos dentro.
 
 ### La boleta: cerrada el 18 de septiembre
 

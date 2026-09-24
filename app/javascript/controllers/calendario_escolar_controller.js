@@ -150,9 +150,16 @@ export default class extends Controller {
     this.#guardar()
   }
 
+  // ⚠️ Sin `formulario`, solo escribe el campo y cierra.
+  //
+  // En la fila de EDICIÓN cada dato es su propio formulario y elegir un día
+  // guarda solo: la fecha no tiene «Enter». En la fila de ALTA la evaluación
+  // todavía no existe, así que el campo viaja con el resto y quien envía es el
+  // ✓ de la fila. Sin esta guarda, `requestSubmit` sobre un target que no está
+  // reventaba con «Missing target element» — y el panel quedaba abierto.
   #guardar() {
     this.#cerrar()
-    this.formularioTarget.requestSubmit()
+    if (this.hasFormularioTarget) this.formularioTarget.requestSubmit()
   }
 
   // ── Fechas, sin husos horarios ────────────────────────────────────────────

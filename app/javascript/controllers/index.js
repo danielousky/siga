@@ -19,6 +19,12 @@ application.register("correo-libre", CorreoLibreController)
 import CampoQueCreceController from "controllers/campo_que_crece_controller"
 application.register("campo-que-crece", CampoQueCreceController)
 
+import PesoDeslizanteController from "controllers/peso_deslizante_controller"
+application.register("peso-deslizante", PesoDeslizanteController)
+
+import SeDesvaneceController from "controllers/se_desvanece_controller"
+application.register("se-desvanece", SeDesvaneceController)
+
 import AsistenciaController from "controllers/asistencia_controller"
 import AreaController from "controllers/area_controller"
 import AutoEnvioController from "controllers/auto_envio_controller"

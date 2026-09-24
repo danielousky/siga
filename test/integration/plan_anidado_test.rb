@@ -44,6 +44,32 @@ class PlanAnidadoTest < ActionDispatch::IntegrationTest
     assert_select ".plan-evaluacion-peso-campo[step=?]", "1"
   end
 
+  # ── El deslizador del peso (23 de septiembre) ─────────────────────────────
+  #
+  # Daniel: *«en el porcentaje podemos agregar un rango en la misma línea,
+  # pequeño… que la persona deslice en lugar de escribir»*.
+  #
+  # ⚠️ Lo que este test cuida NO es que el rango exista: es que NO lleve `name`.
+  # Con los dos controles enviando `weight_percentage`, el formulario mandaría
+  # el peso dos veces y el servidor se quedaría con el último del marcado — o
+  # sea, con el que el profesor no tocó. Es un fallo que no da error en ningún
+  # lado: guarda, y guarda otro número.
+  test "el peso se puede deslizar, y el deslizador no se envía" do
+    con_el_colegio(@a.colegio) do
+      competencia = competencia_con(0, lapso: @lapso)
+      evaluacion  = actividad(@a.escenario, lapso: @lapso, peso: 40, descripcion: "Examen del lapso")
+      evaluacion.competencies = [ competencia ]
+    end
+
+    plan
+
+    assert_select ".plan-evaluacion-campo--peso input[type=range][value=?]", "40"
+    assert_select ".plan-evaluacion-campo--peso input[type=range][name]", false,
+                  "el deslizador no puede tener name: enviaría el peso dos veces"
+    # Y el número sigue siendo el campo.
+    assert_select ".plan-evaluacion-peso-campo[name=?]", "evaluation_activity[weight_percentage]"
+  end
+
   test "una competencia sin evaluaciones avisa lo que le va a pasar en la boleta" do
     con_el_colegio(@a.colegio) { competencia_con(1, lapso: @lapso) }
 
@@ -88,17 +114,63 @@ class PlanAnidadoTest < ActionDispatch::IntegrationTest
 
     plan
 
-    # ⚠️ El chip lleva la palabra «notas» delante en su propio `<span>`, así que
-    # el texto viene en dos líneas: se normalizan los espacios para compararlo.
     textos = css_select(".plan-evaluacion-avance").map { |e| e.text.squish }
-    assert_includes textos, "notas 1 de 2", "el examen tiene una nota de dos alumnos"
-    assert_includes textos, "notas 0 de 2", "el taller no tiene ninguna"
+    assert_includes textos, "1 de 2", "el examen tiene una nota de dos alumnos"
+    assert_includes textos, "0 de 2", "el taller no tiene ninguna"
 
-    # ⚠️ El color va en el DATO y con el vocabulario de la libreta, que es donde
-    # el profesor ya lo aprendió a leer: verde completo, ámbar a medias, rojo sin
-    # empezar.
-    assert_select ".plan-evaluacion-avance.libreta-avance--a_medias", 1
-    assert_select ".plan-evaluacion-avance.libreta-avance--vacia", 1
+    # ⚠️ Es una PASTILLA con su icono, no un número al margen: Daniel no lo
+    # encontraba entre el «40 %» y la fecha. Y el color va en el DATO
+    # (`MOR-135`), con los estados que ya usa el resto de la app.
+    assert_select ".plan-evaluacion-avance.pastilla-de-cobro.estado-en-revision", 1
+    assert_select ".plan-evaluacion-avance.pastilla-de-cobro.estado-en-mora", 1
+  end
+
+  # ⚠️ Con notas cargadas, el botón de borrar se APAGA y dice por qué.
+  #
+  # Daniel, 22 de septiembre: *«una mejor UX es que el botón de eliminar esté
+  # disabled si tiene notas, en lugar de intentar una acción que no va a poder
+  # hacer. Lo que sí tenemos que indicarle es por qué está bloqueada la
+  # eliminación»*. Antes se tocaba, el modelo lo rechazaba, y el error aparecía
+  # arriba de la pantalla — lejos de la fila que lo produjo.
+  test "con notas cargadas el botón de borrar se apaga y dice por qué" do
+    con_el_colegio(@a.colegio) do
+      c = competencia_con(1, lapso: @lapso)
+      examen = actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen", mide: c)
+      nota(examen, @a.escenario.alumno(1), 16)
+    end
+
+    plan
+
+    # ⚠️ `aria-disabled` y no `disabled`: un botón deshabilitado de verdad no
+    # recibe foco, y el tooltip aparece con `:hover` y con `:focus-visible`.
+    assert_select "button[aria-disabled=?]", "true" do |botones|
+      assert botones.any? { |b| b["data-tooltip"].to_s.match?(/no se puede borrar/i) },
+             "el botón apagado tiene que decir POR QUÉ"
+      assert botones.any? { |b| b["data-tooltip"].to_s.include?("1 nota cargada") },
+             "y cuántas notas lo impiden"
+    end
+    # ⚠️ Y no queda un formulario de borrado que se pueda enviar igual.
+    #
+    # Se busca por el `aria-label` exacto: los otros dos botones de borrar de la
+    # pantalla —«Borrar la competencia» y «Quitar este indicador»— sí siguen ahí
+    # y tienen que seguir.
+    assert_select "form button[aria-label=?]", "Borrar", 0,
+                  "con notas, el borrado de la evaluación no se ofrece ni escondido"
+  end
+
+  # ⚠️ Sin notas se puede borrar, y el aviso dice que los INDICADORES se van con
+  # la evaluación. Daniel: *«se le puede indicar al usuario que al eliminar las
+  # evaluaciones se van los indicadores respectivos»*.
+  test "sin notas se puede borrar, y el aviso dice que los indicadores se van" do
+    con_el_colegio(@a.colegio) do
+      c = competencia_con(1, lapso: @lapso)
+      actividad(@a.escenario, lapso: @lapso, peso: 100, descripcion: "Examen", mide: c)
+    end
+
+    plan
+
+    assert_select "form[data-turbo-confirm*=?]", "Se borran también", 1
+    assert_select "button[aria-disabled=?]", "true", 0
   end
 
   # ⚠️ «0 de 0» en rojo diría que el profesor no hizo algo que no tenía que
