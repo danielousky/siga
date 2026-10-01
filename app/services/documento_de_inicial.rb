@@ -120,10 +120,23 @@ class DocumentoDeInicial
   # «Constancia que se expide en ___».
   def expedida_en = @colegio.municipio.presence || @colegio.location
 
+  # ⚠️ Quien firma llega como el REGISTRO del director (`Admin`), y el nombre es
+  # de su PERSONA (`User`).
+  #
+  # Hasta el 1 de octubre de 2026 este método le pedía `nombre_completo` a lo
+  # que recibiera, y `DocumentosOficialesController` le pasaba el `Admin` —que
+  # no lo tiene—: emitir el documento de Inicial desde la ficha levantaba un
+  # `NoMethodError` en cualquier colegio CON director cargado, o sea en todos
+  # los de verdad. Solo funcionaba sin director, que es como lo probaba el único
+  # test que había — el del armador, que no pasa por el controlador.
+  #
+  # Lo destapó la pestaña de certificados, que emite por el mismo camino.
   def firmante
     return @firmante if @firmante.is_a?(Hash)
-    return nil if @firmante.nil?
 
-    { "nombre" => @firmante.nombre_completo, "documento" => @firmante.identificador_a_la_vista }
+    persona = @firmante.respond_to?(:user) ? @firmante.user : @firmante
+    return nil if persona.nil?
+
+    { "nombre" => persona.nombre_completo, "documento" => persona.identificador_a_la_vista }
   end
 end
