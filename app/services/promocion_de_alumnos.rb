@@ -51,6 +51,20 @@ class PromocionDeAlumnos
     def hizo_algo? = inscritos.positive? || egresados.positive?
   end
 
+  # Lo que dicen las notas de UN alumno, sin saber todavía a dónde iría.
+  #
+  #     :pasa        aprobó todo, o arrastra dentro del tope
+  #     :repite      arrastra más que el tope
+  #     :sin_datos   no tiene ni una nota definitiva cargada
+  #
+  # ⚠️ `aplazadas` son los NOMBRES de las materias, no la cuenta: quien lo
+  # muestra escribe «Mat · Fís», y eso es lo que le permite al director discutir
+  # el caso con el profesor.
+  Veredicto = Data.define(:situacion, :aplazadas) do
+    def repite? = situacion == :repite
+    def sin_datos? = situacion == :sin_datos
+  end
+
   def initialize(origen, destino, promover_sin_datos: false)
     @origen = origen
     @destino = destino
@@ -63,6 +77,35 @@ class PromocionDeAlumnos
 
   def self.aplicar(origen, al:, promover_sin_datos: false)
     new(origen, al, promover_sin_datos: promover_sin_datos).aplicar
+  end
+
+  # ── La regla, sola ────────────────────────────────────────────────────────
+  #
+  # Vivía en `decidir`, privada y atada a la promoción del año entero: para
+  # saber si UN alumno repite había que darle un año de origen y otro de
+  # destino. Desde el 1 de octubre de 2026 la pregunta la hace alguien más —la
+  # pestaña de certificados, que no puede emitir en lote un papel que dice
+  # «promovido» de quien repite— y esa pantalla no promueve a nadie.
+  #
+  # ⚠️ Se SACÓ, no se copió. «Arrastra más que el tope» escrito en dos archivos
+  # son dos reglas: el día que el criterio cambie, la pantalla de promoción diría
+  # que un alumno repite y su certificado, que pasó.
+  #
+  # `libros` son los `FinalGradeBook` de UNA inscripción, o `nil` si no tiene.
+  def self.veredicto(libros, tope:)
+    return Veredicto.new(situacion: :sin_datos, aplazadas: []) if libros.nil?
+
+    aplazadas = libros.select(&:aplazado?).map { |l| l.subject.name }.sort
+    Veredicto.new(situacion: aplazadas.size <= tope ? :pasa : :repite, aplazadas: aplazadas)
+  end
+
+  # El de varias inscripciones, por su id. Con UNA consulta: pedirlo por alumno
+  # serían tantas como alumnos tenga la sección.
+  def self.veredictos(inscripciones, tope:)
+    libros = FinalGradeBook.where(enrollment_id: inscripciones.map(&:id))
+                           .includes(:subject).group_by(&:enrollment_id)
+
+    inscripciones.to_h { |i| [ i.id, veredicto(libros[i.id], tope: tope) ] }
   end
 
   # ¿Hay con qué decidir? Es lo primero que la pantalla pregunta: sin notas
@@ -122,30 +165,21 @@ class PromocionDeAlumnos
   end
 
   def proponer(inscripcion)
-    aplazadas = aplazadas_de(inscripcion)
-    situacion = decidir(inscripcion, aplazadas)
+    veredicto = self.class.veredicto(libros_por_inscripcion[inscripcion.id], tope: tope)
+    situacion = decidir(inscripcion, veredicto)
     grado = grado_de_destino(inscripcion, situacion)
 
-    Propuesta.new(inscripcion: inscripcion, situacion: situacion, aplazadas: aplazadas,
+    Propuesta.new(inscripcion: inscripcion, situacion: situacion, aplazadas: veredicto.aplazadas,
                   destino: (seccion_de_destino(inscripcion, grado) if grado),
                   grado_destino: grado)
   end
 
-  def decidir(inscripcion, aplazadas)
-    return :sin_datos if libros_por_inscripcion[inscripcion.id].nil?
-    # Egresar gana sobre repetir: quien está en el último grado del colegio y
-    # aprobó, se va — no hay grado siguiente en el que ponerlo.
-    return :egresa if aplazadas.size <= tope && siguiente_oficial(inscripcion).nil?
-    return :promueve if aplazadas.size <= tope
+  # Las notas dicen SI pasa; a dónde, lo dice el catálogo. Quien pasa y está en
+  # el último grado del colegio, egresa — no hay grado siguiente donde ponerlo.
+  def decidir(inscripcion, veredicto)
+    return veredicto.situacion unless veredicto.situacion == :pasa
 
-    :repite
-  end
-
-  # ⚠️ Las materias que arrastra, por NOMBRE, no la cuenta: la pantalla las
-  # muestra («Mat · Fís») y eso es lo que le permite al director discutir el
-  # caso con el profesor antes de confirmar.
-  def aplazadas_de(inscripcion)
-    (libros_por_inscripcion[inscripcion.id] || []).select(&:aplazado?).map { |l| l.subject.name }.sort
+    siguiente_oficial(inscripcion).nil? ? :egresa : :promueve
   end
 
   # Una sola consulta para toda la promoción: pedirlo por alumno serían

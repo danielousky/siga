@@ -1176,6 +1176,72 @@ correrlo dos veces no duplica inscripciones.
 2do Año B?», lo que hay que ver es quién corrió la promoción, desde qué año y con
 qué criterio.
 
+### 11. Los certificados, y por qué nadie los encontraba
+
+Existían desde el 11 de septiembre de 2026 (`MOR-99`) y Cyndi los dio por
+faltantes el 18. Daniel, 1 de octubre: *«creo que ella nunca vio los
+certificados, no los encontró»*. Estaban en la última tarjeta de la ficha de
+cada alumno, mientras el menú «Documentos» ofrecía dos pestañas.
+
+```
+   Documentos
+   [ Boletines | Constancias | Certificados ]     ← la tercera, del 1 de octubre
+
+   el grado decide el papel:
+   3er Nivel         Certificación de Estudios de Inicial
+   1er y 2do Nivel   Constancia de Prosecución de Inicial
+   6to Grado         Certificado de Educación Primaria
+   1ro a 5to Grado   Constancia de Prosecución
+   Media             Certificación 31059
+```
+
+Un alumno o la sección entera, en un PDF con una página por alumno. La tarjeta
+de la ficha **se queda**: la mamá que llega por el papel de su hijo sigue siendo
+un caso, y ahí vive el Excel de la 31059. Spec:
+[`certificados-en-documentos.md`](docs/specs/certificados-en-documentos.md).
+
+⚠️ **El mismo papel tiene DOS puertas, y la suscripción las mira distinto.** La
+ficha lo pide por `GET`; la pestaña, por `POST`. Por eso `certificados#create`
+está en las dos listas de `RespetaLaSuscripcion`: en `ACCIONES_CON_PLAN`, o el
+plan gratuito emitía por la pestaña lo que la ficha le niega; y en
+`SIEMPRE_PERMITIDO`, o el colegio vencido perdía por la pestaña lo que por la
+ficha sigue sacando. Una puerta nueva para algo que ya existía hay que
+recorrerla contra las DOS.
+
+⚠️ **Quien repite queda fuera de «toda la sección» — y solo en primaria.** El
+papel de primaria dice *«siendo promovido(a)»* sin mirar las notas: de a uno lo
+decide quien lo firma, de a veinticuatro nadie lo mira. No es un bloqueo:
+eligiéndolo en el desplegable, sale. La regla es **del papel, no de la
+pantalla** — la 31059 es un historial de notas, cierto también para quien
+repite, y ahí no se excluye a nadie. «Sin calificación definitiva» **no** es
+«repite»: es el caso normal de un cliente nuevo, sale con la línea en blanco y
+la pantalla lo avisa antes.
+
+⚠️ **«Repite» se pregunta en un solo sitio**: `PromocionDeAlumnos.veredicto`.
+Estaba en un método privado atado a la promoción del año entero; se SACÓ, no se
+copió. Escrita dos veces, la pantalla de promoción diría que un alumno repite y
+su certificado, que pasó.
+
+⚠️ **Un PDF de varios alumnos no memoriza nada que salga de `@d`**
+(`UnDocumentoPorAlumno`). Cada dibujante lee `@d`, y `@d` cambia en cada vuelta:
+un valor guardado «para no calcularlo dos veces» se queda con el del alumno
+anterior. No falla nada — el PDF sale con sus veinticuatro páginas y la segunda
+dice el colegio o el tipo de la primera. Por eso `tipo` es un método y el
+colegio de la 31059 se memoriza por código.
+
+⚠️ **Tres piezas con su test y una costura sin ninguno.** El documento de
+Inicial reventaba desde la ficha en todo colegio con director cargado: el
+controlador pasaba el `Admin` y el armador le pedía `nombre_completo`, que es de
+su `User`. El único test llamaba al armador sin director. Estuvo veinte días en
+producción y lo encontró la pestaña nueva, por emitir por el mismo camino.
+`documentos_desde_la_ficha_test` pasa por el controlador, **siempre con
+director**: es el caso de todo colegio real y era el que nadie ejercitaba.
+
+⚠️ **Para probar un PDF de varios hay que LEERLO**, no contar páginas:
+`paginas_de` en `certificados_test` saca el texto de cada página sin una gema
+—Prawn escribe sin comprimir y en hexadecimal— y es lo que deja afirmar que la
+segunda página es del segundo alumno.
+
 ## 🔢 La versión
 
 `Siga::VERSION` en `config/application.rb` es la del PRODUCTO, y **no** la del

@@ -448,12 +448,17 @@ module MenuHelper
   end
   helper_method :guio? if respond_to?(:helper_method)
 
-  # Los papeles que emite el colegio. Los dos son «elegir sección, elegir alumno,
-  # emitir»: la misma tarea con distinto papel al final.
+  # Los papeles que emite el colegio. Los tres son «elegir sección, elegir
+  # alumno, emitir»: la misma tarea con distinto papel al final.
+  #
+  # ⚠️ Los certificados llegaron el 1 de octubre de 2026 y existían desde el 11
+  # de septiembre: estaban en la última tarjeta de la ficha de cada alumno, y
+  # quien abría «Documentos» veía dos pestañas y concluía que no había más.
   def pestanas_de_documentos
     [
       [ "Boletines", report_cards_path, controller_name == "report_cards" ],
-      [ "Constancias", constancias_path, controller_name == "constancias" ]
+      [ "Constancias", constancias_path, controller_name == "constancias" ],
+      [ "Certificados", certificados_path, controller_name == "certificados" ]
     ]
   end
 
@@ -646,7 +651,7 @@ module MenuHelper
     enlaces = []
     if can_manage_students?
       enlaces << Enlace.new(nombre: "Documentos", icono: :boletines,
-                            ruta: report_cards_path, tambien_en: %w[constancias])
+                            ruta: report_cards_path, tambien_en: %w[constancias certificados])
     end
     # ⚠️ Solo a quien la puede abrir. Se ofrecía a CUALQUIER admin —finanzas
     # incluida— mientras el panel escondía el bloque de actividad reciente: el

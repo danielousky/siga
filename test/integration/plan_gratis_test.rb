@@ -69,13 +69,30 @@ class PlanGratisTest < ActionDispatch::IntegrationTest
     assert_response :redirect
   end
 
+  # ⚠️ Los certificados tienen DOS puertas, y las dos tienen que estar cerradas.
+  #
+  # La de la ficha es un GET y la cierra `CONTROLADORES_CON_PLAN`. La pestaña de
+  # «Documentos» llegó el 1 de octubre de 2026 con un controlador nuevo, que esa
+  # lista no conoce: sin su línea en `ACCIONES_CON_PLAN`, el plan gratuito
+  # emitía por la pestaña el mismo papel que la ficha le negaba.
+  test "tampoco certificados, por ninguna de las dos puertas" do
+    post certificados_path, params: { section_id: @a.seccion.id, enrollment_id: @a.inscripcion.id }
+    assert_response :redirect
+    assert_match(/se activan con un plan/, flash[:alert])
+
+    # La ficha pide un PDF, y a un PDF no se le contesta con un redirect a una
+    # pantalla: sale el 402 a secas.
+    get certificacion_de_calificaciones_path(student_id: @a.alumno, format: :pdf)
+    assert_response :payment_required
+  end
+
   # ── pero las pantallas SE VEN ─────────────────────────────────────────────
 
   # Una pantalla escondida no vende nada; una que se ve y no se toca, sí. El
   # director entra a la planilla, ve su sección y sus alumnos, y entiende qué
   # está comprando.
   test "las pantallas se siguen viendo, con su aviso" do
-    [ report_cards_path, constancias_path, asistencias_path ].each do |ruta|
+    [ report_cards_path, constancias_path, certificados_path, asistencias_path ].each do |ruta|
       get ruta
       follow_redirect! while response.redirect?
 

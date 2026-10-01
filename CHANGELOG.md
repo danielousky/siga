@@ -23,6 +23,27 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.11.0 — 1 de octubre de 2026
+
+- **Los certificados están ahora en «Documentos»**, en una pestaña propia al lado
+  de Boletines y Constancias. Ya existían, pero había que abrir la ficha de cada
+  alumno y bajar hasta la última tarjeta para encontrarlos.
+- **Se emiten de un alumno o de toda la sección**, en un solo PDF con una página
+  por alumno, listo para mandar a imprimir. El grado decide cuál papel le toca
+  —certificado, constancia de prosecución o la 31059— y la pantalla lo dice antes
+  de emitir.
+- **Quien repite no sale con «toda la sección» en primaria**, porque su papel
+  diría «promovido». La pantalla dice quién quedó fuera y por qué, y eligiéndolo
+  en la lista se le emite igual.
+- **La pantalla avisa antes** si algún alumno no tiene calificación definitiva:
+  su literal sale como una línea para llenar a mano.
+- Arreglado: **el documento de Educación Inicial fallaba** al pedirlo desde la
+  ficha del alumno cuando el colegio tenía a su director cargado.
+- El manual decía que los certificados se emitían desde la pestaña «Alumnos» de
+  la sección. Ahora dice dónde están.
+
+---
+
 ## 1.10.1 — 24 de septiembre de 2026
 
 - **El nombre de la evaluación ya no se come la fila.** En un monitor grande

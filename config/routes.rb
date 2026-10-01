@@ -240,6 +240,10 @@ Rails.application.routes.draw do
   # Constancias de estudio. NO se congelan como el boletín: certifican la
   # situación de hoy, no las calificaciones de un lapso. Ver el controller.
   resources :constancias, only: [:index, :create]
+
+  # Los certificados de fin de año, por sección. Los mismos papeles que emite
+  # la ficha del alumno (`documentos_oficiales`), de a uno o de a veinticuatro.
+  resources :certificados, only: [:index, :create]
   # El año escolar que se está mirando (MOR-165). POST porque cambia el estado
   # de la sesión: un enlace se puede prefetchear o disparar desde otra pestaña.
   post "anio-escolar", to: "anio_escolar#update", as: :cambiar_anio_escolar

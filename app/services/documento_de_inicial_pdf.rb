@@ -29,6 +29,7 @@
 # que reparte la zona educativa.
 class DocumentoDeInicialPdf
   include DibujaDocumentosOficiales
+  include UnDocumentoPorAlumno
 
   MARGEN = 56
 
@@ -37,27 +38,25 @@ class DocumentoDeInicialPdf
     prosecucion: "CONSTANCIA DE PROSECUCIÓN\nEN EL NIVEL DE EDUCACIÓN INICIAL"
   }.freeze
 
-  # `datos` viene de `DocumentoDeInicial`, que decide cuál de los dos es.
-  def initialize(datos)
-    @d = datos
-    @tipo = datos["tipo"].to_sym
-  end
+  # Los `datos` vienen de `DocumentoDeInicial`, que decide cuál de los dos es:
+  # los de un niño, o la lista de los de una sección. `new` y `render` los pone
+  # `UnDocumentoPorAlumno`.
 
-  def render
-    pdf = Prawn::Document.new(page_size: "LETTER", margin: MARGEN, info: {
-      Title: TITULOS.fetch(@tipo).tr("\n", " "), Creator: "SIGA", CreationDate: Time.current
-    })
+  private
 
+  def dibujar(pdf)
     membrete(pdf)
     titulo(pdf)
     cuerpo(pdf)
     expedicion(pdf)
     validez(pdf)
-
-    pdf.render
   end
 
-  private
+  def titulo_del_archivo = TITULOS.fetch(tipo).tr("\n", " ")
+
+  # ⚠️ Método y no `@tipo`: con una sección entera en el mismo PDF, el tipo es
+  # el del documento que se está dibujando AHORA. Ver `UnDocumentoPorAlumno`.
+  def tipo = @d["tipo"].to_sym
 
   def membrete(pdf)
     arriba = pdf.cursor
@@ -78,7 +77,7 @@ class DocumentoDeInicialPdf
     dibujar_emblema(pdf, :escudo, ancho: 62, alto: 58, posicion: :center)
     pdf.move_down 10
 
-    pdf.text TITULOS.fetch(@tipo), size: 15, style: :bold, align: :center, leading: 3
+    pdf.text TITULOS.fetch(tipo), size: 15, style: :bold, align: :center, leading: 3
     pdf.move_down 26
   end
 

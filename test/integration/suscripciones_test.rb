@@ -25,7 +25,7 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
 
     # Lo que la familia y el colegio necesitan aunque haya una deuda de por medio.
     [ dashboards_administrador_path, students_path, grades_path,
-      report_cards_path, constancias_path, asistencias_path ].each do |ruta|
+      report_cards_path, constancias_path, certificados_path, asistencias_path ].each do |ruta|
       get ruta
       # /asistencia redirige a la sección cuando hay una sola: es el atajo de
       # MOR-111, no un bloqueo.
@@ -45,6 +45,27 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
     # deuda no puede quedarse sin poder darle una constancia a una familia.
     assert_response :success
     assert_equal "application/pdf", response.media_type
+  end
+
+  # ⚠️ El certificado se pide por dos puertas y tiene que salir por las dos.
+  #
+  # Desde la ficha es un GET, que la suscripción vencida no bloquea. Desde la
+  # pestaña de «Documentos» es un POST —llegó el 1 de octubre de 2026— y los
+  # POST sí se bloquean. Sin su línea en `SIEMPRE_PERMITIDO`, el colegio
+  # endeudado sacaba el certificado de un alumno abriendo su ficha y no podía
+  # sacarlo desde la pestaña: el mismo papel, según por dónde se pida.
+  test "y los certificados, por la pestaña igual que por la ficha" do
+    vencer!(@a)
+    sign_in @a.director
+
+    post certificados_path, params: { section_id: @a.seccion.id, enrollment_id: @a.inscripcion.id }
+
+    assert_response :success
+    assert_equal "application/pdf", response.media_type
+
+    get certificacion_de_calificaciones_path(student_id: @a.alumno, format: :pdf)
+
+    assert_response :success
   end
 
   test "pero no se puede cargar nada nuevo" do

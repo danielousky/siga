@@ -45,6 +45,23 @@ class DocumentoDeInicial
   # Los grupos se numeran en ROMANO en el formato del ministerio.
   ROMANOS = { 1 => "I", 2 => "II", 3 => "III" }.freeze
 
+  # Cómo se llama cada papel, para la pantalla y para la auditoría.
+  NOMBRES = {
+    "certificacion" => "Certificación de Estudios de Educación Inicial",
+    "prosecucion" => "Constancia de Prosecución de Educación Inicial"
+  }.freeze
+
+  # ⚠️ El papel lo decide el GRUPO, y se puede preguntar sin un niño delante:
+  # ver `DocumentoDePrimaria.tipo_para`, que es su gemelo.
+  def self.tipo_para(grado) = numero_de(grado) == ULTIMO_GRUPO ? "certificacion" : "prosecucion"
+
+  # ⚠️ El número sale del NOMBRE del grado: «3er Nivel» → 3.
+  #
+  # Y ante la duda —un nombre sin número— se emite la CONSTANCIA, que es el
+  # documento de todos los años. La certificación, que dice que el niño pasa a
+  # primaria, es la que no se puede emitir de más.
+  def self.numero_de(grado) = grado.name.to_s[/\d+/]&.to_i || 0
+
   def self.para(enrollment:, firmante: nil)
     new(enrollment: enrollment, firmante: firmante).datos
   end
@@ -79,19 +96,14 @@ class DocumentoDeInicial
 
   # Quien termina el III Grupo recibe la CERTIFICACIÓN de estudios; los otros
   # dos, la CONSTANCIA de prosecución entre grupos.
-  def tipo = ultimo_grupo? ? "certificacion" : "prosecucion"
+  def tipo = self.class.tipo_para(@grado)
 
   def ultimo_grupo? = numero == ULTIMO_GRUPO
 
   # «III», que es como lo escribe el formato del ministerio.
   def grupo = ROMANOS.fetch(numero, numero.to_s)
 
-  # ⚠️ El número sale del NOMBRE del grado: «3er Nivel» → 3.
-  #
-  # Y ante la duda —un nombre sin número— se emite la CONSTANCIA, que es el
-  # documento de todos los años. La certificación, que dice que el niño pasa a
-  # primaria, es la que no se puede emitir de más.
-  def numero = @numero ||= @grado.name.to_s[/\d+/]&.to_i || 0
+  def numero = @numero ||= self.class.numero_de(@grado)
 
   def plantel
     {

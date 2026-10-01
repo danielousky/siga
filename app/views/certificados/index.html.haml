@@ -1,0 +1,123 @@
+-# Los certificados de fin de año, por sección (ver `CertificadosController`).
+-#
+-# Es la tercera pestaña de «Documentos» y se comporta como sus dos hermanas:
+-# elegir sección, elegir alumno, emitir.
+-#
+-#     Sección  [ 3er Grado – A · 2025-2026          ▾ ]
+-#     De esta sección sale: Constancia de Prosecución
+-#     Alumno   [ Toda la sección (22 alumnos)       ▾ ]
+-#     ⚠ 2 alumnos no tienen calificación definitiva…
+-#     ⚠ Castro Díaz, Ana no sale con «toda la sección»…
+-#              [ Emitir y descargar ]
+-#
+-# ## ⚠️ La pantalla dice QUÉ va a salir antes del botón
+-#
+-# En las otras dos pestañas el papel es siempre el mismo. Acá lo decide el
+-# grado —6to Grado lleva certificado, 3ro lleva constancia de prosecución— y
+-# quien emite no tiene por qué saberse la regla: la lee.
+- opciones_de_seccion = @secciones.map { |s| ["#{s.grade.name} – #{s.name} · #{s.academic_period.name}", s.id] }
+
+- content_for :titulo, "Certificados"
+
+.card-academic
+  = render "shared/cabecera", titulo: "Documentos"
+
+  = render "shared/pestanas", pestanas: pestanas_de_documentos, etiqueta: "Documentos que emite el colegio"
+
+  - if @secciones.empty?
+    .empty-state
+      %h3 Sin secciones
+      %p No hay secciones cargadas todavía.
+
+  - else
+    %p.nota-ayuda
+      Los papeles de fin de año: el certificado de quien termina un nivel y la
+      constancia de quien pasa al grado siguiente.
+      %strong El grado de la sección decide cuál sale.
+
+    = form_with url: certificados_path, method: :get, data: { controller: "auto-envio", turbo: false } do
+      .form-group
+        = label_tag :section_id, "Sección", class: "form-label"
+        = select_tag :section_id, options_for_select(opciones_de_seccion, @seccion&.id), class: "form-select", data: { action: "change->auto-envio#enviar" }
+
+    - todos = @certificados.inscripciones
+    - lote  = @certificados.del_lote
+
+    %p
+      De esta sección sale:
+      %strong= @certificados.papel
+
+    - if todos.empty?
+      %p.nota-pendiente
+        Esta sección no tiene alumnos inscritos, así que todavía no hay nada que
+        certificar.
+
+    - else
+      -# ⚠️ «Toda la sección» dice cuántos SALEN, no cuántos tiene la sección: es
+      -# lo que el botón va a hacer. Con 23 inscritos y uno fuera del lote, un
+      -# «23» ahí promete una página que no va a venir.
+      -#
+      -# Y si nadie entra en el lote, la opción ni se ofrece: quedaría un botón
+      -# que solo sabe contestar que no.
+      - opciones_de_alumno = lote.any? ? [["Toda la sección (#{contar(lote.size, 'alumno', 'alumnos')})", ""]] : []
+      - opciones_de_alumno += todos.map { |i| [i.student.user.apellidos_y_nombres, i.id] }
+
+      = form_with url: certificados_path, method: :post, data: { turbo: false } do |f|
+        -# `id: nil`: el desplegable de arriba ya se llama `section_id`, y dos
+        -# elementos con el mismo id hacen que su `<label>` apunte a cualquiera.
+        = hidden_field_tag :section_id, @seccion.id, id: nil
+
+        .form-group
+          = label_tag :enrollment_id, "Alumno", class: "form-label"
+          = select_tag :enrollment_id, options_for_select(opciones_de_alumno), class: "form-select"
+
+        -# ⚠️ Los dos avisos van ANTES del botón, y dicen la consecuencia.
+        -#
+        -# Son las dos cosas que el PDF haría en silencio: dejar una línea en
+        -# blanco donde va el literal, y saltarse a un alumno. Descubrirlo en la
+        -# impresora —o contando las hojas— es enterarse tarde.
+        - sin_nota = @certificados.sin_definitiva
+        - if sin_nota.any?
+          %p.plan-sin-evaluar
+            = icono(:alerta, tamano: 15)
+            %span
+              = "#{contar(sin_nota.size, 'alumno no tiene', 'alumnos no tienen')} calificación definitiva:"
+              su literal sale como una línea para llenar a mano.
+
+        -# ⚠️ Quién y POR QUÉ, no «1 excluido». Y qué hacer: no es un bloqueo.
+        - @certificados.fuera_del_lote.each do |excluido|
+          %p.plan-sin-evaluar
+            = icono(:alerta, tamano: 15)
+            %span
+              %strong= excluido.alumno.apellidos_y_nombres
+              = "no sale con «toda la sección»: repite, arrastra #{excluido.aplazadas.to_sentence}."
+              Para emitir el suyo, elige su nombre en «Alumno».
+
+        %p.nota-ayuda
+          Elige un alumno para emitir el suyo, o deja «toda la sección» para que
+          salga un solo PDF con una página por alumno.
+
+        = f.submit "Emitir y descargar", class: "btn btn-documento"
+
+= mas_detalle "Qué papel le toca a cada grado" do
+  %p
+    No se elige: lo fija el nivel y el grado que cursó el alumno.
+  %ul
+    %li
+      %strong 3er Nivel de Inicial
+      — Certificación de Estudios: el niño continúa a 1er Grado.
+    %li
+      %strong 1er y 2do Nivel de Inicial
+      — Constancia de Prosecución entre grupos.
+    %li
+      %strong 6to Grado
+      — Certificado de Educación Primaria: promueve a 1er Año.
+    %li
+      %strong 1ro a 5to Grado
+      — Constancia de Prosecución: promueve al grado siguiente.
+    %li
+      %strong Educación Media
+      — Certificación de Calificaciones, forma 31059, con todos los años cursados.
+  %p
+    El Excel de la 31059 y el documento de un solo alumno también están en su
+    ficha, en «Documentos oficiales».

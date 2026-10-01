@@ -83,16 +83,20 @@ class MenuTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "boletines y constancias son pestañas de la misma pantalla" do
-    [ report_cards_path, constancias_path ].each do |ruta|
+  # ⚠️ Son TRES desde el 1 de octubre de 2026. Los certificados existían desde
+  # el 11 de septiembre, pero vivían en la última tarjeta de la ficha de cada
+  # alumno: quien abría «Documentos» veía dos pestañas y concluía que no había
+  # más. Cyndi los dio por faltantes.
+  test "boletines, constancias y certificados son pestañas de la misma pantalla" do
+    [ report_cards_path, constancias_path, certificados_path ].each do |ruta|
       get ruta
 
-      assert_select "a.pestana", 2
+      assert_select "a.pestana", 3
       assert_select "a.pestana.activa", 1
       assert_equal [ "Documentos" ],
                    css_select("a.sidebar-nav-link.active").map { |a| a["data-nombre"] },
-                   "#{ruta} tiene que marcar «Documentos»: boletín y constancia son " \
-                   "el mismo trabajo con distinto papel al final"
+                   "#{ruta} tiene que marcar «Documentos»: boletín, constancia y " \
+                   "certificado son el mismo trabajo con distinto papel al final"
     end
   end
 

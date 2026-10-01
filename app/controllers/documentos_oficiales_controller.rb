@@ -55,7 +55,7 @@ class DocumentosOficialesController < ApplicationController
 
     datos = armador.datos
     registrar("documento_de_primaria_emitido", inscripcion.student,
-              datos["tipo"] == "certificado" ? "Certificado de Educación Primaria" : "Constancia de Prosecución")
+              DocumentoDePrimaria::NOMBRES.fetch(datos["tipo"]))
 
     enviar_pdf(DocumentoDePrimariaPdf.new(datos),
                "#{datos['tipo']}-primaria-#{apellido(inscripcion.student)}.pdf")
@@ -78,7 +78,7 @@ class DocumentosOficialesController < ApplicationController
 
     datos = armador.datos
     registrar("documento_de_inicial_emitido", inscripcion.student,
-              datos["tipo"] == "certificacion" ? "Certificación de Estudios de Educación Inicial" : "Constancia de Prosecución de Educación Inicial")
+              DocumentoDeInicial::NOMBRES.fetch(datos["tipo"]))
 
     enviar_pdf(DocumentoDeInicialPdf.new(datos),
                "#{datos['tipo']}-inicial-#{apellido(inscripcion.student)}.pdf")
@@ -101,7 +101,7 @@ class DocumentosOficialesController < ApplicationController
     unless armador.emitible?
       return redirect_to section_path(seccion),
                          alert: "El Resumen Final es de Educación Media. Para primaria e " \
-                                "Inicial, el documento se emite desde la ficha del alumno."
+                                "Inicial, el documento se emite en Documentos, pestaña Certificados."
     end
 
     datos = armador.datos

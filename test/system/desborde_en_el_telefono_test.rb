@@ -107,7 +107,7 @@ class DesbordeEnElTelefonoTest < ApplicationSystemTestCase
     admins_path grades_path sections_path enrollments_path subjects_path
     departments_path academic_periods_path evaluation_moments_path
     asistencias_path evaluation_activities_path report_cards_path
-    constancias_path importaciones_path dashboards_activity_logs_path
+    constancias_path certificados_path importaciones_path dashboards_activity_logs_path
     competencies_path
   ].freeze
 

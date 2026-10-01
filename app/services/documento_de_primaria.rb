@@ -26,6 +26,27 @@ class DocumentoDePrimaria
   # es el nivel siguiente del sistema, y el formato lo trae impreso así.
   DESPUES_DE_PRIMARIA = "al 1er Año del Nivel de Educación Media".freeze
 
+  # Cómo se llama cada papel, para la pantalla y para la auditoría. Estaba
+  # escrito como un ternario en el controller; con dos pantallas que lo emiten
+  # —la ficha y la pestaña de certificados— serían dos ternarios.
+  NOMBRES = {
+    "certificado" => "Certificado de Educación Primaria",
+    "prosecucion" => "Constancia de Prosecución"
+  }.freeze
+
+  # ⚠️ El papel lo decide el GRADO, y se puede preguntar sin un alumno delante.
+  #
+  # La pestaña de certificados dice qué va a salir ANTES de emitir —y lo dice
+  # también de una sección sin alumnos—, así que la pregunta no puede exigir una
+  # inscripción. Es la misma regla de siempre, sacada a donde se pueda consultar.
+  def self.tipo_para(grado) = numero_de(grado) == ULTIMO_GRADO ? "certificado" : "prosecucion"
+
+  # El número del grado sale de su nombre: «6to Grado» → 6. Un nombre sin número
+  # no se puede ubicar en la secuencia, y ante la duda se emite la CONSTANCIA:
+  # es el documento de todos los años, y el certificado —que promueve al nivel
+  # de media— es el que no se puede emitir de más.
+  def self.numero_de(grado) = grado.name.to_s[/\d+/]&.to_i || 0
+
   def self.para(enrollment:, firmante: nil)
     new(enrollment: enrollment, firmante: firmante).datos
   end
@@ -60,7 +81,7 @@ class DocumentoDePrimaria
 
   # Quien termina 6to Grado recibe el CERTIFICADO; cualquier otro grado de
   # primaria, la CONSTANCIA de prosecución.
-  def tipo = ultimo_grado? ? "certificado" : "prosecucion"
+  def tipo = self.class.tipo_para(@grado)
 
   def promovido_a
     return DESPUES_DE_PRIMARIA if ultimo_grado?
@@ -70,11 +91,7 @@ class DocumentoDePrimaria
 
   def ultimo_grado? = numero == ULTIMO_GRADO
 
-  # El número del grado sale de su nombre: «6to Grado» → 6. Un nombre sin número
-  # no se puede ubicar en la secuencia, y ante la duda se emite la CONSTANCIA:
-  # es el documento de todos los años, y el certificado —que promueve al nivel
-  # de media— es el que no se puede emitir de más.
-  def numero = @numero ||= @grado.name.to_s[/\d+/]&.to_i || 0
+  def numero = @numero ||= self.class.numero_de(@grado)
 
   ORDINALES = { 1 => "1er", 2 => "2do", 3 => "3er", 4 => "4to",
                 5 => "5to", 6 => "6to" }.freeze

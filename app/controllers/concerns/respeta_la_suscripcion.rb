@@ -46,7 +46,12 @@ module RespetaLaSuscripcion
     ["devise/passwords", "create"],
     ["devise/passwords", "update"],
     ["constancias", "create"],
-    ["report_cards", "create"]
+    ["report_cards", "create"],
+    # ⚠️ Los certificados por sección se emiten por POST, y los de la ficha por
+    # GET. Sin esta línea, el colegio endeudado perdía por la pestaña nueva un
+    # papel que por la ficha sigue sacando — el mismo certificado, del mismo
+    # alumno, según por qué puerta se pida.
+    ["certificados", "create"]
   ].freeze
 
   VERBOS_QUE_ESCRIBEN = %w[POST PATCH PUT DELETE].freeze
@@ -75,7 +80,11 @@ module RespetaLaSuscripcion
     [ "activity_grades", "destroy" ],
     [ "asistencias", "create" ],
     [ "report_cards", "create" ],
-    [ "constancias", "create" ]
+    [ "constancias", "create" ],
+    # ⚠️ La pestaña se VE y emitir se bloquea, igual que sus dos hermanas. Sin
+    # esta línea el plan gratuito emitiría por aquí los mismos certificados que
+    # `documentos_oficiales` —abajo— le niega desde la ficha.
+    [ "certificados", "create" ]
   ].freeze
 
   # Pantallas enteras que el plan gratuito no incluye. Van por controlador y no

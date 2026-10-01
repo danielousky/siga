@@ -21,6 +21,7 @@
 #     VIII  director del CDCEE + sello del estado
 class CertificacionPdf
   include DibujaDocumentosOficiales
+  include UnDocumentoPorAlumno
 
   MARGEN = 22
   GRIS = "444444".freeze
@@ -30,15 +31,13 @@ class CertificacionPdf
   # área · Nº · letras · T-E · mes · año
   COLUMNAS_DE_ANO = [ nil, 22, 62, 20, 22, 28 ].freeze
 
-  def initialize(datos)
-    @d = datos
-  end
+  # Los `datos` vienen de `CertificacionDeCalificaciones`: los de un alumno, o
+  # la lista de los de una sección. `new` y `render` los pone
+  # `UnDocumentoPorAlumno`.
 
-  def render
-    pdf = Prawn::Document.new(page_size: "LETTER", margin: MARGEN, info: {
-      Title: "Certificación de Calificaciones EMG", Creator: "SIGA", CreationDate: Time.current
-    })
+  private
 
+  def dibujar(pdf)
     membrete(pdf)
     seccion_i(pdf)
     seccion_ii(pdf)
@@ -48,11 +47,9 @@ class CertificacionPdf
     seccion_vi(pdf)
     firmas(pdf)
     valor_fiscal(pdf)
-
-    pdf.render
   end
 
-  private
+  def titulo_del_archivo = "Certificación de Calificaciones EMG"
 
   # ── el membrete ───────────────────────────────────────────────────────────
 
@@ -404,7 +401,20 @@ class CertificacionPdf
     iso.to_s
   end
 
+  # ⚠️ Memorizado POR CÓDIGO, no en una variable sola. Con `@colegio ||=`, la
+  # segunda página de un PDF de sección se quedaba con el colegio de la primera
+  # sin preguntar de quién es el documento que se está dibujando. En una sección
+  # son el mismo, así que no se habría notado nunca — hasta el día en que
+  # alguien junte en un PDF documentos de dos planteles, y la firma y el sello
+  # de uno salgan en el papel del otro.
+  #
+  # `key?` y no `||=`: un plantel que no se encuentra da `nil`, y con `||=` se
+  # volvería a buscar en cada llamada.
   def colegio
-    @colegio ||= Current.sin_aislamiento { School.find_by(dea_code: @d.dig("plantel", "codigo")) }
+    codigo = @d.dig("plantel", "codigo")
+    @colegios ||= {}
+    return @colegios[codigo] if @colegios.key?(codigo)
+
+    @colegios[codigo] = Current.sin_aislamiento { School.find_by(dea_code: codigo) }
   end
 end
