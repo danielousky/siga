@@ -1242,6 +1242,53 @@ director**: es el caso de todo colegio real y era el que nadie ejercitaba.
 —Prawn escribe sin comprimir y en hexadecimal— y es lo que deja afirmar que la
 segunda página es del segundo alumno.
 
+### 12. Cuánto tarda emitir, y lo que lo hizo tardar
+
+Daniel, 1 de octubre de 2026, emitiendo los boletines de 4to Grado A: *«la
+generación de documentos tarda mucho; en producción seguro explota por
+tiempo»*. Eran **26 segundos para 21 alumnos**, y tenía razón: Dokku corta una
+petición a los 60 y el servidor es más lento que su máquina.
+
+```
+   DÓNDE SE IBA                          ANTES      AHORA
+   ────────────                          ─────      ─────
+   armar los datos   40.866 consultas    22,2 s     1,2 s    1.176 consultas
+   dibujar el PDF    42 páginas           4,1 s     4,1 s
+                                         ──────     ─────
+                                         26,3 s     5,3 s
+```
+
+⚠️ **No era el PDF.** `ReportCardData#promedio` no guardaba su resultado y
+`puesto` lo pregunta dos veces por cada compañero: la lista de materias se
+armaba **43 veces por alumno**. Mientras una materia era «su nota» costaba
+cuatro consultas y nadie lo vio; desde que trae competencias e indicadores son
+cuarenta y cinco. El arreglo es memorizar — y con `defined?`, no `||=`: el
+promedio de quien no tiene notas es `nil`, y `||=` lo volvería a calcular.
+
+⚠️ **Una medida escrita en un comentario envejece en silencio.** El controlador
+decía «sección de 20 ~560 ms» y era cierto cuando se tomó. El boletín creció
+cuatro veces y nadie volvió a medir. Lo cuida ahora un test que no afirma un
+número —cambiaría con cada mejora— sino que **el costo de un boletín no depende
+de cuántos compañeros tiene el alumno**.
+
+⚠️ **Para cambiar cómo se arma un documento, primero se guarda lo que dice.**
+Antes del arreglo se tomó la huella de 372 boletines y después se compararon:
+idénticos byte por byte. Un `snapshot` es un documento emitido; «más rápido y
+casi igual» no es una opción.
+
+⚠️ **Lo que queda es la tabla**: `prawn-table` tarda 3 ms por fila y se lleva
+3,5 de los 4,1 s. Dibujada a mano son 17 veces menos (medido en un prototipo).
+Y de paso `cell_style: { size: 9 }` **pisa** el tamaño que cada celda trae —las
+competencias salen a 9 pt y no a 7,5— y se come la sangría: el boletín ocupa
+más hojas de las que se diseñaron.
+
+⚠️ **El pie del boletín va ENTERO en una hoja** (`ALTO_DEL_PIE`). El texto salta
+solo a la hoja siguiente; una caja de alto fijo y un QR pintado con coordenadas,
+no — Prawn los dibuja donde se le dice, también fuera del papel. Se cortaba «en
+algunos» porque depende de dónde termina la tabla, y por eso el test **barre**
+el largo: con un boletín de ejemplo cualquiera pasa en verde con el error
+adentro.
+
 ## 🔢 La versión
 
 `Siga::VERSION` en `config/application.rb` es la del PRODUCTO, y **no** la del

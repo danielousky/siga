@@ -39,6 +39,11 @@ mensaje del commit, que es donde vive el detalle técnico.
   su literal sale como una línea para llenar a mano.
 - Arreglado: **el documento de Educación Inicial fallaba** al pedirlo desde la
   ficha del alumno cuando el colegio tenía a su director cargado.
+- Arreglado: **emitir los boletines de una sección de primaria tardaba casi
+  medio minuto**. Ahora son cinco segundos, y dicen exactamente lo mismo.
+- Arreglado: **el pie del boletín se cortaba contra el borde de la hoja** en
+  algunos casos, con el código de verificación a media línea y el QR partido.
+  Ahora el pie va completo, aunque para eso tenga que pasar a la hoja siguiente.
 - El manual decía que los certificados se emitían desde la pestaña «Alumnos» de
   la sección. Ahora dice dónde están.
 
