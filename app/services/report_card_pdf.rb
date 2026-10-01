@@ -508,7 +508,23 @@ class ReportCardPdf
   def texto(valor) = self.class.texto(valor)
   def abreviar(nombre) = self.class.abreviar(nombre)
 
+  # ⚠️ El pie va ENTERO en una hoja, o va entero en la siguiente.
+  #
+  # Daniel, 1 de octubre de 2026: *«se está cortando el foot de algunos
+  # documentos»*. El código de verificación quedaba a media línea contra el
+  # borde del papel y el QR, partido por la mitad.
+  #
+  # Pasaba en «algunos» porque depende de dónde termina la tabla. El texto salta
+  # solo a la hoja siguiente cuando no cabe; el bloque del código NO: es una
+  # caja de alto fijo, y el QR son cuadros con coordenadas. Prawn los pinta
+  # donde se le dice — también fuera del papel, y sin avisar.
+  #
+  # ⚠️ Se pregunta ANTES de la firma y no antes del código. Saltando solo el
+  # código, la firma quedaría al pie de una hoja y lo que la hace comprobable al
+  # principio de la otra: dos mitades de un mismo cierre, en dos papeles.
   def pie(pdf, datos, boletin)
+    pdf.start_new_page if pdf.cursor < ALTO_DEL_PIE
+
     pdf.move_down 6
     pdf.text "Escala del 1 al 20. Calificación mínima aprobatoria: 10 " \
              "(Art. 108 del Reglamento General de la Ley Orgánica de Educación).",
@@ -559,6 +575,22 @@ class ReportCardPdf
   ANCHO_DE_FIRMA = 200
   ALTO_DE_FIRMA  = 40
   LADO_DEL_SELLO = 62
+
+  # Lo que ocupa el pie entero, de la nota de la escala al borde de abajo del QR.
+  #
+  #       6   aire
+  #       9   «Escala del 1 al 20…», un renglón
+  #      30   aire antes de la firma
+  #      40   la firma                          ← ALTO_DE_FIRMA
+  #      14   la línea y «Director(a)»
+  #      26   aire, la raya y más aire
+  #      50   el QR, que es lo que más baja     ← 54 de lado, arranca 4 pt arriba
+  #       5   holgura: los renglones no miden exactamente su cuerpo
+  #
+  # ⚠️ Si se toca cualquiera de esos números en `pie`, `firma` o `verificacion`,
+  # se toca acá. No hay cómo deducirlo: el QR se pinta con coordenadas y no
+  # mueve el cursor. Lo cuida un test que barre el largo de la tabla.
+  ALTO_DEL_PIE = 6 + 9 + 30 + ALTO_DE_FIRMA + 14 + 26 + 50 + 5
 
   def firma(pdf, boletin)
     pdf.move_down 30
