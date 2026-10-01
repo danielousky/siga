@@ -242,7 +242,29 @@ class ReportCardData
     @lapsos ||= EvaluationMoment.where(academic_period_id: @seccion.academic_period_id).order(:id).to_a
   end
 
+  # ⚠️ Se arma UNA vez por boletín, y hasta el 1 de octubre de 2026 se armaba
+  # CUARENTA Y TRES.
+  #
+  # `promedio` la recorre, y `puesto` pregunta el promedio dos veces por cada
+  # compañero de la sección —`count { |p| p > promedio }`—. Sin guardar el
+  # resultado, cada pregunta volvía a armar la lista entera:
+  #
+  #     1 de `to_h`  +  1 de `promedio`  +  1 de `comparacion`  +  2 × 20 compañeros
+  #
+  # Mientras una materia era «su nota» eso costaba cuatro consultas y nadie lo
+  # vio. Desde que cada materia trae sus competencias y sus indicadores
+  # (`PlanEvaluado`, 18 de septiembre) son cuarenta y cinco, y 43 vueltas eran
+  # **1.940 consultas por alumno**: 40.866 y veintidós segundos para emitir los
+  # boletines de una sección de veintiuno. El comentario del controlador seguía
+  # diciendo «560 ms», que era cierto cuando se midió.
+  #
+  # Lo encontró Daniel emitiendo 4to Grado A: *«la generación de documentos
+  # tarda mucho; en producción seguro explota por tiempo»*.
   def materias
+    @materias ||= armar_las_materias
+  end
+
+  def armar_las_materias
     notas_de_lapso = MomentGrade.where(enrollment_id: @enrollment.id)
                                 .index_by { |mg| [mg.subject_id, mg.evaluation_moment_id] }
     libros = FinalGradeBook.where(enrollment_id: @enrollment.id).index_by(&:subject_id)
@@ -349,10 +371,15 @@ class ReportCardData
   # El promedio de las materias QUE TIENEN nota. Las que no, no cuentan como
   # cero: es la misma regla del cálculo oficial (Art. 108) y de la pantalla del
   # alumno. Un boletín que promedia ceros falsos es peor que uno sin promedio.
+  #
+  # ⚠️ `defined?` y no `||=`: un alumno sin ninguna nota tiene promedio `nil`, y
+  # con `||=` ese `nil` se volvería a calcular en cada pregunta — que es justo
+  # el caso de una sección entera a principio de lapso.
   def promedio
-    valores = materias.filter_map { |m| @lapso ? m["nota"] : m["definitiva"] }
-    return nil if valores.empty?
+    return @promedio if defined?(@promedio)
 
-    GradeCalculator.redondear(valores.sum / valores.size.to_d)
+    valores = materias.filter_map { |m| @lapso ? m["nota"] : m["definitiva"] }
+
+    @promedio = valores.empty? ? nil : GradeCalculator.redondear(valores.sum / valores.size.to_d)
   end
 end

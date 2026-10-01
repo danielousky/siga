@@ -4,10 +4,26 @@
 # que pasa de dos días de armado manual a un clic recuperó la suscripción anual
 # en ese solo trimestre.
 #
-# ## Se emite en línea, y no por job — se midió
+# ## Se emite en línea, y no por job — se midió, y hay que VOLVER a medir
 #
-#   1 boletín                          ~30 ms
-#   sección de 20, un solo PDF        ~560 ms  ·  232 KB
+# Una sección entera, en local, el 1 de octubre de 2026:
+#
+#   primaria con su plan    21 alumnos · 42 páginas    5,2 s   (1,2 datos + 4,0 PDF)
+#   Media                   22 alumnos · 44 páginas    2,9 s
+#   primaria sin plan       21 alumnos · 21 páginas    1,4 s
+#   Inicial                 20 alumnos · 20 páginas    1,1 s
+#
+# ⚠️ Aquí decía «sección de 20 ~560 ms», y era cierto cuando se midió: el
+# boletín era una página con una nota por materia. Después ganó competencias,
+# indicadores, rúbrica, informe y comparación con la sección, y NADIE volvió a
+# medir. El día que Daniel emitió 4to Grado A tardó veintiséis segundos, con
+# 40.866 consultas — ver `ReportCardData#materias`.
+#
+# Una medida escrita en un comentario envejece en silencio. La de arriba
+# depende de CUÁNTO dibuja el boletín: si crece, se vuelve a tomar.
+#
+# ⚠️ De esos 4,0 s de PDF, 3,5 son la tabla de competencias: `prawn-table`
+# tarda 3 ms por fila y una sección trae más de mil.
 #
 # El issue daba por hecho que la emisión masiva tenía que ir por job porque "un
 # PDF por alumno de una sección de 35 es demasiado para un request". Pero no son

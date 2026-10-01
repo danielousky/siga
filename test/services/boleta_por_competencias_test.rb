@@ -259,4 +259,55 @@ class BoletaPorCompetenciasTest < ActiveSupport::TestCase
     assert pdf.bytesize > 1000, "el PDF salió vacío"
     assert pdf.start_with?("%PDF"), "no es un PDF"
   end
+
+  # ── El boletín se arma UNA vez, no una por compañero ──────────────────────
+  #
+  # Daniel, 1 de octubre de 2026, emitiendo los de 4to Grado A: *«la generación
+  # de documentos tarda mucho; en producción seguro explota por tiempo»*. Eran
+  # veintiséis segundos para veintiún alumnos, y no se iban en el PDF:
+  #
+  #     40.866 consultas  ·  1.940 por alumno  ·  22 s armando los datos
+  #
+  # `promedio` no guardaba su resultado, y `puesto` lo pregunta dos veces por
+  # cada compañero de la sección. Cada pregunta volvía a armar la lista de
+  # materias entera — con sus competencias y sus indicadores adentro.
+  #
+  # ⚠️ Lo que se afirma NO es un número de consultas, que cambiaría con cada
+  # mejora legítima. Es que el costo de UN boletín no depende de cuántos
+  # compañeros tiene el alumno: con el error, cada compañero sumaba noventa.
+  test "armar un boletín cuesta lo mismo con dos compañeros que con ocho" do
+    assert_equal consultas_de_un_boletin(alumnos: 3), consultas_de_un_boletin(alumnos: 9),
+                 "el boletín de un alumno volvió a costar más cuantos más compañeros tiene: " \
+                 "algo se está armando otra vez por cada uno"
+  end
+
+  private
+
+  def consultas_de_un_boletin(alumnos:)
+    esc = escenario_academico(nivel: :primaria, alumnos: alumnos)
+
+    con_el_colegio(esc.colegio) do
+      esc.colegio.restablecer_la_rubrica!
+      competencia = Competency.create!(section: esc.seccion, subject: esc.materia,
+                                       evaluation_moment: esc.lapso(1), descripcion: "Resuelve problemas")
+      competencia.indicators.create!(descripcion: "Suma con reagrupación", orden: 0)
+      evaluacion = actividad(esc, lapso: esc.lapso(1), peso: 100, mide: competencia)
+      # Todos con nota: `puesto` solo cuenta a los compañeros que tienen
+      # promedio, y sin ellos el error no se dispara.
+      esc.alumnos.each_with_index { |alumno, i| nota(evaluacion, alumno, 12 + (i % 8)) }
+
+      contar_consultas { ReportCardData.para(enrollment: esc.inscripcion, evaluation_moment: esc.lapso(1)) }
+    end
+  end
+
+  def contar_consultas
+    cuenta = 0
+    oyente = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, datos|
+      cuenta += 1 unless datos[:name].to_s.match?(/SCHEMA|TRANSACTION/)
+    end
+    yield
+    cuenta
+  ensure
+    ActiveSupport::Notifications.unsubscribe(oyente)
+  end
 end
