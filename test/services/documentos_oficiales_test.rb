@@ -150,6 +150,37 @@ class DocumentosOficialesTest < ActiveSupport::TestCase
     end
   end
 
+  # ── lo que la 31059 dice en el papel ──────────────────────────────────────
+
+  # ⚠️ Cada dato de la 31059 va en una casilla de alto fijo, y lo que no cabía
+  # se cortaba sin avisar. En Caracas la fecha de expedición salía «LIBERTADOR,
+  # DISTRITO CAPITAL 5 DE OCTUBRE DE» — sin el año, en un documento que vale
+  # tres años DESDE esa fecha.
+  #
+  # Estuvo así desde que existe la certificación: el test de arriba solo mira
+  # que el archivo pese más de mil bytes. Apareció leyendo el PDF.
+  #
+  # Los lugares son municipios de verdad, del más corriente al más largo del
+  # país, y la fecha es la más larga del calendario.
+  test "la fecha de expedición de la 31059 sale con su año, por largo que sea el lugar" do
+    esc = escenario_academico(nivel: :secundaria)
+
+    con_el_colegio(esc.colegio) do
+      libro(esc, 15)
+
+      travel_to Time.zone.local(2026, 9, 27, 10) do
+        [ "Libertador, Distrito Capital", "San Cristóbal, Táchira", "José Felipe Márquez Cañizales, Trujillo",
+          "Monseñor José Vicente de Unda, Portuguesa" ].each do |lugar|
+          datos  = CertificacionDeCalificaciones.para(student: esc.alumno, expedida_en: lugar)
+          textos = textos_de(CertificacionPdf.new(datos).render).map(&:texto)
+
+          assert_includes textos, "#{lugar.upcase} 27 DE SEPTIEMBRE DE 2026",
+                          "la fecha salió cortada: #{textos.grep(/SEPTIEMBRE|#{lugar.upcase[0, 8]}/).inspect}"
+        end
+      end
+    end
+  end
+
   private
 
   def libro(esc, nota, reparacion: nil)

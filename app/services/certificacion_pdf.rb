@@ -77,8 +77,12 @@ class CertificacionPdf
     plan = @d["plan"]
     expedida = @d["expedida"]
 
+    # ⚠️ 230 para el plan y no los 300 que tenía: «EDUCACIÓN MEDIA GENERAL»
+    # ocupa la mitad, y lo que le sobraba es lo que le faltaba a la fecha. Con
+    # 300, en Caracas salía «LIBERTADOR, DISTRITO CAPITAL 5 DE OCTUBRE DE» —sin
+    # el año— en un documento que vale tres años DESDE su expedición.
     renglon(pdf, [
-      [ "I.  Plan de Estudio:", plan["nombre"].to_s.upcase, 300 ],
+      [ "I.  Plan de Estudio:", plan["nombre"].to_s.upcase, 230 ],
       [ "Lugar y Fecha de Expedición:", "#{texto(expedida['en']).upcase} #{fecha_larga(expedida['el'])}", nil ]
     ])
   end
@@ -354,6 +358,13 @@ class CertificacionPdf
 
   # Un renglón de campos con su rótulo y una línea guía debajo del valor, como
   # los que trae el formato impreso.
+  # ⚠️ El dato se ACHICA antes que cortarse (`shrink_to_fit`).
+  #
+  # La casilla mide lo que mide —un renglón de alto fijo— y a un texto que no
+  # cabe Prawn lo parte en dos y dibuja solo el primer renglón: el resto
+  # desaparece, sin error y sin aviso. Así perdió su año la fecha de expedición.
+  # Ahora baja la letra de a medio punto hasta que quepa, con piso en 5: debajo
+  # de eso no se lee, y ahí sí se corta.
   def renglon(pdf, campos)
     alto = 11
     x = 0
@@ -364,7 +375,7 @@ class CertificacionPdf
       pdf.bounding_box([ x, arriba ], width: ancho, height: alto) do
         pdf.text_box texto(rotulo), size: 6, style: :bold, color: GRIS, at: [ 0, alto ], height: alto
         rotulo_ancho = pdf.width_of(texto(rotulo), size: 6, style: :bold) + 4
-        pdf.text_box texto(valor.presence || ""), size: 6.5,
+        pdf.text_box texto(valor.presence || ""), size: 6.5, overflow: :shrink_to_fit, min_font_size: 5,
                      at: [ rotulo_ancho, alto ], width: ancho - rotulo_ancho - 4, height: alto
         pdf.stroke_color LINEA
         pdf.stroke_line [ rotulo_ancho, 1 ], [ ancho - 4, 1 ]

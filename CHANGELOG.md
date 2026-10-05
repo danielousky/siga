@@ -39,6 +39,9 @@ mensaje del commit, que es donde vive el detalle técnico.
   su literal sale como una línea para llenar a mano.
 - Arreglado: **el documento de Educación Inicial fallaba** al pedirlo desde la
   ficha del alumno cuando el colegio tenía a su director cargado.
+- Arreglado: **la certificación 31059 salía sin el año en la fecha de
+  expedición** cuando el nombre del municipio era largo — en Caracas, siempre.
+  Ahora un dato que no cabe en su casilla se achica antes que cortarse.
 - **El boletín de bachillerato cabe en una hoja.** Eran dos: las notas en una y
   la «situación con respecto a la sección» en otra, que repetía cada materia con
   su nota. Ahora es una sola tabla —la nota, el promedio de la sección y la
