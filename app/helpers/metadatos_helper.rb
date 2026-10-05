@@ -16,7 +16,7 @@
 #                                    │ SIGA · Notas, boletines  │
 #                                    │ y constancias desde el   │
 #                                    │ teléfono                 │
-#                                    │ Desde 25 $ al mes…       │
+#                                    │ Desde 39 $ al mes…       │
 #                                    └──────────────────────────┘
 #
 # ## Las dos trampas
@@ -33,7 +33,8 @@ module MetadatosHelper
 
   # ⚠️ El precio SALE DE `Subscription::PLANES` y no escrito a mano. Decía
   # «Desde 25 $ al mes» y llevaba meses mintiendo: los planes subieron a
-  # 30/60/90 en septiembre y esta cadena se quedó donde estaba.
+  # 30/60/90 en septiembre y esta cadena se quedó donde estaba. Lo cuida
+  # `los_precios_de_un_solo_lugar_test`.
   #
   # ⚠️ Y sí lleva el precio, a diferencia del hero de la portada, que lo perdió
   # a propósito. No es una contradicción: en el hero el precio lo lee alguien

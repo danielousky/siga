@@ -8,7 +8,7 @@
 # medias, y la matrícula se achica hacia arriba —el bachillerato pierde alumnos,
 # que es lo que pasa en un colegio privado venezolano de verdad.
 #
-#     360 alumnos en total  →  plan Estándar ($60), el tramo 151–400
+#     360 alumnos en total  →  plan Estándar ($79), el tramo 151–400
 #
 # Ese número no es casualidad: ~360 es el promedio del mercado después de que la
 # matrícula privada cayera de 3,2 M a ~1,4 M. Sembrar 200 lo dejaba en el plan

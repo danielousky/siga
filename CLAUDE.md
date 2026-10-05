@@ -6,9 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 🔖 Dónde quedamos
 
-El estado de avance vive en [`RETOME.md`](RETOME.md) — **leerlo al arrancar la sesión y
+El estado de avance vive en [`ESTADO.md`](ESTADO.md) — **leerlo al arrancar la sesión y
 actualizarlo al cerrarla.** Está aparte a propósito: es lo que más cambia, y acá adentro
 viajaría en cada petición al modelo además de invalidar el caché del prompt en cada edición.
+
+Hasta el 5 de octubre de 2026 se llamó `RETOME.md` —por «punto de retome», la sección de
+este archivo de donde salió—, y así lo nombran los commits anteriores. Daniel preguntó por
+qué se llamaba así, y un nombre por el que hay que preguntar no está haciendo su trabajo.
 
 ---
 
@@ -42,11 +46,22 @@ repite acá porque este es el proyecto donde más pesa.
 
 SIGA (Sistema Integrado de Gestión Académica) es un SaaS de gestión académica para
 instituciones educativas de Venezuela (preescolar, primaria, secundaria), vendido por
-suscripción mensual según matrícula: **$30** (hasta 150 alumnos) / **$60** (151–400) /
-**$90** (401–800). Los planes se llaman **Inicial · Estándar · Grande** — «Básico» y
+suscripción mensual según matrícula: **$39** (hasta 150 alumnos) / **$79** (151–400) /
+**$119** (401–800), desde el 5 de octubre de 2026 —antes 30/60/90, y antes de septiembre
+25/50/90—. Los planes se llaman **Inicial · Estándar · Grande** — «Básico» y
 «Premium» se cayeron en septiembre de 2026 con la subida de precio: son nombres de SaaS
 gringo, y «Premium» insinuaba funciones aparte que NO existen (entre planes no se recorta
 nada, lo único que cambia es la matrícula). La fuente única es `Subscription::PLANES`.
+
+⚠️ **Subir un precio es cambiar UN número, y nada más.** Tres veces se quedó atrás una
+copia escrita a mano —la descripción para buscadores, una segunda tabla en el panel de
+`/siga` y la nota al pie de esa tabla, que el día de la segunda subida todavía decía
+25/50/90— y ninguna rompió nada: la pantalla abre y el número se lee bien. Lo cuida
+`los_precios_de_un_solo_lugar_test`, que cambia los precios por tres que no existen y
+exige que cada pantalla diga ESOS: comparar contra la constante no alcanza, porque un
+número a mano que hoy coincide pasa en verde.
+⚠️ Y subirlo **no le cambia la factura a nadie**: cada suscripción guarda su
+`precio_mensual` el día que se abre.
 
 Documentación de referencia (PDF/PNG del proyecto, contrato y diagramas ER) en `references/`
 — ese directorio está en `.gitignore`, los originales `.pages` viven en el directorio padre
@@ -852,7 +867,7 @@ problema que Solid Queue resuelve solo aparecería en producción.
 Vive en la **misma base**, sin `connects_to`. El generador asume una base aparte porque está
 pensado para volumen; SIGA tiene *un* job que corre ~1 segundo cuando un profesor cambia una
 ponderación. Una segunda base sería otra cadena de conexión que configurar, respaldar y
-monitorear — y en el plan de 30 $ al mes, cada pieza que no hace falta es una que puede fallar.
+monitorear — y en el plan de 39 $ al mes, cada pieza que no hace falta es una que puede fallar.
 
 Sus once tablas **no llevan RLS, a propósito**: no son datos de ningún colegio, son la maquinaria
 de la plataforma, igual que `SigaStaff`. El colegio de un job viaja en su payload y lo restablece
@@ -992,7 +1007,7 @@ hace vendible el producto barato.**
    mismo host                       host propio
    misma app                        subdominio propio dentro de SIGA
    mismo dominio                    —o incluso su propio dominio.com—
-   $30 · $60 · $90                  precio a convenir
+   $39 · $79 · $119                 precio a convenir
 ```
 
 **Quien decide el paso al plan dedicado es el cliente, no nosotros.** Un colegio
