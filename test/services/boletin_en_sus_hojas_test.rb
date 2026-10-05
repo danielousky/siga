@@ -127,9 +127,40 @@ class BoletinEnSusHojasTest < ActiveSupport::TestCase
   test "la cabecera y el promedio van en negrita; las materias, no" do
     textos = textos_de(boletin_con("materias" => sin_plan(3))).to_h { |t| [ t.texto, t.negrita ] }
 
-    assert textos["MATERIA"], "la cabecera va en negrita"
+    assert textos["ÁREA DE APRENDIZAJE"], "la cabecera va en negrita"
     assert textos["PROMEDIO DEL LAPSO"], "el promedio también"
     assert_not textos["Materia 2"]
+  end
+
+  # ── Cómo se llaman las cosas ──────────────────────────────────────────────
+
+  # Daniel, 5 de octubre, con el boletín impreso delante: *«recuerda que son
+  # "Área de Aprendizaje" en lugar de "Materia"»*. Lo había fijado el 3 de
+  # septiembre para todo el producto (`Vocabulario`), y el papel —que tenía la
+  # palabra escrita a mano— siguió diciendo «MATERIA» un mes.
+  #
+  # ⚠️ Se mira TODO lo que el boletín dice, no solo la cabecera: la nota de la
+  # comparación también nombraba «cada materia».
+  test "el boletín dice «Área de aprendizaje», y en ningún sitio «materia»" do
+    areas = [ "Castellano y Literatura", "Inglés", "Arte y Patrimonio" ]
+    lapso = de_bachillerato(3)
+    lapso["materias"].each_with_index { |fila, i| fila["materia"] = areas[i] }
+    lapso["comparacion"]["materias"].each_with_index { |fila, i| fila["materia"] = areas[i] }
+
+    anual = { "tipo" => "anual", "lapso" => nil, "lapsos" => [ "1er Lapso", "2do Lapso", "3er Lapso" ],
+              "materias" => areas.map { |a| { "materia" => a, "lapsos" => [ 18, 16, 15 ], "anual" => 16, "definitiva" => 16 } } }
+    primaria = { "materias" => sin_plan(3).each_with_index.map { |fila, i| fila.merge("materia" => areas[i]) } }
+
+    { "de lapso, en bachillerato" => lapso, "anual" => anual, "de lapso, en primaria" => primaria }.each do |cual, datos|
+      textos = textos_de(boletin_con(datos)).map(&:texto)
+
+      assert_includes textos, "ÁREA DE APRENDIZAJE", "el boletín #{cual} no nombra la columna como el MPPE"
+      assert_empty textos.grep(/materia/i), "el boletín #{cual} todavía dice «materia»"
+    end
+  end
+
+  test "y la palabra sale de `Vocabulario`, no escrita a mano en el boletín" do
+    assert_equal Vocabulario::AREA.upcase, ReportCardPdf::AREA
   end
 
   # ── Bachillerato: una tabla, una hoja ─────────────────────────────────────

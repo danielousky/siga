@@ -20,6 +20,19 @@
 class ReportCardPdf
   MARGEN = 36
 
+  # Cómo se llama la primera columna de las dos tablas de notas.
+  #
+  # ⚠️ «ÁREA DE APRENDIZAJE», no «MATERIA». Daniel lo fijó el 3 de septiembre
+  # de 2026 para todo el producto —es la palabra con la que el colegio llena
+  # las planillas del MPPE— y las pantallas se corrigieron entonces. El boletín
+  # en papel no: su cabecera estaba escrita a mano acá y siguió diciendo
+  # «MATERIA» un mes, hasta que él la vio impresa. Ahora sale de `Vocabulario`,
+  # que es donde vive la palabra.
+  #
+  # Las CLAVES del snapshot —`"materias"`, `"materia"`— no cambian: son datos
+  # de boletines ya emitidos, y nadie las lee.
+  AREA = Vocabulario::AREA.upcase.freeze
+
   # ⚠️ Limitación conocida, y la razón de `texto` más abajo.
   #
   # Las fuentes que Prawn trae de fábrica cubren Windows-1252: todo el español
@@ -75,7 +88,7 @@ class ReportCardPdf
   def self.filas_anuales(datos)
     escala = datos.dig("seccion", "escala")
 
-    filas = [["MATERIA"] + datos["lapsos"].map { |l| abreviar(l) } + %w[ANUAL REPAR. DEFINIT.]]
+    filas = [[AREA] + datos["lapsos"].map { |l| abreviar(l) } + %w[ANUAL REPAR. DEFINIT.]]
 
     datos["materias"].each do |m|
       filas << [texto(m["materia"])] + m["lapsos"].map { |n| celda(n) } +
@@ -450,7 +463,7 @@ class ReportCardPdf
     # deja afuera a la materia sin nota o sin promedio de la sección.
     comparadas  = comparacion ? comparacion["materias"].index_by { |fila| fila["materia"] } : {}
 
-    filas   = [ [ "MATERIA", con_rubrica ? "NIVEL" : "CALIFICACIÓN" ] + cabecera_de_la_comparacion(comparacion) ]
+    filas   = [ [ AREA, con_rubrica ? "NIVEL" : "CALIFICACIÓN" ] + cabecera_de_la_comparacion(comparacion) ]
     # La cabecera no se queda sola al pie de una hoja.
     pegadas = [ true ]
 
@@ -595,7 +608,7 @@ class ReportCardPdf
 
     pdf.font_size(6.5) do
       pdf.fill_color "666666"
-      pdf.text "<b>Situación con respecto a la sección.</b> El promedio de la sección es el de cada materia, " \
+      pdf.text "<b>Situación con respecto a la sección.</b> El promedio de la sección es el de cada área, " \
                "con las notas cargadas al emitir este boletín. La barra indica cuánto se aparta el alumno de " \
                "ese promedio: cada banda son dos puntos, y el corte entre MEDIO BAJO y MEDIO ALTO es el " \
                "promedio mismo. Estar por debajo del promedio de la clase no significa aplazar.",
