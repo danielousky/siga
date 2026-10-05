@@ -39,5 +39,14 @@ module Siga
       { nombre: datos[:etiqueta], precio: datos[:precio] }
     end
     helper_method :plan_por_matricula
+
+    # Los tres tramos de corrido, para la nota al pie de la tabla: «hasta 150
+    # alumnos $… · hasta 400 alumnos $… · hasta 800 alumnos $…».
+    def tramos_de_los_planes
+      Subscription::PLANES.each_value
+                          .map { |plan| "hasta #{plan[:hasta]} alumnos $#{plan[:precio]}" }
+                          .join(" · ")
+    end
+    helper_method :tramos_de_los_planes
   end
 end

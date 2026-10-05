@@ -23,6 +23,19 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.13.0 — 5 de octubre de 2026
+
+- **Cambian los precios de la suscripción.** Los tramos de matrícula son los
+  mismos, y entre planes sigue sin recortarse ninguna función:
+
+  ```
+     Inicial     hasta 150 alumnos     39 $ al mes     (antes 30)
+     Estándar    hasta 400 alumnos     79 $ al mes     (antes 60)
+     Grande      hasta 800 alumnos    119 $ al mes     (antes 90)
+  ```
+
+---
+
 ## 1.12.0 — 5 de octubre de 2026
 
 - **Los correos de SIGA ahora se ven como del colegio.** Llevan su escudo, su

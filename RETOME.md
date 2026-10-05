@@ -3,32 +3,44 @@
 ## Dónde está cada cosa
 
 ```
-   PRODUCCIÓN                        1.11.2 · cf5cf90 · sin colegios cargados
-   origin/main  =  main              cf5cf90 · tags v1.11.0, v1.11.1 y v1.11.2 subidos
-   fix/el-aviso-de-colegio-nuevo     1.11.3 · sale de main · en local · NADA subido
-   feat/correos-con-identidad        1.12.0 · va ENCIMA de la anterior · en local
+   PRODUCCIÓN                  1.12.0 · 0f9a14a · sin colegios cargados
+   origin/main  =  main        0f9a14a · tags hasta v1.12.0 subidos
+   feat/precios-39-79-119      1.13.0 · sale de main · en local · NADA subido
 ```
 
-⚠️ **1.11.0, 1.11.1 y 1.11.2 están cerradas**: mezcladas (PR #49 y #50) y
+⚠️ **De la 1.11.0 a la 1.12.0 están cerradas**: mezcladas (PR #49 a #52) y
 desplegadas el 5 de octubre. Nada se sube sin que Daniel lo diga.
 
-## 1.11.3 — el aviso a SIGA de «colegio nuevo», en su rama
+## 1.13.0 — los precios, en su rama
 
-Registrarse manda dos correos: la bienvenida a quien se registró y el aviso al
-equipo de SIGA. El segundo no salía desde el 2 de septiembre —`MOR-208` borró
-su línea— y nadie lo notó porque el test exigía «un correo». Repuesto, con un
-test que cuenta los dos. `SIGA_AVISOS_EMAIL` **sí** está puesta en producción.
+Daniel, 5 de octubre: *«Los costos, vamos a subirlo a $39, $79 y $119»*.
 
 ```
-   ▸ que Daniel la revise · subirla · PR · tag v1.11.3 · desplegar   ← cuando lo diga
-   ▸ después de desplegar: `rake avisos:probar`, y que el correo llegue
+   Inicial     hasta 150 alumnos     30  →   39 $ al mes
+   Estándar    hasta 400 alumnos     60  →   79
+   Grande      hasta 800 alumnos     90  →  119
 ```
 
-## 1.12.0 — los correos, con identidad, en su rama
+Es un número por plan en `Subscription::PLANES`, y de ahí lo leen la portada,
+la descripción y la ficha para buscadores, y el panel de `/siga`. Lo que
+apareció al hacerlo: la nota al pie de ese panel decía «$25 · $50 · $90» —la
+tercera copia escrita a mano que se queda atrás—. Ya sale de la tabla, y
+`los_precios_de_un_solo_lugar_test` cambia los precios por tres que no existen
+y exige que cada pantalla diga esos.
 
-Daniel, 5 de octubre, con el correo de recuperar la contraseña delante: *«Esto
-no parece para nada un correo institucional de SIGA»*. Siete de los ocho salían
-sin cabecera ni pie. Ahora hay UNA plantilla, y cada correo dice de quién es:
+```
+   ▸ que Daniel la revise · subirla · PR · tag v1.13.0 · desplegar   ← cuando lo diga
+   ▸ FUERA DEL REPO, y es de Daniel: `references/Proyecto SIGA.pdf` todavía dice
+     25 · 50 · 90, con «Básico» y «Premium», el pago anual y las comisiones
+   ▸ la base LOCAL: las suscripciones sembradas guardan el precio viejo (cada
+     una lo congela al abrirse). En producción no hay ninguna.
+```
+
+## 1.12.0 y 1.11.3, ya en producción
+
+**1.12.0** — los correos, con identidad. Daniel: *«Esto no parece para nada un
+correo institucional de SIGA»*. Ahora hay UNA plantilla, y cada correo dice de
+quién es:
 
 ```
    DEL COLEGIO   activar el acceso · boletín disponible · mensaje del colegio
@@ -38,16 +50,27 @@ sin cabecera ni pie. Ahora hay UNA plantilla, y cada correo dice de quién es:
 ```
 
 Spec: `docs/specs/correos-con-identidad.md`. La convención, en `CLAUDE.md`
-(«Los correos: una plantilla…»).
+(«Los correos: una plantilla…»). Daniel lo vio con un envío real desde
+producción el 5 de octubre —Gmail en el teléfono y en la computadora— y lo dio
+por bueno: carga el logo, y «MANAGE NOTIFICATIONS» ya es «Administrar avisos».
+
+**1.11.3** — el aviso a SIGA de «colegio nuevo» no salía desde el 2 de
+septiembre (`MOR-208` borró su línea). `SIGA_AVISOS_EMAIL` sí está puesta.
 
 ```
-   ▸ que Daniel los MIRE              /rails/mailers/correos_de_siga, con el servidor local
-   ▸ subir las dos ramas · PR · tags · desplegar                    ← cuando lo diga
-   ▸ SOLO SE VE EN PRODUCCIÓN, con un envío real a Gmail:
-       · que carguen el escudo y el logo de SIGA
-       · que «MANAGE NOTIFICATIONS» ya no salga y esté «Administrar avisos»
-       · cómo queda en Gmail web y en el teléfono (el modo oscuro, sobre todo)
-       · `rake avisos:probar`, para el aviso de colegio nuevo
+   QUEDA ABIERTO DE LOS CORREOS
+   ▸ «Administrar avisos» abre la página de ElasticEmail «Cancelar suscripción
+     de TODAS las listas», con un solo botón. Según su documentación, quien lo
+     pulse queda «Unsubscribed» —un estado que «no puede recibir correos»— y
+     eso incluiría el de recuperar la contraseña. NO está probado. El riesgo
+     ya existía con el enlace en inglés; ahora se lee, así que se pulsa más.
+     Lo arregla un ajuste de la CUENTA (Settings ▸ Unsubscribe ▸ «Allow
+     contacts to opt into transactional email only»), que es de Daniel y la
+     comparten otros tres sistemas.
+   ▸ el aviso de «colegio nuevo» se verá con el primer registro real:
+     `rake avisos:probar` no corre en producción porque no hay colegios
+   ▸ en modo oscuro el programa de correo invierte los colores (la cabecera
+     sale crema y no azul). Se lee; no se tocó.
 ```
 
 ## Las 1.11.1 y 1.11.2, ya en producción

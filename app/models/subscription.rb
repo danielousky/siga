@@ -42,22 +42,35 @@ class Subscription < ApplicationRecord
     portal: "El portal de los representantes"
   }.freeze
 
-  # ⚠️ Los precios subieron de 25/50/90 a 30/60/90 (septiembre de 2026), y las
-  # etiquetas dejaron de ser «Básico/Premium»: son nombres de SaaS gringo, y
-  # «Premium» además sugiere funciones que el plan NO trae aparte —entre planes
-  # no se recorta nada, lo único que cambia es la matrícula—.
+  # ⚠️ Los precios, y cuándo cambió cada uno. Los tramos de matrícula no se
+  # movieron nunca:
+  #
+  #     hasta septiembre de 2026      25 · 50 · 90
+  #     septiembre de 2026            30 · 60 · 90
+  #     5 de octubre de 2026          39 · 79 · 119
+  #
+  # En septiembre las etiquetas además dejaron de ser «Básico/Premium»: son
+  # nombres de SaaS gringo, y «Premium» sugiere funciones que el plan NO trae
+  # aparte —entre planes no se recorta nada, lo único que cambia es la
+  # matrícula—.
   #
   # El colegio promedio venezolano tiene ~360 alumnos, así que el plan que
   # define la economía del negocio es el ESTÁNDAR y no el de entrada: por
   # debajo de 150 alumnos hay muy pocos colegios privados.
   #
-  # Esta tabla es la ÚNICA fuente. La portada la lee, el panel de SIGA la lee
-  # (antes tenía su propia copia, con los precios viejos) y `portada_publica_test`
-  # comprueba que la pantalla no los escriba a mano.
+  # Esta tabla es la ÚNICA fuente: subir un precio es cambiar un número acá. La
+  # leen la portada, la descripción y la ficha para buscadores, y el panel de
+  # SIGA. Lo cuida `los_precios_de_un_solo_lugar_test`, que los cambia por
+  # tres que no existen y mira que cada pantalla diga esos.
+  #
+  # ⚠️ Y subirlo NO le cambia la factura a nadie: cada suscripción guarda su
+  # `precio_mensual` el día que se abre, y solo se mueve editándola en la
+  # Cartera. Es lo mismo que pasa con la matrícula — se observa siempre, se
+  # cobra al renovar.
   PLANES = {
-    basico:   { hasta: 150, precio: 30, etiqueta: "Inicial" },
-    estandar: { hasta: 400, precio: 60, etiqueta: "Estándar" },
-    premium:  { hasta: 800, precio: 90, etiqueta: "Grande" }
+    basico:   { hasta: 150, precio: 39,  etiqueta: "Inicial" },
+    estandar: { hasta: 400, precio: 79,  etiqueta: "Estándar" },
+    premium:  { hasta: 800, precio: 119, etiqueta: "Grande" }
   }.freeze
 
   ETIQUETAS_ESTADO = {
