@@ -314,6 +314,35 @@ class ListaDeAlumnosXlsx
     Rails.logger.warn("[lista-de-alumnos] sin escudo: #{e.class} — #{e.message}")
   end
 
+  # El escudo reducido, en un archivo temporal que dura lo que dura esta lista.
+  #
+  # ## ⚠️ Se reduce ACÁ, y no pidiéndole una variante a Active Storage
+  #
+  # Estuvo escrito `logo.variant(…).processed.download`, que es lo que la
+  # documentación enseña, y dentro de una petición de SIGA eso no puede andar:
+  #
+  #     variante nueva   ──►  Rails la guarda al CONFIRMAR la transacción
+  #     en SIGA          ──►  la transacción es la petición entera, por el RLS
+  #                           (`con_el_colegio_de_la_sesion`)
+  #
+  #     1 · `.download`  la miniatura todavía no está guardada → no hay archivo
+  #                      → la lista sale SIN escudo, y esto lo tapa el `rescue`
+  #     2 · al terminar  Rails va a guardarla desde un temporal que ya cerró
+  #                      → `IOError: closed stream`, y la descarga es un 500
+  #     3 · desde ahí    el registro de la variante existe y su archivo no:
+  #                      ya no falla nada, y el escudo no sale nunca más
+  #
+  # Lo encontró Daniel el 5 de octubre de 2026 pulsando «Descargar las listas»
+  # con el colegio de la demostración, que tiene escudo. Los tests de la lista
+  # no le ponían ninguno, así que el camino entero estaba sin ejercitar — y con
+  # escudo es como está todo colegio de verdad.
+  #
+  # `Variation#transform` hace la misma reducción con el mismo procesador, sin
+  # registro y sin nada pendiente para después: entra un archivo y sale otro.
+  #
+  # ⚠️ La regla general: **en una petición, «después de confirmar» es cuando ya
+  # terminó**. Lo que se adjunta no se puede leer en la misma petición, y lo
+  # que se calcula para usar ahora no se le encarga a un `after_commit`.
   def archivo_del_escudo
     return @archivo_del_escudo if defined?(@archivo_del_escudo)
 
@@ -325,12 +354,22 @@ class ListaDeAlumnosXlsx
       # `caxlsx` lee el archivo al armar el `.xlsx`, no al declararlo, y un
       # temporal sin referencia lo borra el recolector antes de esa lectura.
       @temporal = Tempfile.new([ "escudo", ".png" ], binmode: true)
-      @temporal.write(logo.variant(resize_to_limit: [ 128, 128 ], format: :png).processed.download)
+      logo.blob.open do |original|
+        miniatura.transform(original) { |reducido| IO.copy_stream(reducido, @temporal) }
+      end
       @temporal.flush
       @temporal.path
-    rescue StandardError => e
+    # ⚠️ `LoadError` también, y a propósito: es lo que levanta `ruby-vips` cuando
+    # `libvips` no está instalada, y NO es un `StandardError`. Sin nombrarlo, la
+    # promesa de arriba —«si `libvips` no está, la lista sale igual»— era falsa
+    # justo en ese caso: la descarga entera se caía por un escudo.
+    rescue StandardError, LoadError => e
       Rails.logger.warn("[lista-de-alumnos] no se pudo preparar el escudo: #{e.class} — #{e.message}")
       nil
     end
   end
+
+  # 128 px para una imagen que se muestra a 64: el doble, para que no se vea
+  # borrosa en una pantalla de alta densidad ni al imprimir.
+  def miniatura = ActiveStorage::Variation.wrap(resize_to_limit: [ 128, 128 ], format: :png)
 end

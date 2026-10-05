@@ -48,8 +48,18 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      # ⚠️ `libvips` no es opcional: es con lo que se encoge el comprobante de un
+      # pago y el escudo de la lista de alumnos, y sus tests la usan de verdad.
+      # Sin ella `ruby-vips` levanta `LoadError: Could not open library
+      # 'vips.so.42'` y la suite queda en rojo por el entorno, no por el código —
+      # que es como estuvo desde que existe `EncogeElVoucher`.
+      #
+      # Se pide por `libvips-tools`, que arrastra la biblioteca con el nombre
+      # que tenga en esa versión de Ubuntu: `libvips42` hasta la 22.04,
+      # `libvips42t64` desde la 24.04. El `Dockerfile` la nombra directo porque
+      # ahí la imagen base está fija.
       - name: Dependencias del sistema
-        run: sudo apt-get update && sudo apt-get install --yes libpq-dev
+        run: sudo apt-get update && sudo apt-get install --yes libpq-dev libvips-tools
 
       # ⚠️ Este paso y el siguiente son el motivo por el que el CI de este
       # proyecto no es el genérico de Rails.

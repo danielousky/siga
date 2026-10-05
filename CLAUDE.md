@@ -453,6 +453,24 @@ El diagnóstico original, con lo que quedó de cada punto:
 3. **El esquema va en `structure.sql`.** `schema.rb` no sabe representar `CREATE POLICY`: el primer
    `db:prepare` regeneraría el esquema sin RLS, en silencio.
 
+⚠️ **Y una consecuencia que muerde lejos de acá: en una petición, «después de confirmar» es
+cuando ya terminó.** Como todo corre dentro de UNA transacción, cualquier `after_commit` espera
+al final de la petición — y Active Storage guarda así los archivos.
+
+```
+   logo.variant(…).processed.download     lo que enseña la documentación de Rails
+        │
+        ├─ .download   la miniatura todavía no está guardada  →  FileNotFoundError
+        └─ al cerrar   Rails la guarda desde un temporal que ya cerró  →  IOError: closed stream
+```
+
+«Descargar las listas» daba un 500 en todo colegio con escudo, y antes de eso el Excel salía
+**sin** escudo en silencio, porque el primer error lo tapaba un `rescue`. Estuvo así desde que
+existe la descarga: ningún test le ponía escudo al colegio. Ahora la miniatura se calcula con
+`ActiveStorage::Variation#transform`, que no guarda nada ni deja nada pendiente.
+**Lo que se adjunta no se lee en la misma petición, y lo que se necesita ahora no se le encarga
+a un `after_commit`.** Los PDF no lo sufren: `School#imagen_para_pdf` baja el original.
+
 **Los jobs** (`MOR-88`): un worker no tiene petición, así que no hereda nada. El `school_id` se
 serializa en el payload **al encolar**, que es el único momento en que el contexto es un dato
 confiable, y el concern `CarriesSchool` lo restablece antes del `perform`. Por defecto un job
