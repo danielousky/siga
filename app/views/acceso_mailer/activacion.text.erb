@@ -1,0 +1,14 @@
+Active su acceso a SIGA
+
+Hola, <%= Normaliza.titulo(@usuario.first_name) %>:
+
+<%= @colegio.name %> registró su acceso a SIGA, donde puede consultar las notas,
+la asistencia y los boletines de sus representados.
+
+Elegir mi contraseña y entrar: <%= @url %>
+
+El enlace sirve una sola vez y vence en <%= @horas %> horas. Si vence, pídale uno
+nuevo al colegio: no se pierde nada.
+
+Si no reconoce este mensaje, ignórelo. Nadie puede entrar a la cuenta hasta que
+alguien abra ese enlace y elija una contraseña.

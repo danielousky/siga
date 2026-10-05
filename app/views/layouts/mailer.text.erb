@@ -1,0 +1,19 @@
+<%# El pie de la versión en texto: de quién es el correo, y cómo ubicarlo.
+    ⚠️ ERB y no Haml, por lo mismo que las plantillas de texto: Haml no admite
+    líneas con sangría debajo de texto plano. %><%= yield %>
+--
+<% if @membrete -%>
+<%= @membrete.name %>
+<% contacto = contacto_del_colegio(@membrete) -%>
+<% if contacto.present? -%>
+<%= contacto %>
+<% end -%>
+Enviado con SIGA · <%= root_url %>
+<% else -%>
+SIGA · Sistema Integrado de Gestión Académica
+<%= root_url %>
+<% end -%>
+<% if sale_por_elastic_email? -%>
+
+Administrar avisos: {unsubscribe}
+<% end -%>

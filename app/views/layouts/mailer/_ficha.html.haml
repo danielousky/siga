@@ -1,0 +1,13 @@
+-# Un logo sobre su ficha blanca, de 60 × 60.
+-#
+-# ⚠️ El ancho y el alto van ESCRITOS, y no solo en el estilo: Outlook dibuja una
+-# imagen sin medidas a su tamaño real, que acá es el doble.
+-#
+-# ⚠️ El `alt` lleva letra y color: con las imágenes bloqueadas es lo que se lee
+-# dentro de la ficha, y sin estilo sale en la tipografía por defecto del cliente.
+%table{role: "presentation", cellpadding: "0", cellspacing: "0", border: "0"}
+  %tr
+    %td{width: "60", height: "60", align: "center", valign: "middle", bgcolor: "#ffffff",
+        style: "width:60px; height:60px; background:#ffffff; border-radius:10px; line-height:0;"}
+      = image_tag direccion, alt: alt, width: ancho, height: alto,
+                  style: "display:inline-block; width:#{ancho}px; height:#{alto}px; border:0; outline:none; font-family:#{CorreoHelper::SANS}; font-size:10px; line-height:1.2; color:#{CorreoHelper::TINTA};"

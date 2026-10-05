@@ -1,0 +1,35 @@
+-# El pie: cómo ubicar a quien escribe, y a quién se le envió.
+-#
+-# ⚠️ El enlace de avisos reemplaza al «MANAGE NOTIFICATIONS» que ElasticEmail
+-# le agrega a todo correo. Ver `CorreoHelper#enlace_de_avisos`.
+- letra  = "font-family:#{CorreoHelper::SANS}; font-size:12px; line-height:1.6; color:#{CorreoHelper::SUAVE};"
+- enlace = "color:#{CorreoHelper::CIELO}; text-decoration:none;"
+%tr
+  %td{style: "background:#{CorreoHelper::TINTA}; padding:22px 24px 20px;"}
+    %table{role: "presentation", width: "100%", cellpadding: "0", cellspacing: "0", border: "0"}
+      %tr
+        - if colegio
+          %td{valign: "top", style: letra}
+            %div{style: "font-size:13px; font-weight:600; color:#ffffff;"}= colegio.name
+            - contacto = contacto_del_colegio(colegio)
+            - if contacto.present?
+              %div= contacto
+          %td{align: "right", valign: "top", style: "#{letra} padding-left:16px; white-space:nowrap;"}
+            Enviado con
+            %strong{style: "color:#ffffff; letter-spacing:2px;"} SIGA
+        - else
+          %td{valign: "top", style: letra}
+            %div{style: "font-size:13px; font-weight:600; color:#ffffff;"} SIGA · Sistema Integrado de Gestión Académica
+            %div Gestión académica para colegios de Venezuela
+          %td{align: "right", valign: "top", style: "#{letra} padding-left:16px; white-space:nowrap;"}
+            = link_to root_url.sub(%r{\Ahttps?://}, "").chomp("/"), root_url, style: enlace
+
+    - destinatarios = Array(message.to).join(", ")
+    - avisos = enlace_de_avisos(estilo: enlace)
+    - if destinatarios.present? || avisos
+      %div{style: "margin-top:14px; padding-top:12px; border-top:1px solid #1d2c4d; font-family:#{CorreoHelper::SANS}; font-size:11px; line-height:1.6; color:#8296b8;"}
+        - if destinatarios.present?
+          Este mensaje se envió a
+          = succeed "." do
+            = destinatarios
+        = avisos
