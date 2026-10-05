@@ -1,6 +1,6 @@
 .card-academic
-  = render "shared/cabecera", titulo: "Editar materia"
+  = render "shared/cabecera", titulo: "Editar #{Vocabulario::AREA.downcase}"
 
   = render "form", subject: @subject, volver: subjects_path
 
-  = render "shared/borrar", registro: @subject, aviso: "La materia desaparece del catálogo."
+  = render "shared/borrar", registro: @subject, aviso: "El área desaparece del catálogo."

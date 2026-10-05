@@ -511,7 +511,7 @@ class CompetenciesController < ApplicationController
     return if profesor?
 
     redirect_to competencies_path,
-                alert: "El plan de evaluación lo escribe el profesor que dicta la materia."
+                alert: "El plan de evaluación lo escribe el profesor que dicta el área."
   end
 
   def puede_supervisar? = can_manage_sections?

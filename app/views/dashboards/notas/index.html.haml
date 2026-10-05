@@ -18,7 +18,7 @@
         %p= @vista_anual ? "Promedio anual" : "Promedio del lapso"
       .stat-card
         %h3= @materias.count { |m| m.nota_lapso.present? || (@vista_anual && m.libro&.final_score) }
-        %p Materias con nota
+        %p Áreas con nota
       .stat-card
         %h3= @pendientes_totales
         %p= @pendientes_totales == 1 ? "Evaluación sin corregir" : "Evaluaciones sin corregir"
@@ -36,7 +36,7 @@
       %table.table-academic.table-academic--tarjetas
         %thead
           %tr
-            %th= Subject.model_name.human
+            %th= Vocabulario::AREA_CORTA
             %th Anual
             %th Reparación
             %th Definitiva
@@ -118,7 +118,7 @@
       .card-academic
         = render "shared/cabecera", titulo: "Todavía sin evaluaciones", nivel: 2
         %p.nota-ayuda
-          El profesor no cargó evaluaciones de estas materias para
+          El profesor no cargó evaluaciones de estas áreas para
           = succeed "." do
             = @lapso&.name&.downcase
           No es que estés sin nota: todavía no hay nada que calificar.

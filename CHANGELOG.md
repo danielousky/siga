@@ -23,6 +23,18 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.11.2 — 5 de octubre de 2026
+
+- **«Materia» pasó a «Área de aprendizaje» en todo el sistema**: las pantallas,
+  los avisos, la puesta en marcha, el buscador y lo que el importador muestra.
+  Es la palabra con la que el colegio llena las planillas del ministerio, y ya
+  estaba en el menú y en el boletín.
+- Las plantillas de Excel del importador no cambian: sus columnas se siguen
+  llamando «MATERIA» y «CÓDIGO DE LA MATERIA», así que la planilla que un
+  colegio ya tenga llenada sirve igual.
+
+---
+
 ## 1.11.1 — 5 de octubre de 2026
 
 - Arreglado: **«Descargar las listas» fallaba en todo colegio con escudo

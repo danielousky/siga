@@ -11,7 +11,7 @@ class PensumInterpretado
   include InterpretaLaPlanilla
 
   QUE_ES_UNA_FILA = %w[materia materias].freeze
-  COLUMNA_DE_FILA = "Materia y profesor".freeze
+  COLUMNA_DE_FILA = "Área y profesor".freeze
 
   # Cuando el colegio no maneja departamentos. Es un agrupador de listados, no
   # un dato académico, así que inventar uno vacío es mejor que exigirlo.
@@ -86,7 +86,7 @@ class PensumInterpretado
 
         repetida.aviso("#{primera.materia} en #{etiqueta(primera.seccion)} ya la dicta " \
                        "#{primera.nombre_del_profesor} en la fila #{primera.numero}. " \
-                       "Una sección tiene un solo profesor por materia, así que esta no se carga.")
+                       "Una sección tiene un solo profesor por área, así que esta no se carga.")
       end
     end
   end

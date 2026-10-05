@@ -18,7 +18,7 @@ class HistorialInterpretado
   include InterpretaLaPlanilla
 
   QUE_ES_UNA_FILA = %w[calificación calificaciones].freeze
-  COLUMNA_DE_FILA = "Alumno y materia".freeze
+  COLUMNA_DE_FILA = "Alumno y área".freeze
 
   class Fila < InterpretaLaPlanilla::Fila
     attr_reader :alumno, :lapsos
@@ -189,7 +189,7 @@ class HistorialInterpretado
     fila.materia = @materias.find { |m| Normaliza.limpiar(m.code) == buscada } ||
                    @materias.find { |m| Normaliza.limpiar(m.name) == buscada }
 
-    return fila.error("La materia «#{fila.nombre_de_materia}» no existe en el colegio") if fila.materia.nil?
+    return fila.error("El área «#{fila.nombre_de_materia}» no existe en el colegio") if fila.materia.nil?
     return if fila.seccion.nil?
 
     return if @pensum.include?([ fila.seccion.grade_id, fila.materia.id ])

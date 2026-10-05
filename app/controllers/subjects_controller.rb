@@ -1,5 +1,5 @@
 class SubjectsController < ApplicationController
-  el_nivel_no_aplica "una materia puede darse en varios niveles"
+  el_nivel_no_aplica "un área de aprendizaje puede darse en varios niveles"
   before_action :set_subject, only: [:show, :edit, :update, :destroy]
 
   # Por nombre o por CÓDIGO: el colegio conoce sus materias por las dos cosas, y
@@ -67,7 +67,7 @@ class SubjectsController < ApplicationController
   def create
     @subject = Subject.new(subject_params)
     if @subject.save
-      redirect_to @subject, notice: "Materia creada exitosamente."
+      redirect_to @subject, notice: "Área de aprendizaje creada exitosamente."
     else
       render :new, status: :unprocessable_entity
     end
@@ -75,7 +75,7 @@ class SubjectsController < ApplicationController
 
   def update
     if @subject.update(subject_params)
-      redirect_to @subject, notice: "Materia actualizada exitosamente."
+      redirect_to @subject, notice: "Área de aprendizaje actualizada exitosamente."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -83,7 +83,7 @@ class SubjectsController < ApplicationController
 
   def destroy
     if @subject.destroy
-      redirect_to subjects_url, notice: "Materia eliminada exitosamente."
+      redirect_to subjects_url, notice: "Área de aprendizaje eliminada exitosamente."
     else
       redirect_to @subject, alert: @subject.errors.full_messages.join(", ")
     end

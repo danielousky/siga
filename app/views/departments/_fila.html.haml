@@ -29,8 +29,8 @@
     -# pantalla.
     = link_to new_subject_path(department_id: department.id),
               class: "btn btn-secondary btn-sm btn-solo-icono",
-              data: { turbo_frame: "_top", tooltip: "Agregar una materia de #{department.name}" },
-              aria: { label: "Agregar una materia de #{department.name}" } do
+              data: { turbo_frame: "_top", tooltip: "Agregar un área de #{department.name}" },
+              aria: { label: "Agregar un área de #{department.name}" } do
       = icono(:materias, tamano: 15)
 
     -# ⚠️ La papelera SOLO si se puede borrar de verdad (MOR-207).
@@ -52,4 +52,4 @@
         = icono(:borrar, tamano: 15)
     - else
       %span.dato-secundario{ data: { tooltip: motivo_para_no_borrar(department) } }
-        = contar(department.subjects.size, "materia", "materias")
+        = contar(department.subjects.size, "área", "áreas")

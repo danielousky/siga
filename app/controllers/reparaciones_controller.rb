@@ -118,7 +118,7 @@ class ReparacionesController < ApplicationController
 
     return if administrador? || dicta?(@seccion, @materia)
 
-    redirect_to reparaciones_path, alert: "Esa materia no es suya en esa sección."
+    redirect_to reparaciones_path, alert: "Esa área no es suya en esa sección."
   end
 
   def dicta?(seccion, materia)

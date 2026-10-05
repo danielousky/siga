@@ -268,6 +268,25 @@ inscripciones, lapsos— se escribe perfecto sin acentos.
 que decía probar. La excepción es `bin/smoke`, que es un cliente HTTP de verdad
 y ahí escribir la URL en español ES la comprobación.
 
+- **«Área de aprendizaje», nunca «materia»**, en lo que alguien lee (`MOR-212`).
+  La palabra vive en `Vocabulario`: larga donde se decide —un título, un
+  aviso—, corta («Área») donde el contexto ya lo dice —una tabla, un contador,
+  el buscador—. Es la del MPPE: un sistema que dice «Materias» obliga al
+  director a traducir en cada pantalla.
+  ⚠️ Lo que NO se lee no cambia: el modelo es `Subject`, la URL `/materias`, las
+  claves `"materias"` de un boletín emitido.
+  ⚠️ Las plantillas de Excel del importador conservan «MATERIA» y «CÓDIGO DE LA
+  MATERIA» —es lo que el colegio escribe en SU planilla— y por eso el error de
+  una celda vacía sigue siendo «Sin materia»: con «Sin área», buscaría una
+  columna que no existe.
+  ⚠️ Cambia la concordancia, así que no se reemplaza a ciegas: «el área» y «un
+  área», pero «esta área» y «la misma área». Y «agrupar las materias por área»
+  pasaba a decir «las áreas por área».
+  ⚠️ Daniel fijó la palabra el 3 de septiembre y el 5 de octubre encontró
+  «MATERIA» en el boletín impreso: estaba escrita a mano en el PDF, y otras
+  cien frases en pantallas y avisos. Lo cuida `nomenclatura_del_mppe_test`, que
+  lee el texto de vistas, mensajes y `es.yml` contra una lista corta de
+  excepciones, cada una con su porqué.
 - Vistas en **Haml**, no ERB
 - Controllers y vistas en español cuando no espejan un modelo (`InicioController`,
   `ArranqueController`); en inglés cuando sí (`StudentsController` ↔ `Student`)

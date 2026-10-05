@@ -4,7 +4,7 @@ class GradeSubjectsController < ApplicationController
   def create
     @grade_subject = @grade.grade_subjects.build(grade_subject_params)
     if @grade_subject.save
-      volver notice: "Materia asignada exitosamente."
+      volver notice: "Área de aprendizaje asignada exitosamente."
     else
       volver alert: @grade_subject.errors.full_messages.join(", ")
     end
@@ -13,7 +13,7 @@ class GradeSubjectsController < ApplicationController
   def destroy
     @grade_subject = @grade.grade_subjects.find(params[:id])
     @grade_subject.destroy
-    volver notice: "Materia removida exitosamente."
+    volver notice: "Área de aprendizaje removida exitosamente."
   end
 
   private

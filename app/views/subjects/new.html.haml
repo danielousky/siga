@@ -1,4 +1,4 @@
 .card-academic
-  = render "shared/cabecera", titulo: "Registrar materia"
+  = render "shared/cabecera", titulo: "Registrar #{Vocabulario::AREA.downcase}"
 
   = render "form", subject: @subject, volver: subjects_path

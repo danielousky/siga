@@ -23,7 +23,8 @@ es:
   # todas las vistas.
   #
   # "Guardar cambios" además dice mejor lo que hace: la pantalla ya se titula
-  # "Editar materia", así que repetir el sustantivo en el botón es ruido.
+  # "Editar área de aprendizaje", así que repetir el sustantivo en el botón es
+  # ruido.
   helpers:
     submit:
       create: "Crear"
@@ -63,9 +64,12 @@ es:
       evaluation_moment:
         one: Lapso
         other: Lapsos
+      # «Área de aprendizaje», como la llama el MPPE (`Vocabulario`). De acá
+      # salen los mensajes de validación; una tabla, que tiene poco sitio, pide
+      # la forma corta a `Vocabulario::AREA_CORTA`.
       subject:
-        one: Materia
-        other: Materias
+        one: Área de aprendizaje
+        other: Áreas de aprendizaje
       student:
         one: Alumno
         other: Alumnos
@@ -216,7 +220,7 @@ es:
     school: Colegio
     grade: Grado
     section: Sección
-    subject: Materia
+    subject: Área de aprendizaje
     student: Alumno
     teacher: Profesor
     department: Departamento
@@ -253,7 +257,7 @@ es:
     school_id: Colegio
     grade_id: Grado
     section_id: Sección
-    subject_id: Materia
+    subject_id: Área de aprendizaje
     student_id: Alumno
     teacher_id: Profesor
     department_id: Departamento

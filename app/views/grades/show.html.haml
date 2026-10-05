@@ -56,14 +56,14 @@
       muestra.
 
   .card-academic
-    = render "shared/cabecera", titulo: "Materias del grado", nivel: 2
+    = render "shared/cabecera", titulo: "#{Vocabulario::AREAS} del grado", nivel: 2
 
     - if @grade_subjects.any?
       %table.table-academic
         %thead
           %tr
             %th Código
-            %th= Subject.model_name.human
+            %th= Vocabulario::AREA_CORTA
             %th
         %tbody
           - @grade_subjects.each do |gs|
@@ -78,9 +78,9 @@
                             class: "btn btn-danger btn-sm"
     - else
       .empty-state
-        %h3 Sin materias
+        %h3 Sin áreas de aprendizaje
         %p
-          Este grado no tiene materias asignadas todavía, así que sus secciones
+          Este grado no tiene áreas de aprendizaje asignadas todavía, así que sus secciones
           no pueden cargar notas.
 
     - if @available_subjects.any?

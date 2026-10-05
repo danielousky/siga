@@ -3,15 +3,15 @@
 .cifras-de-importacion
   .cifra-de-importacion
     %span.cifra-numero= resultado["materias_creadas"]
-    %span.cifra-que materias nuevas
+    %span.cifra-que áreas nuevas
   - if resultado["materias_reutilizadas"].to_i.positive?
     .cifra-de-importacion
       %span.cifra-numero= resultado["materias_reutilizadas"]
-      %span.cifra-que materias que ya existían
+      %span.cifra-que áreas que ya existían
   .cifra-de-importacion
     %span.cifra-numero= resultado["asignaciones"]
     %span.cifra-que
-      materias asignadas
+      áreas asignadas
       %br
       (una por sección)
   .cifra-de-importacion
@@ -23,7 +23,7 @@
       %span.cifra-que
         profesores que ya existían
         %br
-        (otra materia, u otro colegio)
+        (otra área, u otro colegio)
 
 - if Array(resultado["secciones"]).any?
   %p.dato-secundario

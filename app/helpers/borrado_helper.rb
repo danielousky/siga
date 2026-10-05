@@ -49,7 +49,7 @@ module BorradoHelper
     teacher_sections:     "secciones asignadas",
     evaluation_activities: "evaluaciones",
     sections:             "secciones",
-    subjects:             "materias",
+    subjects:             "áreas de aprendizaje",
     led_sections:         "secciones que guía",
     coordinated_grades:   "grados que coordina",
     evaluation_moments:   "lapsos"

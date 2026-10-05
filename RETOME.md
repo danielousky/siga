@@ -3,14 +3,22 @@
 ## Dónde está cada cosa
 
 ```
-   PRODUCCIÓN                          1.10.1 · 0b1997a · sin colegios cargados
-   origin/main                         0b1997a — lo mismo que producción
-   main, en local                      + 1 commit de Daniel sin subir (el logo sin fondo)
-   feat/certificados-en-documentos     + 14 commits · 1.11.0 · NADA subido
+   PRODUCCIÓN                                    1.11.0 · d2eea70 · sin colegios cargados
+   origin/main  =  main                          d2eea70 · tag v1.11.0 subido
+   fix/las-listas-con-escudo                     1.11.1 · sale de main · en local
+   fix/area-de-aprendizaje-en-todo-el-producto   1.11.2 · va ENCIMA de la anterior · en local
 ```
 
-⚠️ **Nada de 1.11.0 salió de esta máquina.** Ni la rama, ni el tag, ni el
-despliegue: se sube cuando Daniel lo diga.
+⚠️ **La 1.11.0 está cerrada**: Daniel la mezcló y la desplegó el 5 de octubre.
+Las dos de arriba esperan su revisión y **no se ha subido ninguna**. Van
+apiladas: primero la 1.11.1 —un arreglo de producción—, después la 1.11.2.
+
+## 1.11.1 — «Descargar las listas» fallaba con escudo
+
+`IOError: closed stream` en todo colegio con escudo cargado, y antes de eso el
+Excel salía sin él en silencio. La miniatura se pedía como variante de Active
+Storage, que se guarda al confirmar la transacción — y en SIGA la transacción
+es la petición entera. Está contado en `CLAUDE.md § 1`.
 
 ## 1.11.0 — qué trae
 
@@ -27,45 +35,34 @@ despliegue: se sube cuando Daniel lo diga.
 Lo que hay que saber de cómo está hecho vive en `CLAUDE.md § 11` (los
 certificados) y `§ 12` (el boletín en papel). `bin/ci` en verde.
 
-## Lo que falta para cerrarla
-
-```
-   ▸ que Daniel revise los PDF en local        director.bolivar@siga.edu · Documentos
-       1er Año A, 1er lapso      →  una hoja por alumno, con la comparación
-       4to Grado A, 1er lapso    →  dos hojas por alumno, la segunda con las notas y el pie
-   ▸ subir la rama · PR · merge · tag v1.11.0 · desplegar     ← cuando Daniel diga
-```
-
-Daniel, 5 de octubre: **«espera a que la revise»**. No se sube nada hasta que
-lo diga.
-
-## Lo que sigue, ya decidido: barrer «materia» del resto del producto
+## 1.11.2 — «materia» pasa a «área de aprendizaje», en su rama
 
 Daniel, 5 de octubre, al ver «MATERIA» en la cabecera del boletín: *«recuerda
-que son "Área de Aprendizaje" en lugar de "Materia"»*. El boletín —papel y
-pantalla— ya se corrigió en la 1.11.0. Del resto dijo: **sí, en rama aparte**.
+que son "Área de Aprendizaje" en lugar de "Materia"»*. El boletín se corrigió en
+la 1.11.0; del resto dijo **sí, en rama aparte**.
 
 ```
-   ENTRA                                    NO ENTRA
-   ─────                                    ────────
-   55 frases en 26 vistas                   las columnas de las plantillas de Excel
-     «Registrar materia», «Materias del       («MATERIA», «CÓDIGO DE LA MATERIA»):
-     grado», el importador, el portal         son lo que el colegio escribe en SU
-   el nombre del modelo en `es.yml`           planilla
-     («Materia» → de ahí salen los          las claves de los snapshots
-     rótulos de los formularios)            el modelo, la tabla y la URL (MOR-212)
-   los mensajes de los controladores
+   CAMBIÓ                                   SE QUEDA
+   ──────                                   ────────
+   107 frases en 51 archivos                las plantillas de Excel y sus columnas
+     30 vistas · 11 controladores             («MATERIA», «CÓDIGO DE LA MATERIA»)
+     el arranque, el buscador, lo que       «Sin materia», que cita esa columna
+     el importador dice en pantalla         «otra materia», frase del sitio público
+   el nombre del modelo en `es.yml`         el modelo, la tabla, la URL, las claves
 ```
 
-⚠️ **Empieza DESPUÉS de cerrar la 1.11.0**, con su rama y su PR. La palabra
-sale de `Vocabulario` —larga donde se decide, corta donde se confirma— y el
-test tiene que mirar las palabras, como `nomenclatura_del_mppe_test`.
+Lo cuida `nomenclatura_del_mppe_test`: lee el texto de vistas, mensajes y
+`es.yml`, y sus excepciones van una por una, con su porqué.
 
-⚠️ Donde una frase del importador CITA la columna de la planilla, la columna
-se sigue llamando «MATERIA»: ahí no se cambia, o el colegio busca una columna
-que no existe.
+### Lo que falta
 
-⚠️ Falta su tarjeta en Linear: el conector estaba desconectado al decidirlo.
+```
+   ▸ que Daniel las revise · subir las ramas · PR · tags           ← cuando lo diga
+   ▸ EL MANUAL sigue diciendo «materia» en 11 frases, y varias     ← sin tocar
+     capturas muestran el texto viejo. Texto y capturas van juntos:
+     es rehacerlo con `capturar.rb`, no un reemplazo
+   ▸ la tarjeta de Linear (el conector estaba desconectado)
+```
 
 ## Emitir en segundo plano: decidido, y es que no
 

@@ -110,11 +110,11 @@
         -# propone el número correcto y el colegio lo corrige sin esperar un
         -# despliegue.
         .form-group
-          = con_pista "Cuántas materias aplazadas puede llevar un alumno al año siguiente sin repetir el grado." do
-            = f.label :tope_de_arrastre, "Materias que se pueden arrastrar", class: "form-label"
+          = con_pista "Cuántas áreas aplazadas puede llevar un alumno al año siguiente sin repetir el grado." do
+            = f.label :tope_de_arrastre, "Áreas que se pueden arrastrar", class: "form-label"
           = f.number_field :tope_de_arrastre, class: "form-control", min: 0, max: 6
           %p.nota-ayuda
-            Con dos, un alumno que aplazó dos materias pasa de grado y las
+            Con dos, un alumno que aplazó dos áreas pasa de grado y las
             arrastra; con tres, repite. Es lo que usa la promoción de septiembre.
 
         = f.submit "Guardar", class: "btn btn-guardar"

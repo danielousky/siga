@@ -133,6 +133,6 @@ class IndicatorsController < ApplicationController
   def require_profesor!
     return if profesor?
 
-    redirect_to dashboard_path_for_user, alert: "El plan lo escribe el profesor que dicta la materia."
+    redirect_to dashboard_path_for_user, alert: "El plan lo escribe el profesor que dicta el área."
   end
 end

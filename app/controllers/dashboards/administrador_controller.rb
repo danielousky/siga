@@ -97,8 +97,8 @@ class Dashboards::AdministradorController < ApplicationController
     end
     return nil if cuantas.zero?
 
-    { cuantas: cuantas, singular: "sección tiene una materia sin profesor",
-      plural: "secciones tienen alguna materia sin profesor",
+    { cuantas: cuantas, singular: "sección tiene un área sin profesor",
+      plural: "secciones tienen alguna área sin profesor",
       ruta: sections_path }
   end
 

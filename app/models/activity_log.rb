@@ -67,7 +67,7 @@ class ActivityLog < ApplicationRecord
     "documento_de_primaria_emitido" => "Documento de primaria emitido",
     "documento_de_inicial_emitido" => "Documento de Educación Inicial emitido",
     "resumen_final_emitido" => "Resumen Final del Rendimiento emitido",
-    "pensum_importada"     => "Materias y profesores importados",
+    "pensum_importada"     => "Áreas y profesores importados",
     "login"                => "Inicio de sesión",
     "enrollment_created"   => "Inscripción creada",
     # ⚠️ Los pagos. «Reportado» y no «creado»: para la familia el hecho es que

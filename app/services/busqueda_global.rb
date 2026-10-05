@@ -168,7 +168,7 @@ class BusquedaGlobal
            .limit(POR_TIPO)
            .map do |materia|
              Resultado.new(
-               tipo: "Materia",
+               tipo: Vocabulario::AREA_CORTA,
                titulo: materia.name,
                detalle: materia.code,
                ruta: @rutas.subject_path(materia),
