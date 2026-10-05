@@ -55,6 +55,7 @@ class RegistrosController < Devise::RegistrationsController
     # encolado adentro puede correr antes de que termine —o después de que se
     # deshaga— y darle la bienvenida a una cuenta que no existe.
     BienvenidaMailer.cuenta_creada(alta.usuario).deliver_later
+    avisarle_a_siga(alta)
 
     sign_in(resource_name, alta.usuario)
     redirect_to arranque_listo_path, notice: "Listo, #{alta.colegio.name} ya existe."
@@ -95,6 +96,28 @@ class RegistrosController < Devise::RegistrationsController
   end
 
   private
+
+  # El aviso a SIGA de que entró un colegio nuevo (`MOR-158`).
+  #
+  # Son DOS correos por registro y van a dos personas distintas: la bienvenida
+  # le llega a quien se registró; este, al equipo de SIGA, con los datos para
+  # levantar el teléfono.
+  #
+  # ⚠️ Estuvo un mes sin salir. Al juntar el registro en un solo formulario
+  # (`MOR-208`, 2 de septiembre de 2026) se borró la línea que lo mandaba, y el
+  # test solo exigía «un correo»: la mitad que faltaba no se notó. La plantilla
+  # y el mailer siguieron ahí, que es lo que hacía parecer que funcionaba.
+  #
+  # ⚠️ Se encola DENTRO del colegio nuevo, y no es ceremonia. En este momento la
+  # petición no tiene colegio —quien se registra todavía no inició sesión— y un
+  # job se lleva el que haya al encolarlo (`CarriesSchool`). Sin esto el aviso
+  # corre sin colegio, el RLS le devuelve cero grados, y llega diciendo
+  # «todavía no eligió sus niveles» de un colegio que sí los eligió.
+  def avisarle_a_siga(alta)
+    Current.en_el_colegio(alta.colegio) do
+      PlataformaMailer.colegio_registrado(alta.colegio, alta.usuario).deliver_later
+    end
+  end
 
   # El colegio ya puesto cuando se llega desde el directorio público.
   #

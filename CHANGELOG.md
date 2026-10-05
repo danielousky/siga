@@ -23,6 +23,14 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.11.3 — 5 de octubre de 2026
+
+- Arreglado: **el equipo de SIGA vuelve a enterarse cuando un colegio nuevo se
+  registra.** El aviso había dejado de salir el 2 de septiembre; para el colegio
+  no cambia nada.
+
+---
+
 ## 1.11.2 — 5 de octubre de 2026
 
 - **«Materia» pasó a «Área de aprendizaje» en todo el sistema**: las pantallas,

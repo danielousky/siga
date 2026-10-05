@@ -3,22 +3,49 @@
 ## Dónde está cada cosa
 
 ```
-   PRODUCCIÓN                                    1.11.0 · d2eea70 · sin colegios cargados
-   origin/main  =  main                          d2eea70 · tag v1.11.0 subido
-   fix/las-listas-con-escudo                     1.11.1 · sale de main · en local
-   fix/area-de-aprendizaje-en-todo-el-producto   1.11.2 · va ENCIMA de la anterior · en local
+   PRODUCCIÓN                        1.11.2 · cf5cf90 · sin colegios cargados
+   origin/main  =  main              cf5cf90 · tags v1.11.0, v1.11.1 y v1.11.2 subidos
+   fix/el-aviso-de-colegio-nuevo     1.11.3 · en local · NADA subido
+   feat/correos-con-identidad        1.12.0 · lo que sigue (plan aprobado el 5 de octubre)
 ```
 
-⚠️ **La 1.11.0 está cerrada**: Daniel la mezcló y la desplegó el 5 de octubre.
-Las dos de arriba esperan su revisión y **no se ha subido ninguna**. Van
-apiladas: primero la 1.11.1 —un arreglo de producción—, después la 1.11.2.
+⚠️ **1.11.0, 1.11.1 y 1.11.2 están cerradas**: mezcladas (PR #49 y #50) y
+desplegadas el 5 de octubre. Nada se sube sin que Daniel lo diga.
 
-## 1.11.1 — «Descargar las listas» fallaba con escudo
+## 1.11.3 — el aviso a SIGA de «colegio nuevo», en su rama
 
-`IOError: closed stream` en todo colegio con escudo cargado, y antes de eso el
-Excel salía sin él en silencio. La miniatura se pedía como variante de Active
-Storage, que se guarda al confirmar la transacción — y en SIGA la transacción
-es la petición entera. Está contado en `CLAUDE.md § 1`.
+Registrarse manda dos correos: la bienvenida a quien se registró y el aviso al
+equipo de SIGA. El segundo no salía desde el 2 de septiembre —`MOR-208` borró
+su línea— y nadie lo notó porque el test exigía «un correo». Repuesto, con un
+test que cuenta los dos. `SIGA_AVISOS_EMAIL` **sí** está puesta en producción.
+
+```
+   ▸ que Daniel la revise · subirla · PR · tag v1.11.3 · desplegar   ← cuando lo diga
+   ▸ después de desplegar: `rake avisos:probar`, y que el correo llegue
+```
+
+## Lo que sigue — los correos, con identidad (1.12.0)
+
+Daniel, 5 de octubre, con el correo de recuperar la contraseña delante: *«Esto
+no parece para nada un correo institucional de SIGA»*. Siete de los ocho correos
+salen sin cabecera ni pie. El plan está aprobado, con cuatro decisiones suyas:
+
+```
+   1 · el correo de la contraseña   del colegio si la persona es de uno solo; si no, de SIGA
+   2 · la tipografía                la misma en todos los clientes (las de la app)
+   3 · el fondo del mensaje         azul muy suave (#e8eef5)
+   4 · el aviso de colegio nuevo    se repone en su propio PR, antes  ← es la 1.11.3
+```
+
+Primer paso: el spec, `docs/specs/correos-con-identidad.md`.
+
+## Las 1.11.1 y 1.11.2, ya en producción
+
+**1.11.1** — «Descargar las listas» daba `IOError: closed stream` en todo
+colegio con escudo cargado, y antes de eso el Excel salía sin él en silencio.
+La miniatura se pedía como variante de Active Storage, que se guarda al
+confirmar la transacción — y en SIGA la transacción es la petición entera. Está
+contado en `CLAUDE.md § 1`.
 
 ## 1.11.0 — qué trae
 
@@ -35,7 +62,7 @@ es la petición entera. Está contado en `CLAUDE.md § 1`.
 Lo que hay que saber de cómo está hecho vive en `CLAUDE.md § 11` (los
 certificados) y `§ 12` (el boletín en papel). `bin/ci` en verde.
 
-## 1.11.2 — «materia» pasa a «área de aprendizaje», en su rama
+**1.11.2** — «materia» pasó a «área de aprendizaje» en todo el producto.
 
 Daniel, 5 de octubre, al ver «MATERIA» en la cabecera del boletín: *«recuerda
 que son "Área de Aprendizaje" en lugar de "Materia"»*. El boletín se corrigió en
@@ -54,14 +81,16 @@ la 1.11.0; del resto dijo **sí, en rama aparte**.
 Lo cuida `nomenclatura_del_mppe_test`: lee el texto de vistas, mensajes y
 `es.yml`, y sus excepciones van una por una, con su porqué.
 
-### Lo que falta
+### Lo que quedó sin hacer
 
 ```
-   ▸ que Daniel las revise · subir las ramas · PR · tags           ← cuando lo diga
-   ▸ EL MANUAL sigue diciendo «materia» en 11 frases, y varias     ← sin tocar
-     capturas muestran el texto viejo. Texto y capturas van juntos:
-     es rehacerlo con `capturar.rb`, no un reemplazo
-   ▸ la tarjeta de Linear (el conector estaba desconectado)
+   ▸ EL MANUAL sigue diciendo «materia» en 11 frases, y varias capturas
+     muestran el texto viejo. Texto y capturas van juntos: es rehacerlo con
+     `capturar.rb`, no un reemplazo
+   ▸ las tarjetas de Linear (el conector estaba desconectado)
+   ▸ el CI de GitHub sigue en rojo por el humo: `/salud` da 503 porque los
+     seeds dejan trabajos en cola y allá no corre ningún worker. Los tests ya
+     pasan allá (se instaló `libvips`)
 ```
 
 ## Emitir en segundo plano: decidido, y es que no
