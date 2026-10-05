@@ -28,6 +28,88 @@ class ListaDeAlumnosEnExcelTest < ActionDispatch::IntegrationTest
     Roo::Excelx.new(archivo.path)
   end
 
+  # Los archivos de imagen que el libro lleva adentro, con su peso. Un `.xlsx`
+  # es un zip, y las imágenes viven en `xl/media/`.
+  #
+  # ⚠️ El resultado se saca de ADENTRO del bloque: `open_buffer` con bloque no
+  # devuelve lo que el bloque calcula.
+  def imagenes_de(cuerpo)
+    imagenes = nil
+    Zip::File.open_buffer(StringIO.new(cuerpo)) do |zip|
+      imagenes = zip.entries.select { |entrada| entrada.name.start_with?("xl/media/") }.to_h { |e| [ e.name, e.size ] }
+    end
+    imagenes
+  end
+
+  def ponerle_escudo_al_colegio
+    con_el_colegio(@a.colegio) do
+      @a.colegio.logo.attach(io: File.open(Rails.root.join("app/assets/images/escudo_vzla.png")),
+                             filename: "escudo.png", content_type: "image/png")
+    end
+  end
+
+  # ── Con el escudo del colegio ─────────────────────────────────────────────
+  #
+  # Daniel, 5 de octubre de 2026, al pulsar «Descargar las listas»: un
+  # `IOError: closed stream` en vez del Excel. El colegio de la demostración
+  # tenía escudo; los de estos tests, hasta hoy, ninguno — y con escudo es como
+  # está todo colegio de verdad.
+  #
+  # ⚠️ Lo que fallaba no era armar el libro: era CERRAR LA PETICIÓN. La
+  # miniatura del escudo se pedía como una variante de Active Storage, que se
+  # guarda al confirmar la transacción — y acá la transacción es la petición
+  # entera (`con_el_colegio_de_la_sesion`). Para entonces el archivo temporal
+  # de la miniatura ya no existía. Y ni siquiera llegaba a usarse: el libro
+  # salía SIN escudo, porque al pedirla todavía no estaba guardada.
+  test "con escudo cargado, la lista se descarga por las dos puertas — y lo lleva" do
+    ponerle_escudo_al_colegio
+    original = @a.colegio.logo.blob.byte_size
+
+    { "una sección" => alumnos_section_path(@a.seccion, format: :xlsx),
+      "el colegio"  => sections_path(format: :xlsx) }.each do |cual, ruta|
+      get ruta
+
+      assert_response :success, "la descarga de #{cual} se cayó con el escudo cargado"
+      assert_equal EXCEL, response.media_type
+
+      imagenes = imagenes_de(response.body)
+      assert_equal 1, imagenes.size, "la lista de #{cual} salió sin el escudo"
+      # Reducido: el que sube un colegio pesa hasta 2 MB, y va uno por hoja.
+      assert_operator imagenes.values.first, :<, original / 2,
+                      "el escudo de la lista de #{cual} va sin reducir: #{imagenes.values.first} de #{original} bytes"
+    end
+  end
+
+  # ⚠️ Nada de lo que arma la lista puede quedar pendiente «para cuando se
+  # confirme la transacción»: dentro de una petición, eso es cuando ya terminó.
+  test "bajar la lista no deja variantes del escudo a medio guardar" do
+    ponerle_escudo_al_colegio
+
+    assert_no_difference -> { ActiveStorage::VariantRecord.count } do
+      get sections_path(format: :xlsx)
+      get sections_path(format: :xlsx)
+    end
+
+    assert_response :success
+    assert_equal 1, imagenes_de(response.body).size, "la segunda descarga también lleva su escudo"
+  end
+
+  # ⚠️ Una planilla sin escudo sirve; una que no se descarga, no. `ruby-vips`
+  # levanta `LoadError` cuando `libvips` no está instalada —pasó en el CI de
+  # GitHub— y eso NO es un `StandardError`: un `rescue` a secas lo deja pasar.
+  test "sin la librería de imágenes, la lista baja igual — sin escudo" do
+    ponerle_escudo_al_colegio
+    de_verdad = ActiveStorage::Variation.instance_method(:transform)
+    ActiveStorage::Variation.define_method(:transform) { |*| raise LoadError, "Could not open library 'vips.so.42'" }
+
+    get sections_path(format: :xlsx)
+
+    assert_response :success
+    assert_empty imagenes_de(response.body)
+  ensure
+    ActiveStorage::Variation.define_method(:transform, de_verdad)
+  end
+
   # ── Una sección ───────────────────────────────────────────────────────────
 
   test "la pestaña de alumnos se descarga en Excel" do

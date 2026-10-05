@@ -23,6 +23,14 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.11.1 — 5 de octubre de 2026
+
+- Arreglado: **«Descargar las listas» fallaba en todo colegio con escudo
+  cargado**, tanto la de una sección como la del colegio entero. Ahora bajan, y
+  llevan el escudo arriba a la izquierda, que era la idea y nunca había salido.
+
+---
+
 ## 1.11.0 — 5 de octubre de 2026
 
 - **Los certificados están ahora en «Documentos»**, en una pestaña propia al lado
