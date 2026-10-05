@@ -6,7 +6,7 @@
    PRODUCCIÓN                          1.10.1 · 0b1997a · sin colegios cargados
    origin/main                         0b1997a — lo mismo que producción
    main, en local                      + 1 commit de Daniel sin subir (el logo sin fondo)
-   feat/certificados-en-documentos     + 12 commits · 1.11.0 · NADA subido
+   feat/certificados-en-documentos     + 14 commits · 1.11.0 · NADA subido
 ```
 
 ⚠️ **Nada de 1.11.0 salió de esta máquina.** Ni la rama, ni el tag, ni el
@@ -38,6 +38,34 @@ certificados) y `§ 12` (el boletín en papel). `bin/ci` en verde.
 
 Daniel, 5 de octubre: **«espera a que la revise»**. No se sube nada hasta que
 lo diga.
+
+## Lo que sigue, ya decidido: barrer «materia» del resto del producto
+
+Daniel, 5 de octubre, al ver «MATERIA» en la cabecera del boletín: *«recuerda
+que son "Área de Aprendizaje" en lugar de "Materia"»*. El boletín —papel y
+pantalla— ya se corrigió en la 1.11.0. Del resto dijo: **sí, en rama aparte**.
+
+```
+   ENTRA                                    NO ENTRA
+   ─────                                    ────────
+   55 frases en 26 vistas                   las columnas de las plantillas de Excel
+     «Registrar materia», «Materias del       («MATERIA», «CÓDIGO DE LA MATERIA»):
+     grado», el importador, el portal         son lo que el colegio escribe en SU
+   el nombre del modelo en `es.yml`           planilla
+     («Materia» → de ahí salen los          las claves de los snapshots
+     rótulos de los formularios)            el modelo, la tabla y la URL (MOR-212)
+   los mensajes de los controladores
+```
+
+⚠️ **Empieza DESPUÉS de cerrar la 1.11.0**, con su rama y su PR. La palabra
+sale de `Vocabulario` —larga donde se decide, corta donde se confirma— y el
+test tiene que mirar las palabras, como `nomenclatura_del_mppe_test`.
+
+⚠️ Donde una frase del importador CITA la columna de la planilla, la columna
+se sigue llamando «MATERIA»: ahí no se cambia, o el colegio busca una columna
+que no existe.
+
+⚠️ Falta su tarjeta en Linear: el conector estaba desconectado al decidirlo.
 
 ## Emitir en segundo plano: decidido, y es que no
 
