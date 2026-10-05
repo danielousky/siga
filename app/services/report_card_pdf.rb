@@ -64,14 +64,14 @@ class ReportCardPdf
 
   # QUÉ va en la tabla del boletín anual, separado de CÓMO se dibuja.
   #
-  # Es público para poder probarlo: **el texto de un PDF de Prawn no se puede
-  # leer desde afuera** —la fuente va embebida como subconjunto y los caracteres
-  # quedan mapeados a glifos, así que buscar "A (19)" en los bytes no encuentra
-  # nada—. Sin esta costura, la única forma de verificar lo que sale impreso
-  # sería sumar una gema solo para leer PDFs.
+  # Es público para poder probarlo sin dibujar nada: qué dice cada celda es una
+  # regla del dominio; dónde se dibuja es tipografía.
   #
-  # Y la separación se sostiene sola: qué dice cada celda es una regla del
-  # dominio; dónde se dibuja es tipografía.
+  # ⚠️ Aquí decía que «el texto de un PDF de Prawn no se puede leer desde
+  # afuera», y no era cierto: con las fuentes de fábrica va en hexadecimal y
+  # sin comprimir, y `LeePdf` (en `test/support`) lo lee. Esta costura se queda
+  # porque es la manera más barata de probar la regla — pero lo que SALE
+  # IMPRESO se prueba leyendo el PDF, que es donde se partía «Sin nota».
   def self.filas_anuales(datos)
     escala = datos.dig("seccion", "escala")
 
@@ -154,9 +154,8 @@ class ReportCardPdf
   #     membrete · alumno          ← se dibujan, y ahí se sabe cuánto queda
   #     ─────────────────
   #     fila · fila · fila …       ← piezas que se estiran o se aprietan
-  #     leyenda                    ┐
+  #     leyenda o nota             ┐
   #     asistencia y puesto        │ bloques: miden lo que miden
-  #     situación en la sección    │
   #     informe descriptivo        ┘
   #     pie                        ← no se parte, y no viaja solo
   #
@@ -276,12 +275,13 @@ class ReportCardPdf
   # eso es lo correcto. Congelarlo dejaría el escudo viejo en un documento que el
   # colegio está entregando hoy.
   #
-  # ⚠️ `float`, o el escudo empuja el membrete hacia abajo. Hasta el 5 de
-  # octubre de 2026 el nombre del colegio arrancaba DEBAJO del escudo y no a su
-  # lado: una caja de Prawn deja el cursor en su borde inferior, así que cada
-  # boletín de un colegio con escudo llevaba 42 puntos en blanco a la derecha
-  # del logo. Apareció midiendo por qué el boletín de bachillerato no cabía en
-  # una hoja — era la tercera parte de lo que sobraba.
+  # ⚠️ El membrete arranca en `arriba` —la altura de ANTES de dibujar el
+  # escudo—, y el escudo va en un `float` para no mover el cursor. Hasta el 5
+  # de octubre de 2026 el nombre del colegio arrancaba DEBAJO del escudo y no a
+  # su lado: una caja de Prawn deja el cursor en su borde inferior, así que
+  # cada boletín de un colegio con escudo llevaba 42 puntos en blanco a la
+  # derecha del logo. Apareció midiendo por qué el boletín de bachillerato no
+  # cabía en una hoja — era la tercera parte de lo que sobraba.
   #
   # ⚠️ Y el texto va en una columna que deja libre el ancho del escudo A LOS DOS
   # LADOS: así sigue centrado en la hoja —no «en lo que queda a la derecha del

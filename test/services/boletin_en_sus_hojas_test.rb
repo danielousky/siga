@@ -151,6 +151,20 @@ class BoletinEnSusHojasTest < ActiveSupport::TestCase
     end
   end
 
+  # ⚠️ Las bandas miden 37 puntos, y no los 46 del cuadro aparte, para que el
+  # nombre de materia más largo del pensum quepa en un renglón: le sobran cinco
+  # puntos. Con «Materia 3» no se nota; hay que probarlo con el de verdad.
+  test "el nombre de materia más largo del pensum cabe en un renglón, al lado de la comparación" do
+    largo = "Grupo de Creación, Recreación y Producción"
+    datos = de_bachillerato(10)
+    datos["materias"][4]["materia"] = largo
+    datos["comparacion"]["materias"][4]["materia"] = largo
+
+    textos = textos_de(boletin_con(datos)).map(&:texto)
+
+    assert_equal 1, textos.count(largo), "se partió en dos renglones: #{textos.grep(/Grupo|Producción/).inspect}"
+  end
+
   # La barra son celdas pintadas: las bandas hasta el nivel del alumno,
   # INCLUSIVE. Un alumno en el nivel 0 —«muy bajo»— lleva una banda, no cero.
   test "la barra pinta una banda por cada nivel, hasta el del alumno inclusive" do
