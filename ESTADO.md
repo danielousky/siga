@@ -1,17 +1,18 @@
-# 🔖 Punto de retome — actualizado 5 de octubre de 2026
+# 🔖 Estado de avance — actualizado 5 de octubre de 2026
 
 ## Dónde está cada cosa
 
 ```
-   PRODUCCIÓN                  1.12.0 · 0f9a14a · sin colegios cargados
-   origin/main  =  main        0f9a14a · tags hasta v1.12.0 subidos
-   feat/precios-39-79-119      1.13.0 · sale de main · en local · NADA subido
+   PRODUCCIÓN  =  origin/main  =  main     1.13.0 · tag v1.13.0 · sin colegios cargados
+   ramas abiertas                          ninguna
 ```
 
-⚠️ **De la 1.11.0 a la 1.12.0 están cerradas**: mezcladas (PR #49 a #52) y
-desplegadas el 5 de octubre. Nada se sube sin que Daniel lo diga.
+⚠️ **De la 1.11.0 a la 1.13.0 están cerradas**: mezcladas y desplegadas el 5 de
+octubre. Nada se sube sin que Daniel lo diga.
 
-## 1.13.0 — los precios, en su rama
+Este archivo se llamó `RETOME.md` hasta ese día; el porqué, en `CLAUDE.md`.
+
+## 1.13.0 — los precios
 
 Daniel, 5 de octubre: *«Los costos, vamos a subirlo a $39, $79 y $119»*.
 
@@ -29,11 +30,11 @@ tercera copia escrita a mano que se queda atrás—. Ya sale de la tabla, y
 y exige que cada pantalla diga esos.
 
 ```
-   ▸ que Daniel la revise · subirla · PR · tag v1.13.0 · desplegar   ← cuando lo diga
+   QUEDA ABIERTO DE LOS PRECIOS
    ▸ FUERA DEL REPO, y es de Daniel: `references/Proyecto SIGA.pdf` todavía dice
      25 · 50 · 90, con «Básico» y «Premium», el pago anual y las comisiones
-   ▸ la base LOCAL: las suscripciones sembradas guardan el precio viejo (cada
-     una lo congela al abrirse). En producción no hay ninguna.
+   ▸ la base LOCAL: las suscripciones sembradas guardan el precio viejo —$60 y
+     $30—, porque cada una lo congela al abrirse. En producción no hay ninguna.
 ```
 
 ## 1.12.0 y 1.11.3, ya en producción
@@ -169,7 +170,7 @@ cada versión está en [`CHANGELOG.md`](CHANGELOG.md), y por qué, en `CLAUDE.md
 
 ---
 
-# Retome del 11 de septiembre de 2026 (00:50)
+# Estado al 11 de septiembre de 2026 (00:50)
 
 > Lo de aquí hacia abajo quedó como estaba ese día. Sirve de historia; **el
 > estado de hoy es el de arriba.**

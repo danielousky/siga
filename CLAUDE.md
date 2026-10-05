@@ -6,9 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 🔖 Dónde quedamos
 
-El estado de avance vive en [`RETOME.md`](RETOME.md) — **leerlo al arrancar la sesión y
+El estado de avance vive en [`ESTADO.md`](ESTADO.md) — **leerlo al arrancar la sesión y
 actualizarlo al cerrarla.** Está aparte a propósito: es lo que más cambia, y acá adentro
 viajaría en cada petición al modelo además de invalidar el caché del prompt en cada edición.
+
+Hasta el 5 de octubre de 2026 se llamó `RETOME.md` —por «punto de retome», la sección de
+este archivo de donde salió—, y así lo nombran los commits anteriores. Daniel preguntó por
+qué se llamaba así, y un nombre por el que hay que preguntar no está haciendo su trabajo.
 
 ---
 
