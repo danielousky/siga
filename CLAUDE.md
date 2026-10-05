@@ -1319,6 +1319,15 @@ test seguía en verde. El mínimo va escrito en el test, no leído del código.
 Antes de tocar las consultas se tomó la huella de 372 boletines y después se
 compararon: idénticos byte por byte. Un `snapshot` es un documento emitido.
 
+⚠️ **Emitir en segundo plano se evaluó y NO se construyó.** Daniel lo pidió el
+1 de octubre, con la sección en 26 segundos; el 5, con la sección en 2, decidió
+dejarlo como está. Lo que el spec anotó en contra de construirlo: un job obliga
+a guardar en disco documentos con notas de menores —hoy se dibujan y se
+entregan— y convierte un worker caído en «no se pueden emitir boletines» el día
+de la entrega. **Se reabre si un colegio se queja de la espera**, y ese día lo
+primero es medir en producción. El registro está en
+[`emision-en-segundo-plano.md`](docs/specs/emision-en-segundo-plano.md).
+
 ## 🔢 La versión
 
 `Siga::VERSION` en `config/application.rb` es la del PRODUCTO, y **no** la del

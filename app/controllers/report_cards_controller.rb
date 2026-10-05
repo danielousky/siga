@@ -33,6 +33,10 @@
 # usuario después. Un par de segundos de espera con el archivo en la mano es
 # mejor producto que una notificación diferida.
 #
+# ⚠️ Se evaluó en serio y se decidió que NO (Daniel, 5 de octubre de 2026): ver
+# `docs/specs/emision-en-segundo-plano.md`. Se reabre si un colegio se queja de
+# la espera, y ese día lo primero es medir cuánto tarda en producción.
+#
 # ## Quién emite
 #
 # Dirección y secretaría. Un boletín lleva la firma del director: no lo emite el

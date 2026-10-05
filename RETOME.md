@@ -6,8 +6,7 @@
    PRODUCCIÓN                          1.10.1 · 0b1997a · sin colegios cargados
    origin/main                         0b1997a — lo mismo que producción
    main, en local                      + 1 commit de Daniel sin subir (el logo sin fondo)
-   feat/certificados-en-documentos     + 10 commits · 1.11.0 · NADA subido
-   spec/emision-en-segundo-plano       + 1 commit encima · el spec, en discusión
+   feat/certificados-en-documentos     + 11 commits · 1.11.0 · NADA subido
 ```
 
 ⚠️ **Nada de 1.11.0 salió de esta máquina.** Ni la rama, ni el tag, ni el
@@ -34,23 +33,21 @@ certificados) y `§ 12` (el boletín en papel). `bin/ci` en verde.
        1er Año A, 1er lapso      →  una hoja por alumno, con la comparación
        4to Grado A, 1er lapso    →  dos hojas por alumno, la segunda con las notas y el pie
    ▸ subir la rama · PR · merge · tag v1.11.0 · desplegar     ← cuando Daniel diga
-   ▸ decidir el spec de emisión en segundo plano              ← ver abajo
 ```
 
-## El spec que espera decisión
+Daniel, 5 de octubre: **«espera a que la revise»**. No se sube nada hasta que
+lo diga.
 
-`docs/specs/emision-en-segundo-plano.md`, en la rama `spec/emision-en-segundo-plano`.
-Daniel pidió el 1 de octubre «tabla a mano + segundo plano», cuando una sección
-tardaba 26 segundos. La primera mitad está hecha y dejó la sección en 2: el spec
-pone los dos caminos con los números de hoy.
+## Emitir en segundo plano: decidido, y es que no
 
 ```
-   A · medir primero (lo recomendado)     el botón dice «Preparando el PDF…» y cada emisión
-                                          anota cuánto tardó; si ningún colegio se acerca a
-                                          10 s, el spec se cierra como «no hizo falta»
-   B · construirlo ya                     tabla `emisiones`, un job que dibuja, pantalla de
-                                          espera, y un job diario que borra los archivos
+   1 oct   una sección: 26 s   ──►   «tabla a mano + segundo plano»
+   5 oct   una sección:  2 s   ──►   «dejarlo como está»
 ```
+
+La primera mitad se hizo y volvió innecesaria a la segunda. El registro de lo
+que se evaluó está en `docs/specs/emision-en-segundo-plano.md`, **cerrado sin
+construir**. Se reabre si un colegio se queja de la espera.
 
 ## Visto y sin tocar
 
