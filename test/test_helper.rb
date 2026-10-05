@@ -25,6 +25,7 @@ class ActiveSupport::TestCase
   #
   # La explicación va en un COMENTARIO arriba de la aserción.
   include PlanesDeEvaluacion
+  include LeePdf
 
   teardown { Current.reset }
 end

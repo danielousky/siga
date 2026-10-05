@@ -373,27 +373,4 @@ class CertificadosTest < ActionDispatch::IntegrationTest
     Current.sin_aislamiento { en.colegio.update!(tope_de_arrastre: 0) }
     con_el_colegio(en.colegio) { definitiva(inscripcion, 8, materia: en.materia) }
   end
-
-  # El texto de cada página, sin una gema que lea PDF.
-  #
-  # Prawn escribe sin comprimir: cada página es un `stream` con operadores de
-  # texto (`BT … ET`), y cada trozo va en hexadecimal dentro de un arreglo `TJ`
-  # —partido por el interletraje, y por eso se JUNTAN:
-  #
-  #     [<416c756d> 12 <6e6f31>] TJ    →   «Alum» + «no1»   →   «Alumno1»
-  #
-  # Los bytes son Windows-1252, que es lo que cubren las fuentes de fábrica de
-  # Prawn (ver `DibujaDocumentosOficiales`); se pasan a UTF-8 para poder
-  # comparar «PROSECUCIÓN» con su acento.
-  #
-  # ⚠️ Existe porque sin él no se puede probar lo único que importa de emitir
-  # varios: que cada página diga lo de su alumno. Contar páginas no alcanza.
-  def paginas_de(pdf)
-    pdf.b.scan(/stream\r?\n(.*?)endstream/m).filter_map do |(contenido)|
-      next unless contenido.include?("BT\n")
-
-      contenido.scan(/<([0-9a-f]+)>/i).map { |(hex)| [ hex ].pack("H*") }.join
-               .force_encoding("Windows-1252").encode("UTF-8")
-    end
-  end
 end
