@@ -368,13 +368,13 @@ class ReportCardPdf
   # repetía cada materia con su nota —las dos primeras columnas de la tabla de
   # arriba— para agregarle el promedio de la sección y la barra:
   #
-  #     ANTES                                AHORA
-  #     ─────                                ─────
-  #     MATERIA            CALIFICACIÓN      MATERIA     CALIF.  SECCIÓN  ▓▓▓▓▓░
-  #     Matemática              13           Matemática    13     13,7    ▓▓▓░░░
-  #     …                                    …
-  #                                          PROMEDIO      16     14,1    ▓▓▓▓░░
-  #     SITUACIÓN CON RESPECTO A LA SECCIÓN
+  #     DOS TABLAS                           UNA
+  #     ──────────                           ───
+  #     MATERIA            CALIFICACIÓN      MATERIA     CALIF.  PROMEDIO DE   ▓▓▓▓▓░
+  #     Matemática              13                               LA SECCIÓN
+  #     …                                    Matemática    13       13,7       ▓▓▓░░░
+  #                                          …
+  #     SITUACIÓN CON RESPECTO A LA SECCIÓN  PROMEDIO      16       14,1       ▓▓▓▓░░
   #     MATERIA     ALUMNO  SECCIÓN  ▓▓▓▓▓░
   #     Matemática    13     13,7    ▓▓▓░░░   ← la misma materia, la misma nota
   #     …
@@ -384,11 +384,38 @@ class ReportCardPdf
   # sino *«¿cómo le fue comparado con sus compañeros?»*. Sigue contestándola, en
   # el mismo renglón donde está la nota.
   #
+  # ## La comparación es un COMPLEMENTO, y se tiene que ver como tal
+  #
+  # Daniel, el mismo día, con el boletín ya en una hoja: *«ese grupo, esa parte,
+  # es un complemento; no es la calificación como tal»*. Las seis bandas
+  # ocupaban el 41 % del ancho, pintadas de azul macizo: eran lo primero que
+  # veía el ojo, por encima de la nota.
+  #
+  #     NOTAS                                          ┆  COMPLEMENTO
+  #     MATERIA       CALIFICACIÓN   PROMEDIO DE       ┆  MUY  BAJO MEDIO MEDIO ALTO MUY
+  #                                  LA SECCIÓN        ┆  BAJO      BAJO  ALTO       ALTO
+  #     Matemática         13           13,7           ┆  //// //// ////
+  #
+  # Tres cosas, las tres pedidas por él:
+  #
+  # 1. **Las bandas, lo más angostas que da su rótulo.** «MEDIO» a letra 5,5
+  #    mide 18 puntos: la banda mide 22 y no los 37 que tenía.
+  # 2. **Rayadas, no rellenas** (`trama:`): *«si se va a imprimir se gasta menos
+  #    tinta y me dice la misma información»*. Menos de la quinta parte.
+  # 3. **Separadas de las notas** por un hueco: la tabla sigue siendo una —las
+  #    filas coinciden— pero se lee como dos, y la de la derecha es la chica.
+  #
+  # ## «SECCIÓN» no: «PROMEDIO DE LA SECCIÓN»
+  #
+  # Daniel: *«la sección dice 14.2, 14.1. Eso es un promedio, no es la
+  # sección»*. El número estaba bien —310 puntos entre 22 alumnos— y el rótulo
+  # no: «SECCIÓN» en la cabecera de un boletín es «A» o «B».
+  #
   # ## La barra se dibuja con CELDAS, no con coordenadas
   #
   # Una barra «de verdad» —un rectángulo sobre la tabla— obliga a calcular la
   # posición de cada fila después de dibujarla, y eso se rompe en cuanto una
-  # materia de nombre largo ocupa dos renglones. Seis celdas por fila, pintadas
+  # materia de nombre largo ocupa dos renglones. Seis celdas por fila, rayadas
   # hasta el nivel que corresponde, dan el mismo resultado y coinciden con el
   # original impreso, que lleva las líneas de las bandas cruzando la barra.
   #
@@ -399,12 +426,21 @@ class ReportCardPdf
   # sería un juicio que el colegio no emitió. Lo que informa es la POSICIÓN.
   COLOR_DE_LA_BARRA = "1E4A7A".freeze
 
-  # ⚠️ 37 puntos y no los 46 que tenía el cuadro aparte: la columna de la
-  # materia necesita 193 para que «Grupo de Creación, Recreación y Producción»
-  # —la más larga del pensum— quepa en un renglón a letra 9. Los nombres de las
-  # bandas de dos palabras bajan a dos renglones, que es como los trae el
-  # original.
-  ANCHO_DE_BANDA = 37
+  # ⚠️ 22 puntos: lo que ocupa «MEDIO» a letra 5,5 —18— más punto y medio de
+  # aire a cada lado y uno de holgura. Más angosta, la palabra se parte por la
+  # mitad; más chica la letra, ya no se lee en un papel impreso.
+  ANCHO_DE_BANDA  = 22
+  LETRA_DE_BANDA  = 5.5
+  AIRE_DE_BANDA   = 1.5
+
+  # Lo que separa las notas de su complemento, y dónde cae: detrás de la
+  # materia, la calificación y el promedio de la sección.
+  HUECO_DE_LA_COMPARACION = 8
+  COLUMNA_DEL_HUECO       = 3
+
+  # «PROMEDIO DE» a letra 8 en negrita mide 57 puntos, y lleva 6 de aire a
+  # cada lado.
+  ANCHO_DEL_PROMEDIO_DE_LA_SECCION = 70
 
   def tabla_de_lapso(pdf, datos)
     con_rubrica = datos["rubrica"].present?
@@ -427,8 +463,9 @@ class ReportCardPdf
       pegadas << del_plan.any?
 
       del_plan.each do |fila, pegada|
-        # Una competencia no se compara con la sección: sus columnas van vacías.
-        filas   << fila + Array.new(comparacion ? niveles.size + 1 : 0, "")
+        # Una competencia no se compara con la sección: sus columnas van vacías
+        # —el promedio, el hueco y las bandas—.
+        filas   << fila + Array.new(comparacion ? niveles.size + 2 : 0, "")
         pegadas << pegada
       end
     end
@@ -439,20 +476,26 @@ class ReportCardPdf
                celdas_de_la_comparacion(comparacion, comparacion&.dig("general"))
     pegadas << false
 
-    anchos = comparacion ? [ nil, 70, 50 ] + Array.new(niveles.size, ANCHO_DE_BANDA) : [ nil, 110 ]
+    return [ tabla_de_notas(pdf, filas, [ nil, 110 ]), pegadas ] if comparacion.nil?
 
-    [ tabla_de_notas(pdf, filas, anchos), pegadas ]
+    anchos = [ nil, 70, ANCHO_DEL_PROMEDIO_DE_LA_SECCION, HUECO_DE_LA_COMPARACION ] +
+             Array.new(niveles.size, ANCHO_DE_BANDA)
+
+    [ tabla_de_notas(pdf, filas, anchos, huecos: [ COLUMNA_DEL_HUECO ]), pegadas ]
   end
 
-  # «SECCIÓN» y los nombres de las seis bandas, o nada si no hay con qué comparar.
+  # El promedio de la sección, el hueco y los nombres de las seis bandas — o
+  # nada, si no hay con qué comparar.
   def cabecera_de_la_comparacion(comparacion)
     return [] if comparacion.nil?
 
-    [ "SECCIÓN" ] + comparacion["niveles"].map { |nivel| { content: texto(nivel).upcase, size: 6 } }
+    [ "PROMEDIO DE LA SECCIÓN", "" ] + comparacion["niveles"].map do |nivel|
+      { content: texto(nivel).upcase, size: LETRA_DE_BANDA, aire: AIRE_DE_BANDA }
+    end
   end
 
-  # El promedio de la sección y la barra de UNA fila: las bandas pintadas hasta
-  # el nivel del alumno, inclusive.
+  # El promedio de la sección, el hueco y la barra de UNA fila: las bandas
+  # rayadas hasta el nivel del alumno, inclusive.
   #
   # ⚠️ Una materia que la comparación dejó afuera —sin nota, o con un solo
   # alumno calificado en la sección— lleva una raya y ninguna banda. No un cero
@@ -461,10 +504,10 @@ class ReportCardPdf
     return [] if comparacion.nil?
 
     cuantas = comparacion["niveles"].size
-    return [ coma(nil) ] + Array.new(cuantas, "") if fila.nil?
+    return [ coma(nil), "" ] + Array.new(cuantas, "") if fila.nil?
 
-    [ coma(fila["seccion"]) ] +
-      Array.new(cuantas) { |banda| fila["nivel"] && banda <= fila["nivel"] ? { content: "", fondo: COLOR_DE_LA_BARRA } : "" }
+    [ coma(fila["seccion"]), "" ] +
+      Array.new(cuantas) { |banda| fila["nivel"] && banda <= fila["nivel"] ? { content: "", trama: COLOR_DE_LA_BARRA } : "" }
   end
 
   def celda_de_lapso(materia, con_rubrica)
@@ -552,10 +595,10 @@ class ReportCardPdf
 
     pdf.font_size(6.5) do
       pdf.fill_color "666666"
-      pdf.text "<b>Situación con respecto a la sección.</b> SECCIÓN es el promedio de esa materia en la " \
-               "sección, con las notas cargadas al emitir este boletín. La barra indica cuánto se aparta el " \
-               "alumno de ese promedio: cada banda son dos puntos, y el corte entre MEDIO BAJO y MEDIO ALTO es " \
-               "el promedio mismo. Estar por debajo del promedio de la clase no significa aplazar.",
+      pdf.text "<b>Situación con respecto a la sección.</b> El promedio de la sección es el de cada materia, " \
+               "con las notas cargadas al emitir este boletín. La barra indica cuánto se aparta el alumno de " \
+               "ese promedio: cada banda son dos puntos, y el corte entre MEDIO BAJO y MEDIO ALTO es el " \
+               "promedio mismo. Estar por debajo del promedio de la clase no significa aplazar.",
                align: :justify, inline_format: true
       pdf.fill_color "000000"
     end
@@ -696,8 +739,8 @@ class ReportCardPdf
   #
   # Devuelve la tabla sin dibujar: quien reparte las hojas decide con qué alto
   # de fila va, y eso se sabe después de medirla.
-  def tabla_de_notas(pdf, filas, anchos)
-    TablaAMano.new(pdf, filas, anchos: repartir_sobrante(anchos, pdf.bounds.width),
+  def tabla_de_notas(pdf, filas, anchos, huecos: [])
+    TablaAMano.new(pdf, filas, anchos: repartir_sobrante(anchos, pdf.bounds.width), huecos: huecos,
                    estilos: { 0 => { font_style: :bold, fondo: "F0EDE8", size: 8, al_medio: true },
                               -1 => { font_style: :bold, fondo: "F5F3F0" } })
   end

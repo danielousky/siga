@@ -1304,6 +1304,23 @@ repetía cada materia con su nota— y 42 puntos en blanco al lado del escudo, q
 empujaba el membrete hacia abajo. Ahora la comparación son tres columnas más de
 la tabla de notas.
 
+⚠️ **Esa comparación es un COMPLEMENTO, y se dibuja como tal.** Daniel, el
+mismo día: *«ese grupo es un complemento; no es la calificación como tal»*.
+Ocupaba el 41 % del ancho en azul macizo y era lo primero que veía el ojo.
+
+```
+   NOTAS                                            ┆  COMPLEMENTO
+   MATERIA        CALIFICACIÓN   PROMEDIO DE        ┆  MUY  BAJO MEDIO MEDIO ALTO MUY
+                                 LA SECCIÓN         ┆  BAJO      BAJO  ALTO       ALTO
+   Matemática          13           13,7            ┆  //// //// ////
+```
+
+Tres decisiones suyas: bandas de 22 puntos —lo que mide el rótulo «MEDIO»—,
+**rayadas y no rellenas** (`trama:` en `TablaAMano`: *«si se va a imprimir se
+gasta menos tinta y me dice la misma información»*, y es la quinta parte), y
+separadas de las notas por un hueco (`huecos:`). Y la columna se llama
+«PROMEDIO DE LA SECCIÓN»: «SECCIÓN» a secas, en un boletín, es «A» o «B».
+
 ⚠️ **Estas fallas dependen del LARGO, así que el test lo barre.** El pie se
 cortaba «en algunos» boletines, y mi arreglo lo dejó solo en otros tantos: con
 un boletín de ejemplo cualquiera, el test pasa en verde con el error adentro.

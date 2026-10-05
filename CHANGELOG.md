@@ -46,6 +46,10 @@ mensaje del commit, que es donde vive el detalle técnico.
   la «situación con respecto a la sección» en otra, que repetía cada materia con
   su nota. Ahora es una sola tabla —la nota, el promedio de la sección y la
   barra, en el mismo renglón— y el colegio imprime la mitad del papel.
+- En ese boletín, la comparación con la sección va **aparte de las notas, más
+  angosta y rayada en vez de rellena**: es un complemento, y se imprime con la
+  quinta parte de la tinta. Y su columna dice «Promedio de la sección», que es
+  lo que es; decía «Sección».
 - **El boletín ocupa las hojas justas.** La firma y el código de verificación ya
   no se cortan contra el borde ni quedan solos arriba de una hoja en blanco: si
   no caben, pasan a la siguiente junto con parte de las notas. Y cuando por unas

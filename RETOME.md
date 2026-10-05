@@ -6,7 +6,7 @@
    PRODUCCIÓN                          1.10.1 · 0b1997a · sin colegios cargados
    origin/main                         0b1997a — lo mismo que producción
    main, en local                      + 1 commit de Daniel sin subir (el logo sin fondo)
-   feat/certificados-en-documentos     + 11 commits · 1.11.0 · NADA subido
+   feat/certificados-en-documentos     + 12 commits · 1.11.0 · NADA subido
 ```
 
 ⚠️ **Nada de 1.11.0 salió de esta máquina.** Ni la rama, ni el tag, ni el
@@ -18,7 +18,8 @@ despliegue: se sube cuando Daniel lo diga.
    ① los certificados, en «Documentos»      la tercera pestaña; de un alumno o de la sección
    ② emitir una sección de boletines        de 26 segundos a 2
    ③ el boletín en las hojas justas         el pie ni cortado ni solo en su hoja
-   ④ el de bachillerato, en UNA hoja        la comparación con la sección, dentro de la tabla de notas
+   ④ el de bachillerato, en UNA hoja        la comparación con la sección, al lado de las notas:
+                                            angosta, rayada y separada — es un complemento
    ⑤ dos arreglos que aparecieron leyendo   el documento de Inicial reventaba desde la ficha;
       los PDF                                la 31059 salía sin el año en la fecha de expedición
 ```

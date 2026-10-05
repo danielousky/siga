@@ -146,14 +146,26 @@ class BoletinEnSusHojasTest < ActiveSupport::TestCase
 
       assert_equal 1, hojas_de(crudo).size, "con #{cuantas} materias tenía que caber en una hoja"
       assert_equal 1, textos.count("Materia 3"), "cada materia sale UNA vez: antes salía en las dos tablas"
-      assert_includes textos, "SECCIÓN", "el promedio de la sección es una columna más de la tabla de notas"
+      assert_includes textos, "LA SECCIÓN", "el promedio de la sección es una columna más de la tabla de notas"
       assert_not_includes textos, "SITUACIÓN GENERAL", "y el promedio del lapso es la fila que cierra las dos cosas"
     end
   end
 
-  # ⚠️ Las bandas miden 37 puntos, y no los 46 del cuadro aparte, para que el
-  # nombre de materia más largo del pensum quepa en un renglón: le sobran cinco
-  # puntos. Con «Materia 3» no se nota; hay que probarlo con el de verdad.
+  # Daniel, 5 de octubre: *«la sección dice 14.2, 14.1. Eso es un promedio, no
+  # es la sección»*. El número estaba bien; el rótulo, no — «SECCIÓN» en la
+  # cabecera de un boletín es «A» o «B».
+  test "la columna del promedio de la sección se llama así, no «SECCIÓN» a secas" do
+    textos = textos_de(boletin_con(de_bachillerato(6)))
+    rotulo = textos.select { |t| [ "PROMEDIO DE", "LA SECCIÓN" ].include?(t.texto) }
+
+    assert_equal [ "PROMEDIO DE", "LA SECCIÓN" ], rotulo.map(&:texto), "el rótulo va entero, en dos renglones"
+    assert rotulo.all?(&:negrita), "y en negrita, como el resto de la cabecera"
+    assert_not_includes textos.map(&:texto), "SECCIÓN"
+  end
+
+  # ⚠️ Con el complemento angosto, a la materia le sobra sitio — hasta que
+  # alguien vuelva a ensanchar las bandas. Con «Materia 3» no se nota; hay que
+  # probarlo con el nombre más largo del pensum.
   test "el nombre de materia más largo del pensum cabe en un renglón, al lado de la comparación" do
     largo = "Grupo de Creación, Recreación y Producción"
     datos = de_bachillerato(10)
@@ -165,26 +177,89 @@ class BoletinEnSusHojasTest < ActiveSupport::TestCase
     assert_equal 1, textos.count(largo), "se partió en dos renglones: #{textos.grep(/Grupo|Producción/).inspect}"
   end
 
-  # La barra son celdas pintadas: las bandas hasta el nivel del alumno,
-  # INCLUSIVE. Un alumno en el nivel 0 —«muy bajo»— lleva una banda, no cero.
-  test "la barra pinta una banda por cada nivel, hasta el del alumno inclusive" do
-    datos = de_bachillerato(6)   # niveles 0, 1, 2, 3, 4 y 5 → 1 + 2 + … + 6 bandas, más 4 del general
-    bandas = rellenos_de(boletin_con(datos)).count { |_, _, ancho, _| (ancho - ReportCardPdf::ANCHO_DE_BANDA).abs < 0.01 }
+  # ── La comparación es un complemento ──────────────────────────────────────
+  #
+  # Daniel, 5 de octubre, con el boletín ya en una hoja: *«ese grupo, esa
+  # parte, es un complemento; no es la calificación como tal»*. Pidió tres
+  # cosas: las bandas lo más delgadas posible, rayadas en vez de rellenas —*«si
+  # se va a imprimir se gasta menos tinta y me dice la misma información»*— y
+  # separadas de las notas.
 
-    assert_equal (1..6).sum + 4, bandas
+  # La barra son celdas rayadas: las bandas hasta el nivel del alumno,
+  # INCLUSIVE. Un alumno en el nivel 0 —«muy bajo»— lleva una banda, no cero.
+  test "la barra raya una banda por cada nivel, hasta el del alumno inclusive" do
+    datos = de_bachillerato(6)   # niveles 0, 1, 2, 3, 4 y 5 → 1 + 2 + … + 6 bandas, más 4 del general
+
+    assert_equal (1..6).sum + 4, bandas_rayadas_de(boletin_con(datos)).size
+  end
+
+  test "las bandas van rayadas, no rellenas: de tinta, menos de la cuarta parte" do
+    crudo = boletin_con(de_bachillerato(6))
+
+    macizas = rellenos_de(crudo).select { |_, _, ancho, _| (ancho - ReportCardPdf::ANCHO_DE_BANDA).abs < 0.01 }
+    assert_empty macizas, "quedó una banda rellena"
+
+    bandas_rayadas_de(crudo).each do |banda|
+      tinta = banda.largo * TablaAMano::TRAZO_DE_LA_TRAMA / (banda.ancho * banda.alto)
+
+      assert_operator tinta, :<, 0.25, "una banda rayada gasta #{(tinta * 100).round} % de lo que gastaba rellena"
+      assert_operator tinta, :>, 0.10, "y tampoco tan poco que no se vea en el papel"
+    end
+  end
+
+  # ⚠️ Las rayas se cuentan desde el origen de la hoja, no desde la esquina de
+  # cada celda: así cuatro bandas seguidas son UNA barra y no cuatro dibujos
+  # que no casan entre sí.
+  test "las bandas vecinas continúan el mismo rayado" do
+    paso = TablaAMano::PASO_DE_LA_TRAMA
+
+    bandas_rayadas_de(boletin_con(de_bachillerato(6))).flat_map(&:cortes).each do |corte|
+      assert_in_delta 0, (corte / paso) - (corte / paso).round, 0.001, "una raya arrancó fuera de la cuadrícula"
+    end
+  end
+
+  test "la comparación va separada de las notas, y es la parte angosta" do
+    crudo = boletin_con(de_bachillerato(6))
+
+    # La cabecera es lo primero que se pinta de la tabla: un fondo por grupo.
+    notas, complemento = rellenos_de(crudo).select { |_, y, _, _| y == rellenos_de(crudo).map { |r| r[1] }.max }
+                                           .sort_by(&:first)
+
+    assert complemento, "la cabecera tenía que salir en dos pedazos, y salió en uno"
+    assert_in_delta ReportCardPdf::HUECO_DE_LA_COMPARACION, complemento[0] - (notas[0] + notas[2]), 0.01,
+                    "entre las notas y su complemento va un hueco"
+    assert_in_delta 6 * ReportCardPdf::ANCHO_DE_BANDA, complemento[2], 0.01
+    assert_operator complemento[2], :<, 0.3 * (notas[2] + complemento[2]),
+                    "el complemento ocupaba el 41 % del ancho; ahora, menos de la tercera parte"
+
+    # Y por el hueco no pasa ningún borde: son dos grupos, no una celda vacía.
+    desde = notas[0] + notas[2]
+    en_el_hueco = bordes_de(crudo).select { |x, _, ancho, _| x >= desde - 0.01 && x + ancho <= complemento[0] + 0.01 }
+    assert_empty en_el_hueco, "el hueco salió con borde"
+  end
+
+  # ⚠️ «MEDIO» es la palabra más ancha de los seis rótulos. Si la banda se
+  # angosta más de la cuenta, Prawn la parte por la mitad —«MEDI / O»— y no
+  # avisa.
+  test "los rótulos de las bandas no se parten por la mitad de una palabra" do
+    textos = textos_de(boletin_con(de_bachillerato(6))).map(&:texto)
+
+    assert_equal 2, textos.count("MEDIO"), "«MEDIO BAJO» y «MEDIO ALTO», cada uno con su palabra entera"
+    assert_equal 2, textos.count("MUY")
+    assert_equal 3, textos.count("BAJO"), "«MUY BAJO», «BAJO» y «MEDIO BAJO»"
+    assert_equal 3, textos.count("ALTO")
   end
 
   # ⚠️ Una materia sin nota, o con un solo alumno calificado en la sección, no
   # tiene contra qué compararse. Una barra vacía diría «muy bajo»; un cero en
-  # SECCIÓN, que la sección sacó cero.
+  # el promedio, que la sección sacó cero.
   test "una materia sin con qué compararla lleva una raya y ninguna banda" do
     datos = de_bachillerato(6)
     datos["comparacion"]["materias"].delete_at(5)   # la del nivel más alto: 6 bandas menos
 
-    crudo  = boletin_con(datos)
-    bandas = rellenos_de(crudo).count { |_, _, ancho, _| (ancho - ReportCardPdf::ANCHO_DE_BANDA).abs < 0.01 }
+    crudo = boletin_con(datos)
 
-    assert_equal (1..5).sum + 4, bandas
+    assert_equal (1..5).sum + 4, bandas_rayadas_de(crudo).size
     assert_equal 1, textos_de(crudo).count { |t| t.texto == "—" }
     assert_includes textos_de(crudo).map(&:texto), "Materia 6", "la materia sigue saliendo, con su nota"
   end
@@ -275,6 +350,11 @@ class BoletinEnSusHojasTest < ActiveSupport::TestCase
   end
 
   private
+
+  # Las celdas rayadas que miden lo que una banda.
+  def bandas_rayadas_de(crudo)
+    tramas_de(crudo).select { |trama| (trama.ancho - ReportCardPdf::ANCHO_DE_BANDA).abs < 0.01 }
+  end
 
   # ⚠️ El valor se saca de ADENTRO del bloque: `font_size` con bloque devuelve
   # el tamaño que había antes, no lo que el bloque calcula. Tomándolo de afuera,

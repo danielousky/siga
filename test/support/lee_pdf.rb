@@ -36,6 +36,13 @@ module LeePdf
     def ocupado = arriba - abajo
   end
 
+  # Una celda RAYADA: el recuadro que ocupan sus rayas, cuánto suman de largo y
+  # dónde corta cada una al eje (`y - x`, que es lo que dice si dos celdas
+  # continúan el mismo dibujo).
+  Trama = Data.define(:x, :y, :ancho, :alto, :largo, :cortes) do
+    def derecha = x + ancho
+  end
+
   # El texto de cada página, de corrido y en el orden en que se dibujó.
   def paginas_de(pdf)
     contenidos_de(pdf).map { |contenido| textos_del(contenido).map(&:last).join }
@@ -79,6 +86,35 @@ module LeePdf
   def rellenos_de(pdf)
     contenidos_de(pdf).flat_map do |contenido|
       contenido.scan(/(-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) re\nf\b/).map { |medidas| medidas.map(&:to_f) }
+    end
+  end
+
+  # Los rectángulos TRAZADOS de todo el documento, como `[x, y, ancho, alto]`:
+  # los bordes de las celdas.
+  def bordes_de(pdf)
+    contenidos_de(pdf).flat_map do |contenido|
+      contenido.scan(/(-?[\d.]+) (-?[\d.]+) (-?[\d.]+) (-?[\d.]+) re\nS\b/).map { |medidas| medidas.map(&:to_f) }
+    end
+  end
+
+  # Las celdas rayadas de todo el documento.
+  #
+  # Una trama son varias rectas trazadas de un solo golpe —`m`, `l`, `m`, `l`…
+  # y al final una `S`—, todas a 45° y hacia arriba. Una línea suelta, como la
+  # de la firma, es una sola recta y no entra.
+  def tramas_de(pdf)
+    contenidos_de(pdf).flat_map do |contenido|
+      contenido.scan(/((?:-?[\d.]+ -?[\d.]+ m\n-?[\d.]+ -?[\d.]+ l\n){2,})S\b/).filter_map do |(trazos)|
+        rayas = trazos.scan(/(-?[\d.]+) (-?[\d.]+) m\n(-?[\d.]+) (-?[\d.]+) l/).map { |medidas| medidas.map(&:to_f) }
+        next unless rayas.all? { |x1, y1, x2, y2| x2 > x1 && ((x2 - x1) - (y2 - y1)).abs < 0.01 }
+
+        xs = rayas.flat_map { |x1, _, x2, _| [ x1, x2 ] }
+        ys = rayas.flat_map { |_, y1, _, y2| [ y1, y2 ] }
+
+        Trama.new(x: xs.min, y: ys.min, ancho: xs.max - xs.min, alto: ys.max - ys.min,
+                  largo: rayas.sum { |x1, y1, x2, y2| Math.hypot(x2 - x1, y2 - y1) },
+                  cortes: rayas.map { |x1, y1, _, _| y1 - x1 })
+      end
     end
   end
 

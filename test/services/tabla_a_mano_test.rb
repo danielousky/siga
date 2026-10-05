@@ -9,6 +9,10 @@ require "test_helper"
 #     que la celda mande sobre la tabla     (el tamaño de letra se pisaba)
 #     que la sangría sea un número          (los espacios se recortaban)
 #     que lo que dice que mide sea lo que ocupa
+#
+# Y lo que se le agregó el 5 de octubre para que la comparación con la sección
+# se vea como un complemento: una celda rayada, el aire de una celda angosta y
+# el hueco entre dos grupos de columnas.
 class TablaAManoTest < ActiveSupport::TestCase
   setup do
     @pdf = Prawn::Document.new(page_size: "LETTER", margin: 36)
@@ -118,6 +122,94 @@ class TablaAManoTest < ActiveSupport::TestCase
     crudo = @pdf.render
     assert_equal [ "banda" ], textos_de(crudo).map(&:texto)
     assert_match(/0\.11765 0\.2902 0\.47843 scn/, crudo, "el fondo de la celda tenía que pintarse")
+  end
+
+  # ── La celda rayada ───────────────────────────────────────────────────────
+
+  # Daniel: *«que el fondo, en vez de ser azul fuerte, sean solo líneas
+  # diagonales en azul. Si se va a imprimir se gasta menos tinta»*.
+  test "una celda con trama se raya en diagonal de borde a borde, y no se rellena" do
+    arriba = @pdf.cursor
+    tabla  = tabla_de([ [ "banda", { content: "", trama: "1E4A7A" } ] ])
+    tabla.dibujar
+
+    crudo  = @pdf.render
+    tramas = tramas_de(crudo)
+
+    assert_empty rellenos_de(crudo), "la celda rayada no lleva relleno"
+    assert_equal 1, tramas.size, "y tenía que salir rayada"
+    trama = tramas.first
+    assert_match(/0\.11765 0\.2902 0\.47843 SCN/, crudo, "las rayas van del color pedido")
+    # La celda es la segunda columna: de 400 a 540, y del alto de la fila.
+    assert_in_delta 36 + 400, trama.x, 0.01
+    assert_in_delta 140, trama.ancho, 0.01, "las rayas llegan de un borde al otro"
+    assert_in_delta tabla.alto, trama.alto, 0.01, "y de arriba abajo"
+    assert_in_delta 36 + arriba - tabla.alto, trama.y, 0.01, "sin salirse de la celda"
+  end
+
+  test "el trazo de las rayas no se le queda puesto a lo que se dibuja después" do
+    tabla_de([ [ "banda", { content: "", trama: "1E4A7A" } ], [ "otra", "x" ] ]).dibujar
+
+    assert_equal 1, @pdf.line_width, "el borde de la fila siguiente saldría de medio punto"
+  end
+
+  # ⚠️ Las rayas se cuentan desde el origen de la hoja. Contadas desde la
+  # esquina de cada celda, dos celdas de anchos distintos no casan: la barra se
+  # ve como retazos.
+  test "dos celdas rayadas, vecinas y de anchos distintos, continúan el mismo dibujo" do
+    TablaAMano.new(@pdf, [ [ "barra", { content: "", trama: "1E4A7A" }, { content: "", trama: "1E4A7A" } ] ],
+                   anchos: [ 100, 37, 22 ]).dibujar
+
+    izquierda, derecha = tramas_de(@pdf.render).sort_by(&:x)
+    paso = TablaAMano::PASO_DE_LA_TRAMA
+
+    assert_in_delta izquierda.derecha, derecha.x, 0.01, "una empieza donde termina la otra"
+    (izquierda.cortes + derecha.cortes).each do |corte|
+      assert_in_delta 0, (corte / paso) - (corte / paso).round, 0.001
+    end
+    assert_operator (izquierda.cortes & derecha.cortes).size, :>=, 2, "y comparten las rectas que cruzan el borde"
+  end
+
+  # ── El aire de una celda angosta ──────────────────────────────────────────
+
+  # ⚠️ Con los seis puntos de aire de la tabla, a una columna de 22 le quedan
+  # diez para el texto y «MEDIO» mide dieciocho: Prawn lo parte por la mitad de
+  # la palabra, sin avisar.
+  test "con su propio aire, una celda angosta deja entrar la palabra entera" do
+    celda = { content: "MEDIO BAJO", size: 5.5 }
+
+    TablaAMano.new(@pdf, [ [ celda ] ], anchos: [ 22 ]).dibujar
+    apretada = textos_de(@pdf.render).map(&:texto)
+
+    @pdf = Prawn::Document.new(page_size: "LETTER", margin: 36)
+    TablaAMano.new(@pdf, [ [ celda.merge(aire: 1.5) ] ], anchos: [ 22 ], centradas: (0..)).dibujar
+    holgada = textos_de(@pdf.render)
+
+    assert_not_includes apretada, "MEDIO", "con el aire de la tabla la palabra se partía: #{apretada.inspect}"
+    assert_equal %w[MEDIO BAJO], holgada.map(&:texto)
+    assert_operator holgada.first.x, :>=, 36 + 1.5 - 0.01, "y respeta su aire: no se monta sobre el borde"
+  end
+
+  # ── El hueco entre dos grupos ─────────────────────────────────────────────
+
+  test "un hueco no lleva borde, y el fondo de la fila se interrumpe en él" do
+    TablaAMano.new(@pdf, [ [ "MATERIA", "NOTA", "", "BAJO", "ALTO" ], [ "Inglés", "16", "", "", "" ] ],
+                   anchos: [ 300, 100, 8, 66, 66 ], huecos: [ 2 ], estilos: { 0 => { fondo: "F0EDE8" } }).dibujar
+
+    crudo  = @pdf.render
+    fondos = rellenos_de(crudo).sort_by(&:first)
+    bordes = bordes_de(crudo)
+
+    assert_equal [ [ 36.0, 400.0 ], [ 444.0, 132.0 ] ], fondos.map { |x, _, ancho, _| [ x, ancho ] },
+                 "el fondo de la cabecera va en dos pedazos, uno por grupo"
+    assert_equal 8, bordes.size, "cuatro celdas con borde por fila; la del hueco, no"
+    assert bordes.none? { |x, _, ancho, _| x >= 436 - 0.01 && x + ancho <= 444 + 0.01 }, "el hueco salió con borde"
+  end
+
+  test "sin huecos, el fondo de la fila es uno solo y de lado a lado" do
+    tabla_de([ [ "MATERIA", "NOTA" ] ], estilos: { 0 => { fondo: "F0EDE8" } }).dibujar
+
+    assert_equal [ [ 36.0, 540.0 ] ], rellenos_de(@pdf.render).map { |x, _, ancho, _| [ x, ancho ] }
   end
 
   private
