@@ -62,7 +62,7 @@ class ImportarPensumTest < ActionDispatch::IntegrationTest
                                   tipo: "pensum" } }
 
     assert_response :unprocessable_entity
-    assert_select "h1", text: /materias y profesores/i
+    assert_select "h1", text: /áreas y profesores/i
     assert_select "input[name=?][value=?]", "importacion[tipo]", "pensum"
   end
 
@@ -163,7 +163,7 @@ class ImportarPensumTest < ActionDispatch::IntegrationTest
     assert_response :success
     # 4 cargables de 5: «1er Año C» no existe y Física viene sin correo.
     assert_select ".cifra-numero", text: "3"
-    assert_select "body", text: /materias distintas/
+    assert_select "body", text: /áreas distintas/
     assert_select "body", text: /profesores distintos/
   end
 
@@ -266,8 +266,8 @@ class ImportarPensumTest < ActionDispatch::IntegrationTest
     get resultado_importacion_path(ultima)
 
     assert_response :success
-    assert_select "h1", text: "Materias y profesores importados"
-    assert_select "body", text: /materias nuevas/
+    assert_select "h1", text: "Áreas y profesores importados"
+    assert_select "body", text: /áreas nuevas/
     assert_select "body", text: /profesores nuevos/
     assert_select "body", text: /alumnos nuevos/, count: 0
   end

@@ -1,7 +1,7 @@
 .card-academic
   = render "shared/cabecera", titulo: Vocabulario::AREAS, ruta: subjects_path,
-           marco: "subjects-results", pista: "Nombre o código de la materia…",
-           alta: { ruta: new_subject_path, nombre: "Registrar materia" },
+           marco: "subjects-results", pista: "Nombre o código del área…",
+           alta: { ruta: new_subject_path, nombre: "Registrar #{Vocabulario::AREA.downcase}" },
            importar: :pensum
 -# ⚠️ `target: "_top"`: sin él, cada enlace de adentro navega DENTRO del frame
 -# y Turbo pinta «Content missing», porque la página de destino no tiene un
@@ -19,8 +19,8 @@
                  { texto: "Cargar profesores", ruta: teachers_path, icono: :profesores, clase: "btn-secondary" } ]
   - else
     .card-academic
-      = render "shared/escala", total: @pagy.count, singular: "materia",
-               plural: "materias",
+      = render "shared/escala", total: @pagy.count, singular: "área",
+               plural: "áreas",
                detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
 
       %table.table-academic

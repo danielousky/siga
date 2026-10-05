@@ -33,11 +33,11 @@
     -# del campo. Y sobre todo, desactiva la sospecha de que falta un paso.
     %p.nota-ayuda
       - if hay_departamentos
-        Agrupan las materias por área para ver el rendimiento por departamento.
-        Una materia sin departamento funciona igual.
+        Reúnen las áreas de aprendizaje afines —el de Ciencias, el de Letras— para
+        ver el rendimiento por departamento. Un área sin departamento funciona igual.
       - else
-        Un colegio chico no los necesita: agrupan las materias por área
-        —Ciencias, Letras— y sirven para ver el rendimiento por departamento.
+        Un colegio chico no los necesita: reúnen las áreas de aprendizaje afines
+        —el de Ciencias, el de Letras— y sirven para ver el rendimiento por departamento.
         = succeed "." do
           = link_to "Se crean acá", departments_path
         Puede seguir sin ellos.

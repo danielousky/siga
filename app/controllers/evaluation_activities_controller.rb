@@ -639,7 +639,7 @@ class EvaluationActivitiesController < ApplicationController
     return if profesor?
 
     redirect_to evaluation_activities_path,
-                alert: "La ponderación la define el profesor que dicta la materia."
+                alert: "La ponderación la define el profesor que dicta el área."
   end
 
   # Dirección y coordinación ven las evaluaciones del colegio, sin editarlas.

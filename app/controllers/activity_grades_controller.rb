@@ -166,7 +166,7 @@ class ActivityGradesController < ApplicationController
     return if profesor?
 
     respond_to do |formato|
-      formato.html { redirect_to dashboard_path_for_user, alert: "Solo el profesor que dicta la materia carga sus notas." }
+      formato.html { redirect_to dashboard_path_for_user, alert: "Solo el profesor que dicta el área carga sus notas." }
       formato.turbo_stream { head :forbidden }
     end
   end

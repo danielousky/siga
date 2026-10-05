@@ -14,7 +14,7 @@
       - if anio_de_la_sesion
         %h3= "Nadie quedó aplazado en #{anio_de_la_sesion.name}"
         %p
-          Acá aparecen las secciones y materias donde algún alumno cerró el año
+          Acá aparecen las secciones y áreas donde algún alumno cerró el año
           por debajo de 10. La lista se arma sola con las notas definitivas.
       - else
         %h3 Elija un año escolar
@@ -36,7 +36,7 @@
       %thead
         %tr
           %th= Grade.model_name.human
-          %th= Subject.model_name.human
+          %th= Vocabulario::AREA_CORTA
           %th Aplazados
           %th Cargadas
       %tbody

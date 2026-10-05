@@ -70,7 +70,7 @@
       - if @elegida.completo?
         %span.pastilla-de-cobro.estado-pagado Calificado al 100 %
       - else
-        %span.pastilla-de-cobro.estado-en-mora= "Faltan #{contar(@elegida.faltan, 'materia', 'materias')}"
+        %span.pastilla-de-cobro.estado-en-mora= "Faltan #{contar(@elegida.faltan, 'área', 'áreas')}"
       - if @elegida.liberado?
         %span.pastilla-de-cobro.estado-validado La familia ya lo ve
       - elsif @elegida.emitido?
@@ -134,13 +134,13 @@
       - if @boletines.incompletos.any?
         %p.nota-ayuda
           = "#{@lapso.name} no se puede cerrar todavía:"
-          %strong= "#{contar(@boletines.incompletos.size, 'alumno tiene', 'alumnos tienen')} materias sin nota"
+          %strong= "#{contar(@boletines.incompletos.size, 'alumno tiene', 'alumnos tienen')} áreas sin nota"
           \. El lapso se cierra cuando están todas.
         %ul.revisar-faltantes
           - @boletines.incompletos.first(8).each do |ficha|
             %li
               %span= ficha.alumno.apellidos_y_nombres
-              %span.dato-secundario= contar(ficha.faltan, "materia", "materias")
+              %span.dato-secundario= contar(ficha.faltan, "área", "áreas")
           - if @boletines.incompletos.size > 8
             %li.dato-secundario= "y #{contar(@boletines.incompletos.size - 8, 'alumno más', 'alumnos más')}"
       - else

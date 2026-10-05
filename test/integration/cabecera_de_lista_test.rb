@@ -19,7 +19,7 @@ class CabeceraDeListaTest < ActionDispatch::IntegrationTest
     students_path:        "Registrar alumno",
     representatives_path: "Registrar representante",
     teachers_path:        "Registrar profesor",
-    subjects_path:        "Registrar materia",
+    subjects_path:        "Registrar área de aprendizaje",
     sections_path:        "Registrar sección",
     enrollments_path:     "Registrar inscripción"
   }.freeze

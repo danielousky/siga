@@ -259,7 +259,7 @@ class NivelDeLaSesionTest < ActionDispatch::IntegrationTest
     academic_periods_path: "El año escolar es de todo el colegio",
     evaluation_moments_path: "Los lapsos son de todo el colegio",
     admins_path: "El equipo de dirección es de todo el colegio",
-    subjects_path: "Una materia puede darse en varios niveles"
+    subjects_path: "Un área de aprendizaje puede darse en varios niveles"
   }.freeze
 
   test "las pantallas donde el nivel no aplica lo dicen" do

@@ -17,7 +17,7 @@
       -# de materias (el pensum trae las dos cosas). La pantalla sigue existiendo
       -# —cargar profesores a mano es su propio trabajo— así que el estado vacío
       -# se escribe acá.
-      - explicacion = "Cada profesor necesita correo: es con lo que entra a cargar sus notas. Si sube el pensum, salen de ahí junto con las materias y con quién dicta qué."
+      - explicacion = "Cada profesor necesita correo: es con lo que entra a cargar sus notas. Si sube el pensum, salen de ahí junto con las áreas de aprendizaje y con quién dicta qué."
       - salidas = [ { tipo: :pensum }, { texto: "Agregar", ruta: new_teacher_path, icono: :agregar } ]
       = render "shared/lista_vacia", clave: :profesores, titulo: "Todavía no hay profesores cargados", texto: explicacion, acciones: salidas
   - else

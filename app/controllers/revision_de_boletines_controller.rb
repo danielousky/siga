@@ -130,7 +130,7 @@ class RevisionDeBoletinesController < ApplicationController
 
     if boletines.incompletos.any?
       faltan = boletines.incompletos.size
-      return "Todavía #{helpers.contar(faltan, 'alumno tiene', 'alumnos tienen')} materias sin nota. " \
+      return "Todavía #{helpers.contar(faltan, 'alumno tiene', 'alumnos tienen')} áreas sin nota. " \
              "El lapso se cierra cuando están todas."
     end
 

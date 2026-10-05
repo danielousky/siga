@@ -49,6 +49,6 @@ class ActivityCompetency < ApplicationRecord
                      competency.evaluation_moment_id == evaluation_activity.evaluation_moment_id
     return if del_mismo_plan
 
-    errors.add(:competency, "no es del plan de esta sección, materia y lapso")
+    errors.add(:competency, "no es del plan de esta sección, área y lapso")
   end
 end

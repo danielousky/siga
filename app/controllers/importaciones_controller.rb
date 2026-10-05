@@ -452,7 +452,7 @@ class ImportacionesController < ApplicationController
   def resumen(resultado)
     case @importacion.tipo
     when "pensum"
-      helpers.pluralize(resultado.asignaciones, "materia asignada", plural: "materias asignadas")
+      helpers.pluralize(resultado.asignaciones, "área asignada", plural: "áreas asignadas")
     when "historial"
       helpers.pluralize(resultado.total_cargado, "calificación", plural: "calificaciones")
     else

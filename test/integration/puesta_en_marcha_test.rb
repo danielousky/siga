@@ -254,7 +254,7 @@ class PuestaEnMarchaTest < ActionDispatch::IntegrationTest
 
       assert_not paso(:materias, vacio).listo,
                  "con materias y sin profesores el paso no está hecho"
-      assert_equal "1 materia", paso(:materias, vacio).resultado,
+      assert_equal "1 área", paso(:materias, vacio).resultado,
                    "el avance parcial tiene que decirse: es lo que dice qué falta"
     end
   end

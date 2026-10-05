@@ -228,8 +228,8 @@ class PasosDeArranque
     profesores_cargados = Teacher.count
 
     Paso.new(
-      clave: :materias, vacio: "Todavía no hay materias cargadas", icono: :materias,
-      titulo: "Las materias y quién las dicta",
+      clave: :materias, vacio: "Todavía no hay áreas de aprendizaje cargadas", icono: :materias,
+      titulo: "Las áreas de aprendizaje y quién las dicta",
       # ⚠️ El paso CAMBIA DE TEXTO según lo que ya haya (MOR-208).
       #
       # Daniel: *«ya las materias están cargadas; en todo caso queda es
@@ -240,7 +240,7 @@ class PasosDeArranque
       # Lo que de verdad falta en ese momento es la otra mitad —quién las
       # dicta—, así que el paso lo dice y lleva a los profesores.
       explicacion: explicacion_del_pensum(materias_cargadas, profesores_cargados),
-      verbo: materias_cargadas.positive? ? "Cargar los profesores" : "Cargar las materias",
+      verbo: materias_cargadas.positive? ? "Cargar los profesores" : "Cargar las áreas",
       ruta: materias_cargadas.positive? ? :teachers : :subjects,
       # Las dos mitades: una materia sin nadie que la dicte no deja cargar una
       # nota, así que el paso no está hecho hasta que hay quien la dé.
@@ -256,14 +256,14 @@ class PasosDeArranque
   # diga lo mismo.
   def explicacion_del_pensum(materias, profesores)
     if materias.positive? && profesores.zero?
-      "Sus materias ya están, con el plan de estudio del ministerio repartido por año. " \
+      "Sus áreas de aprendizaje ya están, con el plan de estudio del ministerio repartido por año. " \
       "Falta la otra mitad: quién dicta cada una. Si tiene el pensum en un Excel, súbalo " \
       "y salen los profesores y sus asignaciones de una vez."
     elsif materias.positive?
-      "Las materias y los profesores ya están. Revise que cada sección tenga quién le dicte: " \
-      "una materia sin profesor no deja cargar una nota."
+      "Las áreas de aprendizaje y los profesores ya están. Revise que cada sección tenga quién le dicte: " \
+      "un área sin profesor no deja cargar una nota."
     else
-      "Si ya tiene el pensum en un Excel, súbalo: de una sola planilla salen las materias, " \
+      "Si ya tiene el pensum en un Excel, súbalo: de una sola planilla salen las áreas de aprendizaje, " \
       "los profesores y quién dicta qué en cada sección. El código (MAT, CAS, FIS) es suyo: " \
       "si la planilla no lo trae, SIGA propone uno y usted lo corrige."
     end
@@ -273,7 +273,7 @@ class PasosDeArranque
   # dice qué falta sin tener que abrir la pantalla.
   def resultado_del_pensum(materias, profesores)
     partes = []
-    partes << contar(materias, "materia", "materias") if materias.positive?
+    partes << contar(materias, "área", "áreas") if materias.positive?
     partes << contar(profesores, "profesor", "profesores") if profesores.positive?
 
     partes.join(" · ").presence
@@ -380,7 +380,7 @@ class PasosDeArranque
     Paso.new(
       clave: :departamentos, vacio: "Todavía no hay departamentos", icono: :colegio, opcional: true,
       titulo: "Departamentos",
-      explicacion: "Agrupan las materias por área —Ciencias, Letras— y sirven para ver " \
+      explicacion: "Reúnen las áreas de aprendizaje afines —el de Ciencias, el de Letras— y sirven para ver " \
                    "el rendimiento por departamento. Un colegio chico puede vivir sin ellos.",
       verbo: "Agregar un departamento", ruta: :departments,
       listo: cargados.positive?,

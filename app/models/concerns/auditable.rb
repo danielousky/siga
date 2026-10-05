@@ -52,7 +52,7 @@ module Auditable
     "teacher"         => "al profesor",
     "admin"           => "al administrador",
     "academic_period" => "el año escolar",
-    "subject"         => "la materia",
+    "subject"         => "el área de aprendizaje",
     "grade"           => "el grado",
     "department"      => "el departamento"
   }.freeze

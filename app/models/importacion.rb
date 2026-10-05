@@ -38,7 +38,7 @@ class Importacion < ApplicationRecord
 
   TIPOS = {
     "matricula" => "Matrícula de alumnos",
-    "pensum" => "Materias y profesores",
+    "pensum" => "Áreas y profesores",
     "historial" => "Notas de años anteriores"
   }.freeze
 
@@ -65,7 +65,7 @@ class Importacion < ApplicationRecord
   # encabezado de una columna, no un botón.
   ACCIONES = {
     "matricula" => "Subir la matrícula",
-    "pensum" => "Subir materias y profesores",
+    "pensum" => "Subir áreas y profesores",
     "historial" => "Subir las notas anteriores"
   }.freeze
 
@@ -78,7 +78,7 @@ class Importacion < ApplicationRecord
   # da «Materias y profesores: importada».
   REPORTES = {
     "matricula" => "Matrícula importada",
-    "pensum" => "Materias y profesores importados",
+    "pensum" => "Áreas y profesores importados",
     "historial" => "Notas de años anteriores importadas"
   }.freeze
 

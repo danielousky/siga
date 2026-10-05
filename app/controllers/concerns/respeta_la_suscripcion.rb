@@ -127,7 +127,7 @@ module RespetaLaSuscripcion
     return unless requiere_plan?
 
     mensaje = "Calificar, pasar lista y emitir documentos se activan con un plan. " \
-              "Cargar alumnos, profesores y materias es libre y no vence."
+              "Cargar alumnos, profesores y áreas de aprendizaje es libre y no vence."
 
     respond_to do |formato|
       formato.html { redirect_back fallback_location: dashboard_path_for_user, alert: mensaje }

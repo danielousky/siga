@@ -64,7 +64,7 @@ class DepartamentosEnLineaTest < ApplicationSystemTestCase
     find(".cabecera-de-lista button[type=submit]").click
     assert_selector "td", text: "Deportes", wait: 5
 
-    find("a[aria-label='Agregar una materia de Deportes']").click
+    find("a[aria-label='Agregar un área de Deportes']").click
 
     assert_selector "#subject_department_id", wait: 5
     assert_equal "Deportes", find("#subject_department_id").value.then { |id| Current.sin_aislamiento { Department.find(id).name } }
