@@ -754,6 +754,14 @@ y otra vez el 25):
   **siempre un colegio nuevo** y nunca se une a uno existente, así que el daño máximo de un
   abuso es una fila que no ve nada de nadie. Ese invariante vive en `MiColegioController` y
   no se afloja sin volver a discutir esto. `destroy` NO volvió.
+  ⚠️ **Registrarse manda DOS correos, a dos personas**: la bienvenida a quien se registró y
+  el aviso a SIGA (`PlataformaMailer#colegio_registrado`, a `SIGA_AVISOS_EMAIL`), que es
+  como el equipo se entera de que entró un cliente. El segundo estuvo **un mes sin salir**:
+  `MOR-208` borró su línea al juntar el registro en un formulario, y el test exigía «un
+  correo» — la mitad que faltaba no se notó. Ahora se cuentan los dos, cada uno por su
+  destinatario. Y se encola con `Current.en_el_colegio(colegio)`: quien se registra todavía
+  no tiene sesión, y un job sin colegio lee cero grados y dice «todavía no eligió sus
+  niveles» de un colegio que sí los eligió.
 - ~~Seeds sin guard de entorno~~ → abortan fuera de desarrollo.
 - ~~Sin CI~~ → `bin/ci` en ~15 s (`MOR-105`), y el workflow de GitHub Actions **ya puede correr**:
   el repo tiene remoto (`danielousky/siga`, privado).

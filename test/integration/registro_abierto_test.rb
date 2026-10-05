@@ -43,6 +43,16 @@ class RegistroAbiertoTest < ActionDispatch::IntegrationTest
 
   def nuevo_colegio = Current.sin_aislamiento { School.find_by(dea_code: COLEGIO[:dea_code]) }
 
+  # La dirección a la que SIGA se avisa a sí mismo sale del entorno
+  # (`SIGA_AVISOS_EMAIL`). Se pone y se devuelve como estaba.
+  def con_avisos_a(direccion)
+    anterior = ENV["SIGA_AVISOS_EMAIL"]
+    ENV["SIGA_AVISOS_EMAIL"] = direccion
+    yield
+  ensure
+    ENV["SIGA_AVISOS_EMAIL"] = anterior
+  end
+
   test "un solo envío crea la persona y su colegio" do
     get new_user_registration_path
     assert_response :success
@@ -210,6 +220,59 @@ class RegistroAbiertoTest < ActionDispatch::IntegrationTest
   test "no se manda bienvenida si el alta falló" do
     assert_emails 0 do
       perform_enqueued_jobs { registrarse(colegio: { name: "", dea_code: "" }) }
+    end
+  end
+
+  # ── Y a SIGA le llega el aviso ────────────────────────────────────────────
+  #
+  # Con el registro abierto, un colegio entra sin que nadie de SIGA se entere.
+  # El aviso existe para eso (`MOR-158`)… y el 2 de septiembre de 2026 dejó de
+  # salir: al juntar el registro en un solo formulario (`MOR-208`) se borró la
+  # línea que lo mandaba, y este archivo solo exigía «un correo». Estuvo un mes
+  # así; lo encontró Daniel el 5 de octubre, al revisar todos los correos.
+  #
+  # ⚠️ Por eso se cuentan los DOS, y cada uno por su destinatario: con «sale
+  # algún correo» la mitad que falta no se nota.
+  test "y a SIGA le llega el aviso de que entró un colegio nuevo" do
+    con_avisos_a("avisos@siga.test") do
+      assert_emails 2 do
+        perform_enqueued_jobs { registrarse(niveles: %w[primaria secundaria]) }
+      end
+    end
+
+    bienvenida = ActionMailer::Base.deliveries.find { |correo| correo.to == [ PERSONA[:email] ] }
+    aviso      = ActionMailer::Base.deliveries.find { |correo| correo.to == [ "avisos@siga.test" ] }
+
+    assert bienvenida, "la persona se quedó sin su bienvenida"
+    assert aviso, "SIGA no se enteró de que entró un colegio"
+    assert_equal "Nuevo colegio en SIGA: #{nuevo_colegio.name}", aviso.subject
+
+    cuerpo = aviso.body.encoded
+    assert_includes cuerpo, PERSONA[:email], "sin el correo de quien lo registró no hay a quién escribirle"
+    assert_includes cuerpo, COLEGIO[:dea_code]
+    # ⚠️ Lo que dicta sale de sus GRADOS, que están aislados por colegio: si el
+    # aviso se encola sin decir de qué colegio es, llega diciendo «todavía no
+    # eligió sus niveles» de un colegio que sí los eligió.
+    assert_no_match(/todavía no eligió sus niveles/, cuerpo)
+    assert_match(/Primaria/, cuerpo)
+  end
+
+  # Un aviso interno que no sale no puede tumbar el registro de un cliente.
+  test "sin dirección a dónde avisar, el registro sigue y solo sale la bienvenida" do
+    con_avisos_a(nil) do
+      assert_emails 1 do
+        perform_enqueued_jobs { registrarse }
+      end
+    end
+
+    assert nuevo_colegio, "el colegio no se creó"
+  end
+
+  test "no se avisa de un colegio que no llegó a existir" do
+    con_avisos_a("avisos@siga.test") do
+      assert_emails 0 do
+        perform_enqueued_jobs { registrarse(colegio: { name: "", dea_code: "" }) }
+      end
     end
   end
 
