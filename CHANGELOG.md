@@ -23,7 +23,7 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
-## 1.11.0 — 1 de octubre de 2026
+## 1.11.0 — 5 de octubre de 2026
 
 - **Los certificados están ahora en «Documentos»**, en una pestaña propia al lado
   de Boletines y Constancias. Ya existían, pero había que abrir la ficha de cada
@@ -39,11 +39,23 @@ mensaje del commit, que es donde vive el detalle técnico.
   su literal sale como una línea para llenar a mano.
 - Arreglado: **el documento de Educación Inicial fallaba** al pedirlo desde la
   ficha del alumno cuando el colegio tenía a su director cargado.
-- Arreglado: **emitir los boletines de una sección de primaria tardaba casi
-  medio minuto**. Ahora son cinco segundos, y dicen exactamente lo mismo.
-- Arreglado: **el pie del boletín se cortaba contra el borde de la hoja** en
-  algunos casos, con el código de verificación a media línea y el QR partido.
-  Ahora el pie va completo, aunque para eso tenga que pasar a la hoja siguiente.
+- **El boletín de bachillerato cabe en una hoja.** Eran dos: las notas en una y
+  la «situación con respecto a la sección» en otra, que repetía cada materia con
+  su nota. Ahora es una sola tabla —la nota, el promedio de la sección y la
+  barra, en el mismo renglón— y el colegio imprime la mitad del papel.
+- **El boletín ocupa las hojas justas.** La firma y el código de verificación ya
+  no se cortan contra el borde ni quedan solos arriba de una hoja en blanco: si
+  no caben, pasan a la siguiente junto con parte de las notas. Y cuando por unas
+  pocas líneas el boletín se iba a una hoja más, las filas se aprietan un poco
+  para que quepa.
+- **Emitir los boletines de una sección tarda dos segundos**, no medio minuto.
+- En el boletín, los datos del alumno van en un renglón, y la asistencia y el
+  puesto en otro. El nombre del colegio sube al lado del escudo.
+- En el boletín anual, «Sin nota» ya no se parte en dos renglones: cada fila
+  medía el doble de lo necesario.
+- En la boleta de primaria, las competencias y los indicadores salen con letra
+  más chica que la materia y sangrados debajo de ella, como estaban pensados.
+  Salían todos del mismo tamaño y alineados al mismo borde.
 - El manual decía que los certificados se emitían desde la pestaña «Alumnos» de
   la sección. Ahora dice dónde están.
 

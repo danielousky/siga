@@ -6,33 +6,32 @@
 #
 # ## Se emite en línea, y no por job — se midió, y hay que VOLVER a medir
 #
-# Una sección entera, en local, el 1 de octubre de 2026:
+# Una sección entera, en local, el 5 de octubre de 2026 (datos + PDF):
 #
-#   primaria con su plan    21 alumnos · 42 páginas    5,2 s   (1,2 datos + 4,0 PDF)
-#   Media                   22 alumnos · 44 páginas    2,9 s
-#   primaria sin plan       21 alumnos · 21 páginas    1,4 s
-#   Inicial                 20 alumnos · 20 páginas    1,1 s
+#   primaria con su plan    21 alumnos · 42 hojas    2,2 s   (1,2 + 1,0)
+#   Media, de lapso         22 alumnos · 22 hojas    1,7 s   (0,5 + 1,2)
+#   Media, anual            22 alumnos · 22 hojas    1,1 s
+#   primaria sin plan       21 alumnos · 21 hojas    1,1 s
+#   Inicial                 20 alumnos · 20 hojas    0,9 s
 #
 # ⚠️ Aquí decía «sección de 20 ~560 ms», y era cierto cuando se midió: el
 # boletín era una página con una nota por materia. Después ganó competencias,
 # indicadores, rúbrica, informe y comparación con la sección, y NADIE volvió a
 # medir. El día que Daniel emitió 4to Grado A tardó veintiséis segundos, con
-# 40.866 consultas — ver `ReportCardData#materias`.
+# 40.866 consultas — ver `ReportCardData#materias`— y cuatro de esos segundos
+# eran `prawn-table` dibujando mil filas — ver `TablaAMano`.
 #
 # Una medida escrita en un comentario envejece en silencio. La de arriba
 # depende de CUÁNTO dibuja el boletín: si crece, se vuelve a tomar.
 #
-# ⚠️ De esos 4,0 s de PDF, 3,5 son la tabla de competencias: `prawn-table`
-# tarda 3 ms por fila y una sección trae más de mil.
-#
-# El issue daba por hecho que la emisión masiva tenía que ir por job porque "un
-# PDF por alumno de una sección de 35 es demasiado para un request". Pero no son
-# 35 PDF: es **un PDF con 35 páginas**, que es además lo que la secretaria quiere
-# —un archivo para mandar a imprimir, no 35 adjuntos.
+# ⚠️ Lo que queda por alumno son dos cosas. Generar el código QR, 16 ms: es
+# Ruby puro y prueba ocho máscaras, y no baja sin cambiar de librería. Y unas 55
+# consultas para armar el plan evaluado, que es el mismo para toda la sección y
+# se vuelve a leer con cada alumno: eso sí tiene de dónde bajar.
 #
 # Y por job habría que resolver dónde queda el archivo y cómo se lo entrega al
-# usuario después. Medio segundo de espera con el archivo en la mano es mejor
-# producto que una notificación diferida.
+# usuario después. Un par de segundos de espera con el archivo en la mano es
+# mejor producto que una notificación diferida.
 #
 # ## Quién emite
 #

@@ -6,9 +6,15 @@
 # despliegue todavía no está decidido** — atarlo a un binario sería tomar esa
 # decisión de costado.
 #
-# Recibe `ReportCard` ya guardados y dibuja UNA PÁGINA POR CADA UNO desde su
-# `snapshot`, nunca desde la base. Así el papel, el archivo y la verificación
-# pública dicen exactamente lo mismo.
+# Recibe `ReportCard` ya guardados y dibuja un boletín por cada uno —en las
+# hojas que le hagan falta— desde su `snapshot`, nunca desde la base. Así el
+# papel, el archivo y la verificación pública dicen exactamente lo mismo.
+#
+# ## Tres piezas, y qué hace cada una
+#
+#     ReportCardPdf     qué lleva el boletín y cómo se ve cada bloque
+#     TablaAMano        dibuja una tabla fila por fila, con el alto que le pidan
+#     AcomodoEnHojas    decide dónde cae cada cosa: ni el pie cortado, ni solo
 #
 # Ver MOR-98.
 class ReportCardPdf
@@ -41,6 +47,9 @@ class ReportCardPdf
   end
 
   def render
+    # Lo que se midió para un PDF no sirve para el siguiente: ver `alto_en_borrador`.
+    @borrador = nil
+
     documento = Prawn::Document.new(page_size: "LETTER", margin: MARGEN, info: {
       Title: "Boletín de calificaciones", Creator: "SIGA", CreationDate: Time.current
     })
@@ -112,30 +121,153 @@ class ReportCardPdf
 
   private
 
-  # El escudo del colegio, cacheado por colegio.
+  # El escudo, la firma y el sello del colegio, una sola vez por PDF.
   #
-  # Emitir la sección entera son treinta páginas del MISMO colegio: sin el caché
-  # serían treinta descargas del mismo archivo desde Active Storage.
-  def logo_del_colegio(boletin)
-    @logos ||= {}
+  # Emitir la sección entera son treinta boletines del MISMO colegio: sin
+  # guardarlas serían treinta descargas del mismo archivo desde Active Storage.
+  #
+  # ⚠️ Eran una descarga por alumno para la firma y otra para el sello: solo el
+  # escudo estaba guardado. No se veía en los datos de demostración porque ese
+  # colegio no tiene firma cargada — uno de verdad sí la tiene.
+  #
+  # Una imagen que no se puede leer no puede tumbar un boletín: da `nil`, y
+  # quien la iba a dibujar deja el hueco.
+  def imagen_del_colegio(boletin, cual)
     escuela = boletin.enrollment.section.grade.school
 
-    @logos.fetch(escuela.id) { @logos[escuela.id] = escuela.logo_para_pdf }
+    (@imagenes ||= {}).fetch([ escuela.id, cual ]) do |clave|
+      @imagenes[clave] = escuela.public_send("#{cual}_para_pdf")
+    end
+  rescue StandardError
+    nil
   end
 
+  def logo_del_colegio(boletin) = imagen_del_colegio(boletin, :logo)
+
+  # ── Un boletín, en las hojas que hagan falta ─────────────────────────────
+  #
+  # El membrete y los datos del alumno van siempre arriba. Todo lo demás se
+  # arma como PIEZAS —cada fila de la tabla, cada bloque de abajo, el pie— y
+  # antes de dibujar la primera se decide dónde cae cada una y con qué alto de
+  # fila (`AcomodoEnHojas`).
+  #
+  #     membrete · alumno          ← se dibujan, y ahí se sabe cuánto queda
+  #     ─────────────────
+  #     fila · fila · fila …       ← piezas que se estiran o se aprietan
+  #     leyenda                    ┐
+  #     asistencia y puesto        │ bloques: miden lo que miden
+  #     situación en la sección    │
+  #     informe descriptivo        ┘
+  #     pie                        ← no se parte, y no viaja solo
+  #
+  # ⚠️ Hasta el 2 de octubre de 2026 esto era «dibujar una cosa detrás de la
+  # otra y que Prawn salte de hoja cuando no quepa». Funcionaba hasta el pie,
+  # que no se puede partir: o se cortaba contra el borde, o saltaba solo a una
+  # hoja en blanco. Daniel: *«no se ve bien solo en una sola hoja»*.
   def pagina(pdf, boletin)
     datos = boletin.snapshot
 
     encabezado(pdf, datos, boletin)
     identificacion(pdf, datos)
-    datos["tipo"] == "anual" ? tabla_anual(pdf, datos) : tabla_de_lapso(pdf, datos)
-    asistencia_y_puesto(pdf, datos)
-    situacion_en_la_seccion(pdf, datos)
-    informe_descriptivo(pdf, datos)
-    pie(pdf, datos, boletin)
+
+    piezas = piezas_de(pdf, datos, boletin)
+    plan   = AcomodoEnHojas.new(piezas, libre: pdf.cursor, hoja: pdf.bounds.height).plan
+
+    piezas.each_with_index do |pieza, indice|
+      pdf.start_new_page if plan.salta_antes?(indice)
+      pieza.dibujar.call(pdf, plan.relleno)
+    end
   end
 
-  # El escudo del colegio, a la izquierda, con el membrete centrado.
+  # El aire entre la tabla y lo que venga debajo.
+  AIRE_TRAS_LA_TABLA = 14
+
+  def piezas_de(pdf, datos, boletin)
+    anual = datos["tipo"] == "anual"
+    tabla, pegadas = anual ? tabla_anual(pdf, datos) : tabla_de_lapso(pdf, datos)
+
+    # Lo que explica la tabla de lapso —los códigos de la rúbrica, o cómo se lee
+    # la comparación con la sección—. El anual no lleva ninguna de las dos.
+    al_pie  = anual ? nil : bloque { |lienzo| al_pie_de_la_tabla(lienzo, datos) }
+    bloques = [
+      al_pie,
+      bloque { |lienzo| asistencia_y_puesto(lienzo, datos) },
+      bloque { |lienzo| informe_descriptivo(lienzo, datos) }
+    ].compact
+
+    filas_de(tabla, pegadas, aire: aire_tras_la_tabla(datos), sigue_la_leyenda: al_pie.present?) +
+      bloques + [ pieza_del_pie(datos, boletin) ]
+  end
+
+  # La nota de la comparación va pegada a su tabla: la explica renglón por
+  # renglón, y con el aire de siempre parecía de otra cosa.
+  def aire_tras_la_tabla(datos) = datos["comparacion"].present? ? 6 : AIRE_TRAS_LA_TABLA
+
+  # Cada fila de la tabla, como una pieza que se puede dibujar con el relleno
+  # que el plan decida.
+  #
+  # ⚠️ La última no se separa de la leyenda, si la hay: una leyenda sola al tope
+  # de una hoja explica los códigos de una tabla que quedó en la anterior.
+  def filas_de(tabla, pegadas, aire:, sigue_la_leyenda:)
+    ultima = tabla.filas - 1
+
+    tabla.altos.each_with_index.map do |alto, fila|
+      AcomodoEnHojas::Pieza.new(
+        alto: alto, fila: true,
+        pegada: fila == ultima ? sigue_la_leyenda : pegadas[fila],
+        despues: fila == ultima ? aire : 0,
+        dibujar: lambda do |lienzo, relleno|
+          tabla.dibujar_fila(fila, relleno)
+          lienzo.move_down aire if fila == ultima
+        end
+      )
+    end
+  end
+
+  # Un bloque de los de abajo, con su alto ya medido. `nil` si no dibuja nada:
+  # un boletín sin informe no tiene una pieza de cero puntos, no la tiene.
+  def bloque(&dibujo)
+    alto = alto_en_borrador(&dibujo)
+    return nil unless alto.positive?
+
+    AcomodoEnHojas::Pieza.new(alto: alto, dibujar: ->(lienzo, _relleno) { dibujo.call(lienzo) })
+  end
+
+  def pieza_del_pie(datos, boletin)
+    AcomodoEnHojas::Pieza.new(alto: alto_del_pie(datos, boletin),
+                              dibujar: ->(lienzo, _relleno) { pie(lienzo, datos, boletin) })
+  end
+
+  # Cuánto mide un bloque, DIBUJÁNDOLO en un documento que no se entrega.
+  #
+  # ⚠️ Se dibuja y se mira, en vez de calcularlo aparte. La otra manera es
+  # escribir al lado de cada bloque un gemelo que sume sus alturas —«10 de aire,
+  # más el título, más 3, más el párrafo»— y son dos cuentas del mismo número:
+  # el día que alguien le cambie un margen al bloque, el gemelo sigue diciendo
+  # el alto viejo y el plan reparte las hojas con un dato que ya no es cierto.
+  # Nada falla; el pie vuelve a quedar solo.
+  #
+  # Cuesta dibujar cada bloque dos veces, y son los livianos: un renglón, un
+  # párrafo, un cuadro de diez filas.
+  #
+  # Si el bloque se derrama a otra hoja —un informe de sesenta renglones— mide
+  # más que una entera. La cuenta deja de ser exacta y no importa: el plan lo
+  # trata como algo que no se puede acomodar, y lo deja correr.
+  def alto_en_borrador
+    lienzo = borrador
+    lienzo.move_cursor_to lienzo.bounds.top
+    hojas = lienzo.page_count
+
+    yield lienzo
+
+    ((lienzo.page_count - hojas) * lienzo.bounds.height) + (lienzo.bounds.top - lienzo.cursor)
+  end
+
+  # Mismo papel y mismo margen que el de verdad: un bloque mide distinto en una
+  # hoja más angosta.
+  def borrador = @borrador ||= Prawn::Document.new(page_size: "LETTER", margin: MARGEN)
+
+  # El escudo del colegio, a la izquierda, con el membrete centrado AL LADO.
   #
   # ⚠️ El logo se lee de la BASE, no del snapshot, y es la única cosa del boletín
   # que no se congela. Todo lo demás —las notas, el grado, la escala— es lo que
@@ -143,48 +275,73 @@ class ReportCardPdf
   # IDENTIDAD: si el colegio lo rediseña, un boletín reemitido lleva el nuevo, y
   # eso es lo correcto. Congelarlo dejaría el escudo viejo en un documento que el
   # colegio está entregando hoy.
+  #
+  # ⚠️ `float`, o el escudo empuja el membrete hacia abajo. Hasta el 5 de
+  # octubre de 2026 el nombre del colegio arrancaba DEBAJO del escudo y no a su
+  # lado: una caja de Prawn deja el cursor en su borde inferior, así que cada
+  # boletín de un colegio con escudo llevaba 42 puntos en blanco a la derecha
+  # del logo. Apareció midiendo por qué el boletín de bachillerato no cabía en
+  # una hoja — era la tercera parte de lo que sobraba.
+  #
+  # ⚠️ Y el texto va en una columna que deja libre el ancho del escudo A LOS DOS
+  # LADOS: así sigue centrado en la hoja —no «en lo que queda a la derecha del
+  # logo», que es como se ve un membrete torcido— y un nombre largo se parte en
+  # dos renglones en vez de escribirse encima del escudo.
+  ANCHO_DEL_ESCUDO = 60
+  ALTO_DEL_ESCUDO  = 46
+
   def encabezado(pdf, datos, boletin = nil)
     colegio = datos["colegio"]
     escudo  = boletin && logo_del_colegio(boletin)
+    arriba  = pdf.cursor
 
     if escudo
-      # Se dibuja en su propia caja, así que el membrete sigue centrado en la
-      # página y no "al lado del logo" — que es como se ve un membrete torcido.
-      pdf.bounding_box([0, pdf.cursor + 4], width: 60, height: 46) do
-        pdf.image escudo, fit: [56, 44], position: :left, vposition: :top
-      rescue StandardError
-        nil   # Un escudo que no se puede dibujar no puede tirar abajo el boletín.
+      pdf.float do
+        pdf.bounding_box([ 0, arriba + 4 ], width: ANCHO_DEL_ESCUDO, height: ALTO_DEL_ESCUDO) do
+          pdf.image escudo, fit: [ ANCHO_DEL_ESCUDO - 4, ALTO_DEL_ESCUDO - 2 ], position: :left, vposition: :top
+        rescue StandardError
+          nil   # Un escudo que no se puede dibujar no puede tirar abajo el boletín.
+        end
       end
     end
 
-    pdf.text texto(colegio["nombre"]).upcase, size: 15, style: :bold, align: :center
-    pdf.text "#{texto(colegio['ubicacion'])}  ·  Código DEA #{texto(colegio['dea'])}",
-             size: 8, align: :center, color: "666666"
-    pdf.move_down 12
+    margen = escudo ? ANCHO_DEL_ESCUDO + 10 : 0
+    pdf.bounding_box([ margen, arriba ], width: pdf.bounds.width - (2 * margen)) do
+      pdf.text texto(colegio["nombre"]).upcase, size: 15, style: :bold, align: :center
+      pdf.text "#{texto(colegio['ubicacion'])}  ·  Código DEA #{texto(colegio['dea'])}",
+               size: 8, align: :center, color: "666666"
+      pdf.move_down 12
 
-    titulo = datos["tipo"] == "anual" ? "BOLETÍN ANUAL DE CALIFICACIONES" : "BOLETÍN DE CALIFICACIONES"
-    pdf.text titulo, size: 12, style: :bold, align: :center
-    subtitulo = [texto(datos["lapso"]), "Año escolar #{texto(datos['seccion']['periodo'])}"].compact_blank.join("  ·  ")
-    pdf.text subtitulo, size: 9, align: :center, color: "666666"
+      titulo = datos["tipo"] == "anual" ? "BOLETÍN ANUAL DE CALIFICACIONES" : "BOLETÍN DE CALIFICACIONES"
+      pdf.text titulo, size: 12, style: :bold, align: :center
+      subtitulo = [ texto(datos["lapso"]), "Año escolar #{texto(datos['seccion']['periodo'])}" ].compact_blank.join("  ·  ")
+      pdf.text subtitulo, size: 9, align: :center, color: "666666"
+    end
     pdf.move_down 14
   end
 
+  # Los datos del alumno, en UN renglón.
+  #
+  # Daniel, 5 de octubre de 2026, con el boletín de bachillerato en dos hojas:
+  # *«si pasamos unos elementos a una sola línea ganaríamos 2 líneas»*. Eran
+  # dos renglones —Alumno y Carnet arriba, Grado y Sección abajo— para cuatro
+  # datos que caben de sobra en el ancho de la hoja.
+  #
+  # ⚠️ Anchos FIJOS, y el nombre se queda con lo que sobre. `prawn-table` los
+  # repartía según el largo de cada nombre, así que «Carnet» caía en un sitio
+  # distinto en el boletín de cada alumno.
   def identificacion(pdf, datos)
     alumno  = datos["alumno"]
     seccion = datos["seccion"]
+    rotulo  = ->(nombre) { { content: nombre, font_style: :bold } }
 
-    pdf.table(
-      [
-        ["Alumno",  texto(alumno["nombre"]),  "Carnet", texto(alumno["carnet"])],
-        ["Grado",   texto(seccion["grado"]),  "Sección", texto(seccion["seccion"])]
-      ],
-      width: pdf.bounds.width, cell_style: { size: 9, borders: [], padding: [2, 4] }
-    ) do
-      columns(0).font_style = :bold
-      columns(2).font_style = :bold
-      columns(0).width = 55
-      columns(2).width = 55
-    end
+    TablaAMano.new(pdf,
+                   [ [ rotulo["Alumno"], texto(alumno["nombre"]), rotulo["Grado"], texto(seccion["grado"]),
+                       rotulo["Sección"], texto(seccion["seccion"]), rotulo["Carnet"], texto(alumno["carnet"]) ] ],
+                   # rótulo y dato de: alumno · grado · sección · carnet. La sección
+                   # admite hasta ocho caracteres («MAÑANA»), no solo «A».
+                   anchos: repartir_sobrante([ 42, nil, 36, 56, 44, 40, 38, 64 ], pdf.bounds.width),
+                   relleno: [ 2, 4 ], borde: nil, centradas: nil).dibujar
 
     pdf.move_down 10
   end
@@ -196,29 +353,130 @@ class ReportCardPdf
   # lee el nivel; el número queda al lado porque es lo que el docente cargó y lo
   # que el colegio tiene que poder verificar. Esconderlo obligaría a pedir el
   # boletín para saber de dónde salió la letra.
+  #
+  # Devuelve la tabla SIN dibujar y, al lado, qué filas no se separan de la que
+  # les sigue. Quien reparte las hojas necesita las dos cosas.
+  #
+  # ## Y la comparación con la sección va EN ESTA TABLA, no en otra
+  #
+  # Daniel, 5 de octubre de 2026: *«en Media lo que falta para que entre el
+  # cuadro comparativo es poco… eso ahorraría papel a la hora de imprimir las
+  # boletas, además que se vería mejor»*. No era poco: el boletín de lapso de
+  # bachillerato medía 840 puntos en una hoja de 720, y con doce materias, 898.
+  #
+  # Lo que sobraba era una tabla entera. «Situación con respecto a la sección»
+  # repetía cada materia con su nota —las dos primeras columnas de la tabla de
+  # arriba— para agregarle el promedio de la sección y la barra:
+  #
+  #     ANTES                                AHORA
+  #     ─────                                ─────
+  #     MATERIA            CALIFICACIÓN      MATERIA     CALIF.  SECCIÓN  ▓▓▓▓▓░
+  #     Matemática              13           Matemática    13     13,7    ▓▓▓░░░
+  #     …                                    …
+  #                                          PROMEDIO      16     14,1    ▓▓▓▓░░
+  #     SITUACIÓN CON RESPECTO A LA SECCIÓN
+  #     MATERIA     ALUMNO  SECCIÓN  ▓▓▓▓▓░
+  #     Matemática    13     13,7    ▓▓▓░░░   ← la misma materia, la misma nota
+  #     …
+  #
+  # Es la pieza que Daniel señaló del boletín de la U.E. Centro Educativo APUCV,
+  # y contesta la pregunta que una familia hace de verdad: no *«¿cuánto sacó?»*
+  # sino *«¿cómo le fue comparado con sus compañeros?»*. Sigue contestándola, en
+  # el mismo renglón donde está la nota.
+  #
+  # ## La barra se dibuja con CELDAS, no con coordenadas
+  #
+  # Una barra «de verdad» —un rectángulo sobre la tabla— obliga a calcular la
+  # posición de cada fila después de dibujarla, y eso se rompe en cuanto una
+  # materia de nombre largo ocupa dos renglones. Seis celdas por fila, pintadas
+  # hasta el nivel que corresponde, dan el mismo resultado y coinciden con el
+  # original impreso, que lleva las líneas de las bandas cruzando la barra.
+  #
+  # ## Sin color semántico
+  #
+  # Un solo tono de marca. Estar por debajo del promedio de la clase **no es
+  # reprobar** —se puede estar debajo del promedio con 17— y pintarlo de rojo
+  # sería un juicio que el colegio no emitió. Lo que informa es la POSICIÓN.
+  COLOR_DE_LA_BARRA = "1E4A7A".freeze
+
+  # ⚠️ 37 puntos y no los 46 que tenía el cuadro aparte: la columna de la
+  # materia necesita 193 para que «Grupo de Creación, Recreación y Producción»
+  # —la más larga del pensum— quepa en un renglón a letra 9. Los nombres de las
+  # bandas de dos palabras bajan a dos renglones, que es como los trae el
+  # original.
+  ANCHO_DE_BANDA = 37
+
   def tabla_de_lapso(pdf, datos)
     con_rubrica = datos["rubrica"].present?
-    filas = [["MATERIA", con_rubrica ? "NIVEL" : "CALIFICACIÓN"]]
+    comparacion = datos["comparacion"]
+    niveles     = comparacion ? comparacion["niveles"] : []
+    # Por NOMBRE, que es como el snapshot enlaza las dos listas: la comparación
+    # deja afuera a la materia sin nota o sin promedio de la sección.
+    comparadas  = comparacion ? comparacion["materias"].index_by { |fila| fila["materia"] } : {}
+
+    filas   = [ [ "MATERIA", con_rubrica ? "NIVEL" : "CALIFICACIÓN" ] + cabecera_de_la_comparacion(comparacion) ]
+    # La cabecera no se queda sola al pie de una hoja.
+    pegadas = [ true ]
 
     datos["materias"].each do |materia|
-      filas << [texto(materia["materia"]), celda_de_lapso(materia, con_rubrica)]
-      # Las competencias van DEBAJO de su materia, en la misma tabla: son parte
-      # de esa fila, no una lista aparte. Ver `filas_de_competencias`.
-      filas.concat(filas_de_competencias(materia, con_rubrica))
+      del_plan = filas_de_competencias(materia, con_rubrica)
+
+      filas   << [ texto(materia["materia"]), celda_de_lapso(materia, con_rubrica) ] +
+                 celdas_de_la_comparacion(comparacion, comparadas[materia["materia"]])
+      # Ni una materia al pie de una hoja con sus competencias en la siguiente.
+      pegadas << del_plan.any?
+
+      del_plan.each do |fila, pegada|
+        # Una competencia no se compara con la sección: sus columnas van vacías.
+        filas   << fila + Array.new(comparacion ? niveles.size + 1 : 0, "")
+        pegadas << pegada
+      end
     end
 
-    filas << ["PROMEDIO DEL LAPSO", celda(datos["promedio"])]
+    # Ni el promedio solo al tope de una hoja: se lleva la fila de arriba.
+    pegadas[-1] = true
+    filas   << [ "PROMEDIO DEL LAPSO", celda(datos["promedio"]) ] +
+               celdas_de_la_comparacion(comparacion, comparacion&.dig("general"))
+    pegadas << false
 
-    dibujar_tabla(pdf, filas, [nil, 110], ultima_en_negrita: true)
-    leyenda_de_la_rubrica(pdf, datos["rubrica"])
+    anchos = comparacion ? [ nil, 70, 50 ] + Array.new(niveles.size, ANCHO_DE_BANDA) : [ nil, 110 ]
+
+    [ tabla_de_notas(pdf, filas, anchos), pegadas ]
+  end
+
+  # «SECCIÓN» y los nombres de las seis bandas, o nada si no hay con qué comparar.
+  def cabecera_de_la_comparacion(comparacion)
+    return [] if comparacion.nil?
+
+    [ "SECCIÓN" ] + comparacion["niveles"].map { |nivel| { content: texto(nivel).upcase, size: 6 } }
+  end
+
+  # El promedio de la sección y la barra de UNA fila: las bandas pintadas hasta
+  # el nivel del alumno, inclusive.
+  #
+  # ⚠️ Una materia que la comparación dejó afuera —sin nota, o con un solo
+  # alumno calificado en la sección— lleva una raya y ninguna banda. No un cero
+  # ni una barra vacía «muy baja»: no hay con qué compararla, y eso se dice.
+  def celdas_de_la_comparacion(comparacion, fila)
+    return [] if comparacion.nil?
+
+    cuantas = comparacion["niveles"].size
+    return [ coma(nil) ] + Array.new(cuantas, "") if fila.nil?
+
+    [ coma(fila["seccion"]) ] +
+      Array.new(cuantas) { |banda| fila["nivel"] && banda <= fila["nivel"] ? { content: "", fondo: COLOR_DE_LA_BARRA } : "" }
   end
 
   def celda_de_lapso(materia, con_rubrica)
     return celda(materia["nota"]) unless con_rubrica && materia["nivel_de_rubrica"].present?
 
     # El nivel manda y el número lo respalda: «PC (19)».
-    { content: "#{materia['nivel_de_rubrica']} (#{materia['nota']})", align: :center }
+    "#{materia['nivel_de_rubrica']} (#{materia['nota']})"
   end
+
+  # Cuánto entra cada nivel respecto del borde de la celda, en puntos.
+  SANGRIA_DE_COMPETENCIA = 6
+  SANGRIA_DE_INDICADOR   = 16
 
   # Las competencias e indicadores, sangrados bajo su materia (MOR-136).
   #
@@ -237,19 +495,34 @@ class ReportCardPdf
   # ⚠️ `PlanEvaluado.indicadores_de` y no `competencia["indicadores"]` a secas:
   # los boletines emitidos ANTES de esto los guardaron como una lista de textos,
   # y leerlos como hashes dejaría en blanco la boleta de diciembre.
+  #
+  # ⚠️ La sangría es un NÚMERO, no espacios al principio del texto. Con espacios
+  # —como estuvo— Prawn los recorta al acomodar el renglón y los tres niveles
+  # salían alineados al mismo borde: la jerarquía se leía solo por el color.
+  #
+  # Devuelve pares `[fila, pegada]`: una competencia no se separa de NINGUNO de
+  # sus indicadores.
+  #
+  # ⚠️ De ninguno, y no solo del primero. Pegando solo el primero, una hoja
+  # podía arrancar por «– Trabaja en equipo con sus compañeros»: un indicador
+  # suelto, sin la competencia a la que pertenece ni la materia. Así una hoja
+  # empieza por una materia o por una competencia, que se entienden solas.
   def filas_de_competencias(materia, con_rubrica)
     Array(materia["competencias"]).flat_map do |competencia|
-      nivel = con_rubrica ? (competencia["nivel_de_rubrica"] || "Sin evaluar") : ""
-      fila  = [ { content: "   • #{texto(competencia['texto'])}", size: 7.5, text_color: "555555" },
-                { content: nivel.to_s, size: 7.5, align: :center, text_color: "555555" } ]
+      nivel       = con_rubrica ? (competencia["nivel_de_rubrica"] || "Sin evaluar") : ""
+      indicadores = PlanEvaluado.indicadores_de(competencia)
 
-      indicadores = PlanEvaluado.indicadores_de(competencia).map do |indicador|
+      fila = [ { content: "• #{texto(competencia['texto'])}", size: 7.5, text_color: "555555",
+                 sangria: SANGRIA_DE_COMPETENCIA },
+               { content: nivel.to_s, size: 7.5, text_color: "555555" } ]
+
+      [ [ fila, indicadores.any? ] ] + indicadores.each_with_index.map do |indicador, indice|
         suyo = con_rubrica ? indicador["nivel_de_rubrica"].to_s : ""
-        [ { content: "        – #{texto(indicador['texto'])}", size: 7, text_color: "888888" },
-          { content: suyo, size: 7, align: :center, text_color: "888888" } ]
-      end
 
-      [ fila ] + indicadores
+        [ [ { content: "– #{texto(indicador['texto'])}", size: 7, text_color: "888888",
+              sangria: SANGRIA_DE_INDICADOR },
+            { content: suyo, size: 7, text_color: "888888" } ], indice < indicadores.size - 1 ]
+      end
     end
   end
 
@@ -263,6 +536,36 @@ class ReportCardPdf
     pdf.move_down 4
     pdf.text rubrica.map { |r| "#{r['codigo']} #{r['nombre'].downcase}" }.join("  ·  "),
              size: 7, color: "666666"
+    # Lo que sigue es el renglón de asistencia y puesto, que ya no trae su
+    # propio aire arriba: sin esto quedaba pegado a la leyenda, como si fuera
+    # su continuación.
+    pdf.move_down 8
+  end
+
+  # Cómo se lee la comparación con la sección, al pie de la tabla que la trae.
+  #
+  # ⚠️ Arranca por el NOMBRE de lo que explica. Mientras fue un cuadro aparte
+  # tenía su título; fundido con las notas, el nombre vive acá — sin él, las
+  # seis columnas de bandas no dicen de qué son.
+  def nota_de_la_comparacion(pdf, comparacion)
+    return if comparacion.nil?
+
+    pdf.font_size(6.5) do
+      pdf.fill_color "666666"
+      pdf.text "<b>Situación con respecto a la sección.</b> SECCIÓN es el promedio de esa materia en la " \
+               "sección, con las notas cargadas al emitir este boletín. La barra indica cuánto se aparta el " \
+               "alumno de ese promedio: cada banda son dos puntos, y el corte entre MEDIO BAJO y MEDIO ALTO es " \
+               "el promedio mismo. Estar por debajo del promedio de la clase no significa aplazar.",
+               align: :justify, inline_format: true
+      pdf.fill_color "000000"
+    end
+    pdf.move_down 10
+  end
+
+  # Lo que explica la tabla de lapso, pegado debajo de ella.
+  def al_pie_de_la_tabla(pdf, datos)
+    leyenda_de_la_rubrica(pdf, datos["rubrica"])
+    nota_de_la_comparacion(pdf, datos["comparacion"])
   end
 
   # Las notas de LAPSO van en número o en NIVEL; las del AÑO llevan el literal
@@ -278,37 +581,27 @@ class ReportCardPdf
     escala = datos.dig("seccion", "escala")
 
     # Las columnas del año necesitan más aire: "A (19)" no entra donde entraba
-    # "19". Las de lapso siguen igual.
+    # "19".
+    #
+    # ⚠️ Las de lapso miden 54 y la de reparación 46, y no los 44 que tenían:
+    # «Sin nota» necesita 45 y «2do Lapso», 52 justos. Por UN punto, «Sin nota»
+    # se partía en dos renglones —«Sin / nota»— en la columna de reparación de
+    # todo alumno que no reparó, que son casi todos: cada fila del boletín
+    # anual medía el doble de lo necesario, y un boletín de doce materias se
+    # iba a una segunda hoja por eso.
     ancho_del_ano = escala.to_s == "literal" ? 60 : 52
-    anchos = [nil] + Array.new(datos["lapsos"].size, 44) + [ancho_del_ano, 44, ancho_del_ano]
+    anchos = [ nil ] + Array.new(datos["lapsos"].size, 54) + [ ancho_del_ano, 46, ancho_del_ano ]
+    filas  = self.class.filas_anuales(datos)
 
-    dibujar_tabla(pdf, self.class.filas_anuales(datos), anchos, ultima_en_negrita: true)
+    # La cabecera no se queda sola al pie de una hoja, ni el promedio al tope de
+    # la siguiente.
+    pegadas = Array.new(filas.size, false)
+    pegadas[0] = true
+    pegadas[-2] = true
+
+    [ tabla_de_notas(pdf, filas, anchos), pegadas ]
   end
 
-  # ## Los anchos van al CONSTRUIR, no después
-  #
-  # Antes se hacía `make_table(width: …)` y luego `tabla.column(i).width = x`.
-  # Prawn acepta las dos cosas y el objeto reporta el ancho correcto —540 pt— pero
-  # **dibuja mal**: los fondos de celda se pintan con los anchos que calculó al
-  # construirse y los bordes con los nuevos. El resultado era una tabla de 428 pt
-  # pegada a la izquierda, con una columna extra fantasma al final.
-  #
-  # Y no fallaba en ninguna parte: `tabla.width` decía 540. Solo se ve mirando el
-  # papel.
-  #
-  # Con `column_widths:` en el constructor, los anchos entran en el mismo cálculo
-  # que todo lo demás. `repartir_sobrante` reparte lo que queda entre las columnas
-  # sin ancho fijo, así que la suma da exactamente el bloque útil.
-  # Inasistencias del lapso y puesto en la sección (MOR-135).
-  #
-  # Van en una franja de tres datos y no en tablas separadas: son tres números
-  # y darles una tabla a cada uno haría un boletín de dos páginas para decir lo
-  # mismo.
-  #
-  # El empate comparte puesto y **se dice**: "10º de 20 (empatado)". Dos alumnos
-  # con el mismo promedio están los dos décimos; darle el 10 a uno y el 11 al
-  # otro por el orden alfabético inventa una diferencia que no existe — y se
-  # imprime en un papel que la familia guarda.
   # El informe descriptivo del docente, al final (MOR-216).
   #
   # ⚠️ Va DESPUÉS de las notas y antes del pie, que es donde lo trae la boleta
@@ -326,35 +619,45 @@ class ReportCardPdf
     pdf.text texto(cuerpo), size: 9, leading: 2, align: :justify
   end
 
+  # Inasistencias del lapso y puesto en la sección (MOR-135), en UN renglón.
+  #
+  # Daniel, 5 de octubre de 2026: *«si pasamos unos elementos a una sola línea
+  # ganaríamos 2 líneas»*. Iba el rótulo arriba y el dato abajo, como una cifra
+  # de tablero; en un papel que tiene que caber en una hoja, el rótulo va
+  # delante del dato y listo.
+  #
+  # El empate comparte puesto y **se dice**: "10º de 20 (empatado)". Dos alumnos
+  # con el mismo promedio están los dos décimos; darle el 10 a uno y el 11 al
+  # otro por el orden alfabético inventa una diferencia que no existe — y se
+  # imprime en un papel que la familia guarda.
   def asistencia_y_puesto(pdf, datos)
     asistencia = datos["asistencia"]
     puesto     = datos["puesto"]
     return if asistencia.nil? && puesto.nil?
 
-    celdas = []
+    pares = []
 
     if asistencia
-      faltas = asistencia["ausentes"]
-      celdas << [ "INASISTENCIAS",
-                  "#{faltas} de #{asistencia['dias']} #{pluralizar(asistencia['dias'], 'día', 'días')} de clase" ]
-      celdas << [ "LLEGADAS TARDE", asistencia["tardes"].to_s ] if asistencia["tardes"].to_i.positive?
+      pares << [ "INASISTENCIAS",
+                 "#{asistencia['ausentes']} de #{asistencia['dias']} #{pluralizar(asistencia['dias'], 'día', 'días')} de clase" ]
+      pares << [ "LLEGADAS TARDE", asistencia["tardes"].to_s ] if asistencia["tardes"].to_i.positive?
     end
 
     if puesto
-      celdas << [ "PUESTO EN LA SECCIÓN",
-                  "#{puesto['puesto']}º de #{puesto['de']}#{' (empatado)' if puesto['empatado']}" ]
+      pares << [ "PUESTO EN LA SECCIÓN",
+                 "#{puesto['puesto']}º de #{puesto['de']}#{' (empatado)' if puesto['empatado']}" ]
     end
 
-    tabla = pdf.make_table([ celdas.map(&:first), celdas.map(&:last) ],
-                           width: pdf.bounds.width,
-                           cell_style: { size: 8, padding: [ 3, 6 ], borders: [], align: :center }) do
-      row(0).size = 6
-      row(0).font_style = :bold
-      row(0).text_color = "878787"
-      row(1).size = 11
-    end
-    tabla.draw
-    pdf.move_down 4
+    # El rótulo chico y gris, el dato en negro a su lado: se lee de corrido y
+    # el ojo igual encuentra primero el número.
+    renglon = pares.each_with_index.flat_map do |(rotulo, valor), indice|
+      [ ({ text: "     ·     ", size: 10, color: "BBBBBB" } if indice.positive?),
+        { text: "#{rotulo}   ", size: 6, styles: [ :bold ], color: "878787" },
+        { text: valor, size: 10 } ]
+    end.compact
+
+    pdf.formatted_text renglon, align: :center
+    pdf.move_down 3
 
     # De qué período habla ese número. Sin esto, "3 inasistencias" en el boletín
     # del segundo lapso podría querer decir tres en el lapso o tres en el año.
@@ -381,83 +684,6 @@ class ReportCardPdf
 
   def pluralizar(cantidad, singular, plural) = cantidad == 1 ? singular : plural
 
-  # Dónde queda el alumno respecto de su sección (MOR-135).
-  #
-  # Es la pieza que Daniel señaló del boletín de la U.E. Centro Educativo APUCV,
-  # y contesta la pregunta que una familia hace de verdad: no *"¿cuánto sacó?"*
-  # sino *"¿cómo le fue comparado con sus compañeros?"*.
-  #
-  # ## La barra se dibuja con CELDAS, no con coordenadas
-  #
-  # Una barra "de verdad" —un rectángulo sobre la tabla— obliga a calcular la
-  # posición de cada fila después de dibujarla, y eso se rompe en cuanto una
-  # materia de nombre largo ocupa dos renglones. Seis celdas por fila, pintadas
-  # hasta el nivel que corresponde, dan el mismo resultado y las alinea Prawn.
-  # Además coincide con el original impreso, que lleva las líneas verticales de
-  # las bandas cruzando la barra.
-  #
-  # ## Sin color semántico
-  #
-  # Un solo tono de marca. Estar por debajo del promedio de la clase **no es
-  # reprobar** —se puede estar debajo del promedio con 17— y pintarlo de rojo
-  # sería un juicio que el colegio no emitió. Lo que informa es la POSICIÓN.
-  def situacion_en_la_seccion(pdf, datos)
-    comparacion = datos["comparacion"]
-    return if comparacion.nil?
-
-    niveles = comparacion["niveles"]
-
-    pdf.font_size(9) { pdf.text "<b>SITUACIÓN CON RESPECTO A LA SECCIÓN</b>", inline_format: true }
-    pdf.move_down 6
-
-    encabezado = ["MATERIA", "ALUMNO", "SECCIÓN"] + niveles.map { |n| texto(n).upcase }
-    filas = [encabezado]
-
-    comparacion["materias"].each do |f|
-      filas << [texto(f["materia"]), celda(f["nota"]), coma(f["seccion"])] + Array.new(niveles.size, "")
-    end
-
-    general = comparacion["general"]
-    filas << ["SITUACIÓN GENERAL", celda(general["nota"]), coma(general["seccion"])] +
-             Array.new(niveles.size, "")
-
-    ancho_banda = 46
-    anchos = [nil, 46, 50] + Array.new(niveles.size, ancho_banda)
-
-    tabla = pdf.make_table(filas,
-                           width: pdf.bounds.width,
-                           column_widths: repartir_sobrante(anchos, pdf.bounds.width),
-                           cell_style: { size: 7, padding: [3, 4], border_color: "DDDDDD" }) do
-      row(0).font_style = :bold
-      row(0).background_color = "F0EDE8"
-      row(0).size = 6
-      columns(1..-1).align = :center
-      row(-1).font_style = :bold
-      row(-1).background_color = "F5F3F0"
-    end
-
-    # Pintar la barra: las bandas hasta el nivel del alumno, inclusive.
-    ([ comparacion["materias"], [ general ] ].flatten).each_with_index do |f, i|
-      next if f["nivel"].nil?
-
-      (0..f["nivel"]).each { |b| tabla.row(i + 1).column(3 + b).background_color = "1E4A7A" }
-    end
-
-    tabla.draw
-    pdf.move_down 8
-
-    pdf.font_size(6.5) do
-      pdf.fill_color "666666"
-      pdf.text "SECCIÓN es el promedio de esa materia en la sección, con las notas cargadas al " \
-               "emitir este boletín. La barra indica cuánto se aparta el alumno de ese promedio: " \
-               "cada banda son dos puntos, y el corte entre MEDIO BAJO y MEDIO ALTO es el promedio " \
-               "mismo. Estar por debajo del promedio de la clase no significa aplazar.",
-               align: :justify
-      pdf.fill_color "000000"
-    end
-    pdf.move_down 10
-  end
-
   # Coma decimal: acá 13.5 se escribe 13,5.
   def coma(valor)
     return "—" if valor.nil?
@@ -465,23 +691,15 @@ class ReportCardPdf
     format("%.1f", valor).tr(".", ",")
   end
 
-  def dibujar_tabla(pdf, filas, anchos, ultima_en_negrita: false)
-    tabla = pdf.make_table(filas,
-                           width: pdf.bounds.width,
-                           column_widths: repartir_sobrante(anchos, pdf.bounds.width),
-                           cell_style: { size: 9, padding: [4, 6], border_color: "DDDDDD" }) do
-      row(0).font_style = :bold
-      row(0).background_color = "F0EDE8"
-      row(0).size = 8
-      columns(1..-1).align = :center
-      if ultima_en_negrita
-        row(-1).font_style = :bold
-        row(-1).background_color = "F5F3F0"
-      end
-    end
-
-    tabla.draw
-    pdf.move_down 14
+  # Cómo se ven las dos tablas de notas —la del lapso y la del año—: la
+  # cabecera y el total en negrita, con su fondo.
+  #
+  # Devuelve la tabla sin dibujar: quien reparte las hojas decide con qué alto
+  # de fila va, y eso se sabe después de medirla.
+  def tabla_de_notas(pdf, filas, anchos)
+    TablaAMano.new(pdf, filas, anchos: repartir_sobrante(anchos, pdf.bounds.width),
+                   estilos: { 0 => { font_style: :bold, fondo: "F0EDE8", size: 8, al_medio: true },
+                              -1 => { font_style: :bold, fondo: "F5F3F0" } })
   end
 
   # Las columnas en `nil` se reparten lo que queda. Si no hay ninguna, se
@@ -519,12 +737,16 @@ class ReportCardPdf
   # caja de alto fijo, y el QR son cuadros con coordenadas. Prawn los pinta
   # donde se le dice — también fuera del papel, y sin avisar.
   #
-  # ⚠️ Se pregunta ANTES de la firma y no antes del código. Saltando solo el
-  # código, la firma quedaría al pie de una hoja y lo que la hace comprobable al
-  # principio de la otra: dos mitades de un mismo cierre, en dos papeles.
+  # ⚠️ Dónde cae lo decide `AcomodoEnHojas`, que además no lo deja viajar solo.
+  # El salto de acá es la red de seguridad: si algo midió distinto de lo
+  # planeado, el pie igual no se corta.
   def pie(pdf, datos, boletin)
-    pdf.start_new_page if pdf.cursor < ALTO_DEL_PIE
+    pdf.start_new_page if pdf.cursor < alto_del_pie(datos, boletin) - 0.01
 
+    dibujar_el_pie(pdf, datos, boletin)
+  end
+
+  def dibujar_el_pie(pdf, datos, boletin)
     pdf.move_down 6
     pdf.text "Escala del 1 al 20. Calificación mínima aprobatoria: 10 " \
              "(Art. 108 del Reglamento General de la Ley Orgánica de Educación).",
@@ -538,6 +760,21 @@ class ReportCardPdf
     pdf.move_down 8
 
     verificacion(pdf, datos, boletin)
+  end
+
+  # Lo que mide el pie, de la nota de la escala al borde de abajo del QR.
+  #
+  # ⚠️ Se MIDE dibujándolo una vez, no se suma a mano. El 1 de octubre lo sumé
+  # —«6 + 9 + 30 + 40 + 14 + 26 + 50, más 5 de holgura»— y me dio 180 cuando
+  # mide 173. Esos siete puntos mandaron a una segunda hoja el pie de TODOS los
+  # boletines anuales de bachillerato, que cabían en una: veintidós hojas en
+  # blanco por sección, con la firma sola arriba.
+  #
+  # No depende del alumno —la firma, el sello y el alto de la caja del código
+  # son los mismos para todo el colegio—, así que se mide una vez por PDF.
+  def alto_del_pie(datos, boletin)
+    (@altos_del_pie ||= {})[datos.dig("colegio", "dea")] ||=
+      alto_en_borrador { |lienzo| dibujar_el_pie(lienzo, datos, boletin) }
   end
 
   # La firma del colegio.
@@ -575,29 +812,13 @@ class ReportCardPdf
   ANCHO_DE_FIRMA = 200
   ALTO_DE_FIRMA  = 40
   LADO_DEL_SELLO = 62
-
-  # Lo que ocupa el pie entero, de la nota de la escala al borde de abajo del QR.
-  #
-  #       6   aire
-  #       9   «Escala del 1 al 20…», un renglón
-  #      30   aire antes de la firma
-  #      40   la firma                          ← ALTO_DE_FIRMA
-  #      14   la línea y «Director(a)»
-  #      26   aire, la raya y más aire
-  #      50   el QR, que es lo que más baja     ← 54 de lado, arranca 4 pt arriba
-  #       5   holgura: los renglones no miden exactamente su cuerpo
-  #
-  # ⚠️ Si se toca cualquiera de esos números en `pie`, `firma` o `verificacion`,
-  # se toca acá. No hay cómo deducirlo: el QR se pinta con coordenadas y no
-  # mueve el cursor. Lo cuida un test que barre el largo de la tabla.
-  ALTO_DEL_PIE = 6 + 9 + 30 + ALTO_DE_FIRMA + 14 + 26 + 50 + 5
+  LADO_DEL_QR    = 54
 
   def firma(pdf, boletin)
     pdf.move_down 30
 
-    colegio   = boletin.enrollment.section.grade.school rescue nil
-    escaneada = colegio&.firma_para_pdf
-    estampa   = colegio&.sello_para_pdf
+    escaneada = imagen_del_colegio(boletin, :firma)
+    estampa   = imagen_del_colegio(boletin, :sello)
     izquierda = (pdf.bounds.width - ANCHO_DE_FIRMA) / 2
     arriba    = pdf.cursor
 
@@ -686,7 +907,13 @@ class ReportCardPdf
                size: 7, color: "666666"
     end
 
-    dibujar_qr(pdf, url, en: [pdf.bounds.width - 58, alto + 4], lado: 54)
+    dibujar_qr(pdf, url, en: [pdf.bounds.width - 58, alto + 4], lado: LADO_DEL_QR)
+
+    # ⚠️ El cursor baja hasta el borde de abajo del QR, que es lo último que se
+    # pinta: la caja del texto mide 42 y el QR llega ocho puntos más abajo. Sin
+    # esto el pie «terminaba» antes de donde termina de verdad, y quien pregunta
+    # cuánto mide —para saber si cabe— recibía un número corto.
+    pdf.move_cursor_to alto + 4 - LADO_DEL_QR
   end
 
   # El QR, dibujado como VECTORES y no como imagen.

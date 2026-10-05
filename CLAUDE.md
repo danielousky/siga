@@ -1242,52 +1242,73 @@ director**: es el caso de todo colegio real y era el que nadie ejercitaba.
 —Prawn escribe sin comprimir y en hexadecimal— y es lo que deja afirmar que la
 segunda página es del segundo alumno.
 
-### 12. Cuánto tarda emitir, y lo que lo hizo tardar
+### 12. El boletín en papel: cuánto tarda y en cuántas hojas cabe
 
-Daniel, 1 de octubre de 2026, emitiendo los boletines de 4to Grado A: *«la
-generación de documentos tarda mucho; en producción seguro explota por
-tiempo»*. Eran **26 segundos para 21 alumnos**, y tenía razón: Dokku corta una
-petición a los 60 y el servidor es más lento que su máquina.
+Tres reclamos de Daniel sobre el mismo PDF, del 1 al 5 de octubre de 2026:
+*«la generación de documentos tarda mucho»*, *«se está cortando el foot»* y
+*«en Media lo que falta para que entre el cuadro comparativo es poco»*.
 
 ```
-   DÓNDE SE IBA                          ANTES      AHORA
-   ────────────                          ─────      ─────
-   armar los datos   40.866 consultas    22,2 s     1,2 s    1.176 consultas
-   dibujar el PDF    42 páginas           4,1 s     4,1 s
-                                         ──────     ─────
-                                         26,3 s     5,3 s
+   4to Grado A · 21 alumnos        ANTES       AHORA
+   ────────────────────────        ─────       ─────
+   armar los datos                 22,2 s      1,2 s     40.866 → 1.184 consultas
+   dibujar el PDF                   4,1 s      1,0 s
+                                   ──────      ─────
+                                   26,3 s      2,2 s
+
+   1er Año A · 22 alumnos          44 hojas    22 hojas  (una por alumno)
 ```
+
+Son tres piezas: `ReportCardPdf` dice qué lleva el boletín, `TablaAMano` dibuja
+una tabla fila por fila con el alto que le pidan, y `AcomodoEnHojas` decide
+dónde cae cada cosa.
 
 ⚠️ **No era el PDF.** `ReportCardData#promedio` no guardaba su resultado y
 `puesto` lo pregunta dos veces por cada compañero: la lista de materias se
-armaba **43 veces por alumno**. Mientras una materia era «su nota» costaba
-cuatro consultas y nadie lo vio; desde que trae competencias e indicadores son
-cuarenta y cinco. El arreglo es memorizar — y con `defined?`, no `||=`: el
-promedio de quien no tiene notas es `nil`, y `||=` lo volvería a calcular.
+armaba **43 veces por alumno**. El arreglo es memorizar — con `defined?`, no
+`||=`: el promedio de quien no tiene notas es `nil`, y `||=` lo recalcula.
 
-⚠️ **Una medida escrita en un comentario envejece en silencio.** El controlador
-decía «sección de 20 ~560 ms» y era cierto cuando se tomó. El boletín creció
-cuatro veces y nadie volvió a medir. Lo cuida ahora un test que no afirma un
-número —cambiaría con cada mejora— sino que **el costo de un boletín no depende
-de cuántos compañeros tiene el alumno**.
+⚠️ **`prawn-table` salió del boletín**, por lenta —3 ms por fila contra 0,13—
+y por dos cosas que hacía mal sin avisar: aplicaba el tamaño de letra de la
+tabla DESPUÉS del de cada celda (las competencias pedían 7,5 y salían a 9), y
+la sangría, escrita con espacios, se recortaba. Sigue en la 31059 y en el
+Resumen Final, que no tienen ninguno de los dos problemas.
+
+⚠️ **El pie no se corta ni viaja solo, y son dos reglas distintas.** Que no
+viaje solo lo garantiza el PEGADO: se lleva lo que tiene encima hasta juntar
+100 puntos. El RELLENO de las filas (2,5 a 7; de fábrica 4) decide lo demás, en
+este orden: menos hojas si apretando cabe en una menos; si no, estirar hasta
+llenar la hoja anterior; si ni así, quedarse en 4. No se estira «un poco»: una
+tabla de diez filas con aire de más y media hoja en blanco es peor que antes.
+
+⚠️ **Lo que mide un bloque se MIDE dibujándolo en un borrador**
+(`alto_en_borrador`), no se suma a mano. Sumé el pie y me dio 180 cuando mide
+173: esos siete puntos mandaron a otra hoja el pie de todos los boletines
+anuales de bachillerato, que cabían en una. Y Prawn tiene dos trampas iguales:
+`font` y `font_size` con bloque devuelven la fuente o el tamaño anterior, **no
+lo que devuelve el bloque**.
+
+⚠️ **Cuando un documento no cabe por mucho, no se aprieta: se mira qué sobra.**
+El de bachillerato medía 840 puntos en una hoja de 720. Juntar renglones daba
+28; lo que sobraba era una tabla entera —«situación con respecto a la sección»
+repetía cada materia con su nota— y 42 puntos en blanco al lado del escudo, que
+empujaba el membrete hacia abajo. Ahora la comparación son tres columnas más de
+la tabla de notas.
+
+⚠️ **Estas fallas dependen del LARGO, así que el test lo barre.** El pie se
+cortaba «en algunos» boletines, y mi arreglo lo dejó solo en otros tantos: con
+un boletín de ejemplo cualquiera, el test pasa en verde con el error adentro.
+`LeePdf` (en `test/support`) lee el texto y las coordenadas de un PDF de Prawn
+sin una gema — durante meses los tests de documentos solo miraron que el
+archivo empezara por `%PDF`.
+
+⚠️ **Y un test se prueba rompiendo lo que cuida.** «El pie no queda solo»
+comparaba contra `ACOMPANA`, la misma constante que la regla: puesta en cero, el
+test seguía en verde. El mínimo va escrito en el test, no leído del código.
 
 ⚠️ **Para cambiar cómo se arma un documento, primero se guarda lo que dice.**
-Antes del arreglo se tomó la huella de 372 boletines y después se compararon:
-idénticos byte por byte. Un `snapshot` es un documento emitido; «más rápido y
-casi igual» no es una opción.
-
-⚠️ **Lo que queda es la tabla**: `prawn-table` tarda 3 ms por fila y se lleva
-3,5 de los 4,1 s. Dibujada a mano son 17 veces menos (medido en un prototipo).
-Y de paso `cell_style: { size: 9 }` **pisa** el tamaño que cada celda trae —las
-competencias salen a 9 pt y no a 7,5— y se come la sangría: el boletín ocupa
-más hojas de las que se diseñaron.
-
-⚠️ **El pie del boletín va ENTERO en una hoja** (`ALTO_DEL_PIE`). El texto salta
-solo a la hoja siguiente; una caja de alto fijo y un QR pintado con coordenadas,
-no — Prawn los dibuja donde se le dice, también fuera del papel. Se cortaba «en
-algunos» porque depende de dónde termina la tabla, y por eso el test **barre**
-el largo: con un boletín de ejemplo cualquiera pasa en verde con el error
-adentro.
+Antes de tocar las consultas se tomó la huella de 372 boletines y después se
+compararon: idénticos byte por byte. Un `snapshot` es un documento emitido.
 
 ## 🔢 La versión
 
