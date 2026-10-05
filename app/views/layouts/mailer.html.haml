@@ -1,10 +1,69 @@
+-# La plantilla de TODOS los correos de SIGA.
+-#
+-# Daniel, 5 de octubre de 2026, con el de «recuperar contraseña» abierto en
+-# Gmail: *«Esto no parece para nada un correo institucional de SIGA. Parece
+-# cualquier cosa.»* Esta plantilla tenía diez líneas y un `<style>` vacío.
+-#
+-#     cabecera   azul oscuro · de quién es el correo: del colegio o de SIGA
+-#     franja     azul cielo
+-#     mensaje    sobre azul muy suave: lo que la plantilla de cada correo escribe
+-#     pie        azul oscuro · cómo ubicar al colegio · a quién se le envió
+-#
+-# ## Una sola, y de quién es el correo lo dice el mailer
+-#
+-# Había dos: ésta, vacía, y `mailer_siga`, con banner. La segunda existía
+-# porque un banner de SIGA en el correo que el COLEGIO le escribe a una
+-# familia mentía sobre quién escribe. La respuesta no era otra plantilla sino
+-# otra cabecera: `a_nombre_de(colegio)` en el mailer, y acá sale la suya.
+-#
+-# ## Las reglas del correo, que no son las de la web
+-#
+-# ⚠️ TABLAS y estilos EN LÍNEA. Outlook dibuja con el motor de Word, que no
+-# entiende flexbox ni grid, y Gmail descarta buena parte de lo que venga en un
+-# `<style>`. El de abajo es una mejora donde se respete: nada crítico vive ahí.
+-#
+-# ⚠️ El nombre del colegio es TEXTO, nunca parte de una imagen. Outlook de
+-# escritorio bloquea las imágenes hasta que la persona acepta: sin el escudo,
+-# la cabecera tiene que seguir diciendo de quién es.
 !!!
-%html
+%html{lang: "es"}
   %head
     %meta{"http-equiv": "Content-Type", content: "text/html; charset=utf-8"}
+    %meta{name: "viewport", content: "width=device-width, initial-scale=1"}
+    %meta{name: "color-scheme", content: "light"}
+    %meta{name: "supported-color-schemes", content: "light"}
+    %title= message.subject
     %style
       :plain
-        /* Email styles need to be inline */
+        .mensaje p { margin: 0 0 16px; }
+        .mensaje ul { margin: 0 0 16px; padding-left: 22px; }
+        .mensaje a { color: #1e4a7a; }
+  %body{style: "margin:0; padding:0; background:#{CorreoHelper::PAPEL}; -webkit-font-smoothing:antialiased;"}
+    -# El preheader: el renglón que el cliente muestra al lado del asunto en la
+    -# bandeja. Sin esto, ahí aparece el primer texto del correo, que suele ser
+    -# «Hola:» — o sea nada.
+    %div{style: "display:none; max-height:0; overflow:hidden; opacity:0;"}
+      = yield :adelanto
 
-  %body
-    = yield
+    %table{role: "presentation", width: "100%", cellpadding: "0", cellspacing: "0", border: "0",
+           style: "background:#{CorreoHelper::PAPEL}; padding:24px 12px;"}
+      %tr
+        %td{align: "center"}
+          %table{role: "presentation", width: "600", cellpadding: "0", cellspacing: "0", border: "0",
+                 style: "width:100%; max-width:600px; background:#{CorreoHelper::FONDO}; border-radius:14px; overflow:hidden; box-shadow:0 1px 3px rgba(7,20,47,0.14);"}
+
+            = render "layouts/mailer/membrete", colegio: @membrete
+
+            -# La franja fina bajo la cabecera.
+            %tr
+              -# ⚠️ El espacio duro va por `raw`, no escrito a secas: Haml escapa el `&` y en
+              -# el correo se lee «nbsp;» —comprobado—. Y la celda necesita CONTENIDO:
+              -# Outlook colapsa una vacía y la franja desaparece.
+              %td{style: "height:4px; background:#{CorreoHelper::CIELO}; line-height:4px; font-size:0;"}= raw("&nbsp;")
+
+            -# ── El mensaje ─────────────────────────────────────────────────
+            %tr
+              %td.mensaje{style: "background:#{CorreoHelper::FONDO}; padding:32px 32px 20px; font-family:#{CorreoHelper::SANS}; font-size:16px; line-height:1.62; color:#2c2c2c;"}
+                = yield
+
+            = render "layouts/mailer/pie", colegio: @membrete

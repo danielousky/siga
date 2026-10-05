@@ -23,6 +23,22 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.12.0 — 5 de octubre de 2026
+
+- **Los correos de SIGA ahora se ven como del colegio.** Llevan su escudo, su
+  nombre y sus datos arriba —como un boletín— y cómo ubicarlo al pie. Antes
+  llegaban como texto suelto, sin nada que dijera de quién eran.
+- **El remitente dice quién escribe**: «U.E. Simón Bolívar · SIGA», y no una
+  dirección de correo.
+- El correo para recuperar la contraseña sale con el escudo del colegio cuando
+  la persona es de uno solo; con hijos en dos colegios, sale a nombre de SIGA.
+- Todos los correos se leen también en los programas que no muestran diseño, y
+  el enlace del pie —«Administrar avisos»— está en español.
+- En el aviso del boletín decía «El 1er Lapso de Daniela ya está listo»; ahora
+  dice «El boletín del 1er Lapso de Daniela».
+
+---
+
 ## 1.11.3 — 5 de octubre de 2026
 
 - Arreglado: **el equipo de SIGA vuelve a enterarse cuando un colegio nuevo se

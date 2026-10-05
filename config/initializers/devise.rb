@@ -29,7 +29,11 @@ Devise.setup do |config|
   config.mailer_sender = ENV.fetch("SIGA_MAIL_FROM", "no-responder@sigaeducando.com")
 
   # Configure the class responsible to send e-mails.
-  # config.mailer = 'Devise::Mailer'
+  #
+  # `CuentaMailer` y no `Devise::Mailer`: antes de armar el correo decide de
+  # quién es —del colegio de la persona, si es de uno solo, o de SIGA— para que
+  # salga con la cabecera que le toca.
+  config.mailer = "CuentaMailer"
 
   # Configure the parent class responsible to send e-mails.
   # Los correos de Devise heredan de `ApplicationMailer` y no de

@@ -8,16 +8,15 @@
 -# interesante y por eso va arriba.
 - content_for :adelanto, "Su cuenta ya está lista. El próximo paso son los datos de su colegio."
 
-%h1{style: "margin:0 0 14px; font-family:Georgia,'Times New Roman',serif; font-size:26px; line-height:1.25; color:#1e4a7a; font-weight:700;"}
-  = "Bienvenido a SIGA, #{Normaliza.titulo(@usuario.first_name)}"
+= titulo_de_correo "Bienvenido a SIGA, #{Normaliza.titulo(@usuario.first_name)}"
 
-%p{style: "margin:0 0 18px;"}
+%p
   Su cuenta ya está creada. El próximo paso son los datos de su colegio, y de
   ahí en adelante puede empezar a cargar.
 
 -# ── Lo que ya puede hacer, sin pagar nada ──────────────────────────────────
 %table{role: "presentation", width: "100%", cellpadding: "0", cellspacing: "0", border: "0",
-       style: "margin:0 0 24px; background:#e8eef5; border-radius:10px;"}
+       style: "margin:0 0 24px; background:#ffffff; border-radius:10px;"}
   %tr
     %td{style: "padding:18px 20px;"}
       %div{style: "font-size:12px; letter-spacing:1.1px; text-transform:uppercase; color:#1e4a7a; font-weight:700; margin-bottom:10px;"}
@@ -34,20 +33,10 @@
             %td{width: "18", valign: "top", style: "padding:0 0 6px; color:#1e4a7a; font-weight:700; font-size:15px; line-height:1.55;"} ✓
             %td{valign: "top", style: "padding:0 0 6px; font-size:15px; line-height:1.55; color:#2c2c2c;"}= que
 
--# ── El botón ───────────────────────────────────────────────────────────────
--#
--# ⚠️ A prueba de Outlook: es una TABLA con fondo, no un `<a>` con `padding`.
--# Word no dibuja el relleno de un enlace, así que un botón hecho con CSS le
--# queda como texto azul subrayado.
-%table{role: "presentation", cellpadding: "0", cellspacing: "0", border: "0", style: "margin:0 0 26px;"}
-  %tr
-    %td{align: "center", bgcolor: "#1e4a7a", style: "border-radius:8px;"}
-      = link_to "Entrar a SIGA", @url,
-                style: "display:inline-block; padding:14px 30px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:16px; font-weight:600; color:#ffffff; text-decoration:none;"
+= boton_de_correo "Entrar a SIGA", @url
 
-%p{style: "margin:0 0 18px; font-size:15px; color:#5b5b5b;"}
-  Entra con este mismo correo y la contraseña que acaba de elegir.
+%p Entra con este mismo correo y la contraseña que acaba de elegir.
 
-%p{style: "margin:0; font-size:14px; line-height:1.6; color:#8a8580;"}
+= nota_de_correo do
   Si usted no creó esta cuenta, ignore este mensaje: sin la contraseña nadie
   puede entrar. Y si necesita algo, responda este correo — lo lee una persona.

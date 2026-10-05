@@ -1,0 +1,32 @@
+-# La cabecera: de quién es el correo.
+-#
+-#     DEL COLEGIO   escudo (si lo tiene) · su nombre y sus datos · logo de SIGA
+-#     DE SIGA       logo de SIGA · «SIGA — Sistema Integrado de Gestión Académica»
+-#
+-# Daniel: *«el logo del colegio en un extremo, en el otro extremo el logo de
+-# SIGA, en el centro algo similar a los boletines: el nombre del colegio y los
+-# detalles»*. Y si el colegio no tiene escudo: *«simplemente el logo de SIGA»*.
+%tr
+  %td{style: "background:#{CorreoHelper::TINTA}; padding:22px 24px;"}
+    %table{role: "presentation", width: "100%", cellpadding: "0", cellspacing: "0", border: "0"}
+      %tr
+        - if colegio
+          - escudo = escudo_para_correo(colegio)
+          - if escudo
+            - ancho, alto = medidas_del_escudo(colegio)
+            %td{width: "60", valign: "middle", style: "width:60px; padding-right:14px;"}
+              = ficha_de_logo escudo, "Escudo de #{colegio.name}", ancho: ancho, alto: alto
+          %td{valign: "middle"}
+            %div{style: "font-family:#{CorreoHelper::SERIF}; font-size:20px; line-height:1.25; font-weight:700; color:#ffffff;"}= colegio.name
+            - datos = datos_del_colegio(colegio)
+            - if datos.present?
+              %div{style: "margin-top:5px; font-family:#{CorreoHelper::SANS}; font-size:12px; line-height:1.4; color:#{CorreoHelper::SUAVE};"}= datos
+          %td{width: "60", align: "right", valign: "middle", style: "width:60px; padding-left:14px;"}
+            = ficha_de_logo logo_de_siga_para_correo, "SIGA"
+        - else
+          %td{width: "60", valign: "middle", style: "width:60px; padding-right:14px;"}
+            = ficha_de_logo logo_de_siga_para_correo, "SIGA"
+          %td{valign: "middle"}
+            %div{style: "font-family:#{CorreoHelper::SERIF}; font-size:26px; line-height:1; letter-spacing:5px; font-weight:700; color:#ffffff;"} SIGA
+            %div{style: "margin-top:7px; font-family:#{CorreoHelper::SANS}; font-size:11px; line-height:1.4; letter-spacing:1.1px; text-transform:uppercase; color:#{CorreoHelper::SUAVE};"}
+              Sistema Integrado de Gestión Académica

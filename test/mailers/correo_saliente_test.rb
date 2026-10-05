@@ -43,7 +43,7 @@ class CorreoSalienteTest < ActionMailer::TestCase
                            email: "beto.canal@familia.test", password: "123123")
     token = persona.send(:set_reset_password_token)
 
-    correo = Devise::Mailer.reset_password_instructions(persona, token)
+    correo = Devise.mailer.reset_password_instructions(persona, token)
 
     assert_equal "siga-devise-reset-password-instructions",
                  correo["X-ElasticEmail-Channel"].to_s
@@ -98,17 +98,48 @@ class CorreoSalienteTest < ActionMailer::TestCase
                            email: "fito@familia.test", password: "123123")
     token = persona.send(:set_reset_password_token)
 
-    correo = Devise::Mailer.reset_password_instructions(persona, token)
+    correo = Devise.mailer.reset_password_instructions(persona, token)
 
     assert_equal "false", correo["trackclicks"].to_s
     assert_equal "True", correo["IsTransactional"].to_s
   end
 
-  # Devise tiene su propio remitente y NO usa el `default from:` del mailer.
-  # Que los dos salgan del mismo lado es lo que hace que verificar un dominio
-  # alcance para todo el correo de la app.
-  test "Devise usa el mismo remitente que la app" do
-    assert_equal ApplicationMailer.default[:from].call,
-                 Devise.mailer_sender
+  # Devise tiene su propio remitente (`config.mailer_sender`). Que sea la misma
+  # DIRECCIÓN que usa la app es lo que hace que verificar un dominio alcance
+  # para todo el correo de SIGA.
+  #
+  # ⚠️ Se compara la dirección, no el remitente entero: desde el 5 de octubre de
+  # 2026 el remitente lleva nombre —«SIGA», o el del colegio— y ese nombre se
+  # decide por correo. La dirección es una sola.
+  test "Devise usa la misma dirección que la app" do
+    assert_equal ApplicationMailer.direccion, Devise.mailer_sender
+  end
+
+  test "y sus correos salen de esa dirección, con nombre" do
+    persona = User.create!(first_name: "Gil", last_name: "Remitente",
+                           document: "99000092", document_type: :cedula_v,
+                           email: "gil@familia.test", password: "123123")
+    token = persona.send(:set_reset_password_token)
+
+    correo = Devise.mailer.reset_password_instructions(persona, token)
+
+    assert_equal [ ApplicationMailer.direccion ], correo.from
+    assert_equal "SIGA", correo[:from].display_names.first,
+                 "en la bandeja se leía la dirección pelada, sin decir de quién era"
+  end
+
+  # ⚠️ Los correos de la cuenta salen de `CuentaMailer`, no de `Devise::Mailer`.
+  # El canal se arma del nombre de la clase, así que habría pasado a llamarse
+  # `siga-cuenta-…` — y las estadísticas del correo más frecuente de la app se
+  # habrían partido en dos, con la mitad vieja congelada.
+  test "el canal de los correos de la cuenta conserva su nombre" do
+    assert_equal "CuentaMailer", Devise.mailer.name
+    persona = User.create!(first_name: "Hugo", last_name: "Canal",
+                           document: "99000091", document_type: :cedula_v,
+                           email: "hugo@familia.test", password: "123123")
+
+    correo = Devise.mailer.password_change(persona)
+
+    assert_equal "siga-devise-password-change", correo["X-ElasticEmail-Channel"].to_s
   end
 end

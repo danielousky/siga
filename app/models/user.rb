@@ -65,6 +65,32 @@ class User < ApplicationRecord
   def teacher = teachers.find_by(school_id: Current.school_id) || teachers.first
   def admin   = admins.find_by(school_id: Current.school_id)   || admins.first
 
+  # Los modelos donde una persona tiene un rol en un colegio.
+  ROLES_DE_COLEGIO = %w[Student Teacher Admin Representative].freeze
+
+  # El colegio de esta persona, si es de UNO solo. `nil` si es de dos, o de
+  # ninguno —el equipo de SIGA no tiene rol en ningún colegio—.
+  #
+  # Es para lo que SIGA le manda a alguien SIN sesión: el correo de recuperar la
+  # contraseña sale con el escudo de su colegio cuando no hay duda de cuál es
+  # (decisión de Daniel, 5 de octubre de 2026). Con hijos en dos colegios la
+  # cuenta es una y los colegios son dos: ese correo es de SIGA.
+  #
+  # ⚠️ Va con `sin_aislamiento`, por la misma razón que
+  # `ApplicationController#colegio_de`: averiguar de qué colegio es alguien es
+  # ANTERIOR a poder filtrar por colegio. Las tablas de roles están protegidas
+  # por el aislamiento, así que sin esto la respuesta sería siempre «ninguno».
+  #
+  # Lo que lo mantiene acotado es lo mismo que allá: lee solo las filas de ESTA
+  # persona, y lo único que sale es un colegio — el suyo.
+  def unico_colegio
+    ids = Current.sin_aislamiento do
+      ROLES_DE_COLEGIO.flat_map { |rol| rol.constantize.where(user_id: id).distinct.pluck(:school_id) }.uniq
+    end
+
+    ids.one? ? School.find_by(id: ids.first) : nil
+  end
+
   # El documento se guarda normalizado SIEMPRE, venga de un formulario, de los
   # seeds o del importador. Si la regla viviera en el importador, el formulario
   # seguiría creando `V-12.345.678` y `12345678` como dos personas distintas.

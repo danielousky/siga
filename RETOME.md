@@ -5,8 +5,8 @@
 ```
    PRODUCCIÓN                        1.11.2 · cf5cf90 · sin colegios cargados
    origin/main  =  main              cf5cf90 · tags v1.11.0, v1.11.1 y v1.11.2 subidos
-   fix/el-aviso-de-colegio-nuevo     1.11.3 · en local · NADA subido
-   feat/correos-con-identidad        1.12.0 · lo que sigue (plan aprobado el 5 de octubre)
+   fix/el-aviso-de-colegio-nuevo     1.11.3 · sale de main · en local · NADA subido
+   feat/correos-con-identidad        1.12.0 · va ENCIMA de la anterior · en local
 ```
 
 ⚠️ **1.11.0, 1.11.1 y 1.11.2 están cerradas**: mezcladas (PR #49 y #50) y
@@ -24,20 +24,31 @@ test que cuenta los dos. `SIGA_AVISOS_EMAIL` **sí** está puesta en producción
    ▸ después de desplegar: `rake avisos:probar`, y que el correo llegue
 ```
 
-## Lo que sigue — los correos, con identidad (1.12.0)
+## 1.12.0 — los correos, con identidad, en su rama
 
 Daniel, 5 de octubre, con el correo de recuperar la contraseña delante: *«Esto
-no parece para nada un correo institucional de SIGA»*. Siete de los ocho correos
-salen sin cabecera ni pie. El plan está aprobado, con cuatro decisiones suyas:
+no parece para nada un correo institucional de SIGA»*. Siete de los ocho salían
+sin cabecera ni pie. Ahora hay UNA plantilla, y cada correo dice de quién es:
 
 ```
-   1 · el correo de la contraseña   del colegio si la persona es de uno solo; si no, de SIGA
-   2 · la tipografía                la misma en todos los clientes (las de la app)
-   3 · el fondo del mensaje         azul muy suave (#e8eef5)
-   4 · el aviso de colegio nuevo    se repone en su propio PR, antes  ← es la 1.11.3
+   DEL COLEGIO   activar el acceso · boletín disponible · mensaje del colegio
+                 y los de la contraseña, si la persona es de UN solo colegio
+   DE SIGA       bienvenida · el aviso de colegio nuevo
+                 y los de la contraseña, si es de dos colegios o de ninguno
 ```
 
-Primer paso: el spec, `docs/specs/correos-con-identidad.md`.
+Spec: `docs/specs/correos-con-identidad.md`. La convención, en `CLAUDE.md`
+(«Los correos: una plantilla…»).
+
+```
+   ▸ que Daniel los MIRE              /rails/mailers/correos_de_siga, con el servidor local
+   ▸ subir las dos ramas · PR · tags · desplegar                    ← cuando lo diga
+   ▸ SOLO SE VE EN PRODUCCIÓN, con un envío real a Gmail:
+       · que carguen el escudo y el logo de SIGA
+       · que «MANAGE NOTIFICATIONS» ya no salga y esté «Administrar avisos»
+       · cómo queda en Gmail web y en el teléfono (el modo oscuro, sobre todo)
+       · `rake avisos:probar`, para el aviso de colegio nuevo
+```
 
 ## Las 1.11.1 y 1.11.2, ya en producción
 
@@ -120,6 +131,12 @@ construir**. Se reabre si un colegio se queja de la espera.
      certificados                         existían desde MOR-99 y nadie los encontraba
    ▸ el manual                            sin captura de la pestaña «Certificados»
    ▸ `/salud`                             sigue sin un monitor que lo mire
+   ▸ LA APP CORRE EN UTC                  `config.time_zone` no está puesta: `Date.current` ya es
+                                          «mañana» desde las 8 p. m. de Venezuela, y una hora
+                                          escrita sale cuatro adelantada. Apareció en el aviso
+                                          de colegio nuevo («20:27» a las 4:27 de la tarde)
+   ▸ «contraseña cambiada»                Devise no lo manda (está apagado). Quedó traducido y
+                                          con su diseño, para cuando se decida encenderlo
 ```
 
 ⚠️ **Del 12 al 24 de septiembre salieron de la 0.9.0 a la 1.10.1** —el informe

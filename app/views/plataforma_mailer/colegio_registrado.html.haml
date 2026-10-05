@@ -1,7 +1,8 @@
 -# El aviso interno de un colegio nuevo (MOR-158).
 -#
--# Lo lee el equipo de SIGA, no un cliente: va sin diseño y con los datos que
--# sirven para levantar el teléfono y llamar.
+-# Lo lee el equipo de SIGA, no un cliente: van los datos que sirven para
+-# levantar el teléfono y llamar. Sale con la cabecera de SIGA —es un correo
+-# SOBRE un colegio, no DE un colegio— y por eso no llama `a_nombre_de`.
 -#
 -# ## ⚠️ Los estilos van EN LÍNEA, no en una hoja
 -#
@@ -18,11 +19,16 @@
 -# hay nada que decir, y decirlo es útil: ese colegio se registró y se quedó a
 -# medias, que es justo el que hay que llamar.
 - que_dicta = @colegio.que_dicta
-- valor    = "padding: 6px 0; color: #111;"
+-# ⚠️ El valor se PARTE si no cabe (`overflow-wrap`). Un correo electrónico es
+-# una sola palabra larga: en un teléfono empujaba la tabla 27 px fuera de la
+-# pantalla — lo encontró `correos_en_el_telefono_test`, no una persona.
+- valor    = "padding: 6px 0; color: #111; overflow-wrap: anywhere; word-break: break-word;"
 
-%div{style: "font-family: -apple-system, Segoe UI, Roboto, sans-serif; color: #111; line-height: 1.5;"}
-  %h1{style: "font-size: 20px; margin: 0 0 4px;"}= @colegio.name
+- content_for :adelanto, "#{@usuario.nombre_completo} acaba de registrar #{@colegio.name}."
 
+= titulo_de_correo @colegio.name
+
+%div{style: "color: #111; line-height: 1.5;"}
   %p{style: "margin: 0 0 20px; color: #555;"}
     = @usuario.nombre_completo
     se registró y creó este colegio el
@@ -76,7 +82,7 @@
         - else
           %em{style: "color: #999;"} todavía no eligió sus niveles
 
-  %p{style: "margin: 20px 0 0; padding: 12px 14px; background: #f4f6f8; border-radius: 6px; color: #444;"}
+  %p{style: "margin: 20px 0 16px; padding: 12px 14px; background: #ffffff; border-radius: 8px; color: #444;"}
     Está en el
     %strong Plan Inicial (gratis):
     puede cargar todo, pero no calificar, pasar lista ni emitir documentos

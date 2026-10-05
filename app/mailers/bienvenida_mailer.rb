@@ -19,11 +19,10 @@
 # con la sesión abierta. Un correo con credenciales adentro es exactamente lo
 # que no hay que mandar.
 class BienvenidaMailer < ApplicationMailer
-  # ⚠️ Su propia plantilla, y no la de todos los mailers: `layouts/mailer` la
-  # comparte `ComunicacionMailer`, que es el correo que el COLEGIO le escribe a
-  # una familia. Un banner de SIGA ahí mentiría sobre quién escribe.
-  layout "mailer_siga"
-
+  # ⚠️ Es de SIGA, no de un colegio: quien se registra todavía no tiene el suyo
+  # armado. Por eso no llama `a_nombre_de`, y sale con la cabecera de la
+  # plataforma. (Tuvo plantilla propia, `mailer_siga`, mientras la común estuvo
+  # vacía; desde el 5 de octubre de 2026 hay una sola.)
   def cuenta_creada(usuario)
     @usuario = usuario
     @url     = root_url

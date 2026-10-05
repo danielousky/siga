@@ -1,0 +1,16 @@
+<% donde = [ @colegio.parroquia, @colegio.municipio, @colegio.entidad_federal ].compact_blank -%>
+Nuevo colegio en SIGA: <%= @colegio.name %>
+
+<%= @usuario.nombre_completo %> se registró y creó este colegio el <%= l(@cuando, format: :long) %>.
+
+  Quien lo registró   <%= @usuario.nombre_completo %> · <%= @usuario.email %>
+  Código DEA          <%= @colegio.dea_code %>
+  Dónde queda         <%= donde.any? ? donde.join(", ") : "no la cargó" %>
+<% if donde.any? && @colegio.direccion.present? -%>
+                      <%= @colegio.direccion %>
+<% end -%>
+  Teléfono            <%= @colegio.telefono.presence || "no lo dejó" %>
+  Qué dicta           <%= @colegio.que_dicta || "todavía no eligió sus niveles" %>
+
+Está en el Plan Inicial (gratis): puede cargar todo, pero no calificar, pasar
+lista ni emitir documentos hasta que contrate un plan.

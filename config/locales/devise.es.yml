@@ -60,14 +60,14 @@ es:
       password_change:
         greeting: "¡Hola %{recipient}!"
         message: Lo estamos contactando para notificarle que su contraseña ha sido cambiada.
-        subject: Contraseña cambiada
+        subject: Su contraseña de SIGA cambió
       reset_password_instructions:
         action: Cambiar mi contraseña
         greeting: "¡Hola %{recipient}!"
         instruction: Alguien ha solicitado un enlace para cambiar su contraseña, lo que se puede realizar a través del siguiente enlace.
         instruction_2: Si usted no lo ha solicitado, por favor ignore este correo electrónico.
         instruction_3: Su contraseña no será cambiada hasta que usted acceda al enlace y cree una nueva.
-        subject: Instrucciones de recuperación de contraseña
+        subject: Cómo crear una contraseña nueva
       unlock_instructions:
         action: Desbloquear mi cuenta
         greeting: "¡Hola %{recipient}!"

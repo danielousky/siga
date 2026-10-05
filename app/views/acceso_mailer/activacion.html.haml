@@ -1,16 +1,21 @@
-%p= "Hola, #{@usuario.first_name}:"
+-# El correo con el que alguien activa su acceso (MOR-143). Lo manda el COLEGIO.
+- content_for :adelanto, "#{@colegio.name} registró su acceso a SIGA. Solo falta que elija su contraseña."
+
+= titulo_de_correo "Active su acceso a SIGA"
+
+%p= "Hola, #{Normaliza.titulo(@usuario.first_name)}:"
 
 %p
   %strong= @colegio.name
   registró su acceso a SIGA, donde puede consultar las notas, la asistencia y los
   boletines de sus representados.
 
-%p= link_to "Elegir mi contraseña y entrar", @url
+= boton_de_correo "Elegir mi contraseña y entrar", @url
 
 %p
   El enlace sirve una sola vez y vence en #{@horas} horas. Si vence, pídale uno
   nuevo al colegio: no se pierde nada.
 
-%p
+= nota_de_correo do
   Si no reconoce este mensaje, ignórelo. Nadie puede entrar a la cuenta hasta que
   alguien abra ese enlace y elija una contraseña.

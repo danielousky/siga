@@ -1,0 +1,10 @@
+-# El botón de un correo.
+-#
+-# ⚠️ A prueba de Outlook: es una TABLA con fondo, no un `<a>` con `padding`.
+-# Word no dibuja el relleno de un enlace, así que un botón hecho con CSS le
+-# queda como texto azul subrayado.
+%table{role: "presentation", cellpadding: "0", cellspacing: "0", border: "0", style: "margin:6px 0 22px;"}
+  %tr
+    %td{align: "center", bgcolor: CorreoHelper::MARCA, style: "background:#{CorreoHelper::MARCA}; border-radius:8px;"}
+      = link_to texto, url,
+                style: "display:inline-block; padding:14px 28px; font-family:#{CorreoHelper::SANS}; font-size:16px; font-weight:600; line-height:1.2; color:#ffffff; text-decoration:none;"

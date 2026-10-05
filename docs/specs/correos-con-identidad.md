@@ -1,6 +1,6 @@
 # Los correos de SIGA, con identidad
 
-> **Estado:** **congelado** el 5 de octubre de 2026 · en construcción
+> **Estado:** congelado el 5 de octubre de 2026 · **construido, sin subir**
 > **PR:** — (rama `feat/correos-con-identidad`)
 
 ---
@@ -186,3 +186,24 @@ En la bandeja, antes de abrirlo:
 - ⚠️ **Lo que solo se ve en producción**, con un envío real a Gmail después de
   desplegar: que los dos logos carguen, que «MANAGE NOTIFICATIONS» ya no
   aparezca y esté el nuestro, y cómo queda en Gmail web y en el teléfono.
+
+
+## 9 · Lo que apareció al construir
+
+- **El aviso de «colegio nuevo» se corría 27 px de lado en un teléfono.** Su
+  tabla lleva el correo de quien se registró, que es una sola palabra larga. Lo
+  encontró `correos_en_el_telefono_test`; ahora el valor se parte.
+- **La bienvenida en texto todavía decía «Materias».** El guarda del vocabulario
+  miraba solo las plantillas Haml, y las versiones en texto son ERB. Ahora mira
+  las dos.
+- **«El 1er Lapso de Daniela ya está listo».** `ReportCard#titulo` devuelve el
+  nombre del lapso, y el aviso lo escribía tal cual. Ahora dice «el boletín del
+  1er Lapso». Es lo único del texto de los mensajes que se tocó.
+- **«Hola, CARMEN:»** en el de activar el acceso: el nombre se guarda en
+  mayúscula y salía así. Ahora pasa por `Normaliza.titulo`, como en el boletín.
+- **Las vistas previas van en UNA clase** (`CorreosDeSigaPreview`), no en una por
+  mailer: quien revisa quiere ver los ocho juntos.
+- ⚠️ **Visto y sin tocar: la app corre en UTC.** `config.time_zone` no está
+  puesta, así que el aviso dice «20:27» a las 4:27 de la tarde — y, más serio,
+  `Date.current` ya es «mañana» desde las 8 de la noche de Venezuela. No es de
+  los correos: va aparte.

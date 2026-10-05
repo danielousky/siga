@@ -343,10 +343,14 @@ class ActivacionDelAccesoTest < ActionDispatch::IntegrationTest
     @con_correo.user.update!(password: "clave-vieja")
     token = @con_correo.user.send(:set_reset_password_token)
 
-    cuerpo = Devise::Mailer.reset_password_instructions(@con_correo.user, token).body.to_s
+    correo = Devise.mailer.reset_password_instructions(@con_correo.user, token)
 
-    assert_match %r{/activar/#{token}}, cuerpo
-    assert_no_match(%r{/users/password/edit}, cuerpo)
+    # ⚠️ En las DOS versiones: el correo lleva HTML y texto, y quien lo abre en
+    # un cliente sin HTML sigue el enlace del texto.
+    [ correo.html_part, correo.text_part ].each do |parte|
+      assert_match %r{/activar/#{token}}, parte.body.to_s
+      assert_no_match(%r{/users/password/edit}, parte.body.to_s)
+    end
   end
 
   # ── una persona sin credenciales sigue sin poder entrar ───────────────────

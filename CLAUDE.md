@@ -227,6 +227,54 @@ es deliberadamente distinto al del colegio (`MOR-133`).
 Specs: [`sistema-de-diseno.md`](docs/specs/sistema-de-diseno.md) (①) y
 [`cabecera-unica.md`](docs/specs/cabecera-unica.md) (②).
 
+### ✉️ Los correos: una plantilla, y cada uno dice de quién es
+
+Daniel, 5 de octubre de 2026, con el de «recuperar contraseña» abierto en Gmail:
+*«Esto no parece para nada un correo institucional de SIGA. Parece cualquier
+cosa.»* Siete de los ocho salían sin cabecera ni pie, y el remitente era una
+dirección pelada.
+
+```
+   DEL COLEGIO   activar el acceso · boletín disponible · mensaje del colegio
+                 y los de la contraseña, si la persona es de UN solo colegio
+   DE SIGA       bienvenida · el aviso de colegio nuevo
+                 y los de la contraseña, si es de dos colegios o de ninguno
+```
+
+- **Una plantilla** (`layouts/mailer`) y sus piezas en `layouts/mailer/`. De
+  quién es el correo lo dice el mailer con **`a_nombre_de(colegio)`**; sin
+  llamarlo, es de SIGA. ⚠️ No se deduce de `@colegio`: el aviso de «colegio
+  nuevo» tiene uno y es un correo SOBRE un colegio, no DE un colegio.
+- **Una plantilla de correo es contenido puro**: `titulo_de_correo`,
+  `boton_de_correo`, `nota_de_correo` y `%p` (`CorreoHelper`). ⚠️ Las de Devise
+  viven en `devise/mailer/`, que `sistema_de_diseno_test` NO exime: no pueden
+  llevar un `style=`.
+- ⚠️ **El escudo: solo se ARMA su dirección** (`escudo_para_correo`). Nada de
+  `.processed` en un mailer — es el `IOError` de «Descargar las listas» (`§ 1`).
+- ⚠️ **Las imágenes llevan dirección PERMANENTE**: `public/correo/siga.png`,
+  nunca los assets. Un correo vive años, y una imagen con la huella de un
+  despliegue en el nombre desaparece con el siguiente.
+- **Las letras son las de la app, sin descargar nada.** Gmail ignora las
+  tipografías web y Outlook clásico, al no encontrarlas, cae en Times New Roman.
+- ⚠️ **El nombre del colegio es TEXTO**, nunca parte de una imagen: Outlook de
+  escritorio bloquea las imágenes hasta que la persona acepta.
+- **Los ocho llevan versión en texto y su adelanto** (`content_for :adelanto`),
+  que es lo que la bandeja muestra al lado del asunto.
+- **«MANAGE NOTIFICATIONS» lo agrega ElasticEmail** a todo correo y no se apaga
+  por código. Se reemplaza con un enlace propio que lleva su etiqueta
+  `{unsubscribe}` — ⚠️ solo cuando el correo sale por ElasticEmail, o el enlace
+  llevaría a «{unsubscribe}», tal cual.
+- ⚠️ **Los correos de la cuenta salen de `CuentaMailer`**, no de
+  `Devise::Mailer`, y preguntan `User#unico_colegio`: quien recupera su
+  contraseña no tiene sesión. Su canal de ElasticEmail conserva el nombre
+  `siga-devise-…`, o las estadísticas se partirían en dos.
+
+Se MIRAN en `/rails/mailers/correos_de_siga`. Los cuidan
+`correos_con_identidad_test` y `correos_en_el_telefono_test`, que los abre a
+600 y 380 px: encontró que el aviso de colegio nuevo se corría 27 px de lado en
+un teléfono, cosa que nadie habría visto leyendo el HTML.
+Spec: [`correos-con-identidad.md`](docs/specs/correos-con-identidad.md).
+
 ### ⚠️ Inglés y español: dónde va cada uno (`MOR-162`)
 
 El criterio es uno y se dice en una línea: **inglés donde Rails DEDUCE un nombre

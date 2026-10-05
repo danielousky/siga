@@ -1,18 +1,18 @@
--# ⚠️ Estilos EN LÍNEA. Gmail y Outlook descartan el `<style>` del documento, así
--# que una hoja de estilos acá no llega: el correo se vería sin formato en los
--# dos clientes que usa el 90 % de las familias.
-%div{ style: "font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 15px; line-height: 1.6; color: #2c2c2c; max-width: 560px;" }
-  %p{ style: "margin: 0 0 16px;" }
-    = "#{@destinatario.first_name.to_s.titleize},"
+-# El correo que el colegio le escribe a una familia (MOR-181).
+-#
+-# La cabecera ya dice de qué colegio viene; acá va lo que la persona escribió.
+- content_for :adelanto, truncate(@cuerpo.to_s.squish, length: 110)
 
-  -# `simple_format` respeta los saltos de línea que la persona escribió y
-  -# escapa el HTML: el texto viene de un formulario.
-  = simple_format(@cuerpo, { style: "margin: 0 0 16px;" }, sanitize: true)
+= titulo_de_correo @asunto
 
-  %hr{ style: "border: 0; border-top: 1px solid #e5e5e5; margin: 24px 0 16px;" }
+%p= "#{@destinatario.first_name.to_s.titleize},"
 
-  %p{ style: "margin: 0; font-size: 13px; color: #6b6b6b;" }
-    = "Le escribe #{@remitente.nombre_completo}, de #{@colegio.name}."
-    - if @remitente.email.present?
-      %br
-      Puede responder a este correo.
+-# `simple_format` respeta los saltos de línea que la persona escribió y
+-# escapa el HTML: el texto viene de un formulario.
+= simple_format(@cuerpo, {}, sanitize: true)
+
+= nota_de_correo do
+  = "Le escribe #{@remitente.nombre_completo}, de #{@colegio.name}."
+  - if @remitente.email.present?
+    %br
+    Puede responder a este correo.

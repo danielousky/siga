@@ -11,6 +11,7 @@ class AccesoMailer < ApplicationMailer
     @colegio = colegio
     @url     = activar_url(token)
     @horas   = User::ACTIVACION_VALIDA_POR.in_hours.to_i
+    a_nombre_de(colegio)
 
     mail to: @usuario.email,
          subject: "#{@colegio.name}: active su acceso a SIGA"

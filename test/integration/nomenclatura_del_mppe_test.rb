@@ -143,7 +143,11 @@ class NomenclaturaDelMppeTest < ActiveSupport::TestCase
   def frases_que_dicen_materia
     raiz = "#{Rails.root}/"
 
-    vistas = Dir[Rails.root.join("app/views/**/*.haml")].flat_map { |a| en_haml(a) }
+    # ⚠️ Las dos: Haml y ERB. Los correos tienen su versión en texto en `.erb`, y
+    # mientras este guarda miró solo Haml, la bienvenida siguió ofreciendo
+    # «Materias» en texto plano un mes después de corregida en HTML.
+    vistas = Dir[Rails.root.join("app/views/**/*.haml")].flat_map { |a| en_haml(a) } +
+             Dir[Rails.root.join("app/views/**/*.erb")].flat_map { |a| en_erb(a) }
     codigo = Dir[Rails.root.join("app/{controllers,helpers,mailers,models,services,jobs}/**/*.rb")].flat_map { |a| en_ruby(a) }
 
     (vistas + codigo + en_yaml(Rails.root.join("config/locales/es.yml").to_s))
@@ -163,6 +167,14 @@ class NomenclaturaDelMppeTest < ActiveSupport::TestCase
       frases << suelto if frases.empty? && !es_ruby && sin_interpolar(suelto).match?(PALABRA)
 
       frases.map { |frase| [ archivo, frase ] }
+    end
+  end
+
+  # Una plantilla ERB: lo que queda de cada renglón sin sus etiquetas.
+  def en_erb(archivo)
+    File.read(archivo).gsub(/<%#.*?%>/m, "").lines.filter_map do |linea|
+      visible = linea.gsub(/<%.*?%>/, " ").strip
+      [ archivo, visible ] if visible.match?(PALABRA)
     end
   end
 

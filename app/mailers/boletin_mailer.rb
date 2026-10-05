@@ -16,8 +16,8 @@
 # cuántos meses debe y no reclama: dice que el documento existe y qué falta para
 # abrirlo. La deuda con su detalle vive en «Mis pagos», que es donde se resuelve.
 #
-# ⚠️ Lo escribe el COLEGIO, no SIGA: usa el layout compartido, sin el banner de
-# la plataforma. Para la familia esto viene de la escuela de su hijo.
+# ⚠️ Lo escribe el COLEGIO, no SIGA: sale con su cabecera (`a_nombre_de`). Para
+# la familia esto viene de la escuela de su hijo.
 class BoletinMailer < ApplicationMailer
   def liberado(boletin)
     @boletin = boletin
@@ -27,6 +27,7 @@ class BoletinMailer < ApplicationMailer
     @titulo = boletin.titulo
     @al_dia = EstadoDeCuenta.de(@inscripcion).al_dia?
     @url = @al_dia ? representante_url : pagos_url
+    a_nombre_de(@colegio)
 
     destinatarios = correos_de_la_familia
     return if destinatarios.empty?

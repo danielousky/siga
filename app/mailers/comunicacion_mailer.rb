@@ -15,10 +15,12 @@
 # familia lo reconozca en una bandeja llena.
 class ComunicacionMailer < ApplicationMailer
   def mensaje_del_colegio(destinatario:, colegio:, remitente:, asunto:, cuerpo:)
+    @asunto = asunto
     @cuerpo = cuerpo
     @colegio = colegio
     @remitente = remitente
     @destinatario = destinatario
+    a_nombre_de(colegio)
 
     mail to: destinatario.email,
          reply_to: remitente.email.presence,

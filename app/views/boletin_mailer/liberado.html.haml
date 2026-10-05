@@ -1,31 +1,30 @@
--# El aviso de que el boletín ya se puede ver.
+-# El aviso de que el boletín ya se puede ver. Lo manda el COLEGIO.
 -#
--# ⚠️ Los estilos van INLINE y la maqueta con `<table>`: Gmail y Outlook
--# descartan las hojas externas y no soportan flex ni grid. Es la excepción del
--# sistema de diseño, y está anotada en el `CLAUDE.md`.
-%p{ style: "margin:0 0 16px" }
-  Buen día,
+-# ⚠️ Dos redacciones, y no es cortesía: a una familia en mora no se le promete
+-# una pantalla que la va a rebotar. Ver `BoletinMailer`.
+- nombre = Normaliza.titulo(@alumno.first_name)
+-# `titulo` es «1er Lapso» o «Boletín Anual»: el primero necesita su «boletín del».
+- que = @boletin.anual? ? "boletín anual" : "boletín del #{@titulo}"
+- content_for :adelanto, @al_dia ? "Ya puede verlo y descargarlo desde su cuenta." : "Para verlo hace falta estar al día con el colegio."
 
-%p{ style: "margin:0 0 16px" }
+= titulo_de_correo "El boletín de #{nombre} ya está disponible"
+
+%p Buen día,
+
+%p
   El
-  %strong= @titulo
+  %strong= que
   de
   %strong= Normaliza.titulo(@alumno.nombre_completo)
   ya está listo en SIGA.
 
 - if @al_dia
-  %p{ style: "margin:0 0 24px" }
-    Puede verlo y descargarlo cuando quiera desde su cuenta.
+  %p Puede verlo y descargarlo cuando quiera desde su cuenta.
 - else
   -# ⚠️ No es un correo de cobranza: no lleva el monto ni reclama. Dice que el
   -# documento existe y qué falta para abrirlo.
-  %p{ style: "margin:0 0 24px" }
+  %p
     Para poder verlo hace falta estar al día con el colegio. Si ya hizo el pago,
     repórtelo desde su cuenta y el colegio lo valida.
 
-%p{ style: "margin:0 0 24px" }
-  %a{ href: @url, style: "display:inline-block;padding:12px 22px;background:#1e4a7a;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600" }
-    = @al_dia ? "Ver el boletín" : "Ver mis pagos"
-
-%p{ style: "margin:0;color:#5a5a5a;font-size:14px" }
-  = @colegio.name
+= boton_de_correo (@al_dia ? "Ver el boletín" : "Ver mis pagos"), @url
