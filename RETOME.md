@@ -1,4 +1,86 @@
-# 🔖 Punto de retome — actualizado 11 de septiembre de 2026 (00:50)
+# 🔖 Punto de retome — actualizado 5 de octubre de 2026
+
+## Dónde está cada cosa
+
+```
+   PRODUCCIÓN                          1.10.1 · 0b1997a · sin colegios cargados
+   origin/main                         0b1997a — lo mismo que producción
+   main, en local                      + 1 commit de Daniel sin subir (el logo sin fondo)
+   feat/certificados-en-documentos     + 10 commits · 1.11.0 · NADA subido
+   spec/emision-en-segundo-plano       + 1 commit encima · el spec, en discusión
+```
+
+⚠️ **Nada de 1.11.0 salió de esta máquina.** Ni la rama, ni el tag, ni el
+despliegue: se sube cuando Daniel lo diga.
+
+## 1.11.0 — qué trae
+
+```
+   ① los certificados, en «Documentos»      la tercera pestaña; de un alumno o de la sección
+   ② emitir una sección de boletines        de 26 segundos a 2
+   ③ el boletín en las hojas justas         el pie ni cortado ni solo en su hoja
+   ④ el de bachillerato, en UNA hoja        la comparación con la sección, dentro de la tabla de notas
+   ⑤ dos arreglos que aparecieron leyendo   el documento de Inicial reventaba desde la ficha;
+      los PDF                                la 31059 salía sin el año en la fecha de expedición
+```
+
+Lo que hay que saber de cómo está hecho vive en `CLAUDE.md § 11` (los
+certificados) y `§ 12` (el boletín en papel). `bin/ci` en verde.
+
+## Lo que falta para cerrarla
+
+```
+   ▸ que Daniel revise los PDF en local        director.bolivar@siga.edu · Documentos
+       1er Año A, 1er lapso      →  una hoja por alumno, con la comparación
+       4to Grado A, 1er lapso    →  dos hojas por alumno, la segunda con las notas y el pie
+   ▸ subir la rama · PR · merge · tag v1.11.0 · desplegar     ← cuando Daniel diga
+   ▸ decidir el spec de emisión en segundo plano              ← ver abajo
+```
+
+## El spec que espera decisión
+
+`docs/specs/emision-en-segundo-plano.md`, en la rama `spec/emision-en-segundo-plano`.
+Daniel pidió el 1 de octubre «tabla a mano + segundo plano», cuando una sección
+tardaba 26 segundos. La primera mitad está hecha y dejó la sección en 2: el spec
+pone los dos caminos con los números de hoy.
+
+```
+   A · medir primero (lo recomendado)     el botón dice «Preparando el PDF…» y cada emisión
+                                          anota cuánto tardó; si ningún colegio se acerca a
+                                          10 s, el spec se cierra como «no hizo falta»
+   B · construirlo ya                     tabla `emisiones`, un job que dibuja, pantalla de
+                                          espera, y un job diario que borra los archivos
+```
+
+## Visto y sin tocar
+
+```
+   ▸ el boletín de Inicial en PDF         sale con una tabla de «Sin nota» y la nota de la
+                                          escala del 1 al 20: el boletín no lee la valoración
+                                          descriptiva. Quedó fuera del spec de Inicial.
+   ▸ la cédula de quien firma             «V-12884476» en el documento de Inicial y
+                                          «12884476» en el de primaria y en la 31059
+   ▸ armar los datos de una sección       ~55 consultas por alumno para un plan evaluado
+                                          que es el mismo para toda la sección
+   ▸ el código QR                         16 ms cada uno: entre un tercio y la mitad de lo
+                                          que tarda dibujar un boletín
+   ▸ la tarjeta de Linear de los          el conector estaba desconectado; los certificados
+     certificados                         existían desde MOR-99 y nadie los encontraba
+   ▸ el manual                            sin captura de la pestaña «Certificados»
+   ▸ `/salud`                             sigue sin un monitor que lo mire
+```
+
+⚠️ **Del 12 al 24 de septiembre salieron de la 0.9.0 a la 1.10.1** —el informe
+descriptivo, el cierre del lapso, el indicador dentro de su evaluación, el alta
+de evaluaciones en la fila del plan— y este archivo no se actualizó. Qué trajo
+cada versión está en [`CHANGELOG.md`](CHANGELOG.md), y por qué, en `CLAUDE.md`.
+
+---
+
+# Retome del 11 de septiembre de 2026 (00:50)
+
+> Lo de aquí hacia abajo quedó como estaba ese día. Sirve de historia; **el
+> estado de hoy es el de arriba.**
 
 ## Producción limpia y resembrada (MOR-146 · MOR-224)
 

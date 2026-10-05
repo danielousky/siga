@@ -1237,6 +1237,15 @@ producción y lo encontró la pestaña nueva, por emitir por el mismo camino.
 `documentos_desde_la_ficha_test` pasa por el controlador, **siempre con
 director**: es el caso de todo colegio real y era el que nadie ejercitaba.
 
+⚠️ **Una casilla de alto fijo corta lo que no cabe, sin avisar.** La 31059
+escribe cada dato en un `text_box` de un renglón: a un texto largo Prawn lo
+parte en dos y dibuja solo el primero. Así salió sin el AÑO la fecha de
+expedición —«LIBERTADOR, DISTRITO CAPITAL 5 DE OCTUBRE DE»— en un documento que
+vale tres años desde esa fecha, y en Caracas siempre. Estuvo veinticuatro días
+así: el test miraba que el archivo pesara más de mil bytes. Ahora el dato se
+achica antes que cortarse (`shrink_to_fit`), y el test lee la fecha entera con
+el municipio de nombre más largo del país.
+
 ⚠️ **Para probar un PDF de varios hay que LEERLO**, no contar páginas:
 `paginas_de` en `certificados_test` saca el texto de cada página sin una gema
 —Prawn escribe sin comprimir y en hexadecimal— y es lo que deja afirmar que la
