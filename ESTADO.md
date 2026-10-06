@@ -3,8 +3,10 @@
 ## Dónde está cada cosa
 
 ```
-   PRODUCCIÓN  =  origin/main  =  main     1.13.0 · tag v1.13.0 · sin colegios cargados
-   fix/el-humo-levanta-el-worker           sale de main · no cambia la versión
+   PRODUCCIÓN                 1.13.0 · tag v1.13.0 · sin colegios cargados
+   origin/main  =  main       lo mismo, más el arreglo del humo (PR #54), que es de
+                              herramientas: no cambia el producto ni hay que desplegarlo
+   ramas abiertas             ninguna
 ```
 
 ⚠️ **De la 1.11.0 a la 1.13.0 están cerradas**: mezcladas y desplegadas el 5 de
@@ -12,7 +14,7 @@ octubre. Nada se sube sin que Daniel lo diga.
 
 Este archivo se llamó `RETOME.md` hasta ese día; el porqué, en `CLAUDE.md`.
 
-## El humo del CI de GitHub — en su rama
+## El humo del CI de GitHub
 
 El CI de GitHub no sale en verde desde el 1 de septiembre —264 corridas en
 rojo de las últimas 332—, por una cadena de motivos distintos: un test de
@@ -35,9 +37,10 @@ un worker que no arranca, uno colgado y un trabajo que revienta dan rojo, y los
 tres dicen por qué. El detalle, en `CLAUDE.md § 4` («El worker hay que
 levantarlo»).
 
-```
-   ▸ verlo correr EN GITHUB: es la única prueba que cuenta, y hay que subir la rama
-```
+**Corrió en GitHub el 5 de octubre (PR #54) y salió en verde**: las dos
+corridas, las primeras desde el 1 de septiembre. El registro de allá dice lo
+que se esperaba —«la cola quedó vacía · 2 esperaban», un worker, ningún
+fallido— con 1.803 tests y 92 de sistema antes.
 
 ## 1.13.0 — los precios
 
