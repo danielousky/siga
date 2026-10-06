@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
-# Verificación de humo: levanta el server contra la base de desarrollo y recorre
-# por HTTP real los flujos críticos — público, admin, profesor y estudiante.
+# Verificación de humo: levanta el server Y EL WORKER contra la base de
+# desarrollo —las dos piezas que corren en producción— y recorre por HTTP real
+# los flujos críticos: público, admin, profesor y estudiante.
 #
 #   bin/smoke ["etiqueta"]
 #
@@ -22,13 +23,21 @@ BASE="http://127.0.0.1:${PORT}"
 LABEL="${1:-smoke}"
 TMP="$(mktemp -d)"
 LOG="${TMP}/server.log"
+WORKER_LOG="${TMP}/worker.log"
+# Cuánto se le espera al worker para arrancar y dejar la cola vacía. Arranca en
+# unos segundos y los trabajos de SIGA duran uno; esto es holgura para una
+# máquina de CI lenta, no lo que tarda.
+ESPERA_DE_LA_COLA="${ESPERA_DE_LA_COLA:-90}"
 FAILED=0
 
 cd "$APP_ROOT" || exit 1
 
 cleanup() {
+  # El worker primero: se despide de la tabla de procesos antes de que el
+  # server deje de contestar.
+  [ -n "${WORKER_PID:-}" ] && kill "$WORKER_PID" 2>/dev/null
   [ -n "${SERVER_PID:-}" ] && kill "$SERVER_PID" 2>/dev/null
-  wait "$SERVER_PID" 2>/dev/null
+  wait 2>/dev/null
   rm -rf "$TMP"
 }
 trap cleanup EXIT
@@ -55,6 +64,38 @@ done
 if ! curl -sf -o /dev/null "${BASE}/" 2>/dev/null; then
   echo "✗ el server no respondió en 60s:"; tail -30 "$LOG"; exit 1
 fi
+
+# ── El worker ────────────────────────────────────────────────────────────────
+#
+# Producción son DOS procesos (`Procfile`: web y worker) y el humo levantaba
+# uno. Así, `/salud` —que contesta «¿la cola avanza?»— dependía de la suerte:
+#
+#     cola vacía                     200   pasa
+#     un trabajo de hace 2 minutos   200   pasa
+#     un trabajo de hace 6 minutos   503   falla, y el código no cambió
+#
+# En GitHub fallaba SIEMPRE, y con razón: sembrar la base de desarrollo deja dos
+# trabajos en la cola —el análisis de cada escudo que se adjunta—, la suite
+# tarda doce minutos en llegar hasta acá, y allá no corre ningún worker. El
+# endpoint hacía su trabajo; lo que faltaba era quien vaciara la cola.
+#
+# Se arranca con la MISMA orden del `Procfile`. De paso es lo único que prueba
+# que el worker levanta: en producción, uno que no arranca no rompe nada a la
+# vista —la app sigue en 200— y los promedios se quedan viejos.
+#
+# ⚠️ Los fallidos se leen ANTES de arrancarlo. Un trabajo que revienta también
+# sale de la cola, así que «quedó vacía» no distingue procesar de fallar: lo
+# que lo distingue es que el contador de fallidos no se haya movido.
+dato_de_salud() { # dato_de_salud <clave>  →  el número que `/salud` trae ahí
+  grep -o "\"$1\":[0-9]*" "${TMP}/salud" 2>/dev/null | head -1 | cut -d: -f2
+}
+
+curl -s -o "${TMP}/salud" "${BASE}/salud"
+ESPERABAN="$(dato_de_salud esperando)"
+FALLIDOS_ANTES="$(dato_de_salud fallidos)"
+
+RAILS_ENV=development bin/rails solid_queue:start > "$WORKER_LOG" 2>&1 &
+WORKER_PID=$!
 
 check() { # check <descripción> <path> <código esperado> [cookiejar]
   local desc="$1" path="$2" want="$3" jar="${4:-}"
@@ -113,18 +154,15 @@ check "recuperar contraseña"     "/users/password/new" 200
 check "verificar boletín"        "/verificar"          200
 check "código inexistente"       "/verificar/BOL-XXXX-YYYY" 404
 
-# ⚠️ Los dos, y no son intercambiables (MOR-167): `/up` dice que el proceso
-# arrancó —lo mira DOKKU para dejar entrar una versión nueva— y `/salud` dice
-# que la COLA avanza —lo mira un monitor externo—. Con el worker caído, `/salud`
-# devuelve 503 y `/up` sigue en 200, que es exactamente lo que se quiere: un
-# worker caído no puede impedir desplegar la corrección que lo arregla.
+# ⚠️ `/up` y `/salud` no son intercambiables (MOR-167): `/up` dice que el
+# proceso arrancó —lo mira DOKKU para dejar entrar una versión nueva— y `/salud`
+# dice que la COLA avanza —lo mira un monitor externo—. Con el worker caído,
+# `/salud` devuelve 503 y `/up` sigue en 200, que es exactamente lo que se
+# quiere: un worker caído no puede impedir desplegar la corrección que lo
+# arregla. `/salud` se mira al final, en «La cola», cuando el worker ya tuvo
+# tiempo de arrancar.
 check "up (lo mira Dokku)"       "/up"                      200
-check "salud de la cola"         "/salud"                   200
 
-echo "Sin sesión"
-check "salud de la cola"  "/salud"                     200
-check "up (Dokku)"        "/up"                        200
-echo
 echo
 echo "Administrador"
 JAR="${TMP}/admin.jar"
@@ -218,6 +256,55 @@ if login "alvaro.lopez001@bolivar.edu" "123123" "$JAR"; then
   check "dashboard"        "/dashboards/estudiante"        200 "$JAR"
   check "mis notas"        "/dashboards/notas"             200 "$JAR"
   check "notas · anual"    "/dashboards/notas?lapso=anual" 200 "$JAR"
+fi
+
+# ── La cola ──────────────────────────────────────────────────────────────────
+#
+# Va al final a propósito: el worker arrancó mientras corría todo lo de arriba,
+# así que lo normal es que acá no haya nada que esperar.
+echo
+echo "La cola (web y worker, como en producción)"
+
+CODIGO=""
+for _ in $(seq 1 "$ESPERA_DE_LA_COLA"); do
+  CODIGO="$(curl -s -o "${TMP}/salud" -w '%{http_code}' "${BASE}/salud")"
+  WORKERS="$(dato_de_salud workers)"
+  ESPERANDO="$(dato_de_salud esperando)"
+  [ "$CODIGO" = "200" ] && [ "${WORKERS:-0}" -ge 1 ] && [ "${ESPERANDO:-1}" -eq 0 ] && break
+  kill -0 "$WORKER_PID" 2>/dev/null || break   # murió: esperar no lo revive
+  sleep 1
+done
+
+if kill -0 "$WORKER_PID" 2>/dev/null && [ "${WORKERS:-0}" -ge 1 ]; then
+  printf '  ✓ %-42s %s\n' "el worker arrancó" "$WORKERS"
+else
+  printf '  ✗ %-42s %s\n' "el worker NO arrancó" "(bin/rails solid_queue:start)"
+  sed 's/^/      /' "$WORKER_LOG" | tail -20
+  FAILED=1
+fi
+
+if [ "$CODIGO" = "200" ] && [ "${ESPERANDO:-1}" -eq 0 ]; then
+  printf '  ✓ %-42s %s\n' "salud de la cola" "$CODIGO"
+  printf '  ✓ %-42s %s\n' "la cola quedó vacía" "${ESPERABAN:-0} esperaban"
+else
+  printf '  ✗ %-42s %s (esperaba 200 y la cola vacía)\n' "salud de la cola" "$CODIGO"
+  sed 's/^/      /' "${TMP}/salud"; echo
+  FAILED=1
+fi
+
+FALLIDOS_DESPUES="$(dato_de_salud fallidos)"
+FALLARON=$(( ${FALLIDOS_DESPUES:-0} - ${FALLIDOS_ANTES:-0} ))
+if [ "$FALLARON" -le 0 ]; then
+  printf '  ✓ %-42s %s\n' "ningún trabajo falló al procesarse" "0"
+else
+  printf '  ✗ %-42s %s\n' "trabajos que fallaron al procesarse" "$FALLARON"
+  bin/rails runner '
+    SolidQueue::FailedExecution.order(:created_at).last(ARGV.first.to_i).each do |fallido|
+      error = fallido.error.to_h
+      puts "      #{fallido.job.class_name}: #{error["exception_class"]} — #{error["message"]}"
+    end
+  ' "$FALLARON" 2>/dev/null
+  FAILED=1
 fi
 
 echo

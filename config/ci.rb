@@ -69,5 +69,11 @@ CI.run do
   # `pagy_nav` sin `@pagy`, ni una traducción faltante. `bin/smoke` recorre la app
   # por HTTP con los cuatro roles y mira el log del server buscando excepciones,
   # deprecaciones y "Translation missing".
+  #
+  # ⚠️ Levanta las DOS piezas de producción, web y worker, y es lo único de este
+  # pipeline que prueba que el worker arranca: exige que la cola quede vacía y
+  # que nada haya fallado al procesarse. Con el web solo, el paso dependía de
+  # cuánto llevara esperando lo que hubiera en la cola — y en GitHub, donde los
+  # seeds dejan dos trabajos doce minutos antes, fallaba siempre.
   step "Humo: la app responde por HTTP en los cuatro roles", "bin/smoke ci"
 end

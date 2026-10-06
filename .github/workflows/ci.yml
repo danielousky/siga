@@ -91,6 +91,13 @@ jobs:
 
       # `bin/smoke` recorre la app por HTTP contra la base de DESARROLLO, así que
       # necesita sus datos. Los seeds además son los casos de QA de MOR-93.
+      #
+      # ⚠️ Sembrar deja dos trabajos en la cola —el análisis de cada escudo que
+      # se adjunta— y acá no corre ningún worker. Cuando `bin/ci` llega al humo
+      # llevan doce minutos esperando, que es justo lo que `/salud` existe para
+      # delatar: el CI estuvo en rojo por eso. No se arregla acá, vaciando la
+      # cola a mano: el humo levanta su propio worker, y por eso corre igual en
+      # una máquina que en GitHub.
       - name: Sembrar los datos de desarrollo
         env:
           SIGA_DB_PASSWORD: siga_app_ci
