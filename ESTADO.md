@@ -4,9 +4,10 @@
 
 ```
    PRODUCCIÓN                 1.13.0 · tag v1.13.0 · sin colegios cargados
-   origin/main  =  main       lo mismo, más dos arreglos del CI (el humo y un test
-                              intermitente): son de herramientas, no cambian el
-                              producto ni hay que desplegarlos
+   origin/main  =  main       lo mismo, más los arreglos del CI (el humo y dos tests
+                              de sistema intermitentes, PR #54 y #55): son de
+                              herramientas, no cambian el producto ni hay que
+                              desplegarlos
    ramas abiertas             ninguna
 ```
 
@@ -89,6 +90,8 @@ Costó tres intentos, y conviene saberlo: esperar el primer pintado no alcanzó
 navegador (1 de 120). Sin rendirse: 0 de 320 con el procesador saturado. El
 detalle —y cómo se encontró, con una caja negra dentro del navegador— está en
 `CLAUDE.md`, en «Conventions».
+
+**Las dos corridas del PR #55 salieron en verde en GitHub** (6 de octubre).
 
 ⚠️ Lo que NO está probado: que no quede otro test intermitente. Éste apareció
 recién cuando se corrigió el anterior, y los dos estaban tapados por el humo.
