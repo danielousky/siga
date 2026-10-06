@@ -89,8 +89,8 @@ bin/rails test                     # Run all tests
 bin/rails test test/models/user_test.rb:10     # Run single test by line
 
 # Verificación completa — lo mismo que corre el CI (MOR-105)
-bin/ci                             # RLS + estilo + tests + seeds + humo, ~10 s
-bin/smoke                          # solo el recorrido HTTP por los cuatro roles
+bin/ci                             # RLS + estilo + tests + seeds + humo, ~5 min
+bin/smoke                          # solo el humo: web Y worker, y el recorrido HTTP por los cuatro roles
 ```
 
 `bin/ci` arranca comprobando que el rol de la base **no** pueda saltarse el RLS, y no
@@ -857,6 +857,24 @@ y otra vez el 25):
 - **El worker hay que levantarlo.** El `Procfile` declara `web` y `worker`; si el segundo no
   corre, la cola se llena y los promedios de una sección quedan viejos para siempre. Sobrevive
   al reinicio, pero nadie la vacía. `bin/rails notas:recalcular` sigue siendo la reparación.
+  ⚠️ **El humo levanta los DOS**, con la orden del `Procfile`, y es lo único que prueba que el
+  worker arranca. Levantaba solo el web, así que `/salud` dependía de la suerte:
+
+  ```
+     cola vacía                     200   pasa
+     un trabajo de hace 2 minutos   200   pasa
+     un trabajo de hace 6 minutos   503   falla, y el código no cambió
+  ```
+
+  En GitHub fallaba SIEMPRE, y con razón: sembrar la base de desarrollo deja dos trabajos
+  —el análisis de cada escudo que se adjunta—, la suite tarda doce minutos en llegar al
+  humo, y allá no corría ningún worker. `/salud` hacía su trabajo; faltaba quien vaciara la
+  cola. Ahora `bin/smoke` exige tres cosas: que el worker arranque, que la cola quede vacía
+  y que nada haya fallado al procesarse.
+  ⚠️ **«La cola quedó vacía» no distingue procesar de fallar**: un trabajo que revienta
+  también sale de la cola. Lo que los distingue es el contador de fallidos, leído ANTES de
+  arrancar el worker y después. Y se compara, no se exige en cero: un fallido viejo en la
+  base de desarrollo no es culpa del código que se está probando.
 
 ### 5. La cola de trabajos
 

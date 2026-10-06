@@ -4,13 +4,40 @@
 
 ```
    PRODUCCIÓN  =  origin/main  =  main     1.13.0 · tag v1.13.0 · sin colegios cargados
-   ramas abiertas                          ninguna
+   fix/el-humo-levanta-el-worker           sale de main · no cambia la versión
 ```
 
 ⚠️ **De la 1.11.0 a la 1.13.0 están cerradas**: mezcladas y desplegadas el 5 de
 octubre. Nada se sube sin que Daniel lo diga.
 
 Este archivo se llamó `RETOME.md` hasta ese día; el porqué, en `CLAUDE.md`.
+
+## El humo del CI de GitHub — en su rama
+
+El CI de GitHub no sale en verde desde el 1 de septiembre —264 corridas en
+rojo de las últimas 332—, por una cadena de motivos distintos: un test de
+sistema, después `libvips`. El último que quedaba era el humo, siempre en el
+mismo renglón: `✗ salud de la cola 503`.
+
+```
+   GITHUB   siembra desarrollo  ──►  deja 2 trabajos en la cola (el análisis de cada escudo)
+            bin/ci, 12 minutos  ──►  sin ningún worker
+            humo: GET /salud    ──►  «el más viejo espera hace más de 5 min»  ──►  503
+```
+
+`/salud` hacía su trabajo; faltaba quien vaciara la cola. Ahora `bin/smoke`
+levanta web Y worker —la orden del `Procfile`— y exige que el worker arranque,
+que la cola quede vacía y que nada haya fallado al procesarse. No toca el
+producto: no hay versión nueva ni entrada en el CHANGELOG.
+
+Reproducido en una base aparte con los seeds de verdad, y probado rompiéndolo:
+un worker que no arranca, uno colgado y un trabajo que revienta dan rojo, y los
+tres dicen por qué. El detalle, en `CLAUDE.md § 4` («El worker hay que
+levantarlo»).
+
+```
+   ▸ verlo correr EN GITHUB: es la única prueba que cuenta, y hay que subir la rama
+```
 
 ## 1.13.0 — los precios
 
@@ -123,9 +150,6 @@ Lo cuida `nomenclatura_del_mppe_test`: lee el texto de vistas, mensajes y
      muestran el texto viejo. Texto y capturas van juntos: es rehacerlo con
      `capturar.rb`, no un reemplazo
    ▸ las tarjetas de Linear (el conector estaba desconectado)
-   ▸ el CI de GitHub sigue en rojo por el humo: `/salud` da 503 porque los
-     seeds dejan trabajos en cola y allá no corre ningún worker. Los tests ya
-     pasan allá (se instaló `libvips`)
 ```
 
 ## Emitir en segundo plano: decidido, y es que no
