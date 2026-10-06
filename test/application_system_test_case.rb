@@ -73,14 +73,157 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # Es la mitad que faltaba de `tocando`. Ése absorbe el error cuando el clic
   # llega en mal momento; éste evita que la línea SIGUIENTE llegue en mal
   # momento — que era donde el error se movió después de arreglar el clic.
+  #
+  # ## ⚠️ «Terminó de cargar» NO es «ya se puede usar», y a Chrome le importa
+  #
+  # Chrome DESCARTA lo que se teclea y lo que se toca en una página recién
+  # abierta, hasta que la pintó y un instante más. No lo encola: lo tira. Tiene
+  # sentido para una persona —nadie escribe en lo que no ve— y un test lo hace
+  # sin darse cuenta, porque Selenium avisa al cargar, no al pintar.
+  #
+  # Medido con una caja negra puesta dentro del navegador (6 de octubre de
+  # 2026), con el procesador saturado, en dos corridas del mismo test:
+  #
+  #     LA QUE PASÓ                            LA QUE FALLÓ
+  #     10 ms  carga   sin pintar              10 ms  carga   sin pintar
+  #     46 ms  foco    PINTADA                 40 ms  foco    SIN PINTAR
+  #     56 ms  teclas, clic, envío             … y nada más en cinco segundos:
+  #                                            ni una tecla, ni el clic
+  #
+  # El campo quedaba vacío, el navegador bloqueaba el envío por ser obligatorio,
+  # y el test fallaba con «no encontré la fila», que se lee como «el alta no
+  # funciona» cuando la página nunca recibió nada. En una máquina libre esos
+  # treinta milisegundos no existen; en GitHub, con dos procesos de tests
+  # repartiéndose el procesador, tocaba una vez de cada tantas — y nunca en el
+  # mismo test.
+  #
+  # ⚠️ El foco SÍ llega, y eso despista: el driver lo pone por JavaScript, que
+  # no es una entrada del usuario. Por eso la captura mostraba el cursor
+  # parpadeando en un campo vacío.
+  #
+  # ## ⚠️ Por qué se PREGUNTA, en vez de esperar al primer pintado
+  #
+  # Esperar el primer pintado fue el primer arreglo, y no alcanzó: con esa
+  # espera puesta, la falla volvió dos veces en ciento sesenta. En la que se
+  # capturó, el navegador ya decía haber pintado cuando llegó el foco — y las
+  # teclas se perdieron igual. Adivinar cuándo empieza a escuchar es volver a
+  # apostar: midiendo, la tecla muda llega unos ocho milisegundos ANTES de la
+  # hora que el navegador da para su primer pintado.
+  #
+  # Así que no se adivina. Se toca una tecla que no escribe nada —Shift— hasta
+  # que la página la oye, y recién entonces sigue el test. Es la misma vía por
+  # la que después van a entrar las teclas de verdad, así que si ésta llegó,
+  # aquéllas llegan.
+  #
+  # ⚠️ Lo que NO es una página que se pueda usar no se espera: un PDF, un JSON,
+  # un documento vacío. Ahí no hay quien oiga, y la espera se iría entera en
+  # cada visita.
+  LA_PAGINA_OYE = <<~JS.squish.freeze
+    (function () {
+      if (document.readyState !== "complete") return false;
+      if (document.contentType !== "text/html" || !document.body || !document.body.children.length) return true;
+      if (window.__sigaOye === undefined) {
+        window.__sigaOye = false;
+        document.addEventListener("keydown", function oir(evento) {
+          if (evento.key !== "Shift") return;
+          window.__sigaOye = true;
+          document.removeEventListener("keydown", oir, true);
+        }, true);
+      }
+      return window.__sigaOye;
+    })()
+  JS
+
+  # Más que `default_max_wait_time`, y no es paciencia: lo que se espera es un
+  # hecho —la página oyó— y no una suposición. Bajo carga puede tardar varios
+  # segundos, y cortar antes es volver a escribir a ciegas.
+  ESPERA_DE_LA_PAGINA = 10
+
   def esperando_la_pagina
-    Timeout.timeout(Capybara.default_max_wait_time) do
-      sleep 0.02 until page.evaluate_script("document.readyState") == "complete"
+    limite = ahora + ESPERA_DE_LA_PAGINA
+    errores = 0
+
+    until (oye = la_pagina_oye? { errores += 1 }) || ahora > limite
+      sleep 0.01
     end
-  rescue Timeout::Error, Selenium::WebDriver::Error::UnknownError
-    # Si ni eso se puede preguntar, que siga: la aserción del test dirá qué pasó
-    # con un mensaje mucho más útil que un timeout del helper.
+
+    # `SIGA_DIAG=1` es para cuando haya que volver a buscar una intermitencia:
+    # dice si alguna página no oyó, que es el dato que no deja ningún registro.
+    warn "[esperando_la_pagina] #{oye ? 'oyó' : 'NO OYÓ'} · errores: #{errores} · #{name}" if ENV["SIGA_DIAG"] && (!oye || errores.positive?)
+    # Si ni así oye, que siga: la aserción del test dirá qué pasó con un mensaje
+    # mucho más útil que un timeout del helper.
     nil
+  end
+
+  # ⚠️ Un error al preguntar NO corta la espera: se vuelve a preguntar.
+  #
+  # Mientras el navegador cambia de documento, cualquier consulta puede
+  # reventar —«execution context was destroyed»— y eso no dice que la página
+  # nueva ya oiga: dice que todavía no está. Abandonar ahí era seguir el test
+  # justo en el instante que esta espera existe para evitar.
+  def la_pagina_oye?
+    return true if page.evaluate_script(LA_PAGINA_OYE)
+
+    tocar_una_tecla_muda
+    false
+  rescue Selenium::WebDriver::Error::WebDriverError
+    yield if block_given?
+    false
+  end
+
+  def ahora = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+  # Shift, apretada y soltada: no escribe, no envía y ningún atajo de la app la
+  # mira sola. Va por el mismo canal que usa el driver para teclear.
+  def tocar_una_tecla_muda
+    tecla = { key: "Shift", code: "ShiftLeft", windowsVirtualKeyCode: 16 }
+    page.driver.browser.execute_cdp("Input.dispatchKeyEvent", type: "rawKeyDown", **tecla)
+    page.driver.browser.execute_cdp("Input.dispatchKeyEvent", type: "keyUp", **tecla)
+  end
+
+  # Abrir una página y esperar a que se pueda USAR.
+  #
+  # ⚠️ Va en `visit` y no en cada test porque el descuido es invisible:
+  # `visit` + `fill_in` se lee correcto, pasa en una máquina libre y falla una
+  # de cada tantas en GitHub. Con Turbo casi todo lo demás ocurre DENTRO del
+  # mismo documento, que ya oye; la página nueva de verdad es la del `visit`.
+  def visit(*)
+    super
+    esperando_la_pagina
+  end
+
+  # Escribir en un campo, y comprobar que lo escrito QUEDÓ.
+  #
+  # ⚠️ La otra mitad de lo mismo, y no sobra. `visit` espera a que la página
+  # oiga; esto mira el resultado, que es lo único que no admite discusión: si
+  # se pidió escribir algo y el campo quedó vacío, no se escribió nada. Es la
+  # huella exacta de la falla —el campo vacío con el cursor adentro— y la deja
+  # sin efecto venga de donde venga, también de una página nueva a la que se
+  # llegó sin `visit`.
+  #
+  # ⚠️ Solo mira que no esté VACÍO, no que diga lo mismo. Hay campos que
+  # transforman lo que reciben —el teléfono le pone su guion, los nombres
+  # pasan a mayúscula, la cédula descarta las letras— y compararlos letra por
+  # letra sería reintentar lo que salió bien.
+  #
+  # ⚠️ Y no puede tapar un defecto de SIGA: si es la app la que vacía el
+  # campo, queda vacío las tres veces y el test falla igual que antes.
+  def fill_in(locator = nil, with:, **opciones)
+    campo = super
+    return campo if with.to_s.empty?
+
+    3.times do |intento|
+      break unless campo.value.to_s.empty?
+
+      warn "[fill_in] el campo quedó vacío, se reescribe (#{intento + 1}) · #{name}" if ENV["SIGA_DIAG"]
+      sleep 0.05
+      campo = super
+    end
+
+    campo
+  rescue Selenium::WebDriver::Error::StaleElementReferenceError
+    # Escribir disparó algo que reemplazó el campo: ya no hay a quién preguntarle.
+    campo
   end
 
   # Tocar algo que TIENE que llevar a otra pantalla, y asegurarse de que llevó.

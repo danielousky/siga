@@ -442,6 +442,69 @@ y ahí escribir la URL en español ES la comprobación.
 - **La ayuda va bajo demanda** (`MOR-161`): `etiqueta_con_pista` para lo que
   explica QUÉ es un campo; `.nota-ayuda` visible solo para CONSECUENCIAS;
   `placeholder` para el formato
+- **Un test de sistema no cuenta sin esperar**: `assert_selector …, count: n`,
+  nunca `all(…).size`. `all` mira una sola vez y solo ve lo visible, y lo que
+  entra con una animación arranca en `opacity: 0` (`plan-aparece`): contando en
+  ese primer cuadro, el indicador recién creado no está. ⚠️ No falla en una
+  máquina rápida — falló en GitHub, dos corridas de cinco con el mismo código,
+  siempre en la misma línea («esperaba 3, vio 2»). Se reprodujo deteniendo la
+  animación un segundo. Lo cuida `los_tests_de_sistema_esperan_test`, que
+  también ve el conteo escondido en un ayudante (`def filas = all(…)`).
+- **Y no escribe en una página que todavía no lo oye.** Chrome DESCARTA —no
+  encola— lo que se teclea y lo que se toca en una página recién abierta, y
+  Selenium avisa al cargar, no cuando ya se puede usar. `visit` + `fill_in` se
+  lee correcto y, con el procesador ocupado, a veces escribe a ciegas:
+
+  ```
+     LA QUE PASÓ                         LA QUE FALLÓ
+     10 ms  carga   sin pintar           10 ms  carga   sin pintar
+     46 ms  foco    PINTADA              40 ms  foco    SIN PINTAR
+     56 ms  teclas, clic, envío          … y nada más: ni una tecla, ni el clic
+  ```
+
+  El campo queda vacío, el navegador bloquea el envío por ser obligatorio, y el
+  test dice «no encontré la fila» de un formulario que nunca salió. Son dos
+  mitades, las dos en `ApplicationSystemTestCase`:
+
+  ```
+     visit      toca una tecla que no escribe nada (Shift) hasta que la página la oye
+     fill_in    comprueba que lo escrito QUEDÓ, y reescribe si el campo sigue vacío
+  ```
+
+  ⚠️ **Se PREGUNTA, no se adivina.** El primer arreglo esperaba el primer
+  pintado y no alcanzó: la falla volvió con el navegador diciendo que ya había
+  pintado. La tecla muda entra por la misma vía que las de verdad: si llegó,
+  llegan. Altas que fallan con el procesador saturado:
+
+  ```
+     sin arreglo                                3 de  56
+     esperando el primer pintado                2 de 160
+     la tecla muda, rindiéndose ante un error   1 de 120
+     la tecla muda, sin rendirse                0 de 320
+  ```
+
+  De esas 320, la mitad corrió ya con `fill_in` comprobando, y no tuvo que
+  reescribir ni una vez: es una red, no lo que lo arregla.
+  ⚠️ **Una espera que se rinde ante un error no es una espera.** La primera
+  versión de la tecla muda abandonaba si el navegador devolvía un error
+  pasajero —pasa justo mientras cambia de documento— y el test seguía a ciegas
+  en el instante que debía evitar. Ahora vuelve a preguntar. ⚠️ Que ESO fuera
+  la causa de la falla que quedaba es mi lectura, no una medición: después del
+  cambio no volvió a fallar, pero tampoco apareció ningún error que rescatar.
+  ⚠️ **Cómo se encontró, que es lo que vale para la próxima**: el registro del
+  servidor dijo que el envío nunca llegó; la captura, que el campo estaba vacío;
+  y una caja negra dentro del navegador
+  (`Page.addScriptToEvaluateOnNewDocument`, anotando foco, teclas y clics con
+  su hora) dijo que las teclas no habían llegado NUNCA. Agregarle mediciones al
+  test hacía desaparecer la falla — eso ya era la pista: la carrera estaba
+  entre abrir y escribir. Solo se reproduce con el procesador saturado
+  (catorce `yes > /dev/null` en una máquina de diez núcleos), y hay que correr
+  el archivo de verdad: copiar la secuencia a un bucle no la reproducía.
+  `SIGA_DIAG=1` hace que la base avise cuando una página no oyó o hubo que
+  reescribir un campo.
+  ⚠️ Es probable que sea lo mismo que `tocando` y `tocar_para_*` vienen
+  tapando con reintentos y atribuyendo a Turbo («se traga el clic»). No está
+  demostrado para esos casos, así que los reintentos se quedan.
 
 ### ⚠️ Dentro de un turbo_frame, TODA salida tiene que devolver ese frame
 

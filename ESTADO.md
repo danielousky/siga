@@ -4,8 +4,10 @@
 
 ```
    PRODUCCIÓN                 1.13.0 · tag v1.13.0 · sin colegios cargados
-   origin/main  =  main       lo mismo, más el arreglo del humo (PR #54), que es de
-                              herramientas: no cambia el producto ni hay que desplegarlo
+   origin/main  =  main       lo mismo, más los arreglos del CI (el humo y dos tests
+                              de sistema intermitentes, PR #54 y #55): son de
+                              herramientas, no cambian el producto ni hay que
+                              desplegarlos
    ramas abiertas             ninguna
 ```
 
@@ -41,6 +43,61 @@ levantarlo»).
 corridas, las primeras desde el 1 de septiembre. El registro de allá dice lo
 que se esperaba —«la cola quedó vacía · 2 esperaban», un worker, ningún
 fallido— con 1.803 tests y 92 de sistema antes.
+
+### Y detrás del humo había un test intermitente
+
+Con el humo ya en verde, dos de las cinco corridas siguientes salieron en rojo
+con el MISMO código, siempre en `competencia_en_linea_test.rb`: «esperaba 3,
+vio 2».
+
+```
+   llega la respuesta  ──►  3 indicadores en la página, el nuevo en opacity: 0
+   all(…).size         ──►  2     si cuenta en ese primer cuadro
+   180 ms después      ──►  3
+```
+
+El indicador recién creado entra con una animación que arranca transparente, y
+Capybara no cuenta lo que no se ve. El test contaba sin esperar. Reproducido
+deteniendo la animación un segundo: el de antes falla igual que en GitHub y el
+corregido pasa. Ahora cuenta con `assert_selector …, count:`, que espera, y
+`los_tests_de_sistema_esperan_test` impide que vuelva.
+
+### Y detrás de ése, otro: escribir en una página que todavía no se ve
+
+Con el primero corregido, una de las dos corridas del PR salió en rojo por un
+test DISTINTO —el alta en línea de un departamento— con «no encontré la fila».
+El formulario nunca llegó al servidor.
+
+```
+   LA QUE PASÓ                         LA QUE FALLÓ
+   10 ms  carga   sin pintar           10 ms  carga   sin pintar
+   46 ms  foco    PINTADA              40 ms  foco    SIN PINTAR
+   56 ms  teclas, clic, envío          … y nada más: ni una tecla, ni el clic
+```
+
+Chrome descarta lo que se teclea y se toca en una página recién abierta. En
+una máquina libre esa rendija no existe; con el procesador saturado se
+reprodujo una de cada cinco o seis corridas. El arreglo va en la base de los
+tests de sistema, así que cubre a los 92 y no solo al que falló:
+
+```
+   visit      toca una tecla que no escribe nada hasta que la página la oye
+   fill_in    comprueba que lo escrito quedó, y reescribe si el campo sigue vacío
+```
+
+Costó tres intentos, y conviene saberlo: esperar el primer pintado no alcanzó
+(2 fallas de 160), y la primera tecla muda se rendía ante un error pasajero del
+navegador (1 de 120). Sin rendirse: 0 de 320 con el procesador saturado. El
+detalle —y cómo se encontró, con una caja negra dentro del navegador— está en
+`CLAUDE.md`, en «Conventions».
+
+**Las dos corridas del PR #55 salieron en verde en GitHub** (6 de octubre).
+
+⚠️ Lo que NO está probado: que no quede otro test intermitente. Éste apareció
+recién cuando se corrigió el anterior, y los dos estaban tapados por el humo.
+Si GitHub vuelve a salir en rojo, ahora sube la captura del test que falló.
+
+Y el CI sube también las capturas de los tests de sistema que fallen.
 
 ## 1.13.0 — los precios
 
