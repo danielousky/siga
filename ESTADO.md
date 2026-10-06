@@ -4,8 +4,9 @@
 
 ```
    PRODUCCIÓN                 1.13.0 · tag v1.13.0 · sin colegios cargados
-   origin/main  =  main       lo mismo, más el arreglo del humo (PR #54), que es de
-                              herramientas: no cambia el producto ni hay que desplegarlo
+   origin/main  =  main       lo mismo, más dos arreglos del CI (el humo y un test
+                              intermitente): son de herramientas, no cambian el
+                              producto ni hay que desplegarlos
    ramas abiertas             ninguna
 ```
 
@@ -41,6 +42,24 @@ levantarlo»).
 corridas, las primeras desde el 1 de septiembre. El registro de allá dice lo
 que se esperaba —«la cola quedó vacía · 2 esperaban», un worker, ningún
 fallido— con 1.803 tests y 92 de sistema antes.
+
+### Y detrás del humo había un test intermitente
+
+Con el humo ya en verde, dos de las cinco corridas siguientes salieron en rojo
+con el MISMO código, siempre en `competencia_en_linea_test.rb`: «esperaba 3,
+vio 2».
+
+```
+   llega la respuesta  ──►  3 indicadores en la página, el nuevo en opacity: 0
+   all(…).size         ──►  2     si cuenta en ese primer cuadro
+   180 ms después      ──►  3
+```
+
+El indicador recién creado entra con una animación que arranca transparente, y
+Capybara no cuenta lo que no se ve. El test contaba sin esperar. Reproducido
+deteniendo la animación un segundo: el de antes falla igual que en GitHub y el
+corregido pasa. Ahora cuenta con `assert_selector …, count:`, que espera, y
+`los_tests_de_sistema_esperan_test` impide que vuelva.
 
 ## 1.13.0 — los precios
 

@@ -218,7 +218,7 @@ class EdicionEnLineaSystemTest < ApplicationSystemTestCase
   test "sale dos veces, y cada aparición tiene su propio id" do
     con_dos_competencias
 
-    assert_equal 2, copias_del_peso.size
+    assert_selector ".plan-evaluacion-peso-campo[data-id='#{@taller.id}']", count: 2
     ids = all(".plan-evaluacion").map { |fila| fila[:id] }
     assert_equal ids.uniq.size, ids.size, "dos elementos con el mismo id: Turbo solo cambia uno"
   end

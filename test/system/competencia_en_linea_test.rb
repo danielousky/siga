@@ -84,14 +84,26 @@ class CompetenciaEnLineaSystemTest < ApplicationSystemTestCase
 
   # ⚠️ El campo del final va vacío y escribir en él crea el siguiente: es cómo
   # se escribe una lista, y ahorra el botón «agregar» que habría que buscar.
+  #
+  # ⚠️ Los indicadores se cuentan con `assert_selector … count:`, que ESPERA, y
+  # no con `all(…).size`, que mira una sola vez. El que acaba de nacer entra con
+  # una animación que arranca en `opacity: 0` (`plan-aparece`), y para Capybara
+  # un elemento transparente no está: contando en ese primer cuadro hay DOS.
+  #
+  #     llega la respuesta ──► 3 filas en la página, la nueva en opacity: 0
+  #     all(…).size        ──► 2      si mira en ese cuadro
+  #     180 ms después     ──► 3
+  #
+  # En una máquina rápida no se llega a ver. En GitHub falló dos corridas de
+  # cinco con el mismo código, siempre acá: «esperaba 3, vio 2».
   test "escribir en el campo vacío agrega un indicador" do
-    assert_equal 2, indicadores.size
+    assert_selector ".plan-indicador:not(.plan-indicador--nuevo)", count: 2
 
     nuevo.set("Estima antes de calcular")
     nuevo.send_keys(:enter)
 
     assert_selector ".plan-competencia--guardada", wait: 5
-    assert_equal 3, all(".plan-indicador:not(.plan-indicador--nuevo)").size
+    assert_selector ".plan-indicador:not(.plan-indicador--nuevo)", count: 3
     con_el_colegio(@a.colegio) do
       assert_equal "Estima antes de calcular", recargada.indicators.en_orden.last.descripcion
     end

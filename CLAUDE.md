@@ -442,6 +442,14 @@ y ahí escribir la URL en español ES la comprobación.
 - **La ayuda va bajo demanda** (`MOR-161`): `etiqueta_con_pista` para lo que
   explica QUÉ es un campo; `.nota-ayuda` visible solo para CONSECUENCIAS;
   `placeholder` para el formato
+- **Un test de sistema no cuenta sin esperar**: `assert_selector …, count: n`,
+  nunca `all(…).size`. `all` mira una sola vez y solo ve lo visible, y lo que
+  entra con una animación arranca en `opacity: 0` (`plan-aparece`): contando en
+  ese primer cuadro, el indicador recién creado no está. ⚠️ No falla en una
+  máquina rápida — falló en GitHub, dos corridas de cinco con el mismo código,
+  siempre en la misma línea («esperaba 3, vio 2»). Se reprodujo deteniendo la
+  animación un segundo. Lo cuida `los_tests_de_sistema_esperan_test`, que
+  también ve el conteo escondido en un ayudante (`def filas = all(…)`).
 
 ### ⚠️ Dentro de un turbo_frame, TODA salida tiene que devolver ese frame
 
