@@ -61,6 +61,41 @@ deteniendo la animación un segundo: el de antes falla igual que en GitHub y el
 corregido pasa. Ahora cuenta con `assert_selector …, count:`, que espera, y
 `los_tests_de_sistema_esperan_test` impide que vuelva.
 
+### Y detrás de ése, otro: escribir en una página que todavía no se ve
+
+Con el primero corregido, una de las dos corridas del PR salió en rojo por un
+test DISTINTO —el alta en línea de un departamento— con «no encontré la fila».
+El formulario nunca llegó al servidor.
+
+```
+   LA QUE PASÓ                         LA QUE FALLÓ
+   10 ms  carga   sin pintar           10 ms  carga   sin pintar
+   46 ms  foco    PINTADA              40 ms  foco    SIN PINTAR
+   56 ms  teclas, clic, envío          … y nada más: ni una tecla, ni el clic
+```
+
+Chrome descarta lo que se teclea y se toca en una página recién abierta. En
+una máquina libre esa rendija no existe; con el procesador saturado se
+reprodujo una de cada cinco o seis corridas. El arreglo va en la base de los
+tests de sistema, así que cubre a los 92 y no solo al que falló:
+
+```
+   visit      toca una tecla que no escribe nada hasta que la página la oye
+   fill_in    comprueba que lo escrito quedó, y reescribe si el campo sigue vacío
+```
+
+Costó tres intentos, y conviene saberlo: esperar el primer pintado no alcanzó
+(2 fallas de 160), y la primera tecla muda se rendía ante un error pasajero del
+navegador (1 de 120). Sin rendirse: 0 de 320 con el procesador saturado. El
+detalle —y cómo se encontró, con una caja negra dentro del navegador— está en
+`CLAUDE.md`, en «Conventions».
+
+⚠️ Lo que NO está probado: que no quede otro test intermitente. Éste apareció
+recién cuando se corrigió el anterior, y los dos estaban tapados por el humo.
+Si GitHub vuelve a salir en rojo, ahora sube la captura del test que falló.
+
+Y el CI sube también las capturas de los tests de sistema que fallen.
+
 ## 1.13.0 — los precios
 
 Daniel, 5 de octubre: *«Los costos, vamos a subirlo a $39, $79 y $119»*.
