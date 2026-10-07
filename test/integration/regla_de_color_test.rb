@@ -43,26 +43,48 @@ class ReglaDeColorTest < ActiveSupport::TestCase
   #   de SU PROPIA fila. Es feedback sobre un dato, no decoración de un control.
   EXCEPCIONES = [ ".asistencia-boton", ".carga-input" ].freeze
 
+  # Las reglas de la hoja, analizadas UNA vez por proceso.
+  #
+  # ⚠️ Este archivo se llevaba el 23 % del trabajo de TODA la suite —191 de 831
+  # segundos, en cuatro tests— y no por lo que comprueba, sino por cómo leía:
+  #
+  #     13 veces     se analizaba la hoja entera, una por cada regla que se buscaba
+  #     15 s cada    porque `css[k]` sobre un texto con acentos no es un salto:
+  #                  Ruby cuenta los caracteres desde el principio, cada vez
+  #
+  # Recorrer medio millón de caracteres así es recorrerlos medio millón de veces.
+  # Por BYTES es un salto de verdad —`{` y `}` ocupan uno solo, y ningún acento
+  # contiene esos bytes— y guardando el resultado se hace una sola vez. Mismo
+  # análisis, mismas reglas: se comparó la salida de los dos antes de cambiarlo.
+  def self.reglas = @reglas ||= reglas_de(HOJA.read)
+
+  ABRE   = "{".ord
+  CIERRA = "}".ord
+
   # Se recorre regla por regla contando llaves, porque un `@media` anida y una
   # regex glotona se lleva por delante lo que viene después.
   def self.reglas_de(css)
-    reglas, i, n = [], 0, css.length
+    bytes = css.b
+    reglas, i, n = [], 0, bytes.bytesize
     while i < n
-      j = css.index("{", i)
+      j = bytes.index("{", i)
       break unless j
 
-      selector = css[i...j].strip.lines.last.to_s.strip
+      selector = texto(bytes.byteslice(i, j - i)).strip.lines.last.to_s.strip
       prof, k = 1, j + 1
       while k < n && prof.positive?
-        prof += 1 if css[k] == "{"
-        prof -= 1 if css[k] == "}"
+        byte = bytes.getbyte(k)
+        prof += 1 if byte == ABRE
+        prof -= 1 if byte == CIERRA
         k += 1
       end
-      reglas << [ selector, css[(j + 1)...(k - 1)] ] unless selector.start_with?("@")
+      reglas << [ selector, texto(bytes.byteslice(j + 1, k - j - 2)) ] unless selector.start_with?("@")
       i = k
     end
     reglas
   end
+
+  def self.texto(bytes) = bytes.force_encoding(Encoding::UTF_8)
 
   # ⚠️ Esta regla CAMBIÓ DE ALCANCE en MOR-207, y conviene que se lea acá y no
   # solo en un commit.
@@ -82,7 +104,7 @@ class ReglaDeColorTest < ActiveSupport::TestCase
   # día que alguien retoque ese token para los chips de estado se movería
   # también el botón.
   test "ningún botón usa color semántico" do
-    culpables = self.class.reglas_de(HOJA.read).filter_map do |selector, cuerpo|
+    culpables = self.class.reglas.filter_map do |selector, cuerpo|
       next unless selector.match?(/\.btn[\w-]*/)
       next if EXCEPCIONES.any? { |e| selector.include?(e) }
       next unless cuerpo.match?(SEMANTICO)
@@ -97,8 +119,6 @@ class ReglaDeColorTest < ActiveSupport::TestCase
   end
 
   test "el rojo sigue significando algo donde importa" do
-    css = HOJA.read
-
     # Si alguien "limpia" el rojo de las notas, la regla pierde su razón de ser.
     %w[
       .nota-valor--aplazada
@@ -106,7 +126,7 @@ class ReglaDeColorTest < ActiveSupport::TestCase
       .ficha-nota--aplazada
       .falta-conteo--alta
     ].each do |clase|
-      regla = self.class.reglas_de(css).find { |sel, _| sel == clase }
+      regla = self.class.reglas.find { |sel, _| sel == clase }
       assert regla, "falta la regla #{clase}"
       assert regla[1].match?(/--danger-/),
         "#{clase} debería llevar el rojo: es el dato que le da sentido a la regla"
@@ -167,13 +187,11 @@ class ReglaDeColorTest < ActiveSupport::TestCase
   # El azul de marca no desapareció: vive en `.btn-ver` (suave) y en los
   # enlaces. Lo que desapareció es un tono cuyo nombre no decía nada.
   test "btn-primary ya no existe: un tono sin verbo no es un tono" do
-    hoja = HOJA.read
-
-    assert_nil self.class.reglas_de(hoja).find { |sel, _| sel == ".btn-primary" },
+    assert_nil self.class.reglas.find { |sel, _| sel == ".btn-primary" },
                ".btn-primary volvió a la hoja: los tonos se nombran por lo que HACEN"
 
     %w[.btn-guardar .btn-accion .btn-documento .btn-ver .btn-secondary .btn-danger].each do |tono|
-      assert self.class.reglas_de(hoja).any? { |sel, _| sel == tono },
+      assert self.class.reglas.any? { |sel, _| sel == tono },
              "falta el tono #{tono}"
     end
   end
@@ -187,7 +205,7 @@ class ReglaDeColorTest < ActiveSupport::TestCase
       assert_match(/#{token}:\s*#[0-9a-f]{6}/i, css, "#{token} tiene que existir")
     end
 
-    guardar = self.class.reglas_de(css).find { |selector, _| selector.strip == ".btn-guardar" }
+    guardar = self.class.reglas.find { |selector, _| selector.strip == ".btn-guardar" }
     assert guardar, ".btn-guardar tiene que existir"
     assert_no_match(/--success-|--danger-/, guardar.last,
                     "el botón no puede compartir token con el dato: el día que se " \

@@ -73,7 +73,7 @@ Documentación de referencia (PDF/PNG del proyecto, contrato y diagramas ER) en 
 # Setup en una máquina nueva — `bin/setup` ya crea el rol `siga_app` y verifica
 # que NO pueda saltarse el RLS. Sin ese rol, el aislamiento no se evalúa (MOR-87).
 bin/setup                          # base + rol sin privilegios + verificación
-bin/rails db:seed                  # Datos de prueba: 2 colegios, 290 alumnos, 15 profesores
+bin/rails db:seed                  # Datos de prueba: 2 colegios, 450 alumnos, 28 docentes · ~1 min
 
 # Development
 bin/rails server                   # Start dev server (localhost:3000)
@@ -89,7 +89,7 @@ bin/rails test                     # Run all tests
 bin/rails test test/models/user_test.rb:10     # Run single test by line
 
 # Verificación completa — lo mismo que corre el CI (MOR-105)
-bin/ci                             # RLS + estilo + tests + seeds + humo, ~5 min
+bin/ci                             # RLS + estilo + tests + seeds + humo, ~3,5 min
 bin/smoke                          # solo el humo: web Y worker, y el recorrido HTTP por los cuatro roles
 ```
 
@@ -97,6 +97,45 @@ bin/smoke                          # solo el humo: web Y worker, y el recorrido 
 es ceremonia: si ese rol fuera superusuario, el aislamiento entre colegios dejaría de
 existir y **ningún otro paso del pipeline se daría cuenta** — los tests seguirían en
 verde porque el `default_scope` de la app filtra igual.
+
+**El CI de GitHub corre ese mismo `bin/ci`**, y cada corrida son minutos que se pagan
+(el repositorio es privado): unos 12 min 30 s, que eran 19 min 41 s hasta el 6 de
+octubre de 2026. Cuándo corre:
+
+```
+   push a main          sí
+   PR abierto           sí, una vez por commit; el commit nuevo cancela la corrida del anterior
+   rama sin PR          no  — antes sí, y con PR abierto eran DOS corridas idénticas
+   solo documentación   no  — ESTADO.md, CLAUDE.md, BACKLOG.md, README.md, DESPLIEGUE.md,
+                              docs/specs, docs/cards, docs/investigacion
+```
+
+⚠️ **`[skip ci]` en el mensaje**, cuando a un PR con código se le suma un commit que solo
+toca documentación: `paths-ignore` mira TODO lo que cambia el PR, no el último commit, así
+que sin eso lo vuelve a correr entero. ⚠️ `CHANGELOG.md` y `docs/manual/` NO se saltan: al
+primero lo lee `version_test` y el segundo es lo que sirve `/manual`.
+⚠️ **Ese marcador vale en CUALQUIER parte del mensaje, también en medio de una
+explicación.** El commit que estrenó esta regla la contaba en su cuerpo, con el marcador
+escrito tal cual — y GitHub no corrió nada: el PR quedó abierto, «sin chequeos», y sin un
+solo error que lo dijera. En un mensaje de commit se escribe SOLO para usarlo; para
+nombrarlo, «el marcador de saltar el CI».
+
+⚠️ **Antes de optimizar un CI, se mira dónde se va el tiempo** — y las dos pérdidas grandes
+no estaban donde uno apostaría:
+
+```
+   db:prepare SIEMBRA cuando la base es nueva     3 min por corrida, sembrando dos veces
+   un test analizaba la hoja de estilos 13 veces  el 23 % de la suite, en cuatro tests
+```
+
+La primera no la decía ningún paso: el registro la mostraba bajo «Crear la base». La
+segunda era `css[k]` sobre un texto con acentos, que en Ruby no es un salto sino contar
+desde el principio — medio millón de caracteres, recorridos medio millón de veces. Se
+encuentra con `bin/rails test --profile 25`. Y lo que se midió y NO valía la pena: bajar
+el detalle del registro en los tests (4,5 %, y se pierde lo que sirve para diagnosticar).
+
+⚠️ **La siembra no anota cada consulta** (110 s → 61 s): nadie lee ese registro.
+`SIEMBRA_CON_REGISTRO=1 bin/rails db:seed` lo devuelve.
 
 Credenciales de los seeds (contraseña universal `123123`):
 `director.bolivar@siga.edu` (admin) · `prof.garcia@bolivar.edu` (profesor) ·
