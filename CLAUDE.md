@@ -113,6 +113,11 @@ verde porque el `default_scope` de la app filtra igual.
 toca documentación: `paths-ignore` mira TODO lo que cambia el PR, no el último commit, así
 que sin eso lo vuelve a correr entero. ⚠️ `CHANGELOG.md` y `docs/manual/` NO se saltan: al
 primero lo lee `version_test` y el segundo es lo que sirve `/manual`.
+⚠️ **Ese marcador vale en CUALQUIER parte del mensaje, también en medio de una
+explicación.** El commit que estrenó esta regla la contaba en su cuerpo, con el marcador
+escrito tal cual — y GitHub no corrió nada: el PR quedó abierto, «sin chequeos», y sin un
+solo error que lo dijera. En un mensaje de commit se escribe SOLO para usarlo; para
+nombrarlo, «el marcador de saltar el CI».
 
 ⚠️ **Antes de optimizar un CI, se mira dónde se va el tiempo** — y las dos pérdidas grandes
 no estaban donde uno apostaría:

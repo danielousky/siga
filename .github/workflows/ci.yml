@@ -29,6 +29,11 @@ name: CI
 # un commit de `ESTADO.md` a un PR con código lo vuelve a correr entero. Para
 # ese caso está `[skip ci]` en el mensaje del commit, que GitHub respeta solo.
 #
+# ⚠️ Y lo respeta esté donde esté en el mensaje. El commit que agregó estas
+# reglas las explicaba con el marcador escrito tal cual, y no corrió: un PR
+# «sin chequeos» y ningún error. Si un PR no arranca, lo primero es leer el
+# mensaje de su último commit.
+#
 # ⚠️ Lo que NO está en la lista, y por qué: `CHANGELOG.md` lo lee
 # `version_test`, y `docs/manual/` es lo que sirve `/manual` — eso es producto.
 on:
