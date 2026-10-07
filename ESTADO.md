@@ -8,13 +8,47 @@
                               de sistema intermitentes, PR #54 y #55): son de
                               herramientas, no cambian el producto ni hay que
                               desplegarlos
-   ramas abiertas             ninguna
+   perf/ci-mas-rapido         sale de main · no cambia la versión
 ```
 
 ⚠️ **De la 1.11.0 a la 1.13.0 están cerradas**: mezcladas y desplegadas el 5 de
 octubre. Nada se sube sin que Daniel lo diga.
 
 Este archivo se llamó `RETOME.md` hasta ese día; el porqué, en `CLAUDE.md`.
+
+## El CI, más rápido — en su rama
+
+Daniel, 6 de octubre: *«¿Cómo podemos optimizar las pruebas de CI?»*. Antes de
+tocar nada se midió dónde se iban los 19 min 41 s de una corrida:
+
+```
+   preparar la máquina          0:47
+   crear la base Y SEMBRARLA    3:02   ← siembra n.º 1
+   sembrar desarrollo           3:00   ← siembra n.º 2, la misma
+   tests                        7:45   ← un archivo se llevaba el 23 %
+   tests de sistema             3:07
+   seeds en test                1:30
+   estilo, seguridad y humo     0:26
+```
+
+Los cambios, que Daniel aprobó juntos:
+
+```
+   ① no sembrar dos veces          `db:create db:schema:load` en vez de `db:prepare`
+   ② el test lento                 `regla_de_color_test`: 191 s → 0,1 s. La suite, 130 s → 65 s
+   ③ una corrida por push          las de «push» solo en main; una rama corre por su PR
+   ④ no correr por documentación   y un commit nuevo cancela la corrida del anterior
+   ⑤ la siembra en silencio        110 s → 61 s; `SIEMBRA_CON_REGISTRO=1` la devuelve
+```
+
+`bin/ci` en la máquina: de 4 min 10 s a 3 min 27 s. El detalle, en `CLAUDE.md`
+(«Common Commands»).
+
+```
+   ▸ verlo correr EN GITHUB: el flujo solo se comprueba allá
+   ▸ más adelante, si hace falta: partir la corrida en trabajos paralelos.
+     Baja el reloj otro 35–40 %, gasta más minutos, y eso sí pide un spec
+```
 
 ## El humo del CI de GitHub
 

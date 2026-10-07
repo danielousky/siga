@@ -56,6 +56,21 @@ at_exit do
   ActiveRecord::Base.connection.execute("SET siga.bypass_rls = 'off'") rescue nil
 end
 
+# La siembra no anota cada consulta en el registro.
+#
+# Son decenas de miles —9.492 notas, cada una con sus recálculos— y en
+# desarrollo cada renglón lleva además el archivo y la línea que lo pidió
+# (`verbose_query_logs`): armar eso cuesta más que la consulta misma. Nadie lee
+# ese registro, y pesaba la mitad de lo que tarda sembrar.
+#
+# `SIEMBRA_CON_REGISTRO=1 bin/rails db:seed` lo devuelve, para el día que haya
+# que ver qué consulta hace un paso.
+unless ENV["SIEMBRA_CON_REGISTRO"].present?
+  nivel_del_registro = Rails.logger.level
+  Rails.logger.level = :warn
+  at_exit { Rails.logger.level = nivel_del_registro }
+end
+
 puts "🌱 Sembrando datos de demostración..."
 
 # ⚠️ El orden importa y por eso está escrito, no deducido de `Dir.glob`: un

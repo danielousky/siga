@@ -10,10 +10,58 @@
 # Ver MOR-105.
 name: CI
 
+# ## Cuándo corre, y cuándo NO
+#
+# Una corrida son unos quince minutos de una máquina de GitHub, y el repositorio
+# es privado: los minutos se pagan. Tres reglas para no gastarlos dos veces:
+#
+#     push          solo a `main`. Una rama corre por su PR, que es el mismo
+#                   código: con `branches: ["**"]` cada push a una rama con PR
+#                   disparaba DOS corridas idénticas, una por cada evento.
+#     paths-ignore  lo que no toca el producto ni lo lee ningún test no corre.
+#     concurrency   un commit nuevo en un PR cancela la corrida del anterior,
+#                   que ya no le importa a nadie.
+#
+# ⚠️ Una rama SIN PR abierto ya no corre al subirla. Es a propósito —«una
+# funcionalidad, una rama, un PR»— y `bin/ci` corre lo mismo en la máquina.
+#
+# ⚠️ `paths-ignore` mira TODO lo que cambia el PR, no el último commit: sumarle
+# un commit de `ESTADO.md` a un PR con código lo vuelve a correr entero. Para
+# ese caso está `[skip ci]` en el mensaje del commit, que GitHub respeta solo.
+#
+# ⚠️ Lo que NO está en la lista, y por qué: `CHANGELOG.md` lo lee
+# `version_test`, y `docs/manual/` es lo que sirve `/manual` — eso es producto.
 on:
   push:
-    branches: ["**"]
+    branches: [main]
+    paths-ignore:
+      - "BACKLOG.md"
+      - "CLAUDE.md"
+      - "DESPLIEGUE.md"
+      - "ESTADO.md"
+      - "README.md"
+      - "docs/cards/**"
+      - "docs/investigacion/**"
+      - "docs/specs/**"
+      - "docs/tareas-de-operacion.md"
   pull_request:
+    paths-ignore:
+      - "BACKLOG.md"
+      - "CLAUDE.md"
+      - "DESPLIEGUE.md"
+      - "ESTADO.md"
+      - "README.md"
+      - "docs/cards/**"
+      - "docs/investigacion/**"
+      - "docs/specs/**"
+      - "docs/tareas-de-operacion.md"
+
+# ⚠️ El grupo de `main` es su propio commit, así que ahí no se cancela ni se
+# encola nada: cada mezcla se verifica entera. Con un grupo fijo para `main`,
+# tres mezclas seguidas dejaban la del medio cancelada sin haber corrido.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
 
 jobs:
   verificar:
@@ -71,14 +119,21 @@ jobs:
       #
       # Correr el CI como `postgres` sería más simple y dejaría el aislamiento sin
       # verificar en el único lugar donde se verifica automáticamente.
+      #
+      # ⚠️ `db:create db:schema:load` y NO `db:prepare`. Parecen lo mismo y no lo
+      # son: `db:prepare`, cuando la base es nueva, además la SIEMBRA. Eran tres
+      # minutos sembrando como superusuario unos datos que el paso de más abajo
+      # borra y vuelve a sembrar con el rol de verdad — el 15 % de la corrida,
+      # tirado, y sin que ningún paso lo dijera: el registro lo mostraba bajo el
+      # título «Crear la base».
       - name: Crear la base con el usuario privilegiado
         env:
           SIGA_DB_USER: postgres
           SIGA_DB_PASSWORD: postgres
-        run: bin/rails db:prepare
+        run: bin/rails db:create db:schema:load
 
-      # Dos veces, una por base. `db:prepare` en desarrollo crea también
-      # `siga_test`, y `rls:crear_rol` solo traspasa las tablas de la base a la
+      # Dos veces, una por base. Cargar el esquema en desarrollo lo carga también
+      # en `siga_test`, y `rls:crear_rol` solo traspasa las tablas de la base a la
       # que está conectado. Sin la segunda corrida, `bin/rails test` muere con
       # `permission denied for table ar_internal_metadata`.
       - name: Crear el rol sin privilegios y traspasarle todo
