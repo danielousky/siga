@@ -4,11 +4,11 @@
 
 ```
    PRODUCCIÓN                 1.13.0 · tag v1.13.0 · sin colegios cargados
-   origin/main  =  main       lo mismo, más los arreglos del CI (el humo y dos tests
-                              de sistema intermitentes, PR #54 y #55): son de
-                              herramientas, no cambian el producto ni hay que
-                              desplegarlos
-   perf/ci-mas-rapido         sale de main · no cambia la versión
+   origin/main  =  main       lo mismo, más los arreglos del CI (el humo, dos tests
+                              de sistema intermitentes y la corrida más corta, PR
+                              #54 a #56): son de herramientas, no cambian el
+                              producto ni hay que desplegarlos
+   ramas abiertas             ninguna
 ```
 
 ⚠️ **De la 1.11.0 a la 1.13.0 están cerradas**: mezcladas y desplegadas el 5 de
@@ -16,7 +16,7 @@ octubre. Nada se sube sin que Daniel lo diga.
 
 Este archivo se llamó `RETOME.md` hasta ese día; el porqué, en `CLAUDE.md`.
 
-## El CI, más rápido — en su rama
+## El CI, más rápido
 
 Daniel, 6 de octubre: *«¿Cómo podemos optimizar las pruebas de CI?»*. Antes de
 tocar nada se midió dónde se iban los 19 min 41 s de una corrida:
@@ -44,8 +44,26 @@ Los cambios, que Daniel aprobó juntos:
 `bin/ci` en la máquina: de 4 min 10 s a 3 min 27 s. El detalle, en `CLAUDE.md`
 («Common Commands»).
 
+**Corrió en GitHub (PR #56) y salió en verde**, con estos tiempos:
+
 ```
-   ▸ verlo correr EN GITHUB: el flujo solo se comprueba allá
+                                ANTES     AHORA
+   crear la base                 3:02      0:05    ya no siembra
+   sembrar desarrollo            3:00      1:25    en silencio
+   tests                         7:45      5:13    sin el test que se llevaba el 23 %
+   tests de sistema              3:07      3:19
+   seeds en test                 1:30      1:10
+   lo demás                      1:17      1:14
+                                ─────     ─────
+   la corrida                   19:41     12:26
+   por cada push a un PR        2 corridas → 1:  de 39 min a 12 de Actions
+```
+
+⚠️ Al estrenarlo, el PR no corrió: el commit que explicaba la regla llevaba el
+marcador de saltar el CI escrito en su cuerpo, y GitHub le hizo caso. Está
+contado en `CLAUDE.md`.
+
+```
    ▸ más adelante, si hace falta: partir la corrida en trabajos paralelos.
      Baja el reloj otro 35–40 %, gasta más minutos, y eso sí pide un spec
 ```

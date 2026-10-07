@@ -99,7 +99,8 @@ existir y **ningún otro paso del pipeline se daría cuenta** — los tests segu
 verde porque el `default_scope` de la app filtra igual.
 
 **El CI de GitHub corre ese mismo `bin/ci`**, y cada corrida son minutos que se pagan
-(el repositorio es privado). Cuándo corre:
+(el repositorio es privado): unos 12 min 30 s, que eran 19 min 41 s hasta el 6 de
+octubre de 2026. Cuándo corre:
 
 ```
    push a main          sí
