@@ -17,6 +17,19 @@
 # pasos: cada uno guarda lo que el siguiente necesita.
 SEMILLA = {}
 
+# ── Las tres puertas de la muestra ───────────────────────────────────────────
+#
+# El director, el profesor y la representante con que se entra al colegio de
+# muestra (`Muestra::CUENTAS`). Los correos salen de ahí y no se escriben acá:
+# la pantalla de entrada busca a la persona por ESE correo, y dos copias del
+# mismo texto son una puerta que un día deja de abrir.
+#
+# Son las mismas en desarrollo y en la muestra: lo que se prueba en local es lo
+# que ve quien entra a `demo.sigaeducando.com`.
+CORREO_DEL_DIRECTOR        = Muestra.cuenta("director").correo
+CORREO_DEL_PROFESOR        = Muestra.cuenta("profesor").correo
+CORREO_DE_LA_REPRESENTANTE = Muestra.cuenta("representante").correo
+
 # ⚠️ Determinista, siempre. Los seeds tienen que dar EXACTAMENTE lo mismo en
 # cada corrida: un dato que cambia de una siembra a otra hace que la demo que
 # alguien mostró ayer no exista hoy, y que un bug no se pueda reproducir.

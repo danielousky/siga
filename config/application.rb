@@ -57,6 +57,9 @@ module Siga
     # ApplicationJob y por lo tanto no lleva contexto de inquilino.
     config.action_mailer.delivery_job = "MailerDeliveryJob"
 
+    # En el colegio de muestra no sale ningún correo. Ver `NadaSaleDeLaMuestra`.
+    config.action_mailer.interceptors = %w[NadaSaleDeLaMuestra]
+
     # El campo que falló se MARCA, en todos los formularios (MOR-196).
     #
     # ## Qué estaba pasando

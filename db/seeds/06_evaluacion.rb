@@ -514,7 +514,7 @@ escritos = 0
   seccion = seccion_de(colegio, grado, "A", SEMILLA[:anio_bolivar])
   next if seccion.nil?
 
-  guia = seccion.leader_teacher&.user || User.find_by(email: "director.bolivar@siga.edu")
+  guia = seccion.leader_teacher&.user || User.find_by(email: CORREO_DEL_DIRECTOR)
   next if guia.nil?
 
   primer_lapso = lapsos_bol.first

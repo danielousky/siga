@@ -38,6 +38,9 @@ guard = SeedGuard.new
 
 begin
   CLAVE_DE_PRUEBA = guard.clave
+  # La del equipo de SIGA va aparte: en la muestra no es la pública. Ver
+  # `SeedGuard#clave_del_equipo`.
+  CLAVE_DEL_EQUIPO = guard.clave_del_equipo
 rescue SeedGuard::EntornoNoPermitido, SeedGuard::FaltaLaClave => e
   abort "\n#{e.message}"
 end

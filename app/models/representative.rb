@@ -10,6 +10,7 @@
 # de la sesión.
 class Representative < ApplicationRecord
   include SchoolScoped
+  include PuertaDeLaMuestra
 
   belongs_to :user
   belongs_to :school

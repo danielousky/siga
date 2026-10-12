@@ -9,7 +9,9 @@ def del_equipo!(email:, nombre:, apellido:, rol:)
     u.first_name = nombre; u.last_name = apellido
     u.document = documento_de_prueba(email); u.document_type = :cedula_v
     u.sex = sexo_para(nombre)
-    u.password = u.password_confirmation = CLAVE_DE_PRUEBA
+    # ⚠️ La del EQUIPO, que en la muestra no es la pública: `/siga` guarda las
+    # cuentas a donde se paga. Ver `SeedGuard#clave_del_equipo`.
+    u.password = u.password_confirmation = CLAVE_DEL_EQUIPO
   end
   SigaStaff.find_or_create_by!(user: usuario) { |s| s.role = rol }
   usuario
@@ -39,11 +41,12 @@ end
 bolivar = SEMILLA[:bolivar]
 bello   = SEMILLA[:bello]
 
-# ⚠️ `director.bolivar@siga.edu` NO se toca: hay brokers usando esa cuenta en
-# producción ahora mismo. Lo mismo `prof.garcia@bolivar.edu`,
-# `maria.perez@familia.test` y `alvaro.lopez001@bolivar.edu`.
+# ⚠️ El correo del director es el de la MUESTRA (`Muestra::CUENTAS`): lo fijó
+# Daniel el 12 de octubre de 2026 —«pongámosles director.bolivar@mail.com»—.
+# Hasta ese día fue `director.bolivar@siga.edu`, de cuando la demo vivía en
+# producción y la usaban los brokers; esa base se vació el 17 de septiembre.
 [
-  { email: "director.bolivar@siga.edu",   nombre: "Ramón",   apellido: "Díaz",      colegio: bolivar, rol: :director },
+  { email: CORREO_DEL_DIRECTOR,           nombre: "Ramón",   apellido: "Díaz",      colegio: bolivar, rol: :director },
   { email: "coord.bolivar@siga.edu",      nombre: "Carmen",  apellido: "Rodríguez", colegio: bolivar, rol: :coordinador },
   { email: "secretaria.bolivar@siga.edu", nombre: "Yaneth",  apellido: "Bastidas",  colegio: bolivar, rol: :secretaria },
   { email: "finanzas.bolivar@siga.edu",   nombre: "Régulo",  apellido: "Marcano",   colegio: bolivar, rol: :finanzas },
@@ -89,8 +92,11 @@ DOCENTES_DE_BOLIVAR = [
   { correo: "prof.moreno",        nombre: "Sofía",    apellido: "Moreno",     areas: %w[EST ART GCR] },
   { correo: "prof.bastidas",      nombre: "Jhonny",   apellido: "Bastidas",   areas: %w[COM EPT] },
 
-  # ⚠️ García cubre primaria Y bachillerato. Es la cuenta que usan los brokers.
-  { correo: "prof.garcia",        nombre: "Carlos",   apellido: "García",     areas: %w[MAT] },
+  # ⚠️ García cubre primaria Y bachillerato, y es el profesor de la MUESTRA: su
+  # correo sale de `Muestra::CUENTAS` y no del dominio del colegio. La clave
+  # `prof.garcia` se queda: es como lo nombran los demás pasos de la siembra.
+  { correo: "prof.garcia",        nombre: "Carlos",   apellido: "García",     areas: %w[MAT],
+    email: CORREO_DEL_PROFESOR },
 
   # Educación Media
   { correo: "prof.herrera",       nombre: "José",     apellido: "Herrera",    areas: %w[GHC FSN] },
@@ -120,7 +126,7 @@ def sembrar_docentes!(lista, colegio:, dominio:)
   Current.school = colegio
 
   lista.index_by { |d| d[:correo] }.transform_values do |d|
-    correo = "#{d[:correo]}@#{dominio}"
+    correo = d[:email] || "#{d[:correo]}@#{dominio}"
     docente = profesor!(email: correo, nombre: d[:nombre], apellido: d[:apellido],
                         documento: documento_de_prueba(correo), colegio: colegio)
     [ docente, d[:areas] ]
@@ -131,4 +137,4 @@ SEMILLA[:docentes_bolivar] = sembrar_docentes!(DOCENTES_DE_BOLIVAR, colegio: bol
 SEMILLA[:docentes_bello]   = sembrar_docentes!(DOCENTES_DE_BELLO,   colegio: bello,   dominio: "bello.edu")
 
 puts "   ✓ #{DOCENTES_DE_BOLIVAR.size} docentes en Bolívar · #{DOCENTES_DE_BELLO.size} en Bello"
-puts "     prof.garcia@bolivar.edu dicta Matemática en primaria Y en media"
+puts "     #{CORREO_DEL_PROFESOR} dicta Matemática en primaria Y en media"

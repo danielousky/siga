@@ -2,6 +2,14 @@
   %h1.acceso-titulo Iniciar sesión
   %p.acceso-entrada Acceda al Sistema Integrado de Gestión Académica
 
+  -# En la muestra nadie tiene por qué saberse un correo: las puertas abren con
+  -# un clic. Quien igual quiera escribirlo, aquí tiene la clave.
+  - if Muestra.activa?
+    %p.acceso-muestra
+      Esto es el colegio de muestra.
+      = link_to "Entre con un clic →", root_path
+      = "O escriba un correo de la lista: la contraseña de todos es #{Muestra::CLAVE}."
+
   = form_for(resource, as: resource_name, url: session_path(resource_name)) do |f|
     .form-group
       = f.label :email, "Correo electrónico", class: "form-label"

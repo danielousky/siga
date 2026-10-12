@@ -103,6 +103,7 @@ class User < ApplicationRecord
   validates :first_name, :last_name, presence: true
   validate  :tiene_algun_identificador
   validate  :con_contrasena_hace_falta_correo
+  validate  :la_puerta_de_la_muestra_no_cambia, on: :update
 
   # ⚠️ La foto es OPCIONAL y va a seguir siéndolo (MOR-149).
   #
@@ -400,6 +401,24 @@ class User < ApplicationRecord
 
     errors.add(:base, "Hace falta un correo electrónico para poder tener contraseña: " \
                       "es el único lugar donde el sistema puede escribirle si la olvida.")
+  end
+
+  # ⚠️ En la instancia de MUESTRA, las cuentas de entrada no cambian de correo
+  # ni de contraseña (`Muestra.protege?`).
+  #
+  # La clave está escrita en la pantalla de entrada y la usan todos los que
+  # visitan la muestra a la vez: el primero que la cambie —desde «Mi cuenta»,
+  # desde la ficha de la persona o con «olvidé mi contraseña»— deja a los demás
+  # frente a una clave que no abre, hasta que la muestra se restablezca de noche.
+  #
+  # Vive en el MODELO porque las puertas son varias, y la que se olvide es la
+  # que alguien encuentra. Fuera de la muestra no hace nada.
+  def la_puerta_de_la_muestra_no_cambia
+    return unless will_save_change_to_email? || will_save_change_to_encrypted_password?
+    return unless Muestra.protege?(self)
+
+    errors.add(:base, "En el colegio de muestra, el correo y la contraseña de esta cuenta no se " \
+                      "cambian: son la puerta de entrada de todos los que la visitan.")
   end
 
   # Cada tipo de documento se limpia distinto, y confundirlos destruye datos:

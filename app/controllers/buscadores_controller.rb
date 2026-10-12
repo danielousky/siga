@@ -28,7 +28,13 @@ class BuscadoresController < ApplicationController
   # Y `Disallow:` con el prefijo alcanza a `/verificar/ABC123` sin tocar
   # `/verificar` a secas, que SÍ conviene indexar: alguien busca «verificar una
   # constancia de SIGA» y tiene que encontrar el formulario.
+  #
+  # ⚠️ La instancia de MUESTRA no se indexa, entera. Es un colegio que no
+  # existe, con la misma tapa que el sitio de verdad: indexada, compite con él
+  # por las mismas palabras, y le enseña a Google trescientos alumnos inventados.
   def robots
+    return render(plain: "User-agent: *\nDisallow: /\n", content_type: "text/plain") if Muestra.activa?
+
     render plain: <<~TXT, content_type: "text/plain"
       User-agent: *
       Allow: /
@@ -47,10 +53,13 @@ class BuscadoresController < ApplicationController
   # sitemap con `/alumnos`, `/boletines` y `/importaciones` le regala a
   # cualquiera el mapa exacto de la aplicación.
   def mapa
+    # La muestra no tiene mapa: no hay nada suyo que convenga encontrar.
+    entradas = Muestra.activa? ? [] : PUBLICAS.map { |ruta, prioridad| entrada(ruta, prioridad) } + del_directorio
+
     render xml: <<~XML, content_type: "application/xml"
       <?xml version="1.0" encoding="UTF-8"?>
       <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-      #{(PUBLICAS.map { |ruta, prioridad| entrada(ruta, prioridad) } + del_directorio).join("\n")}
+      #{entradas.join("\n")}
       </urlset>
     XML
   end

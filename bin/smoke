@@ -166,7 +166,7 @@ check "up (lo mira Dokku)"       "/up"                      200
 echo
 echo "Administrador"
 JAR="${TMP}/admin.jar"
-if login "director.bolivar@siga.edu" "123123" "$JAR"; then
+if login "director.bolivar@mail.com" "123123" "$JAR"; then
   echo "  ✓ login"
   check "dashboard"        "/dashboards/administrador"  200 "$JAR"
   # ⚠️ Acá las URLs SÍ van escritas a mano, y tienen que estar en español
@@ -232,7 +232,7 @@ fi
 echo
 echo "Profesor"
 JAR="${TMP}/prof.jar"
-if login "prof.garcia@bolivar.edu" "123123" "$JAR"; then
+if login "profesor.bolivar@mail.com" "123123" "$JAR"; then
   echo "  ✓ login"
   check "dashboard"           "/dashboards/profesor"        200 "$JAR"
   check "mis evaluaciones"    "/evaluaciones"      200 "$JAR"

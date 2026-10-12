@@ -30,8 +30,8 @@ Current.school = bolivar
 lapso_uno = EvaluationMoment.where(academic_period: SEMILLA[:anio_bolivar]).order(:starts_on, :id).first
 dias = dias_habiles_hasta(lapso_uno&.ends_on || Date.current)
 
-quien_registra = User.find_by(email: "prof.garcia@bolivar.edu")
-quien_justifica = User.find_by(email: "director.bolivar@siga.edu")
+quien_registra = User.find_by(email: CORREO_DEL_PROFESOR)
+quien_justifica = User.find_by(email: CORREO_DEL_DIRECTOR)
 
 # ⚠️ García es guía de «1er Año A» a la fuerza: es la credencial que sale en el
 # README, y quien entre con ella tiene que ver la pantalla CON datos, no un
@@ -121,6 +121,37 @@ Current.sin_aislamiento do
   end
 end
 puts "     Bello está VENCIDO a propósito: entra y ve todo, pero no carga nada nuevo"
+
+# ── Los ajustes de SIGA: a dónde se paga ─────────────────────────────────────
+#
+# Sin ellos, «Suscripción» no tiene qué enseñar bajo «cómo pagar» (spec
+# `del-registro-al-cobro`, § 5.3): un medio se ofrece solo con sus datos
+# completos.
+#
+# ⚠️ Son datos DE EJEMPLO y se nota a propósito. La muestra es pública: una
+# cuenta bancaria con forma de verdadera invitaría a alguien a transferirle a
+# nadie. El titular lo dice, y los números son ceros.
+#
+# ⚠️ El WhatsApp NO se inventa: un número falso abre un chat con un desconocido.
+# Sale de `SIGA_WHATSAPP` si la instancia lo tiene, y si no, no hay botón.
+#
+# En desarrollo se siembran solo si no hay ninguno —para no pisar los que
+# alguien cargó probando `/siga/ajustes`—; en la muestra, siempre.
+paso "⚙️  Ajustes de SIGA"
+
+ajustes = SigaSetting.first || SigaSetting.new
+if ajustes.new_record? || Muestra.activa?
+  ajustes.update!(
+    whatsapp: SigaSetting.whatsapp_del_entorno,
+    titular: "SIGA · datos de ejemplo", documento: "J-00000000-0",
+    pago_movil_banco: "0102", pago_movil_telefono: "0414-0000000",
+    cuenta: "01020000000000000000", binance: "pagos@ejemplo.test"
+  )
+  puts "   ✓ cómo pagar: #{ajustes.medios.map { |m| SubscriptionPayment::MEDIOS.dig(m, :nombre) }.join(' · ')}"
+  puts "     WhatsApp: #{ajustes.whatsapp.presence || 'sin número (falta SIGA_WHATSAPP): no se dibuja el botón'}"
+else
+  puts "   · ya había ajustes cargados: no se tocan"
+end
 
 # ── El pipeline comercial ────────────────────────────────────────────────────
 #

@@ -116,7 +116,7 @@ system("bin/rails", "runner", File.expand_path("borrar_el_de_prueba.rb", __dir__
        CORREO_DE_PRUEBA) || puts("  ✗ quedó «#{NOMBRE_DE_PRUEBA}» en la base")
 
 puts "── dirección"
-entrar("director.bolivar@siga.edu")
+entrar("director.bolivar@mail.com")
 foto("panel", "/dashboards/administrador")
 foto("colegio", "/colegio")
 foto("niveles", "/niveles")

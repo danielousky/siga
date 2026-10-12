@@ -4,6 +4,7 @@ class Teacher < ApplicationRecord
   # y un join los duplicaría. Ver `DelNivel#llega_al_nivel_por_los`.
   llega_al_nivel_por_los TeacherSection, :teacher_id
   include EntraAlSistema
+  include PuertaDeLaMuestra
 
   belongs_to :user
   belongs_to :school

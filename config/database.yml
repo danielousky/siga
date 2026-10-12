@@ -47,7 +47,14 @@ default: &default
 # quedan vacías y la conexión va por socket local, como siempre.
 development:
   <<: *default
-  database: siga_development
+  # `SIGA_DB_NAME` deja levantar OTRA base en esta máquina sin tocar la de
+  # siempre. Es como se prueba en local el colegio de muestra, que borra y
+  # vuelve a sembrar su base entera:
+  #
+  #     SIGA_DB_NAME=siga_muestra bin/rails db:create db:schema:load
+  #     SIGA_MUESTRA=1 SIGA_DB_NAME=siga_muestra bin/rails muestra:restablecer
+  #     SIGA_MUESTRA=1 SIGA_DB_NAME=siga_muestra bin/rails server
+  database: <%= ENV.fetch("SIGA_DB_NAME", "siga_development") %>
   username: <%= ENV.fetch("SIGA_DB_USER", "siga_app") %>
   host: <%= ENV["SIGA_DB_HOST"] %>
   password: <%= ENV["SIGA_DB_PASSWORD"] %>

@@ -103,6 +103,8 @@ module MetadatosHelper
 
   def esconder_de_los_buscadores?
     return true unless pagina_publica?
+    # La instancia de muestra, entera: ver `BuscadoresController#robots`.
+    return true if Muestra.activa?
 
     RASTROS_QUE_NO_SE_INDEXAN.any? { |patron| request.path.match?(patron) }
   end

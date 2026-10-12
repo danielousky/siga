@@ -12048,3 +12048,152 @@ a.subject-avance:hover { filter: brightness(0.9); }
 .siga-pago .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
 .siga-rechazo summary { cursor: pointer; padding: 6px 0; color: var(--siga-tenue); }
 .siga-rechazo[open] summary { margin-bottom: var(--space-xs); }
+
+/* ════════════════════════════════════════════════════════════════════════
+   El colegio de muestra (spec `del-registro-al-cobro`, § 4.3 · tanda 5)
+   ════════════════════════════════════════════════════════════════════════
+   La portada de la instancia de muestra se arma con las piezas de la tapa
+   pública —el banner, las tarjetas de filo recto, el cierre—. Lo único propio
+   son las PUERTAS: una tarjeta por rol, con su botón.
+
+   ⚠️ El banner es más bajo que el de la portada: aquí no hay maqueta del panel
+   que enseñar, porque el panel de verdad está a un clic. */
+.muestra-hero { padding-bottom: clamp(36px, 5vw, 64px); }
+.muestra-hero .portada-bajada { margin-bottom: 0; }
+
+.muestra-seccion { padding-top: clamp(32px, 5vw, 56px); }
+
+.muestra-puertas { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.muestra-puerta { padding-top: clamp(20px, 2.4vw, 28px); }
+.muestra-puerta-quien {
+  font-family: var(--portada-serif);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.18;
+  margin: 0 0 var(--space-sm);
+  color: var(--ink);
+}
+/* El botón queda al pie de la tarjeta aunque un texto sea más largo que otro:
+   tres botones a tres alturas se leen como tres cosas distintas. */
+.muestra-puerta-accion { margin-top: auto; padding-top: var(--space-md); }
+
+/* ⚠️ Tinta, y no uno de los seis tonos del panel: esto es la tapa, y adentro el
+   color de un botón dice qué HACE (MOR-172). Aquí hay un solo verbo —entrar—. */
+.muestra-entrar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-family: inherit;
+  font-size: 15.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+.muestra-entrar:hover,
+.muestra-entrar:focus-visible { background: var(--brand-primary); border-color: var(--brand-primary); color: #fff; }
+.muestra-entrar--chico {
+  width: auto;
+  min-height: 44px;
+  padding: 0 18px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 14px;
+  white-space: nowrap;
+}
+.muestra-puerta-correo {
+  margin: var(--space-sm) 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  overflow-wrap: anywhere;
+}
+.muestra-clave {
+  margin: var(--space-lg) 0 0;
+  text-align: center;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.muestra-otras {
+  margin-top: clamp(36px, 5vw, 60px);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-standard);
+}
+.muestra-otras-titulo {
+  font-family: var(--portada-serif);
+  font-weight: 400;
+  font-size: 26px;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+.muestra-otras-bajada { margin: 0 0 var(--space-lg); max-width: 62ch; font-size: 15px; color: var(--text-secondary); }
+.muestra-otras-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 0 var(--space-xl);
+}
+.muestra-otra {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.muestra-otra-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; font-size: 14.5px; color: var(--ink); }
+.muestra-otra-quien { font-size: 13.5px; color: var(--text-secondary); }
+.muestra-otra-que { font-size: 13px; line-height: 1.5; color: var(--text-tertiary); }
+
+.muestra-pie { margin-top: 0; padding-top: 0; border-top: 0; }
+
+/* La franja que acompaña a quien ya entró. En el flujo y fina, como el aviso
+   de la suscripción: dice dónde está, y que lo que toque no le hace daño a
+   nadie. El tono es el de la marca —no es una alerta, no hay nada que corregir—. */
+.aviso-muestra {
+  background: var(--brand-subtle);
+  border-bottom: 1px solid var(--border-standard);
+  color: var(--text-secondary);
+}
+.aviso-muestra-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-xs) var(--space-lg);
+  font-size: 13px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-md);
+  align-items: center;
+}
+.aviso-muestra-acciones { margin-left: auto; display: flex; flex-wrap: wrap; gap: var(--space-sm); align-items: center; }
+.aviso-muestra-boton {
+  background: transparent;
+  border: 1px solid var(--brand-primary);
+  border-radius: var(--radius-sm);
+  padding: 2px 10px;
+  color: var(--brand-primary);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.aviso-muestra-boton:hover { background: var(--brand-primary); color: #fff; }
+.aviso-muestra-enlace { font-weight: 600; color: var(--brand-primary); white-space: nowrap; }
+
+/* En «Iniciar sesión» de la muestra: el atajo de vuelta a las puertas. */
+.acceso-muestra {
+  margin: 0 0 var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--brand-subtle);
+  font-size: 14px;
+  color: var(--text-secondary);
+}

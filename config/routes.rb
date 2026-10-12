@@ -198,6 +198,22 @@ Rails.application.routes.draw do
   get "arranque/listo", to: "arranque#listo", as: :arranque_listo
   get "inicio/index"
 
+  # El colegio de muestra (spec `del-registro-al-cobro`, § 4.3).
+  #
+  #   /muestra          las puertas: una por rol
+  #   /muestra/entrar   abre esa sesión sin pedir la clave
+  #
+  # ⚠️ Las dos rutas existen en TODA instancia y solo hacen algo en la que se
+  # declaró muestra (`SIGA_MUESTRA=1`): en el sitio de verdad la primera manda
+  # a donde vive la muestra y la segunda responde 404. Quien decide es
+  # `MuestraController`, no este archivo: una ruta condicionada por una
+  # variable se evalúa al arrancar y no se puede probar.
+  #
+  # POST, como el año escolar: entrar cambia la sesión, y un enlace se puede
+  # precargar o disparar desde otra pestaña.
+  get  "muestra",        to: "muestra#show",   as: :muestra
+  post "muestra/entrar", to: "muestra#entrar", as: :entrar_a_la_muestra
+
   # Solicitudes de demo — SOLO lo público. Ver, listar y responder se mudó a
   # /siga (MOR-133): ese dato es de SIGA, no de ningún colegio, y vivir en el
   # panel del colegio lo dejó filtrándose tres veces.

@@ -13,8 +13,21 @@ paso "🎓 Alumnos"
 DESTACADOS = {
   [ "1er Año", "A", 0 ] => { nombre: "Álvaro", apellido: "López", segundo: "Guzmán" },
   [ "1er Año", "A", 1 ] => { nombre: "Sofía",  apellido: "Ramos", segundo: "Mora" },
-  [ "1er Año", "A", 2 ] => { nombre: "Miguel", apellido: "Pérez", segundo: "Reyes" }
+  [ "1er Año", "A", 2 ] => { nombre: "Miguel", apellido: "Pérez", segundo: "Reyes" },
+
+  # ⚠️ Los tres hijos de la representante de la MUESTRA, uno por nivel. No es
+  # una familia rara: es la que hace que quien entra como representante vea, sin
+  # salir de su sesión, los tres boletines que el sistema sabe hacer —el que
+  # describe (Inicial), el de letras y competencias (Primaria) y el de números
+  # (Media)—. Ver `HIJOS_DE_LA_MUESTRA`, más abajo.
+  [ "3er Nivel", "U", 0 ] => { nombre: "Camila",    apellido: "Blanco", segundo: "Suárez" },
+  [ "4to Grado", "A", 1 ] => { nombre: "Diego",     apellido: "Blanco", segundo: "Suárez" },
+  [ "1er Año",   "A", 5 ] => { nombre: "Valentina", apellido: "Blanco", segundo: "Suárez" }
 }.freeze
+
+# Dónde está cada hijo de la representante de la muestra: grado, sección y
+# puesto en la lista. Los mismos tres de `DESTACADOS`.
+HIJOS_DE_LA_MUESTRA = [ [ "3er Nivel", "U", 0 ], [ "4to Grado", "A", 1 ], [ "1er Año", "A", 5 ] ].freeze
 
 # El correo es de bachillerato para arriba, y no es un detalle de los datos de
 # prueba: es la regla del dominio hecha visible (MOR-142). Un niño de 3er Grado
@@ -196,6 +209,17 @@ representante!(email: "jose.ramos@familia.test", nombre: "José", apellido: "Ram
   representante!(email: "maria.perez@familia.test", nombre: "María", apellido: "Pérez",
                  telefono: "0412-7778899", colegio: colegio, alumnos: hijo, parentesco: :madre)
 end
+
+# LA REPRESENTANTE DE LA MUESTRA: tres hijos, uno por nivel. Es la tercera
+# puerta de `Muestra::CUENTAS`, y la que más importa: el consumidor de las notas
+# es la familia (`CLAUDE.md § 6`).
+Current.school = SEMILLA[:bolivar]
+hijos_de_la_muestra = HIJOS_DE_LA_MUESTRA.filter_map do |grado, seccion, puesto|
+  primero_de.(grado, seccion)[puesto]
+end
+representante!(email: CORREO_DE_LA_REPRESENTANTE, nombre: "Andreína", apellido: "Suárez",
+               telefono: "0414-5551234", colegio: SEMILLA[:bolivar],
+               alumnos: hijos_de_la_muestra, parentesco: :madre)
 
 # SIN CORREO, con nombre propio: es el caso que hay que poder señalar en una
 # demostración sin buscarlo entre trescientos.

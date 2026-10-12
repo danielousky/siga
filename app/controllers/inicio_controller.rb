@@ -16,7 +16,13 @@ class InicioController < ApplicationController
   # Ahora hay una sola lista. `dashboard_path_for_user` devuelve `root_path`
   # cuando de verdad no hay rol, y ese caso se atrapa acá: sin esa comparación
   # sería un redirect infinito contra esta misma acción.
+  #
+  # ⚠️ En la instancia de MUESTRA, la portada son sus puertas (`MuestraController`).
+  # Quien llega ahí vino a ver el sistema funcionando, no a leer qué es: la
+  # tapa del sitio de verdad le ofrecería registrar un colegio en una base que
+  # se borra cada noche.
   def index
+    return render("muestra/show") if Muestra.activa? && !user_signed_in?
     return unless user_signed_in?
 
     destino = dashboard_path_for_user
