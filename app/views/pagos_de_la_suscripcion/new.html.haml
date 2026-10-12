@@ -1,0 +1,94 @@
+-# Reportar el pago de la suscripción (spec `docs/specs/del-registro-al-cobro.md`, § 5.5).
+-#
+-#     Medio         (•) Pago Móvil o transferencia
+-#                   ( ) Binance (USDT)
+-#                   ( ) Efectivo en dólares
+-#     Monto         [ 109.586,17 ] Bs     ← la unidad la da el medio
+-#     Fecha         [ 09/10/2026 ]
+-#     Referencia    [ 0012345    ]        ← no se pide en efectivo
+-#     Comprobante   [ foto ]              ← opcional en efectivo
+-#
+-# ⚠️ Se ofrecen solo los medios que SIGA tiene cargados (`SigaSetting#medios`):
+-# un medio sin sus datos no se puede pagar.
+- content_for :titulo, "Reportar el pago"
+- cotizacion = @pago.cotizacion
+- efectivo = @pago.efectivo?
+
+.card-academic
+  = render layout: "shared/cabecera", locals: { titulo: "Reportar el pago" } do
+    = boton "Volver", suscripcion_path, icono: :volver, tono: :secondary
+
+  -# Lo que le toca, a la vista mientras llena: es el número que tiene que
+  -# coincidir con lo que pagó, y no se le pide que lo recuerde de otra pantalla.
+  %p.reporte-de-pago-cuenta
+    Le toca
+    %strong= "#{numero_en_dolares(cotizacion.total)} al mes"
+    = "(#{contar(cotizacion.alumnos, 'alumno inscrito', 'alumnos inscritos')}, IVA incluido)."
+    En bolívares, a la tasa BCV del día en que pagó.
+
+  = form_with model: @pago, url: suscripcion_pagos_path, multipart: true,
+              data: { controller: "medio-de-pago" } do |f|
+    = render "shared/errors", object: @pago
+
+    -# ── 1 · cómo se pagó ───────────────────────────────────────────────────
+    %fieldset.form-group.medios-a-elegir-grupo
+      %legend.form-label Cómo pagó
+      .medios-a-elegir
+        - ajustes.medios.each do |medio|
+          %label.medio-a-elegir
+            = f.radio_button :medio, medio, required: true,
+                             data: { unidad: SubscriptionPayment::MEDIOS.dig(medio, :unidad),
+                                     action: "change->medio-de-pago#elegir" }
+            %span= SubscriptionPayment::MEDIOS.dig(medio, :nombre)
+
+    -# ── 2 · cuánto y cuándo ────────────────────────────────────────────────
+    .form-row
+      .form-group
+        = f.label :monto, class: "form-label" do
+          Monto
+          = surround "(", ")" do
+            %span{ data: { medio_de_pago_target: "unidad" } }= @pago.unidad || "Bs"
+        -# ⚠️ Lo que dice el COMPROBANTE, en la unidad del medio. No se convierte
+        -# ni se compara con el precio: la tasa del día la conoce quien pagó, y
+        -# el puente lo hace quien valida (§ 4.4 del spec).
+        = f.number_field :monto, class: "form-control", step: "0.01", min: "0.01", required: true,
+                         placeholder: "Tal como aparece en su comprobante"
+      .form-group
+        -# ⚠️ El calendario NO ofrece el año pasado: es el mismo límite del
+        -# reporte de la familia, y corta el dedazo de año antes de enviarlo.
+        = con_pista("Cuándo salió el dinero, no cuándo lo está reportando.") { f.label :pagado_el, "Fecha del pago", class: "form-label" }
+        = f.date_field :pagado_el, class: "form-control", required: true, **limites_del_calendario_de_pago
+
+    -# ── 3 · el respaldo ────────────────────────────────────────────────────
+    .form-group{ hidden: efectivo, data: { medio_de_pago_target: "conReferencia" } }
+      = con_pista("Es lo que buscamos en el banco o en Binance. Solo letras, números y guion.") { f.label :referencia, "Referencia", class: "form-label" }
+      -# Las tres capas de un campo con formato: filtra al escribir, `pattern`
+      -# al enviar, y el modelo para lo que llegue por otra puerta.
+      = f.text_field :referencia, class: "form-control campo-mayuscula", maxlength: 30,
+                     required: !efectivo, disabled: efectivo,
+                     placeholder: "Ej.: 0012345678", pattern: "[A-Za-z0-9-]{4,30}",
+                     autocapitalize: "characters",
+                     data: { medio_de_pago_target: "referencia",
+                             tooltip: "Solo letras, números y guion",
+                             controller: "campo-filtrado",
+                             campo_filtrado_permite_value: "A-Za-z0-9-",
+                             campo_filtrado_mayuscula_value: true,
+                             action: "input->campo-filtrado#filtrar" }
+
+    .form-group
+      = f.label :comprobante, "Foto del comprobante", class: "form-label"
+      = f.file_field :comprobante, class: "form-control", accept: "image/*,application/pdf",
+                     required: !efectivo, data: { medio_de_pago_target: "comprobante" }
+      %p.nota-ayuda
+        La foto de la pantalla del banco sirve. Se guarda más liviana, sin perder la referencia.
+        %span{ hidden: !efectivo, data: { medio_de_pago_target: "comprobanteOpcional" } }
+          En efectivo es opcional.
+
+    .form-group
+      = f.label :nota, "Algo que agregar (opcional)", class: "form-label"
+      = f.text_area :nota, class: "form-control", rows: 2,
+                    placeholder: "Ej.: la transferencia salió de la cuenta de la directora"
+
+    .form-acciones
+      = f.submit "Reportar el pago", class: "btn btn-guardar"
+      = boton "Volver", suscripcion_path, icono: :volver, tono: :secondary

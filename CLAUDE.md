@@ -297,6 +297,7 @@ dirección pelada.
    DEL COLEGIO   activar el acceso · boletín disponible · mensaje del colegio
                  y los de la contraseña, si la persona es de UN solo colegio
    DE SIGA       bienvenida · el aviso de colegio nuevo
+                 los tres del cobro: pago por validar · pago validado · pago rechazado
                  y los de la contraseña, si es de dos colegios o de ninguno
 ```
 
@@ -317,7 +318,7 @@ dirección pelada.
   tipografías web y Outlook clásico, al no encontrarlas, cae en Times New Roman.
 - ⚠️ **El nombre del colegio es TEXTO**, nunca parte de una imagen: Outlook de
   escritorio bloquea las imágenes hasta que la persona acepta.
-- **Los ocho llevan versión en texto y su adelanto** (`content_for :adelanto`),
+- **Todos llevan versión en texto y su adelanto** (`content_for :adelanto`),
   que es lo que la bandeja muestra al lado del asunto.
 - **«MANAGE NOTIFICATIONS» lo agrega ElasticEmail** a todo correo y no se apaga
   por código. Se reemplaza con un enlace propio que lleva su etiqueta
@@ -1106,9 +1107,10 @@ se queda ahí y solo se sabe si el usuario lo reporta.
   a mano, de preescolar a bachillerato, porque **los sistemas son caros para el colegio pequeño**.
   El precio es la barrera, no la funcionalidad — y ninguno de los tres apunta a ese colegio.
 - **Cobranza, asistencia y portal de representantes son tabla de entrada**: los tres competidores
-  los tienen. SIGA ya tiene **asistencia** (`MOR-111`) y **portal de representantes** (`MOR-110`);
-  de cobranza tiene el ESTADO de la suscripción (`MOR-108`) pero **nada que cobre** — `MOR-128`
-  sigue abierto y es la única de las tres que falta.
+  los tienen. SIGA ya tiene las tres: **asistencia** (`MOR-111`), **portal de representantes**
+  (`MOR-110`) y **cobranza** —la familia reporta su pago y la oficina lo valida
+  (`docs/specs/pagos-de-la-familia.md`)—. Ninguna de las dos cobranzas toca el dinero: SIGA
+  registra lo que se reporta y quién lo validó.
   El único hueco que nadie llenó es **persistir competencias e indicadores** entre lapsos y años
   (`MOR-136`) — un problema del docente, no del director, y por eso invisible para quien vende.
 - Venezuela **no tiene ley de protección de datos** ni autoridad de control. El riesgo de un
@@ -1202,6 +1204,68 @@ estados le quita a una familia el papel del pasaporte.
 **Las pantallas no se esconden.** El director entra a la planilla de notas, ve su
 sección y sus alumnos, y el aviso de qué la activa. Una pantalla escondida no
 vende nada; una que se ve y no se toca, sí.
+
+### 7.b Pagar sin consola: «Suscripción», el reporte y la validación
+
+Hasta el 12 de octubre de 2026 el muro terminaba en «se activa con la
+suscripción» y ahí se acababa el camino; activar a un colegio era abrir la
+consola de producción. Tanda 2 del spec `del-registro-al-cobro`.
+
+```
+   EL COLEGIO (dirección y finanzas)              SIGA (/siga, el fundador)
+   Finanzas ▸ Suscripción                         Cartera ▸ «Pagos por validar»
+   [Reportar el pago] ──► SubscriptionPayment ──►  [Validar]   activa un mes, en el momento
+                          «en revisión»            [Rechazar…] con motivo
+                          + correo a SIGA          Ajustes: SigaSetting (WhatsApp y datos para pagar)
+```
+
+⚠️ **Reportar NO abre nada: abre la validación** (decisión 4). Sin esa
+separación, quien escriba cualquier número de referencia se activa el sistema.
+
+⚠️ **Al validar, ¿desde cuándo cuenta el mes?** (`Subscription#inicio_del_mes_pagado`)
+
+```
+   primer pago, o ya en solo lectura     desde que se valida
+   a tiempo, o en los 15 días de gracia  desde el día que VENCÍA: la gracia se paga
+```
+
+«Tarde» se mide por el día en que el colegio REPORTÓ, no por el de la
+validación: la demora en validar es de SIGA. Y **nada baja de estado mientras
+un pago espera** (`actualizar_estado!`): subir sí sube.
+
+⚠️ **El precio se congela DOS veces**: en el reporte —la cuenta que el colegio
+vio, con sus alumnos de ese día— y, al validar, en la suscripción (decisión 17).
+
+⚠️ **Las dos salidas son dos listas.** «Suscripción» y su reporte van en
+`SIEMPRE_ABIERTO`, o el muro de lo gratis cerraría la pantalla donde se paga; y
+el reporte, además, en `SIEMPRE_PERMITIDO`, o la solo lectura —que rechaza todo
+verbo que escriba— cerraría la única puerta para dejar de estar vencido.
+
+⚠️ **El correo al colegio se encola DENTRO del colegio** (`Current.en_el_colegio`).
+`/siga` no tiene ninguno, y un trabajo se lleva el que haya al encolarlo: sin él,
+el worker busca el pago con el RLS puesto, no lo encuentra, y el correo no sale
+— sin que validar falle. Un test que entrega el correo dentro de la petición NO
+lo ve; lo cuida el que mira la carga del trabajo encolado.
+
+⚠️ **Un doble clic son dos peticiones a la vez.** Validar bloquea la fila
+(`with_lock`), o el colegio recibe dos meses por un pago. El reporte se guarda
+en su `SAVEPOINT`, con la red del índice único: sin eso el segundo envío era un
+500 que además dejaba abortada la transacción de la petición.
+
+⚠️ **«Uno en revisión a la vez» es un índice único PARCIAL**, y un parcial con
+una condición de negocio no es una clave: `modelo:erd` lo leía como «un pago por
+colegio» y dibujaba un 1:1. Solo el parcial de «si no es nulo» cuenta como clave.
+
+⚠️ **Los ajustes (`SigaSetting`) son de la plataforma**: una sola fila —lo dice
+un índice—, sin `school_id` ni RLS, y fuera de `demo:limpiar`
+(`OrdenDeBorrado::NO_SE_TOCAN`): limpiar una demo no puede llevarse las cuentas
+con que SIGA cobra. Un medio de pago se ofrece solo con sus datos completos; el
+efectivo, solo si hay WhatsApp. **El WhatsApp sale de aquí**, no de la variable
+`SIGA_WHATSAPP`, que quedó como valor inicial mientras nadie guarde los ajustes.
+
+⚠️ **El enlace del muro va aparte del texto**: `flash[:enlace]` en una pantalla
+y `enlace` en el JSON, con claves de TEXTO —el flash viaja como JSON—. Lo ve
+solo quien paga: al profesor lo llevaría a una pantalla que lo rebota.
 
 ### 8. El año escolar de la sesión (`MOR-165`)
 
@@ -1450,8 +1514,8 @@ un caso, y ahí vive el Excel de la 31059. Spec:
 
 ⚠️ **El mismo papel tiene DOS puertas, y la suscripción las mira distinto.** La
 ficha lo pide por `GET`; la pestaña, por `POST`. Por eso `certificados#create`
-está en las dos listas de `RespetaLaSuscripcion`: en `ACCIONES_CON_PLAN`, o el
-plan gratuito emitía por la pestaña lo que la ficha le niega; y en
+está en las dos listas de `RespetaLaSuscripcion`: en `CON_SUSCRIPCION`, o el
+colegio en gratis emitía por la pestaña lo que la ficha le niega; y en
 `SIEMPRE_PERMITIDO`, o el colegio vencido perdía por la pestaña lo que por la
 ficha sigue sacando. Una puerta nueva para algo que ya existía hay que
 recorrerla contra las DOS.

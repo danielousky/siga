@@ -23,6 +23,37 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.15.0 — 12 de octubre de 2026
+
+- **La suscripción se paga desde SIGA, sin llamar a nadie.** En el menú de la
+  dirección y de finanzas hay una pantalla nueva, «Suscripción», que dice en qué
+  está el colegio, cuánto le toca este mes —con su matrícula de hoy y el IVA
+  aparte— y cómo pagar: Pago Móvil o transferencia en bolívares a la tasa BCV
+  del día, Binance (USDT) o efectivo en dólares.
+
+  ```
+     «Suscripción»  ──►  Reportar el pago  ──►  SIGA lo valida  ──►  activa por un mes
+  ```
+
+- **El colegio reporta su pago** con el medio, el monto, la referencia, la fecha
+  y la foto del comprobante. Queda «en revisión», y al validarse se activan
+  calificar, pasar lista y emitir, en el momento. Si no se puede validar, el
+  colegio lee por qué en esa misma pantalla y en su correo, y lo reporta de
+  nuevo.
+- **Al validarse el pago llega un correo** que dice hasta cuándo queda activa.
+- **Donde antes decía «se activa con la suscripción», ahora hay un enlace** que
+  lleva a esa pantalla: en el aviso de arriba y al tocar algo que la pide.
+- **Pagar tarde no regala días, ni cuesta de más.** El mes cuenta desde el día
+  en que vencía si el pago se reporta a tiempo o dentro de los 15 días de
+  gracia, y desde que se valida si el colegio ya estaba en solo lectura.
+  Mientras un pago espera validación, el colegio no baja de estado.
+- **Cinco días antes de vencer**, la dirección y finanzas ven el aviso con la
+  fecha.
+- El botón de WhatsApp ahora lleva al número que SIGA tiene cargado, y aparece
+  también en «Suscripción».
+
+---
+
 ## 1.14.0 — 12 de octubre de 2026
 
 - **SIGA se paga por alumno: 0,30 $ al mes por alumno inscrito, más IVA, con un

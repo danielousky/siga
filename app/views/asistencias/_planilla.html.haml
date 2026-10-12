@@ -77,3 +77,6 @@
 
   .alert.alert-danger{hidden: true, data: {asistencia_target: "aviso"}}
     %span{data: {asistencia_target: "avisoTexto"}}
+    -# El enlace del muro de la suscripción, si la respuesta trae uno: a quien
+    -# paga, lo lleva a «Suscripción» (spec `del-registro-al-cobro`, § 5.4).
+    %a.alert-enlace{hidden: true, data: {asistencia_target: "avisoEnlace", turbo_frame: "_top"}}

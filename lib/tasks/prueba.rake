@@ -199,6 +199,13 @@ namespace :prueba do
       Department.unscoped.where(ids).delete_all
       AcademicPeriod.unscoped.where(ids).delete_all
       Rubric.unscoped.where(ids).delete_all
+      # Los pagos de la suscripción que el colegio de prueba haya reportado,
+      # cada uno con su comprobante: es lo que se viene a probar desde que el
+      # cobro se valida en `/siga`, y sin esto el colegio no se deja borrar.
+      SubscriptionPayment.unscoped.where(ids).find_each do |pago|
+        pago.comprobante.purge
+        pago.delete
+      end
       Subscription.unscoped.where(ids).delete_all
       ActivityLog.unscoped.where(ids).delete_all
 
@@ -247,8 +254,9 @@ namespace :prueba do
   # cliente: probar por ahí deja sin mirar todo lo que la suscripción gobierna.
   # ⚠️ Deja al colegio de prueba como queda uno al validarse su pago: por
   # alumno, con el precio de hoy congelado y un mes por delante (spec
-  # `del-registro-al-cobro`). Hasta que llegue la pantalla de validar, es la
-  # única manera de activarlo.
+  # `del-registro-al-cobro`). Es el ATAJO: el camino de verdad es reportar el
+  # pago desde «Suscripción» y validarlo en `/siga/cartera`, y ese es el que
+  # hay que recorrer cuando lo que se prueba es el cobro.
   def activar_el_plan(colegio)
     suscripcion = Subscription.find_or_initialize_by(school_id: colegio.id)
     antes = suscripcion.plan || "(sin fila)"

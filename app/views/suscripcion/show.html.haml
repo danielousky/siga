@@ -1,0 +1,145 @@
+-# «Suscripción» (spec `docs/specs/del-registro-al-cobro.md`, § 5.3).
+-#
+-#     en qué está      ← lo primero: es lo que se viene a ver
+-#     el precio        ← con la matrícula de hoy, su precio y su IVA
+-#     cómo pagar       ← solo los medios que SIGA tiene cargados
+-#     lo reportado     ← cada reporte, con su respuesta
+-#
+-# ⚠️ Le habla de usted: la lee la dirección de un colegio.
+- content_for :titulo, "Suscripción"
+- estado = estado_de_la_suscripcion(@suscripcion, en_revision: @en_revision)
+
+.card-academic
+  = render "shared/cabecera", titulo: "Suscripción"
+
+  .suscripcion-estado{ class: "suscripcion-estado--#{estado.clave.to_s.dasherize}" }
+    %strong.suscripcion-estado-titulo= estado.titulo
+    %p.suscripcion-estado-detalle= estado.detalle
+
+  -# ⚠️ El rechazo se dice ARRIBA, con su motivo: es la respuesta que el colegio
+  -# está esperando. En la tabla de abajo queda igual, como historia.
+  - if @rechazo
+    .suscripcion-rechazo
+      %strong= "El pago reportado el #{l(@rechazo.created_at.to_date, format: :long)} no se pudo validar."
+      %p= @rechazo.motivo
+      %p.nota-ayuda Corrija lo que haga falta y repórtelo de nuevo.
+
+.card-academic
+  = render "shared/cabecera", titulo: "El precio", nivel: 2
+  -# ⚠️ Con el precio de ESTE colegio: el que entró a 0,30 sigue a 0,30 aunque
+  -# el precio suba (decisión 17). Al que todavía no paga, el de hoy.
+  %table.table-academic.suscripcion-cuenta
+    %tbody
+      %tr
+        - if @cotizacion.en_el_minimo?
+          %td= "#{contar(@cotizacion.alumnos, 'alumno inscrito', 'alumnos inscritos')} · el mínimo mensual"
+        - else
+          %td= "#{contar(@cotizacion.alumnos, 'alumno inscrito', 'alumnos inscritos')} × #{numero_en_dolares(@cotizacion.por_alumno)}"
+        %td.suscripcion-cuenta-monto= numero_en_dolares(@cotizacion.monto)
+      %tr
+        %td= "IVA #{porcentaje_de_iva}"
+        %td.suscripcion-cuenta-monto= numero_en_dolares(@cotizacion.iva)
+      %tr.suscripcion-cuenta-total
+        %td Al mes
+        %td.suscripcion-cuenta-monto= numero_en_dolares(@cotizacion.total)
+  %p.nota-ayuda
+    = "#{numero_en_dolares(@cotizacion.por_alumno)} por alumno al mes, con un mínimo de #{numero_en_dolares(@cotizacion.minimo)}"
+    = "(cubre hasta #{contar(alumnos_que_cubre_el_minimo(@cotizacion), 'alumno', 'alumnos')})."
+    Cuentan los inscritos en el año escolar que está cursando, el día en que se reporta el pago.
+
+.card-academic
+  = render "shared/cabecera", titulo: "Cómo pagar", nivel: 2
+
+  - if @ajustes.medios.empty?
+    %p.nota-ayuda
+      Todavía no hay medios de pago cargados.
+      - if @ajustes.whatsapp?
+        Escríbanos y le decimos cómo pagar.
+  - else
+    .suscripcion-medios
+      - if @ajustes.pago_movil? || @ajustes.transferencia?
+        .suscripcion-medio
+          .suscripcion-medio-nombre Pago Móvil o transferencia
+          .suscripcion-medio-nota En bolívares, a la tasa BCV del día en que paga.
+          - if @ajustes.pago_movil?
+            .detail-row
+              .detail-item
+                .detail-label Pago Móvil
+                .detail-value= "#{Banco.nombre(@ajustes.pago_movil_banco)} (#{@ajustes.pago_movil_banco})"
+              .detail-item
+                .detail-label Teléfono
+                .detail-value= @ajustes.pago_movil_telefono
+              .detail-item
+                .detail-label Cédula o RIF
+                .detail-value= @ajustes.documento
+          - if @ajustes.transferencia?
+            .detail-row
+              .detail-item
+                .detail-label= "Cuenta · #{@ajustes.banco_de_la_cuenta}"
+                .detail-value.suscripcion-dato-largo= @ajustes.cuenta
+              .detail-item
+                .detail-label A nombre de
+                .detail-value= @ajustes.titular
+              .detail-item
+                .detail-label Cédula o RIF
+                .detail-value= @ajustes.documento
+
+      - if @ajustes.binance?
+        .suscripcion-medio
+          .suscripcion-medio-nombre Binance (USDT)
+          .suscripcion-medio-nota En dólares, por Binance Pay.
+          .detail-row
+            .detail-item
+              .detail-label Binance Pay
+              .detail-value.suscripcion-dato-largo= @ajustes.binance
+
+      - if @ajustes.efectivo?
+        .suscripcion-medio
+          .suscripcion-medio-nombre Efectivo en dólares
+          .suscripcion-medio-nota Se coordina por WhatsApp: dónde y cuándo.
+
+  .suscripcion-acciones
+    -# ⚠️ Sin botón mientras hay uno en revisión: solo cabe uno a la vez
+    -# (§ 5.5), y el estado de arriba ya dice que se está validando.
+    - if @ajustes.medios.any? && @en_revision.nil?
+      = boton "Reportar el pago", new_suscripcion_pago_path, icono: :agregar, tono: :guardar
+    - if @ajustes.whatsapp?
+      = boton "Escribir por WhatsApp",
+              enlace_de_whatsapp("Hola, escribo por la suscripción de #{Current.school.name} a SIGA."),
+              icono: :conversar, tono: :secondary, target: "_blank", rel: "noopener"
+
+- if @pagos.any?
+  .card-academic
+    = render "shared/cabecera", titulo: "Lo reportado", nivel: 2
+    %table.table-academic
+      %thead
+        %tr
+          %th Reportado
+          %th Medio
+          %th Monto
+          %th Referencia
+          %th Situación
+          %th
+      %tbody
+        - @pagos.each do |pago|
+          %tr
+            %td
+              = l(pago.created_at.to_date, format: :long)
+              %span.dato-secundario= " · #{pago.reportado_por.nombre_completo}"
+            %td= pago.nombre_del_medio
+            %td.suscripcion-dato-entero= importe_del_pago(pago)
+            %td.suscripcion-dato-entero= pago.referencia.presence || "—"
+            %td
+              = pastilla_de_reporte(pago)
+              - if pago.validado? && pago.cubre_desde
+                %span.dato-secundario= " · cubre del #{l(pago.cubre_desde, format: :long)} al #{l(pago.cubre_hasta, format: :long)}"
+              - if pago.rechazado? && pago.motivo.present?
+                %span.dato-secundario= " · #{pago.motivo}"
+            %td
+              -# Retirarlo, mientras nadie lo ha mirado: se equivocó de monto o
+              -# de referencia, y como solo cabe uno en revisión, sin esto
+              -# quedaría esperando a que se lo rechacen.
+              - if pago.se_puede_retirar?
+                = button_to "Retirar", suscripcion_pago_path(pago), method: :delete,
+                            class: "btn btn-danger btn-sm",
+                            data: { turbo_confirm: "Se borra este reporte. Puede reportarlo de nuevo enseguida. ¿Seguimos?" }

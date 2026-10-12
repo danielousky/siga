@@ -1,0 +1,81 @@
+-# Los ajustes de la plataforma (spec `del-registro-al-cobro`, decisiones 20 a 22).
+-#
+-# ⚠️ Lo que se guarda aquí lo ven los colegios en la petición siguiente: el
+-# botón de WhatsApp y los medios de su pantalla «Suscripción». Un medio sin
+-# todos sus datos no se ofrece, así que vaciar un campo es apagar su medio.
+-#
+-# ⚠️ Operaciones ve el formulario, apagado: saber a qué cuenta pagan los
+-# colegios es parte de atenderlos; cambiarla, no (decisión 22).
+- puede = siga_staff.maneja_el_cobro?
+
+%h1 Ajustes
+
+%p.siga-nota
+  Lo que se guarda aquí lo ven los colegios en el momento: el botón de
+  WhatsApp y los medios de pago de su pantalla «Suscripción». Un medio sin
+  todos sus datos no se ofrece.
+  -# ⚠️ Solo de lo GUARDADO. Al volver con un error, los ajustes llevan a quien
+  -# los está cambiando ahora y todavía no tienen fecha: decir «lo cambió» de
+  -# un cambio que no se guardó sería mentir (y sin fecha, reventaba).
+  - if @ajustes.persisted? && !@ajustes.changed? && @ajustes.actualizado_por
+    = "Lo cambió por última vez #{@ajustes.actualizado_por.nombre_completo}, el #{l(@ajustes.updated_at.to_date, format: :long)}."
+
+= form_with model: @ajustes, url: siga_ajustes_path, method: :patch, class: "siga-form" do |f|
+  = render "shared/errors", object: @ajustes
+
+  %fieldset.siga-fieldset{ disabled: !puede }
+    %legend El WhatsApp de SIGA
+    .form-group
+      = f.label :whatsapp, "Número", class: "form-label"
+      = f.telephone_field :whatsapp, class: "form-control", inputmode: "numeric", placeholder: "0414-1234567",
+                          maxlength: 12, data: { controller: "campo-telefono", action: "input->campo-telefono#formatear" }
+      %p.nota-ayuda
+        Sin número, el botón de WhatsApp no aparece en ninguna pantalla, y
+        tampoco el efectivo, que se coordina por ahí.
+
+  %fieldset.siga-fieldset{ disabled: !puede }
+    %legend A nombre de quién se paga
+    .form-row
+      .form-group
+        = f.label :titular, "Titular", class: "form-label"
+        = f.text_field :titular, class: "form-control", placeholder: "Nombre o razón social"
+      .form-group
+        = f.label :documento, "Cédula o RIF", class: "form-label"
+        = f.text_field :documento, class: "form-control campo-mayuscula", placeholder: "V-12345678 o J-12345678-9"
+    %p.nota-ayuda Los usan el Pago Móvil y la transferencia.
+
+  %fieldset.siga-fieldset{ disabled: !puede }
+    %legend Pago Móvil
+    .form-row
+      .form-group
+        = f.label :pago_movil_banco, "Banco", class: "form-label"
+        = f.select :pago_movil_banco, Banco.para_elegir, { include_blank: "Sin Pago Móvil" }, class: "form-control"
+      .form-group
+        = f.label :pago_movil_telefono, "Teléfono", class: "form-label"
+        = f.telephone_field :pago_movil_telefono, class: "form-control", inputmode: "numeric",
+                            placeholder: "0414-1234567", maxlength: 12,
+                            data: { controller: "campo-telefono", action: "input->campo-telefono#formatear" }
+
+  %fieldset.siga-fieldset{ disabled: !puede }
+    %legend Transferencia
+    .form-group
+      = f.label :cuenta, "Número de cuenta", class: "form-label"
+      = f.text_field :cuenta, class: "form-control", inputmode: "numeric", maxlength: 20,
+                     placeholder: "01020000000000000000",
+                     data: { controller: "campo-filtrado", campo_filtrado_permite_value: "0-9",
+                             action: "input->campo-filtrado#filtrar" }
+      %p.nota-ayuda
+        Veinte dígitos. El banco sale de los cuatro primeros; el titular y la
+        cédula, de arriba.
+
+  %fieldset.siga-fieldset{ disabled: !puede }
+    %legend Binance (USDT)
+    .form-group
+      = f.label :binance, "Binance Pay: el ID o el correo", class: "form-label"
+      = f.text_field :binance, class: "form-control", placeholder: "123456789"
+
+  - if puede
+    .form-acciones
+      = f.submit "Guardar", class: "btn btn-guardar"
+  - else
+    %p.siga-nota Los cambia el fundador.

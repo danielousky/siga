@@ -29,6 +29,12 @@ class SigaStaff < ApplicationRecord
   # y responder solicitudes es de operaciones.
   def puede_dar_de_alta_colegios? = fundador?
 
+  # Validar el pago de un colegio y cambiar los datos con que se cobra —el
+  # WhatsApp, las cuentas— también (decisión 22 del spec `del-registro-al-cobro`):
+  # cada una le abre o le cierra el sistema a un colegio, o le cambia a dónde
+  # manda su dinero. Operaciones lo ve todo y no lo cambia.
+  def maneja_el_cobro? = fundador?
+
   # ⚠️ Sin aislamiento a propósito, y por la misma razón que `colegio_de` en
   # `ApplicationController`: averiguar QUIÉN es alguien es anterior a poder
   # filtrar por colegio. Acá además no hay colegio que filtrar.

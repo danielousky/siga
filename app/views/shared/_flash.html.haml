@@ -15,8 +15,21 @@
 -# reemplazar por id agarra siempre el PRIMERO de la página, que es justamente
 -# el que no está en el frame.
 - id = local_assigns.fetch(:id, "flash")
+-# ⚠️ El aviso puede traer a DÓNDE ir (`flash[:enlace]`): el muro de la
+-# suscripción lo pone, para que «se activa con la suscripción» no sea un
+-# callejón (spec `del-registro-al-cobro`, § 5.4). Va como enlace aparte y no
+-# metido en el texto: un aviso que se marca `html_safe` es un aviso por donde
+-# algún día se cuela otra cosa.
+-#
+-# ⚠️ Con `_top`: este parcial también se dibuja DENTRO del frame de la libreta,
+-# y un enlace que sale a otra pantalla desde un frame la reemplaza por
+-# «Content missing» (`CLAUDE.md`, «Dentro de un turbo_frame…»).
+- enlace = flash[:enlace]
 %div{ id: id }
   - if notice.present?
     .alert.alert-success= notice
   - if alert.present?
-    .alert.alert-danger= alert
+    .alert.alert-danger
+      = alert
+      - if enlace.is_a?(Hash) && enlace["url"].present?
+        = link_to "#{enlace['texto']} →", enlace["url"], class: "alert-enlace", data: { turbo_frame: "_top" }

@@ -676,15 +676,25 @@ module MenuHelper
   # es la misma lista de cargos que `FinanzasController`. Un grupo vacío en el
   # menú es una puerta que se ve y no abre.
   def enlaces_de_finanzas
-    return [] unless puede_cobrar?
+    enlaces = []
 
-    enlaces = [ Enlace.new(nombre: "Pagos reportados", icono: :inscripciones, ruta: finanzas_path) ]
+    if puede_cobrar?
+      enlaces << Enlace.new(nombre: "Pagos reportados", icono: :inscripciones, ruta: finanzas_path)
 
-    # ⚠️ Cuelga del AÑO de la sesión: los montos cambian cada año, y los del año
-    # pasado tienen que seguir diciendo lo que decían.
-    if Current.academic_period
-      enlaces << Enlace.new(nombre: "Lo que se cobra", icono: :lapsos,
-                            ruta: academic_period_cobros_path(Current.academic_period))
+      # ⚠️ Cuelga del AÑO de la sesión: los montos cambian cada año, y los del
+      # año pasado tienen que seguir diciendo lo que decían.
+      if Current.academic_period
+        enlaces << Enlace.new(nombre: "Lo que se cobra", icono: :lapsos,
+                              ruta: academic_period_cobros_path(Current.academic_period))
+      end
+    end
+
+    # Lo que el COLEGIO le paga a SIGA, al lado de lo que cobra a las familias:
+    # es la misma gaveta (decisión 14 del spec `del-registro-al-cobro`). Se
+    # pregunta aparte de `puede_cobrar?` aunque hoy sean los mismos cargos: son
+    # dos permisos, y el día que se separen no puede arrastrar al otro.
+    if puede?(:pagar_la_suscripcion)
+      enlaces << Enlace.new(nombre: "Suscripción", icono: :llave, ruta: suscripcion_path)
     end
     enlaces
   end

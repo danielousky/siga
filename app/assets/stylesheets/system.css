@@ -11947,3 +11947,104 @@ a.subject-avance:hover { filter: brightness(0.9); }
 }
 
 .plan-acciones .nota-ayuda { margin-top: var(--space-xs); }
+
+/* ════════════════════════════════════════════════════════════════════════
+   Pagar sin consola (spec `del-registro-al-cobro`, tanda 2)
+   ════════════════════════════════════════════════════════════════════════
+   El estado lleva el color del DATO —activa, en gracia, solo lectura—, nunca
+   el de un control (regla de color, MOR-135). */
+
+/* El enlace que saca del muro: «Ver cómo activarla →». */
+.alert-enlace,
+.aviso-suscripcion-enlace {
+  margin-left: var(--space-xs);
+  font-weight: 600;
+  color: inherit;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.suscripcion-estado {
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-standard);
+  background: var(--surface-hover);
+}
+.suscripcion-estado--activa      { background: var(--success-bg); border-color: var(--success-border); color: var(--success-text); }
+.suscripcion-estado--por-vencer,
+.suscripcion-estado--en-gracia   { background: var(--warning-bg); border-color: var(--warning-border); color: var(--warning-text); }
+.suscripcion-estado--solo-lectura { background: var(--danger-bg); border-color: var(--danger-border); color: var(--danger-text); }
+.suscripcion-estado--sin-activar,
+.suscripcion-estado--en-revision { background: var(--surface-hover); }
+.suscripcion-estado-titulo { display: block; font-size: 17px; }
+.suscripcion-estado-detalle { margin: var(--space-xs) 0 0; }
+
+.suscripcion-rechazo {
+  margin-top: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border-left: 3px solid var(--danger-border);
+  background: var(--danger-bg);
+  border-radius: var(--radius-md);
+}
+
+.suscripcion-cuenta { max-width: 520px; }
+.suscripcion-cuenta-monto { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.suscripcion-cuenta-total td { font-weight: 700; }
+
+.suscripcion-medios { display: grid; gap: var(--space-md); }
+.suscripcion-medio {
+  padding: var(--space-md);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+}
+.suscripcion-medio-nombre { font-weight: 700; }
+.suscripcion-medio-nota { font-size: 13px; margin-bottom: var(--space-xs); }
+.suscripcion-dato-largo { overflow-wrap: anywhere; word-break: break-word; }
+/* Un monto o una referencia partidos en dos renglones se leen como dos datos. */
+.suscripcion-dato-entero { white-space: nowrap; }
+
+.suscripcion-acciones,
+.siga-pago-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: flex-start;
+  margin-top: var(--space-md);
+}
+
+.reporte-de-pago-cuenta { margin: 0 0 var(--space-lg); }
+
+/* Los medios de pago, como las cuotas a marcar de la familia: una caja que se
+   toca entera —en el teléfono un radio de 13 px no se acierta— y que dice cuál
+   está elegida sin depender del puntito. El `fieldset` va sin su marco nativo:
+   con él, el grupo parecía otro formulario dentro del formulario. */
+.medios-a-elegir-grupo { border: 0; padding: 0; margin-left: 0; margin-right: 0; min-width: 0; }
+.medios-a-elegir-grupo legend { padding: 0; }
+.medios-a-elegir { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-top: var(--space-xs); }
+.medio-a-elegir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 11px 14px;
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-height: 44px;
+}
+.medio-a-elegir:has(input:checked) { border-color: var(--brand-primary); background: var(--brand-subtle); }
+.medio-a-elegir:has(input:focus-visible) { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
+
+/* /siga · lo que espera validación. Con los tonos del panel de la plataforma,
+   que es oscuro a propósito (MOR-133). */
+.siga-pago {
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--siga-borde);
+}
+.siga-pago:last-child { border-bottom: 0; padding-bottom: 0; }
+.siga-pago-cab { margin-bottom: var(--space-xs); }
+.siga-pago-colegio { font-weight: 700; }
+.siga-pago-datos { display: flex; flex-wrap: wrap; gap: var(--space-xs) var(--space-lg); margin: var(--space-xs) 0; }
+.siga-pago .apagado { color: var(--siga-tenue); }
+.siga-pago .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+.siga-rechazo summary { cursor: pointer; padding: 6px 0; color: var(--siga-tenue); }
+.siga-rechazo[open] summary { margin-bottom: var(--space-xs); }

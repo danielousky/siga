@@ -112,6 +112,18 @@ Rails.application.routes.draw do
     end
   end
 
+  # ── Lo que el colegio le paga a SIGA (spec: docs/specs/del-registro-al-cobro.md) ──
+  #
+  #   /suscripcion                  cuánto cuesta, cómo se paga y en qué está
+  #   /suscripcion/pagos/reportar   el reporte del pago
+  #
+  # ⚠️ Singular, como `colegio`: un colegio tiene UNA suscripción y la suya sale
+  # de la sesión. La validación NO está acá: es de SIGA y vive en `/siga`.
+  resource :suscripcion, only: [ :show ], controller: "suscripcion" do
+    resources :pagos, only: [ :new, :create, :destroy ], controller: "pagos_de_la_suscripcion",
+                      path_names: { new: "reportar" }
+  end
+
   # El estado de cuenta de UN alumno, para la oficina. Daniel, mirando la lista
   # de morosos: *«esta lista debería tener enlaces al detalle del deudor»*.
   #
@@ -214,6 +226,20 @@ Rails.application.routes.draw do
     # Sin `create`: era «Dar de alta» al colegio sin suscripción, y ya no queda
     # ninguno sin ella (spec `del-registro-al-cobro`, decisión 16).
     resources :cartera, only: [:index, :update]
+
+    # Validar o rechazar lo que reportó un colegio (spec `del-registro-al-cobro`,
+    # § 5.6). La lista de lo que espera vive en la Cartera; esto son los dos
+    # verbos. PATCH y no GET: cada uno cambia la suscripción de un colegio.
+    resources :pagos, only: [] do
+      member do
+        patch :validar
+        patch :rechazar
+      end
+    end
+
+    # El WhatsApp de SIGA y los datos para pagarle (decisiones 20 y 21).
+    # Singular: la plataforma tiene UNOS ajustes.
+    resource :ajustes, only: [ :show, :update ]
     resources :visitas, only: [:create, :destroy]
 
     # El catálogo vivo del sistema de diseño.

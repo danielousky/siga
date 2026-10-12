@@ -2,7 +2,21 @@
 
 > **Estado:** **congelado el 12 de octubre de 2026.** Decisiones de Daniel del
 > 8, 9 y 12 de octubre. Si algo cambia, se cambia aquí primero.
-> **PR:** — (rama `feat/del-registro-al-cobro`)
+> **Ramas:** `feat/del-registro-al-cobro` (este spec y la tanda 1) ·
+> `feat/pagar-sin-consola` (la tanda 2, sale de la anterior). Locales, sin PR.
+
+```
+   LAS TANDAS, en el orden que eligió Daniel («primero cobrar»)
+   1 · las reglas           hecha     el precio por alumno y la frontera de lo gratis
+   2 · pagar sin consola    hecha     «Suscripción», el reporte, validar en /siga y los ajustes
+   5 · la muestra           falta     el colegio de muestra, en su instancia aparte
+   4 · la puerta            falta     la portada, el registro con su precio y el WhatsApp
+   3 · la escalera          falta     el trabajo diario y sus tres correos
+   ─────────────────────────────────────────────────────────────────────────────
+   «hecha» es en local y con `bin/ci` en verde; cada una espera la revisión de
+   Daniel antes de la siguiente. Las decisiones 23 a 27 nacieron en la tanda 2
+   y están POR CONFIRMAR.
+```
 
 Un colegio entra a SIGA, carga lo suyo, ve cuánto le cuesta operar, paga, y SIGA
 le abre el resto. Si deja de pagar, el sistema se traba solo. Hoy ese recorrido
@@ -142,6 +156,11 @@ Y el criterio que ordena todo lo demás. Daniel, 9 de octubre:
 | 20 | ¿Dónde está el botón de WhatsApp, y de dónde sale el número? | **En la portada, el registro y «Suscripción».** Hoy vive solo en el formulario de demostración, que sale con la decisión 19. **El número es un ajuste que Daniel cambia desde `/siga`,** sin tocar el servidor; reemplaza a la variable `SIGA_WHATSAPP` | Daniel, 12 oct. |
 | 21 | ¿Y los datos para pagar —Pago Móvil, Binance—? | **En el mismo ajuste de `/siga`,** por la misma razón: cambiar de cuenta no puede exigir un despliegue | Claude, por la misma razón que la 20 |
 | 22 | ¿Quién valida pagos y cambia los ajustes? | **El fundador**, como ya pasa con tocar suscripciones (`SigaStaff#puede_dar_de_alta_colegios?`); operaciones los ve | Claude, siguiendo el código |
+| 23 | ¿Se le avisa al colegio cuando su pago se valida? | **Sí, por correo, a quien lo reportó.** El spec pedía solo el del rechazo; sin el otro, el colegio tiene que entrar a mirar o escribir a preguntar si ya puede calificar | Claude, tanda 2 · **por confirmar** |
+| 24 | ¿Y si el colegio reportó mal? | **Retira su reporte mientras nadie lo ha mirado, y reporta de nuevo.** Solo cabe uno en revisión: sin esto quedaría esperando a que se lo rechacen | Claude, tanda 2 · **por confirmar** |
+| 25 | ¿Con qué cuenta se cobra: la del día que reporta o la del día que se valida? | **La del día que REPORTA.** El reporte guarda lo que el colegio vio —alumnos, precio, mínimo e IVA— y validar activa con eso, aunque después inscriba más alumnos o suba el precio | Claude, tanda 2 · **por confirmar** |
+| 26 | «Pagó tarde», ¿se mide por el reporte o por la validación? | **Por el reporte.** La demora en validar es de SIGA y no puede moverle el mes al colegio (§ 5.7) | Claude, tanda 2 · **por confirmar** |
+| 27 | ¿Se puede deshacer una validación? | **No, por ahora.** Por eso validar pide confirmación, y un pago ya revisado no se vuelve a decidir. Deshacerla exigiría guardar cómo estaba la suscripción antes | Claude, tanda 2 · **por confirmar** |
 
 ## 4 · El dominio
 
@@ -267,6 +286,11 @@ Para la dirección y finanzas de un colegio de 360 alumnos que todavía no paga:
    └────────────────────────────────────────────────────────────────────────┘
 ```
 
+Debajo va «Lo reportado»: cada reporte con su situación —en revisión,
+validado con el mes que cubrió, o rechazado con su motivo—. El último rechazo
+se lee además ARRIBA, junto al estado, hasta que el colegio reporte de nuevo:
+es la respuesta que está esperando.
+
 Lo de arriba cambia según el estado:
 
 ```
@@ -319,7 +343,21 @@ esa parte. A una madre se le habla de usted, y tampoco de precios.
 ```
 
 Un solo reporte en revisión a la vez: el segundo espera a que se resuelva el
-primero.
+primero. Mientras nadie lo ha mirado, el colegio puede **retirarlo** y reportar
+de nuevo (decisión 24): es la manera de corregir un monto o una referencia mal
+escritos.
+
+Se ofrecen solo los medios que SIGA tiene cargados en sus ajustes, y lo que se
+pide lo da el medio:
+
+```
+   Pago Móvil o transferencia   monto en Bs   referencia   comprobante
+   Binance (USDT)               monto en $    referencia   comprobante
+   Efectivo en dólares          monto en $    —            comprobante, si hay
+```
+
+El reporte guarda la cuenta con que se hizo (decisión 25): los alumnos, el
+precio por alumno, el mínimo, el monto y el IVA de ese día.
 
 ### 5.6 · Validar, en /siga
 
@@ -330,8 +368,20 @@ primero.
    └───────────────────────────────────────────────────────────────────────────────┘
 
    Validar   ──►  la suscripción queda activa por un mes (§ 5.7) y se abre todo, en el momento
+                  al colegio le llega un correo que dice hasta cuándo (decisión 23)
    Rechazar  ──►  pide el motivo; el colegio lo ve en su pantalla y le llega por correo
 ```
+
+Validar pide confirmación —no hay botón para deshacerlo, decisión 27— y lo que
+ya se revisó no se vuelve a decidir. Debajo, «Lo último que se revisó»: quién
+validó o rechazó qué, y cuándo. Las dos cosas quedan además en el historial del
+colegio, que es quien preguntará quién lo activó.
+
+**Los ajustes** (`/siga/ajustes`, decisiones 20 a 22) son una pantalla con cinco
+grupos: el WhatsApp de SIGA; a nombre de quién se paga (titular y cédula o RIF);
+el Pago Móvil (banco y teléfono); la transferencia (la cuenta, de veinte
+dígitos); y Binance Pay. Un medio se ofrece solo con sus datos completos, y el
+efectivo, solo si hay WhatsApp con quién coordinarlo.
 
 ### 5.7 · La escalera, y el pago tarde
 
@@ -357,7 +407,17 @@ primero.
 Sin la tercera fila, un colegio que paga siempre el día 14 de la gracia usaría
 casi cuatro meses gratis al año.
 
+«A tiempo», «en la gracia» y «en solo lectura» se miden por el día en que el
+colegio **reportó**, no por el día en que se validó (decisión 26): quien reportó
+el día 13 de la gracia pagó en la gracia, aunque se valide el 20.
+
 ## 6 · Criterios de aceptación
+
+Marcado, lo que ya está construido y probado (tandas 1 y 2). Dos quedan sin
+marcar aunque están casi enteros, porque nombran el REGISTRO y la PORTADA, que
+llegan con la tanda de la puerta: el precio en un solo lugar —falta la línea
+del registro— y los ajustes de `/siga` —el WhatsApp ya sale de ahí y está en
+«Suscripción»; falta ponerlo en la portada y en el registro—.
 
 **La puerta**
 
@@ -373,18 +433,18 @@ casi cuatro meses gratis al año.
 
 **Lo gratis**
 
-- [ ] Un colegio recién registrado nace en `gratis` y puede cargar e importar
+- [x] Un colegio recién registrado nace en `gratis` y puede cargar e importar
       todo.
-- [ ] En `gratis`, todo lo que no es cargar responde con el muro: calificar,
+- [x] En `gratis`, todo lo que no es cargar responde con el muro: calificar,
       pasar lista, cerrar el lapso, reparaciones, valoraciones, informes,
       cobranza, correos a las familias, los portales del representante y del
       alumno, y cualquier archivo PDF o Excel, salvo la plantilla del
       importador y el manual.
-- [ ] Un test recorre TODOS los controladores y falla si alguno no está
+- [x] Un test recorre TODOS los controladores y falla si alguno no está
       clasificado como entrada, con suscripción o siempre abierto.
-- [ ] El muro dice el precio de ese colegio y enlaza a «Suscripción», también en
+- [x] El muro dice el precio de ese colegio y enlaza a «Suscripción», también en
       la respuesta JSON de la planilla de notas.
-- [ ] Ningún colegio queda sin suscripción: el alta desde `/siga/colegios` le
+- [x] Ningún colegio queda sin suscripción: el alta desde `/siga/colegios` le
       abre la suya con el mismo `Subscription.abrir_gratis!` que el registro, y
       un colegio sin fila cuenta como gratis.
 
@@ -394,40 +454,40 @@ casi cuatro meses gratis al año.
       Cambiarlos cambia la portada, el registro, la ficha para buscadores, la
       pantalla «Suscripción», el muro y la Cartera; lo cuida una versión nueva
       de `los_precios_de_un_solo_lugar_test`.
-- [ ] Con 360 alumnos: 108,00 + 17,28 = 125,28 $. Con 100: 39,00 + 6,24 = 45,24 $.
-- [ ] Al activarse, la suscripción congela su precio por alumno y su mínimo:
+- [x] Con 360 alumnos: 108,00 + 17,28 = 125,28 $. Con 100: 39,00 + 6,24 = 45,24 $.
+- [x] Al activarse, la suscripción congela su precio por alumno y su mínimo:
       cambiar la constante no le cambia el precio a un colegio que ya entró.
-- [ ] El monto de cada mes se calcula con la matrícula del día de la renovación.
-- [ ] Ninguna pantalla ni correo dice «Plan Inicial», «Estándar» ni «Grande».
+- [x] El monto de cada mes se calcula con la matrícula del día de la renovación.
+- [x] Ninguna pantalla ni correo dice «Plan Inicial», «Estándar» ni «Grande».
 
 **El salto**
 
-- [ ] Dirección y finanzas ven «Suscripción» en el menú; académico, no.
-- [ ] La pantalla dice el estado, la matrícula que se usó, el precio con su IVA y
+- [x] Dirección y finanzas ven «Suscripción» en el menú; académico, no.
+- [x] La pantalla dice el estado, la matrícula que se usó, el precio con su IVA y
       cómo pagar por los tres medios.
 - [ ] Desde `/siga`, el fundador cambia el número de WhatsApp y los datos para
       pagar (Pago Móvil y Binance); la portada, el registro y «Suscripción» los
       usan en el momento, sin reiniciar nada. Operaciones los ve y no los
       cambia.
-- [ ] Si un dato para pagar está vacío, su medio no aparece en «Suscripción».
+- [x] Si un dato para pagar está vacío, su medio no aparece en «Suscripción».
 
 **El cobro**
 
-- [ ] El colegio reporta medio, monto, referencia (salvo efectivo), fecha y
+- [x] El colegio reporta medio, monto, referencia (salvo efectivo), fecha y
       comprobante; el reporte queda «en revisión» y a SIGA le llega un correo.
-- [ ] No puede haber dos reportes en revisión a la vez.
-- [ ] Validar en `/siga` deja la suscripción activa y abre calificar, asistencia
+- [x] No puede haber dos reportes en revisión a la vez.
+- [x] Validar en `/siga` deja la suscripción activa y abre calificar, asistencia
       y salidas en el momento. Valida el fundador.
-- [ ] Rechazar pide motivo; el colegio lo ve en su pantalla y le llega por
+- [x] Rechazar pide motivo; el colegio lo ve en su pantalla y le llega por
       correo.
-- [ ] Primer pago y pago en solo lectura: el mes cuenta desde la validación.
+- [x] Primer pago y pago en solo lectura: el mes cuenta desde la validación.
       Pago a tiempo o en la gracia: desde el vencimiento.
 - [ ] Un trabajo diario mueve los estados sin que nadie abra la Cartera, a una
       hora en que la fecha en UTC es la misma que en Venezuela.
 - [ ] Sale correo, con su aviso en pantalla, 5 días antes, al vencer y al pasar a
       solo lectura; cada correo, una sola vez.
-- [ ] Mientras un reporte está en revisión, el estado no baja.
-- [ ] En solo lectura se siguen emitiendo constancias, boletines y certificados,
+- [x] Mientras un reporte está en revisión, el estado no baja.
+- [x] En solo lectura se siguen emitiendo constancias, boletines y certificados,
       como hoy.
 
 **El colegio de muestra**
@@ -500,11 +560,42 @@ casi cuatro meses gratis al año.
   desaparece. Hay que reemplazarlo por uno que busque lo nuevo, no solo
   borrarlo.
 
+**Lo que enseñó la tanda 2**
+
+- **El correo al colegio se encola DENTRO del colegio.** `/siga` no tiene
+  colegio, y un trabajo se lleva el que haya al encolarlo (`CarriesSchool`). Sin
+  él, el worker busca el pago con el RLS puesto, no lo encuentra y el correo no
+  sale — sin que validar falle. ⚠️ Un test que entrega el correo dentro de la
+  misma petición NO lo ve: ahí se ven todos los colegios. Lo cuida el que mira
+  la carga del trabajo encolado.
+- **Las dos salidas son dos listas.** «Suscripción» y el reporte están en
+  `SIEMPRE_ABIERTO` —o el muro de lo gratis cerraría la pantalla donde se paga—
+  y el reporte, además, en `SIEMPRE_PERMITIDO` —o la solo lectura, que rechaza
+  todo verbo que escriba, cerraría la única puerta para dejar de estar vencido—.
+- **Un doble clic son dos peticiones a la vez.** Validar bloquea la fila
+  (`with_lock`), o el colegio recibe dos meses por un pago; el reporte se guarda
+  en su `SAVEPOINT` y con la red del índice único, o el segundo envío es un 500
+  que además deja abortada la transacción de la petición.
+- **«Uno en revisión a la vez» lo sostiene un índice parcial.** Y un índice
+  único con una condición de negocio NO es una clave: el diagrama del modelo lo
+  leía como «un pago por colegio» (`modelo.rake`).
+- **Una validación que busca otras filas necesita el colegio en contexto.** Sin
+  él, el RLS devuelve cero y «ya hay uno en revisión» no encuentra nada. En una
+  petición siempre lo hay; en un test o una consola, hay que ponerlo.
+- **Los ajustes no son de la demo.** `demo:limpiar` borra a todas las personas y
+  no puede llevarse el WhatsApp ni las cuentas con que SIGA cobra: `siga_settings`
+  queda fuera del borrado, y su única clave foránea se pone en nulo sola.
+- **`prueba:borrar` lleva su lista a mano**, y un colegio de prueba que reportó
+  un pago no se dejaba borrar: hubo que sumarle los pagos y sus comprobantes.
+
 ## 8 · Cómo se verifica
 
 - `bin/ci` completo.
 - Un test de sistema de punta a punta: registrarse → cargar → tocar Calificar
   (el muro, con el precio) → reportar el pago → validar en `/siga` → calificar.
+  Está escrito (`del_registro_al_pago_test`), y el muro se toca por la
+  ASISTENCIA: quien paga es la dirección, que pasa lista y no califica —
+  calificar es del profesor, que ve el muro sin precio.
 - El trabajo diario con el tiempo detenido (`travel_to`): 5 días antes, al
   vencer y a los 15 días; con un reporte en revisión y sin él.
 - El test que recorre todos los controladores.

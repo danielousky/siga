@@ -1,0 +1,33 @@
+-# El pago se validó: el colegio ya puede calificar (spec `del-registro-al-cobro`,
+-# decisión 23).
+-#
+-# Dice lo que cambió para el colegio —qué puede hacer desde ahora y hasta
+-# cuándo—, no el trámite que hizo SIGA. Es de SIGA: no llama `a_nombre_de`.
+- etiqueta = "padding: 6px 14px 6px 0; color: #555; vertical-align: top; white-space: nowrap;"
+- valor    = "padding: 6px 0; color: #111; overflow-wrap: anywhere; word-break: break-word;"
+
+- content_for :adelanto, "Ya puede calificar, pasar lista y emitir hasta el #{dia_y_mes(@pago.cubre_hasta)}."
+
+= titulo_de_correo "Su suscripción está activa"
+
+-# ⚠️ Sin «desde ahora»: el mismo correo sale con el primer pago y con cada
+-# renovación, y al colegio que ya venía calificando le diría algo falso.
+%p
+  = "Validamos el pago que reportó el #{l(@pago.created_at.to_date, format: :long)} para #{@colegio.name}."
+  = "Pueden calificar, pasar lista y emitir boletines y constancias hasta el #{l(@pago.cubre_hasta, format: :long)}."
+
+%table{role: "presentation", cellpadding: 0, cellspacing: 0, border: 0, style: "border-collapse: collapse; margin: 0 0 20px;"}
+  %tr
+    %td{style: etiqueta}
+      %strong Activa
+    %td{style: valor}= "del #{l(@pago.cubre_desde, format: :long)} al #{l(@pago.cubre_hasta, format: :long)}"
+  %tr
+    %td{style: etiqueta}
+      %strong Pagó
+    %td{style: valor}= "#{importe_del_pago(@pago)}, por #{@pago.nombre_del_medio}"
+
+= boton_de_correo "Entrar a SIGA", @url
+
+= nota_de_correo do
+  El mes siguiente se reporta igual, desde «Suscripción». El precio sale de
+  los alumnos inscritos el día en que se paga.

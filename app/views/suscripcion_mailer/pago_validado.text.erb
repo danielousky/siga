@@ -1,0 +1,12 @@
+Su suscripción está activa
+
+Validamos el pago que reportó el <%= l(@pago.created_at.to_date, format: :long) %> para <%= @colegio.name %>.
+Pueden calificar, pasar lista y emitir boletines y constancias hasta el <%= l(@pago.cubre_hasta, format: :long) %>.
+
+  Activa   del <%= l(@pago.cubre_desde, format: :long) %> al <%= l(@pago.cubre_hasta, format: :long) %>
+  Pagó     <%= importe_del_pago(@pago) %>, por <%= @pago.nombre_del_medio %>
+
+Entrar a SIGA: <%= @url %>
+
+El mes siguiente se reporta igual, desde «Suscripción». El precio sale de los
+alumnos inscritos el día en que se paga.

@@ -1,0 +1,25 @@
+-# El pago no se pudo validar, con su motivo (spec `del-registro-al-cobro`, § 5.6).
+-#
+-# ⚠️ El motivo va solo y a la vista: es lo único que el colegio necesita para
+-# corregir y volver a reportar. Es de SIGA: no llama `a_nombre_de`.
+- content_for :adelanto, "El pago que reportó el #{dia_y_mes(@pago.created_at.to_date)} no se pudo validar. Le decimos por qué."
+
+= titulo_de_correo "No pudimos validar su pago"
+
+%p
+  = "Revisamos el pago de #{importe_del_pago(@pago)} que reportó el #{l(@pago.created_at.to_date, format: :long)} para #{@colegio.name}, y no lo pudimos validar:"
+
+%table{role: "presentation", width: "100%", cellpadding: "0", cellspacing: "0", border: "0",
+       style: "margin:0 0 20px; background:#ffffff; border-radius:10px;"}
+  %tr
+    %td{style: "padding:16px 20px; font-size:15px; line-height:1.55; color:#2c2c2c; overflow-wrap:anywhere; word-break:break-word;"}= @pago.motivo
+
+%p Corrija lo que haga falta y repórtelo de nuevo desde «Suscripción».
+
+= boton_de_correo "Reportarlo de nuevo", @url
+
+- if @whatsapp
+  = nota_de_correo do
+    Si algo no está claro,
+    = succeed "." do
+      = link_to "escríbanos por WhatsApp", @whatsapp

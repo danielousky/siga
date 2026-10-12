@@ -10,6 +10,9 @@
 # El correo resuelve las dos mitades: la persona no espera a nadie, y SIGA se
 # entera en el momento.
 class PlataformaMailer < ApplicationMailer
+  # Los montos de un pago, escritos como en todas las pantallas: «109.586,17 Bs».
+  helper PagosHelper, ApplicationHelper
+
   # ⚠️ A quién le llega. Va por variable de entorno y NO a una dirección escrita
   # en el código: el día que haya alguien más en el equipo, cambiarlo no puede
   # exigir un despliegue.
@@ -27,5 +30,21 @@ class PlataformaMailer < ApplicationMailer
 
     mail to: self.class.destinatario,
          subject: "Nuevo colegio en SIGA: #{colegio.name}"
+  end
+
+  # Un colegio reportó el pago de su suscripción (spec `del-registro-al-cobro`,
+  # § 5.5): hay que mirarlo en `/siga/cartera` y validarlo o rechazarlo.
+  #
+  # ⚠️ Es lo que hace que reportar no sea un formulario al vacío. Sin este
+  # correo el pago espera hasta que alguien abra la Cartera por otra razón, y
+  # el colegio que pagó sigue sin poder calificar.
+  def pago_reportado(pago)
+    return if self.class.destinatario.blank?
+
+    @pago = pago
+    @colegio = pago.school
+
+    mail to: self.class.destinatario,
+         subject: "Pago por validar: #{@colegio.name} · #{ApplicationController.helpers.importe_del_pago(pago)}"
   end
 end

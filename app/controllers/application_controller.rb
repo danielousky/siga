@@ -322,6 +322,16 @@ class ApplicationController < ActionController::Base
                 alert: "Esta parte del colegio la administra la dirección."
   end
 
+  # «Suscripción» y el reporte de su pago: dirección y finanzas (decisión 14 del
+  # spec `del-registro-al-cobro`). La MISMA pregunta que se hace el menú, por la
+  # razón de `puede_cobrar?`: un enlace que se ve y rebota enseña que los
+  # enlaces de este sistema a veces no funcionan.
+  def require_quien_paga!
+    return if puede?(:pagar_la_suscripcion)
+
+    redirect_to dashboard_path_for_user, alert: "La suscripción la lleva la dirección del colegio."
+  end
+
   def can_manage_academic_config? = puede?(:manage_academic_config)
 
   def show_recent_activity? = puede?(:recent_activity)

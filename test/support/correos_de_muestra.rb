@@ -1,12 +1,17 @@
-# Los ocho correos de SIGA, armados con un colegio de prueba.
+# Los correos de SIGA, armados con un colegio de prueba.
 #
 # Los usan dos tests que miran cosas distintas del mismo correo: QUÉ dice
 # (`correos_con_identidad_test`) y CÓMO se ve en un teléfono
 # (`correos_en_el_telefono_test`). Escrito dos veces, el día que nazca un
-# noveno correo entraría en uno y en el otro no.
+# correo nuevo entraría en uno y en el otro no — y nacieron tres con el cobro
+# de la suscripción (spec `del-registro-al-cobro`), que entraron aquí.
 #
 # No se incluye en todos los tests: lo pide quien lo necesita.
+require_relative "cobro_de_la_suscripcion"
+
 module CorreosDeMuestra
+  include CobroDeLaSuscripcion
+
   # Deja `@a`, `@b`, `@colegio`, `@madre` y `@boletin`.
   def preparar_los_correos
     @a, @b = dos_colegios_completos(nivel: :primaria)
@@ -50,7 +55,7 @@ module CorreosDeMuestra
     end
   end
 
-  # Los ocho. Los de la contraseña salen del colegio: `@a.director` es de uno solo.
+  # Todos. Los de la contraseña salen del colegio: `@a.director` es de uno solo.
   def todos_los_correos
     de_siga = {
       "bienvenida"          => BienvenidaMailer.cuenta_creada(User.new(first_name: "YOLEIMA", email: "yoleima@sucolegio.edu")),
@@ -60,7 +65,37 @@ module CorreosDeMuestra
     }
     de_siga.each_value(&:message)
 
-    correos_del_colegio.merge(de_siga)
+    correos_del_colegio.merge(de_siga).merge(correos_del_cobro)
+  end
+
+  # Los tres del cobro de la suscripción (spec `del-registro-al-cobro`). Son de
+  # SIGA: el primero le llega a su equipo, y los otros dos a quien reportó.
+  #
+  # ⚠️ Con el WhatsApp cargado: el del rechazo lleva su enlace solo si hay
+  # número, y esa es la versión más larga — la que hay que mirar en un teléfono.
+  #
+  # ⚠️ Se arman UNA vez por test. Cada llamada reporta tres pagos, y la segunda
+  # chocaría contra «uno en revisión a la vez».
+  def correos_del_cobro
+    @correos_del_cobro ||= begin
+      cargar_los_ajustes_de_siga
+
+      rechazado = pago_reportado(@a)
+      con_el_colegio(@colegio) { rechazado.rechazar!(por: @a.director, motivo: "La referencia no aparece en el banco") }
+      validado = pago_reportado(@a)
+      con_el_colegio(@colegio) { validado.validar!(por: @a.director) }
+      en_revision = pago_reportado(@a)
+
+      con_la_variable("SIGA_AVISOS_EMAIL", "avisos@siga.test") do
+        con_el_colegio(@colegio) do
+          {
+            "pago por validar" => PlataformaMailer.pago_reportado(en_revision),
+            "pago validado"    => SuscripcionMailer.pago_validado(validado),
+            "pago rechazado"   => SuscripcionMailer.pago_rechazado(rechazado)
+          }.each_value(&:message)
+        end
+      end
+    end
   end
 
   # ⚠️ El mensaje se fuerza DENTRO de los dos bloques: afuera ya no hay
@@ -79,12 +114,6 @@ module CorreosDeMuestra
     end
   end
 
-  # Una variable de entorno, puesta y devuelta como estaba.
-  def con_la_variable(nombre, valor)
-    anterior = ENV[nombre]
-    ENV[nombre] = valor
-    yield
-  ensure
-    ENV[nombre] = anterior
-  end
+  # `con_la_variable` —una variable de entorno, puesta y devuelta como estaba—
+  # viene de `CobroDeLaSuscripcion`.
 end
