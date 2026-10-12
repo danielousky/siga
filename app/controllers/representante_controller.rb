@@ -65,8 +65,7 @@ class RepresentanteController < ApplicationController
     # ⚠️ Solo los LIBERADOS. Un boletín emitido y sin revisar existe pero
     # todavía no es de la familia: la oficina tiene que darle el vistazo final
     # antes de que alguien lo lea (ver `RevisionDeBoletinesController`).
-    @boletines   = ReportCard.where(enrollment_id: @inscripcion.id)
-                             .liberados.order(created_at: :desc).limit(5)
+    @boletines   = boletines_del_alumno(@hijo[:student])
   end
 
   # Cambiar de colegio cuando se tienen hijos en más de uno.
@@ -104,10 +103,16 @@ class RepresentanteController < ApplicationController
     libros = FinalGradeBook.where(enrollment_id: inscripcion.id).index_by(&:subject_id)
 
     grado.subjects.order(:name).map do |materia|
-      del_lapso = @anual ? nil : notas[[materia.id, lapso&.id]]&.final_moment_score&.to_i
+      nota_del_lapso = (notas[[materia.id, lapso&.id]] unless @anual)
+      del_lapso = nota_del_lapso&.final_moment_score&.to_i
       {
         materia: materia,
         lapso: del_lapso,
+        # ⚠️ Educación Inicial no pone número: describe (`MOR-218`). Sin esto la
+        # familia leía «Pendiente» en las tres áreas de su hija aunque la
+        # maestra las hubiera escrito todas: el texto vive en la misma fila que
+        # la nota, y esta pantalla solo le preguntaba por el número.
+        valoracion: nota_del_lapso&.descripcion.presence,
         definitiva: libros[materia.id]&.final_score&.to_i,
         escala: grado.escala,
         # El nivel de la rúbrica del colegio y el plan que se trabajó (MOR-136).
@@ -119,6 +124,22 @@ class RepresentanteController < ApplicationController
         competencias: competencias_de(inscripcion, materia, lapso)
       }
     end
+  end
+
+  # Los boletines que la familia puede descargar: los LIBERADOS de este alumno,
+  # de este año y de los anteriores.
+  #
+  # ⚠️ Solo se listaban los de la inscripción vigente, así que en octubre la
+  # lista estaba vacía —el primer lapso cierra en diciembre— aunque el boletín
+  # final de julio estuviera emitido y `BoletinesController` lo dejara
+  # descargar: existía, y no había por dónde llegar a él. Es justo cuando una
+  # familia lo busca: para inscribir al hermano, o para el pasaporte.
+  def boletines_del_alumno(alumno)
+    ReportCard.where(enrollment_id: Enrollment.where(student_id: alumno.id).select(:id))
+              .liberados
+              .includes(:evaluation_moment, enrollment: { section: :academic_period })
+              .order(created_at: :desc)
+              .limit(8)
   end
 
   def rubricas_del_colegio

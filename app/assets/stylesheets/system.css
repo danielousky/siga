@@ -12197,3 +12197,14 @@ a.subject-avance:hover { filter: brightness(0.9); }
   font-size: 14px;
   color: var(--text-secondary);
 }
+
+/* La valoración de un área de Educación Inicial, en el portal de la familia:
+   texto corrido bajo el nombre del área, donde en primaria van las competencias. */
+.portal-valoracion {
+  margin: var(--space-xs) 0 0;
+  padding-left: var(--space-md);
+  border-left: 2px solid var(--border-standard);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
