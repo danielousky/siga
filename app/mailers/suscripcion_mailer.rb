@@ -12,7 +12,7 @@
 # ⚠️ Y se encolan DENTRO del colegio (`Siga::PagosController`): el pago es una
 # fila con RLS, y un trabajo que corre sin colegio no la encuentra.
 class SuscripcionMailer < ApplicationMailer
-  # Los montos, escritos como en todas las pantallas: «125,28 $», «109.586,17 Bs».
+  # Los montos, escritos como en todas las pantallas: «126,00 $», «109.586,17 Bs».
   helper PagosHelper, ApplicationHelper
 
   # Decisión 23 del spec: el colegio se entera de que ya puede calificar sin

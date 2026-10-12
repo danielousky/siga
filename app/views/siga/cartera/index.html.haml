@@ -3,7 +3,7 @@
 .siga-cifras
   .siga-cifra
     %span.siga-cifra-numero= numero_en_dolares(@facturacion)
-    %span.siga-cifra-que facturación mensual, sin IVA
+    %span.siga-cifra-que facturación mensual
   .siga-cifra{class: ("siga-cifra--atencion" if @con_problema.positive?)}
     %span.siga-cifra-numero= @con_problema
     %span.siga-cifra-que= "#{pluralizar(@con_problema, 'colegio', 'colegios')} en solo lectura"
@@ -48,8 +48,8 @@
         .siga-pago-datos
           %span
             %span.apagado Le toca
-            %strong= numero_en_dolares(pago.cotizacion.total)
-            %span.apagado= "(#{contar(pago.alumnos, 'alumno', 'alumnos')}, #{pago.cotizacion.en_el_minimo? ? 'el mínimo' : "a #{numero_en_dolares(pago.precio_por_alumno)}"}, más IVA)"
+            %strong= numero_en_dolares(pago.cotizacion.monto)
+            %span.apagado= "(#{contar(pago.alumnos, 'alumno', 'alumnos')}, #{pago.cotizacion.en_el_minimo? ? 'el mínimo' : "a #{numero_en_dolares(pago.precio_por_alumno)}"})"
           - if pago.comprobante.attached?
             = link_to "Ver el comprobante ↗", url_for(pago.comprobante), target: "_blank", rel: "noopener"
           - else
@@ -123,7 +123,7 @@
           %th= School.model_name.human
           %th.num Matrícula
           %th Suscripción
-          %th.num Al mes, con IVA
+          %th.num Al mes
           %th Estado
           %th Vence
       %tbody
@@ -143,7 +143,7 @@
             -# ⚠️ Lo que le tocaría HOY, con su matrícula de hoy y su precio
             -# congelado. Al gratis, lo que pagaría si activara: es el número que
             -# se le dice por teléfono.
-            %td.num= numero_en_dolares(cotizacion.total)
+            %td.num= numero_en_dolares(cotizacion.monto)
             %td
               - if s
                 %span.siga-estado{class: "siga-estado--#{s.status}"}= s.etiqueta_de_estado

@@ -40,8 +40,8 @@
       %td{style: etiqueta}
         %strong Le toca
       %td{style: valor}
-        = numero_en_dolares(cotizacion.total)
-        = "(#{contar(cotizacion.alumnos, 'alumno', 'alumnos')}, IVA incluido)"
+        = numero_en_dolares(cotizacion.monto)
+        = "(#{contar(cotizacion.alumnos, 'alumno', 'alumnos')})"
     %tr
       %td{style: etiqueta}
         %strong Comprobante

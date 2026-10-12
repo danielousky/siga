@@ -7,7 +7,7 @@ Pago por validar: <%= @colegio.name %>
   Pagó             <%= importe_del_pago(@pago) %>
   Referencia       <%= @pago.referencia.presence || "en efectivo, sin referencia" %>
   Fecha del pago   <%= l(@pago.pagado_el, format: :long) %>
-  Le toca          <%= numero_en_dolares(cotizacion.total) %> (<%= contar(cotizacion.alumnos, 'alumno', 'alumnos') %>, IVA incluido)
+  Le toca          <%= numero_en_dolares(cotizacion.monto) %> (<%= contar(cotizacion.alumnos, 'alumno', 'alumnos') %>)
   Comprobante      <%= @pago.comprobante.attached? ? "adjunto, en la Cartera" : "no adjuntó" %>
 <% if @pago.nota.present? -%>
   Agregó           <%= @pago.nota %>

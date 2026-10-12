@@ -38,11 +38,9 @@ module SuscripcionHelper
   end
 
   # Cuántos alumnos cubre el mínimo con el precio de este colegio: con el de
-  # hoy, 39 $ a 0,30 son 130. Se calcula, no se escribe, por lo mismo que el
+  # hoy, 45 $ a 0,35 son 128. Se calcula, no se escribe, por lo mismo que el
   # precio (`los_precios_de_un_solo_lugar_test`).
   def alumnos_que_cubre_el_minimo(cotizacion)
     (cotizacion.minimo / cotizacion.por_alumno).floor
   end
-
-  def porcentaje_de_iva = "#{(Subscription::IVA * 100).to_i} %"
 end

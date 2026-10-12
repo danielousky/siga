@@ -31,7 +31,7 @@ module PagosHelper
   def importe_transferido(monto) = importe(monto, unidad: "Bs")
 
   # El número solo, cuando la unidad va en su propia etiqueta: en la portada el
-  # precio se dibuja grande —«0,30»— y debajo, chico, «$ por alumno al mes».
+  # precio se dibuja grande —«0,35»— y debajo, chico, «$ por alumno al mes».
   def cifra(monto) = importe(monto, unidad: nil)
 
   # Lo que un colegio le pagó a SIGA, en la unidad de su MEDIO: Pago Móvil o

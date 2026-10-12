@@ -41,7 +41,7 @@
               %td.num= alumnos
               %td.num= @profesores_por_colegio[colegio.id] || 0
               %td.num= @secciones_por_colegio[colegio.id] || 0
-              %td.num= numero_en_dolares(Subscription.cotizar(alumnos).total)
+              %td.num= numero_en_dolares(Subscription.cotizar(alumnos).monto)
 
     -# ⚠️ El precio NO va escrito a mano. Esta nota decía «$25 · $50 · $90» el 5
     -# de octubre de 2026, dos subidas después: era la última copia de los
@@ -50,7 +50,7 @@
     - por_alumno = numero_en_dolares(Subscription::PRECIO_POR_ALUMNO)
     - minimo     = numero_en_dolares(Subscription::MINIMO_MENSUAL)
     %p.siga-nota
-      = "Sale de la matrícula: #{por_alumno} por alumno al mes, más IVA, con un mínimo de #{minimo}."
+      = "Sale de la matrícula: #{por_alumno} por alumno al mes, con un mínimo de #{minimo}."
       Es lo que le tocaría hoy, no lo que paga: eso está en la
       = succeed "." do
         = link_to "Cartera", siga_cartera_index_path

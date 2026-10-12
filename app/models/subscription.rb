@@ -42,7 +42,17 @@ class Subscription < ApplicationRecord
   #     hasta septiembre de 2026      bandas: 25 · 50 · 90
   #     septiembre de 2026            bandas: 30 · 60 · 90
   #     5 de octubre de 2026          bandas: 39 · 79 · 119
-  #     12 de octubre de 2026         0,30 $ por alumno al mes + IVA, mínimo 39 $
+  #     12 de octubre de 2026         0,35 $ por alumno al mes, mínimo 45 $
+  #
+  # ⚠️ El precio es FINAL: lleva el IVA adentro. Ese mismo 12 de octubre nació
+  # como «0,30 $ + IVA, mínimo 39», y Daniel lo corrigió antes de que saliera:
+  # *«no podemos cobrar IVA en dólares, eso no es correcto… vamos a
+  # incrementarle el IVA al costo, 0,30 × 1,16 = 0,348, poco menos de 0,35.
+  # Pongámoslo de una vez como el costo»*. Ninguna pantalla dice «más IVA» ni
+  # lo calcula: lo que se lee es lo que se paga.
+  #
+  # ⚠️ El mínimo, 45, es la misma cuenta —39 × 1,16 = 45,24— y lo deduje yo:
+  # Daniel dijo el precio por alumno, no el mínimo. Está por confirmar.
   #
   # Lo leen la portada, la descripción y la ficha para buscadores, el muro de
   # lo gratis y el panel de SIGA. Lo cuida `los_precios_de_un_solo_lugar_test`,
@@ -52,21 +62,14 @@ class Subscription < ApplicationRecord
   # ⚠️ Y subirlo NO le cambia la factura a nadie: cada suscripción congela su
   # precio por alumno y su mínimo el día que se activa (decisión 17). Subir el
   # precio toca solo a los colegios que entran después.
-  PRECIO_POR_ALUMNO = BigDecimal("0.30")
-  MINIMO_MENSUAL    = BigDecimal("39")
+  PRECIO_POR_ALUMNO = BigDecimal("0.35")
+  MINIMO_MENSUAL    = BigDecimal("45")
 
-  # Se anuncia aparte —«0,30 $ por alumno + IVA», decisión 8— y la factura la
-  # emite Daniel, fuera de SIGA. Aquí solo se calcula para mostrarlo.
-  IVA = BigDecimal("0.16")
-
-  # Lo que cuesta un mes, desglosado. Es UNA cuenta, y la hacen todos los que
-  # muestran un precio: escrita dos veces, el muro diría un número y la Cartera
-  # otro.
-  Cotizacion = Data.define(:alumnos, :por_alumno, :minimo, :monto, :iva) do
-    def total = monto + iva
-
+  # Lo que cuesta un mes. Es UNA cuenta, y la hacen todos los que muestran un
+  # precio: escrita dos veces, el muro diría un número y la Cartera otro.
+  Cotizacion = Data.define(:alumnos, :por_alumno, :minimo, :monto) do
     # El colegio chico paga el mínimo, no sus alumnos por el precio: con el de
-    # hoy, hasta 130 alumnos.
+    # hoy, hasta 128 alumnos.
     def en_el_minimo? = alumnos * por_alumno <= minimo
   end
 
@@ -95,8 +98,7 @@ class Subscription < ApplicationRecord
   def self.cotizar(alumnos, por_alumno: PRECIO_POR_ALUMNO, minimo: MINIMO_MENSUAL)
     monto = [ (alumnos * por_alumno).round(2), minimo ].max
 
-    Cotizacion.new(alumnos: alumnos, por_alumno: por_alumno, minimo: minimo,
-                   monto: monto, iva: (monto * IVA).round(2))
+    Cotizacion.new(alumnos: alumnos, por_alumno: por_alumno, minimo: minimo, monto: monto)
   end
 
   # ══════════════════════════════════════════════════════════════════════════
@@ -165,7 +167,7 @@ class Subscription < ApplicationRecord
   # Lo que le toca este mes, con la matrícula de hoy.
   #
   # ⚠️ Con SU precio si ya lo tiene congelado, y con el de hoy si todavía está
-  # en gratis: el colegio que entró a 0,30 sigue a 0,30 aunque la constante
+  # en gratis: el colegio que entró a 0,35 sigue a 0,35 aunque la constante
   # suba (decisión 17).
   #
   # La matrícula se puede pasar hecha: la Cartera ya la contó para todos los
@@ -259,7 +261,7 @@ class Subscription < ApplicationRecord
   #
   # ⚠️ El precio sale del PAGO, no de la constante: es lo que el colegio vio al
   # reportar. Y queda congelado en la suscripción (decisión 17), así el que
-  # entró a 0,30 sigue a 0,30 aunque el precio suba.
+  # entró a 0,35 sigue a 0,35 aunque el precio suba.
   def activar_con!(pago)
     update!(plan: :por_alumno, status: :activa,
             precio_por_alumno: pago.precio_por_alumno, minimo_mensual: pago.minimo_mensual,

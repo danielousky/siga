@@ -78,14 +78,13 @@ class SubscriptionPayment < ApplicationRecord
 
     new(school: suscripcion.school, reportado_por: por,
         alumnos: cotizacion.alumnos, precio_por_alumno: cotizacion.por_alumno,
-        minimo_mensual: cotizacion.minimo, precio_mensual: cotizacion.monto,
-        iva: cotizacion.iva, **datos)
+        minimo_mensual: cotizacion.minimo, precio_mensual: cotizacion.monto, **datos)
   end
 
   # La cuenta con que se reportó, en la misma forma que la de la suscripción.
   def cotizacion
     Subscription::Cotizacion.new(alumnos: alumnos, por_alumno: precio_por_alumno,
-                                 minimo: minimo_mensual, monto: precio_mensual, iva: iva)
+                                 minimo: minimo_mensual, monto: precio_mensual)
   end
 
   def nombre_del_medio = MEDIOS.dig(medio, :nombre)

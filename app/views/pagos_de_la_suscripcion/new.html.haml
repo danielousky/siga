@@ -22,8 +22,8 @@
   -# coincidir con lo que pagó, y no se le pide que lo recuerde de otra pantalla.
   %p.reporte-de-pago-cuenta
     Le toca
-    %strong= "#{numero_en_dolares(cotizacion.total)} al mes"
-    = "(#{contar(cotizacion.alumnos, 'alumno inscrito', 'alumnos inscritos')}, IVA incluido)."
+    %strong= "#{numero_en_dolares(cotizacion.monto)} al mes"
+    = "(#{contar(cotizacion.alumnos, 'alumno inscrito', 'alumnos inscritos')})."
     En bolívares, a la tasa BCV del día en que pagó.
 
   = form_with model: @pago, url: suscripcion_pagos_path, multipart: true,

@@ -154,13 +154,15 @@ class PlanGratisTest < ActionDispatch::IntegrationTest
 
   # ── el muro dice el precio a quien lo paga ────────────────────────────────
 
-  # El colegio de prueba tiene dos alumnos: paga el mínimo, 39 $ más IVA.
+  # El colegio de prueba tiene dos alumnos: paga el mínimo.
   test "a la dirección, el muro le dice cuánto cuesta" do
     post constancias_path, params: { section_id: @a.seccion.id, enrollment_id: @a.inscripcion.id }
 
-    total = ApplicationController.helpers.numero_en_dolares(Subscription.cotizar(2).total)
-    assert_includes flash[:alert], "#{total} al mes"
+    monto = ApplicationController.helpers.numero_en_dolares(Subscription.cotizar(2).monto)
+    assert_includes flash[:alert], "#{monto} al mes"
     assert_includes flash[:alert], "el mínimo"
+    # El precio es final: lo que se lee es lo que se paga (decisión 28).
+    assert_no_match(/IVA/, flash[:alert])
   end
 
   test "al profesor no: no es él quien paga" do

@@ -1,7 +1,7 @@
 -# «Suscripción» (spec `docs/specs/del-registro-al-cobro.md`, § 5.3).
 -#
 -#     en qué está      ← lo primero: es lo que se viene a ver
--#     el precio        ← con la matrícula de hoy, su precio y su IVA
+-#     el precio        ← con la matrícula de hoy; lo que se lee es lo que se paga
 -#     cómo pagar       ← solo los medios que SIGA tiene cargados
 -#     lo reportado     ← cada reporte, con su respuesta
 -#
@@ -26,22 +26,20 @@
 
 .card-academic
   = render "shared/cabecera", titulo: "El precio", nivel: 2
-  -# ⚠️ Con el precio de ESTE colegio: el que entró a 0,30 sigue a 0,30 aunque
+  -# ⚠️ Con el precio de ESTE colegio: el que entró a 0,35 sigue a 0,35 aunque
   -# el precio suba (decisión 17). Al que todavía no paga, el de hoy.
+  -#
+  -# ⚠️ UN renglón y un total, sin IVA aparte (decisión 28): el precio es final.
+  -# Tenía tres renglones —monto, IVA y total— y Daniel lo vio «muy incómodo»:
+  -# además, no se cobra IVA en dólares.
   %table.table-academic.suscripcion-cuenta
     %tbody
-      %tr
-        - if @cotizacion.en_el_minimo?
-          %td= "#{contar(@cotizacion.alumnos, 'alumno inscrito', 'alumnos inscritos')} · el mínimo mensual"
-        - else
-          %td= "#{contar(@cotizacion.alumnos, 'alumno inscrito', 'alumnos inscritos')} × #{numero_en_dolares(@cotizacion.por_alumno)}"
-        %td.suscripcion-cuenta-monto= numero_en_dolares(@cotizacion.monto)
-      %tr
-        %td= "IVA #{porcentaje_de_iva}"
-        %td.suscripcion-cuenta-monto= numero_en_dolares(@cotizacion.iva)
       %tr.suscripcion-cuenta-total
-        %td Al mes
-        %td.suscripcion-cuenta-monto= numero_en_dolares(@cotizacion.total)
+        - if @cotizacion.en_el_minimo?
+          %td= "#{contar(@cotizacion.alumnos, 'alumno inscrito', 'alumnos inscritos')} · el mínimo, al mes"
+        - else
+          %td= "#{contar(@cotizacion.alumnos, 'alumno inscrito', 'alumnos inscritos')} × #{numero_en_dolares(@cotizacion.por_alumno)}, al mes"
+        %td.suscripcion-cuenta-monto= numero_en_dolares(@cotizacion.monto)
   %p.nota-ayuda
     = "#{numero_en_dolares(@cotizacion.por_alumno)} por alumno al mes, con un mínimo de #{numero_en_dolares(@cotizacion.minimo)}"
     = "(cubre hasta #{contar(alumnos_que_cubre_el_minimo(@cotizacion), 'alumno', 'alumnos')})."

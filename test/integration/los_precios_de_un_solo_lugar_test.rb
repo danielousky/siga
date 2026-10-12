@@ -52,7 +52,7 @@ class LosPreciosDeUnSoloLugarTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # El colegio de prueba tiene dos alumnos: le toca el mínimo, 53 $ más IVA.
+  # El colegio de prueba tiene dos alumnos: le toca el mínimo, 53 $.
   test "el panel de SIGA, en la tabla y en la nota" do
     dos_colegios_completos
     sign_in equipo_de_siga
@@ -61,8 +61,8 @@ class LosPreciosDeUnSoloLugarTest < ActionDispatch::IntegrationTest
       get siga_root_path
 
       assert_response :success
-      assert_select "table.siga-tabla td", text: "61,48 $", minimum: 1
-      assert_select "p.siga-nota", text: /0,47 \$ por alumno al mes, más IVA, con un mínimo de 53,00 \$/
+      assert_select "table.siga-tabla td", text: "53,00 $", minimum: 1
+      assert_select "p.siga-nota", text: /0,47 \$ por alumno al mes, con un mínimo de 53,00 \$/
       assert_ningun_precio_de_verdad
     end
   end
@@ -76,8 +76,8 @@ class LosPreciosDeUnSoloLugarTest < ActionDispatch::IntegrationTest
     con_precios_de_mentira do
       post constancias_path, params: { section_id: a.seccion.id, enrollment_id: a.inscripcion.id }
 
-      assert_includes flash[:alert], "61,48 $ al mes"
-      assert_includes flash[:alert], "53,00 $"
+      assert_includes flash[:alert], "53,00 $ al mes"
+      assert_includes flash[:alert], "es el mínimo"
     end
   end
 
@@ -92,14 +92,13 @@ class LosPreciosDeUnSoloLugarTest < ActionDispatch::IntegrationTest
     con_precios_de_mentira do
       get suscripcion_path
 
-      assert_select ".suscripcion-cuenta td", text: "53,00 $"
-      assert_select ".suscripcion-cuenta-total td", text: "61,48 $"
+      assert_select ".suscripcion-cuenta-total td", text: "53,00 $"
       assert_select "p.nota-ayuda", text: /0,47 \$ por alumno al mes, con un mínimo de 53,00 \$/
       assert_ningun_precio_de_verdad
 
       get new_suscripcion_pago_path
 
-      assert_select ".reporte-de-pago-cuenta", text: /61,48 \$ al mes/
+      assert_select ".reporte-de-pago-cuenta", text: /53,00 \$ al mes/
       assert_ningun_precio_de_verdad
     end
   end
@@ -114,7 +113,7 @@ class LosPreciosDeUnSoloLugarTest < ActionDispatch::IntegrationTest
       get siga_cartera_index_path
 
       assert_response :success
-      assert_select "table.siga-tabla td.num", text: "61,48 $", minimum: 1
+      assert_select "table.siga-tabla td.num", text: "53,00 $", minimum: 1
       assert_ningun_precio_de_verdad
     end
   end
@@ -138,6 +137,25 @@ class LosPreciosDeUnSoloLugarTest < ActionDispatch::IntegrationTest
     assert_empty a_mano,
                  "Un monto escrito a mano se queda atrás en la próxima subida de precio. " \
                  "Si es el precio, sale de `Subscription::PRECIO_POR_ALUMNO`:\n  #{a_mano.join("\n  ")}"
+  end
+
+  # ⚠️ El precio es FINAL: lleva el IVA adentro (decisión 28 del spec).
+  #
+  # Daniel, 12 de octubre de 2026: *«no podemos cobrar IVA en dólares, eso no es
+  # correcto»*. Nació como «0,30 $ + IVA», con tres renglones en «Suscripción»
+  # —monto, IVA y total—, y se corrigió antes de salir. Si una pantalla o un
+  # correo vuelve a decir «más IVA», le está anunciando al colegio un cobro que
+  # no existe: lo que se lee es lo que se paga.
+  test "ninguna pantalla ni correo habla de IVA" do
+    con_iva = Rails.root.glob("app/views/**/*.{haml,erb}").flat_map do |plantilla|
+      plantilla.each_line.with_index(1).filter_map do |linea, numero|
+        next if linea.lstrip.start_with?("-#", "<%#")
+
+        "#{plantilla.relative_path_from(Rails.root)}:#{numero}  #{linea.strip}" if linea.match?(/\bIVA\b/)
+      end
+    end
+
+    assert_empty con_iva, "El precio es final y no se desglosa:\n  #{con_iva.join("\n  ")}"
   end
 
   # ⚠️ Desde el 12 de octubre de 2026 no hay planes con nombre (decisión 15 del

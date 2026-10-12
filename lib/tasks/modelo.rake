@@ -221,7 +221,7 @@ namespace :modelo do
     "report_cards.code"              => "el que verifica el QR",
     "report_cards.snapshot"          => "CONGELADO al emitir",
     "subscriptions.plan"             => "gratis · por_alumno — un solo plan, sin nombres",
-    "subscriptions.precio_por_alumno" => "CONGELADO al activarse — el que entró a 0,30 sigue a 0,30",
+    "subscriptions.precio_por_alumno" => "CONGELADO al activarse — el que entró a 0,35 sigue a 0,35",
     "subscriptions.vigente_hasta"    => "el día que vence; de ahí, 15 de gracia y solo lectura",
     "subscription_payments.medio"    => "pago_movil · binance · efectivo — da la unidad del monto",
     "subscription_payments.monto"    => "lo que dice el comprobante: Bs o dólares, según el medio",

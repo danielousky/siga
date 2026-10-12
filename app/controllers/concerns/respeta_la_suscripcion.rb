@@ -248,17 +248,18 @@ module RespetaLaSuscripcion
     return MURO_SIN_PRECIO unless puede?(:pagar_la_suscripcion)
 
     cotizacion = (suscripcion_del_colegio || Subscription.new(school_id: Current.school_id)).cotizacion
-    total      = helpers.numero_en_dolares(cotizacion.total)
+    monto      = helpers.numero_en_dolares(cotizacion.monto)
 
+    # ⚠️ El precio es final: sin «más IVA» (ver `Subscription::PRECIO_POR_ALUMNO`).
     detalle =
       if cotizacion.en_el_minimo?
-        "el mínimo de #{helpers.numero_en_dolares(cotizacion.minimo)}, más IVA"
+        "es el mínimo"
       else
         "#{helpers.contar(cotizacion.alumnos, 'alumno', 'alumnos')} a " \
-          "#{helpers.numero_en_dolares(cotizacion.por_alumno)}, más IVA"
+          "#{helpers.numero_en_dolares(cotizacion.por_alumno)}"
       end
 
-    "Calificar, pasar lista y emitir se activan con la suscripción: #{total} al mes (#{detalle})."
+    "Calificar, pasar lista y emitir se activan con la suscripción: #{monto} al mes (#{detalle})."
   end
 
   def exigir_suscripcion_al_dia!
