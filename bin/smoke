@@ -149,7 +149,10 @@ login() { # login <email> <password> <cookiejar>
 echo "Público"
 check "landing /"                "/"                   200
 check "login"                    "/users/sign_in"      200
-check "solicitud de demo"        "/demo_requests/new"  200
+# El formulario de demostración salió: su dirección lleva a la portada (`check`
+# sigue la redirección, así que lo que se lee es el 200 de la portada).
+check "la demo, a la portada"    "/demo_requests/new"  200
+check "registrar un colegio"     "/registrarse"        200
 check "recuperar contraseña"     "/users/password/new" 200
 check "verificar boletín"        "/verificar"          200
 check "código inexistente"       "/verificar/BOL-XXXX-YYYY" 404

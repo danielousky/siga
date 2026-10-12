@@ -125,29 +125,35 @@ class AjustesDeSigaTest < ActionDispatch::IntegrationTest
 
   # ── El botón de WhatsApp sale de aquí ─────────────────────────────────────
 
-  # ⚠️ El número es un ajuste, y ya no una variable leída al arrancar.
+  # ⚠️ El número es un ajuste, y ya no una variable leída al arrancar. Está en
+  # las dos pantallas públicas donde alguien decide (decisión 20 del spec): la
+  # portada y el registro.
   test "el WhatsApp de las pantallas públicas es el de los ajustes" do
     cargar_los_ajustes_de_siga(whatsapp: "0416-1112233")
 
-    get new_demo_request_path
+    [ root_path, new_user_registration_path ].each do |pantalla|
+      get pantalla
 
-    assert_select "a[href^='https://wa.me/584161112233']"
+      assert_select "a[href^='https://wa.me/584161112233']", { minimum: 1 }, "falta el WhatsApp en #{pantalla}"
+    end
   end
 
   # Un botón que abre un chat con nadie es peor que no tener botón.
   test "sin número, el botón no aparece" do
     con_la_variable("SIGA_WHATSAPP", nil) do
-      get new_demo_request_path
+      [ root_path, new_user_registration_path ].each do |pantalla|
+        get pantalla
 
-      assert_response :success
-      assert_select "a[href*='wa.me']", 0
+        assert_response :success
+        assert_select "a[href*='wa.me']", 0
+      end
     end
   end
 
   # La variable sirve de valor inicial: el botón no desaparece el día del cambio.
   test "mientras nadie guarde los ajustes, vale la variable de entorno" do
     con_la_variable("SIGA_WHATSAPP", "584241234567") do
-      get new_demo_request_path
+      get root_path
 
       assert_select "a[href^='https://wa.me/584241234567']"
     end

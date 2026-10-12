@@ -14,8 +14,7 @@ spec está **congelado**: `docs/specs/del-registro-al-cobro.md`, en la rama
    «Suscripción» → reporte → validación en /siga        ✔ tanda 2, en local
    el WhatsApp y los datos para pagar, en /siga/ajustes ✔ tanda 2, en local
    el colegio de muestra, en su instancia aparte        ✔ tanda 5, EN LÍNEA: demo.sigaeducando.com
-   la puerta: registro + WhatsApp + colegio de muestra  falta (tanda 4) — hoy sigue
-                                                        el formulario de demostración
+   la puerta: registro + WhatsApp + colegio de muestra  ✔ tanda 4, en local
    un trabajo diario: 5 días antes · gracia · solo      falta (tanda 3) — hoy la escalera
    lectura, con sus correos                             se mueve al abrir la Cartera
 ```
@@ -27,6 +26,35 @@ del plan gratis ni de la puerta de entrada a partir de ellos: manda el spec. Se
 unifican todos al terminar (§ 9 del spec). Daniel: *«No quiero que en el futuro
 otra sesión mire lo que tú miraste y se confunda o me proponga cosas basada en
 información obsoleta.»*
+
+### La tanda 4, «la puerta» — hecha en local el 12 de octubre
+
+Rama `feat/la-puerta`, encima de la muestra. Versión **1.17.0**.
+
+```
+   LA PORTADA, ANTES                              AHORA
+   [Agende una demostración de 20 min ↗]          [Registre su colegio →]        ← el principal
+   [Entrar al sistema →]                          [Escríbanos por WhatsApp]
+   ¿Todavía no tiene cuenta? Registre su colegio  [Vea un colegio funcionando ↗]
+                                                  («Entrar» queda en la barra de arriba)
+
+   EL REGISTRO, antes del primer campo
+   Cargar su colegio es gratis y no vence. Calificar, pasar lista y emitir:
+   0,35 $ por alumno al mes.
+```
+
+El formulario de demostración salió: su dirección lleva a la portada, y
+`/siga/solicitudes` se queda como historia.
+
+⚠️ **Al desplegar a PRODUCCIÓN hay que ponerle una variable**, o la portada no
+dibuja el botón de la muestra (sin ella invita a «probarlo en su colegio»):
+
+```bash
+ssh siga-deploy config:set siga SIGA_MUESTRA_URL=https://demo.sigaeducando.com
+```
+
+⚠️ **Y el WhatsApp de la portada es el de `/siga/ajustes`.** Si allá no hay
+número cargado, el botón no aparece.
 
 ### La tanda 5, «la muestra» — en línea desde el 12 de octubre
 
@@ -225,6 +253,7 @@ activarlo sin pasar por el reporte y la validación.
                               feat/el-precio-con-el-iva-adentro, local: encima de esa
                               feat/la-muestra, local: la tanda 5, encima — y
                               DESPLEGADA en la app `siga-demo` (no en producción)
+                              feat/la-puerta, local: la tanda 4, encima
    demo.sigaeducando.com      la muestra: app `siga-demo`, remoto `dokku-demo`
 ```
 

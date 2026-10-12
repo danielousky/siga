@@ -39,6 +39,17 @@ class LosPreciosDeUnSoloLugarTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # El registro dice el precio en una línea (decisión 10 del spec): es la
+  # pantalla donde alguien decide, y un número a mano ahí promete otro precio.
+  test "el registro dice el precio de la constante, y no otro" do
+    con_precios_de_mentira do
+      get new_user_registration_path
+
+      assert_select ".registro-precio", text: /0,47 \$ por alumno al mes/
+      assert_ningun_precio_de_verdad
+    end
+  end
+
   test "la descripción y la ficha para buscadores, también" do
     con_precios_de_mentira do
       get root_path

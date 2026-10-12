@@ -23,6 +23,27 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.17.0 — 12 de octubre de 2026
+
+- **La portada invita a registrar el colegio.** El botón principal ya no pide
+  agendar una demostración: lleva al registro, que es por donde un colegio
+  entra y empieza a cargar, gratis. Al lado van dos más:
+
+  ```
+     [Registre su colegio →]   [Escríbanos por WhatsApp]   [Vea un colegio funcionando ↗]
+  ```
+
+- **El registro dice el precio antes de pedir un dato:** cargar el colegio es
+  gratis y no vence; calificar, pasar lista y emitir cuestan 0,35 $ por alumno
+  al mes. Nadie se entera después, al tocar «Calificar».
+
+- **El WhatsApp de SIGA está también en la portada y en el registro,** además de
+  «Suscripción». Es el número que el equipo de SIGA tiene cargado; si no hay
+  ninguno, el botón no se dibuja.
+
+- **El formulario de «pedir una demostración» ya no existe.** Quien abra su
+  dirección —desde un buscador o un mensaje viejo— llega a la portada.
+
 ## 1.16.0 — 12 de octubre de 2026
 
 - **Hay un colegio de muestra para ver SIGA funcionando antes de registrarse:**

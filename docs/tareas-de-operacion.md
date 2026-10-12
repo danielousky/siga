@@ -118,10 +118,16 @@ ssh siga-deploy run siga-demo bin/rails muestra:restablecer
 git push dokku-demo <rama>:main
 ```
 
-`muestra:restablecer` **borra la base entera y la vuelve a sembrar**, en unos
-tres minutos. Se niega si la instancia no se declaró muestra, y se niega si en
-la base hay un colegio que no sea de la muestra. Borrar y sembrar van en una
-sola transacción: si la siembra falla, queda como estaba.
+`muestra:restablecer` **borra la base entera y la vuelve a sembrar**. Se niega
+si la instancia no se declaró muestra, y se niega si en la base hay un colegio
+que no sea de la muestra. Borrar y sembrar van en una sola transacción: si la
+siembra falla, queda como estaba.
+
+⚠️ **En el servidor tarda unos catorce minutos** (en una portátil, tres), y no
+dice nada hasta que termina. Mientras corre, quien ya está adentro sigue viendo
+los datos de antes; pero quien intente ENTRAR se queda esperando, porque entrar
+escribe en una fila que la siembra tiene tomada. De noche no importa. De día,
+hay que avisarle a quien la esté enseñando.
 
 **Lo que falta ponerle, y solo sabe Daniel:**
 
@@ -133,6 +139,13 @@ ssh siga-deploy run siga-demo bin/rails muestra:restablecer
 # Para entrar a /siga DENTRO de la muestra (por defecto, nadie puede)
 ssh siga-deploy config:set siga-demo SIGA_SEED_STAFF_PASSWORD=<una-clave>
 ssh siga-deploy run siga-demo bin/rails muestra:restablecer
+```
+
+**Y producción tiene que saber dónde vive la muestra**, o su portada no dibuja
+el botón «Vea un colegio funcionando»:
+
+```bash
+ssh siga-deploy config:set siga SIGA_MUESTRA_URL=https://demo.sigaeducando.com
 ```
 
 ⚠️ **No copiarle las variables de producción «para que llegue el correo».** La

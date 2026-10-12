@@ -72,7 +72,6 @@ class BuscadoresController < ApplicationController
     "/" => "1.0",
     "/registrarse" => "1.0",
     "/manual" => "0.9",
-    "/demo_requests/new" => "0.8",
     "/verificar" => "0.5"
   }.freeze
 

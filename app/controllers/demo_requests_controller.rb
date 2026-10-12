@@ -1,57 +1,34 @@
-# El formulario público de "pedir una demo".
+# La dirección del formulario de «pedir una demostración», que ya no existe.
 #
-# ⚠️ Este controller quedó SOLO con lo público: el formulario, su envío y la
-# página de gracias. Ver, listar y responder solicitudes se mudó a
-# `Siga::SolicitudesController` (MOR-133).
+# ## Por qué salió
 #
-# No es un refactor cosmético. Este dato —quién pidió una demo, su correo, su
-# teléfono, qué sistema usa hoy— **es de SIGA, no de ningún colegio**, y vivir
-# acá lo dejó filtrándose tres veces:
+# Spec `docs/specs/del-registro-al-cobro.md`, decisiones 1 y 19. Daniel, 8 de
+# octubre de 2026: *«No está claramente definido si la puerta de entrada es una
+# solicitud demo (en cuyo caso no lo tenemos) o un registro»*. Eran dos puertas a
+# dos productos distintos: el formulario dejaba una fila en `/siga/solicitudes`
+# que no le avisaba a nadie, y quien entraba por ahí terminaba dado de alta a
+# mano y sin suscripción. La puerta es el registro; quien quiere ver antes, mira
+# el colegio de muestra; quien quiere conversar, escribe por WhatsApp.
 #
-#   1. `require_admin_access!` dejaba pasar a cualquier `director`
-#   2. tapado eso, el panel seguía mostrando CUÁNTAS había pendientes
-#   3. y el enlace del menú delataba que la sección existía
+# ## Por qué el controlador se queda
 #
-# Cada arreglo tapaba una pantalla y el siguiente agujero aparecía en otra.
-# **Tapar la puerta no alcanza si la pared tiene ventana.** Ahora el panel del
-# colegio no tiene estas acciones: no hay nada que tapar.
+# La dirección está en buscadores, en mensajes reenviados y en los marcadores de
+# quien la guardó. Un 404 ahí es un prospecto perdido: lleva a la portada, que
+# es donde están las tres puertas de ahora.
+#
+# ⚠️ Lo que NO se borró: el modelo `DemoRequest` y `/siga/solicitudes`. Las
+# solicitudes que entraron son historia del equipo de SIGA, y siguen ahí.
 class DemoRequestsController < ApplicationController
-  # Todo público: quien pide una demo, por definición, no tiene cuenta.
   skip_before_action :authenticate_user!
 
-  def new
-    @demo_request = DemoRequest.new
-  end
+  # 301: se mudó para siempre, y un buscador tiene que pasarle a la portada lo
+  # que esta dirección había juntado.
+  def new = redirect_to(root_path, status: :moved_permanently)
 
-  # `registrar` y no `create`: quien pide la demo por segunda vez no recibe un
-  # error de validación, recibe las gracias otra vez y sube su contador. Ver
-  # `DemoRequest.registrar`.
-  def create
-    @demo_request = DemoRequest.registrar(demo_request_params)
+  def success = redirect_to(root_path, status: :moved_permanently)
 
-    if @demo_request.persisted?
-      # El número viaja a la página de gracias para mostrárselo de vuelta. Un
-      # dígito mal tipeado en el WhatsApp pierde al prospecto para siempre, y
-      # este es el último instante en que se puede notar.
-      flash[:telefono] = @demo_request.phone
-      redirect_to success_demo_requests_path
-    else
-      render :new, status: :unprocessable_entity
-    end
-  end
-
-  def success
-    @telefono = flash[:telefono]
-  end
-
-  private
-
-  # `message` y `current_system_detail` siguen permitidos aunque el formulario
-  # público ya no los pida (MOR-135): los llena el equipo de SIGA desde el panel
-  # durante la llamada, que es cuando esa información realmente se consigue.
-  def demo_request_params
-    params.require(:demo_request).permit(:name, :email, :institution, :phone, :message,
-                                         :current_system, :current_system_detail)
-          .to_h.symbolize_keys
-  end
+  # ⚠️ Un envío que llegue —de una pestaña que quedó abierta desde antes— NO
+  # crea nada: nadie va a leer esa solicitud. Va a la portada, sin fingir que se
+  # recibió. 303 y no 301: es la respuesta a un POST.
+  def create = redirect_to(root_path, status: :see_other)
 end
