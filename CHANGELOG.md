@@ -23,6 +23,36 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.16.0 — 12 de octubre de 2026
+
+- **Hay un colegio de muestra para ver SIGA funcionando antes de registrarse:**
+  `demo.sigaeducando.com`. Es un colegio inventado y completo —de preescolar a
+  sexto año, con sus notas, sus boletines, su asistencia y su cobranza—, y se
+  entra con un clic, sin crear una cuenta:
+
+  ```
+     [Entrar como director]   [Entrar como profesor]   [Entrar como representante]
+  ```
+
+  Se puede tocar y cambiar lo que se quiera: cada noche vuelve a su estado
+  inicial. Desde ahí no sale ningún correo, y no hay nadie real adentro.
+
+- **El colegio de muestra tiene la fecha de hoy.** El año pasado está completo y
+  cerrado; el que corre, calificado y con la asistencia hasta ayer. No es una
+  foto: en enero tendrá su primer lapso cerrado, con sus boletines.
+
+- **En el portal de la familia, Educación Inicial ya se lee.** La maestra de
+  Inicial no pone notas: describe. La familia leía «Pendiente» en cada área
+  aunque la valoración estuviera escrita; ahora lee lo que la maestra escribió,
+  y la pantalla dice «Valoraciones» y no «Calificaciones».
+
+- **La familia encuentra los boletines de los años anteriores.** Se listaban
+  solo los del año que corre, así que entre septiembre y diciembre la lista
+  estaba vacía. Ahora están todos los que el colegio liberó, con su año al lado.
+
+- El aviso de una falta sin justificar, en el portal, trataba de tú. Ya trata
+  de usted, como el resto de lo que lee una familia.
+
 ## 1.15.0 — 12 de octubre de 2026
 
 - **La suscripción se paga desde SIGA, sin llamar a nadie.** En el menú de la

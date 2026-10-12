@@ -3,18 +3,23 @@
 > **Estado:** **congelado el 12 de octubre de 2026.** Decisiones de Daniel del
 > 8, 9 y 12 de octubre. Si algo cambia, se cambia aquí primero.
 > **Ramas:** `feat/del-registro-al-cobro` (este spec y la tanda 1) ·
-> `feat/pagar-sin-consola` (la tanda 2, sale de la anterior). Locales, sin PR.
+> `feat/pagar-sin-consola` (la tanda 2) · `feat/el-precio-con-el-iva-adentro` ·
+> `feat/la-muestra` (la tanda 5). Cada una sale de la anterior. Locales, sin PR.
 
 ```
    LAS TANDAS, en el orden que eligió Daniel («primero cobrar»)
    1 · las reglas           hecha     el precio por alumno y la frontera de lo gratis
    2 · pagar sin consola    hecha     «Suscripción», el reporte, validar en /siga y los ajustes
-   5 · la muestra           falta     el colegio de muestra, en su instancia aparte
+   5 · la muestra           hecha     el colegio de muestra, EN LÍNEA: demo.sigaeducando.com
    4 · la puerta            falta     la portada, el registro con su precio y el WhatsApp
    3 · la escalera          falta     el trabajo diario y sus tres correos
    ─────────────────────────────────────────────────────────────────────────────
    «hecha» es en local y con `bin/ci` en verde. Las decisiones 23 a 27 nacieron
-   en la tanda 2 y están POR CONFIRMAR, y la 29 también.
+   en la tanda 2 y están POR CONFIRMAR, y la 29 también. Las 30 a 34 nacieron
+   en la tanda 5 —con Daniel ausente— y están POR CONFIRMAR.
+
+   ⚠️ LA TANDA 5 SÍ SALIÓ, y es la única: la muestra vive en su propia app del
+   servidor (`siga-demo`, con su base). Producción no se tocó.
 
    ⚠️ EL PRECIO CAMBIÓ el mismo 12 de octubre, después de la tanda 2 y antes de
    que nada saliera: de «0,30 $ + IVA, mínimo 39» a **0,35 $, mínimo 45, sin
@@ -167,6 +172,11 @@ Y el criterio que ordena todo lo demás. Daniel, 9 de octubre:
 | 27 | ¿Se puede deshacer una validación? | **No, por ahora.** Por eso validar pide confirmación, y un pago ya revisado no se vuelve a decidir. Deshacerla exigiría guardar cómo estaba la suscripción antes | Claude, tanda 2 · **por confirmar** |
 | 28 | ¿Y el IVA? | **Va DENTRO del precio: 0,35 $ por alumno al mes, y ninguna pantalla dice «más IVA».** *«No podemos cobrar IVA en dólares, eso no es correcto… vamos a incrementarle el IVA al costo, es decir, 0,30 × 1,16 = 0,348, poco menos de 0,35. Pongámoslo de una vez como el costo.»* Lo que se lee es lo que se paga: 360 alumnos, 126,00 $ | Daniel, 12 oct. |
 | 29 | ¿Y el mínimo? | **45 $,** por la misma cuenta: 39 × 1,16 = 45,24. Daniel dijo el precio por alumno y no el mínimo; dejarlo en 39 le habría bajado la cuenta al colegio chico de 45,24 a 39. Cubre hasta 128 alumnos | Claude · **por confirmar** |
+| 30 | ¿Con qué cuentas se entra a la muestra? | **`director.bolivar@mail.com`, `profesor.bolivar@mail.com` y `representante.bolivar@mail.com`, clave `123123`.** La primera la fijó Daniel —*«pongámosles director.bolivar@mail.com»*—; las otras dos siguen su forma. Son las mismas en desarrollo: reemplazan a `director.bolivar@siga.edu` y `prof.garcia@bolivar.edu` | Daniel (la primera) · Claude, por confirmar (las otras dos), 12 oct. |
+| 31 | ¿Solo tres puertas? | **Tres grandes y siete chicas.** Debajo van «Otras miradas» —coordinación, secretaría, finanzas, una maestra de primaria, un alumno, una representante con hijos en dos colegios y el colegio que dejó de pagar—: no venden, pero dejan recorrer lo que las tres no enseñan | Claude; por confirmar |
+| 32 | ¿Qué fecha tiene el colegio de la muestra? | **La de HOY.** Los años escolares de la siembra se cuentan desde el día en que corre: el año pasado completo y cerrado, y el que corre, calificado y con asistencia hasta ayer. Como se resiembra cada noche, el colegio avanza solo. Antes eran años escritos, y la muestra abría en un año «finalizado» | Claude; por confirmar |
+| 33 | ¿Quién entra a `/siga` en la muestra? | **Nadie, por defecto.** El equipo de SIGA se siembra con una clave al azar: `/siga` guarda las cuentas a donde se paga, y con la clave pública cualquiera pondría la suya en «cómo pagar». Se abre poniendo `SIGA_SEED_STAFF_PASSWORD` | Claude; por confirmar |
+| 34 | En el portal, ¿qué ve la familia de un niño de Inicial, y qué boletines? | **La valoración que escribió la maestra** —leía «Pendiente» aunque estuviera escrita—, **y los boletines liberados de los años anteriores,** no solo los del que corre. Son dos arreglos del producto, no de la muestra: los dejó a la vista sembrar una familia con un hijo en cada nivel | Claude; por confirmar |
 
 ## 4 · El dominio
 
@@ -223,6 +233,36 @@ enganchar por su cédula a una persona real de otro colegio, cambiarle el correo
 entrar como ella con «olvidé mi contraseña». Lo mismo pasa hoy entre dos colegios
 reales, y por eso se arregla aparte antes del segundo; pero con una clave pública
 deja de ser un riesgo de un empleado identificable y pasa a ser de cualquiera.
+
+**Lo que quedó construido** (tanda 5, 12 de octubre):
+
+```
+   demo.sigaeducando.com          app Dokku `siga-demo`, base `siga-demo-db`
+   ┌───────────────────────────────────────┐   SIGA_MUESTRA=1
+   │ Vea SIGA funcionando, sin registrarse │
+   │ [director] [profesor] [representante] │   un clic abre la sesión, sin clave
+   │ Otras miradas: coordinación, alumno…  │   la clave igual está escrita: 123123
+   └───────────────────────────────────────┘
+        adentro: «Colegio de muestra · [Cambiar de rol] · Registre su colegio →»
+```
+
+- **Se declara con una variable, `SIGA_MUESTRA=1`,** y todo lo que la muestra
+  hace distinto lo pregunta en un solo sitio (`Muestra.activa?`). La variable es
+  nueva a propósito: la `SIGA_ENTORNO_DEMO` de los seeds se usó contra
+  producción, y una que nunca existió no puede haber quedado puesta en ningún lado.
+- **Entrar sin clave tiene tres cerrojos,** y cada uno alcanza solo: la
+  instancia se declaró muestra (si no, 404), la cuenta está en la lista, y tiene
+  ese rol en el colegio de ese código DEA.
+- **No sale correo** (un interceptor, no «no configurar el SMTP»: una ausencia
+  la corrige cualquiera que copie las variables de producción), **no se
+  indexa** y **no se registra nadie:** el registro manda al sitio de verdad.
+- **Las puertas no se rompen:** a esas cuentas no se les cambia el correo, la
+  clave, el rol ni el cargo. Todo lo demás se puede tocar.
+- **Cada noche vuelve a su estado sembrado** (4:00 a. m. de Venezuela).
+  Restablecer borra una base entera, así que se niega si la instancia no se
+  declaró muestra **y** se niega si en la base hay un colegio que no sea de la
+  muestra: la segunda mira los datos, no la variable. Borrar y sembrar van en
+  una sola transacción: si la siembra falla, la muestra amanece como ayer.
 
 ### 4.4 · El dinero
 
@@ -497,9 +537,12 @@ del registro— y los ajustes de `/siga` —el WhatsApp ya sale de ahí y está 
 
 **El colegio de muestra**
 
-- [ ] Desde la portada se entra con un clic como directivo, profesor o
-      representante; la clave de los tres es `123123`.
-- [ ] Ahí no sale ningún correo, y cada noche vuelve a su estado sembrado.
+- [x] Desde la portada de la muestra se entra con un clic como directivo,
+      profesor o representante; la clave de los tres es `123123`.
+- [x] Ahí no sale ningún correo, y cada noche vuelve a su estado sembrado.
+- [x] Fuera de la muestra, entrar sin clave no existe: responde 404.
+- [ ] La portada del sitio de verdad enlaza a la muestra (es de la tanda 4:
+      `SIGA_MUESTRA_URL` ya hace que `/muestra` mande allá).
 
 ## 7 · Lo que se puede romper
 
@@ -593,6 +636,32 @@ del registro— y los ajustes de `/siga` —el WhatsApp ya sale de ahí y está 
 - **`prueba:borrar` lleva su lista a mano**, y un colegio de prueba que reportó
   un pago no se dejaba borrar: hubo que sumarle los pagos y sus comprobantes.
 
+**Lo que enseñó la tanda 5**
+
+- **Sembrar «al límite» encuentra lo que el uso todavía no encontró.** Una
+  familia con un hijo en cada nivel dejó a la vista dos huecos del portal: las
+  valoraciones de Inicial salían «Pendiente» aunque estuvieran escritas, y los
+  boletines del año pasado no se listaban aunque se pudieran descargar.
+- **Un año terminado está terminado.** La siembra anterior tenía secciones
+  completas, a medias y vacías en el mismo año: servía para «quién no cargó
+  notas» y no se parecía a ningún colegio. Sin notas definitivas no hay a quién
+  promover. Lo desparejo vive ahora en el año que corre, que es donde pasa.
+- **Cerrar un lapso vivía en un controlador.** La siembra tenía que cerrar
+  cuarenta y ocho, y la única manera sin una pantalla era copiar sus tres
+  pasos. Se mudó a `BoletinesDelLapso#cerrar!`, que usan los dos.
+- **Una cuenta sobre el número del alumno no es un sorteo.** Los alumnos de un
+  mismo perfil comparten el resto de dividir su número: de ochenta y dos
+  materias por reparar, setenta y tres «sacaron» la misma suerte. Con un
+  resumen (MD5) quedó repartido.
+- **El tope de una lista se decide antes de armarla.** Los reportes de pago se
+  acotaban a doce al crearlos, y los que quedaban fuera tenían la cuota sin
+  pagar y sin reporte: uno de cada cinco alumnos en mora.
+- **Inicial no cierra lapsos ni tiene boletín por lapso.** `BoletinesDelLapso`
+  cuenta notas con número. No se construyó: queda anotado en § 9.
+- **El DATABASE_URL que inyecta Dokku es de superusuario.** La base de la
+  muestra se montó como la de producción: el rol `siga_app`, dueño de la base y
+  sin privilegios, creado ANTES de la primera migración.
+
 ## 8 · Cómo se verifica
 
 - `bin/ci` completo.
@@ -619,4 +688,17 @@ TODO; documentos, .md's, vistas, TODO.»*
    FUERA         references/Proyecto SIGA.pdf · SIGA/CONTRATO DE PRESTACIÓN DE SERVICIOS
                  SIGA/DOCs/SIGA - Aliados.pdf · SIGA/DOCs/SIGA - Qué hace hoy.pdf
                  los dos videos de SIGA/ · las tarjetas de Linear
+```
+
+**Lo que la tanda 5 dejó anotado, sin construir:**
+
+```
+   Inicial no cierra lapsos     `BoletinesDelLapso` cuenta notas con número: una sección de
+                                Inicial nunca llega a «calificada», y no tiene boletín por lapso
+   el boletín ANUAL no se       se emite desde «Boletines», pero liberar es del cierre de un
+     libera a la familia        lapso: nadie lo libera, y la familia no lo ve
+   el panel cuenta todos        «54 secciones» y «406 alumnos» con el año 2026-2027 elegido:
+     los años                   suma los años anteriores
+   DESPLIEGUE.md                describe el despliegue de agosto; el de la muestra está en
+                                `docs/tareas-de-operacion.md`
 ```

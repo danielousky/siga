@@ -1,5 +1,10 @@
 # Despliegue
 
+> ⚠️ **Este archivo describe el primer despliegue, de agosto de 2026**, y varias
+> cosas ya no son así: el registro existe, el colegio de muestra tiene su propia
+> instancia (`demo.sigaeducando.com`) y las cuentas de los seeds cambiaron. Lo
+> que manda hoy para operar es [`docs/tareas-de-operacion.md`](docs/tareas-de-operacion.md).
+
 Dos caminos, y el primero sirve **hoy**: un túnel de Cloudflare contra la máquina
 de desarrollo, para tener una demo pública en minutos. El segundo es Dokku sobre
 un servidor propio, que es donde esto termina viviendo.
@@ -51,9 +56,9 @@ cloudflared tunnel --url http://localhost:3000
 
 | Entrar como | Ver |
 | -- | -- |
-| `director.bolivar@siga.edu` | Panel con **200 alumnos** — los de su colegio, no los 290 de la plataforma |
-| `director.bello@siga.edu` | **90 alumnos**. Mismo sistema, otro colegio, cero cruce |
-| `prof.garcia@bolivar.edu` | Mis Evaluaciones → **Cargar Notas**. Escribir una nota: se guarda sola |
+| `director.bolivar@mail.com` | El panel de SU colegio — sus alumnos, no los de la plataforma |
+| `director.bello@siga.edu` | Mismo sistema, otro colegio, cero cruce — y con la suscripción vencida |
+| `profesor.bolivar@mail.com` | Mis Evaluaciones → **Cargar Notas**. Escribir una nota: se guarda sola |
 | `sofia.ramos002@bolivar.edu` | Mis Notas. Su lapso da 9,50 crudo y se ve **10** — Art. 108 |
 
 Contraseña de todos: `123123`.

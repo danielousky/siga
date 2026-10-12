@@ -91,6 +91,63 @@ ya hecho — sirve para MOSTRAR, no para que alguien pruebe planificar.
 
 ---
 
+## La muestra · el colegio que se enseña
+
+`https://demo.sigaeducando.com` es **otra app** del mismo servidor, con su
+propia base. No es producción y no comparte nada con ella.
+
+```
+   PRODUCCIÓN                          LA MUESTRA
+   app   siga        remoto dokku      app   siga-demo      remoto dokku-demo
+   base  siga-db                       base  siga-demo-db
+   sigaeducando.com                    demo.sigaeducando.com   SIGA_MUESTRA=1
+```
+
+⚠️ **El nombre de la app va en cada orden.** `run siga …` es producción;
+`run siga-demo …` es la muestra. Las tareas de abajo se niegan en producción,
+pero el resto de este archivo no.
+
+```bash
+# Qué hay y si las puertas abren, sin tocar nada
+ssh siga-deploy run siga-demo bin/rails muestra:estado
+
+# Restablecerla AHORA (lo hace sola cada noche, a las 4:00 a. m.)
+ssh siga-deploy run siga-demo bin/rails muestra:restablecer
+
+# Subirle código nuevo
+git push dokku-demo <rama>:main
+```
+
+`muestra:restablecer` **borra la base entera y la vuelve a sembrar**, en unos
+tres minutos. Se niega si la instancia no se declaró muestra, y se niega si en
+la base hay un colegio que no sea de la muestra. Borrar y sembrar van en una
+sola transacción: si la siembra falla, queda como estaba.
+
+**Lo que falta ponerle, y solo sabe Daniel:**
+
+```bash
+# El WhatsApp de SIGA: sin él, la muestra no dibuja el botón
+ssh siga-deploy config:set siga-demo SIGA_WHATSAPP=0414XXXXXXX
+ssh siga-deploy run siga-demo bin/rails muestra:restablecer
+
+# Para entrar a /siga DENTRO de la muestra (por defecto, nadie puede)
+ssh siga-deploy config:set siga-demo SIGA_SEED_STAFF_PASSWORD=<una-clave>
+ssh siga-deploy run siga-demo bin/rails muestra:restablecer
+```
+
+⚠️ **No copiarle las variables de producción «para que llegue el correo».** La
+muestra no manda correo a propósito: quien la visita puede escribir cualquier
+dirección en una ficha y tocar «Enviar».
+
+**En local**, sin tocar la base de desarrollo:
+
+```bash
+SIGA_DB_NAME=siga_muestra bin/rails db:create
+psql -d siga_muestra -f db/structure.sql
+SIGA_MUESTRA=1 SIGA_DB_NAME=siga_muestra bin/rails muestra:restablecer
+SIGA_MUESTRA=1 SIGA_DB_NAME=siga_muestra bin/rails server -p 3100
+```
+
 ## La demo · mirar y limpiar
 
 ```bash

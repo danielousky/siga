@@ -87,7 +87,8 @@ Documentación de referencia (PDF/PNG del proyecto, contrato y diagramas ER) en 
 # Setup en una máquina nueva — `bin/setup` ya crea el rol `siga_app` y verifica
 # que NO pueda saltarse el RLS. Sin ese rol, el aislamiento no se evalúa (MOR-87).
 bin/setup                          # base + rol sin privilegios + verificación
-bin/rails db:seed                  # Datos de prueba: 2 colegios, 450 alumnos, 28 docentes · ~1 min
+bin/rails db:seed                  # Datos de prueba: 2 colegios, ~500 alumnos, tres años · ~3 min
+SIEMBRA_REDUCIDA=1 bin/rails db:seed   # lo mismo con siete alumnos por sección · ~1 min
 
 # Development
 bin/rails server                   # Start dev server (localhost:3000)
@@ -151,16 +152,26 @@ el detalle del registro en los tests (4,5 %, y se pierde lo que sirve para diagn
 ⚠️ **La siembra no anota cada consulta** (110 s → 61 s): nadie lee ese registro.
 `SIEMBRA_CON_REGISTRO=1 bin/rails db:seed` lo devuelve.
 
-Credenciales de los seeds (contraseña universal `123123`):
-`director.bolivar@siga.edu` (admin) · `prof.garcia@bolivar.edu` (profesor) ·
-`maria.perez@familia.test` (representante, hijos en LOS DOS colegios) ·
-`alvaro.lopez001@bolivar.edu` (alumno).
+Credenciales de los seeds (contraseña universal `123123`). Las tres primeras son las
+**puertas de la muestra** (`Muestra::CUENTAS`) y son las mismas en desarrollo:
+`director.bolivar@mail.com` (director) · `profesor.bolivar@mail.com` (García, Matemática de
+5to Grado a 3er Año) · `representante.bolivar@mail.com` (Andreína Suárez, tres hijos: uno en
+cada nivel). Además: `maria.perez@familia.test` (hijos en LOS DOS colegios, y en mora en
+uno) · `alvaro.lopez001@bolivar.edu` (alumno) · `director.bello@siga.edu` (el colegio con
+la suscripción vencida).
+⚠️ Hasta el 12 de octubre de 2026 las dos primeras fueron `director.bolivar@siga.edu` y
+`prof.garcia@bolivar.edu`: si un documento o un video las nombra, está atrasado.
+
+⚠️ **Los años de la siembra se cuentan desde HOY** (`ANIO_EN_CURSO`, en `db/seeds/utiles.rb`):
+el año pasado, completo y cerrado —notas, reparaciones, lapsos cerrados, boletines—; y el
+que corre, sacado de PROMOVER al anterior y calificado hasta ayer. No hay años escritos con
+su número: sembrado en enero, el primer lapso ya está cerrado.
 
 ⚠️ **Para probar el consumo de las notas, entra como el REPRESENTANTE**, no como el alumno:
 es a quien apunta el producto (ver `## ⚠️ Estado conocido § 6`). Los otros dos representantes
 con correo son `carmen.lopez@familia.test` (una hija) y `jose.ramos@familia.test` (dos hijos en
-grados distintos). `Yolanda Guerra` existe **sin correo** a propósito: aparece en el listado y
-no puede entrar hasta que el colegio se lo cargue.
+grados distintos, y un pago rechazado). `Yolanda Guerra` existe **sin correo** a propósito:
+aparece en el listado y no puede entrar hasta que el colegio se lo cargue.
 
 ## Architecture
 
@@ -1665,6 +1676,81 @@ entregan— y convierte un worker caído en «no se pueden emitir boletines» el
 de la entrega. **Se reabre si un colegio se queja de la espera**, y ese día lo
 primero es medir en producción. El registro está en
 [`emision-en-segundo-plano.md`](docs/specs/emision-en-segundo-plano.md).
+
+### 13. El colegio de muestra
+
+`https://demo.sigaeducando.com`: un colegio inventado y completo, al que se
+entra con un clic. Tanda 5 del spec `del-registro-al-cobro` (§ 4.3).
+
+```
+   PRODUCCIÓN                          LA MUESTRA
+   app   siga        remoto dokku      app   siga-demo      remoto dokku-demo
+   base  siga-db                       base  siga-demo-db   SIGA_MUESTRA=1
+   sigaeducando.com                    demo.sigaeducando.com
+```
+
+Es una INSTANCIA, no un modo que un colegio encienda. Todo lo que hace distinto
+lo pregunta en un solo sitio, `Muestra.activa?`:
+
+```
+   la portada son tres puertas     un clic abre la sesión, sin clave
+   no sale ningún correo           `NadaSaleDeLaMuestra`, un interceptor
+   no se indexa, ni se registra    el registro manda al sitio de verdad
+   las puertas no se rompen        ni su correo, ni su clave, ni su rol
+   cada noche vuelve a empezar     `RestablecerLaMuestraJob`, 4:00 a. m. de Venezuela
+```
+
+⚠️ **Entrar sin clave tiene tres cerrojos, y cada uno alcanza solo:** la
+instancia se declaró muestra (si no, 404), la cuenta está en `Muestra::TODAS`,
+y tiene ESE rol en el colegio de ESE código DEA. Un endpoint que abre una sesión
+sin contraseña es lo peor que podría existir en el sistema de un colegio; lo
+cuida `colegio_de_muestra_test`, y `bin/smoke` exige el 404 fuera de la muestra.
+
+⚠️ **`SIGA_MUESTRA` es una variable NUEVA a propósito.** La `SIGA_ENTORNO_DEMO`
+de los seeds se usó contra producción cuando la demo vivía allá: si hubiera
+quedado puesta, desplegar esto convertía el sistema de los colegios en la
+muestra. Una variable que nunca existió no puede haber quedado en ningún lado.
+
+⚠️ **Restablecer borra una base entera**, y por eso pregunta dos cosas antes:
+que la instancia se declaró muestra, y que en la base no hay NINGÚN colegio que
+no sea de la muestra. La segunda mira los datos, no la variable: es la que
+impide que una variable mal puesta borre a un cliente. Y borrar y sembrar van en
+UNA transacción: si la siembra falla, la muestra amanece como estaba ayer, no
+vacía — nadie la mira a las cuatro de la mañana.
+
+⚠️ **El trabajo de cada noche lanza OTRO proceso.** Los seeds se cargan con
+`load`: dejan constantes y métodos sueltos —`paso`, `alumno!`, `seccion_de`— en
+quien los corre. En una tarea eso muere con ella; en un worker que vive semanas
+se quedaría pegado. Y está agendado SOLO con la variable puesta: `recurring.yml`
+pasa por ERB.
+
+⚠️ **No sale correo por una regla escrita, no por una ausencia.** «No
+configurar el SMTP» lo corrige cualquiera que copie las variables de producción
+para «arreglar» que no llega nada. Quien visita la muestra puede escribir
+cualquier dirección en una ficha y tocar «Enviar».
+
+⚠️ **En la muestra, el equipo de SIGA NO lleva la clave pública.** `/siga`
+guarda las cuentas a donde se paga: con `123123`, cualquiera pondría la suya en
+«cómo pagar». Se siembra con una al azar (`SeedGuard#clave_del_equipo`).
+
+⚠️ **La muestra en local no toca la base de desarrollo:** `SIGA_DB_NAME` deja
+levantar otra. Las órdenes están en `docs/tareas-de-operacion.md § La muestra`.
+
+**Lo que enseñó sembrarla «al límite»:**
+
+- ⚠️ **Un año terminado está TERMINADO.** Antes había secciones completas, a
+  medias y vacías en el mismo año. Lo desparejo —el profesor atrasado, el plan
+  al 70 %, el alumno sin nota— vive en el año que CORRE, que es donde pasa.
+- ⚠️ **Cerrar un lapso es de `BoletinesDelLapso#cerrar!`**, no del controlador:
+  lo usan la pantalla y la siembra. Copiado, el día que cerrar haga una cuarta
+  cosa la muestra enseñaría un colegio cerrado a medias.
+- ⚠️ **Una cuenta sobre el número del alumno no es un sorteo.** Los de un mismo
+  perfil comparten el resto de dividir su número. `suerte(...)` usa un resumen.
+- ⚠️ **Una familia con un hijo en cada nivel encontró dos huecos del portal:**
+  las valoraciones de Inicial salían «Pendiente» aunque estuvieran escritas, y
+  los boletines del año pasado no se listaban aunque se pudieran descargar.
+- ⚠️ **`SIEMBRA_REDUCIDA=1` cambia el volumen, no el camino:** siete alumnos por
+  sección. Es lo que usa el CI; la siembra entera tarda tres minutos.
 
 ## 🔢 La versión
 
