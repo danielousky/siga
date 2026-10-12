@@ -53,20 +53,17 @@ class RevisionDeBoletinesController < ApplicationController
                          alert: motivo_por_el_que_no_se_puede_cerrar(boletines))
     end
 
-    emitidos = emitir_los_que_falten(boletines)
-    ReportCard.where(id: todos_los_boletines(boletines).map(&:id))
-              .update_all(liberado_el: Time.current, liberado_por_id: current_user.id)
+    # Emitir, liberar y dejar el cierre viven en `BoletinesDelLapso#cerrar!`:
+    # es lo mismo que hace la siembra para armar un año ya terminado.
+    cierre = boletines.cerrar!(por: current_user)
 
-    SectionClosure.create!(section: @seccion, evaluation_moment: @lapso,
-                           cerrado_por: current_user, cerrado_el: Time.current)
-
-    avisar_a_las_familias(todos_los_boletines(boletines))
+    avisar_a_las_familias(cierre.boletines)
     registrar("lapso_cerrado",
               "#{current_user.nombre_completo} cerró #{@lapso.name} de " \
               "#{@seccion.grade.name} – #{@seccion.name}: " \
-              "#{helpers.contar(todos_los_boletines(boletines).size, 'boletín liberado', 'boletines liberados')}")
+              "#{helpers.contar(cierre.boletines.size, 'boletín liberado', 'boletines liberados')}")
 
-    redirect_to revisar_boletines_path(contexto), notice: aviso_del_cierre(boletines, emitidos)
+    redirect_to revisar_boletines_path(contexto), notice: aviso_del_cierre(boletines, cierre.emitidos)
   end
 
   # ⚠️ Reabrir existe, y no es una concesión: un error en una nota se descubre
@@ -99,27 +96,6 @@ class RevisionDeBoletinesController < ApplicationController
     raise ActiveRecord::RecordNotFound if @lapso.nil?
 
     @lapsos = EvaluationMoment.where(academic_period_id: @seccion.academic_period_id).order(:id)
-  end
-
-  # ⚠️ Se emiten los que falten ANTES de liberar: sin boletín no hay nada que
-  # ver, y el correo prometería una pantalla vacía.
-  #
-  # Cada emisión congela su propia foto de las notas (`snapshot`), que es lo que
-  # hace que corregir algo en marzo no reescriba el papel de diciembre.
-  def emitir_los_que_falten(boletines)
-    boletines.fichas.reject(&:emitido?).map do |ficha|
-      ReportCard.create!(enrollment: ficha.inscripcion, evaluation_moment: @lapso,
-                         issued_by: current_user,
-                         snapshot: ReportCardData.para(enrollment: ficha.inscripcion,
-                                                       evaluation_moment: @lapso))
-    end
-  end
-
-  # ⚠️ Se relee: `boletines` se armó antes de emitir, y sus fichas no conocen
-  # los que acaban de nacer.
-  def todos_los_boletines(_boletines)
-    @todos_los_boletines ||= BoletinesDelLapso.de(@seccion.reload, @lapso)
-                                              .fichas.filter_map(&:boletin)
   end
 
   # ⚠️ Dice CUÁL de las dos cosas falta, y las notas van primero: sin notas no

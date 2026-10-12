@@ -1,26 +1,41 @@
-# Evaluaciones, notas y competencias (MOR-224).
+# Evaluaciones, notas, valoraciones e informes — y el año anterior, entero.
 #
-# ## Qué se carga y qué NO, y por qué importa
+# ## Qué arma este paso
 #
-# Un colegio a mitad de año tiene notas desparejas: secciones al día, secciones
-# a medias y secciones que no arrancaron. Cargarle notas a todas las diecinueve
-# dejaría vacía la pantalla de «quién no cargó notas», que es de las que más se
-# usan — y una demo donde todo está perfecto no muestra para qué sirve el
-# sistema.
+#     EL MOTOR      cómo se evalúa UN lapso de UNA sección, hasta una fecha
+#     EL ANTERIOR   las dieciséis secciones, los tres lapsos, completos y CERRADOS
 #
-#     COMPLETAS    los tres lapsos, todas las áreas
-#     A MEDIAS     solo el primer lapso  →  el año en curso, que es lo normal
-#     VACÍAS       ni una nota           →  lo que persigue la dirección
+# El año en curso usa el mismo motor, en el paso 08, hasta el día de hoy.
 #
-# ⚠️ Preescolar NO lleva notas, y no es un olvido: la Educación Inicial
-# describe, no califica (MOR-218).
-paso "📝 Evaluaciones y notas"
+# ## ⚠️ Un año terminado está TERMINADO
+#
+# Antes se sembraban cuatro secciones completas, cuatro a medias y el resto
+# vacías, todo en el mismo año: servía para ver «quién no cargó notas», pero el
+# colegio no se parecía a ninguno —ni a uno a mitad de año, ni a uno que ya
+# cerró—. Y sin notas definitivas no hay a quién promover, ni certificados, ni
+# reparaciones.
+#
+# Ahora cada cosa vive en su año. Lo desparejo —el profesor atrasado, el plan a
+# medio armar, el alumno sin nota— está en el año que CORRE, que es donde pasa.
+# El anterior está como queda un año en un colegio que usa el sistema: todo
+# calificado, los tres lapsos cerrados por Control de Estudio y cada boletín en
+# manos de su familia.
+#
+# ⚠️ Inicial NO lleva notas, y no es un olvido: la Educación Inicial describe,
+# no califica (MOR-218). Lleva sus VALORACIONES, que son texto.
+paso "📝 El año anterior: evaluaciones y notas"
 
 # Examen 40 % · Taller 30 % · Participación 30 % — cierran el 100 % del lapso.
-PONDERACION = [ [ "Examen", 40.0 ], [ "Taller", 30.0 ], [ "Participación", 30.0 ] ].freeze
+#
+# El tercer número es EN QUÉ PUNTO del lapso cae cada una: el taller temprano,
+# la participación a la mitad y el examen al final. No es decorado: es lo que
+# hace que un lapso que corre tenga unas evaluaciones ya calificadas y otras
+# todavía por delante.
+PLAN_DEL_LAPSO = [ [ "Examen", 40.0, 0.85 ], [ "Taller", 30.0, 0.20 ], [ "Participación", 30.0, 0.50 ] ].freeze
 
-# Los lapsos venezolanos cierran en diciembre, abril y julio (Art. 110).
-MESES_POR_LAPSO = [ [ 2025, 11 ], [ 2026, 3 ], [ 2026, 6 ] ].freeze
+def fecha_en_el_lapso(lapso, fraccion)
+  dia_habil(lapso.starts_on + ((lapso.ends_on - lapso.starts_on) * fraccion).round)
+end
 
 PLAN_DE_PRIMARIA = {
   "MAT" => [
@@ -46,15 +61,12 @@ PLAN_DE_PRIMARIA = {
 
 # ⚠️ El plan se escribe ANTES que las evaluaciones, y no es orden de gusto.
 #
-# Desde `MOR-136` (segunda mitad) una evaluación de primaria mide una competencia
-# y al menos un indicador, o no se guarda. Los seeds creaban las evaluaciones
-# primero y etiquetaban después: en ese orden ninguna se podía crear.
-#
-# Y es además el orden REAL del trabajo del docente —escribe su plan, arma sus
-# evaluaciones—, así que la demo se parece más a un colegio de verdad.
+# Desde `MOR-136` (segunda mitad) una evaluación de primaria mide una
+# competencia, o no se guarda. Y es además el orden REAL del trabajo del
+# docente —escribe su plan, arma sus evaluaciones—.
 #
 # Para las áreas que no están en `PLAN_DE_PRIMARIA` se arma una competencia
-# genérica: sin ella, esas materias no podrían tener ni una evaluación.
+# genérica: sin ella, esas áreas no podrían tener ni una evaluación.
 def plan_de(seccion, materia, lapso)
   return [] unless seccion.grade.por_competencias?
 
@@ -82,15 +94,13 @@ end
 
 # Reparte entre sus evaluaciones los indicadores que quedaron sueltos.
 #
-# ⚠️ Ninguno puede quedar sin evaluación en la demo. Desde el 21 de septiembre
-# un indicador vive DENTRO de la evaluación que lo mide: uno suelto no se
-# imprime en la boleta —solo salen los medidos— y en el plan aparece en el
-# bloque ámbar de «indicadores sin evaluación», que es un aviso de dato viejo.
-# Una demo llena de esos avisos enseña justo lo contrario de cómo se usa.
-#
-# El reparto es cíclico: tres indicadores entre dos evaluaciones quedan 2 y 1.
-def repartir_los_indicadores_sueltos(seccion)
-  Competency.where(section_id: seccion.id).includes(:indicators, :evaluation_activities).find_each do |competencia|
+# ⚠️ En un lapso TERMINADO no puede quedar ninguno sin evaluación: un indicador
+# vive dentro de la evaluación que lo mide, y uno suelto no se imprime en la
+# boleta. El reparto es cíclico: tres indicadores entre dos evaluaciones quedan
+# 2 y 1.
+def repartir_los_indicadores_sueltos(seccion, lapso)
+  Competency.where(section_id: seccion.id, evaluation_moment_id: lapso.id)
+            .includes(:indicators, :evaluation_activities).find_each do |competencia|
     miden = competencia.evaluation_activities.to_a
     next if miden.empty?
 
@@ -101,21 +111,20 @@ def repartir_los_indicadores_sueltos(seccion)
 end
 
 # ⚠️ Un indicador PROPIO por evaluación: no se repiten entre evaluaciones, así
-# que dos actividades de la misma competencia miden cosas distintas de ella. Si
-# el plan escrito se queda corto, se escribe uno más — que es exactamente lo que
-# hace la maestra en el panel del alta.
+# que dos actividades de la misma competencia miden cosas distintas de ella.
 def un_indicador_libre(competencia, nombre)
   competencia.indicators.libres.first ||
     competencia.indicators.create!(descripcion: "Lo que se evalúa en «#{nombre}»",
                                    orden: (competencia.indicators.maximum(:orden) || -1) + 1)
 end
 
-def actividades_de(seccion, materia, lapso, indice, cuantas: PONDERACION.size)
-  anio, mes = MESES_POR_LAPSO[indice]
-
+# Las evaluaciones de un área en un lapso: el plan entero, con su fecha cada
+# una. `cuantas: 2` deja el lapso a medio planificar —Examen 40 % y Taller
+# 30 %, sin la Participación—, que es el caso del medidor «faltan 30 %».
+def actividades_de(seccion, materia, lapso, cuantas: PLAN_DEL_LAPSO.size)
   plan = plan_de(seccion, materia, lapso)
 
-  PONDERACION.first(cuantas).map.with_index do |(nombre, peso), i|
+  PLAN_DEL_LAPSO.first(cuantas).map.with_index do |(nombre, peso, fraccion), i|
     actividad = EvaluationActivity.find_or_initialize_by(
       section: seccion, subject: materia, evaluation_moment: lapso,
       description: "#{nombre} — #{lapso.name}"
@@ -123,7 +132,7 @@ def actividades_de(seccion, materia, lapso, indice, cuantas: PONDERACION.size)
     next actividad if actividad.persisted?
 
     actividad.weight_percentage = peso
-    actividad.date_scheduled    = Date.new(anio, mes, 5 + i * 7)
+    actividad.date_scheduled    = fecha_en_el_lapso(lapso, fraccion)
 
     # ⚠️ Se reparten las competencias del plan entre las tres evaluaciones, y
     # cada una se lleva un indicador distinto. En bachillerato `plan` viene
@@ -139,13 +148,12 @@ def actividades_de(seccion, materia, lapso, indice, cuantas: PONDERACION.size)
   end
 end
 
-# ⚠️ `insert_all` y no `create!`, y es la diferencia entre nueve segundos y tres
-# minutos.
+# ⚠️ `insert_all` y no `create!`, y es la diferencia entre segundos y minutos.
 #
 # `ActivityGrade#after_save` recalcula el lapso y el anual — que es lo correcto
-# en la app: el promedio nunca queda viejo. Pero acá se cargan ~7.000 notas de
-# una sentada, y recalcular después de cada una es hacer el mismo trabajo
-# setecientas veces.
+# en la app: el promedio nunca queda viejo. Pero acá se cargan decenas de miles
+# de notas de una sentada, y recalcular después de cada una es hacer el mismo
+# trabajo miles de veces.
 #
 # Se insertan en bruto y se recalcula UNA vez por sección al final, con
 # `GradeCalculator.calculate_all_for_section`. El resultado es idéntico; lo que
@@ -157,43 +165,16 @@ def cargar_notas!(filas)
   return if filas.empty?
 
   ahora = Time.current
-  ActivityGrade.insert_all(
-    filas.map { |f| f.merge(created_at: ahora, updated_at: ahora) },
-    unique_by: %i[evaluation_activity_id student_id]
-  )
+  filas.each_slice(5_000) do |tanda|
+    ActivityGrade.insert_all(
+      tanda.map { |f| f.merge(created_at: ahora, updated_at: ahora) },
+      unique_by: %i[evaluation_activity_id student_id]
+    )
+  end
 end
 
-# Una nota verosímil y ESTABLE entre corridas: la misma semilla da el mismo
-# número. Un dato que cambia de una siembra a otra hace que un bug no se pueda
-# reproducir.
-def nota_verosimil(semilla, piso: 8, techo: 20)
-  piso + ((semilla * 7919) % (techo - piso + 1))
-end
-
-# ── Los cinco casos que hay que poder VER ────────────────────────────────────
-#
-# Cada uno existe para hacer visible una regla del Reglamento General de la LOE.
-# No son notas de relleno: son lo que el cálculo tiene que resolver bien.
-#
-#   #1  buen alumno              → aprueba cómodo (Art. 111, promedio simple)
-#   #2  9,50 exacto              → Art. 108: sube a 10 y APRUEBA
-#   #3  aplazado con reparación  → Art. 112: la segunda oportunidad manda
-#   #4  sin ninguna nota         → sale SIN nota, nunca con cero
-#   #5  una actividad sin corregir → promedia sobre el peso cargado, no sobre 100
-CASOS_DE_MATEMATICA = {
-  0 => [ [ 18, 19, 17 ], [ 17, 18, 16 ], [ 19, 20, 18 ] ],
-  1 => [ [ 11,  9,  8 ], [ 11,  9,  8 ], [ 11,  9,  8 ] ],
-  2 => [ [  7,  9,  8 ], [  8,  8,  8 ], [  9,  9,  9 ] ],
-  3 => [ nil, nil, nil ],
-  4 => [ [ 16, nil, nil ], nil, nil ]
-}.freeze
-
-# ⚠️ El AÑO ESCOLAR va en la búsqueda, y sin él sale la sección equivocada.
-#
-# Bolívar tiene «1er Año A» TRES veces —2024-2025, 2025-2026 y la copiada a
-# 2026-2027— y `find_by` devolvía cualquiera de ellas. El síntoma fue «Lapso no
-# pertenece al año escolar de la sección»: se estaban colgando las evaluaciones
-# del año en curso de una sección del año que viene.
+# ⚠️ El AÑO ESCOLAR va en la búsqueda, y sin él sale la sección equivocada:
+# «1er Año A» existe una vez por año, y `find_by` devolvía cualquiera.
 def seccion_de(colegio, grado, identificador, periodo)
   Current.school = colegio
   Section.joins(:grade).find_by(
@@ -202,161 +183,133 @@ def seccion_de(colegio, grado, identificador, periodo)
   )
 end
 
-def alumnos_de(seccion)
-  Enrollment.where(section: seccion).includes(:student).order(:id).map(&:student)
+# Las inscripciones de una sección en el orden de la lista, cada una con su
+# PUESTO —que es por donde se fijan los casos con nombre—.
+def lista_de(seccion)
+  Enrollment.where(section: seccion).includes(:student).order(:id).each_with_index.to_a
 end
 
 def lapsos_de(periodo)
   EvaluationMoment.where(academic_period: periodo).order(:starts_on, :id).to_a
 end
 
-# Carga una sección entera. `hasta_el_lapso` es lo que la hace parecer un año en
-# curso en vez de un año terminado.
-def evaluar_seccion!(seccion, lapsos, hasta_el_lapso: 3, casos: {}, objetivo: nil)
-  alumnos = alumnos_de(seccion)
-  return if alumnos.empty?
-
-  # ⚠️ Al final de la sección se reparten los indicadores que quedaron sueltos
-  # (ver `repartir_los_indicadores_sueltos`). Se hace acá y no al crear cada
-  # evaluación porque el reparto necesita saber CUÁNTAS evaluaciones miden cada
-  # competencia, y eso solo se sabe cuando están las tres.
+# ── EL MOTOR ─────────────────────────────────────────────────────────────────
+#
+# Evalúa UN lapso de UNA sección, hasta una fecha. Devuelve cuántas notas cargó.
+#
+#     hasta      solo se califica lo que ya pasó: un lapso que corre tiene
+#                evaluaciones por delante, planificadas y sin notas
+#     ritmo      por área: `:al_dia`, `:atrasado` (lo último que venció está sin
+#                calificar), `:a_medias` (el plan no llega al 100 %) o
+#                `:sin_plan` (ni una evaluación)
+#     casos      notas escritas a mano para un área y un puesto: son los que
+#                hacen visible una regla del Reglamento
+#     objetivo   la misma nota en todo, por puesto: los cinco de la escala literal
+#     ausentes   puestos que no tienen nota en la última evaluación calificada
+#                de Matemática: «sin nota» no es cero, y hay que poder verlo
+#
+# El perfil fijo de un alumno (`SEMILLA[:bases]`) lo sigue de un año al otro:
+# va por alumno y no por puesto, porque al promoverlo cambia de lista.
+def evaluar_lapso!(seccion, lapso, indice, hasta: lapso.ends_on, ritmo: nil, casos: {}, objetivo: {},
+                   ausentes: [])
+  lista = lista_de(seccion).select { |inscripcion, _| inscripcion.regular? }
+  return 0 if lista.empty?
 
   filas = []
-  materias = seccion.grade.subjects.order(:code).to_a
 
-  materias.each_with_index do |materia, mi|
-    lapsos.first(hasta_el_lapso).each_with_index do |lapso, li|
-      actividades = actividades_de(seccion, materia, lapso, li)
+  seccion.grade.subjects.order(:code).each do |materia|
+    paso_del_area = ritmo ? ritmo.call(materia) : :al_dia
+    next if paso_del_area == :sin_plan
 
-      alumnos.each_with_index do |alumno, ai|
-        # Los casos con nombre solo aplican a la PRIMERA materia de la lista:
-        # el resto de las áreas de esos mismos alumnos lleva notas normales, que
-        # es lo que hace que su boletín se vea como un boletín.
-        puntajes =
-          if mi.zero? && casos.key?(ai)
-            casos[ai][li]
-          elsif objetivo
-            Array.new(actividades.size) { objetivo[ai] || nota_verosimil(ai + li) }
-          else
-            base = nota_verosimil(ai * 3 + mi * 5 + li)
-            [ base, (base + 2).clamp(1, 20), (base - 1).clamp(1, 20) ]
-          end
-        next if puntajes.nil?
+    actividades = actividades_de(seccion, materia, lapso, cuantas: paso_del_area == :a_medias ? 2 : 3)
+    vencidas = actividades.select { |a| a.date_scheduled <= hasta }.sort_by(&:date_scheduled)
+    # El atrasado tiene sin calificar lo último que venció.
+    vencidas = vencidas[0...-1] if paso_del_area == :atrasado
+    sin_la_ultima = vencidas.last
 
-        actividades.each_with_index do |actividad, i|
-          next if puntajes[i].nil?
+    vencidas.each do |actividad|
+      i = actividades.index(actividad)
 
-          filas << { evaluation_activity_id: actividad.id, student_id: alumno.id,
-                     score: puntajes[i], school_id: seccion.school_id }
-        end
+      lista.each do |inscripcion, puesto|
+        next if ausentes.include?(puesto) && actividad == sin_la_ultima && materia.code == "MAT"
+
+        puntaje = if casos.dig(materia.code, puesto)
+                    casos[materia.code][puesto][indice]&.at(i)
+                  elsif objetivo[puesto]
+                    objetivo[puesto]
+                  else
+                    nota_de(numero_de(inscripcion.student), materia.code, indice, i,
+                            base: SEMILLA[:bases][inscripcion.student_id])
+                  end
+        next if puntaje.nil?
+
+        filas << { evaluation_activity_id: actividad.id, student_id: inscripcion.student_id,
+                   score: puntaje, school_id: seccion.school_id }
       end
     end
   end
 
-  repartir_los_indicadores_sueltos(seccion)
+  repartir_los_indicadores_sueltos(seccion, lapso) if hasta >= lapso.ends_on
   cargar_notas!(filas)
-  GradeCalculator.calculate_all_for_section(seccion)
   filas.size
 end
 
-bolivar = SEMILLA[:bolivar]
-bello   = SEMILLA[:bello]
-lapsos_bol = lapsos_de(SEMILLA[:anio_bolivar])
-lapsos_bel = lapsos_de(SEMILLA[:anio_bello])
-
-cargadas = 0
-
-# 1 · 1er Año A — el año completo, con los cinco casos en Matemática.
+# ── Los tres casos que hay que poder VER ─────────────────────────────────────
 #
-# ⚠️ Matemática tiene que ser la PRIMERA por código para que los casos caigan
-# ahí: las áreas se recorren en orden de código y `MAT` va antes que las demás
-# de bachillerato salvo `ART`, `BIO`, `CNA`, `EDF`, `FSN`, `GCR`, `GHC`, `ING`,
-# `LEN`. Se pasa explícita en vez de confiar en el orden.
-un_ano_a = seccion_de(bolivar, "1er Año", "A", SEMILLA[:anio_bolivar])
-if un_ano_a
-  materias = un_ano_a.grade.subjects.order(:code).to_a
-  mat = materias.find { |m| m.code == "MAT" }
-  otras = materias - [ mat ]
+# Cada uno existe para hacer visible una regla del Reglamento General de la LOE,
+# en la Matemática de «1er Año A» del año anterior. Van en el orden de
+# `PLAN_DEL_LAPSO`: examen, taller, participación.
+#
+#   #1  buen alumno              → aprueba cómodo (Art. 111, promedio simple)
+#   #2  9,50 exacto              → Art. 108: sube a 10 y APRUEBA
+#   #3  aplazado con reparación  → Art. 112: la segunda oportunidad manda
+#
+# ⚠️ Eran cinco. El alumno «sin ninguna nota» y el de «una actividad sin
+# corregir» se mudaron al año en curso (paso 08): son estados de un lapso que
+# CORRE. En un año cerrado, un alumno sin nota en Matemática deja a su sección
+# sin poder cerrar ningún lapso, y a veintidós familias sin boletín.
+CASOS_DE_MATEMATICA = {
+  0 => [ [ 18, 19, 17 ], [ 17, 18, 16 ], [ 19, 20, 18 ] ],
+  1 => [ [ 11,  9,  8 ], [ 11,  9,  8 ], [ 11,  9,  8 ] ],
+  2 => [ [  7,  9,  8 ], [  8,  8,  8 ], [  9,  9,  9 ] ]
+}.freeze
 
-  # Matemática, con los casos.
-  filas = []
-  lapsos_bol.each_with_index do |lapso, li|
-    actividades = actividades_de(un_ano_a, mat, lapso, li)
-    alumnos_de(un_ano_a).each_with_index do |alumno, ai|
-      puntajes = CASOS_DE_MATEMATICA.key?(ai) ? CASOS_DE_MATEMATICA[ai][li] :
-                   [ nota_verosimil(ai + li), nota_verosimil(ai + li + 1), nota_verosimil(ai + li + 2) ]
-      next if puntajes.nil?
-
-      actividades.each_with_index do |actividad, i|
-        next if puntajes[i].nil?
-        filas << { evaluation_activity_id: actividad.id, student_id: alumno.id,
-                   score: puntajes[i], school_id: un_ano_a.school_id }
-      end
-    end
-  end
-  cargar_notas!(filas)
-  cargadas += filas.size
-
-  # Las demás áreas: los tres lapsos, salvo Castellano que va SOLO en el primero
-  # y con el lapso a medio definir —Examen 40 % y Taller 30 %, sin la
-  # Participación—. Son dos casos de QA en uno: el medidor tiene que mostrar
-  # «faltan 30 %», y el promedio se calcula sobre el 70 % cargado.
-  otras.each do |materia|
-    solo_primero = materia.code == "LEN"
-    filas = []
-    lapsos_bol.first(solo_primero ? 1 : 3).each_with_index do |lapso, li|
-      actividades = actividades_de(un_ano_a, materia, lapso, li, cuantas: solo_primero ? 2 : 3)
-      alumnos_de(un_ano_a).each_with_index do |alumno, ai|
-        actividades.each_with_index do |actividad, i|
-          filas << { evaluation_activity_id: actividad.id, student_id: alumno.id,
-                     score: nota_verosimil(ai * 3 + li + i), school_id: un_ano_a.school_id }
-        end
-      end
-    end
-    cargar_notas!(filas)
-    cargadas += filas.size
-  end
-  GradeCalculator.calculate_all_for_section(un_ano_a)
-end
-
-# 2 · Un año COMPLETO de punta a punta: 5to Año A (diez alumnos) y el 6to Año
-#     técnico. Son los que alimentan la certificación 31059 y las reparaciones.
-[ [ "5to Año", "A" ], [ "6to Año", "A" ] ].each do |grado, identificador|
-  seccion = seccion_de(bolivar, grado, identificador, SEMILLA[:anio_bolivar])
-  cargadas += evaluar_seccion!(seccion, lapsos_bol).to_i if seccion
-end
-
-# 3 · Primaria de Bolívar por LITERAL: 4to Grado A recorre las cinco letras.
+# Primaria por LITERAL: «4to Grado A» recorre las cinco letras.
 #
 #     20 → A       17 → B       15 → C       11 → D       8 → E
 #
 # Un solo alumno con 19 demuestra que el mapa existe; cinco repartidos
 # demuestran que los cortes están donde tienen que estar, y dejan a la vista el
 # que más importa: la E, que es reprobado.
-LITERALES = [ 20, 17, 15, 11, 8 ].freeze
+LITERALES = { 0 => 20, 1 => 17, 2 => 15, 3 => 11, 4 => 8 }.freeze
 
-[ [ bolivar, "4to Grado", "A", lapsos_bol, SEMILLA[:anio_bolivar] ],
-  [ bello,   "4to Grado", "A", lapsos_bel, SEMILLA[:anio_bello] ] ].each do |colegio, grado, ident, lapsos, periodo|
-  seccion = seccion_de(colegio, grado, ident, periodo)
-  next if seccion.nil?
+# Lo que tiene de particular cada sección del año anterior.
+def particularidades_de(seccion)
+  grado, nombre = seccion.grade.name, seccion.name
 
-  objetivo = LITERALES.each_with_index.to_h { |nota, i| [ i, nota ] }
-  cargadas += evaluar_seccion!(seccion, lapsos, objetivo: objetivo).to_i
+  { casos: (grado == "1er Año" && nombre == "A" ? { "MAT" => CASOS_DE_MATEMATICA } : {}),
+    objetivo: (grado == "4to Grado" && nombre == "A" ? LITERALES : {}) }
 end
 
-# 4 · A MEDIAS — solo el primer lapso. Es el estado normal de un año en curso.
-[ [ "1er Año", "B" ], [ "2do Año", "A" ], [ "3er Año", "A" ], [ "1er Grado", "A" ] ].each do |grado, ident|
-  seccion = seccion_de(bolivar, grado, ident, SEMILLA[:anio_bolivar])
-  cargadas += evaluar_seccion!(seccion, lapsos_bol, hasta_el_lapso: 1).to_i if seccion
-end
+bolivar  = SEMILLA[:bolivar]
+anterior = SEMILLA[:anterior]
+lapsos_del_anterior = lapsos_de(anterior)
 
 Current.school = bolivar
-puts "   ✓ #{cargadas} notas cargadas · #{Current.sin_aislamiento { EvaluationActivity.unscoped.count }} evaluaciones"
-sin_notas = Current.sin_aislamiento do
-  Section.unscoped.where(school_id: bolivar.id, academic_period_id: SEMILLA[:anio_bolivar].id)
-         .where.not(id: EvaluationActivity.unscoped.select(:section_id)).count
+cargadas = 0
+
+SEMILLA[:secciones_bolivar].each do |seccion, _|
+  next if seccion.grade.califica_con_texto?
+
+  propio = particularidades_de(seccion)
+  lapsos_del_anterior.each_with_index do |lapso, indice|
+    cargadas += evaluar_lapso!(seccion, lapso, indice, **propio)
+  end
+  GradeCalculator.calculate_all_for_section(seccion)
 end
-puts "     #{sin_notas} secciones SIN una sola nota: es lo que persigue «quién no cargó notas»"
+
+puts "   ✓ #{cargadas} notas en #{anterior.name}: las #{SEMILLA[:secciones_bolivar].count { |s, _| !s.grade.califica_con_texto? }} " \
+     "secciones calificadas, los tres lapsos"
 
 # ── La reparación (Art. 112) ─────────────────────────────────────────────────
 #
@@ -364,176 +317,251 @@ puts "     #{sin_notas} secciones SIN una sola nota: es lo que persigue «quién
 # el promedio ANUAL; `aplazado?` mira la definitiva, que ya incluye la
 # reparación. Con `aplazado?`, el alumno desaparecía de la planilla en el
 # instante en que se le cargaba una reparación aprobatoria.
-Current.school = bolivar
+#
+# De cada veinte que tenían que reparar:
+#
+#     12  repararon y APROBARON     la segunda oportunidad manda: pasan
+#      5  repararon y NO alcanzó    la materia queda aplazada
+#      3  NO se presentaron         siguen en la planilla, con el campo vacío
+#
+# Los últimos son los que hacen que `/reparaciones` del año anterior no sea una
+# lista terminada: hay algo que cargar.
+paso "🩹 Reparaciones"
+
+def reparar!(libro, nota)
+  libro.remedial_exam_score = nota
+  libro.calcular_definitiva
+  libro.save!
+end
+
+por_reparar = FinalGradeBook.where(enrollment_id: Enrollment.where(section_id: SEMILLA[:secciones_bolivar].map { |s, _| s.id },
+                                                                    status: :regular).select(:id))
+                            .includes(:subject, enrollment: :student)
+                            .select(&:debe_reparar?)
+
+aprobaron = no_alcanzo = pendientes = 0
+por_reparar.each do |libro|
+  le_toco = suerte(numero_de(libro.enrollment.student), libro.subject.code, "reparacion", de: 20)
+
+  if le_toco < 12
+    reparar!(libro, 10 + (le_toco % 4))
+    aprobaron += 1
+  elsif le_toco < 17
+    reparar!(libro, 6 + (le_toco % 4))
+    no_alcanzo += 1
+  else
+    pendientes += 1
+  end
+end
+
+# El caso #3 no se deja al sorteo: Miguel Pérez sacó 8 de anual en Matemática,
+# reparó con 12, y su definitiva es 12.
+un_ano_a = SEMILLA[:secciones_bolivar].find { |s, _| s.grade.name == "1er Año" && s.name == "A" }&.first
 if un_ano_a
-  mat = un_ano_a.grade.subjects.find_by(code: "MAT")
-  tercero = alumnos_de(un_ano_a)[2]
-  inscripcion = Enrollment.find_by(student: tercero, section: un_ano_a)
-
-  libro = FinalGradeBook.find_by(enrollment: inscripcion, subject: mat)
-  libro&.update!(remedial_exam_score: 12)
-  GradeCalculator.calculate_final_grade(enrollment: inscripcion, subject: mat) if libro
+  inscripcion, = lista_de(un_ano_a)[2]
+  libro = FinalGradeBook.find_by(enrollment: inscripcion, subject: un_ano_a.grade.subjects.find_by(code: "MAT"))
+  reparar!(libro, 12) if libro
 end
 
-# ── El historial: 2024-2025, importado ───────────────────────────────────────
+puts "   ✓ #{por_reparar.size} materias por reparar: #{aprobaron} reparadas y aprobadas · " \
+     "#{no_alcanzo} reparadas sin alcanzar · #{pendientes} sin presentar"
+
+# ── Las valoraciones de Inicial (MOR-218) ────────────────────────────────────
 #
-# Todo alumno que no está en su primer grado viene de algún lado. Sin historial,
-# la ficha de un alumno de 5to Año arranca en blanco, el boletín no tiene con
-# qué comparar y la constancia de un egresado no existe.
-#
-# ⚠️ Va con `origen: :importada`, y eso NO es una etiqueta cosmética: es lo que
-# impide que `GradeCalculator` borre estas notas. Un libro importado no tiene
-# actividades debajo —las cinco evaluaciones que produjeron ese 15 están en
-# papel— y la regla de borrar lo que quedó sin respaldo se las llevaría.
-#
-# Es además el caso REAL de un colegio nuevo en SIGA: trae su historial y sigue
-# desde ahí.
-paso "📚 Historial del año pasado (importado)"
+# La Educación Inicial no pone notas: describe. Cada niño lleva, por lapso, un
+# texto en cada una de sus tres áreas.
+VALORACIONES = {
+  "FPS" => [
+    "Se integra al grupo con confianza y espera su turno para hablar. Empieza a resolver los desacuerdos conversando.",
+    "Reconoce sus pertenencias y las cuida. Todavía busca al adulto cuando algo no le sale: hay que animarlo a intentar otra vez.",
+    "Expresa lo que siente con palabras y consuela a sus compañeros. Sigue las rutinas del aula sin que se le recuerden.",
+    "Participa en los juegos del grupo, aunque prefiere mirar antes de entrar. Se despide de su familia sin angustia."
+  ],
+  "RCA" => [
+    "Observa con curiosidad las plantas y los animales del patio, y pregunta por qué. Clasifica objetos por color y tamaño.",
+    "Cuenta hasta diez señalando cada objeto. Reconoce el círculo, el cuadrado y el triángulo en lo que tiene alrededor.",
+    "Cuida el agua y bota la basura en su lugar sin que se le pida. Ordena una secuencia de tres momentos del día.",
+    "Compara cantidades —más, menos, igual— con material concreto. Le cuesta todavía ubicar arriba, abajo, delante y detrás."
+  ],
+  "CYR" => [
+    "Cuenta lo que hizo el fin de semana en orden y con detalles. Reconoce su nombre escrito y empieza a trazarlo.",
+    "Escucha un cuento completo y anticipa lo que va a pasar. Dibuja la figura humana con cabeza, tronco y extremidades.",
+    "Canta las canciones del aula y marca el ritmo con las palmas. Toma el creyón con la pinza correcta.",
+    "Hace preguntas sobre las palabras que no conoce. Reconoce las vocales en los carteles del salón."
+  ]
+}.freeze
 
-anterior = SEMILLA[:anio_bolivar_2025]
-Current.school = bolivar
+# Escribe las valoraciones de los lapsos que ya terminaron y —en el que corre—
+# las de las áreas que la maestra ya tuvo tiempo de mirar. Se insertan en bruto,
+# como las notas: son texto, y nada las recalcula.
+def valorar!(seccion, lapsos, hasta: HOY)
+  return 0 unless seccion.grade.califica_con_texto?
 
-libros = []
-inscripciones_viejas = []
-ahora = Time.current
+  areas = seccion.grade.subjects.order(:code).to_a
+  ahora = Time.current
+  filas = []
 
-SEMILLA[:secciones_bolivar].each do |seccion, _|
-  grado = seccion.grade
-  next if grado.preescolar?                       # inicial describe, no califica
+  lapsos.each_with_index do |lapso, indice|
+    situacion = lapso.ends_on < hasta ? :terminado : (lapso.starts_on <= hasta ? :corriendo : :por_empezar)
+    next if situacion == :por_empezar
 
-  orden_anterior = (GradoOficial.orden_de(grado.name) || 1) - 1
-  entrada = GradoOficial::CATALOGO.find { |e| e.orden == orden_anterior }
-  next if entrada.nil?
+    lista_de(seccion).each do |inscripcion, puesto|
+      next unless inscripcion.regular?
 
-  grado_anterior = bolivar.grades.find_by(name: entrada.nombre)
-  next if grado_anterior.nil?
+      areas.each_with_index do |area, ai|
+        # A mitad de lapso la maestra lleva escritas unas sí y otras no.
+        next if situacion == :corriendo && (puesto + ai).odd?
 
-  vieja = Section.find_or_create_by!(name: seccion.name, grade: grado_anterior,
-                                     academic_period: anterior) { |s| s.capacity = seccion.capacity }
-
-  alumnos_de(seccion).each do |alumno|
-    inscripcion = Enrollment.find_or_create_by!(student: alumno, section: vieja) do |e|
-      e.enrollment_date = Date.new(2024, 9, 17)
-      e.status = :regular
+        textos = VALORACIONES.fetch(area.code)
+        filas << { enrollment_id: inscripcion.id, subject_id: area.id, evaluation_moment_id: lapso.id,
+                   descripcion: textos[(numero_de(inscripcion.student) + indice + ai) % textos.size],
+                   origen: MomentGrade.origens[:calculada], school_id: seccion.school_id,
+                   created_at: ahora, updated_at: ahora }
+      end
     end
-    inscripciones_viejas << [ inscripcion, grado_anterior ]
   end
+
+  MomentGrade.insert_all(filas, unique_by: %i[enrollment_id subject_id evaluation_moment_id]) if filas.any?
+  filas.size
 end
 
-inscripciones_viejas.each_with_index do |(inscripcion, grado_anterior), i|
-  grado_anterior.subjects.order(:code).each_with_index do |materia, mi|
-    next if FinalGradeBook.exists?(enrollment: inscripcion, subject: materia)
-
-    nota = nota_verosimil(i * 3 + mi, piso: 9, techo: 20)
-    libros << { enrollment_id: inscripcion.id, subject_id: materia.id,
-                school_id: bolivar.id, annual_average: nota, final_score: nota,
-                origen: FinalGradeBook.origens[:importada],
-                created_at: ahora, updated_at: ahora }
-  end
-end
-
-FinalGradeBook.insert_all(libros) if libros.any?
-puts "   ✓ #{inscripciones_viejas.size} inscripciones en 2024-2025 · #{libros.size} notas definitivas importadas"
-
-# ── Competencias e indicadores (MOR-136) ─────────────────────────────────────
-#
-# El plan de evaluación de primaria, escrito como lo escribe una maestra: la
-# competencia dice QUÉ se evalúa y los indicadores dicen qué significa. Se
-# imprimen en la boleta; no se califican aparte.
-paso "🧩 Plan de evaluación por competencias"
-
-# ⚠️ El plan ya está escrito: nace con las evaluaciones, más arriba (`plan_de`).
-#
-# Antes se escribía acá y se etiquetaba después. Desde `MOR-136` (segunda mitad)
-# ese orden es imposible: una evaluación de primaria mide una competencia y un
-# indicador, o no se guarda. Lo que queda por sembrar acá son los dos estados
-# que el orden normal NO produce solo.
+paso "🌱 Valoraciones de Educación Inicial"
 
 Current.school = bolivar
-
-# ── 1. Una competencia que ninguna evaluación mide ───────────────────────────
-#
-# Sale en la boleta SIN nivel, y es un estado que hay que poder ver: es lo que
-# el plan avisa con «saldrá sin nivel en la boleta» (`MOR-229`). Con el plan
-# entero conectado no aparecería nunca — la misma razón por la que hay secciones
-# sin notas y representantes sin correo.
-suelta = nil
-cuarto_a = seccion_de(bolivar, "4to Grado", "A", SEMILLA[:anio_bolivar])
-if cuarto_a
-  materia = cuarto_a.grade.subjects.find_by(code: "MAT")
-  if materia
-    # ⚠️ SIN indicadores, y eso es lo coherente desde el 21 de septiembre: un
-    # indicador cuelga de la evaluación que lo mide, así que una competencia que
-    # ninguna evaluación mide no puede tener ninguno todavía.
-    suelta = Competency.find_or_create_by!(
-      section: cuarto_a, subject: materia, evaluation_moment: lapsos_bol.first,
-      descripcion: "Interpreta tablas y gráficos sencillos"
-    ) { |c| c.orden = 9 }
-  end
-end
-
-# ── 2. Indicadores que todavía no mide nadie ─────────────────────────────────
-#
-# El reparto de arriba le da UNO a cada evaluación, y una competencia con tres
-# queda con dos libres. Es el estado normal de un lapso a medias, y es lo que
-# hace visible para qué sirve la columna: se ve qué falta por evaluar.
-competencias = Current.sin_aislamiento { Competency.unscoped.count }
-libres = Current.sin_aislamiento { Indicator.unscoped.where(evaluation_activity_id: nil).count }
-medidos = Current.sin_aislamiento { Indicator.unscoped.where.not(evaluation_activity_id: nil).count }
+valoraciones = SEMILLA[:secciones_bolivar].sum { |seccion, _| valorar!(seccion, lapsos_del_anterior) }
+puts "   ✓ #{valoraciones} valoraciones en #{anterior.name}: Inicial describe, no califica"
 
 # ── Los informes descriptivos (MOR-216) ──────────────────────────────────────
 #
-# ⚠️ Algunos SÍ y otros NO, a propósito. Un colegio a mitad de lapso tiene la
-# mitad escritos, y la boleta de un alumno sin informe tiene que salir igual —
-# sin un renglón vacío ni un título huérfano. Con todos escritos ese caso no se
-# ve nunca.
-paso "✍️  Informes descriptivos"
+# Un informe por alumno y por lapso: lo escribe el docente guía, y sin él el
+# lapso no se puede cerrar. Lo que dice sale del perfil del alumno —no es lo
+# mismo lo que se le escribe a quien va sobrado que a quien está por repetir—.
+INFORMES = {
+  sobresaliente: [
+    "Trabaja con autonomía y termina antes que el grupo: conviene darle retos mayores para que no se aburra. Ayuda a sus compañeros con paciencia.",
+    "Excelente lapso. Participa con criterio propio y sustenta lo que dice. Hay que cuidar que no se confíe en las evaluaciones largas.",
+    "Mantiene un rendimiento muy alto en todas las áreas y es referencia para el grupo. Le vendría bien animarse a exponer más en público."
+  ],
+  bueno: [
+    "Trabaja con constancia y termina lo que empieza. Le cuesta pedir ayuda cuando no entiende: hay que animarlo a preguntar en el momento y no al final de la clase.",
+    "Buen lapso, con una mejora clara desde el anterior. En los problemas de dos pasos se apura y responde antes de leer todo el enunciado.",
+    "Cumple con sus asignaciones y participa cuando se le pregunta. Puede dar más: conviene un horario fijo de estudio en casa, corto pero diario."
+  ],
+  regular: [
+    "Se distrae al final de la mañana y conviene sentarlo adelante. Cuando está atento resuelve sin dificultad, y eso se nota en las evaluaciones de la primera hora.",
+    "Aprueba, pero con lo justo. Entrega las asignaciones incompletas: hay que revisar el cuaderno en casa dos veces por semana.",
+    "Avanzó en lectura, pero Matemática le sigue costando. Se recomienda practicar en casa diez minutos diarios, sin esperar a la víspera de la evaluación."
+  ],
+  en_riesgo: [
+    "Tiene varias áreas por debajo de lo esperado y está en riesgo de no aprobar el año. Es necesario que su representante venga al colegio para acordar un plan de apoyo.",
+    "Falta con frecuencia y eso se refleja en sus notas: no logra seguir el hilo de las clases. Se citó al representante y todavía no ha asistido.",
+    "No entrega las asignaciones y llega sin el material. Cuando trabaja acompañado demuestra que puede: necesita seguimiento diario en casa."
+  ],
+  inicial: [
+    "Llegó al aula con mucha timidez y hoy participa en la ronda con entusiasmo. Conviene seguir leyéndole un cuento cada noche.",
+    "Es un niño alegre y curioso. Todavía le cuesta compartir los juguetes: en casa ayuda jugar por turnos, con un reloj de arena.",
+    "Avanzó mucho en su lenguaje durante este lapso: arma oraciones completas y cuenta lo que le pasó. Disfruta la música y el dibujo."
+  ]
+}.freeze
 
-INFORMES = [
-  "Avanzó mucho en la lectura en voz alta durante este lapso. Todavía se apura al " \
-  "leer y se salta los signos de puntuación; conviene practicar en casa diez minutos " \
-  "diarios con un cuento que le guste.",
+def perfil_de_informe(inscripcion, base_fija)
+  return :inicial if inscripcion.section.grade.califica_con_texto?
 
-  "Trabaja con constancia y termina lo que empieza. Le cuesta pedir ayuda cuando no " \
-  "entiende: hay que animarla a preguntar en el momento y no al final de la clase.",
-
-  "Domina las operaciones básicas y ayuda a sus compañeros cuando terminan tarde. " \
-  "En los problemas de dos pasos se apura y responde antes de leer todo el enunciado.",
-
-  "Se distrae al final de la mañana y conviene sentarlo adelante. Cuando está atento " \
-  "resuelve sin dificultad, y eso se nota en las evaluaciones de la primera hora.",
-
-  "Mejoró mucho desde octubre, sobre todo en la escritura: separa bien las palabras y " \
-  "empezó a usar mayúscula al iniciar la oración sin que se le recuerde."
-].freeze
-
-escritos = 0
-
-[ [ bolivar, "4to Grado" ], [ bolivar, "1er Grado" ] ].each do |colegio, grado|
-  Current.school = colegio
-  seccion = seccion_de(colegio, grado, "A", SEMILLA[:anio_bolivar])
-  next if seccion.nil?
-
-  guia = seccion.leader_teacher&.user || User.find_by(email: CORREO_DEL_DIRECTOR)
-  next if guia.nil?
-
-  primer_lapso = lapsos_bol.first
-  Enrollment.where(section_id: seccion.id, status: :regular).order(:id).each_with_index do |inscripcion, i|
-    # Dos de cada tres: el estado real de una maestra a mitad de lapso.
-    next if (i % 3) == 2
-
-    Informe.find_or_create_by!(enrollment: inscripcion, evaluation_moment: primer_lapso) do |informe|
-      informe.escrito_por = guia
-      informe.cuerpo = INFORMES[i % INFORMES.size]
-    end
-    escritos += 1
+  case base_fija || base_del_alumno(numero_de(inscripcion.student))
+  when 17.. then :sobresaliente
+  when 14.. then :bueno
+  when 12.. then :regular
+  else :en_riesgo
   end
 end
 
-Current.school = bolivar
-puts "   ✓ #{escritos} informes escritos · el tercio restante queda SIN informe, a propósito"
+# Escribe los informes de una sección para un lapso. `proporcion` es cuántos de
+# cada tres: un lapso terminado los tiene todos; uno que corre, dos de cada tres.
+def informar!(seccion, lapso, indice, escribe:, de_cada_tres: 3, objetivo: {})
+  ahora = Time.current
+  filas = lista_de(seccion).filter_map do |inscripcion, puesto|
+    next unless inscripcion.regular?
+    next if (puesto % 3) >= de_cada_tres
+
+    base = SEMILLA[:bases][inscripcion.student_id] || objetivo[puesto]
+    textos = INFORMES.fetch(perfil_de_informe(inscripcion, base))
+    { enrollment_id: inscripcion.id, evaluation_moment_id: lapso.id, escrito_por_id: escribe.id,
+      cuerpo: textos[(numero_de(inscripcion.student) + indice) % textos.size],
+      school_id: seccion.school_id, created_at: ahora, updated_at: ahora }
+  end
+
+  Informe.insert_all(filas, unique_by: %i[enrollment_id evaluation_moment_id]) if filas.any?
+  filas.size
+end
+
+paso "✍️  Informes descriptivos"
 
 Current.school = bolivar
-puts "   ✓ #{competencias} competencias con sus indicadores, en toda la primaria"
-puts "     #{medidos} indicadores medidos por una evaluación · #{libres} todavía libres"
-puts "     «#{suelta&.descripcion}» queda sin evaluar a propósito: sale sin nivel en la boleta" if suelta
+director = User.find_by!(email: CORREO_DEL_DIRECTOR)
+SEMILLA[:director_bolivar] = director
+
+informes = SEMILLA[:secciones_bolivar].sum do |seccion, _|
+  propio = particularidades_de(seccion)
+  quien = seccion.leader_teacher&.user || director
+
+  lapsos_del_anterior.each_with_index.sum do |(lapso, indice)|
+    informar!(seccion, lapso, indice, escribe: quien, objetivo: propio[:objetivo])
+  end
+end
+puts "   ✓ #{informes} informes en #{anterior.name}: uno por alumno y por lapso"
+
+# ── Cerrar los lapsos: el visto bueno de Control de Estudio ──────────────────
+#
+# Es lo que convierte un año calificado en un año TERMINADO: se emiten los
+# boletines, la familia los ve y el profesor deja de poder tocar las notas.
+#
+# ⚠️ Con el MISMO código que usa el colegio (`BoletinesDelLapso#cerrar!`), no
+# con filas escritas a mano: un boletín es una foto de las notas, y la foto la
+# tiene que tomar quien sabe tomarla.
+#
+# ⚠️ Inicial no cierra: no tiene boletín por lapso —lo suyo son las
+# valoraciones y el informe—, y `BoletinesDelLapso` cuenta notas con número.
+#
+# Los códigos van FIJOS (`codigo_fijo`): la muestra se siembra cada noche, y el
+# código que alguien anotó para enseñar `/verificar` tiene que seguir existiendo.
+def cerrar_lo_terminado!(seccion, lapsos, por:)
+  return 0 if seccion.grade.califica_con_texto?
+
+  lapsos.sum do |lapso|
+    next 0 unless lapso.ends_on < HOY
+
+    boletines = BoletinesDelLapso.de(seccion, lapso)
+    next 0 if boletines.cerrada? || !boletines.se_puede_cerrar?
+
+    # Control de Estudio cierra unos días después de que termina el lapso —y
+    # nunca en el futuro, si el lapso terminó ayer—.
+    cuando = [ a_las_diez(dia_habil(lapso.ends_on + 3)), Time.current ].min
+    cierre = boletines.cerrar!(por: por, cuando: cuando)
+
+    cierre.boletines.each do |boletin|
+      alumno = boletin.enrollment.student
+      boletin.update_columns(code: codigo_fijo("BOL", alumno.school_card, seccion.academic_period.name, lapso.name),
+                             created_at: cuando, updated_at: cuando)
+    end
+    cierre.boletines.size
+  end
+end
+
+paso "🔒 Lapsos cerrados y boletines"
+
+Current.school = bolivar
+coordinadora = User.find_by!(email: "coord.bolivar@siga.edu")
+SEMILLA[:coordinadora_bolivar] = coordinadora
+
+boletines = SEMILLA[:secciones_bolivar].sum do |seccion, _|
+  cerrar_lo_terminado!(seccion, lapsos_del_anterior, por: coordinadora)
+end
+
+sin_cerrar = SEMILLA[:secciones_bolivar].count do |seccion, _|
+  !seccion.grade.califica_con_texto? &&
+    lapsos_del_anterior.any? { |lapso| !SectionClosure.cerrado?(section_id: seccion.id, evaluation_moment_id: lapso.id) }
+end
+
+puts "   ✓ #{boletines} boletines emitidos y en manos de las familias · " \
+     "#{SectionClosure.count} cierres de lapso en #{anterior.name}"
+puts "     ⚠️  #{sin_cerrar} secciones con algún lapso SIN cerrar: revisar por qué" if sin_cerrar.positive?

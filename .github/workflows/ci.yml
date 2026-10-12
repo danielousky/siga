@@ -158,9 +158,12 @@ jobs:
       # delatar: el CI estuvo en rojo por eso. No se arregla acá, vaciando la
       # cola a mano: el humo levanta su propio worker, y por eso corre igual en
       # una máquina que en GitHub.
+      # `SIEMBRA_REDUCIDA`: siete alumnos por sección. El humo recorre las
+      # pantallas, no cuenta alumnos, y la siembra entera tarda tres minutos.
       - name: Sembrar los datos de desarrollo
         env:
           SIGA_DB_PASSWORD: siga_app_ci
+          SIEMBRA_REDUCIDA: "1"
         run: bin/rails db:seed:replant
 
       - name: bin/ci

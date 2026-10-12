@@ -86,6 +86,8 @@ puts "🌱 Sembrando datos de demostración..."
   04_estructura
   05_matricula
   06_evaluacion
-  07_dia_a_dia
-  08_resumen
+  07_promocion
+  08_en_curso
+  09_dia_a_dia
+  10_resumen
 ].each { |paso| load Rails.root.join("db/seeds/#{paso}.rb") }

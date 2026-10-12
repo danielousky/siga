@@ -8,11 +8,17 @@
 # medias, y la matrícula se achica hacia arriba —el bachillerato pierde alumnos,
 # que es lo que pasa en un colegio privado venezolano de verdad.
 #
-#     360 alumnos en total  →  plan Estándar ($79), el tramo 151–400
+#     360 alumnos en total  →  126,00 $ al mes (360 × 0,35 $)
 #
 # Ese número no es casualidad: ~360 es el promedio del mercado después de que la
-# matrícula privada cayera de 3,2 M a ~1,4 M. Sembrar 200 lo dejaba en el plan
-# Inicial y sembrar 500 en el Grande; ninguno de los dos es el cliente típico.
+# matrícula privada cayera de 3,2 M a ~1,4 M.
+#
+# ## ⚠️ Es la matrícula del año ANTERIOR
+#
+# La siembra arma el colegio como se arma uno de verdad: el año pasado entero, y
+# el de ahora sale de COPIAR su estructura y PROMOVER a sus alumnos (paso 07).
+# Por eso esta tabla describe el año que ya cerró; la del año en curso no está
+# escrita en ningún lado, porque es el resultado de ese proceso.
 paso "🏫 Secciones y matrícula"
 
 MATRICULA_DE_BOLIVAR = {
@@ -38,6 +44,8 @@ MATRICULA_DE_BOLIVAR = {
   "6to Año"   => { "A" => 14 }
 }.freeze
 
+# Bello no tiene año anterior: es un colegio en su primer año con SIGA, y su
+# matrícula es la del año que corre.
 MATRICULA_DE_BELLO = {
   "1er Nivel" => { "U" => 10 },
   "3er Nivel" => { "U" => 12 },
@@ -46,6 +54,26 @@ MATRICULA_DE_BELLO = {
   "5to Grado" => { "A" => 17 },
   "6to Grado" => { "A" => 17 }
 }.freeze
+
+# ── El tamaño de la siembra ──────────────────────────────────────────────────
+#
+# `SIEMBRA_REDUCIDA=1` deja SIETE alumnos por sección en vez de veinte. Es para
+# el CI: lo que ese paso comprueba es que la siembra sigue cargando de punta a
+# punta, y eso se sabe igual con ciento treinta alumnos que con trescientos
+# sesenta — en un tercio del tiempo, que en GitHub son minutos que se pagan.
+#
+# ⚠️ Cambia el VOLUMEN, no el camino: las mismas secciones, los mismos pasos,
+# el mismo código. Siete y no menos porque los alumnos con nombre propio llegan
+# hasta el sexto puesto de su lista.
+#
+# En desarrollo y en la muestra no se pone: ahí el colegio tiene su tamaño.
+REDUCIDA = ENV["SIEMBRA_REDUCIDA"].present?
+
+def a_escala(matricula)
+  return matricula unless REDUCIDA
+
+  matricula.transform_values { |secciones| secciones.transform_values { |inscritos| [ inscritos, 7 ].min } }
+end
 
 # ⚠️ El cupo es MAYOR que la matrícula, y a propósito. Un cupo igual a los
 # inscritos deja todas las secciones «llenas» y esconde el aviso de cupo, que
@@ -80,15 +108,16 @@ AULA = lambda do |grado, identificador|
 end
 
 SEMILLA[:secciones_bolivar] = sembrar_secciones!(
-  SEMILLA[:bolivar], MATRICULA_DE_BOLIVAR, SEMILLA[:anio_bolivar], aula_de: AULA
+  SEMILLA[:bolivar], a_escala(MATRICULA_DE_BOLIVAR), SEMILLA[:anterior], aula_de: AULA
 )
 SEMILLA[:secciones_bello] = sembrar_secciones!(
-  SEMILLA[:bello], MATRICULA_DE_BELLO, SEMILLA[:anio_bello], aula_de: AULA
+  SEMILLA[:bello], a_escala(MATRICULA_DE_BELLO), SEMILLA[:bello_en_curso], aula_de: AULA
 )
 
-total = ->(m) { m.values.sum { |s| s.values.sum } }
-puts "   ✓ Bolívar: #{SEMILLA[:secciones_bolivar].size} secciones para #{total.(MATRICULA_DE_BOLIVAR)} alumnos"
-puts "     Bello:   #{SEMILLA[:secciones_bello].size} secciones para #{total.(MATRICULA_DE_BELLO)} alumnos"
+total = ->(m) { a_escala(m).values.sum { |s| s.values.sum } }
+puts "   ✓ Bolívar: #{SEMILLA[:secciones_bolivar].size} secciones para #{total.(MATRICULA_DE_BOLIVAR)} alumnos, en #{SEMILLA[:anterior].name}"
+puts "     Bello:   #{SEMILLA[:secciones_bello].size} secciones para #{total.(MATRICULA_DE_BELLO)} alumnos, en #{SEMILLA[:bello_en_curso].name}"
+puts "     ⚠️  SIEMBRA_REDUCIDA: siete alumnos por sección" if REDUCIDA
 
 # ── Quién dicta qué ──────────────────────────────────────────────────────────
 #
@@ -99,21 +128,29 @@ puts "     Bello:   #{SEMILLA[:secciones_bello].size} secciones para #{total.(MA
 # ⚠️ Rotar y no darle todo al primero: si el de Inglés se quedara con las
 # diecinueve secciones, la demo mostraría un colegio con un solo profesor
 # haciendo todo, y «quién no cargó notas» daría siempre el mismo nombre.
+#
+# ⚠️ Y un docente puede dictar un área SOLO en ciertos grados (`grados:`, en
+# `DOCENTES_DE_BOLIVAR`). Sin eso, Matemática —que tenía un solo profesor— le
+# tocaba a García en las dieciséis secciones del colegio, de 1er Grado a 6to
+# Año: ochenta horas de clase a la semana, que es lo primero que un director
+# nota como falso.
 paso "📋 Asignaciones"
 
 def asignar_docentes!(colegio, secciones, docentes)
   Current.school = colegio
 
-  # código de área → los docentes que la dictan, en orden estable
+  # código de área → los docentes que la dictan, en orden estable, cada uno con
+  # los grados donde la dicta (nil = en todos)
   por_area = Hash.new { |h, k| h[k] = [] }
-  docentes.each_value do |(docente, areas)|
-    areas.each { |codigo| por_area[codigo] << docente }
+  docentes.each_value do |(docente, areas, grados)|
+    areas.each { |codigo| por_area[codigo] << [ docente, grados&.fetch(codigo, nil) ] }
   end
 
   vueltas = Hash.new(0)
   secciones.each do |seccion, _inscritos|
     seccion.grade.subjects.order(:code).each do |materia|
-      candidatos = por_area[materia.code]
+      candidatos = por_area[materia.code].select { |_, grados| grados.nil? || grados.include?(seccion.grade.name) }
+                                         .map(&:first)
       next if candidatos.empty?
 
       docente = candidatos[vueltas[materia.code] % candidatos.size]
@@ -126,6 +163,12 @@ end
 asignar_docentes!(SEMILLA[:bolivar], SEMILLA[:secciones_bolivar], SEMILLA[:docentes_bolivar])
 asignar_docentes!(SEMILLA[:bello],   SEMILLA[:secciones_bello],   SEMILLA[:docentes_bello])
 puts "   ✓ #{Current.sin_aislamiento { TeacherSection.unscoped.count }} asignaciones"
+
+Current.school = SEMILLA[:bolivar]
+sin_docente = SEMILLA[:secciones_bolivar].sum do |seccion, _|
+  seccion.grade.subjects.count - TeacherSection.where(section: seccion).count
+end
+puts "     #{sin_docente} áreas de alguna sección quedaron SIN docente" if sin_docente.positive?
 
 # ── Profesor guía ────────────────────────────────────────────────────────────
 #
@@ -158,7 +201,16 @@ asignar_guias!(SEMILLA[:bolivar], SEMILLA[:secciones_bolivar])
 asignar_guias!(SEMILLA[:bello],   SEMILLA[:secciones_bello])
 
 Current.school = SEMILLA[:bolivar]
-sin_guia = Section.find_by(name: "B", grade: SEMILLA[:bolivar].grades.find_by(name: "4to Grado"))
+
+# ⚠️ García es guía de «1er Año A» a la fuerza: es el profesor de la MUESTRA, y
+# quien entre por su puerta tiene que ver la asistencia CON una sección a su
+# cargo, no un «sin secciones a cargo». El guía viaja con la estructura al año
+# en curso (`CopiarLaEstructura`), así que también lo es hoy.
+un_ano_a = SEMILLA[:secciones_bolivar].find { |s, _| s.grade.name == "1er Año" && s.name == "A" }&.first
+garcia, = SEMILLA[:docentes_bolivar]["prof.garcia"]
+un_ano_a&.update!(leader_teacher: garcia)
+
+sin_guia = SEMILLA[:secciones_bolivar].find { |s, _| s.grade.name == "4to Grado" && s.name == "B" }&.first
 sin_guia&.update!(leader_teacher: nil)
 
 # El coordinador de grado es OPCIONAL y coordina a los guías; NO pasa lista.
@@ -176,14 +228,5 @@ coordinadores.each do |nombre_del_grado, correo|
   grado&.update!(coordinator_teacher: docente)
 end
 
-puts "   ✓ guías asignados · 4to Grado B queda SIN guía a propósito"
+puts "   ✓ guías asignados · #{CORREO_DEL_PROFESOR} es guía de 1er Año A · 4to Grado B queda SIN guía a propósito"
 puts "     #{coordinadores.size} grados con coordinador; el resto sin el cargo, que es lo normal"
-
-# ── El año que viene, ya armado ──────────────────────────────────────────────
-#
-# Un colegio en septiembre tiene el año siguiente con su estructura copiada y
-# sin un solo alumno adentro: es exactamente el estado desde el que se promueve
-# (MOR-169). Sin sembrarlo, esa pantalla no se puede ver funcionando.
-Current.school = SEMILLA[:bolivar]
-copia = CopiarLaEstructura.de(SEMILLA[:anio_bolivar], al: SEMILLA[:anio_bolivar_2027])
-puts "   ✓ 2026-2027: #{copia.total_secciones} secciones y #{copia.asignaciones} asignaciones copiadas, sin alumnos"
