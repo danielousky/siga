@@ -28,12 +28,15 @@ module DosColegios
   # `nivel` decide de qué nivel es el grado, igual que en `escenario_academico`:
   # un test de la evaluación por competencias necesita PRIMARIA, porque en
   # bachillerato esa pantalla no aplica (MOR-136).
-  def dos_colegios_completos(nivel: :secundaria)
-    [colegio_completo("Colegio A", nivel: nivel), colegio_completo("Colegio B", nivel: nivel)]
+  #
+  # `suscripcion` llega hasta `escenario_academico`: por defecto los dos pagan.
+  def dos_colegios_completos(nivel: :secundaria, suscripcion: :por_alumno)
+    [colegio_completo("Colegio A", nivel: nivel, suscripcion: suscripcion),
+     colegio_completo("Colegio B", nivel: nivel, suscripcion: suscripcion)]
   end
 
-  def colegio_completo(nombre, nivel: :secundaria)
-    esc = escenario_academico(nombre: nombre, alumnos: 2, nivel: nivel)
+  def colegio_completo(nombre, nivel: :secundaria, suscripcion: :por_alumno)
+    esc = escenario_academico(nombre: nombre, alumnos: 2, nivel: nivel, suscripcion: suscripcion)
     sufijo = esc.colegio.id
 
     con_el_colegio(esc.colegio) do

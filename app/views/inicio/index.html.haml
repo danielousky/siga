@@ -11,8 +11,8 @@
 -# ⚠️ 2 · Se cayeron las cifras de MERCADO (3.900 colegios, 9 % con portal).
 -#        Daniel: «ese dato es relevante para mí, que quiero vender SIGA a otros
 -#        colegios; para mi cliente, el director, no». Un director ya sabe cómo
--#        está su colegio. Las tres de ahora salen de `Subscription::PLANES` y
--#        dicen lo que le cuesta y lo que se ahorra.
+-#        está su colegio. Las de ahora dicen lo que le cuesta y lo que se
+-#        ahorra, y el precio sale de `Subscription::PRECIO_POR_ALUMNO`.
 -#
 -# ⚠️ 3 · La palabra SUSCRIPCIÓN aparece en el hero, en los planes y en el pie.
 -#        Daniel: «esto es un SaaS, no que piensen luego que son dueños de SIGA.
@@ -73,8 +73,8 @@
       -#
       -# En su lugar va la puerta que faltaba. La portada tenía dos salidas
       -# —pedir una demostración y entrar— y ninguna para el colegio que quiere
-      -# empezar solo, que es justamente el que el plan Inicial busca: sin costo,
-      -# sin vendedor de por medio y sin esperar una llamada.
+      -# empezar solo, que es justamente el que busca lo gratis: cargar su
+      -# colegio sin costo, sin vendedor de por medio y sin esperar una llamada.
       -#
       -# ⚠️ Enlace y no botón, a propósito. Un tercer botón le quita fuerza a la
       -# demostración, que es la conversión que se quiere. Daniel: «evidente pero
@@ -296,9 +296,9 @@
             %em Sin letra pequeña.
         %div
           %p.portada-parrafo
-            No hay funciones recortadas para empujar al plan siguiente: todos
-            los colegios suscritos usan el sistema completo. Lo único que cambia
-            es el número de alumnos inscritos en el año en curso.
+            No hay funciones recortadas ni un plan más caro al que empujarlo:
+            todos los colegios suscritos usan el sistema completo. Lo único que
+            cambia es el número de alumnos inscritos en el año en curso.
 
       %ul.portada-principios
         %li.portada-principio
@@ -321,27 +321,31 @@
             %em Crezca con calma.
         %div
           %p.portada-parrafo
-            SIGA es un servicio por suscripción mensual. El plan se calcula por
-            los alumnos inscritos en el año en curso, no por el histórico: un
-            colegio de veinte años no paga por sus egresados.
+            SIGA es un servicio por suscripción mensual, y se paga por alumno
+            inscrito en el año en curso, no por el histórico: un colegio de
+            veinte años no paga por sus egresados.
 
+      -# ⚠️ Un precio y no tres (spec `del-registro-al-cobro`, decisiones 5 a 8).
+      -# Eran tres bandas, y el alumno 151 duplicaba la factura. El número sale
+      -# de la constante: lo cuida `los_precios_de_un_solo_lugar_test`.
+      -#
+      -# ⚠️ Y «más IVA» va a la vista, porque así se anuncia: el colegio paga el
+      -# 16 % aparte y recibe su factura (decisión 8).
       .portada-lista-planes
-        - Subscription::PLANES.each_value do |datos|
-          %div.portada-plan
-            %h3.portada-plan-nombre= datos[:etiqueta]
-            %p.portada-plan-precio
-              %span.portada-plan-monto= datos[:precio]
-              %span.portada-plan-moneda $ al mes
-            %p.portada-plan-cupo
-              hasta #{number_with_delimiter(datos[:hasta])} alumnos
+        %div.portada-plan
+          %h3.portada-plan-nombre La suscripción
+          %p.portada-plan-precio
+            %span.portada-plan-monto= cifra(Subscription::PRECIO_POR_ALUMNO)
+            %span.portada-plan-moneda $ por alumno al mes
+          %p.portada-plan-cupo
+            = "más IVA, con un mínimo de #{numero_en_dolares(Subscription::MINIMO_MENSUAL)} al mes"
 
         %div.portada-plan.portada-plan--convenir
-          %h3.portada-plan-nombre A convenir
+          %h3.portada-plan-nombre Cargar su colegio
           %p.portada-plan-precio
-            %span.portada-plan-monto +800
-            %span.portada-plan-moneda alumnos
+            %span.portada-plan-monto Gratis
           %p.portada-plan-cupo
-            Red de colegios o institución grande: conversemos.
+            Alumnos, familias, profesores y secciones, sin tope y sin fecha.
 
       -# ⚠️ Acá vivían dos bloques que Daniel sacó: un recuadro «Qué pasa si una
       -# mensualidad no se paga» y una nota sobre lo que se puede hacer antes de

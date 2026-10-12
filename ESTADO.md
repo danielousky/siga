@@ -1,4 +1,61 @@
-# 🔖 Estado de avance — actualizado 5 de octubre de 2026
+# 🔖 Estado de avance — actualizado 12 de octubre de 2026
+
+## ⚠️ En curso: del registro al cobro
+
+Del 7 al 12 de octubre se redefinió cómo entra, prueba y paga un colegio. El
+spec está **congelado**: `docs/specs/del-registro-al-cobro.md`, en la rama
+`feat/del-registro-al-cobro` (local, sin subir).
+
+```
+   LO QUE HACE EL CÓDIGO HOY                    LO DECIDIDO
+   bandas: 39 · 79 · 119 $ al mes               0,30 $ por alumno al mes + IVA, mínimo 39 $
+   Inicial · Estándar · Grande                  un solo plan, sin nombres
+   «sin suscripción» = todo, sin fecha          todo colegio nace en gratis
+   gratis: cargar, con ocho huecos              gratis: solo cargar, sin huecos
+   pagar: por consola                           «Suscripción» → reporte → validación en /siga
+   la escalera, solo al abrir la Cartera        un trabajo diario: 5 días antes · 15 de gracia
+                                                · solo lectura
+   la puerta: el formulario de demostración     el registro + WhatsApp + colegio de muestra aparte
+```
+
+⚠️ **Mientras tanto, `CLAUDE.md`, el manual, los PDF de `SIGA/DOCs`, el
+contrato, los videos y Linear dicen lo viejo.** No proponer nada de precios, del
+plan gratis ni de la puerta de entrada a partir de ellos: manda el spec. Se
+unifican todos al terminar (§ 9 del spec). Daniel: *«No quiero que en el futuro
+otra sesión mire lo que tú miraste y se confunda o me proponga cosas basada en
+información obsoleta.»*
+
+### La tanda 1, «las reglas» — hecha en local, esperando la revisión de Daniel
+
+```
+   el precio            0,30 $ por alumno + IVA, mínimo 39: `Subscription::PRECIO_POR_ALUMNO`
+                        y `MINIMO_MENSUAL`; adiós a `PLANES`, a las bandas y a sus nombres
+   la frontera          cada controlador del colegio en una de cuatro listas de
+                        `RespetaLaSuscripcion`, y `frontera_de_lo_gratis_test` lo exige:
+                        los ocho huecos, cerrados
+   el muro              a dirección y finanzas les dice cuánto cuesta; al resto, que
+                        todavía no está activo. Los portales muestran una página, no redirigen
+   nadie sin fila       el alta desde /siga también abre su suscripción gratis; sin fila
+                        cuenta como gratis. El colegio de los tests nace pagando
+   la base              migración `20261012120000`: precio por alumno y mínimo congelados
+                        en la fila, `precio_mensual` con centavos
+   versión              1.14.0
+```
+
+⚠️ Lo que la tanda 1 NO trae: no hay todavía dónde reportar un pago ni dónde
+validarlo (tanda 2). En local, Bolívar queda pagando y Bello vencido, como los
+siembra `07_dia_a_dia`; para ver lo gratis, un colegio registrado en
+`/registrarse` o el de `bin/rails prueba:campo`, que se activa con
+`bin/rails prueba:activar_plan`.
+
+```
+   las tandas    1 las reglas → 2 pagar sin consola → 5 la muestra → 4 la puerta
+                 → 3 la escalera (antes de la primera renovación)
+                 un PR por tanda; Daniel revisa cada una antes de la siguiente
+   después       unificar todo, también Linear y los videos (rehechos como cápsulas
+                 de 30 segundos, con NotebookLM por MCP)
+   y luego       la gestión de horarios, sobre todo para Media — Daniel: «muy importante»
+```
 
 ## Dónde está cada cosa
 
@@ -8,7 +65,8 @@
                               de sistema intermitentes y la corrida más corta, PR
                               #54 a #56): son de herramientas, no cambian el
                               producto ni hay que desplegarlos
-   ramas abiertas             ninguna
+   ramas abiertas             feat/del-registro-al-cobro, local: el spec del cobro
+                              y la tanda 1
 ```
 
 ⚠️ **De la 1.11.0 a la 1.13.0 están cerradas**: mezcladas y desplegadas el 5 de

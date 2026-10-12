@@ -245,11 +245,20 @@ namespace :prueba do
   # ⚠️ Y un plan pagado, no «sin fila». Un colegio sin suscripción tiene acceso
   # completo a propósito —es el piloto— pero ese camino no es el que recorre un
   # cliente: probar por ahí deja sin mirar todo lo que la suscripción gobierna.
+  # ⚠️ Deja al colegio de prueba como queda uno al validarse su pago: por
+  # alumno, con el precio de hoy congelado y un mes por delante (spec
+  # `del-registro-al-cobro`). Hasta que llegue la pantalla de validar, es la
+  # única manera de activarlo.
   def activar_el_plan(colegio)
     suscripcion = Subscription.find_or_initialize_by(school_id: colegio.id)
     antes = suscripcion.plan || "(sin fila)"
-    suscripcion.plan = :basico
-    suscripcion.status = :activa
+    cotizacion = Subscription.cotizar(Subscription.matricula_de(colegio.id))
+    suscripcion.assign_attributes(
+      plan: :por_alumno, status: :activa,
+      precio_por_alumno: cotizacion.por_alumno, minimo_mensual: cotizacion.minimo,
+      matricula_facturada: cotizacion.alumnos, precio_mensual: cotizacion.monto,
+      vigente_desde: Date.current, vigente_hasta: Date.current + 1.month
+    )
     suscripcion.save!
 
     "plan #{antes} → #{suscripcion.plan} (#{suscripcion.status})"

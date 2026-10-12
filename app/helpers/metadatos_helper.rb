@@ -31,20 +31,26 @@
 module MetadatosHelper
   TITULO_BASE = "SIGA · Gestión académica para colegios de Venezuela".freeze
 
-  # ⚠️ El precio SALE DE `Subscription::PLANES` y no escrito a mano. Decía
-  # «Desde 25 $ al mes» y llevaba meses mintiendo: los planes subieron a
-  # 30/60/90 en septiembre y esta cadena se quedó donde estaba. Lo cuida
+  # ⚠️ El precio SALE DE LA CONSTANTE y no escrito a mano. Decía «Desde 25 $ al
+  # mes» y llevaba meses mintiendo: los planes subieron a 30/60/90 en
+  # septiembre y esta cadena se quedó donde estaba. Lo cuida
   # `los_precios_de_un_solo_lugar_test`.
   #
   # ⚠️ Y sí lleva el precio, a diferencia del hero de la portada, que lo perdió
   # a propósito. No es una contradicción: en el hero el precio lo lee alguien
   # que todavía no preguntó nada; en un resultado de búsqueda lo lee quien
-  # buscó justamente esto. Y en un mercado donde NINGÚN competidor publica sus
-  # precios, el número es lo que distingue el resultado.
+  # buscó justamente esto. Y en un mercado donde casi ningún competidor publica
+  # sus precios, el número es lo que distingue el resultado.
+  #
+  # Dice lo mismo que el registro: cargar es gratis, operar cuesta tanto por
+  # alumno (spec `del-registro-al-cobro`, decisión 10).
   def self.descripcion_base
+    precio = ActiveSupport::NumberHelper.number_to_rounded(Subscription::PRECIO_POR_ALUMNO,
+                                                            precision: 2, separator: ",", delimiter: ".")
+
     "Notas, boletines y constancias desde el teléfono. " \
       "Un sistema pensado para el colegio que hoy lleva todo en Word. " \
-      "Desde #{Subscription::PLANES.dig(:basico, :precio)} $ al mes."
+      "Cargar su colegio es gratis; calificar y emitir, #{precio} $ por alumno al mes + IVA."
   end
 
   # Cada vista puede poner lo suyo con `content_for :titulo` / `:descripcion`.
@@ -107,8 +113,13 @@ module MetadatosHelper
   # valoración en vez de solo un título y dos líneas. Sin esto, SIGA es texto;
   # con esto, es un producto con precio, idioma y país.
   #
-  # ⚠️ Los precios salen de `Subscription::PLANES`, igual que la portada y el
-  # cobro. Tres copias del mismo número son dos oportunidades de mentir.
+  # ⚠️ El precio sale de `Subscription::PRECIO_POR_ALUMNO`, igual que la
+  # portada y el cobro. Tres copias del mismo número son dos oportunidades de
+  # mentir.
+  #
+  # ⚠️ UNA oferta, con el precio por unidad: `referenceQuantity` dice que los
+  # 0,30 son por alumno, y `valueAddedTaxIncluded: false` que el IVA va aparte.
+  # En el esquema el número va con PUNTO —es un dato, no un texto en español—.
   #
   # ⚠️ Va en `<script type="application/ld+json">`, que NO es JavaScript: es un
   # bloque de datos, y por eso la CSP no lo bloquea aunque no lleve nonce.
@@ -130,20 +141,30 @@ module MetadatosHelper
         "audienceType" => "Colegios de educación inicial, primaria y media de Venezuela"
       },
       "areaServed" => { "@type" => "Country", "name" => "Venezuela" },
-      "offers" => Subscription::PLANES.each_value.map do |datos|
-        { "@type" => "Offer",
-          "name" => "Plan #{datos[:etiqueta]}",
-          "price" => datos[:precio].to_s,
-          "priceCurrency" => "USD",
-          "description" => "Hasta #{datos[:hasta]} alumnos inscritos",
-          "priceSpecification" => {
-            "@type" => "UnitPriceSpecification",
-            "price" => datos[:precio].to_s,
-            "priceCurrency" => "USD",
-            "billingIncrement" => 1,
-            "unitCode" => "MON"
-          } }
-      end
+      "offers" => [ oferta_de_la_suscripcion ]
     }
+  end
+
+  private
+
+  def oferta_de_la_suscripcion
+    precio = format("%.2f", Subscription::PRECIO_POR_ALUMNO)
+    minimo = format("%.2f", Subscription::MINIMO_MENSUAL)
+
+    { "@type" => "Offer",
+      "name" => "Suscripción",
+      "price" => precio,
+      "priceCurrency" => "USD",
+      "description" => "Por alumno inscrito, al mes, más IVA, con un mínimo de #{minimo} USD al mes. " \
+                       "Cargar el colegio es gratis.",
+      "priceSpecification" => {
+        "@type" => "UnitPriceSpecification",
+        "price" => precio,
+        "priceCurrency" => "USD",
+        "valueAddedTaxIncluded" => false,
+        "referenceQuantity" => { "@type" => "QuantitativeValue", "value" => 1, "unitText" => "alumno" },
+        "billingIncrement" => 1,
+        "unitCode" => "MON"
+      } }
   end
 end

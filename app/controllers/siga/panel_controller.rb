@@ -22,31 +22,5 @@ module Siga
       # sería una consulta por fila.
       @actividad = ActivityLog.includes(:user, :school).recent.limit(15)
     end
-
-    private
-
-    # El plan que le toca a un colegio por su matrícula.
-    #
-    # ⚠️ Acá vivía una SEGUNDA tabla de planes, escrita a mano, con los precios
-    # de antes de septiembre de 2026 —25/50/90—. Su propio comentario decía
-    # «cuando exista MOR-108 se muda a la suscripción», y MOR-108 se cerró: la
-    # mudanza es esta. Con dos tablas, subir un precio dejaba la cartera de SIGA
-    # cobrando el viejo, y nadie relacionaba las dos cosas.
-    def plan_por_matricula(alumnos)
-      datos = Subscription::PLANES.values.find { |p| alumnos <= p[:hasta] }
-      return { nombre: "Fuera de plan", precio: nil } if datos.nil?
-
-      { nombre: datos[:etiqueta], precio: datos[:precio] }
-    end
-    helper_method :plan_por_matricula
-
-    # Los tres tramos de corrido, para la nota al pie de la tabla: «hasta 150
-    # alumnos $… · hasta 400 alumnos $… · hasta 800 alumnos $…».
-    def tramos_de_los_planes
-      Subscription::PLANES.each_value
-                          .map { |plan| "hasta #{plan[:hasta]} alumnos $#{plan[:precio]}" }
-                          .join(" · ")
-    end
-    helper_method :tramos_de_los_planes
   end
 end

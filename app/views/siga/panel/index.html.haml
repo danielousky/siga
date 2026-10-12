@@ -31,31 +31,27 @@
             %th.num Alumnos
             %th.num Profesores
             %th.num Secciones
-            %th Plan
+            %th.num Le tocaría al mes
         %tbody
           - @colegios.each do |colegio|
             - alumnos = @alumnos_por_colegio[colegio.id] || 0
-            - plan = plan_por_matricula(alumnos)
             %tr
               %td= link_to colegio.name, siga_colegio_path(colegio)
               %td.apagado= colegio.location
               %td.num= alumnos
               %td.num= @profesores_por_colegio[colegio.id] || 0
               %td.num= @secciones_por_colegio[colegio.id] || 0
-              %td
-                = plan[:nombre]
-                - if plan[:precio]
-                  %span.apagado= "· $#{plan[:precio]}/mes"
+              %td.num= numero_en_dolares(Subscription.cotizar(alumnos).total)
 
-    -# ⚠️ Los tramos NO van escritos a mano. Esta nota decía «$25 · $50 · $90»
-    -# el 5 de octubre de 2026, dos subidas después: era la última copia de los
-    -# precios que quedaba fuera de `Subscription::PLANES`. Y prometía la
-    -# suscripción para «cuando llegue MOR-108», que se cerró en agosto.
+    -# ⚠️ El precio NO va escrito a mano. Esta nota decía «$25 · $50 · $90» el 5
+    -# de octubre de 2026, dos subidas después: era la última copia de los
+    -# precios que quedaba fuera de la constante. Lo cuida
+    -# `los_precios_de_un_solo_lugar_test`.
+    - por_alumno = numero_en_dolares(Subscription::PRECIO_POR_ALUMNO)
+    - minimo     = numero_en_dolares(Subscription::MINIMO_MENSUAL)
     %p.siga-nota
-      El plan sale de la matrícula, que es como está escrito el contrato:
-      = succeed "." do
-        = tramos_de_los_planes
-      Es lo que le tocaría hoy, no lo que tiene contratado: eso está en la
+      = "Sale de la matrícula: #{por_alumno} por alumno al mes, más IVA, con un mínimo de #{minimo}."
+      Es lo que le tocaría hoy, no lo que paga: eso está en la
       = succeed "." do
         = link_to "Cartera", siga_cartera_index_path
 

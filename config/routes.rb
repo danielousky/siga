@@ -211,7 +211,9 @@ Rails.application.routes.draw do
     root "panel#index"
     resources :colegios, only: [:index, :show, :new, :create]
     resources :solicitudes, only: [:index, :show, :update]
-    resources :cartera, only: [:index, :create, :update]
+    # Sin `create`: era «Dar de alta» al colegio sin suscripción, y ya no queda
+    # ninguno sin ella (spec `del-registro-al-cobro`, decisión 16).
+    resources :cartera, only: [:index, :update]
     resources :visitas, only: [:create, :destroy]
 
     # El catálogo vivo del sistema de diseño.

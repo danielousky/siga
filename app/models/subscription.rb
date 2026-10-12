@@ -1,4 +1,5 @@
-# La suscripción de un colegio (MOR-108).
+# La suscripción de un colegio (MOR-108, y desde el 12 de octubre de 2026 el
+# spec `docs/specs/del-registro-al-cobro.md`).
 #
 # Las cuatro decisiones que la definen están escritas en la migración; acá vive
 # la que más consecuencias tiene: **al vencer se degrada a SOLO LECTURA, nunca
@@ -13,18 +14,22 @@ class Subscription < ApplicationRecord
 
   belongs_to :school
 
-  # El contrato llega hasta 800 alumnos. `a_convenir` es el borde que el issue
-  # pedía definir: arriba de eso están las redes de colegios, donde la
-  # suscripción probablemente sea de la RED. Inventarle un precio automático
-  # sería inventar un producto que nadie definió.
-  # ⚠️ `gratis` no es «todavía no se facturó»: es un plan, y se elige.
+  # ⚠️ Dos planes y ningún nombre (decisiones 5 y 15 del spec).
   #
-  # Un colegio SIN fila de suscripción tiene acceso completo a propósito —es el
-  # piloto, el primer mes, el que se está evaluando de la mano de alguien—.
-  # `gratis` es lo contrario: una decisión escrita, visible en la cartera, con
-  # funciones acotadas. Confundirlos deja al piloto sin poder calificar el día
-  # que alguien "arregle" el default.
-  enum :plan, { basico: 0, estandar: 1, premium: 2, a_convenir: 3, gratis: 4 }
+  #     gratis       cargar e importar, sin tope y sin fecha
+  #     por_alumno   todo el sistema, para todos los colegios
+  #
+  # Hasta el 12 de octubre de 2026 eran bandas —Inicial, Estándar y Grande—: el
+  # alumno 151 duplicaba la factura y el colegio de 800 pagaba menos por alumno
+  # que el de 150. Sus valores, del 0 al 3, no se reusan; el `CHECK` de la base
+  # los deja fuera.
+  #
+  # ⚠️ Y TODO colegio tiene su fila (decisión 16). «Sin suscripción» era acceso
+  # completo y sin fecha —lo que recibía el colegio dado de alta desde `/siga`—,
+  # o sea todo el producto, gratis, para siempre. Ahora todo colegio nace en
+  # `gratis`, y una cortesía o un piloto es `por_alumno` a 0 $, con su
+  # vencimiento como cualquier otra.
+  enum :plan, { gratis: 4, por_alumno: 5 }
 
   # `en_gracia` no es decorativo: es la diferencia entre un colegio que se
   # atrasó una semana y uno que dejó de pagar. Sin ese estado intermedio, el
@@ -32,46 +37,38 @@ class Subscription < ApplicationRecord
   # martes — y la cobranza en Venezuela es lenta por razones que no son suyas.
   enum :status, { activa: 0, en_gracia: 1, vencida: 2, cancelada: 3 }
 
-  # Lo que el plan gratuito NO incluye. Se declara como dato y no como una lista
-  # de `if` en el concern para que la pantalla que lo explica y el bloqueo que
-  # lo aplica salgan del mismo lugar.
-  FUNCIONES_CON_PLAN = {
-    calificar: "Cargar notas y calcular promedios",
-    asistencia: "Pasar lista y llevar las inasistencias",
-    emitir: "Emitir boletines, constancias y documentos del MPPE",
-    portal: "El portal de los representantes"
-  }.freeze
+  # ⚠️ El precio, en UN lugar. Subirlo es cambiar un número aquí.
+  #
+  #     hasta septiembre de 2026      bandas: 25 · 50 · 90
+  #     septiembre de 2026            bandas: 30 · 60 · 90
+  #     5 de octubre de 2026          bandas: 39 · 79 · 119
+  #     12 de octubre de 2026         0,30 $ por alumno al mes + IVA, mínimo 39 $
+  #
+  # Lo leen la portada, la descripción y la ficha para buscadores, el muro de
+  # lo gratis y el panel de SIGA. Lo cuida `los_precios_de_un_solo_lugar_test`,
+  # que los cambia por unos que no existen y mira que cada pantalla diga esos:
+  # tres veces se quedó atrás una copia escrita a mano, y ninguna rompió nada.
+  #
+  # ⚠️ Y subirlo NO le cambia la factura a nadie: cada suscripción congela su
+  # precio por alumno y su mínimo el día que se activa (decisión 17). Subir el
+  # precio toca solo a los colegios que entran después.
+  PRECIO_POR_ALUMNO = BigDecimal("0.30")
+  MINIMO_MENSUAL    = BigDecimal("39")
 
-  # ⚠️ Los precios, y cuándo cambió cada uno. Los tramos de matrícula no se
-  # movieron nunca:
-  #
-  #     hasta septiembre de 2026      25 · 50 · 90
-  #     septiembre de 2026            30 · 60 · 90
-  #     5 de octubre de 2026          39 · 79 · 119
-  #
-  # En septiembre las etiquetas además dejaron de ser «Básico/Premium»: son
-  # nombres de SaaS gringo, y «Premium» sugiere funciones que el plan NO trae
-  # aparte —entre planes no se recorta nada, lo único que cambia es la
-  # matrícula—.
-  #
-  # El colegio promedio venezolano tiene ~360 alumnos, así que el plan que
-  # define la economía del negocio es el ESTÁNDAR y no el de entrada: por
-  # debajo de 150 alumnos hay muy pocos colegios privados.
-  #
-  # Esta tabla es la ÚNICA fuente: subir un precio es cambiar un número acá. La
-  # leen la portada, la descripción y la ficha para buscadores, y el panel de
-  # SIGA. Lo cuida `los_precios_de_un_solo_lugar_test`, que los cambia por
-  # tres que no existen y mira que cada pantalla diga esos.
-  #
-  # ⚠️ Y subirlo NO le cambia la factura a nadie: cada suscripción guarda su
-  # `precio_mensual` el día que se abre, y solo se mueve editándola en la
-  # Cartera. Es lo mismo que pasa con la matrícula — se observa siempre, se
-  # cobra al renovar.
-  PLANES = {
-    basico:   { hasta: 150, precio: 39,  etiqueta: "Inicial" },
-    estandar: { hasta: 400, precio: 79,  etiqueta: "Estándar" },
-    premium:  { hasta: 800, precio: 119, etiqueta: "Grande" }
-  }.freeze
+  # Se anuncia aparte —«0,30 $ por alumno + IVA», decisión 8— y la factura la
+  # emite Daniel, fuera de SIGA. Aquí solo se calcula para mostrarlo.
+  IVA = BigDecimal("0.16")
+
+  # Lo que cuesta un mes, desglosado. Es UNA cuenta, y la hacen todos los que
+  # muestran un precio: escrita dos veces, el muro diría un número y la Cartera
+  # otro.
+  Cotizacion = Data.define(:alumnos, :por_alumno, :minimo, :monto, :iva) do
+    def total = monto + iva
+
+    # El colegio chico paga el mínimo, no sus alumnos por el precio: con el de
+    # hoy, hasta 130 alumnos.
+    def en_el_minimo? = alumnos * por_alumno <= minimo
+  end
 
   ETIQUETAS_ESTADO = {
     "activa" => "Al día", "en_gracia" => "En gracia",
@@ -84,13 +81,30 @@ class Subscription < ApplicationRecord
   scope :al_dia,       -> { where(status: [:activa, :en_gracia]) }
   scope :con_problema, -> { where(status: [:vencida, :cancelada]) }
 
+  # La suscripción con que nace todo colegio: el que se registra y el que se da
+  # de alta desde `/siga` (decisión 16). Una sola forma de abrirla, para que los
+  # dos nazcan iguales.
+  def self.abrir_gratis!(colegio, nota: "Gratis: creada al registrarse.")
+    create!(school: colegio, plan: :gratis, status: :activa, precio_mensual: 0,
+            vigente_desde: Date.current, notas: nota)
+  end
+
+  # ⚠️ Los valores por defecto se leen al LLAMAR, no al cargar la clase: es lo
+  # que deja a `los_precios_de_un_solo_lugar_test` cambiar el precio y ver la
+  # pantalla nueva.
+  def self.cotizar(alumnos, por_alumno: PRECIO_POR_ALUMNO, minimo: MINIMO_MENSUAL)
+    monto = [ (alumnos * por_alumno).round(2), minimo ].max
+
+    Cotizacion.new(alumnos: alumnos, por_alumno: por_alumno, minimo: minimo,
+                   monto: monto, iva: (monto * IVA).round(2))
+  end
+
   # ══════════════════════════════════════════════════════════════════════════
   # Lo que el resto del sistema le pregunta
   # ══════════════════════════════════════════════════════════════════════════
 
-  # ⚠️ Es la pregunta que gobierna si el colegio puede escribir. Un colegio SIN
-  # suscripción puede escribir: son los que todavía no se facturan —una demo, un
-  # piloto—, y bloquearlos sería romper el producto para quien lo está probando.
+  # ⚠️ Es la pregunta que gobierna si el colegio puede escribir: solo lectura es
+  # vencida o cancelada. Lo gratis es otra pregunta, la de abajo.
   def permite_escribir? = activa? || en_gracia?
 
   # ⚠️ Esto pregunta por el PLAN, no por la solvencia — y la diferencia importa.
@@ -113,9 +127,8 @@ class Subscription < ApplicationRecord
 
   def etiqueta_de_estado = ETIQUETAS_ESTADO.fetch(status, status)
 
-  def etiqueta_de_plan
-    PLANES.dig(plan.to_sym, :etiqueta) || "A convenir"
-  end
+  # Sin nombres de plan (decisión 15): el colegio tiene la suscripción o no.
+  def etiqueta_de_plan = gratis? ? "Gratis" : "Por alumno"
 
   def dias_para_vencer
     return nil if vigente_hasta.blank?
@@ -123,21 +136,35 @@ class Subscription < ApplicationRecord
     (vigente_hasta - Date.current).to_i
   end
 
+  # Lo que le toca este mes, con la matrícula de hoy.
+  #
+  # ⚠️ Con SU precio si ya lo tiene congelado, y con el de hoy si todavía está
+  # en gratis: el colegio que entró a 0,30 sigue a 0,30 aunque la constante
+  # suba (decisión 17).
+  #
+  # La matrícula se puede pasar hecha: la Cartera ya la contó para todos los
+  # colegios de una vez, y contarla otra vez aquí sería una consulta por fila.
+  def cotizacion(alumnos = matricula_actual)
+    self.class.cotizar(alumnos,
+                       por_alumno: precio_por_alumno || PRECIO_POR_ALUMNO,
+                       minimo: minimo_mensual || MINIMO_MENSUAL)
+  end
+
   # ══════════════════════════════════════════════════════════════════════════
-  # La matrícula, y el plan que le corresponde
+  # La matrícula
   # ══════════════════════════════════════════════════════════════════════════
 
   # Alumnos con inscripción vigente en el año escolar que el colegio está
-  # cursando — la respuesta a la pregunta 1 del issue.
+  # cursando.
   #
-  # No los históricos: un colegio de veinte años tendría miles y pagaría el plan
-  # más caro para siempre. Ni todos los `students`, que incluyen egresados.
+  # No los históricos: un colegio de veinte años tendría miles y pagaría por sus
+  # egresados. Ni todos los `students`, que incluyen egresados.
   #
   # ⚠️ **El año escolar que cuenta es el último CON INSCRIPCIONES, no
   # `AcademicPeriod.vigente`.** Parecen lo mismo y no lo son: un colegio suele
   # tener cargado el año siguiente antes de inscribir a nadie en él, así que en
   # agosto `vigente` devuelve un período vacío y la matrícula daría **cero** —
-  # el colegio pasaría al plan más barato justo antes de la inscripción.
+  # el colegio pagaría el mínimo justo antes de la inscripción.
   #
   # Lo encontró un test, y es exactamente lo que un colegio contestaría si se le
   # pregunta cuántos alumnos tiene en agosto: los del año que viene cursando,
@@ -161,29 +188,12 @@ class Subscription < ApplicationRecord
     end
   end
 
-  # El plan que le tocaría por su matrícula de hoy. Se OBSERVA siempre; se COBRA
-  # al renovar (pregunta 2).
-  def self.plan_para(alumnos)
-    PLANES.each { |nombre, datos| return nombre if alumnos <= datos[:hasta] }
-
-    :a_convenir
-  end
-
-  def self.precio_para(alumnos)
-    PLANES.dig(plan_para(alumnos), :precio)
-  end
-
-  # El plan que le corresponde HOY, contra el que tiene facturado. Que difieran
-  # no es un error: es exactamente lo que la pregunta 2 decidió.
-  def plan_que_le_tocaria
-    self.class.plan_para(matricula_actual)
-  end
-
+  # ⚠️ Se OBSERVA siempre y se COBRA al renovar. Que la matrícula crezca a mitad
+  # de mes no cambia lo que ya se pagó: cuenta en la renovación siguiente, que
+  # desde el 12 de octubre de 2026 es cada mes.
   def matricula_actual
     @matricula_actual ||= self.class.matricula_de(school_id)
   end
-
-  def creció_de_plan? = plan_que_le_tocaria != plan.to_sym && !a_convenir?
 
   # ══════════════════════════════════════════════════════════════════════════
   # El paso del tiempo

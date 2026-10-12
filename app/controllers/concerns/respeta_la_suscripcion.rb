@@ -1,4 +1,8 @@
-# Un colegio con la suscripción vencida pasa a SOLO LECTURA (MOR-108).
+# Lo que la suscripción le permite hacer a un colegio, en dos reglas:
+#
+#     VENCIDA  ──►  solo lectura: ve y descarga todo, no carga nada nuevo (MOR-108)
+#     GRATIS   ──►  carga todo; operar y sacar papeles, con la suscripción
+#                   (spec `docs/specs/del-registro-al-cobro.md`, decisión 3)
 #
 # ## Por qué solo lectura y no corte de acceso
 #
@@ -56,41 +60,70 @@ module RespetaLaSuscripcion
 
   VERBOS_QUE_ESCRIBEN = %w[POST PATCH PUT DELETE].freeze
 
-  # ── El plan gratuito (MOR-156) ────────────────────────────────────────────
+  # ── La frontera de lo gratis ──────────────────────────────────────────────
   #
-  # ## Qué queda libre y por qué
+  # Daniel, 9 de octubre de 2026: *«dejar libre la entrada pero limitar el
+  # procesamiento (calificar o asistencia) y la salida»*.
   #
-  # **Cargar es libre. Operar el colegio, no.** Un colegio que no puede terminar
-  # de cargar su matrícula nunca llega al momento en que el boletín le importa:
-  # se queda con media planilla adentro, un problema de datos y la sensación de
-  # que el sistema se rompió. Ahí no hay conversión, hay un cliente perdido.
+  #     ENTRADA         cargar e importar           libre, sin tope y sin fecha
+  #     PROCESAMIENTO   calificar, pasar lista…     con la suscripción
+  #     SALIDA          boletines, listas, portales con la suscripción
   #
-  # Lo que se activa con el plan es lo que el colegio HACE todos los días con
-  # esos datos: calificar, pasar lista, emitir papeles, y el portal por donde la
-  # familia entra.
+  # El corte NO es por número de registros: con matrícula promedio de 360 y
+  # tope en 200, la importación falla en la fila 201 y el colegio queda a
+  # medias, con un problema de datos, justo cuando debía sentirse poderoso.
   #
-  # ## Se puede MIRAR, no hacer
+  # ## ⚠️ Cada controlador del colegio está en UNA de cuatro listas
   #
-  # Las pantallas no se esconden. El director entra a la planilla de notas, ve
-  # su sección, sus alumnos y sus columnas — y el aviso de qué la activa. Una
-  # pantalla escondida no vende nada; una pantalla que se ve y no se toca, sí.
-  ACCIONES_CON_PLAN = [
-    [ "activity_grades", "create" ],
-    [ "activity_grades", "update" ],
-    [ "activity_grades", "destroy" ],
-    [ "asistencias", "create" ],
-    [ "report_cards", "create" ],
-    [ "constancias", "create" ],
-    # ⚠️ La pestaña se VE y emitir se bloquea, igual que sus dos hermanas. Sin
-    # esta línea el plan gratuito emitiría por aquí los mismos certificados que
-    # `documentos_oficiales` —abajo— le niega desde la ficha.
-    [ "certificados", "create" ]
+  # Y un test lo exige (`frontera_de_lo_gratis_test`). Es lo que cerró los ocho
+  # huecos: la lista anterior nombraba lo que existía el 27 de agosto de 2026, y
+  # lo construido después —cerrar el lapso, reparaciones, valoraciones,
+  # informes, la cobranza, la descarga del boletín, las listas en Excel, los
+  # correos a las familias— quedó afuera sin que nada avisara. Con un preescolar
+  # se operaba completo sin pagar. Ahora un controlador nuevo sin lista no pasa
+  # el CI, y si llegara a producción sin ella, en gratis queda CERRADO.
+
+  # Lo que no es del colegio: lo público, la sesión y la cuenta. Nunca se toca.
+  SIEMPRE_ABIERTO = %w[
+    activaciones demo_requests devise/passwords devise/registrations devise/sessions
+    directorio inicio manual planteles registros salud verificaciones
   ].freeze
 
-  # Pantallas enteras que el plan gratuito no incluye. Van por controlador y no
-  # por verbo porque son GET: un PDF del MPPE se pide con GET, y el portal del
-  # representante es de solo lectura por diseño.
-  CONTROLADORES_CON_PLAN = %w[documentos_oficiales representante].freeze
+  # Cargar. Libre en gratis —es lo que hace que un colegio llegue a necesitar el
+  # boletín—, salvo los archivos: una lista en Excel ya es SALIDA.
+  LA_ENTRADA = %w[
+    academic_periods admins anio_escolar arranque buscadores busquedas carga_de_notas
+    codigos_a_la_vista colegio competencies copias_del_anio dashboards/activity_logs
+    dashboards/administrador dashboards/profesor departments enrollments
+    evaluation_activities evaluation_moments grade_subjects grades importaciones
+    indicators nivel_escolar niveles promociones representatives rubrics sections
+    students subjects teacher_sections teachers
+  ].freeze
+
+  # Operar. Las pantallas SE VEN —una pantalla escondida no vende nada; una que
+  # se ve y no se toca, sí— pero escribir y descargar piden la suscripción.
+  CON_SUSCRIPCION = %w[
+    activity_grades asistencias certificados cobros constancias finanzas informes
+    mensajes reparaciones report_cards revision_de_boletines valoraciones
+  ].freeze
+
+  # Lo que sale del colegio hacia las familias, los alumnos y el ministerio. En
+  # gratis ni se abre.
+  SOLO_CON_SUSCRIPCION = %w[
+    boletines dashboards/estudiante dashboards/notas documentos_oficiales pagos representante
+  ].freeze
+
+  # Los únicos archivos que salen sin suscripción: la plantilla que el colegio
+  # llena para CARGAR. El manual en PDF también sale, pero ese vive en
+  # `SIEMPRE_ABIERTO`: es público.
+  ARCHIVOS_LIBRES = [ %w[importaciones plantilla] ].freeze
+
+  FORMATOS_DE_ARCHIVO = %i[pdf xlsx csv].freeze
+
+  # Lo que ven quienes no pagan la suscripción —profesores, familias, alumnos—:
+  # que la función existe y no está activa, sin precios que no les corresponden.
+  MURO_SIN_PRECIO = "Calificar, pasar lista y emitir todavía no están activos en el " \
+                    "colegio: se activan con la suscripción, que lleva la dirección.".freeze
 
   included do
     before_action :exigir_suscripcion_al_dia!
@@ -107,38 +140,75 @@ module RespetaLaSuscripcion
     @suscripcion_del_colegio = Subscription.find_by(school_id: Current.school_id)
   end
 
-  # ⚠️ Sin suscripción se PUEDE escribir, y es deliberado: son los colegios que
-  # todavía no se facturan —una demo, un piloto, el primer mes—. Bloquearlos
-  # sería romper el producto para quien lo está evaluando, que es exactamente al
-  # revés de lo que conviene.
   def colegio_en_solo_lectura?
     suscripcion_del_colegio.present? && suscripcion_del_colegio.solo_lectura?
   end
 
-  # ⚠️ Sin fila de suscripción hay acceso COMPLETO, igual que para escribir: es
-  # el piloto y el primer mes. `gratis` es una decisión escrita, no la ausencia
-  # de una.
+  # ⚠️ Un colegio SIN fila cuenta como gratis (decisión 16). Hasta el 12 de
+  # octubre de 2026 era lo contrario —acceso completo, sin fecha— y por esa
+  # puerta se entraba a todo el producto gratis y para siempre. Hoy todo colegio
+  # nace con su fila; esto es la red por si alguno no la tuviera.
+  #
+  # Sin colegio en la sesión no hay nada que exigir: es una página pública o la
+  # cuenta de alguien.
   def colegio_en_plan_gratis?
-    suscripcion_del_colegio.present? && !suscripcion_del_colegio.incluye_las_funciones_del_colegio?
+    return false if Current.school_id.blank?
+
+    suscripcion_del_colegio.nil? || suscripcion_del_colegio.gratis?
   end
 
   def exigir_plan_del_colegio!
     return unless colegio_en_plan_gratis?
-    return unless requiere_plan?
+    return unless requiere_suscripcion?
 
-    mensaje = "Calificar, pasar lista y emitir documentos se activan con un plan. " \
-              "Cargar alumnos, profesores y áreas de aprendizaje es libre y no vence."
+    # ⚠️ Un portal no se contesta con un redirect: el destino por defecto de una
+    # familia ES su portal, y redirigirla a él la dejaría dando vueltas. Se le
+    # muestra una página que dice qué pasa, como con la deuda de la familia.
+    if SOLO_CON_SUSCRIPCION.include?(controller_path) && request.format.html?
+      return render("shared/sin_suscripcion", status: :payment_required)
+    end
 
     respond_to do |formato|
-      formato.html { redirect_back fallback_location: dashboard_path_for_user, alert: mensaje }
-      formato.json { render json: { estado: "error", mensaje: mensaje }, status: :payment_required }
+      formato.html { redirect_back fallback_location: dashboard_path_for_user, alert: mensaje_del_muro }
+      formato.json { render json: { estado: "error", mensaje: mensaje_del_muro }, status: :payment_required }
       formato.any  { head :payment_required }
     end
   end
 
-  def requiere_plan?
-    CONTROLADORES_CON_PLAN.include?(controller_path) ||
-      ACCIONES_CON_PLAN.include?([ controller_path, action_name ])
+  def requiere_suscripcion?
+    case controller_path
+    when *SIEMPRE_ABIERTO      then false
+    when *SOLO_CON_SUSCRIPCION then true
+    when *CON_SUSCRIPCION      then escribe? || pide_un_archivo?
+    when *LA_ENTRADA           then pide_un_archivo? && !archivo_libre?
+    else true
+    end
+  end
+
+  def escribe? = VERBOS_QUE_ESCRIBEN.include?(request.request_method)
+
+  def pide_un_archivo? = FORMATOS_DE_ARCHIVO.include?(request.format.symbol)
+
+  def archivo_libre? = ARCHIVOS_LIBRES.include?([ controller_path, action_name ])
+
+  # El muro dice el precio a quien lo paga (decisión 14: dirección y finanzas).
+  # Con eso, «se activa con la suscripción» deja de ser un callejón: el director
+  # sabe cuánto le cuesta lo que acaba de tocar, sin buscarlo.
+  def mensaje_del_muro
+    return MURO_SIN_PRECIO unless puede?(:pagar_la_suscripcion)
+
+    cotizacion = (suscripcion_del_colegio || Subscription.new(school_id: Current.school_id)).cotizacion
+    total      = helpers.numero_en_dolares(cotizacion.total)
+
+    detalle =
+      if cotizacion.en_el_minimo?
+        "el mínimo de #{helpers.numero_en_dolares(cotizacion.minimo)}, más IVA"
+      else
+        "#{helpers.contar(cotizacion.alumnos, 'alumno', 'alumnos')} a " \
+          "#{helpers.numero_en_dolares(cotizacion.por_alumno)}, más IVA"
+      end
+
+    "Calificar, pasar lista y emitir se activan con la suscripción: #{total} al mes (#{detalle})."
   end
 
   def exigir_suscripcion_al_dia!

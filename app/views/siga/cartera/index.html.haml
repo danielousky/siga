@@ -2,12 +2,15 @@
 
 .siga-cifras
   .siga-cifra
-    %span.siga-cifra-numero= "$#{number_with_delimiter(@facturacion)}"
-    %span.siga-cifra-que facturación mensual
+    %span.siga-cifra-numero= numero_en_dolares(@facturacion)
+    %span.siga-cifra-que facturación mensual, sin IVA
   .siga-cifra{class: ("siga-cifra--atencion" if @con_problema.positive?)}
     %span.siga-cifra-numero= @con_problema
     %span.siga-cifra-que= "#{pluralizar(@con_problema, 'colegio', 'colegios')} en solo lectura"
-  .siga-cifra
+  -# ⚠️ Tiene que ser CERO. Desde el cobro por alumno todo colegio nace con su
+  -# suscripción (decisión 16 del spec `del-registro-al-cobro`); un colegio sin
+  -# ella es un alta que se saltó `Subscription.abrir_gratis!`.
+  .siga-cifra{class: ("siga-cifra--atencion" if @sin_suscripcion.positive?)}
     %span.siga-cifra-numero= @sin_suscripcion
     %span.siga-cifra-que sin suscripción
 
@@ -28,38 +31,33 @@
         %tr
           %th= School.model_name.human
           %th.num Matrícula
-          %th Plan facturado
-          %th.num Precio
+          %th Suscripción
+          %th.num Al mes, con IVA
           %th Estado
           %th Vence
-          %th
       %tbody
         - @colegios.each do |colegio|
           - s = @suscripciones[colegio.id]
-          - alumnos = @matriculas[colegio.id] || 0
+          - cotizacion = @cotizaciones[colegio.id]
           %tr
             %td= link_to colegio.name, siga_colegio_path(colegio)
-            %td.num= alumnos
+            %td.num= @matriculas[colegio.id] || 0
             %td
               - if s
                 = s.etiqueta_de_plan
-                - le_toca = Subscription.plan_para(alumnos)
-                - if le_toca != s.plan.to_sym
-                  %br
-                  %span.siga-desfase
-                    = "hoy le tocaría #{Subscription::PLANES.dig(le_toca, :etiqueta) || 'A convenir'}"
+                - if s.por_alumno?
+                  %span.apagado= "· #{numero_en_dolares(cotizacion.por_alumno)}"
               - else
                 %span.apagado —
-            %td.num
-              - if s&.precio_mensual
-                = "$#{s.precio_mensual}"
-              - else
-                %span.apagado —
+            -# ⚠️ Lo que le tocaría HOY, con su matrícula de hoy y su precio
+            -# congelado. Al gratis, lo que pagaría si activara: es el número que
+            -# se le dice por teléfono.
+            %td.num= numero_en_dolares(cotizacion.total)
             %td
               - if s
                 %span.siga-estado{class: "siga-estado--#{s.status}"}= s.etiqueta_de_estado
               - else
-                %span.apagado Sin facturar
+                %span.apagado Sin suscripción
             %td.apagado
               - if s&.vigente_hasta
                 = l(s.vigente_hasta, format: :short)
@@ -69,17 +67,12 @@
                   %span.siga-desfase= "hace #{-dias} días"
               - else
                 —
-            %td
-              - if s.nil?
-                = button_to siga_cartera_index_path, params: { school_id: colegio.id }, class: "btn btn-secondary btn-sm" do
-                  = icono(:agregar, tamano: 16)
-                  %span Dar de alta
 
 %p.siga-nota
-  El plan se
+  El precio se
   %strong observa
   siempre y se
   %strong cobra
-  al renovar: que un colegio crezca en marzo no puede cambiarle la factura de
-  marzo. Cuando la matrícula se pasa del plan facturado, la columna lo dice —
-  no lo corrige sola.
+  al renovar, cada mes: que un colegio crezca a mitad de mes no cambia lo que
+  ya pagó. La columna dice lo que le toca hoy, con la matrícula de hoy y el
+  precio con que entró.

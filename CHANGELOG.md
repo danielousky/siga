@@ -23,6 +23,32 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.14.0 — 12 de octubre de 2026
+
+- **SIGA se paga por alumno: 0,30 $ al mes por alumno inscrito, más IVA, con un
+  mínimo de 39 $.** Se acaban los tres planes y el salto del alumno 151, que
+  duplicaba la factura: cada alumno cuesta lo mismo, y todos los colegios tienen
+  el sistema completo.
+
+  ```
+     alumnos       130    150    250    360    800
+     al mes         39     45     75    108    240     más IVA
+  ```
+
+- **Cargar el colegio sigue siendo gratis**, sin tope y sin fecha: alumnos,
+  familias, profesores, áreas, secciones, el plan de evaluación y el importador.
+  Todo lo demás se activa con la suscripción: calificar, pasar lista, cerrar el
+  lapso, las reparaciones, los informes, la cobranza, los correos a las familias,
+  los documentos y las listas en Excel, y los portales de la familia y del
+  alumno.
+- **Al tocar algo que pide la suscripción, la dirección ve cuánto le cuesta** a
+  su colegio. El profesor, la familia y el alumno ven que esa parte todavía no
+  está activa, sin precios.
+- **Todo colegio empieza en gratis**, también el que da de alta el equipo de
+  SIGA.
+
+---
+
 ## 1.13.0 — 5 de octubre de 2026
 
 - **Cambian los precios de la suscripción.** Los tramos de matrícula son los

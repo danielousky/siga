@@ -105,9 +105,9 @@ class SeoTest < ActionDispatch::IntegrationTest
 
   # ── la ficha estructurada ─────────────────────────────────────────────────
 
-  # ⚠️ Los precios salen de `Subscription::PLANES`. La descripción los tenía
-  # escritos a mano y decía «desde 25 $» meses después de subir a 30.
-  test "la ficha estructurada trae los precios que cobra el sistema" do
+  # ⚠️ El precio sale de `Subscription::PRECIO_POR_ALUMNO`. La descripción lo
+  # tenía escrito a mano y decía «desde 25 $» meses después de subir a 30.
+  test "la ficha estructurada trae el precio que cobra el sistema" do
     get root_path
 
     fichas = css_select("script[type='application/ld+json']")
@@ -117,8 +117,11 @@ class SeoTest < ActionDispatch::IntegrationTest
     assert_equal "SoftwareApplication", ficha["@type"]
     assert_equal "Venezuela", ficha.dig("areaServed", "name")
 
-    precios = ficha["offers"].map { |o| o["price"] }
-    assert_equal Subscription::PLANES.each_value.map { |d| d[:precio].to_s }, precios
+    ofertas = ficha["offers"]
+    assert_equal 1, ofertas.size, "un solo plan, una sola oferta"
+    assert_equal format("%.2f", Subscription::PRECIO_POR_ALUMNO), ofertas.first["price"]
+    assert_equal "alumno", ofertas.first.dig("priceSpecification", "referenceQuantity", "unitText")
+    assert_equal false, ofertas.first.dig("priceSpecification", "valueAddedTaxIncluded")
   end
 
   # ⚠️ UNA sola: repetirla en cada pantalla pública le dice a un buscador que
@@ -135,7 +138,7 @@ class SeoTest < ActionDispatch::IntegrationTest
 
     assert_select "meta[name=description]" do |etiquetas|
       texto = etiquetas.first["content"]
-      assert_includes texto, "#{Subscription::PLANES.dig(:basico, :precio)} $"
+      assert_includes texto, "#{ApplicationController.helpers.cifra(Subscription::PRECIO_POR_ALUMNO)} $ por alumno"
     end
   end
 end

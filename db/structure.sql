@@ -1999,14 +1999,16 @@ CREATE TABLE public.subscriptions (
     plan integer DEFAULT 0 NOT NULL,
     status integer DEFAULT 0 NOT NULL,
     matricula_facturada integer,
-    precio_mensual integer,
+    precio_mensual numeric(10,2),
     vigente_desde date,
     vigente_hasta date,
     dias_de_gracia integer DEFAULT 15 NOT NULL,
     notas text,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    CONSTRAINT subscriptions_plan_valido CHECK ((plan = ANY (ARRAY[0, 1, 2, 3, 4]))),
+    precio_por_alumno numeric(6,2),
+    minimo_mensual numeric(8,2),
+    CONSTRAINT subscriptions_plan_valido CHECK ((plan = ANY (ARRAY[4, 5]))),
     CONSTRAINT subscriptions_status_valido CHECK ((status = ANY (ARRAY[0, 1, 2, 3])))
 );
 
@@ -5739,6 +5741,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261012120000'),
 ('20260919010000'),
 ('20260917093000'),
 ('20260916100000'),

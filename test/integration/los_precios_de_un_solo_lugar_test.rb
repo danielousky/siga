@@ -1,6 +1,7 @@
 require "test_helper"
 
-# Subir un precio es cambiar UN número (`Subscription::PLANES`).
+# Subir un precio es cambiar UN número (`Subscription::PRECIO_POR_ALUMNO` y
+# `Subscription::MINIMO_MENSUAL`).
 #
 # ## Por qué hace falta un test para esto
 #
@@ -17,19 +18,21 @@ require "test_helper"
 # alcanza: un número escrito a mano que HOY coincide los pasa en verde, y se
 # queda atrás en la próxima subida — que es justo cuando nadie lo mira.
 #
-# Por eso acá los precios se cambian por tres que no existen y se exige que
-# cada pantalla diga ESOS, y ninguno de los de verdad.
+# Por eso acá el precio se cambia por uno que no existe y se exige que cada
+# pantalla diga ESE, y ninguno de los de verdad.
 class LosPreciosDeUnSoloLugarTest < ActionDispatch::IntegrationTest
-  DE_MENTIRA = { basico: 41, estandar: 83, premium: 127 }.freeze
+  POR_ALUMNO_DE_MENTIRA = BigDecimal("0.47")
+  MINIMO_DE_MENTIRA     = BigDecimal("53")
 
   # Un monto con su signo, sin importar de qué lado lo lleve: «$39», «39 $».
   MONTO_A_MANO = /\$\s?\d{2,}|\d{2,}\s?\$/
 
-  test "la portada dice los precios de la tabla, y no otros" do
+  test "la portada dice el precio de la constante, y no otro" do
     con_precios_de_mentira do
       get root_path
 
-      assert_equal %w[41 83 127], css_select("span.portada-plan-monto").first(3).map { |monto| monto.text.strip }
+      assert_equal "0,47", css_select("span.portada-plan-monto").first.text.strip
+      assert_match(/53,00 \$/, css_select("p.portada-plan-cupo").first.text)
       assert_ningun_precio_de_verdad
     end
   end
@@ -38,14 +41,16 @@ class LosPreciosDeUnSoloLugarTest < ActionDispatch::IntegrationTest
     con_precios_de_mentira do
       get root_path
 
-      assert_includes css_select("meta[name=description]").first["content"], "Desde 41 $ al mes"
+      assert_includes css_select("meta[name=description]").first["content"], "0,47 $ por alumno"
 
-      ofertas = JSON.parse(css_select("script[type='application/ld+json']").first.text)["offers"]
-      assert_equal %w[41 83 127], ofertas.map { |oferta| oferta["price"] }
-      assert_equal %w[41 83 127], ofertas.map { |oferta| oferta.dig("priceSpecification", "price") }
+      oferta = JSON.parse(css_select("script[type='application/ld+json']").first.text)["offers"].first
+      assert_equal "0.47", oferta["price"]
+      assert_equal "0.47", oferta.dig("priceSpecification", "price")
+      assert_includes oferta["description"], "53.00"
     end
   end
 
+  # El colegio de prueba tiene dos alumnos: le toca el mínimo, 53 $ más IVA.
   test "el panel de SIGA, en la tabla y en la nota" do
     dos_colegios_completos
     sign_in equipo_de_siga
@@ -54,16 +59,29 @@ class LosPreciosDeUnSoloLugarTest < ActionDispatch::IntegrationTest
       get siga_root_path
 
       assert_response :success
-      assert_select "table.siga-tabla td", text: %r{\$41/mes}, minimum: 1
-      assert_select "p.siga-nota",
-                    text: /hasta 150 alumnos \$41 · hasta 400 alumnos \$83 · hasta 800 alumnos \$127\./
+      assert_select "table.siga-tabla td", text: "61,48 $", minimum: 1
+      assert_select "p.siga-nota", text: /0,47 \$ por alumno al mes, más IVA, con un mínimo de 53,00 \$/
       assert_ningun_precio_de_verdad
     end
   end
 
-  # ⚠️ Lo que los tres de arriba no pueden ver: una pantalla que no visitan.
-  # Un monto que es un DATO va interpolado; uno con sus dígitos en la plantilla
-  # es una copia, y las copias son las que se quedan atrás.
+  # El muro de lo gratis dice el precio de ESE colegio: el de la constante,
+  # porque todavía no entró y no tiene uno congelado.
+  test "el muro de lo gratis, también" do
+    a, _b = dos_colegios_completos(suscripcion: :gratis)
+    sign_in a.director
+
+    con_precios_de_mentira do
+      post constancias_path, params: { section_id: a.seccion.id, enrollment_id: a.inscripcion.id }
+
+      assert_includes flash[:alert], "61,48 $ al mes"
+      assert_includes flash[:alert], "53,00 $"
+    end
+  end
+
+  # ⚠️ Lo que los de arriba no pueden ver: una pantalla que no visitan. Un monto
+  # que es un DATO va interpolado; uno con sus dígitos en la plantilla es una
+  # copia, y las copias son las que se quedan atrás.
   #
   # Los comentarios se saltan: «acá decía $25» es historia, no pantalla.
   test "ninguna pantalla escribe un monto en dólares a mano" do
@@ -79,16 +97,39 @@ class LosPreciosDeUnSoloLugarTest < ActionDispatch::IntegrationTest
 
     assert_empty a_mano,
                  "Un monto escrito a mano se queda atrás en la próxima subida de precio. " \
-                 "Si es de los planes, sale de `Subscription::PLANES`:\n  #{a_mano.join("\n  ")}"
+                 "Si es el precio, sale de `Subscription::PRECIO_POR_ALUMNO`:\n  #{a_mano.join("\n  ")}"
+  end
+
+  # ⚠️ Desde el 12 de octubre de 2026 no hay planes con nombre (decisión 15 del
+  # spec `del-registro-al-cobro`): «Plan Inicial» era a la vez el gratis y el de
+  # 39 $. Un texto que lo nombre le promete al colegio un plan que no existe.
+  #
+  # ⚠️ Se busca «plan Inicial» y no «Inicial» a secas: Inicial es también un
+  # NIVEL —Educación Inicial— y prohibir la palabra se llevaría el preescolar.
+  test "ninguna pantalla ni correo nombra los planes viejos" do
+    planes_viejos = /\bplan(es)?\s+(inicial|estándar|grande|básico|premium)\b/i
+
+    con_nombre = (Rails.root.glob("app/views/**/*.{haml,erb}") + [ Rails.root.join("config/locales/es.yml") ])
+                 .flat_map do |archivo|
+      archivo.each_line.with_index(1).filter_map do |linea, numero|
+        next if linea.lstrip.start_with?("-#", "<%#", "#")
+
+        "#{archivo.relative_path_from(Rails.root)}:#{numero}  #{linea.strip}" if linea.match?(planes_viejos)
+      end
+    end
+
+    assert_empty con_nombre, "Ese plan ya no existe:\n  #{con_nombre.join("\n  ")}"
   end
 
   private
 
   def con_precios_de_mentira(&)
-    @de_verdad = Subscription::PLANES.values.map { |plan| plan[:precio] }
-    de_mentira = Subscription::PLANES.to_h { |nombre, plan| [ nombre, plan.merge(precio: DE_MENTIRA.fetch(nombre)) ] }
+    @de_verdad = [ ApplicationController.helpers.cifra(Subscription::PRECIO_POR_ALUMNO),
+                   ApplicationController.helpers.cifra(Subscription::MINIMO_MENSUAL) ]
 
-    stub_const(Subscription, :PLANES, de_mentira.freeze, &)
+    stub_const(Subscription, :PRECIO_POR_ALUMNO, POR_ALUMNO_DE_MENTIRA) do
+      stub_const(Subscription, :MINIMO_MENSUAL, MINIMO_DE_MENTIRA, &)
+    end
   end
 
   # En lo que se LEE: sin etiquetas, y sin los bloques que no son texto.
@@ -98,7 +139,7 @@ class LosPreciosDeUnSoloLugarTest < ActionDispatch::IntegrationTest
     texto = pagina.text.squish
 
     @de_verdad.each do |precio|
-      assert_no_match(/\$\s?#{precio}\b|\b#{precio}\s?\$/, texto,
+      assert_no_match(/\$\s?#{Regexp.escape(precio)}\b|\b#{Regexp.escape(precio)}\s?\$/, texto,
                       "la pantalla sigue diciendo #{precio} $: lo tiene escrito a mano")
     end
   end

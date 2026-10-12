@@ -128,9 +128,10 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
 
   test "en gracia todavía se puede escribir" do
     con_el_colegio(@a.colegio) do
-      Subscription.create!(school: @a.colegio, plan: :basico, status: :activa,
-                           vigente_hasta: Date.current - 3, dias_de_gracia: 15)
-                  .actualizar_estado!
+      suscripcion_de(@a.colegio).tap do |s|
+        s.update!(vigente_hasta: Date.current - 3, dias_de_gracia: 15)
+        s.actualizar_estado!
+      end
     end
     sign_in @a.director
 
@@ -141,8 +142,7 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
 
   test "el estado se mueve solo según la fecha" do
     suscripcion = con_el_colegio(@a.colegio) do
-      Subscription.create!(school: @a.colegio, plan: :basico, status: :activa,
-                           vigente_hasta: Date.new(2026, 8, 1), dias_de_gracia: 10)
+      suscripcion_de(@a.colegio).tap { |s| s.update!(vigente_hasta: Date.new(2026, 8, 1), dias_de_gracia: 10) }
     end
 
     con_el_colegio(@a.colegio) do
@@ -152,10 +152,11 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # ⚠️ Sin suscripción se PUEDE escribir, y es deliberado: son los colegios que
-  # todavía no se facturan —una demo, un piloto—. Bloquearlos rompería el
-  # producto para quien lo está evaluando.
-  test "un colegio sin suscripción escribe normalmente" do
+  # ⚠️ Sin fila cuenta como GRATIS, no como acceso completo (decisión 16 del spec
+  # `del-registro-al-cobro`). Cargar sigue abierto —es la entrada—; lo que no
+  # abre es operar, y eso lo prueba `plan_gratis_test`.
+  test "un colegio sin suscripción carga igual" do
+    Current.sin_aislamiento { suscripcion_de(@a.colegio).destroy! }
     sign_in @a.director
 
     assert_difference -> { con_el_colegio(@a.colegio) { Department.count } }, 1 do
@@ -164,20 +165,50 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
   end
 
   # ══════════════════════════════════════════════════════════════════════════
-  # El plan sale de la matrícula ACTIVA del año vigente
+  # El precio: por alumno, con un mínimo
   # ══════════════════════════════════════════════════════════════════════════
 
-  test "los cortes del contrato" do
-    assert_equal :basico,     Subscription.plan_para(1)
-    assert_equal :basico,     Subscription.plan_para(150)
-    assert_equal :estandar,   Subscription.plan_para(151)
-    assert_equal :estandar,   Subscription.plan_para(400)
-    assert_equal :premium,    Subscription.plan_para(401)
-    assert_equal :premium,    Subscription.plan_para(800)
-    # El borde que el issue pedía definir: arriba de 800 no hay precio
-    # automático, están las redes de colegios.
-    assert_equal :a_convenir, Subscription.plan_para(801)
-    assert_nil Subscription.precio_para(801)
+  # Hasta el 12 de octubre de 2026 eran bandas, y el alumno 151 duplicaba la
+  # factura: 39 → 79. Ahora cada alumno cuesta lo mismo, y el chico paga el
+  # mínimo. Los números son los del spec: si alguien sube el precio, este test
+  # le recuerda que también cambia lo que se le dijo a Daniel.
+  test "el precio sale por alumno, con su mínimo y sin escalones" do
+    assert_equal BigDecimal("39"),     Subscription.cotizar(0).monto
+    assert_equal BigDecimal("39"),     Subscription.cotizar(130).monto
+    assert_equal BigDecimal("39.30"),  Subscription.cotizar(131).monto
+    assert_equal BigDecimal("45"),     Subscription.cotizar(150).monto
+    assert_equal BigDecimal("45.30"),  Subscription.cotizar(151).monto,
+                 "el alumno 151 cuesta lo mismo que el 150"
+    assert_equal BigDecimal("108"),    Subscription.cotizar(360).monto
+    assert_equal BigDecimal("240"),    Subscription.cotizar(800).monto
+  end
+
+  test "el IVA va aparte" do
+    cotizacion = Subscription.cotizar(360)
+
+    assert_equal BigDecimal("17.28"),  cotizacion.iva
+    assert_equal BigDecimal("125.28"), cotizacion.total
+    assert_equal BigDecimal("45.24"),  Subscription.cotizar(100).total
+  end
+
+  # ⚠️ Decisión 17: subir el precio toca a los que entran después. El colegio
+  # que entró a 0,25 sigue a 0,25, aunque la constante diga otra cosa.
+  test "el precio con que entró un colegio queda congelado" do
+    suscripcion = suscripcion_de(@a.colegio)
+    Current.sin_aislamiento { suscripcion.update!(precio_por_alumno: BigDecimal("0.25"), minimo_mensual: 30) }
+
+    con_el_colegio(@a.colegio) do
+      assert_equal BigDecimal("90"), suscripcion.cotizacion(360).monto
+      assert_equal BigDecimal("30"), suscripcion.cotizacion(2).monto
+    end
+  end
+
+  test "el gratis cotiza con el precio de hoy" do
+    con_el_colegio(@a.colegio) do
+      gratis = Subscription.new(school: @a.colegio, plan: :gratis)
+
+      assert_equal Subscription.cotizar(360).monto, gratis.cotizacion(360).monto
+    end
   end
 
   test "la matrícula cuenta las inscripciones ACTIVAS del año vigente" do
@@ -204,14 +235,14 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
   # se comenta entre colegios.
   test "crecer de matrícula no cambia lo facturado" do
     suscripcion = con_el_colegio(@a.colegio) do
-      Subscription.create!(school: @a.colegio, plan: :basico, status: :activa,
-                           matricula_facturada: 2, precio_mensual: 25,
-                           vigente_hasta: Date.current + 1.month)
+      suscripcion_de(@a.colegio).tap do |s|
+        s.update!(matricula_facturada: 2, precio_mensual: 39, vigente_hasta: Date.current + 1.month)
+      end
     end
 
     con_el_colegio(@a.colegio) do
-      assert_equal 25, suscripcion.precio_mensual
-      assert_equal :basico, suscripcion.plan.to_sym
+      assert_equal BigDecimal("39"), suscripcion.reload.precio_mensual
+      assert_equal 2, suscripcion.matricula_facturada
     end
   end
 
@@ -255,10 +286,7 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
   end
 
   test "un colegio al día no ve ningún cartel" do
-    con_el_colegio(@a.colegio) do
-      Subscription.create!(school: @a.colegio, plan: :basico, status: :activa,
-                           vigente_hasta: Date.current + 1.month)
-    end
+    Current.sin_aislamiento { suscripcion_de(@a.colegio).update!(vigente_hasta: Date.current + 1.month) }
     sign_in @a.director
 
     get dashboards_administrador_url
@@ -270,9 +298,9 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
   private
 
   def vencer!(colegio)
-    con_el_colegio(colegio.colegio) do
-      Subscription.create!(school: colegio.colegio, plan: :basico, status: :vencida,
-                           vigente_hasta: Date.current - 60, dias_de_gracia: 15)
+    Current.sin_aislamiento do
+      suscripcion_de(colegio.colegio).update!(status: :vencida, vigente_hasta: Date.current - 60,
+                                              dias_de_gracia: 15)
     end
   end
 end

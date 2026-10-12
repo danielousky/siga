@@ -296,7 +296,11 @@ class ApplicationController < ActionController::Base
 
     # El DINERO es otra gaveta. La coordinadora administra alumnos y NO valida
     # pagos; finanzas cobra y no toca la estructura académica.
-    cobrar: DIRECCION + FINANZAS
+    cobrar: DIRECCION + FINANZAS,
+    # Y lo que el colegio le paga a SIGA, igual: quien lleva el dinero es quien
+    # paga (decisión 14 del spec `del-registro-al-cobro`). Es quien ve el precio
+    # en el muro de lo gratis.
+    pagar_la_suscripcion: DIRECCION + FINANZAS
   }.freeze
 
   def puede?(que) = administrador? && PERMISOS.fetch(que).include?(rol_de_admin)

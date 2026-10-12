@@ -40,21 +40,21 @@ class PortadaPublicaTest < ActionDispatch::IntegrationTest
     assert_no_match(/instituciones educativas que han transformado/i, response.body)
   end
 
-  # Los precios se leen de `Subscription::PLANES`, que es lo que cobra el
-  # sistema. Escritos a mano en la vista, el día que cambie el precio la
+  # El precio se lee de `Subscription::PRECIO_POR_ALUMNO`, que es lo que cobra
+  # el sistema. Escrito a mano en la vista, el día que cambie el precio la
   # portada seguiría prometiendo el viejo.
-  test "los precios de la portada salen del mismo lugar que los cobra el sistema" do
+  test "el precio de la portada sale del mismo lugar que lo cobra el sistema" do
     get root_path
 
-    Subscription::PLANES.each_value do |datos|
-      assert_select "span.portada-plan-monto", text: datos[:precio].to_s,
-                    count: 1, message: "falta el precio #{datos[:precio]}"
-    end
+    precio = ApplicationController.helpers.cifra(Subscription::PRECIO_POR_ALUMNO)
+    assert_select "span.portada-plan-monto", text: precio, count: 1,
+                  message: "falta el precio por alumno, #{precio}"
+    assert_select "p.portada-plan-cupo", text: /más IVA/
   end
 
   # ⚠️ La portada tenía DOS salidas —pedir una demostración y entrar— y ninguna
-  # para el colegio que quiere empezar solo. Que es justamente al que apunta el
-  # plan Inicial: sin costo, sin vendedor y sin esperar una llamada.
+  # para el colegio que quiere empezar solo. Que es justamente al que apunta lo
+  # gratis: cargar sin costo, sin vendedor y sin esperar una llamada.
   test "la portada ofrece registrar un colegio" do
     get root_path
 

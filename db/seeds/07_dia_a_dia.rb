@@ -96,11 +96,16 @@ paso "💳 Suscripciones"
   # ⚠️ `Subscription.matricula_de` NO puede pasar por el filtro de nivel: un
   # colegio de 360 alumnos con primaria elegida se facturaría como uno de 190.
   alumnos = Subscription.matricula_de(datos[:colegio].id)
+  cotizacion = Subscription.cotizar(alumnos)
   suscripcion = Subscription.find_or_initialize_by(school: datos[:colegio])
   suscripcion.assign_attributes(
-    plan: Subscription.plan_para(alumnos),
+    # Por alumno, con el precio de hoy CONGELADO en la fila, como queda un
+    # colegio al validarse su pago (spec `del-registro-al-cobro`).
+    plan: :por_alumno,
+    precio_por_alumno: cotizacion.por_alumno,
+    minimo_mensual: cotizacion.minimo,
     matricula_facturada: alumnos,
-    precio_mensual: Subscription.precio_para(alumnos),
+    precio_mensual: cotizacion.monto,
     vigente_desde: Date.current - 1.month,
     vigente_hasta: Date.current + datos[:vence_en].days,
     status: datos[:estado],
@@ -112,7 +117,7 @@ end
 Current.sin_aislamiento do
   Subscription.unscoped.includes(:school).each do |s|
     puts "   ✓ #{s.school.name.ljust(22)} #{s.etiqueta_de_plan.ljust(10)} " \
-         "$#{s.precio_mensual.to_s.ljust(4)} #{s.matricula_facturada} alumnos · #{s.etiqueta_de_estado}"
+         "#{format('%.2f', s.precio_mensual).ljust(7)} $ #{s.matricula_facturada} alumnos · #{s.etiqueta_de_estado}"
   end
 end
 puts "     Bello está VENCIDO a propósito: entra y ve todo, pero no carga nada nuevo"
