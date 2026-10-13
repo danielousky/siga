@@ -1,10 +1,9 @@
 # 🔖 Estado de avance — actualizado 12 de octubre de 2026
 
-## ⚠️ En curso: del registro al cobro
+## ⚠️ En curso: del registro al cobro — las cinco tandas, hechas
 
 Del 7 al 12 de octubre se redefinió cómo entra, prueba y paga un colegio. El
-spec está **congelado**: `docs/specs/del-registro-al-cobro.md`, en la rama
-`feat/del-registro-al-cobro` (local, sin subir).
+spec está **congelado**: `docs/specs/del-registro-al-cobro.md`.
 
 ```
    LO DECIDIDO                                          EN EL CÓDIGO
@@ -17,15 +16,55 @@ spec está **congelado**: `docs/specs/del-registro-al-cobro.md`, en la rama
    la puerta: registro + WhatsApp + colegio de muestra  ✔ tanda 4, en local
    un trabajo diario: 5 días antes · gracia · solo      ✔ tanda 3, en local
    lectura, con sus correos
+   unificar lo que vive en el repo (§ 9)                ✔ en local; lo de AFUERA es tuyo, abajo
 ```
 
-⚠️ **Mientras tanto, el manual, los PDF de `SIGA/DOCs`, el contrato, los videos
-y Linear dicen lo viejo**, y en `CLAUDE.md` quedan restos —«Contexto de
-mercado» todavía dice que no hay nada que cobre—. No proponer nada de precios,
-del plan gratis ni de la puerta de entrada a partir de ellos: manda el spec. Se
-unifican todos al terminar (§ 9 del spec). Daniel: *«No quiero que en el futuro
-otra sesión mire lo que tú miraste y se confunda o me proponga cosas basada en
-información obsoleta.»*
+### Para cuando vuelvas, en este orden
+
+```
+   1 · MIRAR      https://demo.sigaeducando.com     un clic por puerta: director, profesor,
+                                                    representante —y siete «otras miradas»—
+   2 · PROBAR     en local, la portada, el registro y los correos nuevos
+                  tu base local YA está resembrada (12 oct, 22:01, con tu visto bueno)
+                  y con el catálogo de vuelta: localhost:3000 enseña lo mismo que la muestra
+   3 · DECIDIR    las decisiones POR CONFIRMAR del spec, abajo
+   4 · SUBIR      las siete ramas, en orden —cada una sale de la anterior—:
+                  feat/del-registro-al-cobro → feat/pagar-sin-consola →
+                  feat/el-precio-con-el-iva-adentro → feat/la-muestra → feat/la-puerta →
+                  feat/la-escalera → docs/unificar-el-cobro
+                  Ninguna está en GitHub. Producción sigue en la 1.13.0.
+   5 · AL DESPLEGAR A PRODUCCIÓN
+                  ssh siga-deploy config:set siga SIGA_MUESTRA_URL=https://demo.sigaeducando.com
+                  y cargar /siga/ajustes (el WhatsApp y los datos para pagar): sin eso,
+                  «Suscripción» no tiene cómo cobrar y la portada no dibuja el WhatsApp
+```
+
+**Por confirmar** (del spec, con quién las propuso):
+
+```
+   18  la regla del 0,40 era ANTES del IVA: ¿pasa a 0,46?           Claude
+   23  al validar un pago, correo a quien lo reportó                 Claude
+   24  el colegio retira su reporte mientras nadie lo mira           Claude
+   25  vale la cuenta del día que REPORTA, no la del que se valida   Claude
+   26  «pagó tarde» se mide por el día del reporte                    Claude
+   27  una validación no se deshace (por ahora)                      Claude
+   29  el mínimo: 45 $ (39 × 1,16)                                    Claude
+   30  profesor.bolivar@mail.com y representante.bolivar@mail.com     Claude (el del director es tuyo)
+   31  en la muestra, «otras miradas» además de las tres puertas      Claude
+   32  la muestra tiene la fecha de HOY y avanza sola                 Claude
+   33  a /siga de la muestra no entra nadie (clave al azar)           Claude
+   34  el portal: valoraciones de Inicial y boletines de otros años   Claude
+```
+
+**Lo que es tuyo, fuera del repo** (§ 9 del spec): los PDF de `SIGA/DOCs`, el
+contrato, los dos videos, el artifact del manual y las tarjetas de Linear
+—siguen diciendo lo viejo—, y tres apartados del manual que no existen
+(pagar la suscripción, la cobranza a las familias, la muestra). Hasta que se
+unifiquen, no se propone nada de precios ni de la puerta a partir de ellos:
+manda el spec. Daniel: *«No quiero que en el futuro otra sesión mire lo que tú
+miraste y se confunda o me proponga cosas basada en información obsoleta.»*
+
+**Y después:** horarios —«sí o sí», sobre todo para Media—, que pide su spec.
 
 ### La tanda 3, «la escalera» — hecha en local el 12 de octubre
 
@@ -145,16 +184,15 @@ muestra no entre nadie, y dos arreglos del portal de la familia.
 **⚠️ Lo que solo tú puedes poner:** el WhatsApp de SIGA en la muestra
 (`SIGA_WHATSAPP`): no conozco el número, y sin él no se dibuja el botón.
 
-**⚠️ Tu base de desarrollo quedó con los datos de antes.** No la toqué: tiene
-tu colegio de prueba (U E N LUIS HURTADO HIGUERA) y el catálogo de planteles.
-Con la siembra nueva, `bin/smoke` entra con `director.bolivar@mail.com`, así que
-`bin/ci` no pasa el humo hasta resembrarla:
+**Tu base de desarrollo, resembrada** (12 de octubre, 22:01, con tu visto bueno:
+*«no hay problema en borrar la data, eso es de prueba»*). Se fueron tu colegio
+de prueba (U E N LUIS HURTADO HIGUERA) y el catálogo; el catálogo volvió con
+`bin/rails catalogo:planteles` (15.954 planteles). `bin/ci` ya corre contra
+ella como siempre: `bin/smoke` entra con `director.bolivar@mail.com`.
 
-```bash
-bin/rails db:seed:replant          # ⚠️ se lleva tu colegio de prueba y el catálogo
-```
-
-Yo corrí `bin/ci` contra una base aparte (`SIGA_DB_NAME=siga_ci bin/ci`).
+⚠️ La siembra cuenta los días desde HOY en UTC, y desde las 8 p. m. de
+Venezuela eso ya es mañana: sembrada esta noche, la base cree que es 13 de
+octubre. Es la misma rareza de la zona horaria que anota el spec.
 
 **Los tres huecos que encontró la siembra, arreglados en esta rama:**
 
@@ -464,6 +502,28 @@ cuando el campo quedó vacío, vuelva a esperar a que la página oiga
 (`esperando_la_pagina`) y reintente durante un segundo y medio, no 150 ms. No
 toca el camino normal. Mientras tanto, la misma regla: si `bin/ci` sale rojo
 SOLO por uno de estos dos, se vuelve a correr `bin/rails test:system`.
+
+⚠️ **Y esa misma noche, con el Mac ocupado en otra cosa** (`mobileassetd` al
+95 % y Spotlight indexando lo que dejó la siembra), los de navegador fallaron
+mucho más, y casi todos de antes:
+
+```
+   plan_con_turbo_test, solo, alternando     el código de ANTES de hoy   5 fallas de 8
+                                             el código de ahora          3 fallas de 8
+   pestanas_de_la_seccion_test               una vez, en el bin/ci de las 22:08
+   colegio_de_muestra_test (el nuevo)        dos veces: era MÍO, y quedó corregido
+```
+
+El de la muestra tocaba con un clic a secas y después con `tocar_para_ir_a`,
+que en este recorrido NO sirve: el primer clic sí funcionaba, la pantalla
+tardaba más de tres segundos —son dos redirecciones— y el reintento buscaba el
+botón en una pantalla que ya se iba. Ahora espera a llegar y solo vuelve a
+tocar si el botón sigue ahí (`tocar_y_llegar`).
+
+⚠️ Lo que eso deja dicho de `tocar_para_ir_a`: si la pantalla de destino tarda
+más de tres segundos en llegar, el reintento corta la visita que iba en camino.
+Puede ser parte de lo que hace fallar a `plan_con_turbo_test` cuando la máquina
+está cargada; no está medido. Va con los otros, en su propio PR.
 
 Y el CI sube también las capturas de los tests de sistema que fallen.
 

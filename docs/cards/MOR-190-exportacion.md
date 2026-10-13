@@ -91,10 +91,12 @@ una cédula larga a notación científica. Hay que forzar el tipo.
 **Exportar es sacar datos del sistema, y eso se audita.** `Auditable` +
 `ActivityLog` ya existen. Qué se exportó y quién — no el contenido.
 
-**¿Entra en el plan gratis?** El corte del plan Inicial es **por función**
-(`## ⚠️ Estado conocido § 7`), así que esto es una decisión, no un detalle:
-listar es libre, y emitir documentos se activa con el plan. Un export de la
-matrícula se parece más a listar; uno de notas, más a emitir.
+**¿Entra en lo gratis?** El corte es **por función** (`## ⚠️ Estado conocido
+§ 7` y el spec `del-registro-al-cobro`): cargar es libre, y operar y sacar
+papeles se activa con la suscripción. Ojo: una lista en Excel ya es SALIDA
+—hoy `RespetaLaSuscripcion` la cierra en gratis, salvo la plantilla del
+importador—, así que un export de la matrícula también la pediría. Si se
+quiere libre, es una excepción que hay que decidir, como la de la plantilla.
 
 ---
 
