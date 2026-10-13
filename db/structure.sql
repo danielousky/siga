@@ -2098,6 +2098,9 @@ CREATE TABLE public.subscriptions (
     updated_at timestamp(6) without time zone NOT NULL,
     precio_por_alumno numeric(6,2),
     minimo_mensual numeric(8,2),
+    aviso_enviado integer DEFAULT 0 NOT NULL,
+    aviso_del_vencimiento date,
+    CONSTRAINT subscriptions_aviso_enviado_valido CHECK ((aviso_enviado = ANY (ARRAY[0, 1, 2, 3]))),
     CONSTRAINT subscriptions_plan_valido CHECK ((plan = ANY (ARRAY[4, 5]))),
     CONSTRAINT subscriptions_status_valido CHECK ((status = ANY (ARRAY[0, 1, 2, 3])))
 );
@@ -5962,6 +5965,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261012190000'),
 ('20261012170000'),
 ('20261012150000'),
 ('20261012120000'),

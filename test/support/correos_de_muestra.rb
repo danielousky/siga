@@ -65,7 +65,31 @@ module CorreosDeMuestra
     }
     de_siga.each_value(&:message)
 
-    correos_del_colegio.merge(de_siga).merge(correos_del_cobro)
+    correos_del_colegio.merge(de_siga).merge(correos_del_cobro).merge(correos_de_la_escalera)
+  end
+
+  # Los tres de la escalera (§ 5.7 del spec `del-registro-al-cobro`): cinco días
+  # antes, al vencer y al pasar a solo lectura. Son de SIGA, y le llegan a
+  # quienes pagan en el colegio.
+  #
+  # ⚠️ Con el WhatsApp cargado: los tres llevan su enlace solo si hay número, y
+  # esa es la versión más larga — la que hay que mirar en un teléfono.
+  def correos_de_la_escalera
+    @correos_de_la_escalera ||= begin
+      cargar_los_ajustes_de_siga
+
+      con_el_colegio(@colegio) do
+        suscripcion = suscripcion_de(@colegio)
+        suscripcion.update!(plan: :por_alumno, status: :activa, vigente_desde: Date.current - 26,
+                            vigente_hasta: Date.current + 4)
+
+        {
+          "por vencer"   => SuscripcionMailer.por_vencer(suscripcion),
+          "venció"       => SuscripcionMailer.vencio(suscripcion),
+          "solo lectura" => SuscripcionMailer.solo_lectura(suscripcion)
+        }.each_value(&:message)
+      end
+    end
   end
 
   # Los tres del cobro de la suscripción (spec `del-registro-al-cobro`). Son de

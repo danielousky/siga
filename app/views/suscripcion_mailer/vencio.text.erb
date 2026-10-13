@@ -1,0 +1,17 @@
+Su suscripción venció
+
+La suscripción de <%= @colegio.name %> a SIGA venció el <%= l(@suscripcion.vigente_hasta, format: :long) %>.
+Todo sigue funcionando hasta el <%= l(@hasta, format: :long) %>: pueden calificar,
+pasar lista y emitir como siempre.
+
+Para seguir después de esa fecha, pague <%= numero_en_dolares(@cotizacion.monto) %> y repórtelo desde «Suscripción».
+El mes que paga cuenta desde el día en que venció.
+
+Ver cómo pagar: <%= @url %>
+
+Si el <%= dia_y_mes(@hasta) %> el pago no está reportado, el colegio pasa a solo lectura:
+se sigue viendo y descargando todo, y no se puede cargar nada nuevo hasta
+ponerse al día. No se pierde nada de lo que ya está cargado.
+<% if @whatsapp -%>
+Si necesita conversarlo, escríbanos por WhatsApp: <%= @whatsapp %>
+<% end -%>

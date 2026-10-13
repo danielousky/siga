@@ -252,6 +252,20 @@ demo.
 `prueba:activar_plan` sigue existiendo como atajo, y solo para el colegio de
 prueba.
 
+### La escalera corre sola
+
+Todos los días a las 8 de la mañana (12 UTC) un trabajo mueve el estado de cada
+suscripción y manda el aviso que toque: cinco días antes de vencer, al vencer y
+al pasar a solo lectura. Cada uno sale una vez.
+
+```bash
+bin/rails suscripciones:estado      # en qué está cada colegio y qué aviso le toca hoy
+bin/rails suscripciones:escalera    # correrla a mano: si el worker estuvo caído
+```
+
+⚠️ **Los correos los despacha el worker.** Si la cola está parada, la escalera
+mueve los estados y anota los avisos, pero no sale nada hasta que arranque.
+
 ---
 
 ## Lo que NO tiene tarea todavía

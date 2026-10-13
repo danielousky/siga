@@ -318,6 +318,7 @@ dirección pelada.
                  y los de la contraseña, si la persona es de UN solo colegio
    DE SIGA       bienvenida · el aviso de colegio nuevo
                  los tres del cobro: pago por validar · pago validado · pago rechazado
+                 los tres de la escalera: por vencer · venció · solo lectura
                  y los de la contraseña, si es de dos colegios o de ninguno
 ```
 
@@ -1784,6 +1785,51 @@ enseña a la visitante a no confiar en los demás.
 ⚠️ **El precio sigue fuera del bloque principal**, como lo dejó Daniel —*«se ve
 como antipático, como que si le estoy cobrando antes de sentarse»*—: lo dicen
 «La suscripción», el cierre y el registro. Los tres leen la constante.
+
+### 15. La escalera: el sistema cobra solo
+
+Tanda 3 del spec `del-registro-al-cobro` (§ 5.7). Daniel no persigue pagos: lo
+hace el calendario.
+
+```
+   5 días antes       correo + aviso: «vence el 9 de noviembre»     todo funciona
+   vence              correo + aviso: «venció; quedan 15 días»      todo funciona — la gracia
+   pasados 15 días    correo + aviso: solo lectura                  ve y descarga; no carga
+   ─────────────────────────────────────────────────────────────────────────────────────
+   `LaEscaleraJob`, todos los días a las 12 UTC = 8 de la mañana de Venezuela
+```
+
+Hasta el 12 de octubre de 2026 el estado de una suscripción se movía solo
+cuando alguien abría la Cartera de `/siga`: un colegio vencido seguía «activo»
+hasta que el fundador pasara a mirar, y al colegio no le avisaba nadie.
+
+⚠️ **Cada correo sale UNA vez, y para eso se guardan dos cosas:** el último
+aviso (`aviso_enviado`) y a qué vencimiento pertenece (`aviso_del_vencimiento`).
+La fecha es lo que reinicia la cuenta sola: al validarse un pago cambia
+`vigente_hasta`, y un aviso anotado para el vencimiento anterior deja de
+contar. Con el número solo, habría que acordarse de ponerlo en cero en cada
+lugar que mueve el vencimiento.
+
+⚠️ **A quien ya reportó su pago no se le reclama nada.** Con un pago esperando
+validación el estado no baja (tanda 2) y no sale ningún aviso: la demora es de
+SIGA. ⚠️ Y el test que parecía cuidarlo no lo cuidaba: con el estado quieto no
+hay aviso que mandar de todos modos. Lo que esa regla protege es al colegio que
+reportó ANTES de vencer, y esa prueba se escribió después de romperla a mano.
+
+⚠️ **A las 12 UTC, no de noche.** La app corre en UTC: «hoy» ya es mañana desde
+las 8 p. m. de Venezuela, y un colegio pasaría a la gracia un día antes de lo
+que dice su pantalla. Lo cuida un test que lee `config/recurring.yml`.
+
+⚠️ **Le escribe a quienes PAGAN** —dirección y finanzas—, y esa lista no se
+escribe dos veces: `Admin.que_pagan` la lee de `ApplicationController::PERMISOS`,
+que es donde se decide quién ve «Suscripción».
+
+⚠️ **Los tres correos dicen primero lo que sigue funcionando**, y ninguno
+amenaza: en ningún escalón se pierde nada de lo cargado.
+
+A mano: `bin/rails suscripciones:estado` (en qué está cada colegio y qué aviso
+le toca, sin tocar nada) y `bin/rails suscripciones:escalera` (si el worker
+estuvo caído).
 
 ## 🔢 La versión
 

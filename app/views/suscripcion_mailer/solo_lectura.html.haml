@@ -1,0 +1,38 @@
+-# Pasada la gracia (spec `del-registro-al-cobro`, § 5.7).
+-#
+-# El tercer escalón. ⚠️ Dice lo que SÍ se puede antes de lo que no: el colegio
+-# sigue entrando, viendo todo y sacando boletines y constancias —la deuda es
+-# del colegio, y el perjuicio no puede ser del alumno (MOR-108)—. Y dice cómo se
+-# sale: pagando, sin deuda acumulada.
+- content_for :adelanto, "Se sigue viendo y descargando todo. Para volver a cargar, hay que pagar el mes."
+
+= titulo_de_correo "Su colegio quedó en solo lectura"
+
+%p
+  = "La suscripción de #{@colegio.name} a SIGA venció el #{l(@suscripcion.vigente_hasta, format: :long)} y pasaron los quince días de gracia."
+  Desde hoy el colegio está en solo lectura.
+
+%table{role: "presentation", width: "100%", cellpadding: "0", cellspacing: "0", border: "0",
+       style: "margin:0 0 20px; background:#ffffff; border-radius:10px;"}
+  %tr
+    %td{style: "padding:16px 20px; font-size:15px; line-height:1.6; color:#2c2c2c; overflow-wrap:anywhere; word-break:break-word;"}
+      %strong Sigue funcionando:
+      entrar, consultar las notas y la asistencia, y emitir boletines,
+      constancias y certificados.
+      %br
+      %strong Queda en pausa:
+      calificar, pasar lista y cargar información nueva.
+
+%p
+  = "Para volver a todo, pague #{numero_en_dolares(@cotizacion.monto)} y repórtelo desde «Suscripción»."
+  El mes cuenta desde el día en que se valide el pago: los días en solo lectura
+  no se cobran.
+
+= boton_de_correo "Ver cómo pagar", @url
+
+= nota_de_correo do
+  No se borró nada: todo lo que el colegio cargó sigue ahí.
+  - if @whatsapp
+    Si necesita conversarlo,
+    = succeed "." do
+      = link_to "escríbanos por WhatsApp", @whatsapp

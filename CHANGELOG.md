@@ -23,6 +23,28 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.18.0 — 12 de octubre de 2026
+
+- **SIGA avisa antes de que la suscripción venza, y no hay que estar pendiente.**
+  El colegio recibe tres correos, cada uno una sola vez, y lee lo mismo arriba
+  de su pantalla:
+
+  ```
+     5 días antes      «su suscripción vence el 9 de noviembre»     todo funciona
+     el día que vence  «venció: todo sigue funcionando 15 días»     todo funciona
+     pasados 15 días   «su colegio quedó en solo lectura»           ve y descarga todo
+  ```
+
+  Le llegan a la dirección y a finanzas, que son quienes pagan.
+
+- **Nada se pierde en ningún momento.** En solo lectura el colegio sigue
+  entrando, consultando y emitiendo boletines y constancias; lo que queda en
+  pausa es calificar, pasar lista y cargar información nueva. Al validarse el
+  pago vuelve todo, y los días en solo lectura no se cobran.
+
+- **A quien ya reportó su pago no se le reclama nada:** mientras el reporte
+  espera validación, el colegio no baja de estado ni recibe avisos.
+
 ## 1.17.0 — 12 de octubre de 2026
 
 - **La portada invita a registrar el colegio.** El botón principal ya no pide

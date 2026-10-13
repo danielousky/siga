@@ -348,6 +348,14 @@ def suscribir!(colegio, vence_en:, estado:)
     status: estado, dias_de_gracia: 15
   )
   suscripcion.save!
+
+  # ⚠️ Los avisos de la escalera que ya le habrían llegado, anotados: un colegio
+  # vencido hace un mes recibió los tres. Sin esto, el trabajo diario se los
+  # mandaría todos el primer día —y en desarrollo, con correo configurado,
+  # saldrían de verdad—.
+  ya_avisado = suscripcion.aviso_que_corresponde
+  suscripcion.anotar_aviso!(ya_avisado) if ya_avisado
+
   suscripcion
 end
 
