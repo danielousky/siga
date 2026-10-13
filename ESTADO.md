@@ -1,14 +1,17 @@
 # 🔖 Estado de avance — actualizado 13 de octubre de 2026
 
-## 🟡 Lo que vio Daniel en la muestra — 1.20.0 y 1.20.1, EN LOCAL (sin desplegar)
+## ✅ Lo que vio Daniel en la muestra — 1.20.1, EN PRODUCCIÓN desde el 13 de octubre
 
 El 12 y el 13 de octubre Daniel recorrió `demo.sigaeducando.com` y mandó ocho
-capturas marcadas. Las ocho están hechas, en dos ramas apiladas con `bin/ci` en
-verde; **no están en GitHub ni desplegadas**: esperan su revisión.
+capturas marcadas. Las ocho salieron a producción el 13 a las 12:47:
 
 ```
-   fix/lo-que-vio-daniel-en-la-muestra   1.20.0   siete comentarios
-   feat/el-mapa-de-evaluaciones          1.20.1   /evaluaciones, sobre la anterior
+   12:24  respaldo de producción, abierto y contado    0 colegios · 2 personas · 15.954 planteles
+          → SIGA/respaldos/siga-prod-20261013-1224.dump
+   12:26  PR #69 (1.20.0, siete comentarios) y #70 (1.20.1, el mapa), CI de GitHub en verde
+   12:41  merge en orden; tags v1.20.0 y v1.20.1
+   12:45  la muestra en 1.20.1
+   12:47  producción en 1.20.1 — sin migraciones; `rls:verificar` en verde
 ```
 
 ```
@@ -106,12 +109,12 @@ octubre, a las 7:55 de la mañana, salió todo a producción.
 ### Lo que falta, y es tuyo
 
 ```
-   1 · PAGO MÓVIL Y TRANSFERENCIA  /siga/ajustes: titular, cédula, banco, teléfono, cuenta.
-                                   ⚠️ El 13 de octubre se rechazó: la CUENTA llevaba 19
-                                   dígitos y son 20. Como esa pantalla guarda todo o nada,
-                                   tampoco quedó el WhatsApp —lo puse yo con
-                                   `ajustes:poner`, el mismo número que mandaste—.
-                                   Hoy «Suscripción» ofrece Binance, PayPal y efectivo.
+   1 · PAGO MÓVIL Y TRANSFERENCIA  /siga/ajustes: faltan el TITULAR y la CÉDULA o RIF.
+                                   Al mediodía del 13 quedaron el banco, el teléfono y la
+                                   cuenta (20 dígitos, bien), pero el Pago Móvil pide banco +
+                                   teléfono + cédula, y la transferencia, cuenta + titular +
+                                   cédula: sin la cédula, ninguno de los dos se ofrece. Hoy
+                                   «Suscripción» ofrece Binance, PayPal y efectivo.
    2 · MIRAR                       https://sigaeducando.com y https://demo.sigaeducando.com
    3 · DECIDIR                     las POR CONFIRMAR de abajo
 ```
