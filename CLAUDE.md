@@ -1313,6 +1313,10 @@ efectivo, solo si hay WhatsApp.
   validan las dos tablas antes y se guardan en una transacción. Un WhatsApp
   guardado con una cuenta rechazada al lado es una pantalla que dice «error» y
   que a medias sí cambió.
+  ⚠️ Y por eso la pantalla dice **«No se guardó nada»**, arriba y al lado del
+  botón. El 13 de octubre de 2026 la cuenta de producción llevaba diecinueve
+  dígitos, se rechazó todo, y Daniel se fue convencido de que el WhatsApp había
+  quedado: «impiden guardar» no decía que lo bien escrito tampoco quedó.
 - ⚠️ **Sin fila de WhatsApp vale la variable `SIGA_WHATSAPP`**; con fila —aunque
   esté vacía— manda la base, y vacía quiere decir «apagado». Por eso un envío
   que no trae el campo NO crea la fila (`Setup.para_guardar` prepara solo lo que
@@ -1827,6 +1831,12 @@ enseña a la visitante a no confiar en los demás.
 
 ⚠️ **Las tres puertas van dos veces —arriba y en el cierre— y son UN parcial**
 (`inicio/_puertas`). Dos copias de tres botones se separan.
+
+⚠️ **Y el WhatsApp va además fijo en la esquina inferior derecha** (decisión
+38, de Daniel): `inicio/_whatsapp_flotante`, solo en la portada y solo si hay
+número. El glifo es la marca de WhatsApp, relleno —no sale de `IconosHelper`,
+que es una familia de trazo— y su verde vive en `--whatsapp`, dentro de
+`.portada`: es una tapa, no el sistema (la regla de color no lo alcanza).
 
 ⚠️ **El precio sigue fuera del bloque principal**, como lo dejó Daniel —*«se ve
 como antipático, como que si le estoy cobrando antes de sentarse»*—: lo dicen

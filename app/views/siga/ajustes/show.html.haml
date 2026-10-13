@@ -28,7 +28,12 @@
     = "Lo cambió por última vez #{@ultimo_cambio.actualizado_por.nombre_completo}, el #{l(@ultimo_cambio.updated_at.to_date, format: :long)}."
 
 = form_with model: @ajustes, url: siga_ajustes_path, method: :patch, class: "siga-form" do |f|
-  = render "shared/errors", objects: [ @ajustes, *@setup ]
+  -# ⚠️ «No se guardó NADA», y no «impiden guardar»: el 13 de octubre de 2026
+  -# Daniel cargó el WhatsApp y los datos de pago en producción, la cuenta tenía
+  -# diecinueve dígitos, y se fue convencido de que el WhatsApp había quedado.
+  - errores = [ @ajustes, *@setup ].any? { |registro| registro.errors.any? }
+  = render "shared/errors", objects: [ @ajustes, *@setup ],
+           titulo: "No se guardó nada: corrija lo marcado en rojo y vuelva a guardar."
 
   - whatsapp = fila.fetch("whatsapp")
   %fieldset.siga-fieldset{ disabled: !puede }
@@ -114,5 +119,9 @@
   - if puede
     .form-acciones
       = f.submit "Guardar", class: "btn btn-guardar"
+      -# Y lo repite al lado del botón, que es donde está quien acaba de tocarlo:
+      -# el recuadro de arriba queda a siete secciones de distancia.
+      - if errores
+        %p.siga-no-se-guardo No se guardó nada: hay un dato marcado en rojo.
   - else
     %p.siga-nota Los cambia el fundador.

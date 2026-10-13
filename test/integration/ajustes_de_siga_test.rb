@@ -75,7 +75,30 @@ class AjustesDeSigaTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert_match(/Número de cuenta son veinte dígitos/, response.body)
+    assert_select "input.campo-con-error[name='siga_setting[cuenta]']"
     assert_equal 0, SigaSetting.count
+  end
+
+  # ⚠️ El 13 de octubre de 2026 la cuenta de producción llevaba diecinueve
+  # dígitos, el formulario entero se rechazó, y Daniel se fue convencido de que
+  # el WhatsApp había quedado. Se dice que NO se guardó NADA, arriba y al lado
+  # del botón, que es donde está quien lo acaba de tocar.
+  test "si algo está mal escrito, dice que no se guardó nada, arriba y junto al botón" do
+    sign_in @fundador
+
+    patch siga_ajustes_path, params: { siga_setting: datos.merge(cuenta: "0134000000000000999"),
+                                       setup: datos_sueltos }
+
+    assert_select ".alert-danger h5", text: /No se guardó nada/
+    assert_select ".form-acciones .siga-no-se-guardo", text: /No se guardó nada/
+    assert_nil Setup.fila("whatsapp"), "ni el WhatsApp, que venía bien escrito"
+  end
+
+  test "y sin errores, junto al botón no dice nada" do
+    sign_in @fundador
+    get siga_ajustes_path
+
+    assert_select ".siga-no-se-guardo", 0
   end
 
   # ⚠️ O todo o nada, en las DOS direcciones. Son dos tablas en un formulario:

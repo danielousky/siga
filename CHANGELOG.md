@@ -23,6 +23,14 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.19.1 — 13 de octubre de 2026
+
+- **El WhatsApp de SIGA, fijo en la esquina de la portada.** Además de los
+  botones de arriba y del cierre, un botón verde abajo a la derecha, que no se
+  pierde al bajar.
+
+---
+
 ## 1.19.0 — 13 de octubre de 2026
 
 - **La suscripción también se paga por PayPal.** «Suscripción» muestra el
