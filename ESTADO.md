@@ -26,7 +26,8 @@ spec está **congelado**: `docs/specs/del-registro-al-cobro.md`.
                                                     representante —y siete «otras miradas»—
    2 · PROBAR     en local, la portada, el registro y los correos nuevos
                   ⚠️ antes, resembrar: bin/rails db:seed:replant  (se lleva tu colegio de
-                  prueba y el catálogo de planteles; el catálogo vuelve con su tarea)
+                  prueba y el catálogo de planteles; el catálogo vuelve con
+                  bin/rails catalogo:planteles)
    3 · DECIDIR    las decisiones POR CONFIRMAR del spec, abajo
    4 · SUBIR      las siete ramas, en orden —cada una sale de la anterior—:
                   feat/del-registro-al-cobro → feat/pagar-sin-consola →
