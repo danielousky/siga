@@ -979,8 +979,10 @@ y otra vez el 25):
   septiembre de 2026. La base quedó vacía —898 personas, 4 colegios, 9.512 notas— con
   respaldo verificado antes. El catálogo de planteles se resembró aparte: `demo:limpiar`
   se lo lleva y no es de ningún colegio.
-  ⚠️ Lo que queda de esa decisión: **ya no hay datos para MOSTRAR SIGA**. Una demo a un
-  colegio nuevo se monta con `prueba:campo`, que nace vacío a propósito.
+  ⚠️ Lo que quedó de esa decisión —que no había datos para MOSTRAR SIGA— se resolvió el
+  12 de octubre de 2026 con **el colegio de muestra**, en su propia instancia
+  (`demo.sigaeducando.com`, § 13). `prueba:campo` sigue siendo otra cosa: un colegio
+  VACÍO para que alguien pruebe armar el suyo.
 - **Colisión de nombres:** `Grade` es "grado escolar", pero `ActivityLog::LABELS` traduce
   `grade_created` como "Calificación registrada". Dos conceptos, un nombre.
 - **El worker hay que levantarlo.** El `Procfile` declara `web` y `worker`; si el segundo no

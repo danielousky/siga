@@ -725,6 +725,29 @@ TODO; documentos, .md's, vistas, TODO.»*
 - **Los tres correos dicen primero lo que SIGUE funcionando.** Quien lee
   «venció» sin más cree que perdió el sistema, y llama.
 
+**Lo que se unificó dentro del repo** (12 de octubre, rama `docs/unificar-el-cobro`):
+
+```
+   CLAUDE.md          el precio final, las cuentas de los seeds, § 13 la muestra,
+                      § 14 la puerta, § 15 la escalera, y que ya hay con qué mostrar SIGA
+   ESTADO.md          las cinco tandas, cómo revisar cada una
+   CHANGELOG.md       1.14.0 a 1.18.0, con el precio final
+   tareas-de-op…      la muestra, la escalera y SIGA_MUESTRA_URL
+   el manual          la portada y el registro nuevos (dos capturas y su texto) y
+                      «al guardar notas dice que se activan con la suscripción»
+   DESPLIEGUE.md      un aviso arriba: describe el despliegue de agosto
+```
+
+**Lo que falta, y es de Daniel:**
+
+```
+   el manual          tres apartados que NO existen: «Suscripción» (pagar),
+                      la cobranza a las familias y el colegio de muestra
+   FUERA del repo     references/Proyecto SIGA.pdf · el CONTRATO · SIGA - Aliados.pdf ·
+                      SIGA - Qué hace hoy.pdf · los dos videos · el artifact del manual
+   Linear             las tarjetas del cobro (es compartido entre seis productos)
+```
+
 **Lo que la tanda 5 dejó anotado, sin construir:**
 
 ```
