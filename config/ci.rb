@@ -62,8 +62,22 @@ CI.run do
   #
   # Lo peor era el síntoma: `bin/ci` quedaba en verde y el que reventaba era el
   # `bin/rails test` de después. Purgando acá, el orden deja de importar.
-  step "Seeds: siguen cargando de punta a punta",
-       "env RAILS_ENV=test bin/rails db:seed:replant db:test:prepare"
+  #
+  # ⚠️ Se siembra COMO LA MUESTRA, y no con `db:seed:replant`: después de vaciar
+  # la base corre `muestra:restablecer`, que es lo que la instancia de muestra
+  # hace sola cada noche —borrar y sembrar dentro de UNA transacción, con la
+  # clave pública y el equipo de SIGA con otra—. Es el mismo trabajo de siempre
+  # y una comprobación más: una siembra que lee un archivo recién adjuntado, o
+  # que confirma por su cuenta a mitad de camino, pasa suelta y rompe ahí. Y eso
+  # se sabría una madrugada, con la muestra sin restablecer.
+  #
+  # ⚠️ `SIEMBRA_REDUCIDA=1`: siete alumnos por sección en vez de veinte. El
+  # camino es el mismo —las mismas secciones, los mismos pasos, el mismo
+  # código—; lo que cambia es cuánto tarda, que en GitHub son minutos que se
+  # pagan. Ver `db/seeds/04_estructura.rb`.
+  step "Seeds: cargan de punta a punta, como los restablece la muestra cada noche",
+       "env RAILS_ENV=test SIGA_MUESTRA=1 SIEMBRA_REDUCIDA=1 " \
+       "bin/rails db:truncate_all muestra:restablecer db:test:prepare"
 
   # La suite no toca HTTP real: no atrapa una vista con un error de Haml, un
   # `pagy_nav` sin `@pagy`, ni una traducción faltante. `bin/smoke` recorre la app

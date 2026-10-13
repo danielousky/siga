@@ -35,8 +35,18 @@
         = lapso.name
     = link_to "Año completo", hijo_representante_path(@hijo[:student], lapso: "anual"), class: "filter-pill #{'active' if @anual}"
 
+  -# ⚠️ En Educación Inicial no hay calificaciones: hay VALORACIONES, que son
+  -# texto (`MOR-218`). El título lo dice, o una madre lee «Calificaciones» sobre
+  -# una lista sin un solo número.
+  - describe = @inscripcion.section.grade.califica_con_texto?
+  - que_son = describe ? "Valoraciones" : "Calificaciones"
   .card-academic
-    = render "shared/cabecera", titulo: @anual ? "Calificaciones del año" : "Calificaciones de #{@lapso&.name&.downcase}", nivel: 2
+    = render "shared/cabecera", titulo: @anual ? "#{que_son} del año" : "#{que_son} de #{@lapso&.name&.downcase}", nivel: 2
+
+    - if describe && @anual
+      %p.nota-ayuda
+        En Educación Inicial no hay una calificación del año: lo que la maestra
+        observa está escrito en cada lapso.
 
     %ul.portal-materias
       - @materias.each do |fila|
@@ -65,7 +75,7 @@
                   = fila[:nivel]
                 - else
                   = valor
-            - else
+            - elsif fila[:valoracion].blank? && !(describe && @anual)
               -# NUNCA un cero: el profesor todavía no corrigió. Confundirlos hace
                 que una familia crea que su hijo está reprobando.
               %span.portal-pendiente Pendiente
@@ -73,6 +83,10 @@
           -# ⚠️ Qué se trabajó en el lapso (MOR-136). Es para lo único que
             existen las competencias, y lo que `MOR-216` pedía: que los padres
             entiendan qué se evaluó, no solo con qué nota salió.
+          -# La valoración de Inicial: lo que la maestra escribió de esta área.
+          - if fila[:valoracion].present?
+            %p.portal-valoracion= fila[:valoracion]
+
           - if fila[:competencias].present?
             %ul.portal-competencias
               -# ⚠️ Claves de TEXTO, no símbolos: la pantalla y el boletín emitido
@@ -161,7 +175,7 @@
     - if @asistencia[:sin_justificar].positive?
       .alert.alert-warning
         = contar(@asistencia[:sin_justificar], "falta", "faltas")
-        sin justificar. Si ya entregaste el justificativo, avísale a la
+        sin justificar. Si ya entregó el justificativo, avísele a la
         secretaría del colegio.
 
     - if @asistencia[:ultimas].any?
@@ -184,8 +198,14 @@
       = render "shared/cabecera", titulo: "Boletines", nivel: 2
       %ul.portal-boletines
         - @boletines.each do |boletin|
+          - su_anio = boletin.enrollment.section.academic_period
           %li
-            %span= boletin.titulo
+            %span
+              = boletin.titulo
+              -# El año va escrito solo si NO es el que corre: «3er Lapso» a
+              -# secas es el de ahora, y el del año pasado tiene que decirlo.
+              - if su_anio.id != @inscripcion.section.academic_period_id
+                %span.dato-secundario= "· #{su_anio.name}"
             %span.portal-boletin-codigo= boletin.code
             -# ⚠️ Descargarlo es el punto: hasta ahora la familia veía que el
             -# boletín existía y tenía que pedirlo por la oficina.

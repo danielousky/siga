@@ -18,7 +18,11 @@ def contar_todo
       lapsos_calculados: MomentGrade.unscoped.count,
       definitivas: FinalGradeBook.unscoped.count,
       competencias: Competency.unscoped.count,
-      asistencia: Attendance.unscoped.count }
+      asistencia: Attendance.unscoped.count,
+      boletines: ReportCard.unscoped.count, cierres: SectionClosure.unscoped.count,
+      informes: Informe.unscoped.count, cuotas: Charge.unscoped.count,
+      reportes: PaymentReport.unscoped.count, mensajes: Mensaje.unscoped.count,
+      constancias: Constancia.unscoped.count, bitacora: ActivityLog.unscoped.count }
   end
 end
 
@@ -37,7 +41,11 @@ printf("   %-22s %6d      %-22s %6d\n", "Alumnos",        n[:alumnos],       "Re
 printf("   %-22s %6d      %-22s %6d\n", "Inscripciones",  n[:inscripciones], "Asistencia",     n[:asistencia])
 printf("   %-22s %6d      %-22s %6d\n", "Evaluaciones",   n[:evaluaciones],  "Notas",          n[:notas])
 printf("   %-22s %6d      %-22s %6d\n", "Notas de lapso", n[:lapsos_calculados], "Definitivas", n[:definitivas])
-printf("   %-22s %6d\n", "Competencias", n[:competencias])
+printf("   %-22s %6d      %-22s %6d\n", "Competencias",   n[:competencias],  "Informes",       n[:informes])
+printf("   %-22s %6d      %-22s %6d\n", "Boletines",      n[:boletines],     "Lapsos cerrados", n[:cierres])
+printf("   %-22s %6d      %-22s %6d\n", "Cuotas",         n[:cuotas],        "Reportes de pago", n[:reportes])
+printf("   %-22s %6d      %-22s %6d\n", "Mensajes",       n[:mensajes],      "Constancias",    n[:constancias])
+printf("   %-22s %6d\n", "Bitácora", n[:bitacora])
 
 puts ""
 puts "   U.E. SIMÓN BOLÍVAR — los tres niveles y la Media Técnica"
@@ -48,7 +56,7 @@ puts "   U.E. SIMÓN BOLÍVAR — los tres niveles y la Media Técnica"
 # el resumen sumaba 666 alumnos de un colegio de 360. La primera vez que se ve,
 # parece que la siembra duplicó todo.
 Current.school = SEMILLA[:bolivar]
-en_curso = SEMILLA[:anio_bolivar]
+en_curso = SEMILLA[:en_curso]
 
 SEMILLA[:bolivar].grades.en_orden.group_by { |g| GradoOficial.se_elige_como(g.level) }.each do |nivel, grados|
   alumnos = Enrollment.joins(section: :grade)
@@ -61,13 +69,16 @@ puts "     #{'TOTAL'.ljust(14)} #{Enrollment.joins(:section).where(sections: { a
 puts ""
 puts "🔑 Credenciales — contraseña universal: #{CLAVE_DE_PRUEBA}"
 puts ""
-puts "   ⚠️  Estas cuatro las están usando los brokers. NO se cambian."
-puts "   director.bolivar@siga.edu     director · el colegio completo"
-puts "   prof.garcia@bolivar.edu       Matemática en PRIMARIA y en MEDIA"
+puts "   ⚠️  Las tres puertas de la muestra (`Muestra::CUENTAS`):"
+puts "   #{CORREO_DEL_DIRECTOR.ljust(32)} director · el colegio completo"
+puts "   #{CORREO_DEL_PROFESOR.ljust(32)} Matemática en PRIMARIA y en MEDIA"
+puts "   #{CORREO_DE_LA_REPRESENTANTE.ljust(32)} representante · tres hijos, uno por nivel"
+puts ""
 puts "   maria.perez@familia.test      representante con hijos en LOS DOS colegios"
 puts "   alvaro.lopez001@bolivar.edu   alumno de 1er Año A"
 puts ""
-puts "   #{CORREO_DESARROLLADOR.ljust(29)} equipo de SIGA · /siga (sin colegio)"
+puts "   #{CORREO_DESARROLLADOR.ljust(29)} equipo de SIGA · /siga (sin colegio)" \
+     "#{' · en la muestra, con otra clave' if Muestra.activa?}"
 puts "   coord.bolivar@siga.edu        coordinación"
 puts "   secretaria.bolivar@siga.edu   secretaría"
 puts "   finanzas.bolivar@siga.edu     finanzas"
@@ -77,6 +88,10 @@ puts "   carmen.lopez@familia.test     una hija"
 puts "   jose.ramos@familia.test       dos hijos, grados distintos"
 puts "   Yolanda Guerra (Bello)        SIN correo: existe, sale en el listado y no entra"
 puts ""
+puts "   Para probar /verificar sin entrar:"
+puts "   #{SEMILLA[:constancias]&.first&.code || '—'}   una constancia de estudios"
+puts "   #{Current.sin_aislamiento { ReportCard.unscoped.liberados.order(:id).first&.code } || '—'}   un boletín"
+puts ""
 puts "   Docentes de primaria, para ver el plan por COMPETENCIAS:"
-puts "   maestra.torres@bolivar.edu · maestra.silva@bolivar.edu · prof.garcia@bolivar.edu"
+puts "   maestra.torres@bolivar.edu · maestra.silva@bolivar.edu · #{CORREO_DEL_PROFESOR}"
 puts ""

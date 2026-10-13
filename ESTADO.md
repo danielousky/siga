@@ -13,7 +13,7 @@ spec está **congelado**: `docs/specs/del-registro-al-cobro.md`, en la rama
    todo colegio nace en gratis; solo cargar es libre    ✔ tanda 1, en local
    «Suscripción» → reporte → validación en /siga        ✔ tanda 2, en local
    el WhatsApp y los datos para pagar, en /siga/ajustes ✔ tanda 2, en local
-   el colegio de muestra, en su instancia aparte        falta (tanda 5)
+   el colegio de muestra, en su instancia aparte        ✔ tanda 5, EN LÍNEA: demo.sigaeducando.com
    la puerta: registro + WhatsApp + colegio de muestra  falta (tanda 4) — hoy sigue
                                                         el formulario de demostración
    un trabajo diario: 5 días antes · gracia · solo      falta (tanda 3) — hoy la escalera
@@ -27,6 +27,90 @@ del plan gratis ni de la puerta de entrada a partir de ellos: manda el spec. Se
 unifican todos al terminar (§ 9 del spec). Daniel: *«No quiero que en el futuro
 otra sesión mire lo que tú miraste y se confunda o me proponga cosas basada en
 información obsoleta.»*
+
+### La tanda 5, «la muestra» — en línea desde el 12 de octubre
+
+Rama `feat/la-muestra`, encima de la del IVA. Versión **1.16.0**. Daniel, antes
+de irse: *«Avanza con todo lo que puedas. Al final necesito abrir el dominio
+demo.sigaeducando.com y ver el demo con las credenciales de un director
+(pongámosles director.bolivar@mail.com y contraseña 123123). También con las de
+un profe y un representante. Siembra suficiente data para llevar al límite el
+sistema demo y contemplar todos los posibles escenarios.»*
+
+```
+   https://demo.sigaeducando.com
+   ┌───────────────────────────────────────┐
+   │ Vea SIGA funcionando, sin registrarse │    un clic por puerta, sin clave
+   │ [director] [profesor] [representante] │    director.bolivar@mail.com
+   │ Otras miradas: coordinación, alumno…  │    profesor.bolivar@mail.com
+   └───────────────────────────────────────┘    representante.bolivar@mail.com · 123123
+```
+
+**⚠️ Es lo ÚNICO de todo este trabajo que salió del portátil**, y salió a una
+app nueva: `siga-demo`, con su base `siga-demo-db`. Producción (`siga`) no se
+tocó —sigue en la 1.13.0— y nada fue a GitHub. Cómo se opera está en
+`docs/tareas-de-operacion.md § La muestra`.
+
+```
+   EL COLEGIO DE LA MUESTRA, hoy 12 de octubre
+   2024-2025   importado      las definitivas que traía del sistema viejo
+   2025-2026   cerrado        24.057 notas · 127 reparaciones · 48 lapsos cerrados · 909 boletines
+   2026-2027   EN CURSO       389 alumnos · corre el 1er lapso · asistencia hasta ayer
+               339 pasaron de grado · 4 repiten · 14 egresaron · 46 son nuevos
+   cobranza    12 pagos esperando revisión · 6 rechazados · 48 alumnos en mora
+   a SIGA      activa, 136,15 $ al mes, con su historial · Bello, vencido
+```
+
+⚠️ **El colegio tiene la fecha de HOY, y avanza solo.** Los años de la siembra
+se cuentan desde el día en que corre, y la muestra se resiembra cada noche: en
+enero tendrá el primer lapso cerrado; en agosto, la promoción esperando.
+
+**Para revisar** (todo desde `https://demo.sigaeducando.com`):
+
+```
+   1 · director        Panel · «Carga de notas» (quién se atrasó) · Finanzas ▸ Pagos reportados
+                       · Finanzas ▸ Suscripción · el selector de año en 2025-2026: Boletines,
+                       Certificados, Reparaciones
+   2 · profesor        sus ocho secciones de Matemática: «1er Año B» sin calificar,
+                       «6to Grado A» con el plan al 70 %, «5to Grado B» sin plan · la lista
+                       de hoy de «1er Año A», sin pasar
+   3 · representante   tres hijos, uno por nivel: Camila (Inicial, valoraciones), Diego
+                       (Primaria, competencias, octubre «en revisión») y Valentina (Media);
+                       los boletines del año pasado, descargables
+   4 · «Otras miradas» María Pérez (dos colegios; en mora en uno: «primero póngase al día»)
+                       · el colegio que dejó de pagar · finanzas · un alumno
+```
+
+**⚠️ Decidí cinco cosas sin ti; están en el spec como 30 a 34, POR CONFIRMAR:**
+los correos del profesor y de la representante (el del director es el tuyo),
+las «otras miradas», que el colegio tenga la fecha de hoy, que a `/siga` de la
+muestra no entre nadie, y dos arreglos del portal de la familia.
+
+**⚠️ Lo que solo tú puedes poner:** el WhatsApp de SIGA en la muestra
+(`SIGA_WHATSAPP`): no conozco el número, y sin él no se dibuja el botón.
+
+**⚠️ Tu base de desarrollo quedó con los datos de antes.** No la toqué: tiene
+tu colegio de prueba (U E N LUIS HURTADO HIGUERA) y el catálogo de planteles.
+Con la siembra nueva, `bin/smoke` entra con `director.bolivar@mail.com`, así que
+`bin/ci` no pasa el humo hasta resembrarla:
+
+```bash
+bin/rails db:seed:replant          # ⚠️ se lleva tu colegio de prueba y el catálogo
+```
+
+Yo corrí `bin/ci` contra una base aparte (`SIGA_DB_NAME=siga_ci bin/ci`).
+
+**Los tres huecos que encontró la siembra, arreglados en esta rama:**
+
+```
+   en Inicial, la familia leía «Pendiente»      ahora lee lo que escribió la maestra
+   los boletines del año pasado no se listaban  ahora sí, con su año al lado
+   «si ya entregaste… avísale»                  «si ya entregó… avísele»
+```
+
+**Y los que quedaron anotados, sin tocar** (§ 9 del spec): Inicial no cierra
+lapsos ni tiene boletín por lapso; el boletín anual no se libera a la familia;
+el panel cuenta secciones y alumnos de todos los años.
 
 ### El precio lleva el IVA adentro — hecho en local, el mismo 12 de octubre
 
@@ -139,6 +223,9 @@ activarlo sin pasar por el reporte y la validación.
                               y la tanda 1
                               feat/pagar-sin-consola, local: la tanda 2, encima
                               feat/el-precio-con-el-iva-adentro, local: encima de esa
+                              feat/la-muestra, local: la tanda 5, encima — y
+                              DESPLEGADA en la app `siga-demo` (no en producción)
+   demo.sigaeducando.com      la muestra: app `siga-demo`, remoto `dokku-demo`
 ```
 
 ⚠️ **De la 1.11.0 a la 1.13.0 están cerradas**: mezcladas y desplegadas el 5 de

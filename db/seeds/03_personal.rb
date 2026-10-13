@@ -9,7 +9,9 @@ def del_equipo!(email:, nombre:, apellido:, rol:)
     u.first_name = nombre; u.last_name = apellido
     u.document = documento_de_prueba(email); u.document_type = :cedula_v
     u.sex = sexo_para(nombre)
-    u.password = u.password_confirmation = CLAVE_DE_PRUEBA
+    # ⚠️ La del EQUIPO, que en la muestra no es la pública: `/siga` guarda las
+    # cuentas a donde se paga. Ver `SeedGuard#clave_del_equipo`.
+    u.encrypted_password = CLAVE_DEL_EQUIPO_CIFRADA
   end
   SigaStaff.find_or_create_by!(user: usuario) { |s| s.role = rol }
   usuario
@@ -28,7 +30,7 @@ paso "👤 Dirección"
 
 def administrador!(email:, nombre:, apellido:, colegio:, rol:)
   usuario = User.find_or_create_by!(email: email) do |u|
-    u.password = u.password_confirmation = CLAVE_DE_PRUEBA
+    u.encrypted_password = CLAVE_CIFRADA
     u.first_name = nombre; u.last_name = apellido
     u.document = documento_de_prueba(email); u.document_type = :cedula_v
     u.sex = sexo_para(nombre)
@@ -39,11 +41,12 @@ end
 bolivar = SEMILLA[:bolivar]
 bello   = SEMILLA[:bello]
 
-# ⚠️ `director.bolivar@siga.edu` NO se toca: hay brokers usando esa cuenta en
-# producción ahora mismo. Lo mismo `prof.garcia@bolivar.edu`,
-# `maria.perez@familia.test` y `alvaro.lopez001@bolivar.edu`.
+# ⚠️ El correo del director es el de la MUESTRA (`Muestra::CUENTAS`): lo fijó
+# Daniel el 12 de octubre de 2026 —«pongámosles director.bolivar@mail.com»—.
+# Hasta ese día fue `director.bolivar@siga.edu`, de cuando la demo vivía en
+# producción y la usaban los brokers; esa base se vació el 17 de septiembre.
 [
-  { email: "director.bolivar@siga.edu",   nombre: "Ramón",   apellido: "Díaz",      colegio: bolivar, rol: :director },
+  { email: CORREO_DEL_DIRECTOR,           nombre: "Ramón",   apellido: "Díaz",      colegio: bolivar, rol: :director },
   { email: "coord.bolivar@siga.edu",      nombre: "Carmen",  apellido: "Rodríguez", colegio: bolivar, rol: :coordinador },
   { email: "secretaria.bolivar@siga.edu", nombre: "Yaneth",  apellido: "Bastidas",  colegio: bolivar, rol: :secretaria },
   { email: "finanzas.bolivar@siga.edu",   nombre: "Régulo",  apellido: "Marcano",   colegio: bolivar, rol: :finanzas },
@@ -69,6 +72,20 @@ paso "👨‍🏫 Docentes"
 
 # `areas` son los códigos que dicta; la asignación a secciones se hace en el
 # paso siguiente, cuando las secciones existen.
+#
+# ⚠️ `grados` acota un área a ciertos grados, y existe por MATEMÁTICA. La
+# dictaba un solo profesor en las dieciséis secciones del colegio, de 1er Grado
+# a 6to Año: ochenta horas de clase a la semana. En un colegio de verdad la
+# maestra de grado enseña a sumar, un profesor toma la segunda etapa y los
+# primeros años, y otro los últimos:
+#
+#     1ro a 4to Grado    la maestra de la sección
+#     5to Grado a 3er Año    García  ← el profesor de la muestra: primaria Y media
+#     4to a 6to Año      Salazar
+MATEMATICA_DE_LA_MAESTRA = { "MAT" => [ "1er Grado", "2do Grado", "3er Grado", "4to Grado" ] }.freeze
+MATEMATICA_DE_GARCIA     = { "MAT" => [ "5to Grado", "6to Grado", "1er Año", "2do Año", "3er Año" ] }.freeze
+MATEMATICA_DE_SALAZAR    = { "MAT" => [ "4to Año", "5to Año", "6to Año" ] }.freeze
+
 DOCENTES_DE_BOLIVAR = [
   # Educación Inicial — polivalentes, cada una con su sección
   { correo: "maestra.colmenares", nombre: "Yubisay",  apellido: "Colmenares", areas: %w[FPS RCA CYR] },
@@ -76,12 +93,12 @@ DOCENTES_DE_BOLIVAR = [
   { correo: "maestra.villalba",   nombre: "Rosaura",  apellido: "Villalba",   areas: %w[FPS RCA CYR] },
 
   # Primaria — guías, cada una con el tronco de su sección
-  { correo: "maestra.torres",     nombre: "María",    apellido: "Torres",     areas: %w[LEN CSO] },
-  { correo: "maestra.silva",      nombre: "Zulay",    apellido: "Silva",      areas: %w[LEN CSO] },
-  { correo: "maestra.quintero",   nombre: "Marisela", apellido: "Quintero",   areas: %w[LEN CSO] },
-  { correo: "maestra.ochoa",      nombre: "Belkis",   apellido: "Ochoa",      areas: %w[CNA CSO] },
-  { correo: "maestra.zambrano",   nombre: "Nayibe",   apellido: "Zambrano",   areas: %w[CNA CSO] },
-  { correo: "maestro.bermudez",   nombre: "Ismael",   apellido: "Bermúdez",   areas: %w[LEN CNA] },
+  { correo: "maestra.torres",     nombre: "María",    apellido: "Torres",     areas: %w[LEN CSO MAT], grados: MATEMATICA_DE_LA_MAESTRA },
+  { correo: "maestra.silva",      nombre: "Zulay",    apellido: "Silva",      areas: %w[LEN CSO MAT], grados: MATEMATICA_DE_LA_MAESTRA },
+  { correo: "maestra.quintero",   nombre: "Marisela", apellido: "Quintero",   areas: %w[LEN CSO MAT], grados: MATEMATICA_DE_LA_MAESTRA },
+  { correo: "maestra.ochoa",      nombre: "Belkis",   apellido: "Ochoa",      areas: %w[CNA CSO MAT], grados: MATEMATICA_DE_LA_MAESTRA },
+  { correo: "maestra.zambrano",   nombre: "Nayibe",   apellido: "Zambrano",   areas: %w[CNA CSO MAT], grados: MATEMATICA_DE_LA_MAESTRA },
+  { correo: "maestro.bermudez",   nombre: "Ismael",   apellido: "Bermúdez",   areas: %w[LEN CNA MAT], grados: MATEMATICA_DE_LA_MAESTRA },
 
   # Especialistas que rotan por toda la primaria
   { correo: "prof.castillo",      nombre: "Patricia", apellido: "Castillo",   areas: %w[ING] },
@@ -89,8 +106,12 @@ DOCENTES_DE_BOLIVAR = [
   { correo: "prof.moreno",        nombre: "Sofía",    apellido: "Moreno",     areas: %w[EST ART GCR] },
   { correo: "prof.bastidas",      nombre: "Jhonny",   apellido: "Bastidas",   areas: %w[COM EPT] },
 
-  # ⚠️ García cubre primaria Y bachillerato. Es la cuenta que usan los brokers.
-  { correo: "prof.garcia",        nombre: "Carlos",   apellido: "García",     areas: %w[MAT] },
+  # ⚠️ García cubre primaria Y bachillerato, y es el profesor de la MUESTRA: su
+  # correo sale de `Muestra::CUENTAS` y no del dominio del colegio. La clave
+  # `prof.garcia` se queda: es como lo nombran los demás pasos de la siembra.
+  { correo: "prof.garcia",        nombre: "Carlos",   apellido: "García",     areas: %w[MAT],
+    email: CORREO_DEL_PROFESOR, grados: MATEMATICA_DE_GARCIA },
+  { correo: "prof.salazar",       nombre: "Mariela",  apellido: "Salazar",    areas: %w[MAT], grados: MATEMATICA_DE_SALAZAR },
 
   # Educación Media
   { correo: "prof.herrera",       nombre: "José",     apellido: "Herrera",    areas: %w[GHC FSN] },
@@ -120,10 +141,10 @@ def sembrar_docentes!(lista, colegio:, dominio:)
   Current.school = colegio
 
   lista.index_by { |d| d[:correo] }.transform_values do |d|
-    correo = "#{d[:correo]}@#{dominio}"
+    correo = d[:email] || "#{d[:correo]}@#{dominio}"
     docente = profesor!(email: correo, nombre: d[:nombre], apellido: d[:apellido],
                         documento: documento_de_prueba(correo), colegio: colegio)
-    [ docente, d[:areas] ]
+    [ docente, d[:areas], d[:grados] ]
   end
 end
 
@@ -131,4 +152,4 @@ SEMILLA[:docentes_bolivar] = sembrar_docentes!(DOCENTES_DE_BOLIVAR, colegio: bol
 SEMILLA[:docentes_bello]   = sembrar_docentes!(DOCENTES_DE_BELLO,   colegio: bello,   dominio: "bello.edu")
 
 puts "   ✓ #{DOCENTES_DE_BOLIVAR.size} docentes en Bolívar · #{DOCENTES_DE_BELLO.size} en Bello"
-puts "     prof.garcia@bolivar.edu dicta Matemática en primaria Y en media"
+puts "     #{CORREO_DEL_PROFESOR} dicta Matemática de 5to Grado a 3er Año: primaria Y media"

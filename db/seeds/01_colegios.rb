@@ -55,31 +55,43 @@ puts "   ✓ #{bolivar.name} · #{bello.name}"
 
 # ── Años escolares ───────────────────────────────────────────────────────────
 #
-# `en_operacion` decide el año por defecto, y es el que TIENE ALUMNOS. En
+# Se cuentan desde HOY (`ANIO_EN_CURSO`, en `utiles`): el que corre, el que
+# pasó y el de antes. Bolívar tiene los tres porque es un colegio con historia;
+# Bello, solo el que corre.
+#
+#     HISTÓRICO   solo definitivas, importadas   → «Todos los años» significa algo
+#     ANTERIOR    completo y cerrado en SIGA     → boletines, certificados, promoción
+#     EN CURSO    hasta hoy                      → donde se trabaja
+#     SIGUIENTE   SOLO en vacaciones             → la estructura copiada, sin alumnos
+#
+# ⚠️ `en_operacion` decide el año por defecto, y es el que TIENE ALUMNOS. En
 # agosto, la fila más nueva es el año que empieza en septiembre y no tiene ni
 # una sección: arrancar ahí es abrir el panel de un colegio lleno y leer
-# «0 alumnos».
+# «0 alumnos». Por eso el SIGUIENTE existe solo cuando el que corre ya terminó:
+# es el estado real de un colegio en vacaciones, y es lo que deja «Promover
+# alumnos» con trabajo por hacer (MOR-169).
 #
-# Bolívar tiene además el año SIGUIENTE ya creado y con su estructura copiada
-# —secciones y quién dicta qué, sin alumnos— porque es el estado real de un
-# colegio en septiembre, y es lo que hace visible «Promover alumnos» (MOR-169).
-def anio!(colegio, nombre, desde, hasta)
-  AcademicPeriod.find_or_create_by!(name: nombre, school: colegio) do |p|
-    p.start_date = desde
-    p.end_date   = hasta
+# Las fechas son las que propone la app (`AcademicPeriod.para_el_anio`): del 15
+# de septiembre al 31 de julio.
+def anio!(colegio, inicio)
+  propuesto = AcademicPeriod.para_el_anio(inicio, school: colegio)
+
+  AcademicPeriod.find_or_create_by!(name: propuesto.name, school: colegio) do |p|
+    p.start_date = propuesto.start_date
+    p.end_date   = propuesto.end_date
   end
 end
 
-SEMILLA[:anio_bolivar]     = anio!(bolivar, "2025-2026", Date.new(2025, 9, 15), Date.new(2026, 7, 15))
-SEMILLA[:anio_bolivar_2027] = anio!(bolivar, "2026-2027", Date.new(2026, 9, 15), Date.new(2027, 7, 15))
-SEMILLA[:anio_bello]       = anio!(bello,   "2025-2026", Date.new(2025, 9, 15), Date.new(2026, 7, 15))
+SEMILLA[:historico] = anio!(bolivar, ANIO_EN_CURSO - 2)
+SEMILLA[:anterior]  = anio!(bolivar, ANIO_EN_CURSO - 1)
+SEMILLA[:en_curso]  = anio!(bolivar, ANIO_EN_CURSO)
+SEMILLA[:siguiente] = anio!(bolivar, ANIO_EN_CURSO + 1) if SEMILLA[:en_curso].end_date < HOY
+SEMILLA[:bello_en_curso] = anio!(bello, ANIO_EN_CURSO)
 
-# Un año CERRADO en Bolívar, con su historia: es lo que hace que «Todos los
-# años» signifique algo y que una constancia de egresado tenga de dónde salir.
-SEMILLA[:anio_bolivar_2025] = anio!(bolivar, "2024-2025", Date.new(2024, 9, 16), Date.new(2025, 7, 16))
-
-puts "   ✓ 2024-2025 (cerrado) · 2025-2026 (en curso) · 2026-2027 (por empezar) en Bolívar"
-puts "     2025-2026 en Bello"
+puts "   ✓ Bolívar: #{SEMILLA[:historico].name} (importado) · #{SEMILLA[:anterior].name} (cerrado) · " \
+     "#{SEMILLA[:en_curso].name} (#{SEMILLA[:en_curso].end_date < HOY ? 'terminado' : 'en curso'})" \
+     "#{" · #{SEMILLA[:siguiente].name} (por empezar)" if SEMILLA[:siguiente]}"
+puts "     Bello:   #{SEMILLA[:bello_en_curso].name}"
 
 # ── Lapsos ───────────────────────────────────────────────────────────────────
 #
@@ -112,8 +124,7 @@ def fechas_de_los_lapsos(periodo)
     [ vuelta_de_abril,    periodo.end_date ] ]
 end
 
-[ SEMILLA[:anio_bolivar_2025], SEMILLA[:anio_bolivar],
-  SEMILLA[:anio_bolivar_2027], SEMILLA[:anio_bello] ].each do |periodo|
+SEMILLA.values_at(:historico, :anterior, :en_curso, :siguiente, :bello_en_curso).compact.each do |periodo|
   fechas = fechas_de_los_lapsos(periodo)
 
   AcademicPeriod::LAPSOS.each_with_index do |nombre, i|
@@ -128,4 +139,4 @@ end
     lapso.update!(starts_on: desde, ends_on: hasta)
   end
 end
-puts "   ✓ #{AcademicPeriod::LAPSOS.join(' · ')} en los cuatro años escolares"
+puts "   ✓ #{AcademicPeriod::LAPSOS.join(' · ')} en cada año escolar"

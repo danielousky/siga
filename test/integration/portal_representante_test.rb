@@ -57,6 +57,115 @@ class PortalRepresentanteTest < ActionDispatch::IntegrationTest
     assert_match(/#{Regexp.escape(@a.alumno.user.apellidos)}/, response.body)
   end
 
+  # ── Educación Inicial: lo que la maestra escribió ─────────────────────────
+
+  # ⚠️ Inicial no pone número: describe (`MOR-218`). La valoración vive en la
+  # misma fila que una nota, y esta pantalla solo le preguntaba por el número:
+  # la madre de un niño de cuatro años leía «Pendiente» en un área que la
+  # maestra ya había escrito. Lo encontró la siembra de la muestra.
+  test "en Inicial la familia lee la valoración, no «Pendiente»" do
+    esc, madre = una_familia_de(:preescolar)
+    con_el_colegio(esc.colegio) do
+      MomentGrade.create!(enrollment: esc.inscripcion, subject: esc.materia, evaluation_moment: esc.lapso(1),
+                          descripcion: "Cuenta hasta diez señalando cada objeto.")
+    end
+
+    sign_in madre
+    get hijo_representante_path(esc.alumno)
+
+    assert_response :success
+    assert_select ".portal-valoracion", text: "Cuenta hasta diez señalando cada objeto."
+    assert_select ".portal-pendiente", count: 0
+    assert_select "h2", text: /Valoraciones de lapso 1/
+  end
+
+  test "y si la maestra todavía no la escribió, dice «Pendiente»" do
+    esc, madre = una_familia_de(:preescolar)
+
+    sign_in madre
+    get hijo_representante_path(esc.alumno)
+
+    assert_select ".portal-pendiente", text: "Pendiente"
+    assert_select ".portal-valoracion", count: 0
+  end
+
+  # En el año completo no hay nada «pendiente»: en Inicial no existe esa nota.
+  test "en Inicial el año completo no promete una calificación" do
+    esc, madre = una_familia_de(:preescolar)
+
+    sign_in madre
+    get hijo_representante_path(esc.alumno, lapso: "anual")
+
+    assert_select "h2", text: /Valoraciones del año/
+    assert_select ".portal-pendiente", count: 0
+    assert_match(/no hay una calificación del año/, response.body)
+  end
+
+  test "fuera de Inicial siguen siendo calificaciones" do
+    sign_in @madre
+    get hijo_representante_path(@a.alumno)
+
+    assert_select "h2", text: /Calificaciones de lapso 1/
+    assert_select ".portal-valoracion", count: 0
+  end
+
+  # ── Los boletines de los años anteriores ──────────────────────────────────
+
+  # ⚠️ Solo se listaban los de la inscripción vigente. En octubre —el primer
+  # lapso cierra en diciembre— la lista estaba vacía, con el boletín final de
+  # julio emitido y descargable: existía, y no había por dónde llegar a él.
+  test "ve también los boletines liberados de un año anterior, con su año escrito" do
+    viejo = ano_escolar_viejo(@a.escenario, nombre: "2023-2024")
+    de_antes = con_el_colegio(@a.colegio) do
+      seccion = Section.find_by!(academic_period: viejo)
+      inscripcion = Enrollment.create!(student: @a.alumno, section: seccion, enrollment_date: Date.new(2023, 9, 20))
+      boletin = ReportCard.create!(enrollment: inscripcion, issued_by: @a.director,
+                                   evaluation_moment: EvaluationMoment.find_by!(academic_period: viejo, name: "Lapso 3"),
+                                   snapshot: {})
+      boletin.liberar!(por: @a.director)
+      boletin
+    end
+    con_el_colegio(@a.colegio) { @a.boletin.liberar!(por: @a.director) }
+
+    sign_in @madre
+    get hijo_representante_path(@a.alumno)
+
+    assert_select ".portal-boletin-codigo", text: de_antes.code
+    assert_select ".portal-boletines li", text: /Lapso 3\s*· 2023-2024/
+    # El del año que corre NO lleva el año: «Lapso 1» a secas es el de ahora.
+    assert_select ".portal-boletines li", text: /Lapso 1/ do |filas|
+      assert_no_match(/2025-2026/, filas.first.text)
+    end
+  end
+
+  test "y no ve el de un año anterior que nunca se liberó" do
+    viejo = ano_escolar_viejo(@a.escenario, nombre: "2023-2024")
+    sin_liberar = con_el_colegio(@a.colegio) do
+      inscripcion = Enrollment.create!(student: @a.alumno, section: Section.find_by!(academic_period: viejo),
+                                       enrollment_date: Date.new(2023, 9, 20))
+      ReportCard.create!(enrollment: inscripcion, issued_by: @a.director, snapshot: {},
+                         evaluation_moment: EvaluationMoment.find_by!(academic_period: viejo, name: "Lapso 3"))
+    end
+
+    sign_in @madre
+    get hijo_representante_path(@a.alumno)
+
+    assert_no_match(/#{sin_liberar.code}/, response.body)
+  end
+
+  # La pantalla le habla de usted a una madre (`CLAUDE.md`).
+  test "el aviso de la falta sin justificar trata de usted" do
+    con_el_colegio(@a.colegio) do
+      Attendance.create!(enrollment: @a.inscripcion, date: Date.current - 1, status: :ausente, recorded_by: @a.profesor)
+    end
+
+    sign_in @madre
+    get hijo_representante_path(@a.alumno)
+
+    assert_match(/Si ya entregó el justificativo, avísele a la/, response.body)
+    assert_no_match(/entregaste|avísale/, response.body)
+  end
+
   # El corazón del issue: "un representante ve las notas de sus hijos y de nadie
   # más". Pedir explícitamente el id de otro alumno del MISMO colegio tiene que
   # dar 404 — el aislamiento por colegio no alcanza acá, porque los dos alumnos
@@ -239,5 +348,17 @@ class PortalRepresentanteTest < ActionDispatch::IntegrationTest
       rep = Representative.create!(user: @madre, school: @b.colegio)
       StudentRepresentative.create!(representative: rep, student: @b.alumno, parentesco: :madre)
     end
+  end
+
+  # Un colegio de ese nivel, con un alumno y su madre ya vinculada.
+  def una_familia_de(nivel)
+    esc = escenario_academico(nombre: "Colegio de #{nivel}", nivel: nivel)
+    madre = User.create!(first_name: "Rosa", last_name: "Medina", password: "123123",
+                         email: "rosa.#{esc.colegio.id}@portal.test", document: "V-#{90_000_000 + esc.colegio.id}")
+    con_el_colegio(esc.colegio) do
+      rep = Representative.create!(user: madre, school: esc.colegio, phone: "0414-1112233")
+      StudentRepresentative.create!(representative: rep, student: esc.alumno, parentesco: :madre)
+    end
+    [ esc, madre ]
   end
 end

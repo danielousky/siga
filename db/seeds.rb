@@ -38,6 +38,9 @@ guard = SeedGuard.new
 
 begin
   CLAVE_DE_PRUEBA = guard.clave
+  # La del equipo de SIGA va aparte: en la muestra no es la pública. Ver
+  # `SeedGuard#clave_del_equipo`.
+  CLAVE_DEL_EQUIPO = guard.clave_del_equipo
 rescue SeedGuard::EntornoNoPermitido, SeedGuard::FaltaLaClave => e
   abort "\n#{e.message}"
 end
@@ -83,6 +86,8 @@ puts "🌱 Sembrando datos de demostración..."
   04_estructura
   05_matricula
   06_evaluacion
-  07_dia_a_dia
-  08_resumen
+  07_promocion
+  08_en_curso
+  09_dia_a_dia
+  10_resumen
 ].each { |paso| load Rails.root.join("db/seeds/#{paso}.rb") }

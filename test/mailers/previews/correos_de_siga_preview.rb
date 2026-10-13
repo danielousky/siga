@@ -114,7 +114,7 @@ class CorreosDeSigaPreview < ActionMailer::Preview
   def armado_sin_mensaje(&) = Current.en_el_colegio(colegio, &)
 
   def colegio  = @colegio  ||= School.find_by!(name: "U.E. SIMÓN BOLÍVAR")
-  def director = @director ||= User.find_by!(email: "director.bolivar@siga.edu")
+  def director = @director ||= User.find_by!(email: Muestra.cuenta("director").correo)
 
   def representante
     @representante ||= User.find_by!(email: "carmen.lopez@familia.test")

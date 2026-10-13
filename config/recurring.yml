@@ -22,3 +22,15 @@ production:
   purgar_planillas_de_importacion:
     class: PurgarPlanillasJob
     schedule: at 3am every day
+
+<% if ENV["SIGA_MUESTRA"] == "1" %>
+  # ⚠️ SOLO en la instancia de muestra: este trabajo borra la base entera y la
+  # vuelve a sembrar (`RestablecerLaMuestraJob`). En el sitio de verdad no se
+  # agenda —por eso el `if`—, y si igual corriera, se niega.
+  #
+  # A las 8 UTC, que son las 4 de la madrugada en Venezuela: la app corre en
+  # UTC, y «at 4am» sería medianoche allá, con gente todavía despierta.
+  restablecer_la_muestra:
+    class: RestablecerLaMuestraJob
+    schedule: at 8am every day
+<% end %>

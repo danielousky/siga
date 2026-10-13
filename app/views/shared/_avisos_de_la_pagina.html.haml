@@ -19,6 +19,12 @@
 -# dibuja en todas las páginas de todos los colegios, y el caso de siempre —al
 -# día, con tiempo de sobra— no muestra ningún aviso. Preguntarlo arriba sería
 -# una consulta por página para no decir nada.
+-# ⚠️ Y en la instancia de MUESTRA, antes que nada, la franja que dice dónde se
+-# está: el visitante entró sin registrarse y sin clave, y lo primero que tiene
+-# que saber es que lo que toque no es de nadie.
+- if Muestra.activa?
+  = render "shared/franja_de_la_muestra"
+
 - suscripcion = suscripcion_del_colegio
 - quien_paga = puede?(:pagar_la_suscripcion)
 - if colegio_en_solo_lectura?

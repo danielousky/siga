@@ -28,7 +28,7 @@ module Siga
   # ⚠️ Y no es la revisión de git. `/salud` devuelve las dos: `version` es esta
   # —qué producto es— y `revision` es el commit desplegado —qué build es—.
   # Confundirlas hace que «la 0.9.0» signifique cuarenta cosas distintas.
-  VERSION = "1.15.0".freeze
+  VERSION = "1.16.0".freeze
 
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
@@ -56,6 +56,9 @@ module Siga
     # El default de Rails es `ActionMailer::MailDeliveryJob`, que no hereda de
     # ApplicationJob y por lo tanto no lleva contexto de inquilino.
     config.action_mailer.delivery_job = "MailerDeliveryJob"
+
+    # En el colegio de muestra no sale ningún correo. Ver `NadaSaleDeLaMuestra`.
+    config.action_mailer.interceptors = %w[NadaSaleDeLaMuestra]
 
     # El campo que falló se MARCA, en todos los formularios (MOR-196).
     #

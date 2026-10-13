@@ -1,0 +1,17 @@
+-# La franja que acompaña a quien entró a la muestra (spec
+-# `del-registro-al-cobro`, § 4.3).
+-#
+-# Dice tres cosas, y las tres hacen falta: que esto NO es su colegio, que puede
+-# tocar sin miedo, y por dónde se sigue —cambiar de mirada o registrar el suyo—.
+-#
+-# ⚠️ «Cambiar de rol» es SALIR: las puertas son la portada de la muestra, y un
+-# rol nuevo no puede heredar el año ni el nivel que eligió el anterior. Es un
+-# botón y no un enlace porque cierra la sesión, y eso va por DELETE.
+.aviso-muestra
+  .aviso-muestra-inner
+    %span
+      %strong Colegio de muestra.
+      Los datos son inventados y cada noche vuelven a su estado inicial: toque lo que quiera.
+    .aviso-muestra-acciones
+      = button_to "Cambiar de rol", destroy_user_session_path, method: :delete, class: "aviso-muestra-boton"
+      = link_to "Registre su colegio →", Muestra.url_del_registro, class: "aviso-muestra-enlace", target: "_blank", rel: "noopener"

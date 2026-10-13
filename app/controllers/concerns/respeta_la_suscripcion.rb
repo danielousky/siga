@@ -95,7 +95,7 @@ module RespetaLaSuscripcion
   # hacerlo.
   SIEMPRE_ABIERTO = %w[
     activaciones demo_requests devise/passwords devise/registrations devise/sessions
-    directorio inicio manual pagos_de_la_suscripcion planteles registros salud
+    directorio inicio manual muestra pagos_de_la_suscripcion planteles registros salud
     suscripcion verificaciones
   ].freeze
 

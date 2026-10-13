@@ -31,6 +31,11 @@ class RegistrosController < Devise::RegistrationsController
 
   before_action :configure_permitted_parameters
 
+  # ⚠️ En la instancia de MUESTRA no se registra nadie: su base se restablece
+  # cada noche, y el colegio que alguien creara ahí amanecería borrado. Va al
+  # sitio de verdad, que es donde un colegio se queda.
+  before_action :registrar_en_el_sitio_de_verdad, only: [ :new, :create ]
+
   # ⚠️ Quien YA tiene colegio no vuelve a pasar por acá.
   before_action :redirigir_si_ya_entro, only: [ :new, :create ]
 
@@ -96,6 +101,10 @@ class RegistrosController < Devise::RegistrationsController
   end
 
   private
+
+  def registrar_en_el_sitio_de_verdad
+    redirect_to Muestra.url_del_registro, allow_other_host: true if Muestra.activa?
+  end
 
   # El aviso a SIGA de que entró un colegio nuevo (`MOR-158`).
   #

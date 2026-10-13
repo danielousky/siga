@@ -93,8 +93,11 @@ class RepresentativesController < ApplicationController
   end
 
   def destroy
-    @representative.destroy
-    redirect_to representatives_path, notice: "Representante eliminado."
+    if @representative.destroy
+      redirect_to representatives_path, notice: "Representante eliminado."
+    else
+      redirect_to @representative, alert: @representative.errors.full_messages.join(", ")
+    end
   end
 
   # El código con el que el representante entra por primera vez (MOR-143).

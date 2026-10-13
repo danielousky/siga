@@ -1,0 +1,102 @@
+-# Las puertas del colegio de muestra (spec `del-registro-al-cobro`, § 4.3).
+-#
+-# Es la portada de la instancia de muestra: quien llega aquí vino a VER, así
+-# que lo primero que encuentra son las tres entradas, no un formulario.
+-#
+-# ⚠️ Se arma con las piezas de la portada pública —el mismo banner, las mismas
+-# tarjetas— y no con las del panel: es la tapa de SIGA para quien todavía no
+-# es cliente, y tiene que parecerse a la que lo trajo.
+-#
+-# ⚠️ Trata de USTED, como toda la portada.
+- content_for :titulo, "Colegio de muestra"
+- content_for :descripcion, "Un colegio completo con datos inventados: entre con un clic como dirección, profesor o representante y vea SIGA funcionando."
+
+.portada
+  %header.portada-hero.muestra-hero
+    .portada-hero-rejilla{"aria-hidden": "true"}
+
+    %nav.portada-nav{"aria-label": "Principal"}
+      = link_to Muestra::SITIO, class: "portada-nav-marca" do
+        = image_tag "logo.svg", alt: "", class: "portada-nav-logo"
+        %span SIGA
+      %ul.portada-nav-enlaces
+        %li= link_to "Qué es SIGA", Muestra::SITIO
+        %li= link_to "Iniciar sesión", new_user_session_path
+        %li.portada-nav-entrar-item
+          = link_to Muestra.url_del_registro, class: "portada-nav-entrar" do
+            Registre su colegio
+            %span{"aria-hidden": "true"} ↗
+
+    .portada-hero-inner
+      %p.portada-antetitulo Colegio de muestra
+      %h1.portada-tesis
+        Vea SIGA funcionando,
+        %em sin registrarse.
+      %p.portada-bajada
+        Un colegio completo con datos inventados: de preescolar a sexto año, con
+        sus notas, sus boletines, su asistencia y su cobranza. Entre con un clic
+        y toque lo que quiera. Cada noche todo vuelve a su estado inicial.
+
+  %section.portada-seccion.muestra-seccion
+    .portada-inner
+      .portada-piezas.muestra-puertas
+        - Muestra::CUENTAS.each_with_index do |cuenta, i|
+          %article.portada-pieza.muestra-puerta{class: "portada-pieza--#{i + 1}"}
+            %span.portada-pieza-tipo= cuenta.titulo
+            %h2.muestra-puerta-quien= cuenta.quien
+            %p= cuenta.que_ve
+            = button_to entrar_a_la_muestra_path(rol: cuenta.clave), class: "muestra-entrar",
+                        form: { class: "muestra-puerta-accion" } do
+              -# La clave de las tres puertas es la palabra misma: «director»,
+              -# «profesor», «representante». «Entrar como dirección» no lo dice nadie.
+              = "Entrar como #{cuenta.clave}"
+              %span{"aria-hidden": "true"} →
+            %p.muestra-puerta-correo= cuenta.correo
+
+      %p.muestra-clave
+        También puede escribir el correo en
+        = succeed "." do
+          = link_to "«Iniciar sesión»", new_user_session_path
+        La contraseña de todas las cuentas es
+        %strong= Muestra::CLAVE
+
+      .muestra-otras
+        %h2.muestra-otras-titulo Otras miradas
+        %p.muestra-otras-bajada
+          Lo que las tres de arriba no enseñan: quién no llega a Finanzas, qué ve
+          un alumno y cómo queda un colegio que dejó de pagar.
+        %ul.muestra-otras-lista
+          - Muestra::OTRAS.each do |cuenta|
+            %li.muestra-otra
+              %div.muestra-otra-texto
+                %strong= cuenta.titulo
+                %span.muestra-otra-quien= cuenta.quien
+                %span.muestra-otra-que= cuenta.que_ve
+              = button_to "Entrar", entrar_a_la_muestra_path(rol: cuenta.clave), class: "muestra-entrar muestra-entrar--chico",
+                          "aria-label": "Entrar como #{cuenta.titulo.downcase}"
+
+  %section.portada-cierre
+    .portada-inner
+      %h2.portada-cierre-titulo
+        ¿Así le gustaría ver
+        %em su colegio?
+      %p.portada-cierre-texto
+        Cargar sus alumnos, sus profesores y sus secciones es gratis y no vence.
+        Calificar, pasar lista y emitir se activan con la suscripción:
+        = succeed "." do
+          = "#{numero_en_dolares(Subscription::PRECIO_POR_ALUMNO)} por alumno al mes"
+      .portada-acciones
+        = link_to Muestra.url_del_registro, class: "portada-cta portada-cta--principal" do
+          Registre su colegio
+          %span{"aria-hidden": "true"} ↗
+        - if whatsapp_configurado?
+          = link_to enlace_de_whatsapp, class: "portada-cta portada-cta--fantasma", target: "_blank", rel: "noopener" do
+            Escríbanos por WhatsApp
+            %span{"aria-hidden": "true"} →
+
+  %footer.portada-pie
+    .portada-inner
+      %p.portada-pie-legal.muestra-pie
+        Esto es una muestra: las personas, las notas y los pagos son inventados, y
+        desde aquí no sale ningún correo.
+        %span.portada-pie-version= "SIGA #{Siga::VERSION}"

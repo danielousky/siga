@@ -107,6 +107,48 @@ class BoletinesDelLapso
     end
   end
 
+  # ── Cerrar ────────────────────────────────────────────────────────────────
+  #
+  # Lo que CIERRA el lapso de esta sección, sin lo que es de la pantalla:
+  #
+  #     1 · se EMITEN los boletines que falten
+  #     2 · se LIBERAN todos                     → la familia los ve
+  #     3 · queda el cierre                      → el profesor ya no toca las notas
+  #
+  # Avisar por correo y dejar el rastro en la bitácora son de quien llama:
+  # `RevisionDeBoletinesController`, que es además quien pregunta antes
+  # `se_puede_cerrar?` y explica por qué no.
+  #
+  # ⚠️ Vivía entero en ese controlador. Se trajo aquí el día que la siembra tuvo
+  # que cerrar lapsos —un colegio con un año de uso tiene tres cerrados— y la
+  # única manera de hacerlo sin pasar por una pantalla era copiar las tres
+  # cosas. Copiadas, el día que cerrar haga una cuarta la muestra enseñaría un
+  # colegio cerrado a medias.
+  #
+  # `cuando` deja decir CUÁNDO se cerró: la siembra cierra diciembre en
+  # diciembre, no el día en que corre.
+  Cierre = Data.define(:emitidos, :boletines)
+
+  def cerrar!(por:, cuando: Time.current)
+    # ⚠️ Se emiten los que falten ANTES de liberar: sin boletín no hay nada que
+    # ver. Cada emisión congela su propia foto de las notas (`snapshot`), que es
+    # lo que hace que corregir algo en marzo no reescriba el papel de diciembre.
+    emitidos = fichas.reject(&:emitido?).map do |ficha|
+      ReportCard.create!(enrollment: ficha.inscripcion, evaluation_moment: @lapso, issued_by: por,
+                         snapshot: ReportCardData.para(enrollment: ficha.inscripcion,
+                                                       evaluation_moment: @lapso))
+    end
+
+    # ⚠️ Se relee: `fichas` se armó antes de emitir y no conoce los recién nacidos.
+    todos = self.class.de(@seccion, @lapso).fichas.filter_map(&:boletin)
+    ReportCard.where(id: todos.map(&:id)).update_all(liberado_el: cuando, liberado_por_id: por.id)
+
+    SectionClosure.create!(section: @seccion, evaluation_moment: @lapso,
+                           cerrado_por: por, cerrado_el: cuando)
+
+    Cierre.new(emitidos: emitidos, boletines: todos)
+  end
+
   private
 
   # ⚠️ Solo los REGULARES, y eso es lo que hace que un lapso se pueda cerrar.
