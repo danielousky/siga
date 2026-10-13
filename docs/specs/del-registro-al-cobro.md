@@ -4,8 +4,8 @@
 > 8, 9 y 12 de octubre. Si algo cambia, se cambia aquí primero.
 > **Ramas:** `feat/del-registro-al-cobro` (este spec y la tanda 1) ·
 > `feat/pagar-sin-consola` (la tanda 2) · `feat/el-precio-con-el-iva-adentro` ·
-> `feat/la-muestra` (la tanda 5) · `feat/la-puerta` (la tanda 4). Cada una sale
-> de la anterior. Locales, sin PR.
+> `feat/la-muestra` (la tanda 5) · `feat/la-puerta` (la tanda 4) ·
+> `feat/la-escalera` (la tanda 3). Cada una sale de la anterior. Locales, sin PR.
 
 ```
    LAS TANDAS, en el orden que eligió Daniel («primero cobrar»)
@@ -13,7 +13,7 @@
    2 · pagar sin consola    hecha     «Suscripción», el reporte, validar en /siga y los ajustes
    5 · la muestra           hecha     el colegio de muestra, EN LÍNEA: demo.sigaeducando.com
    4 · la puerta            hecha     la portada, el registro con su precio y el WhatsApp
-   3 · la escalera          falta     el trabajo diario y sus tres correos
+   3 · la escalera          hecha     el trabajo diario y sus tres correos
    ─────────────────────────────────────────────────────────────────────────────
    «hecha» es en local y con `bin/ci` en verde. Las decisiones 23 a 27 nacieron
    en la tanda 2 y están POR CONFIRMAR, y la 29 también. Las 30 a 34 nacieron
@@ -531,10 +531,12 @@ del registro— y los ajustes de `/siga` —el WhatsApp ya sale de ahí y está 
       correo.
 - [x] Primer pago y pago en solo lectura: el mes cuenta desde la validación.
       Pago a tiempo o en la gracia: desde el vencimiento.
-- [ ] Un trabajo diario mueve los estados sin que nadie abra la Cartera, a una
-      hora en que la fecha en UTC es la misma que en Venezuela.
-- [ ] Sale correo, con su aviso en pantalla, 5 días antes, al vencer y al pasar a
+- [x] Un trabajo diario mueve los estados sin que nadie abra la Cartera, a una
+      hora en que la fecha en UTC es la misma que en Venezuela (12 UTC: las 8
+      de la mañana).
+- [x] Sale correo, con su aviso en pantalla, 5 días antes, al vencer y al pasar a
       solo lectura; cada correo, una sola vez.
+- [x] A quien ya reportó su pago no se le reclama: ni «vence», ni «venció».
 - [x] Mientras un reporte está en revisión, el estado no baja.
 - [x] En solo lectura se siguen emitiendo constancias, boletines y certificados,
       como hoy.
@@ -705,6 +707,23 @@ TODO; documentos, .md's, vistas, TODO.»*
 - **El formulario de demostración dejó reglas de estilo sin dueño** (`.solicitud…`).
   No se borraron: quitar un bloque de CSS a ciegas no falla, solo se ve feo.
   Queda para una limpieza con las pantallas delante.
+
+**Lo que enseñó la tanda 3**
+
+- **Para que un correo salga una sola vez hace falta acordarse de DOS cosas:**
+  cuál fue el último aviso y de qué vencimiento era. Con el número solo habría
+  que ponerlo en cero en cada lugar que mueve el vencimiento; con la fecha al
+  lado, al validarse un pago la cuenta empieza de nuevo sin que nadie la toque.
+- **Un test que pasa no dice qué cuida.** «Con un pago esperando, ni baja ni
+  reclama» seguía en verde quitando la pregunta por el pago: en ese caso el
+  estado ni se mueve, y no hay aviso que mandar. Lo que la pregunta protege es
+  al colegio que reportó ANTES de vencer. Se encontró rompiéndola a propósito.
+- **Anotar y encolar van juntos.** La cola vive en la misma base: en una
+  transacción, el aviso anotado y el correo encolado se confirman a la vez.
+- **El correo se encola dentro del colegio**, como en la tanda 2: el trabajo
+  recorre todos y no tiene ninguno.
+- **Los tres correos dicen primero lo que SIGUE funcionando.** Quien lee
+  «venció» sin más cree que perdió el sistema, y llama.
 
 **Lo que la tanda 5 dejó anotado, sin construir:**
 

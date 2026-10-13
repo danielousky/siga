@@ -254,6 +254,70 @@ class Subscription < ApplicationRecord
   end
 
   # ══════════════════════════════════════════════════════════════════════════
+  # La escalera: qué aviso le toca, y que salga una sola vez
+  # ══════════════════════════════════════════════════════════════════════════
+  #
+  # Spec `del-registro-al-cobro`, § 5.7. El sistema cobra solo, y por escalones:
+  #
+  #     5 días antes       aviso :por_vencer      todo funciona
+  #     vence              aviso :vencio          todo funciona — son los 15 días de gracia
+  #     pasados 15 días    aviso :solo_lectura    ve y descarga; no carga nada nuevo
+  #
+  # Daniel no persigue pagos: lo hace un trabajo diario (`LaEscaleraJob`), y lo
+  # que el colegio lee en su correo es lo mismo que lee arriba de su pantalla.
+  AVISOS = { por_vencer: 1, vencio: 2, solo_lectura: 3 }.freeze
+
+  # El aviso que le corresponde HOY, o nil si ninguno.
+  #
+  # ⚠️ Con un pago esperando validación, ninguno. El colegio ya pagó: lo que
+  # falta es que SIGA lo mire, y escribirle «su suscripción venció» mientras su
+  # comprobante espera es reclamarle una demora que es nuestra.
+  def aviso_que_corresponde
+    return nil if gratis? || cancelada? || vigente_hasta.blank?
+    return nil if pago_en_revision.present?
+
+    if vencida? then :solo_lectura
+    elsif en_gracia? then :vencio
+    elsif por_vencer? then :por_vencer
+    end
+  end
+
+  # El último aviso que salió PARA ESTE vencimiento. Uno anotado para el
+  # vencimiento anterior no cuenta: al pagar, la cuenta empieza de nuevo sola.
+  def aviso_ya_enviado
+    aviso_del_vencimiento == vigente_hasta ? aviso_enviado : 0
+  end
+
+  # El aviso que hay que mandar AHORA, o nil. Cada escalón sale una sola vez, y
+  # nunca uno más bajo que el que ya salió.
+  #
+  # ⚠️ Si el trabajo estuvo caído y se saltó un escalón, sale el de hoy y no
+  # los que faltaron: a quien ya está en solo lectura no le sirve leer, tres
+  # días tarde, que «vence en cinco días».
+  def aviso_pendiente
+    aviso = aviso_que_corresponde
+    aviso if aviso && AVISOS.fetch(aviso) > aviso_ya_enviado
+  end
+
+  def anotar_aviso!(aviso)
+    update_columns(aviso_enviado: AVISOS.fetch(aviso), aviso_del_vencimiento: vigente_hasta,
+                   updated_at: Time.current)
+  end
+
+  # A quién se le escribe: los correos de quienes pagan en este colegio.
+  #
+  # Sin el `default_scope` del colegio: lo pregunta un trabajo que recorre todas
+  # las suscripciones, y `Admin` filtraría por el colegio de la sesión —que ahí
+  # no hay—. El colegio va escrito en la consulta.
+  def correos_de_quienes_pagan
+    Admin.unscoped.que_pagan.where(school_id: school_id).joins(:user)
+         .where.not(users: { email: nil }).order(:id).pluck("users.email").uniq
+  end
+
+  # Hasta cuándo dura la gracia: el último día en que todo funciona.
+  def fin_de_la_gracia = vigente_hasta && vigente_hasta + dias_de_gracia
+
+  # ══════════════════════════════════════════════════════════════════════════
   # Un pago validado
   # ══════════════════════════════════════════════════════════════════════════
 

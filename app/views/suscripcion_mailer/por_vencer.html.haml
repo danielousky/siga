@@ -1,0 +1,25 @@
+-# Cinco días antes de vencer (spec `del-registro-al-cobro`, § 5.7).
+-#
+-# El primer escalón: todavía no pasó nada. Dice la fecha, cuánto es y dónde se
+-# paga — lo mismo que el aviso de arriba de la pantalla. Es de SIGA: no llama
+-# `a_nombre_de`.
+- content_for :adelanto, "Vence el #{dia_y_mes(@suscripcion.vigente_hasta)}. Este mes son #{numero_en_dolares(@cotizacion.monto)}."
+
+= titulo_de_correo "Su suscripción vence el #{dia_y_mes(@suscripcion.vigente_hasta)}"
+
+%p
+  = "La suscripción de #{@colegio.name} a SIGA vence el #{l(@suscripcion.vigente_hasta, format: :long)}."
+  = "Este mes son #{numero_en_dolares(@cotizacion.monto)}, por #{contar(@cotizacion.alumnos, 'alumno inscrito', 'alumnos inscritos')}."
+
+%p
+  Para que nada se interrumpa, pague y repórtelo desde «Suscripción»: ahí están
+  los medios de pago y el formulario del reporte.
+
+= boton_de_correo "Ver cómo pagar", @url
+
+= nota_de_correo do
+  Si llega la fecha y todavía no pagó, todo sigue funcionando quince días más.
+  - if @whatsapp
+    Si tiene alguna duda,
+    = succeed "." do
+      = link_to "escríbanos por WhatsApp", @whatsapp

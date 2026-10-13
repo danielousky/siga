@@ -1,0 +1,14 @@
+Su suscripción vence el <%= dia_y_mes(@suscripcion.vigente_hasta) %>
+
+La suscripción de <%= @colegio.name %> a SIGA vence el <%= l(@suscripcion.vigente_hasta, format: :long) %>.
+Este mes son <%= numero_en_dolares(@cotizacion.monto) %>, por <%= contar(@cotizacion.alumnos, 'alumno inscrito', 'alumnos inscritos') %>.
+
+Para que nada se interrumpa, pague y repórtelo desde «Suscripción»: ahí están
+los medios de pago y el formulario del reporte.
+
+Ver cómo pagar: <%= @url %>
+
+Si llega la fecha y todavía no pagó, todo sigue funcionando quince días más.
+<% if @whatsapp -%>
+Si tiene alguna duda, escríbanos por WhatsApp: <%= @whatsapp %>
+<% end -%>

@@ -1,0 +1,19 @@
+Su colegio quedó en solo lectura
+
+La suscripción de <%= @colegio.name %> a SIGA venció el <%= l(@suscripcion.vigente_hasta, format: :long) %> y pasaron los quince días de gracia.
+Desde hoy el colegio está en solo lectura.
+
+  Sigue funcionando: entrar, consultar las notas y la asistencia, y emitir
+  boletines, constancias y certificados.
+  Queda en pausa: calificar, pasar lista y cargar información nueva.
+
+Para volver a todo, pague <%= numero_en_dolares(@cotizacion.monto) %> y repórtelo desde «Suscripción».
+El mes cuenta desde el día en que se valide el pago: los días en solo lectura
+no se cobran.
+
+Ver cómo pagar: <%= @url %>
+
+No se borró nada: todo lo que el colegio cargó sigue ahí.
+<% if @whatsapp -%>
+Si necesita conversarlo, escríbanos por WhatsApp: <%= @whatsapp %>
+<% end -%>

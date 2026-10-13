@@ -23,6 +23,18 @@ production:
     class: PurgarPlanillasJob
     schedule: at 3am every day
 
+  # La escalera de la suscripción (`LaEscaleraJob`): mueve los estados y manda
+  # los tres avisos —5 días antes, al vencer y al pasar a solo lectura—.
+  #
+  # ⚠️ A las 12 UTC, que son las 8 de la mañana en Venezuela. No es solo por la
+  # hora en que llega el correo: la app corre en UTC, y «hoy» ya es mañana desde
+  # las 8 p. m. de Venezuela. A las 12 UTC la fecha es la misma en los dos
+  # lados; de noche, un colegio pasaría a la gracia un día antes de lo que dice
+  # su pantalla.
+  la_escalera_de_las_suscripciones:
+    class: LaEscaleraJob
+    schedule: at 12pm every day
+
 <% if ENV["SIGA_MUESTRA"] == "1" %>
   # ⚠️ SOLO en la instancia de muestra: este trabajo borra la base entera y la
   # vuelve a sembrar (`RestablecerLaMuestraJob`). En el sitio de verdad no se

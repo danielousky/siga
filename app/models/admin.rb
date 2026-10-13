@@ -21,6 +21,15 @@ class Admin < ApplicationRecord
   enum :role, { desarrollador: 0, director: 1, finanzas: 2, coordinador: 3,
                 secretaria: 4, asistente: 5 }
 
+  # Quienes llevan el dinero del colegio: dirección y finanzas (decisión 14 del
+  # spec `del-registro-al-cobro`). Es a quien SIGA le escribe por la suscripción.
+  #
+  # ⚠️ La lista NO se escribe aquí: sale de la tabla de permisos, que es donde
+  # se decide quién ve «Suscripción». Escrita dos veces, el día que finanzas
+  # deje de pagar —o que pague también la coordinación— el menú diría una cosa
+  # y el correo le llegaría a otra gente.
+  scope :que_pagan, -> { where(role: ApplicationController::PERMISOS.fetch(:pagar_la_suscripcion)) }
+
   # Los cargos que se OFRECEN al registrarse, que no son los seis.
   #
   # ⚠️ Quien abre la cuenta de un colegio es quien lo dirige o quien lo ayuda a

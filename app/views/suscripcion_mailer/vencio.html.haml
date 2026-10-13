@@ -1,0 +1,27 @@
+-# El día que vence (spec `del-registro-al-cobro`, § 5.7).
+-#
+-# El segundo escalón: empezó la gracia. ⚠️ Lo PRIMERO que dice es que nada se
+-# bloqueó: quien lee «venció» sin más cree que perdió el sistema, y llama.
+- content_for :adelanto, "Todo sigue funcionando hasta el #{dia_y_mes(@hasta)}. Para seguir después, hay que pagar."
+
+= titulo_de_correo "Su suscripción venció"
+
+%p
+  = "La suscripción de #{@colegio.name} a SIGA venció el #{l(@suscripcion.vigente_hasta, format: :long)}."
+  %strong= "Todo sigue funcionando hasta el #{l(@hasta, format: :long)}:"
+  pueden calificar, pasar lista y emitir como siempre.
+
+%p
+  = "Para seguir después de esa fecha, pague #{numero_en_dolares(@cotizacion.monto)} y repórtelo desde «Suscripción»."
+  El mes que paga cuenta desde el día en que venció.
+
+= boton_de_correo "Ver cómo pagar", @url
+
+= nota_de_correo do
+  = "Si el #{dia_y_mes(@hasta)} el pago no está reportado, el colegio pasa a solo lectura:"
+  se sigue viendo y descargando todo, y no se puede cargar nada nuevo hasta
+  ponerse al día. No se pierde nada de lo que ya está cargado.
+  - if @whatsapp
+    Si necesita conversarlo,
+    = succeed "." do
+      = link_to "escríbanos por WhatsApp", @whatsapp

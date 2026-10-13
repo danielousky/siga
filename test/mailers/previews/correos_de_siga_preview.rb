@@ -97,6 +97,20 @@ class CorreosDeSigaPreview < ActionMailer::Preview
     armado { SuscripcionMailer.pago_rechazado(pago_de_muestra) }
   end
 
+  # ── La escalera (§ 5.7): cinco días antes, al vencer, y solo lectura ──────
+
+  def suscripcion_por_vencer
+    armado { SuscripcionMailer.por_vencer(suscripcion_de_muestra) }
+  end
+
+  def suscripcion_vencida
+    armado { SuscripcionMailer.vencio(suscripcion_de_muestra) }
+  end
+
+  def suscripcion_en_solo_lectura
+    armado { SuscripcionMailer.solo_lectura(suscripcion_de_muestra) }
+  end
+
   private
 
   # Un pago sin guardar: la vista previa no escribe en la base.
@@ -112,6 +126,10 @@ class CorreosDeSigaPreview < ActionMailer::Preview
   end
 
   def armado_sin_mensaje(&) = Current.en_el_colegio(colegio, &)
+
+  def suscripcion_de_muestra
+    armado_sin_mensaje { Subscription.find_by!(school_id: colegio.id) }
+  end
 
   def colegio  = @colegio  ||= School.find_by!(name: "U.E. SIMÓN BOLÍVAR")
   def director = @director ||= User.find_by!(email: Muestra.cuenta("director").correo)

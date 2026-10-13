@@ -15,8 +15,8 @@ spec está **congelado**: `docs/specs/del-registro-al-cobro.md`, en la rama
    el WhatsApp y los datos para pagar, en /siga/ajustes ✔ tanda 2, en local
    el colegio de muestra, en su instancia aparte        ✔ tanda 5, EN LÍNEA: demo.sigaeducando.com
    la puerta: registro + WhatsApp + colegio de muestra  ✔ tanda 4, en local
-   un trabajo diario: 5 días antes · gracia · solo      falta (tanda 3) — hoy la escalera
-   lectura, con sus correos                             se mueve al abrir la Cartera
+   un trabajo diario: 5 días antes · gracia · solo      ✔ tanda 3, en local
+   lectura, con sus correos
 ```
 
 ⚠️ **Mientras tanto, el manual, los PDF de `SIGA/DOCs`, el contrato, los videos
@@ -26,6 +26,34 @@ del plan gratis ni de la puerta de entrada a partir de ellos: manda el spec. Se
 unifican todos al terminar (§ 9 del spec). Daniel: *«No quiero que en el futuro
 otra sesión mire lo que tú miraste y se confunda o me proponga cosas basada en
 información obsoleta.»*
+
+### La tanda 3, «la escalera» — hecha en local el 12 de octubre
+
+Rama `feat/la-escalera`, encima de la puerta. Versión **1.18.0**. Con esta
+quedan hechas las cinco tandas del spec.
+
+```
+   5 días antes       correo + aviso: «vence el 9 de noviembre»     todo funciona
+   vence              correo + aviso: «venció; quedan 15 días»      todo funciona
+   pasados 15 días    correo + aviso: solo lectura                  ve y descarga
+   ─────────────────────────────────────────────────────────────────────────────
+   `LaEscaleraJob`, todos los días a las 8 a. m. (12 UTC): nadie abre nada
+```
+
+Antes el estado se movía solo cuando alguien abría la Cartera de `/siga`, y al
+colegio no le avisaba nadie. Cada correo sale una vez; le llega a dirección y a
+finanzas; y a quien ya reportó su pago no se le reclama.
+
+**Para revisar, en local** (con la base resembrada):
+
+```
+   /rails/mailers/correos_de_siga     los tres correos nuevos: «suscripcion_por_vencer»,
+                                      «suscripcion_vencida» y «suscripcion_en_solo_lectura»
+   bin/rails suscripciones:estado     en qué está cada colegio y qué aviso le toca hoy
+```
+
+⚠️ **Trae una migración** (dos columnas en `subscriptions`). Tu base de
+desarrollo ya la tiene: la corrí ahí, es aditiva.
 
 ### La tanda 4, «la puerta» — hecha en local el 12 de octubre
 
@@ -254,6 +282,7 @@ activarlo sin pasar por el reporte y la validación.
                               feat/la-muestra, local: la tanda 5, encima — y
                               DESPLEGADA en la app `siga-demo` (no en producción)
                               feat/la-puerta, local: la tanda 4, encima
+                              feat/la-escalera, local: la tanda 3, encima
    demo.sigaeducando.com      la muestra: app `siga-demo`, remoto `dokku-demo`
 ```
 
@@ -411,6 +440,30 @@ Con ocho corridas no se distingue 1 de 3: lo que sí dicen es que ya fallaba
 antes. Falta encontrarle la causa —la captura muestra la página bien cargada y
 el panel cerrado— y va en su propio PR. Mientras tanto, si `bin/ci` sale en rojo
 SOLO por ese test, se vuelve a correr `bin/rails test:system`.
+
+⚠️ **Y apareció un tercero, también de antes** (12 de octubre, en la tanda 3).
+`campo_que_falla_test`: el primer envío del formulario no sale, porque el
+campo «Nombre» quedó vacío —el navegador frena el envío de un campo obligatorio
+vacío—, el segundo entra sin chocar con nada, y el test dice «no encontré el
+error». Lo que se midió:
+
+```
+   el código de ANTES de la tanda 1 (76a0a3d)     1 falla de 12   ← ya fallaba
+   esta tarde, con la tanda 3                     4 fallas de 59
+   esta noche, igual código                       0 de 85, también con el procesador saturado
+```
+
+Lo único firme: en la corrida que falló con `SIGA_DIAG=1`, `fill_in` avisó que
+el campo seguía vacío después de escribirlo, TRES veces seguidas, en dos campos.
+O sea: no es la app borrándolo después, son teclas que no llegaron —aunque la
+página ya había «oído» la tecla muda de `visit`—. Una caja negra dentro del
+navegador lo hizo desaparecer (0 de 120), como pasó la vez anterior.
+
+Lo que propongo para su propio PR, sin poder probar que lo cure: que `fill_in`,
+cuando el campo quedó vacío, vuelva a esperar a que la página oiga
+(`esperando_la_pagina`) y reintente durante un segundo y medio, no 150 ms. No
+toca el camino normal. Mientras tanto, la misma regla: si `bin/ci` sale rojo
+SOLO por uno de estos dos, se vuelve a correr `bin/rails test:system`.
 
 Y el CI sube también las capturas de los tests de sistema que fallen.
 
