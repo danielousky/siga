@@ -378,6 +378,11 @@ Rails.application.routes.draw do
   end
   resources :grades, path: "grados" do
     resources :grade_subjects, path: "materias", only: [:create, :destroy]
+
+    # ⚠️ Agregar una sección DESDE el grado, con solo el identificador y el guía
+    # (Daniel, 13 de octubre de 2026). Es la misma `SectionsController#create`:
+    # el grado viaja en la URL y la respuesta vuelve a la ficha del grado.
+    resources :sections, path: "secciones", only: [:create]
   end
   # La rúbrica con que el colegio lee las notas de primaria (MOR-136).
   #
@@ -532,6 +537,12 @@ Rails.application.routes.draw do
       get "alumnos"
       get "asistencia"
       get "planificar"
+
+      # ⚠️ «Áreas y profesores» es otra PESTAÑA, y no la segunda tarjeta de
+      # «Alumnos» que fue hasta el 13 de octubre de 2026. Daniel, mirando la
+      # muestra: *«esta sección va como una pestaña adicional después de
+      # Alumnos»*. Es de la dirección: el profesor no la ve.
+      get "areas"
 
       # ⚠️ La ficha del alumno DENTRO de la sección, y no `/alumnos/:id`.
       #

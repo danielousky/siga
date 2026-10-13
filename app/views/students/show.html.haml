@@ -25,8 +25,14 @@
 
     .ficha-acciones
       = boton "Editar", edit_student_path(@student), icono: :editar, tono: :secondary
-      - if @inscripcion && can_manage_students?
-        = link_to "Constancia", constancias_path(section_id: @inscripcion.section_id), class: "btn btn-secondary"
+      -# ⚠️ La constancia DE ESTE ALUMNO, y se descarga con el clic. Llevaba a
+      -# «Documentos ▸ Constancias» con la sección puesta, donde había que volver
+      -# a buscarlo entre treinta. Daniel, 13 de octubre de 2026: *«ese enlace
+      -# debe ir directamente a la descarga de la constancia del alumno en
+      -# particular, no a la sección»*. Ver `students/_emitir`.
+      - if @inscripcion && puede?(:emitir_documentos)
+        = render "students/emitir", texto: "Constancia", ruta: constancias_path,
+                 inscripcion: @inscripcion, tooltip: "La constancia de estudio de hoy, en PDF"
 
   -# ── 1. A quién llamar ────────────────────────────────────────────────────
   -# Va primero porque es el motivo número uno por el que se abre esta pantalla,
@@ -140,64 +146,98 @@
   -#
   -# Lo que sigue siendo solo de acá es el Excel de la 31059: es para completar
   -# a mano, de un alumno por vez.
+  -#
+  -# ⚠️ Y desde el 13 de octubre de 2026 están AQUÍ también la constancia y el
+  -# boletín, cada uno a un clic. Daniel, en la muestra: *«en los documentos
+  -# oficiales debe ir un enlace directo a la constancia de estudio y la
+  -# boleta»*. Son los dos papeles que más se piden de a uno, y la tarjeta solo
+  -# ofrecía el de fin de año. Cada botón va a la misma acción que
+  -# «Documentos» (`students/_emitir`), con este alumno ya elegido.
   .card-academic
     = render "shared/cabecera", titulo: "Documentos oficiales", nivel: 2
 
-    - if @inscripcion&.section&.grade&.media?
-      %p
-        %strong Certificación de Calificaciones
-        \— forma
-        %code 31059
-        \· Educación Media. Trae todos los años cursados en un solo papel.
-      %p.nota-ayuda
-        El PDF es el documento terminado. El Excel es el mismo pero editable, para
-        completar a mano lo que el sistema todavía no guarda.
-      .acciones-de-cabecera
-        = link_to "Certificación en PDF",
-                  certificacion_de_calificaciones_path(student_id: @student, format: :pdf),
+    - if @inscripcion && puede?(:emitir_documentos)
+      - seccion = @inscripcion.section
+      .ficha-documento
+        %p
+          %strong Constancia de estudio
+          \— dice que hoy cursa #{seccion.grade.name} – #{seccion.name}. Para el
+          pasaporte, una beca, el seguro o una embajada.
+        .acciones-de-cabecera
+          = render "students/emitir", texto: "Emitir y descargar", ruta: constancias_path,
+                   inscripcion: @inscripcion
+
+      -# ⚠️ Un botón por lapso, y el anual: las mismas opciones que «Qué se
+      -# emite» en «Documentos ▸ Boletines». Quien está en la ventanilla sabe
+      -# cuál le pidieron; deducirlo sería adivinar.
+      .ficha-documento
+        %p
+          %strong Boletín
+          \— las notas de un lapso, o las del año completo, con su código para
+          verificarlo.
+        .acciones-de-cabecera
+          - @lapsos.each do |lapso|
+            = render "students/emitir", texto: lapso.name, ruta: report_cards_path, sm: true,
+                     inscripcion: @inscripcion, params: { evaluation_moment_id: lapso.id }
+          = render "students/emitir", texto: "Anual", ruta: report_cards_path, sm: true,
+                   inscripcion: @inscripcion, params: { evaluation_moment_id: "anual" }
+
+    .ficha-documento
+      - if @inscripcion&.section&.grade&.media?
+        %p
+          %strong Certificación de Calificaciones
+          \— forma
+          %code 31059
+          \· Educación Media. Trae todos los años cursados en un solo papel.
+        %p.nota-ayuda
+          El PDF es el documento terminado. El Excel es el mismo pero editable, para
+          completar a mano lo que el sistema todavía no guarda.
+        .acciones-de-cabecera
+          = link_to "Certificación en PDF",
+                    certificacion_de_calificaciones_path(student_id: @student, format: :pdf),
+                    class: "btn btn-documento"
+          = link_to "Certificación en Excel",
+                    certificacion_de_calificaciones_path(student_id: @student, format: :xlsx),
+                    class: "btn btn-secondary"
+
+      - elsif @inscripcion&.section&.grade&.primaria?
+        %p
+          -# El grado decide cuál de los dos: el último de primaria promueve al
+          -# nivel de media y lleva CERTIFICADO; los demás llevan CONSTANCIA.
+          %strong Certificado de Educación Primaria
+          o
+          %strong Constancia de Prosecución
+          \, según el grado que cursó. Certifica el literal del año.
+        -# ⚠️ `documento` (petróleo), no el azul que tenía: de aquí SALE un papel,
+        -# igual que «Emitir y descargar» del boletín. Lo destapó la auditoría de
+        -# tonos del 8 de septiembre — era el único de los dieciséis que estaba en
+        -# el tono equivocado, y llevaba así desde que existe.
+        = link_to "Emitir el documento",
+                  documento_de_primaria_path(enrollment_id: @inscripcion),
                   class: "btn btn-documento"
-        = link_to "Certificación en Excel",
-                  certificacion_de_calificaciones_path(student_id: @student, format: :xlsx),
-                  class: "btn btn-secondary"
 
-    - elsif @inscripcion&.section&.grade&.primaria?
-      %p
-        -# El grado decide cuál de los dos: el último de primaria promueve al
-        -# nivel de media y lleva CERTIFICADO; los demás llevan CONSTANCIA.
-        %strong Certificado de Educación Primaria
-        o
-        %strong Constancia de Prosecución
-        \, según el grado que cursó. Certifica el literal del año.
-      -# ⚠️ `documento` (petróleo), no el azul que tenía: de acá SALE un papel,
-      -# igual que «Emitir y descargar» del boletín. Lo destapó la auditoría de
-      -# tonos del 8 de septiembre — era el único de los dieciséis que estaba en
-      -# el tono equivocado, y llevaba así desde que existe.
-      = link_to "Emitir el documento",
-                documento_de_primaria_path(enrollment_id: @inscripcion),
-                class: "btn btn-documento"
+      - elsif @inscripcion&.section&.grade&.preescolar?
+        %p
+          -# El grupo decide cuál de los dos: el III —el último— certifica los
+          -# estudios y dice que el niño continúa a primaria; los otros dos llevan
+          -# la constancia de prosecución entre grupos.
+          %strong Certificación de Estudios
+          o
+          %strong Constancia de Prosecución
+          \, según el grupo que cursó.
+        -# ⚠️ Sin literal ni calificación: en Educación Inicial no las hay, y el
+        -# formato del ministerio tampoco tiene dónde ponerlas.
+        %p.nota-ayuda
+          En Educación Inicial no se certifica una calificación: el formato dice qué
+          grupo cursó y en qué período escolar.
+        = link_to "Emitir el documento",
+                  documento_de_inicial_path(enrollment_id: @inscripcion),
+                  class: "btn btn-documento"
 
-    - elsif @inscripcion&.section&.grade&.preescolar?
-      %p
-        -# El grupo decide cuál de los dos: el III —el último— certifica los
-        -# estudios y dice que el niño continúa a primaria; los otros dos llevan
-        -# la constancia de prosecución entre grupos.
-        %strong Certificación de Estudios
-        o
-        %strong Constancia de Prosecución
-        \, según el grupo que cursó.
-      -# ⚠️ Sin literal ni calificación: en Educación Inicial no las hay, y el
-      -# formato del ministerio tampoco tiene dónde ponerlas.
-      %p.nota-ayuda
-        En Educación Inicial no se certifica una calificación: el formato dice qué
-        grupo cursó y en qué período escolar.
-      = link_to "Emitir el documento",
-                documento_de_inicial_path(enrollment_id: @inscripcion),
-                class: "btn btn-documento"
-
-    - else
-      %p.nota-pendiente
-        Este alumno no tiene una inscripción activa, así que todavía no hay nada que
-        certificar.
+      - else
+        %p.nota-pendiente
+          Este alumno no tiene una inscripción activa, así que todavía no hay nada que
+          certificar.
 
   %p.ficha-volver
     = link_to "← Volver a la lista", students_path

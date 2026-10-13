@@ -169,6 +169,21 @@ class PortadaPublicaTest < ActionDispatch::IntegrationTest
     assert_select "title"
   end
 
+  # ⚠️ Las rayas entre las tres cifras son el FONDO gris que asoma por un `gap`
+  # de 1 px. Con `auto-fit`, en una ventana mediana la tercera caía sola en una
+  # fila de dos, y la casilla vacía de al lado quedaba como un bloque gris
+  # (13 de octubre de 2026: estaba así desde agosto). Tres columnas o una,
+  # nunca dos.
+  test "las cifras van en tres columnas o en una, nunca en dos" do
+    css   = Rails.root.join("app/assets/stylesheets/system.css").read
+    regla = css[/^\.portada-cifras \{[^}]*\}/]
+
+    assert_match(/grid-template-columns:\s*repeat\(3,/, regla)
+    assert_no_match(/auto-(fit|fill)/, regla, "con auto-fit vuelve la fila de dos")
+    assert_match(/@media \(max-width: \d+px\) \{\s*\.portada-cifras \{ grid-template-columns: minmax\(0, 1fr\); \}/, css,
+                 "en un teléfono, una sola columna")
+  end
+
   private
 
   # Dónde vive la muestra: un ajuste de `/siga` (`Setup`). Lo deshace la

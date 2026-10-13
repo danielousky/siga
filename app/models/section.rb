@@ -59,7 +59,37 @@ class Section < ApplicationRecord
   def self.identificadores_usados
     group(:name).order(Arel.sql("count(*) DESC"), :name).pluck(:name)
   end
+
+  # Las secciones de una pantalla de «Documentos», y la que se va a emitir.
+  #
+  #     @secciones, @seccion = Section.con_la_pedida(@secciones, params[:section_id])
+  #
+  # ⚠️ La PEDIDA entra aunque el filtro de la sesión la deje afuera. Llega del
+  # botón «Documentos oficiales» de una sección, y si es de otro año escolar,
+  # caer en la primera de la lista sin decir nada es el filtro que aparece
+  # puesto y no filtra (CLAUDE.md § 8.b): quien emite mira el papel que sale,
+  # no el desplegable. La busca el `default_scope`, así que nunca es de otro
+  # colegio.
+  def self.con_la_pedida(lista, id)
+    lista = lista.to_a
+    return [ lista, lista.first ] if id.blank?
+
+    pedida = lista.find { |seccion| seccion.id.to_s == id.to_s } ||
+             includes(:grade, :academic_period).find_by(id: id)
+    lista |= [ pedida ] if pedida
+    [ lista, pedida || lista.first ]
+  end
   validates :capacity, presence: true, numericality: { greater_than: 0 }
+
+  # ⚠️ El cupo nace PROPUESTO, y no es cosmético: la columna es obligatoria y
+  # el formulario de la sección lo esconde en «Guía, cupo y aula · opcional».
+  # Sin propuesta, quien creaba una sección sin abrir ese panel recibía
+  # «Capacidad no puede estar en blanco» de un campo que no veía. Y crearla desde la ficha
+  # del grado —solo el identificador y el guía (Daniel, 13 de octubre de
+  # 2026)— no tendría de dónde sacarlo. Treinta es el mismo piso que usa el
+  # importador; se corrige cuando se ve la matrícula.
+  CUPO_PROPUESTO = 30
+  attribute :capacity, :integer, default: CUPO_PROPUESTO
 
   # La letra que le toca a la próxima sección de este grado (MOR-153).
   #

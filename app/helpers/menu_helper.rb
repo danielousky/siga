@@ -439,6 +439,13 @@ module MenuHelper
     end
 
     pestanas << [ "Alumnos", alumnos_section_path(seccion, contexto), activa == :alumnos ]
+
+    # ⚠️ Quién dicta qué es de la DIRECCIÓN, que es quien asigna. Fue una
+    # segunda tarjeta debajo de la lista de alumnos hasta que Daniel la mandó a
+    # su pestaña (13 de octubre de 2026).
+    if can_manage_sections?
+      pestanas << [ "#{Vocabulario::AREAS_CORTAS} y profesores", areas_section_path(seccion, contexto), activa == :areas ]
+    end
     pestanas
   end
 
@@ -454,11 +461,16 @@ module MenuHelper
   # ⚠️ Los certificados llegaron el 1 de octubre de 2026 y existían desde el 11
   # de septiembre: estaban en la última tarjeta de la ficha de cada alumno, y
   # quien abría «Documentos» veía dos pestañas y concluía que no había más.
+  #
+  # ⚠️ La sección ELEGIDA viaja de una pestaña a la otra. Se llega desde el
+  # botón «Documentos oficiales» de una sección (13 de octubre de 2026), y quien
+  # pasa de sus boletines a sus constancias sigue hablando de la misma sección.
   def pestanas_de_documentos
+    seccion = { section_id: params[:section_id].presence }.compact
     [
-      [ "Boletines", report_cards_path, controller_name == "report_cards" ],
-      [ "Constancias", constancias_path, controller_name == "constancias" ],
-      [ "Certificados", certificados_path, controller_name == "certificados" ]
+      [ "Boletines", report_cards_path(seccion), controller_name == "report_cards" ],
+      [ "Constancias", constancias_path(seccion), controller_name == "constancias" ],
+      [ "Certificados", certificados_path(seccion), controller_name == "certificados" ]
     ]
   end
 

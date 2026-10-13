@@ -23,6 +23,32 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.20.0 — 13 de octubre de 2026
+
+- **La constancia y el boletín de un alumno, a un clic desde su ficha.** El
+  botón «Constancia» emite y descarga la de ese alumno, sin ir a buscarlo en su
+  sección. Y la tarjeta «Documentos oficiales» trae la constancia de estudio y
+  el boletín de cada lapso —y el anual—, además del papel del ministerio que le
+  toca por su grado.
+- **«Documentos oficiales» en cada sección.** Un botón del encabezado lleva a
+  «Documentos» con esa sección ya elegida, y sigue elegida al pasar de los
+  boletines a las constancias o a los certificados.
+- **«Áreas y profesores» es una pestaña de la sección**, después de
+  «Alumnos», y dice también qué área del grado no tiene profesor todavía. Era
+  una tabla al final de la lista de alumnos.
+- **Una sección nueva se agrega desde su grado, con dos datos:** el
+  identificador —SIGA propone la letra que sigue— y el profesor guía. Y el
+  grado muestra solo las secciones del año escolar que se está mirando.
+- Al editar una inscripción, la sección se elige entre las de su mismo grado y
+  año: editarla es cambiar de sección o retirar. Para pasar a otro grado, se
+  retira y se inscribe de nuevo.
+- Crear una sección sin abrir «Guía, cupo y aula» ya no da error: el cupo nace
+  en 30, y se corrige cuando se ve la matrícula.
+- En la portada, las tres cifras ya no dejan un hueco gris en las pantallas
+  medianas.
+
+---
+
 ## 1.19.1 — 13 de octubre de 2026
 
 - **El WhatsApp de SIGA, fijo en la esquina de la portada.** Además de los

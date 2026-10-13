@@ -2,7 +2,7 @@ class SectionsController < ApplicationController
   include PreparaLaAsistencia
   include MuestraElPlan
 
-  PESTANAS = [ :show, :alumnos, :alumno, :asistencia, :planificar ].freeze
+  PESTANAS = [ :show, :alumnos, :alumno, :asistencia, :planificar, :areas ].freeze
 
   before_action :require_admin_access!, except: PESTANAS
   before_action :require_read_access!, only: PESTANAS
@@ -66,6 +66,16 @@ class SectionsController < ApplicationController
       formato.html
       formato.xlsx { enviar_la_lista(ListaDeAlumnosXlsx.new(secciones: @section)) }
     end
+  end
+
+  # La pestaña «Áreas y profesores»: quién dicta qué en esta sección, y qué
+  # área del grado se quedó sin nadie.
+  #
+  # ⚠️ Es de la DIRECCIÓN, que es quien asigna. Al profesor no se le dibuja la
+  # pestaña, y si llega por la URL vuelve a «Alumnos»: no es un secreto —son
+  # sus compañeros— pero es una lista que no usa.
+  def areas
+    redirect_to alumnos_section_path(@section, area: params[:area]) unless can_manage_sections?
   end
 
   # La ficha del alumno COMO LA VE SU PROFESOR (etapa ③).
@@ -158,11 +168,22 @@ class SectionsController < ApplicationController
 
   def edit; end
 
+  # ⚠️ Dos puertas: el formulario completo (`/secciones/nueva`) y la ficha del
+  # grado, que pregunta solo el identificador y el guía (Daniel, 13 de octubre
+  # de 2026). Desde el grado se VUELVE al grado, que es donde se estaban
+  # armando las secciones; el cupo sale propuesto (`Section::CUPO_PROPUESTO`).
   def create
     @section = Section.new(section_params)
     if @section.save
       registrar_cambio(:creado, @section, "#{@section.grade.name} – #{@section.name}")
-      redirect_to @section, notice: "Sección creada exitosamente."
+      if desde_el_grado?
+        redirect_to grade_path(@section.grade), notice: "Sección #{@section.name} agregada a #{@section.grade.name}."
+      else
+        redirect_to @section, notice: "Sección creada exitosamente."
+      end
+    elsif desde_el_grado?
+      redirect_to grade_path(params[:grade_id]),
+                  alert: "No se agregó la sección: #{@section.errors.full_messages.to_sentence}."
     else
       render :new, status: :unprocessable_entity
     end
@@ -406,9 +427,13 @@ class SectionsController < ApplicationController
     permitidos = params.require(:section).permit(:name, :grade_id, :capacity, :classroom, :leader_teacher_id)
     return permitidos if @section&.persisted?
 
+    # Desde la ficha del grado, el grado es el de la URL.
+    permitidos = permitidos.merge(grade_id: params[:grade_id]) if desde_el_grado?
     permitidos.merge(academic_period_id: Current.academic_period_id ||
                                          params[:section][:academic_period_id])
   end
+
+  def desde_el_grado? = params[:grade_id].present?
 
   def require_admin_access!
     unless administrador? && can_manage_sections?

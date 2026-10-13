@@ -13,6 +13,14 @@ class GradesController < ApplicationController
   def show
     @grade_subjects = @grade.grade_subjects.includes(:subject)
     @available_subjects = Subject.where.not(id: @grade.subject_ids).order(:name)
+
+    # ⚠️ Las secciones del AÑO DE LA SESIÓN, no todas las que tuvo el grado.
+    # Daniel, 13 de octubre de 2026, tachando la de 2025-2026 en la muestra:
+    # *«solo van las secciones del período seleccionado»*. Con «Todos» elegido
+    # arriba, salen todas, cada una con su año.
+    @secciones = @grade.sections.del_anio_de_la_sesion
+                       .includes(:academic_period, leader_teacher: :user).order(:name)
+    @profesores = Teacher.includes(:user).order("users.last_name", "users.first_name") if can_manage_sections?
   end
 
   def new

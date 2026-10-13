@@ -1,0 +1,54 @@
+-# ÁREAS Y PROFESORES: quién dicta qué en esta sección. Pestaña de la DIRECCIÓN.
+-#
+-# Fue una segunda tarjeta debajo de la lista de «Alumnos». Daniel, mirando la
+-# muestra el 13 de octubre de 2026: *«esta sección va como una pestaña
+-# adicional después de Alumnos»*. Son dos preguntas distintas —quiénes están y
+-# quién les da clase— y la segunda quedaba al final de una lista de treinta.
+-#
+-# ⚠️ Lleva también las áreas del grado SIN profesor, por lo mismo que el
+-# encabezado dice «Profesor guía: Sin asignar»: lo que falta se ve mirando la
+-# sección, no el primer día de clases. Se asigna desde el área, que es donde
+-# vive ese formulario: el enlace lleva ahí.
+-#
+-# ⚠️ En orden alfabético, sin acentos que lo desordenen. Salía en el orden en
+-# que se asignaron, y «Castellano» caía entre «Inglés» y «Matemática».
+- acciones = capture do
+  - if administrador?
+    = boton "Editar", edit_section_path(@section), icono: :editar, tono: :secondary
+- filas = (@teacher_sections.map { |ts| [ ts.subject, ts.teacher ] } + @available_subjects.map { |area| [ area, nil ] })
+- filas = filas.sort_by { |area, _| I18n.transliterate(area.name).downcase }
+- sin_profesor = filas.count { |_, profesor| profesor.nil? }
+
+= render layout: "sections/marco",
+         locals: { seccion: @section, area: area_de_la_pestana, activa: :areas,
+                   inscritos: @enrollments.size, acciones: acciones } do
+  .card-academic
+    = render "shared/cabecera", nivel: 2,
+             titulo: [ contar(filas.map(&:first).uniq.size, Vocabulario::AREA_CORTA.downcase, Vocabulario::AREAS_CORTAS.downcase),
+                       ("#{sin_profesor} sin profesor" if sin_profesor.positive?) ].compact.join(", ")
+
+    - if filas.any?
+      %table.table-academic
+        %thead
+          %tr
+            %th= Vocabulario::AREA_CORTA
+            %th= Teacher.model_name.human
+        %tbody
+          - filas.each do |area, profesor|
+            %tr
+              %td= area.name
+              %td
+                - if profesor.nil?
+                  %span.dato-secundario Sin asignar
+                  %span.ficha-punto ·
+                  = link_to "Asignar", subject_path(area),
+                            data: { tooltip: "Se asigna desde la ficha de #{Vocabulario::LA_AREA}" }
+                - elsif profesor.user_id == current_user.id
+                  %strong= profesor.user.nombre_completo
+                  %span.seccion-soy-yo (tú)
+                - else
+                  = profesor.user.nombre_completo
+    - else
+      .empty-state
+        %h3= "Sin #{Vocabulario::AREAS_CORTAS.downcase}"
+        %p= "#{@section.grade.name} todavía no tiene #{Vocabulario::LAS_AREAS}: se le asignan desde el grado."

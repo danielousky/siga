@@ -18,7 +18,7 @@ class ConstanciasController < ApplicationController
 
   def index
     @secciones = Section.includes(:grade, :academic_period).order("grades.name", :name)
-    @seccion   = @secciones.find { |s| s.id.to_s == params[:section_id] } || @secciones.first
+    @secciones, @seccion = Section.con_la_pedida(@secciones, params[:section_id])
     @alumnos   = @seccion ? inscripciones_de(@seccion) : []
   end
 

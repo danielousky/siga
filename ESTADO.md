@@ -1,5 +1,42 @@
 # 🔖 Estado de avance — actualizado 13 de octubre de 2026
 
+## 🟡 Lo que vio Daniel en la muestra — 1.20.0, EN LOCAL (sin desplegar)
+
+El 12 y el 13 de octubre Daniel recorrió `demo.sigaeducando.com` y mandó ocho
+capturas marcadas. Siete quedaron hechas en la rama
+`fix/lo-que-vio-daniel-en-la-muestra`, con `bin/ci` en verde; **no está en
+GitHub ni desplegada**: espera su revisión.
+
+```
+   LA SECCIÓN
+   ▌ 1er Año · Sección A   [Descargar la lista] [Resumen Final] [en Excel] [Editar] [Documentos oficiales]
+     Asistencia │ Calificar │ Plan de Evaluación │ Informes │ Alumnos │ Áreas y profesores
+                                                                         └ nueva: era una tabla
+                                                                           debajo de la lista
+   LA FICHA DEL ALUMNO                          [Editar] [⤓ Constancia]  ← baja la de ESTE alumno
+     Documentos oficiales
+       Constancia de estudio                    [⤓ Emitir y descargar]
+       Boletín                                  [⤓ 1er Lapso] [⤓ 2do Lapso] [⤓ 3er Lapso] [⤓ Anual]
+       el del ministerio que toque por el grado (como antes)
+
+   EL GRADO        solo las secciones del año elegido arriba, y
+                   Agregar una sección  [ C ] [Sin profesor guía ▾] [Agregar]
+   LA INSCRIPCIÓN  «Editar» ofrece solo las secciones de su grado y su año
+   LA PORTADA      las tres cifras: tres columnas o una, sin el hueco gris
+```
+
+De paso: crear una sección sin abrir «Guía, cupo y aula» daba «Capacidad no
+puede estar en blanco» de un campo escondido. Ahora el cupo nace en 30.
+
+### Lo que falta de esa ronda
+
+- **`/evaluaciones` de la dirección** (*«debe haber una mejor manera de
+  mostrarlo»*): una barra por cada sección × área × lapso, de los DOS años
+  escolares (no filtra por el año de la sesión). Es una decisión de diseño: le
+  mostré opciones dibujadas, y se construye cuando elija.
+- Las capturas del manual son de una siembra vieja, y los ids de
+  `docs/manual/capturar.rb` ya no existen. El texto sí está al día.
+
 ## ✅ Del registro al cobro — EN PRODUCCIÓN desde el 13 de octubre (1.19.1)
 
 Del 7 al 12 de octubre se redefinió cómo entra, prueba y paga un colegio. El

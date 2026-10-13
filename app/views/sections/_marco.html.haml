@@ -15,8 +15,21 @@
 -#
 -# ⚠️ Existe para que las cuatro vistas no repitan esa estructura: son la misma
 -# sección vista de otro ángulo, y cuatro copias del marco se separan.
+-#
+-# ⚠️ «Documentos oficiales» va en el encabezado de TODAS las pestañas, después
+-# de las acciones de cada una. Daniel, en la muestra el 13 de octubre de 2026:
+-# un enlace directo a los documentos de la sección. Lo dibujó primero como
+-# pestaña y después como botón, y es botón por lo mismo que «Informes» es
+-# pestaña: una pestaña es otro sitio donde trabajar DENTRO de la sección, y
+-# esto lleva a «Documentos», con la sección ya elegida.
+- acciones = capture do
+  = local_assigns[:acciones]
+  - if puede?(:emitir_documentos)
+    = boton "Documentos oficiales", report_cards_path(section_id: seccion.id),
+            icono: :boletines, tono: :documento,
+            tooltip: "Boletines, constancias y certificados de esta sección"
 = render "sections/encabezado", **{ seccion: seccion, area: area, inscritos: inscritos,
-                                    acciones: local_assigns[:acciones] }
+                                    acciones: acciones }
 
 .card-academic
   = render "shared/pestanas", etiqueta: "Vistas de esta sección",

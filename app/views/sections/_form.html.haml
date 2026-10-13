@@ -97,7 +97,9 @@
   -#
   -# ⚠️ Se abre solo si YA tienen algo: al editar una sección armada, esconder
   -# lo que está lleno obliga a buscarlo para ver qué dice.
-  - hay_detalle = section.leader_teacher_id.present? || section.capacity.present? || section.classroom.present?
+  -# ⚠️ El cupo nace con `CUPO_PROPUESTO`, así que «tiene cupo» ya no dice que
+  -# alguien lo llenó: lo dice que sea OTRO número.
+  - hay_detalle = section.persisted? || section.leader_teacher_id.present? || section.classroom.present? || section.capacity != Section::CUPO_PROPUESTO
   %details.form-avanzado{ open: hay_detalle }
     %summary.form-avanzado-titulo
       Guía, cupo y aula

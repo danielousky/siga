@@ -1,0 +1,21 @@
+-# Un botón que EMITE un papel de este alumno y lo descarga en el mismo clic:
+-# la constancia, o el boletín de un lapso.
+-#
+-#     = render "students/emitir", texto: "1er Lapso", ruta: report_cards_path,
+-#              inscripcion: @inscripcion, params: { evaluation_moment_id: lapso.id }
+-#
+-# ⚠️ Es un POST, porque emitir deja rastro —un código y quién lo sacó— y por
+-# eso `button_to` y no un enlace. Va a la MISMA acción que «Documentos»: el
+-# permiso, el muro de la suscripción y la auditoría son los de siempre, no una
+-# segunda puerta con reglas propias.
+-#
+-# ⚠️ `data-turbo: false` en el formulario: Turbo pediría el PDF por `fetch`, se
+-# quedaría con el binario en memoria, y el botón parecería no hacer nada.
+- extra = local_assigns.fetch(:params, {})
+- sm = local_assigns[:sm]
+= button_to ruta, params: { section_id: inscripcion.section_id, enrollment_id: inscripcion.id, **extra },
+            class: [ "btn", "btn-documento", ("btn-sm" if sm) ].compact.join(" "),
+            form: { data: { turbo: false } },
+            data: (local_assigns[:tooltip] ? { tooltip: local_assigns[:tooltip] } : {}) do
+  = icono(:descargar, tamano: sm ? 15 : 16)
+  %span= texto

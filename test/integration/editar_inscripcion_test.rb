@@ -56,6 +56,40 @@ class EditarInscripcionTest < ActionDispatch::IntegrationTest
                  "cambiar el alumno se lleva sus notas y su asistencia a otra persona"
   end
 
+  # ⚠️ Editar es mover DENTRO DEL GRADO, o retirar. Daniel, 13 de octubre de
+  # 2026, con el desplegable abierto en la muestra —veintidós secciones de los
+  # tres niveles—: *«deberían aparecer solo las secciones del año
+  # correspondiente. Es decir, es solo cambio de sección o retiro»*.
+  test "la pantalla ofrece solo las secciones de su grado, en su año" do
+    otro_grado = con_el_colegio(@a.colegio) do
+      grado = Grade.create!(school: @a.colegio, level: :secundaria, name: "2do Año")
+      Section.create!(grade: grado, academic_period: @a.periodo, name: "A")
+    end
+    viejo = ano_escolar_viejo(@a.escenario, nombre: "2023-2024")
+    del_ano_pasado = con_el_colegio(@a.colegio) { Section.find_by!(academic_period: viejo) }
+
+    get edit_enrollment_path(@a.inscripcion)
+
+    ofrecidas = css_select("select[name='enrollment[section_id]'] option").map { |o| o["value"] }
+    assert_equal [ @a.seccion.id, @otra_seccion.id ].map(&:to_s).sort, ofrecidas.sort
+    assert_not_includes ofrecidas, otro_grado.id.to_s
+    assert_not_includes ofrecidas, del_ano_pasado.id.to_s
+  end
+
+  # Y no es solo la pantalla: lo que llegue por otra puerta tampoco la pasa.
+  test "pasarla a otro grado no se guarda, ni mandándolo por HTTP" do
+    otro_grado = con_el_colegio(@a.colegio) do
+      grado = Grade.create!(school: @a.colegio, level: :secundaria, name: "2do Año")
+      Section.create!(grade: grado, academic_period: @a.periodo, name: "A")
+    end
+
+    patch enrollment_path(@a.inscripcion), params: { enrollment: { section_id: otro_grado.id } }
+
+    assert_response :unprocessable_entity
+    assert_match(/otra inscripción/, response.body)
+    assert_equal @a.seccion.id, con_el_colegio(@a.colegio) { @a.inscripcion.reload.section_id }
+  end
+
   test "la fecha tampoco: es un hecho, no una preferencia" do
     original = con_el_colegio(@a.colegio) { @a.inscripcion.enrollment_date }
 
