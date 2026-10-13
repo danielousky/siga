@@ -1,46 +1,74 @@
-# 🔖 Estado de avance — actualizado 12 de octubre de 2026
+# 🔖 Estado de avance — actualizado 13 de octubre de 2026
 
-## ⚠️ En curso: del registro al cobro — las cinco tandas, hechas
+## ✅ Del registro al cobro — EN PRODUCCIÓN desde el 13 de octubre (1.19.0)
 
 Del 7 al 12 de octubre se redefinió cómo entra, prueba y paga un colegio. El
-spec está **congelado**: `docs/specs/del-registro-al-cobro.md`.
+spec está **congelado**: `docs/specs/del-registro-al-cobro.md`. El 13 de
+octubre, a las 7:55 de la mañana, salió todo a producción.
 
 ```
-   LO DECIDIDO                                          EN EL CÓDIGO
-   0,35 $ por alumno al mes, mínimo 45 $, sin IVA aparte ✔ en local (cambió el 12 oct, ver abajo)
-   un solo plan, sin nombres                            ✔ tanda 1, en local
-   todo colegio nace en gratis; solo cargar es libre    ✔ tanda 1, en local
-   «Suscripción» → reporte → validación en /siga        ✔ tanda 2, en local
-   el WhatsApp y los datos para pagar, en /siga/ajustes ✔ tanda 2, en local
-   el WhatsApp y la muestra, en la tabla setup           ✔ 12 oct, en local (decisión 35)
-   PayPal como cuarto medio; Binance y PayPal en setup   ✔ 13 oct, en local (decisión 36)
-   el colegio de muestra, en su instancia aparte        ✔ tanda 5, EN LÍNEA: demo.sigaeducando.com
-   la puerta: registro + WhatsApp + colegio de muestra  ✔ tanda 4, en local
-   un trabajo diario: 5 días antes · gracia · solo      ✔ tanda 3, en local
+   LO DECIDIDO                                          DÓNDE ESTÁ
+   0,35 $ por alumno al mes, mínimo 45 $, sin IVA aparte ✔ producción (1.15.0)
+   un solo plan, sin nombres                            ✔ producción (1.14.0)
+   todo colegio nace en gratis; solo cargar es libre    ✔ producción (1.14.0)
+   «Suscripción» → reporte → validación en /siga        ✔ producción (1.15.0)
+   el colegio de muestra, en su instancia aparte        ✔ demo.sigaeducando.com (1.19.0)
+   la puerta: registro + WhatsApp + colegio de muestra  ✔ producción (1.17.0)
+   un trabajo diario: 5 días antes · gracia · solo      ✔ producción (1.18.0)
    lectura, con sus correos
-   unificar lo que vive en el repo (§ 9)                ✔ en local; lo de AFUERA es tuyo, abajo
+   el WhatsApp y la muestra, en la tabla setup           ✔ producción (1.18.1, decisión 35)
+   PayPal como cuarto medio; Binance y PayPal en setup   ✔ producción (1.19.0, decisión 36)
+   unificar lo que vive en el repo (§ 9)                ✔; lo de AFUERA es tuyo, abajo
 ```
 
-### Para cuando vuelvas, en este orden
+### Cómo salió, el 13 de octubre
 
 ```
-   1 · MIRAR      https://demo.sigaeducando.com     un clic por puerta: director, profesor,
-                                                    representante —y siete «otras miradas»—
-   2 · PROBAR     en local, la portada, el registro y los correos nuevos
-                  tu base local YA está resembrada (12 oct, 22:01, con tu visto bueno)
-                  y con el catálogo de vuelta: localhost:3000 enseña lo mismo que la muestra
-   3 · DECIDIR    las decisiones POR CONFIRMAR del spec, abajo
-   4 · SUBIR      las ocho ramas, en orden —cada una sale de la anterior—:
-                  feat/del-registro-al-cobro → feat/pagar-sin-consola →
-                  feat/el-precio-con-el-iva-adentro → feat/la-muestra → feat/la-puerta →
-                  feat/la-escalera → docs/unificar-el-cobro → feat/la-tabla-setup
-                  Ninguna está en GitHub. Producción sigue en la 1.13.0.
-   5 · AL DESPLEGAR A PRODUCCIÓN
-                  cargar /siga/ajustes: el WhatsApp, la dirección de la muestra
-                  (https://demo.sigaeducando.com) y los datos para pagar. Sin eso,
-                  «Suscripción» no tiene cómo cobrar y la portada no dibuja ni el
-                  WhatsApp ni «Vea un colegio funcionando». Ya NO hay variable que poner.
+   06:35  respaldo de producción, abierto y contado     0 colegios · 2 personas · 15.954 planteles
+          → SIGA/respaldos/siga-prod-20261013-0635.dump
+   06:40  9 PRs, uno por rama (#57 → #65), CI de GitHub en verde los nueve
+   06:45  la muestra, en 1.19.0
+   07:50  merge en orden; el CI de main corre una vez, en el último
+          tags v1.14.0 → v1.19.0, cada uno en el merge de su versión
+   07:55  producción en 1.19.0: seis migraciones y `rls:verificar` en verde
+   07:57  ajustes cargados con `bin/rails ajustes:poner`:
+          la dirección de la muestra, Binance y PayPal (tu correo)
 ```
+
+⚠️ **Producción no tenía colegios**: la migración que abre una suscripción
+`gratis` a cada colegio no encontró ninguno. Nadie amaneció con el muro.
+
+### Lo que falta, y es tuyo
+
+```
+   1 · EL WHATSAPP de producción   /siga/ajustes ▸ «El WhatsApp de SIGA».
+                                   Producción no tiene SIGA_WHATSAPP: hoy la portada
+                                   no dibuja el botón, y sin él no se ofrece el efectivo.
+                                   En tu base local hay uno cargado: si es ese, es copiarlo.
+   2 · PAGO MÓVIL Y TRANSFERENCIA  /siga/ajustes: titular, cédula, banco, teléfono, cuenta.
+                                   Hoy «Suscripción» ofrece Binance y PayPal.
+   3 · MIRAR                       https://sigaeducando.com y https://demo.sigaeducando.com
+   4 · DECIDIR                     las POR CONFIRMAR de abajo, y dos preguntas nuevas
+```
+
+**Dos preguntas que dejó PayPal:**
+
+- **¿Quién paga la comisión de PayPal?** Al que recibe le descuentan un
+  porcentaje: si el colegio manda 126 $, te llegan menos. Hoy SIGA no dice
+  nada, y validar es lo que decide si alcanza.
+- **Tu correo de PayPal y Binance es también tu usuario de `/siga` en
+  producción**, y lo va a ver todo colegio que se registre, en «Suscripción».
+  SIGA no tiene segundo factor: si te preocupa, conviene una clave larga o
+  que el equipo entre con otro correo.
+
+⚠️ **La muestra: el restablecido a mano no terminó.** Lo lancé después de
+desplegarla, y a los 40 minutos seguía sin terminar (en el servidor tarda
+unos catorce), así que lo corté. Va en una transacción, y la muestra quedó como
+estaba: con la siembra de anoche y el código nuevo, sus diez puertas abren
+(`muestra:estado`). Esta noche a las 4:00 la resiembra sola, ya con el PayPal
+de ejemplo. **Mañana, mirar** `ssh siga-deploy run siga-demo bin/rails
+muestra:estado`; si tampoco terminó de noche, hay algo que mirar en el
+servidor.
 
 **Por confirmar** (del spec, con quién las propuso):
 
@@ -69,7 +97,7 @@ miraste y se confunda o me proponga cosas basada en información obsoleta.»*
 
 **Y después:** horarios —«sí o sí», sobre todo para Media—, que pide su spec.
 
-### Binance y PayPal — hechos en local el 13 de octubre
+### Binance y PayPal — 1.19.0, 13 de octubre (en producción)
 
 Rama `feat/binance-y-paypal`, encima de la tabla `setup`. Versión **1.19.0**.
 Daniel: *«Hay que agregar una variable para los valores de Binance y Paypal,
@@ -93,7 +121,7 @@ en ambos casos el correo es…»* —el tuyo, que no se escribe en el repositori
   mismas reglas que la pantalla (`docs/tareas-de-operacion.md`).
 - Tu base local ya tiene los dos con tu correo.
 
-### La tabla `setup` — hecha en local el 12 de octubre
+### La tabla `setup` — 1.18.1, 12 de octubre (en producción)
 
 Rama `feat/la-tabla-setup`, encima de la unificación. Versión **1.18.1**.
 Daniel: *«Pon SIGA_MUESTRA_URL como un campo de ajustes. De hecho, vamos a
@@ -141,7 +169,7 @@ De paso, dos fallas viejas del panel oscuro de `/siga`, que salieron al mirar
 esta pantalla con un error: el título del recuadro («1 error(es) impiden
 guardar») no se leía, y el campo culpable no se marcaba en rojo.
 
-### La tanda 3, «la escalera» — hecha en local el 12 de octubre
+### La tanda 3, «la escalera» — 1.18.0, 12 de octubre (en producción)
 
 Rama `feat/la-escalera`, encima de la puerta. Versión **1.18.0**. Con esta
 quedan hechas las cinco tandas del spec.
@@ -169,7 +197,7 @@ finanzas; y a quien ya reportó su pago no se le reclama.
 ⚠️ **Trae una migración** (dos columnas en `subscriptions`). Tu base de
 desarrollo ya la tiene: la corrí ahí, es aditiva.
 
-### La tanda 4, «la puerta» — hecha en local el 12 de octubre
+### La tanda 4, «la puerta» — 1.17.0, 12 de octubre (en producción)
 
 Rama `feat/la-puerta`, encima de la muestra. Versión **1.17.0**.
 
@@ -196,7 +224,7 @@ ajuste, ver arriba.
 ⚠️ **Y el WhatsApp de la portada es el de `/siga/ajustes`.** Si allá no hay
 número cargado, el botón no aparece.
 
-### La tanda 5, «la muestra» — en línea desde el 12 de octubre
+### La tanda 5, «la muestra» — 1.16.0, en línea desde el 12 de octubre
 
 Rama `feat/la-muestra`, encima de la del IVA. Versión **1.16.0**. Daniel, antes
 de irse: *«Avanza con todo lo que puedas. Al final necesito abrir el dominio
@@ -281,7 +309,7 @@ octubre. Es la misma rareza de la zona horaria que anota el spec.
 lapsos ni tiene boletín por lapso; el boletín anual no se libera a la familia;
 el panel cuenta secciones y alumnos de todos los años.
 
-### El precio lleva el IVA adentro — hecho en local, el mismo 12 de octubre
+### El precio lleva el IVA adentro — 12 de octubre (en producción)
 
 Rama `feat/el-precio-con-el-iva-adentro`, encima de la tanda 2. Daniel, con la
 pantalla «Suscripción» delante: *«se ve muy incómodo, además no podemos cobrar
@@ -303,7 +331,7 @@ bajado la mensualidad al colegio chico. Es `Subscription::MINIMO_MENSUAL`.
 ⚠️ **Y la regla del 0,40** (decisión 18) era antes de meter el IVA: con la
 misma cuenta serían 0,46. Hay que volver a decidirla.
 
-### La tanda 2, «pagar sin consola» — hecha en local, esperando la revisión de Daniel
+### La tanda 2, «pagar sin consola» — 1.15.0 (en producción)
 
 Rama `feat/pagar-sin-consola`, que sale de la tanda 1. Versión **1.15.0**.
 
@@ -349,7 +377,7 @@ por el día del reporte, y que una validación no se deshace.
    los correos                     /rails/mailers/correos_de_siga (los tres nuevos, al final)
 ```
 
-### La tanda 1, «las reglas» — hecha en local, esperando la revisión de Daniel
+### La tanda 1, «las reglas» — 1.14.0 (en producción)
 
 ```
    el precio            por alumno, con un mínimo: `Subscription::PRECIO_POR_ALUMNO`
@@ -383,26 +411,20 @@ activarlo sin pasar por el reporte y la validación.
 ## Dónde está cada cosa
 
 ```
-   PRODUCCIÓN                 1.13.0 · tag v1.13.0 · sin colegios cargados
-   origin/main  =  main       lo mismo, más los arreglos del CI (el humo, dos tests
-                              de sistema intermitentes y la corrida más corta, PR
-                              #54 a #56): son de herramientas, no cambian el
-                              producto ni hay que desplegarlos
-   ramas abiertas             feat/del-registro-al-cobro, local: el spec del cobro
-                              y la tanda 1
-                              feat/pagar-sin-consola, local: la tanda 2, encima
-                              feat/el-precio-con-el-iva-adentro, local: encima de esa
-                              feat/la-muestra, local: la tanda 5, encima — y
-                              DESPLEGADA en la app `siga-demo` (no en producción)
-                              feat/la-puerta, local: la tanda 4, encima
-                              feat/la-escalera, local: la tanda 3, encima
-   demo.sigaeducando.com      la muestra: app `siga-demo`, remoto `dokku-demo`
+   PRODUCCIÓN                 1.19.0 · tag v1.19.0 · revisión 498de67 · sin colegios
+   origin/main  =  main       lo mismo: los nueve PRs del cobro (#57 → #65), mezclados
+   demo.sigaeducando.com      la muestra en 1.19.0: app `siga-demo`, remoto `dokku-demo`
+   ramas abiertas             ninguna con trabajo pendiente: las nueve del cobro están
+                              en main (se pueden borrar en GitHub cuando quieras)
+   respaldo de antes          SIGA/respaldos/siga-prod-20261013-0635.dump
 ```
 
-⚠️ **De la 1.11.0 a la 1.13.0 están cerradas**: mezcladas y desplegadas el 5 de
-octubre. Nada se sube sin que Daniel lo diga.
+⚠️ **De la 1.14.0 a la 1.19.0 están cerradas**: mezcladas y desplegadas el 13
+de octubre, a pedido de Daniel (*«De resto, despliega!»*, la noche del 12).
+Nada se sube sin que Daniel lo diga.
 
-Este archivo se llamó `RETOME.md` hasta ese día; el porqué, en `CLAUDE.md`.
+Este archivo se llamó `RETOME.md` hasta el 5 de octubre; el porqué, en
+`CLAUDE.md`.
 
 ## El CI, más rápido
 
