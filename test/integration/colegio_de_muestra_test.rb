@@ -46,10 +46,12 @@ class ColegioDeMuestraTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  # Dónde vive es un ajuste de `/siga` (`Setup`), y no la variable
+  # `SIGA_MUESTRA_URL` que fue hasta el 12 de octubre de 2026.
   test "y si se dijo dónde vive, manda allá" do
-    con_la_variable_de_entorno("SIGA_MUESTRA_URL", "https://demo.sigaeducando.com") do
-      get muestra_path
-    end
+    Setup.create!(nombre: "url_de_la_muestra", valor: "https://demo.sigaeducando.com")
+
+    get muestra_path
 
     assert_redirected_to "https://demo.sigaeducando.com"
   end
@@ -264,15 +266,5 @@ class ColegioDeMuestraTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select ".aviso-muestra", count: 0
-  end
-
-  private
-
-  def con_la_variable_de_entorno(nombre, valor)
-    anterior = ENV[nombre]
-    ENV[nombre] = valor
-    yield
-  ensure
-    ENV[nombre] = anterior
   end
 end

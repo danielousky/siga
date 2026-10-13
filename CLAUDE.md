@@ -1239,7 +1239,7 @@ consola de producción. Tanda 2 del spec `del-registro-al-cobro`.
    Finanzas ▸ Suscripción                         Cartera ▸ «Pagos por validar»
    [Reportar el pago] ──► SubscriptionPayment ──►  [Validar]   activa un mes, en el momento
                           «en revisión»            [Rechazar…] con motivo
-                          + correo a SIGA          Ajustes: SigaSetting (WhatsApp y datos para pagar)
+                          + correo a SIGA          Ajustes: Setup (WhatsApp, muestra) · SigaSetting (pagos)
 ```
 
 ⚠️ **Reportar NO abre nada: abre la validación** (decisión 4). Sin esa
@@ -1279,12 +1279,37 @@ en su `SAVEPOINT`, con la red del índice único: sin eso el segundo envío era 
 una condición de negocio no es una clave: `modelo:erd` lo leía como «un pago por
 colegio» y dibujaba un 1:1. Solo el parcial de «si no es nulo» cuenta como clave.
 
-⚠️ **Los ajustes (`SigaSetting`) son de la plataforma**: una sola fila —lo dice
-un índice—, sin `school_id` ni RLS, y fuera de `demo:limpiar`
+⚠️ **Los ajustes son de la plataforma, y son DOS tablas en un formulario**
+(decisión 35, de Daniel: *«una tabla que se llame setup que sea nombre del
+campo, valor»*):
+
+```
+   setup           una fila por dato: whatsapp · url_de_la_muestra
+   siga_settings   UNA fila con los datos para pagar, que se validan entre sí
+```
+
+Las dos sin `school_id` ni RLS, y fuera de `demo:limpiar`
 (`OrdenDeBorrado::NO_SE_TOCAN`): limpiar una demo no puede llevarse las cuentas
 con que SIGA cobra. Un medio de pago se ofrece solo con sus datos completos; el
-efectivo, solo si hay WhatsApp. **El WhatsApp sale de aquí**, no de la variable
-`SIGA_WHATSAPP`, que quedó como valor inicial mientras nadie guarde los ajustes.
+efectivo, solo si hay WhatsApp.
+
+- **Un dato suelto nuevo es una entrada en `Setup::CAMPOS`** —con su forma de
+  limpiarse y de validarse— y su campo en `/siga/ajustes`, sin migración. Un
+  nombre que no está ahí no se puede guardar: una fila que nadie lee es un
+  ajuste que alguien cree haber cambiado.
+- ⚠️ **O se guarda todo, o nada** (`Siga::AjustesController#guardar`): se
+  validan las dos tablas antes y se guardan en una transacción. Un WhatsApp
+  guardado con una cuenta rechazada al lado es una pantalla que dice «error» y
+  que a medias sí cambió.
+- ⚠️ **Sin fila de WhatsApp vale la variable `SIGA_WHATSAPP`**; con fila —aunque
+  esté vacía— manda la base, y vacía quiere decir «apagado». Por eso un envío
+  que no trae el campo NO crea la fila (`Setup.para_guardar` prepara solo lo que
+  viene): sería apagar el botón sin que nadie lo pidiera. Y la variable importa:
+  en la muestra nadie entra a `/siga` (decisión 33), así que su WhatsApp sale de
+  ahí.
+- ⚠️ **Restablecer la muestra borra `siga_settings` y deja `setup`**: los datos
+  para pagar de la muestra son de ejemplo y los reescriben los seeds; su
+  WhatsApp es el de verdad.
 
 ⚠️ **El enlace del muro va aparte del texto**: `flash[:enlace]` en una pantalla
 y `enlace` en el JSON, con claves de TEXTO —el flash viaja como JSON—. Lo ve
@@ -1707,7 +1732,12 @@ lo pregunta en un solo sitio, `Muestra.activa?`:
 instancia se declaró muestra (si no, 404), la cuenta está en `Muestra::TODAS`,
 y tiene ESE rol en el colegio de ESE código DEA. Un endpoint que abre una sesión
 sin contraseña es lo peor que podría existir en el sistema de un colegio; lo
-cuida `colegio_de_muestra_test`, y `bin/smoke` exige el 404 fuera de la muestra.
+cuida `colegio_de_muestra_test`, y `bin/smoke` pide esa puerta —POST y con su
+token— y exige el 404 fuera de la muestra.
+⚠️ Lo que el humo NO puede exigir es el 404 de `GET /muestra`: desde que su
+dirección es un ajuste que la siembra carga, ahí contesta un 302 a la muestra de
+verdad. Lo que exige es que no dibuje las puertas, y no sigue la redirección —
+sería medir la muestra en internet—.
 
 ⚠️ **`SIGA_MUESTRA` es una variable NUEVA a propósito.** La `SIGA_ENTORNO_DEMO`
 de los seeds se usó contra producción cuando la demo vivía allá: si hubiera
@@ -1776,9 +1806,10 @@ buscadores y en mensajes reenviados. El modelo `DemoRequest` y
 `/siga/solicitudes` se quedan: son historia del equipo.
 
 ⚠️ **Los botones que dependen de algo de afuera se dibujan SOLO si existe:** el
-de WhatsApp, si hay número en `/siga/ajustes`; el de la muestra, si la instancia
-sabe dónde vive (`SIGA_MUESTRA_URL`). Sin la muestra, «verlo» pasa a «probarlo
-en su colegio». Un botón que abre un chat con nadie, o que lleva a un 404, le
+de WhatsApp, si hay número en `/siga/ajustes`; el de la muestra, si ahí mismo
+está su dirección (`url_de_la_muestra`, que fue la variable `SIGA_MUESTRA_URL`
+hasta el 12 de octubre). Sin la muestra, «verlo» pasa a «probarlo en su
+colegio». Un botón que abre un chat con nadie, o que lleva a un 404, le
 enseña a la visitante a no confiar en los demás.
 
 ⚠️ **Las tres puertas van dos veces —arriba y en el cierre— y son UN parcial**

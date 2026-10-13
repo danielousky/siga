@@ -20,7 +20,8 @@
 # ## Fuera de la muestra, `/muestra` es un cartel
 #
 # En el sitio de verdad no hay colegio de muestra que abrir: la dirección manda
-# a donde vive (`SIGA_MUESTRA_URL`), y si nadie la configuró, no existe.
+# a donde vive —el ajuste `url_de_la_muestra`, en `/siga/ajustes`—, y si nadie
+# lo cargó, no existe.
 class MuestraController < ApplicationController
   skip_before_action :authenticate_user!
 

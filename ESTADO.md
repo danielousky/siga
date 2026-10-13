@@ -12,6 +12,7 @@ spec está **congelado**: `docs/specs/del-registro-al-cobro.md`.
    todo colegio nace en gratis; solo cargar es libre    ✔ tanda 1, en local
    «Suscripción» → reporte → validación en /siga        ✔ tanda 2, en local
    el WhatsApp y los datos para pagar, en /siga/ajustes ✔ tanda 2, en local
+   el WhatsApp y la muestra, en la tabla setup           ✔ 12 oct, en local (decisión 35)
    el colegio de muestra, en su instancia aparte        ✔ tanda 5, EN LÍNEA: demo.sigaeducando.com
    la puerta: registro + WhatsApp + colegio de muestra  ✔ tanda 4, en local
    un trabajo diario: 5 días antes · gracia · solo      ✔ tanda 3, en local
@@ -28,15 +29,16 @@ spec está **congelado**: `docs/specs/del-registro-al-cobro.md`.
                   tu base local YA está resembrada (12 oct, 22:01, con tu visto bueno)
                   y con el catálogo de vuelta: localhost:3000 enseña lo mismo que la muestra
    3 · DECIDIR    las decisiones POR CONFIRMAR del spec, abajo
-   4 · SUBIR      las siete ramas, en orden —cada una sale de la anterior—:
+   4 · SUBIR      las ocho ramas, en orden —cada una sale de la anterior—:
                   feat/del-registro-al-cobro → feat/pagar-sin-consola →
                   feat/el-precio-con-el-iva-adentro → feat/la-muestra → feat/la-puerta →
-                  feat/la-escalera → docs/unificar-el-cobro
+                  feat/la-escalera → docs/unificar-el-cobro → feat/la-tabla-setup
                   Ninguna está en GitHub. Producción sigue en la 1.13.0.
    5 · AL DESPLEGAR A PRODUCCIÓN
-                  ssh siga-deploy config:set siga SIGA_MUESTRA_URL=https://demo.sigaeducando.com
-                  y cargar /siga/ajustes (el WhatsApp y los datos para pagar): sin eso,
-                  «Suscripción» no tiene cómo cobrar y la portada no dibuja el WhatsApp
+                  cargar /siga/ajustes: el WhatsApp, la dirección de la muestra
+                  (https://demo.sigaeducando.com) y los datos para pagar. Sin eso,
+                  «Suscripción» no tiene cómo cobrar y la portada no dibuja ni el
+                  WhatsApp ni «Vea un colegio funcionando». Ya NO hay variable que poner.
 ```
 
 **Por confirmar** (del spec, con quién las propuso):
@@ -65,6 +67,54 @@ manda el spec. Daniel: *«No quiero que en el futuro otra sesión mire lo que t�
 miraste y se confunda o me proponga cosas basada en información obsoleta.»*
 
 **Y después:** horarios —«sí o sí», sobre todo para Media—, que pide su spec.
+
+### La tabla `setup` — hecha en local el 12 de octubre
+
+Rama `feat/la-tabla-setup`, encima de la unificación. Versión **1.18.1**.
+Daniel: *«Pon SIGA_MUESTRA_URL como un campo de ajustes. De hecho, vamos a
+agregar una tabla que se llame setup que sea nombre del campo, valor»*.
+
+```
+   setup
+   nombre              valor                            antes
+   ─────────────────   ──────────────────────────────   ───────────────────────────────
+   whatsapp            0414-1234567                     una columna de siga_settings
+   url_de_la_muestra   https://demo.sigaeducando.com    la variable SIGA_MUESTRA_URL
+```
+
+```
+   /siga/ajustes
+   ┌──────────────────────────────────────────────────────────┐
+   │ Ajustes                                                  │
+   │ ┌ El WhatsApp de SIGA ──────────────────────────────┐    │
+   │ │ Número     [ 0414-1234567                ]        │    │  ← setup
+   │ └───────────────────────────────────────────────────┘    │
+   │ ┌ El colegio de muestra ────────────────────── NUEVO ┐   │
+   │ │ Dirección  [ https://demo.sigaeducando.com ]       │   │  ← setup
+   │ └────────────────────────────────────────────────────┘   │
+   │ ┌ A nombre de quién se paga ┐ ┌ Pago Móvil ┐ …          │  ← siga_settings, igual
+   │                                              [Guardar]   │
+   └──────────────────────────────────────────────────────────┘
+```
+
+- **Se guarda todo o nada**: si la dirección está mal escrita, tampoco se
+  guardan los datos para pagar —y al revés—.
+- **Sin fila de WhatsApp vale `SIGA_WHATSAPP`**, como antes. Es lo que usa la
+  muestra, donde nadie entra a `/siga`.
+- **Un dato nuevo de este tipo es una entrada** en `Setup::CAMPOS` y su campo
+  en la pantalla, sin migración.
+
+**Para mirarlo:** `localhost:3000/siga/ajustes`, con `desarrollador@siga.edu`
+(clave `123123`), que es el fundador de la siembra.
+
+⚠️ **Trae una migración**: crea `setup`, le pasa el WhatsApp que hubiera en
+`siga_settings` y le quita esa columna. Tu base de desarrollo ya la tiene (la
+corrí de ida y de vuelta), y con la dirección de la muestra cargada: la portada
+de localhost:3000 ya dibuja «Vea un colegio funcionando».
+
+De paso, dos fallas viejas del panel oscuro de `/siga`, que salieron al mirar
+esta pantalla con un error: el título del recuadro («1 error(es) impiden
+guardar») no se leía, y el campo culpable no se marcaba en rojo.
 
 ### La tanda 3, «la escalera» — hecha en local el 12 de octubre
 
@@ -113,12 +163,10 @@ Rama `feat/la-puerta`, encima de la muestra. Versión **1.17.0**.
 El formulario de demostración salió: su dirección lleva a la portada, y
 `/siga/solicitudes` se queda como historia.
 
-⚠️ **Al desplegar a PRODUCCIÓN hay que ponerle una variable**, o la portada no
-dibuja el botón de la muestra (sin ella invita a «probarlo en su colegio»):
-
-```bash
-ssh siga-deploy config:set siga SIGA_MUESTRA_URL=https://demo.sigaeducando.com
-```
+⚠️ **Al desplegar a PRODUCCIÓN hay que escribir dónde vive la muestra** en
+`/siga/ajustes`, o la portada no dibuja su botón (sin ella invita a «probarlo
+en su colegio»). Era la variable `SIGA_MUESTRA_URL`; desde la decisión 35 es un
+ajuste, ver arriba.
 
 ⚠️ **Y el WhatsApp de la portada es el de `/siga/ajustes`.** Si allá no hay
 número cargado, el botón no aparece.
@@ -182,7 +230,9 @@ las «otras miradas», que el colegio tenga la fecha de hoy, que a `/siga` de la
 muestra no entre nadie, y dos arreglos del portal de la familia.
 
 **⚠️ Lo que solo tú puedes poner:** el WhatsApp de SIGA en la muestra
-(`SIGA_WHATSAPP`): no conozco el número, y sin él no se dibuja el botón.
+(`SIGA_WHATSAPP`): no conozco el número, y sin él no se dibuja el botón. Ahí
+sigue siendo la variable —en la muestra nadie entra a `/siga`—, y desde la
+1.18.1 basta con ponerla: ya no hay que resembrar.
 
 **Tu base de desarrollo, resembrada** (12 de octubre, 22:01, con tu visto bueno:
 *«no hay problema en borrar la data, eso es de prueba»*). Se fueron tu colegio

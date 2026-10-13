@@ -1,8 +1,14 @@
--# Los ajustes de la plataforma (spec `del-registro-al-cobro`, decisiones 20 a 22).
+-# Los ajustes de la plataforma (spec `del-registro-al-cobro`, decisiones 20 a 22
+-# y 35).
 -#
 -# ⚠️ Lo que se guarda aquí lo ven los colegios en la petición siguiente: el
--# botón de WhatsApp y los medios de su pantalla «Suscripción». Un medio sin
--# todos sus datos no se ofrece, así que vaciar un campo es apagar su medio.
+-# botón de WhatsApp, el de la muestra en la portada y los medios de su pantalla
+-# «Suscripción». Un medio sin todos sus datos no se ofrece, así que vaciar un
+-# campo es apagar su medio.
+-#
+-# ⚠️ Son DOS tablas en un formulario: el WhatsApp y la dirección de la muestra
+-# viven en `Setup` —una fila por dato—, y los datos para pagar en `SigaSetting`.
+-# Se guardan juntos o no se guarda nada (`Siga::AjustesController#guardar`).
 -#
 -# ⚠️ Operaciones ve el formulario, apagado: saber a qué cuenta pagan los
 -# colegios es parte de atenderlos; cambiarla, no (decisión 22).
@@ -10,28 +16,46 @@
 
 %h1 Ajustes
 
+- fila = @setup.index_by(&:nombre)
+
 %p.siga-nota
   Lo que se guarda aquí lo ven los colegios en el momento: el botón de
-  WhatsApp y los medios de pago de su pantalla «Suscripción». Un medio sin
-  todos sus datos no se ofrece.
-  -# ⚠️ Solo de lo GUARDADO. Al volver con un error, los ajustes llevan a quien
-  -# los está cambiando ahora y todavía no tienen fecha: decir «lo cambió» de
-  -# un cambio que no se guardó sería mentir (y sin fecha, reventaba).
-  - if @ajustes.persisted? && !@ajustes.changed? && @ajustes.actualizado_por
-    = "Lo cambió por última vez #{@ajustes.actualizado_por.nombre_completo}, el #{l(@ajustes.updated_at.to_date, format: :long)}."
+  WhatsApp, el de la muestra en la portada y los medios de pago de su pantalla
+  «Suscripción». Un medio sin todos sus datos no se ofrece.
+  -# Se lee de la base, no del formulario (`Siga::AjustesController#ultimo_cambio`).
+  - if @ultimo_cambio
+    = "Lo cambió por última vez #{@ultimo_cambio.actualizado_por.nombre_completo}, el #{l(@ultimo_cambio.updated_at.to_date, format: :long)}."
 
 = form_with model: @ajustes, url: siga_ajustes_path, method: :patch, class: "siga-form" do |f|
-  = render "shared/errors", object: @ajustes
+  = render "shared/errors", objects: [ @ajustes, *@setup ]
 
+  - whatsapp = fila.fetch("whatsapp")
   %fieldset.siga-fieldset{ disabled: !puede }
     %legend El WhatsApp de SIGA
     .form-group
-      = f.label :whatsapp, "Número", class: "form-label"
-      = f.telephone_field :whatsapp, class: "form-control", inputmode: "numeric", placeholder: "0414-1234567",
-                          maxlength: 12, data: { controller: "campo-telefono", action: "input->campo-telefono#formatear" }
+      = label_tag "setup_whatsapp", "Número", class: "form-label"
+      = telephone_field_tag "setup[whatsapp]", whatsapp.valor, id: "setup_whatsapp",
+                            class: clase_de_campo(whatsapp, :base),
+                            inputmode: "numeric", placeholder: "0414-1234567", maxlength: 12,
+                            data: { controller: "campo-telefono", action: "input->campo-telefono#formatear" }
       %p.nota-ayuda
         Sin número, el botón de WhatsApp no aparece en ninguna pantalla, y
         tampoco el efectivo, que se coordina por ahí.
+
+  -# ⚠️ Era la variable `SIGA_MUESTRA_URL`, que había que poner entrando al
+  -# servidor. Daniel, 12 de octubre de 2026: «pon SIGA_MUESTRA_URL como un
+  -# campo de ajustes» (decisión 35).
+  - muestra = fila.fetch("url_de_la_muestra")
+  %fieldset.siga-fieldset{ disabled: !puede }
+    %legend El colegio de muestra
+    .form-group
+      = label_tag "setup_url_de_la_muestra", "Dirección", class: "form-label"
+      = url_field_tag "setup[url_de_la_muestra]", muestra.valor, id: "setup_url_de_la_muestra",
+                      class: clase_de_campo(muestra, :base),
+                      placeholder: "https://demo.sigaeducando.com"
+      %p.nota-ayuda
+        La portada la ofrece con «Vea un colegio funcionando». Sin dirección,
+        el botón no aparece.
 
   %fieldset.siga-fieldset{ disabled: !puede }
     %legend A nombre de quién se paga

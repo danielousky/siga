@@ -159,7 +159,31 @@ check "código inexistente"       "/verificar/BOL-XXXX-YYYY" 404
 # ⚠️ El colegio de muestra vive en SU instancia (`SIGA_MUESTRA=1`). En cualquier
 # otra, sus puertas no existen: ahí «entrar sin clave» sería la peor cosa que
 # podría tener el sistema de un colegio.
-check "la muestra, fuera de su instancia" "/muestra"   404
+#
+# `/muestra` manda a donde vive la muestra si `/siga/ajustes` lo dice (302) y si
+# no, no existe (404); lo que no puede es dibujar las puertas. Sin `-L`: seguir
+# la redirección sería medir la muestra de verdad, en internet. Hasta el 12 de
+# octubre de 2026 esperaba un 404 a secas, porque la dirección era una variable
+# que nadie ponía en desarrollo; desde que es un ajuste, la siembra la carga.
+got="$(curl -s -o /dev/null -w '%{http_code}' "${BASE}/muestra")"
+case "$got" in
+  302|404) printf '  ✓ %-42s %s\n' "la muestra, fuera de su instancia" "$got" ;;
+  *)       printf '  ✗ %-42s %s (esperaba 302 o 404)\n' "la muestra, fuera de su instancia" "$got"; FAILED=1 ;;
+esac
+
+# Y la puerta que da miedo, pedida como la pide la portada de la muestra: POST y
+# con su token. Sin token contestaría la protección CSRF (422), y no la puerta.
+JAR_ANONIMO="${TMP}/anonimo"
+token="$(curl -s -c "$JAR_ANONIMO" "${BASE}/users/sign_in" \
+  | grep -o 'name="csrf-token" content="[^"]*"' | head -1 | sed 's/.*content="//; s/"$//')"
+got="$(curl -s -b "$JAR_ANONIMO" -o /dev/null -w '%{http_code}' -X POST \
+       -d "authenticity_token=${token}" -d "rol=director" "${BASE}/muestra/entrar")"
+if [ "$got" = "404" ]; then
+  printf '  ✓ %-42s %s\n' "entrar sin clave, fuera de la muestra" "$got"
+else
+  printf '  ✗ %-42s %s (esperaba 404)\n' "entrar sin clave, fuera de la muestra" "$got"
+  FAILED=1
+fi
 
 # ⚠️ `/up` y `/salud` no son intercambiables (MOR-167): `/up` dice que el
 # proceso arrancó —lo mira DOKKU para dejar entrar una versión nueva— y `/salud`

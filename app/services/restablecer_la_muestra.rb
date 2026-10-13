@@ -102,8 +102,12 @@ class RestablecerLaMuestra
     end
 
     # ⚠️ Los ajustes de la plataforma NO se borran con lo demás —ver
-    # `OrdenDeBorrado`—, pero aquí son de la muestra: los seeds los vuelven a
-    # escribir, y lo que un visitante hubiera logrado cambiar no amanece.
+    # `OrdenDeBorrado`—, pero los datos para pagar aquí son de EJEMPLO: los
+    # seeds los vuelven a escribir, y lo que un visitante hubiera logrado
+    # cambiar no amanece.
+    #
+    # `setup` sí se queda: el WhatsApp de la muestra es el de verdad, y quien lo
+    # puso no tiene por qué volver a ponerlo cada mañana.
     conexion.execute("DELETE FROM siga_settings")
   end
 

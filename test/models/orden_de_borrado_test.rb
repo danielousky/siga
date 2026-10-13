@@ -53,22 +53,28 @@ class OrdenDeBorradoTest < ActiveSupport::TestCase
                  "la cola de trabajos es maquinaria de la plataforma, no datos de un colegio"
   end
 
-  # ⚠️ Los ajustes de la plataforma —el WhatsApp de SIGA y las cuentas con que
-  # cobra— no son de la demo: limpiarla no se los puede llevar. Y para que
-  # borrar a las personas no choque con quién los cambió, esa clave foránea se
-  # pone en nulo sola.
+  # ⚠️ Los ajustes de la plataforma —las cuentas con que cobra SIGA en
+  # `siga_settings`, su WhatsApp y la dirección de la muestra en `setup`— no son
+  # de la demo: limpiarla no se los puede llevar. Y para que borrar a las
+  # personas no choque con quién los cambió, esa clave foránea se pone en nulo
+  # sola.
   test "los ajustes de la plataforma quedan afuera, y sobreviven a que se borre quien los cambió" do
-    assert_not_includes OrdenDeBorrado.calcular, "siga_settings"
+    orden = OrdenDeBorrado.calcular
+    assert_not_includes orden, "siga_settings"
+    assert_not_includes orden, "setup"
 
     persona = User.create!(first_name: "Quien", last_name: "Cambia", email: "cambia@siga.test", password: "123123",
                            document: "V-19000111", document_type: :cedula_v)
     SigaSetting.delete_all
-    SigaSetting.create!(whatsapp: "0414-1234567", actualizado_por: persona)
+    SigaSetting.create!(binance: "987654321", actualizado_por: persona)
+    Setup.create!(nombre: "whatsapp", valor: "0414-1234567", actualizado_por: persona)
 
     persona.delete
 
-    assert_equal "0414-1234567", SigaSetting.actuales.whatsapp
+    assert_equal "987654321", SigaSetting.actuales.binance
     assert_nil SigaSetting.actuales.actualizado_por_id
+    assert_equal "0414-1234567", Setup.whatsapp
+    assert_nil Setup.fila("whatsapp").actualizado_por_id
   end
 
   # Los pagos de la suscripción sí son del colegio: se van con él.

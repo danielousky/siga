@@ -144,7 +144,9 @@ module Muestra
   def self.url_del_registro = "#{SITIO}/registrarse"
 
   # Dónde vive la muestra, para las instancias que NO lo son: es a donde la
-  # portada del sitio manda a quien quiere verla (`SIGA_MUESTRA_URL`). Sin la
-  # variable no hay muestra que enseñar, y el enlace no se dibuja.
-  def self.direccion = ENV["SIGA_MUESTRA_URL"].presence
+  # portada del sitio manda a quien quiere verla. Es un ajuste —`Setup`, que el
+  # fundador cambia en `/siga/ajustes`— y no una variable de entorno: era
+  # `SIGA_MUESTRA_URL` hasta que Daniel pidió moverla (decisión 35). Sin
+  # dirección no hay muestra que enseñar, y el enlace no se dibuja.
+  def self.direccion = Setup.url_de_la_muestra
 end

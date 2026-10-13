@@ -51,7 +51,7 @@
   - if @ajustes.medios.empty?
     %p.nota-ayuda
       Todavía no hay medios de pago cargados.
-      - if @ajustes.whatsapp?
+      - if whatsapp_configurado?
         Escríbanos y le decimos cómo pagar.
   - else
     .suscripcion-medios
@@ -101,7 +101,7 @@
     -# (§ 5.5), y el estado de arriba ya dice que se está validando.
     - if @ajustes.medios.any? && @en_revision.nil?
       = boton "Reportar el pago", new_suscripcion_pago_path, icono: :agregar, tono: :guardar
-    - if @ajustes.whatsapp?
+    - if whatsapp_configurado?
       = boton "Escribir por WhatsApp",
               enlace_de_whatsapp("Hola, escribo por la suscripción de #{Current.school.name} a SIGA."),
               icono: :conversar, tono: :secondary, target: "_blank", rel: "noopener"

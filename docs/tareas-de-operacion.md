@@ -132,9 +132,10 @@ hay que avisarle a quien la esté enseñando.
 **Lo que falta ponerle, y solo sabe Daniel:**
 
 ```bash
-# El WhatsApp de SIGA: sin él, la muestra no dibuja el botón
+# El WhatsApp de SIGA: sin él, la muestra no dibuja el botón. Ahí nadie entra
+# a /siga, así que sale de la variable —vale mientras no haya fila en `setup`—.
+# config:set reinicia la app: no hace falta resembrar (desde la 1.18.1).
 ssh siga-deploy config:set siga-demo SIGA_WHATSAPP=0414XXXXXXX
-ssh siga-deploy run siga-demo bin/rails muestra:restablecer
 
 # Para entrar a /siga DENTRO de la muestra (por defecto, nadie puede)
 ssh siga-deploy config:set siga-demo SIGA_SEED_STAFF_PASSWORD=<una-clave>
@@ -142,11 +143,15 @@ ssh siga-deploy run siga-demo bin/rails muestra:restablecer
 ```
 
 **Y producción tiene que saber dónde vive la muestra**, o su portada no dibuja
-el botón «Vea un colegio funcionando»:
+el botón «Vea un colegio funcionando». Es un ajuste, no una variable: se
+escribe en el `/siga/ajustes` de producción, en «El colegio de muestra»:
 
-```bash
-ssh siga-deploy config:set siga SIGA_MUESTRA_URL=https://demo.sigaeducando.com
 ```
+   https://demo.sigaeducando.com
+```
+
+Hasta la 1.18.1 era la variable `SIGA_MUESTRA_URL`, que ya no se lee: si una
+instancia la tenía puesta, la migración pasó su valor a la tabla `setup`.
 
 ⚠️ **No copiarle las variables de producción «para que llegue el correo».** La
 muestra no manda correo a propósito: quien la visita puede escribir cualquier

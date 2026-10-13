@@ -417,9 +417,6 @@ puts "     Bello está VENCIDO a propósito: entra y ve todo, pero no carga nada
 # cuenta bancaria con forma de verdadera invitaría a alguien a transferirle a
 # nadie. El titular lo dice, y los números son ceros.
 #
-# ⚠️ El WhatsApp NO se inventa: un número falso abre un chat con un desconocido.
-# Sale de `SIGA_WHATSAPP` si la instancia lo tiene, y si no, no hay botón.
-#
 # En desarrollo se siembran solo si no hay ninguno —para no pisar los que
 # alguien cargó probando `/siga/ajustes`—; en la muestra, siempre.
 paso "⚙️  Ajustes de SIGA"
@@ -427,16 +424,27 @@ paso "⚙️  Ajustes de SIGA"
 ajustes = SigaSetting.first || SigaSetting.new
 if ajustes.new_record? || Muestra.activa?
   ajustes.update!(
-    whatsapp: SigaSetting.whatsapp_del_entorno,
     titular: "SIGA · datos de ejemplo", documento: "J-00000000-0",
     pago_movil_banco: "0102", pago_movil_telefono: "0414-0000000",
     cuenta: "01020000000000000000", binance: "pagos@ejemplo.test"
   )
   puts "   ✓ cómo pagar: #{ajustes.medios.map { |m| SubscriptionPayment::MEDIOS.dig(m, :nombre) }.join(' · ')}"
-  puts "     WhatsApp: #{ajustes.whatsapp.presence || 'sin número (falta SIGA_WHATSAPP): no se dibuja el botón'}"
 else
-  puts "   · ya había ajustes cargados: no se tocan"
+  puts "   · ya había datos para pagar: no se tocan"
 end
+
+# Los ajustes sueltos (`Setup`) NO son de ejemplo: son la configuración de
+# verdad, y por eso no se pisan nunca —ni aquí ni al restablecer la muestra—.
+#
+# La dirección de la muestra es la real, para que la portada de desarrollo
+# ofrezca «Vea un colegio funcionando» como la de producción.
+#
+# ⚠️ El WhatsApp NO se inventa: un número falso abre un chat con un desconocido.
+# Sin fila, `Setup.whatsapp` lo toma de `SIGA_WHATSAPP` si la instancia lo
+# tiene; si no, no hay botón.
+Setup.find_or_create_by!(nombre: "url_de_la_muestra") { |fila| fila.valor = "https://demo.sigaeducando.com" }
+puts "     WhatsApp: #{Setup.whatsapp || 'sin número (ni en /siga/ajustes ni en SIGA_WHATSAPP): no se dibuja el botón'}"
+puts "     la muestra: #{Setup.url_de_la_muestra || 'sin dirección: la portada no la ofrece'}"
 
 # ── Las importaciones ────────────────────────────────────────────────────────
 #
