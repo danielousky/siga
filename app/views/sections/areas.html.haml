@@ -45,7 +45,7 @@
                             data: { tooltip: "Se asigna desde la ficha de #{Vocabulario::LA_AREA}" }
                 - elsif profesor.user_id == current_user.id
                   %strong= profesor.user.nombre_completo
-                  %span.seccion-soy-yo (tú)
+                  %span.seccion-soy-yo (usted)
                 - else
                   = profesor.user.nombre_completo
     - else

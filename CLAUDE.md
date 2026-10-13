@@ -397,6 +397,16 @@ inscripciones, lapsos— se escribe perfecto sin acentos.
 que decía probar. La excepción es `bin/smoke`, que es un cliente HTTP de verdad
 y ahí escribir la URL en español ES la comprobación.
 
+- **SIGA le habla de USTED, en todo lo que se lee** (13 de octubre de 2026).
+  Daniel: *«cambia a usted todos los que puedan tutear al usuario. TODOS»*.
+  Eran unos cien textos, escritos de a uno y sin regla que los mirara:
+  «Elige un alumno», «No tienes permiso», los de Devise —«Tienes que iniciar
+  sesión» era lo primero que leía quien abría un enlace sin sesión— y el título
+  de la portada, «El colegio que imaginas». Lo cuida `la_app_habla_de_usted_test`:
+  vistas, frases de Ruby y JavaScript, traducciones y el manual.
+  ⚠️ El test busca solo formas que no se confunden con la tercera persona.
+  «Toca al hijo» puede ser «la madre toca», y esas las tiene que mirar una
+  persona al escribirlas.
 - **«Área de aprendizaje», nunca «materia»**, en lo que alguien lee (`MOR-212`).
   La palabra vive en `Vocabulario`: larga donde se decide —un título, un
   aviso—, corta («Área») donde el contexto ya lo dice —una tabla, un contador,

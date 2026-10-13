@@ -169,7 +169,7 @@ class PlanDeEvaluacionTest < ActionDispatch::IntegrationTest
     sign_in @a.profesor
 
     get planificar_section_path(@a.seccion, area: @a.escenario.materia.id, lapso: @lapso.id)
-    assert_select ".plan-sugerido .nota-ayuda", /lo dictaste tú/
+    assert_select ".plan-sugerido .nota-ayuda", /lo dictó usted/
 
     post traer_competencies_path(asignacion: @asignacion, lapso: @lapso.id)
 

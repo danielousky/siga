@@ -60,7 +60,7 @@ class ColegioDeMuestraTest < ActionDispatch::IntegrationTest
     get root_path
 
     assert_response :success
-    assert_select ".portada-tesis", text: /El colegio que imaginas/
+    assert_select ".portada-tesis", text: /El colegio que usted imagina/
     assert_select ".muestra-puerta", count: 0
   end
 

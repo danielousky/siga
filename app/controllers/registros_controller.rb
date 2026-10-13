@@ -178,6 +178,6 @@ class RegistrosController < Devise::RegistrationsController
     return unless user_signed_in? && current_user.admins.any?
 
     redirect_to dashboard_path_for_user,
-                alert: "Ya tienes un colegio. Para dar de alta otro, escríbenos."
+                alert: "Ya tiene un colegio. Para dar de alta otro, escríbanos."
   end
 end

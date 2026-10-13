@@ -188,6 +188,6 @@ class RepresentativesController < ApplicationController
   def require_puede_gestionar!
     return if can_manage_students?
 
-    redirect_to dashboard_path_for_user, alert: "No tienes permiso para gestionar representantes."
+    redirect_to dashboard_path_for_user, alert: "No tiene permiso para gestionar representantes."
   end
 end

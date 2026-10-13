@@ -81,6 +81,6 @@ class ConstanciasController < ApplicationController
   def require_emisor!
     return if puede?(:emitir_documentos)
 
-    redirect_to dashboard_path_for_user, alert: "No tienes permiso para emitir constancias."
+    redirect_to dashboard_path_for_user, alert: "No tiene permiso para emitir constancias."
   end
 end

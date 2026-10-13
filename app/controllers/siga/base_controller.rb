@@ -67,7 +67,7 @@ module Siga
     def exigir_equipo_de_siga!
       return if siga_staff.present?
 
-      redirect_to root_path, alert: "No tienes acceso a esta sección."
+      redirect_to root_path, alert: "No tiene acceso a esta sección."
     end
 
     # El bypass declarado una vez, en la puerta.

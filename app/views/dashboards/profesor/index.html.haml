@@ -11,7 +11,7 @@
   -# profesor entra a esto, no a mirar cuántas secciones tiene.
   - if @sin_corregir.any?
     .card-academic
-      = render "shared/cabecera", titulo: "Te falta cargar notas", nivel: 2
+      = render "shared/cabecera", titulo: "Le falta cargar notas", nivel: 2
 
       %ul.por-corregir
         - @sin_corregir.each do |fila|
@@ -76,11 +76,11 @@
     - else
       .empty-state
         %h3 Sin secciones asignadas
-        %p Todavía no tienes secciones asignadas. Habla con el coordinador.
+        %p Todavía no tiene secciones asignadas. Hable con el coordinador.
 
   - if @led_sections.any?
     .card-academic
-      = render layout: "shared/cabecera", locals: { titulo: pluralizar(@led_sections.size, "Sección que guías", "Secciones que guías"), nivel: 2 } do
+      = render layout: "shared/cabecera", locals: { titulo: pluralizar(@led_sections.size, "Sección que guía", "Secciones que guía"), nivel: 2 } do
         -# El guía es quien pasa lista, así que el atajo va acá y no en el menú.
         = boton "Pasar lista", asistencias_path, icono: :asistencia, tono: :secondary
 

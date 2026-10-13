@@ -92,7 +92,7 @@ export default class extends Controller {
 
   #pedirQueElija() {
     this.listaTarget.innerHTML = ""
-    this.#decir("Elige la sección y el lapso para ver su plan.")
+    this.#decir("Elija la sección y el lapso para ver su plan.")
   }
 
   #planVacio() {

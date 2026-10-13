@@ -156,7 +156,7 @@ class SectionsController < ApplicationController
     # ponderación que no existe.
     return redirect_to(section_path(@section, area: area_del_plan&.id)) if @section.grade.califica_con_texto?
 
-    return redirect_to(section_path(@section), alert: "Elige primero un área.") if area_del_plan.nil?
+    return redirect_to(section_path(@section), alert: "Elija primero un área.") if area_del_plan.nil?
 
     @competencias = Competency.del_plan(@section.id, area_del_plan.id, lapso&.id)
                               .includes(:indicators, :evaluation_activities)
@@ -448,7 +448,7 @@ class SectionsController < ApplicationController
     elsif profesor?
       section = Section.find(params[:id])
       unless current_user.teacher.sections.include?(section)
-        redirect_to dashboard_path_for_user, alert: "No tienes acceso a esta sección."
+        redirect_to dashboard_path_for_user, alert: "No tiene acceso a esta sección."
       end
     else
       redirect_to dashboard_path_for_user, alert: "Acceso no autorizado."

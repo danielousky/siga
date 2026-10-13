@@ -128,7 +128,7 @@ class GradoOficial
     preescolar: "Tres niveles. No se califica: se describe.",
     primaria: "Primero a sexto grado. Boletín por literales.",
     secundaria: "Primer a quinto año. Boletín por notas del 1 al 20.",
-    media_tecnica: "Agrega el sexto año, que gradúa Técnico Medio. Incluye la media general."
+    media_tecnica: "La media general y un sexto año, que gradúa Técnico Medio."
   }.freeze
 
   class << self

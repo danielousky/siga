@@ -57,9 +57,9 @@
         = render "libreta"
       - else
         .empty-state
-          %h3= "Todavía no puedes calificar #{@section.grade.name} – #{@section.name}"
+          %h3= "Todavía no puede calificar #{@section.grade.name} – #{@section.name}"
           %p
             - if @areas_que_califico.blank?
-              = "No tienes #{Vocabulario::LAS_AREAS} asignadas en esta sección."
+              = "No tiene #{Vocabulario::LAS_AREAS} asignadas en esta sección."
             - else
               Esta sección todavía no tiene lapsos en su año escolar.

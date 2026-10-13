@@ -30,7 +30,7 @@
       %h3 Las competencias son de primaria
       %p
         En Educación Media el plan de evaluación son las evaluaciones y su
-        ponderación —el 70/30 del Artículo 111—, no competencias. Lo que dictas
+        ponderación —el 70/30 del Artículo 111—, no competencias. Lo que dicta
         se arma desde «Mis evaluaciones».
       .empty-state-acciones
         = boton "Ir a mis evaluaciones", evaluation_activities_path, icono: :notas, tono: :ver
@@ -38,8 +38,8 @@
 - elsif mis_asignaciones.empty?
   .card-academic
     = render "shared/lista_vacia", clave: :materias,
-             titulo: "Todavía no tienes secciones asignadas",
-             texto: "El plan de evaluación cuelga de la sección que dictas. Cuando la dirección te asigne un área de aprendizaje, aparece acá."
+             titulo: "Todavía no tiene secciones asignadas",
+             texto: "El plan de evaluación cuelga de la sección que dicta. Cuando la dirección le asigne un área de aprendizaje, aparece aquí."
 
 - else
   -# ⚠️ La escalera: GRADO → ÁREA → SECCIÓN → LAPSO.

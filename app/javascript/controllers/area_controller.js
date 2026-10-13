@@ -26,7 +26,7 @@ export default class extends Controller {
     const opciones = this.seccionesValue[this.areaTarget.value] || []
 
     this.seccionTarget.innerHTML = ""
-    this.seccionTarget.appendChild(new Option("Elige una de tus secciones...", ""))
+    this.seccionTarget.appendChild(new Option("Elija una de sus secciones...", ""))
 
     opciones.forEach(({ valor, nombre }) => {
       const opcion = new Option(nombre, valor)

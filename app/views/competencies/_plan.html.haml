@@ -67,14 +67,14 @@
     -# fecha que cambia sola hay que anunciarla, no descubrirla después.
     - if plan_sugerido_con_evaluaciones?
       %p.nota-ayuda
-        Ese año lo dictaste tú, así que vienen las competencias con sus indicadores
+        Ese año lo dictó usted, así que vienen las competencias con sus indicadores
         %strong y las evaluaciones
         \, con su peso y la misma fecha corrida al año actual.
     - else
       %p.nota-ayuda
         Vienen las competencias
         %strong con sus indicadores
-        \. Las evaluaciones no: esa sección la dictó otro profesor, y el peso y las fechas son tuyos.
+        \. Las evaluaciones no: esa sección la dictó otro profesor, y el peso y las fechas son suyos.
 
     -# ⚠️ «Duplicar» y no «Copiar» ni «Traer». Daniel: *«creo que el término no
     -# es Copiar, puede ser confuso»*.
@@ -105,15 +105,15 @@
       %h3 Todavía no hay nada planificado en este lapso
       - if con_competencias?
         %p
-          %strong Empieza por las competencias:
-          son lo que vas a evaluar. A cada una le agregas sus evaluaciones —con
-          su peso y su fecha— y dentro de cada evaluación escribes los
+          %strong Empiece por las competencias:
+          son lo que va a evaluar. A cada una le agrega sus evaluaciones —con
+          su peso y su fecha— y dentro de cada evaluación escribe los
           indicadores que mide, que son los que salen en la boleta.
       - else
         -# ⚠️ En Educación Media el plan son las evaluaciones y su ponderación
         -# —el 70/30 del Artículo 111—, sin competencias. Ver `planificar`.
         %p
-          Empieza por las evaluaciones: cada una con su peso y su fecha. Entre
+          Empiece por las evaluaciones: cada una con su peso y su fecha. Entre
           todas tienen que repartir el 100 % del lapso.
       - if profesor?
         .empty-state-acciones

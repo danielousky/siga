@@ -146,6 +146,6 @@ class RevisionDeBoletinesController < ApplicationController
   def require_emisor!
     return if puede?(:emitir_documentos)
 
-    redirect_to dashboard_path_for_user, alert: "No tienes permiso para revisar boletines."
+    redirect_to dashboard_path_for_user, alert: "No tiene permiso para revisar boletines."
   end
 end

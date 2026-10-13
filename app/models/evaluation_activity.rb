@@ -129,7 +129,7 @@ class EvaluationActivity < ApplicationRecord
     return unless por_competencias?
     return if competency_ids.any?
 
-    errors.add(:base, "Marca la competencia que mide: sin eso no puede salir en la boleta.")
+    errors.add(:base, "Marque la competencia que mide: sin eso no puede salir en la boleta.")
   end
 
   def recalcular_la_seccion

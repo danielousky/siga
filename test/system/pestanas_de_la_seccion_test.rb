@@ -128,7 +128,7 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
 
     tocar_para_ir_a(planificar_section_path(@a.seccion)) { click_on "Plan de Evaluación" }
     assert_selector ".pestana.activa", text: "Plan de Evaluación"
-    assert_no_text "Elige primero un área"
+    assert_no_text "Elija primero un área"
   end
 
   private
