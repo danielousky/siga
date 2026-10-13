@@ -1,7 +1,7 @@
 # La pantalla «Suscripción» (spec `docs/specs/del-registro-al-cobro.md`, § 5.3).
 #
 #     en qué está      sin activar · en revisión · activa · por vencer · en gracia · solo lectura
-#     cuánto cuesta    la matrícula de hoy × su precio, el mínimo y el IVA
+#     cuánto cuesta    la matrícula de hoy × su precio, o el mínimo
 #     cómo se paga     los medios que SIGA tiene cargados, y el WhatsApp
 #     qué se pagó      los reportes, con su respuesta
 #

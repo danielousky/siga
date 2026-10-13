@@ -173,22 +173,32 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
   # mínimo. Los números son los del spec: si alguien sube el precio, este test
   # le recuerda que también cambia lo que se le dijo a Daniel.
   test "el precio sale por alumno, con su mínimo y sin escalones" do
-    assert_equal BigDecimal("39"),     Subscription.cotizar(0).monto
-    assert_equal BigDecimal("39"),     Subscription.cotizar(130).monto
-    assert_equal BigDecimal("39.30"),  Subscription.cotizar(131).monto
-    assert_equal BigDecimal("45"),     Subscription.cotizar(150).monto
-    assert_equal BigDecimal("45.30"),  Subscription.cotizar(151).monto,
+    assert_equal BigDecimal("45"),     Subscription.cotizar(0).monto
+    assert_equal BigDecimal("45"),     Subscription.cotizar(128).monto
+    assert_equal BigDecimal("45.15"),  Subscription.cotizar(129).monto
+    assert_equal BigDecimal("52.50"),  Subscription.cotizar(150).monto
+    assert_equal BigDecimal("52.85"),  Subscription.cotizar(151).monto,
                  "el alumno 151 cuesta lo mismo que el 150"
-    assert_equal BigDecimal("108"),    Subscription.cotizar(360).monto
-    assert_equal BigDecimal("240"),    Subscription.cotizar(800).monto
+    assert_equal BigDecimal("126"),    Subscription.cotizar(360).monto
+    assert_equal BigDecimal("280"),    Subscription.cotizar(800).monto
   end
 
-  test "el IVA va aparte" do
+  # ⚠️ El precio es FINAL (decisión 28 del spec). Nació como «0,30 $ + IVA» y
+  # Daniel lo corrigió el mismo día: *«no podemos cobrar IVA en dólares, eso no
+  # es correcto… vamos a incrementarle el IVA al costo»*. Lo que cuida este
+  # test es que el IVA esté ADENTRO y no vuelva como un renglón aparte: una
+  # cotización tiene un monto, y ese monto es lo que se paga.
+  test "el precio lleva el IVA adentro: la cuenta no desglosa ninguno" do
     cotizacion = Subscription.cotizar(360)
 
-    assert_equal BigDecimal("17.28"),  cotizacion.iva
-    assert_equal BigDecimal("125.28"), cotizacion.total
-    assert_equal BigDecimal("45.24"),  Subscription.cotizar(100).total
+    assert_equal BigDecimal("126"), cotizacion.monto
+    assert_not_respond_to cotizacion, :iva
+    assert_not_respond_to cotizacion, :total
+    assert_not Subscription.const_defined?(:IVA), "el IVA volvió a ser una constante: alguien lo va a sumar aparte"
+
+    # 0,30 × 1,16 = 0,348, «poco menos de 0,35»; y 39 × 1,16 = 45,24.
+    assert_equal BigDecimal("0.35"), Subscription::PRECIO_POR_ALUMNO
+    assert_equal BigDecimal("45"),   Subscription::MINIMO_MENSUAL
   end
 
   # ⚠️ Decisión 17: subir el precio toca a los que entran después. El colegio
@@ -236,12 +246,12 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
   test "crecer de matrícula no cambia lo facturado" do
     suscripcion = con_el_colegio(@a.colegio) do
       suscripcion_de(@a.colegio).tap do |s|
-        s.update!(matricula_facturada: 2, precio_mensual: 39, vigente_hasta: Date.current + 1.month)
+        s.update!(matricula_facturada: 2, precio_mensual: 45, vigente_hasta: Date.current + 1.month)
       end
     end
 
     con_el_colegio(@a.colegio) do
-      assert_equal BigDecimal("39"), suscripcion.reload.precio_mensual
+      assert_equal BigDecimal("45"), suscripcion.reload.precio_mensual
       assert_equal 2, suscripcion.matricula_facturada
     end
   end

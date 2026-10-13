@@ -69,18 +69,20 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
   # Qué dice
   # ══════════════════════════════════════════════════════════════════════════
 
-  # El colegio de prueba tiene dos alumnos: le toca el mínimo, 39 $ más IVA.
-  test "sin pagar: lo dice, con el precio de ese colegio y su IVA" do
+  # El colegio de prueba tiene dos alumnos: le toca el mínimo, 45 $.
+  #
+  # ⚠️ UN renglón, y sin IVA aparte (decisión 28): lo que se lee es lo que se
+  # paga. Tenía tres —monto, IVA y total— y Daniel lo vio «muy incómodo».
+  test "sin pagar: lo dice, con el precio de ese colegio y sin IVA aparte" do
     get suscripcion_path
 
     assert_select ".suscripcion-estado--sin-activar", text: /Sin suscripción activa/
-    assert_select ".suscripcion-cuenta" do
-      assert_select "td", text: /2 alumnos inscritos · el mínimo mensual/
-      assert_select "td", text: "39,00 $"
-      assert_select "td", text: "IVA 16 %"
-      assert_select "td", text: "6,24 $"
-      assert_select ".suscripcion-cuenta-total td", text: "45,24 $"
+    assert_select ".suscripcion-cuenta tr", 1
+    assert_select ".suscripcion-cuenta-total" do
+      assert_select "td", text: /2 alumnos inscritos · el mínimo, al mes/
+      assert_select "td", text: "45,00 $"
     end
+    assert_select ".suscripcion-cuenta", text: /IVA/, count: 0
   end
 
   # Por encima del mínimo, la cuenta se desglosa: tantos alumnos por tanto.
@@ -89,7 +91,7 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
       get suscripcion_path
     end
 
-    assert_select ".suscripcion-cuenta td", text: /2 alumnos inscritos × 0,30 \$/
+    assert_select ".suscripcion-cuenta-total td", text: /2 alumnos inscritos × 0,35 \$, al mes/
     assert_select ".suscripcion-cuenta-total td", text: "0,70 $"
   end
 
@@ -201,7 +203,7 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
       assert_equal BigDecimal("18250.50"), pago.monto
       assert_equal "0012345678", pago.referencia
       assert pago.comprobante.attached?
-      assert_equal BigDecimal("45.24"), pago.cotizacion.total, "guarda la cuenta con que se reportó"
+      assert_equal BigDecimal("45"), pago.cotizacion.monto, "guarda la cuenta con que se reportó"
     end
   end
 
@@ -228,7 +230,7 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
     assert_equal [ "avisos@siga.test" ], correo.to
     assert_match(/Pago por validar: #{Regexp.escape(@a.colegio.name)} · 18\.250,50 Bs/, correo.subject)
     assert_includes correo.text_part.body.to_s, "0012345678"
-    assert_includes correo.text_part.body.to_s, "45,24 $"
+    assert_includes correo.text_part.body.to_s, "45,00 $"
     assert_includes correo.text_part.body.to_s, siga_cartera_index_path
   end
 
@@ -257,7 +259,7 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
   test "en efectivo no hacen falta referencia ni comprobante" do
     assert_difference -> { cantidad(SubscriptionPayment) }, 1 do
       post suscripcion_pagos_path,
-           params: { subscription_payment: { medio: "efectivo", monto: "45.24", pagado_el: Date.current.to_s } }
+           params: { subscription_payment: { medio: "efectivo", monto: "45", pagado_el: Date.current.to_s } }
     end
 
     Current.sin_aislamiento do
@@ -292,7 +294,7 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
   test "el formulario le recuerda cuánto le toca" do
     get new_suscripcion_pago_path
 
-    assert_select ".reporte-de-pago-cuenta", text: /45,24 \$ al mes/
+    assert_select ".reporte-de-pago-cuenta", text: /45,00 \$ al mes/
   end
 
   test "sin medios cargados no hay formulario: vuelve a «Suscripción»" do

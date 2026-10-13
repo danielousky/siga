@@ -45,11 +45,11 @@ class ValidarUnPagoTest < ActiveSupport::TestCase
     suscripcion = suscripcion_de(@a.colegio)
     assert_equal Subscription::PRECIO_POR_ALUMNO, suscripcion.precio_por_alumno
     assert_equal Subscription::MINIMO_MENSUAL, suscripcion.minimo_mensual
-    assert_equal BigDecimal("39"), suscripcion.precio_mensual
+    assert_equal BigDecimal("45"), suscripcion.precio_mensual
     assert_equal 2, suscripcion.matricula_facturada
   end
 
-  # ⚠️ Decisión 17: el que entra a 0,30 sigue a 0,30. Si el precio sube entre
+  # ⚠️ Decisión 17: el que entra a 0,35 sigue a 0,35. Si el precio sube entre
   # que el colegio reporta y que se valida, vale el que vio.
   test "aunque el precio haya subido antes de validarlo" do
     pago = pago_reportado(@a)
@@ -59,8 +59,8 @@ class ValidarUnPagoTest < ActiveSupport::TestCase
     end
 
     suscripcion = suscripcion_de(@a.colegio)
-    assert_equal BigDecimal("0.30"), suscripcion.precio_por_alumno
-    assert_equal BigDecimal("39"), suscripcion.precio_mensual
+    assert_equal BigDecimal("0.35"), suscripcion.precio_por_alumno
+    assert_equal BigDecimal("45"), suscripcion.precio_mensual
   end
 
   test "el pago queda validado, con quién lo miró y qué mes cubre" do

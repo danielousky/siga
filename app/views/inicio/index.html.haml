@@ -329,8 +329,9 @@
       -# Eran tres bandas, y el alumno 151 duplicaba la factura. El número sale
       -# de la constante: lo cuida `los_precios_de_un_solo_lugar_test`.
       -#
-      -# ⚠️ Y «más IVA» va a la vista, porque así se anuncia: el colegio paga el
-      -# 16 % aparte y recibe su factura (decisión 8).
+      -# ⚠️ El precio es FINAL, y no dice «más IVA»: lo que se lee es lo que
+      -# se paga (decisión 28 del spec). Nació como «0,30 $ + IVA» y Daniel lo
+      -# corrigió antes de que saliera: no se cobra IVA en dólares.
       .portada-lista-planes
         %div.portada-plan
           %h3.portada-plan-nombre La suscripción
@@ -338,7 +339,7 @@
             %span.portada-plan-monto= cifra(Subscription::PRECIO_POR_ALUMNO)
             %span.portada-plan-moneda $ por alumno al mes
           %p.portada-plan-cupo
-            = "más IVA, con un mínimo de #{numero_en_dolares(Subscription::MINIMO_MENSUAL)} al mes"
+            = "con un mínimo de #{numero_en_dolares(Subscription::MINIMO_MENSUAL)} al mes"
 
         %div.portada-plan.portada-plan--convenir
           %h3.portada-plan-nombre Cargar su colegio

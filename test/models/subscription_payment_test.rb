@@ -25,8 +25,9 @@ class SubscriptionPaymentTest < ActiveSupport::TestCase
     assert_equal Subscription::PRECIO_POR_ALUMNO, pago.precio_por_alumno
     assert_equal Subscription::MINIMO_MENSUAL, pago.minimo_mensual
     assert_equal Subscription::MINIMO_MENSUAL, pago.precio_mensual
-    assert_equal BigDecimal("6.24"), pago.iva
-    assert_equal BigDecimal("45.24"), pago.cotizacion.total
+    assert_equal BigDecimal("45"), pago.cotizacion.monto
+    # El precio es final: el reporte no guarda ningún IVA aparte (decisión 28).
+    assert_not_includes SubscriptionPayment.column_names, "iva"
   end
 
   # ⚠️ Es lo que el colegio vio en su pantalla y lo que pagó. Si el precio sube
@@ -37,7 +38,7 @@ class SubscriptionPaymentTest < ActiveSupport::TestCase
     stub_const(Subscription, :PRECIO_POR_ALUMNO, BigDecimal("0.90")) do
       stub_const(Subscription, :MINIMO_MENSUAL, BigDecimal("99")) do
         con_el_colegio(@a.colegio) do
-          assert_equal BigDecimal("45.24"), pago.reload.cotizacion.total
+          assert_equal BigDecimal("45"), pago.reload.cotizacion.monto
         end
       end
     end

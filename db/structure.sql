@@ -2044,7 +2044,6 @@ CREATE TABLE public.subscription_payments (
     precio_por_alumno numeric(6,2) NOT NULL,
     minimo_mensual numeric(8,2) NOT NULL,
     precio_mensual numeric(10,2) NOT NULL,
-    iva numeric(10,2) NOT NULL,
     estado character varying DEFAULT 'en_revision'::character varying NOT NULL,
     revisado_por_id bigint,
     revisado_el timestamp(6) without time zone,
@@ -5963,6 +5962,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261012170000'),
 ('20261012150000'),
 ('20261012120000'),
 ('20260919010000'),

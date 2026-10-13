@@ -13,9 +13,13 @@
    4 · la puerta            falta     la portada, el registro con su precio y el WhatsApp
    3 · la escalera          falta     el trabajo diario y sus tres correos
    ─────────────────────────────────────────────────────────────────────────────
-   «hecha» es en local y con `bin/ci` en verde; cada una espera la revisión de
-   Daniel antes de la siguiente. Las decisiones 23 a 27 nacieron en la tanda 2
-   y están POR CONFIRMAR.
+   «hecha» es en local y con `bin/ci` en verde. Las decisiones 23 a 27 nacieron
+   en la tanda 2 y están POR CONFIRMAR, y la 29 también.
+
+   ⚠️ EL PRECIO CAMBIÓ el mismo 12 de octubre, después de la tanda 2 y antes de
+   que nada saliera: de «0,30 $ + IVA, mínimo 39» a **0,35 $, mínimo 45, sin
+   IVA aparte** (decisiones 28 y 29). Donde este spec decía lo primero, ya dice
+   lo segundo; las decisiones 7 y 8 quedan tachadas, como historia.
 ```
 
 Un colegio entra a SIGA, carga lo suyo, ve cuánto le cuesta operar, paga, y SIGA
@@ -33,14 +37,14 @@ no existe completo; este spec lo define.
                        ▼                                              ▼
                cuenta + colegio, con la línea:              el colegio de muestra: entra
                «cargar es gratis; calificar, pasar           como directivo, profesor o
-                lista y emitir: 0,30 $ por alumno            representante, clave 123123
-                al mes + IVA»
+                lista y emitir: 0,35 $ por alumno            representante, clave 123123
+                al mes»
                        │
                        ▼
                CARGA, gratis y sin fecha: alumnos, familias, profesores, secciones, importador
                        │
                        ▼  toca Calificar, Asistencia o Emitir
-               EL MURO: «125,28 $ al mes por 360 alumnos»  ──►  SUSCRIPCIÓN: cómo pagar
+               EL MURO: «126,00 $ al mes por 360 alumnos»  ──►  SUSCRIPCIÓN: cómo pagar
                        │
                        ▼
                REPORTA el pago  ──►  correo a Daniel  ──►  VALIDA en /siga
@@ -140,8 +144,8 @@ Y el criterio que ordena todo lo demás. Daniel, 9 de octubre:
 | 4 | ¿Cuándo se abre lo demás? | **Cuando Daniel valida el pago**, no cuando el colegio lo reporta | Daniel, 9 oct. |
 | 5 | ¿Sobre qué se cobra? | **Por alumno inscrito, un solo plan:** todo el sistema para todos | Daniel, 9 oct. |
 | 6 | ¿Cada cuánto? | **Mensual, por adelantado.** Sin opción anual | Daniel, 9 oct. |
-| 7 | ¿Cuánto? | **0,30 $ por alumno al mes, mínimo 39 $** | Daniel, 9 oct. |
-| 8 | ¿Lleva factura? | **Sí, con IVA aparte:** «0,30 $ por alumno + IVA». La emite Daniel, fuera de SIGA | Daniel, 9 oct. |
+| 7 | ¿Cuánto? | ~~0,30 $ por alumno al mes, mínimo 39 $~~ → reemplazada por la 28 y la 29 | Daniel, 9 oct. |
+| 8 | ¿Lleva factura? | ~~Sí, con IVA aparte: «0,30 $ por alumno + IVA»~~ → reemplazada por la 28. La factura la sigue emitiendo Daniel, fuera de SIGA | Daniel, 9 oct. |
 | 9 | ¿Por qué medios se paga? | **Pago Móvil o transferencia,** en bolívares a la tasa BCV del día; **Binance (USDT)**; **efectivo en dólares.** Zelle, no | Daniel, 9 oct. |
 | 10 | ¿El registro dice el precio? | **Sí, en una línea** | Daniel, 9 oct. |
 | 11 | ¿Cuántos días de gracia? | **15**, como hoy | Daniel, 9 oct. |
@@ -151,16 +155,18 @@ Y el criterio que ordena todo lo demás. Daniel, 9 de octubre:
 | 15 | ¿Qué pasa con los nombres Inicial, Estándar y Grande? | **Desaparecen.** Con un solo plan, el colegio tiene la suscripción activa o no la tiene. De paso se acaba el choque de hoy: «Inicial» es a la vez el plan gratis y el de 39 $ | Claude; confirmada por Daniel, 12 oct. |
 | 16 | ¿Puede un colegio quedarse SIN suscripción? | **No.** Hoy «sin fila» es acceso completo y sin fecha: es la puerta A. Todo colegio nace en `gratis`, y una cortesía o un piloto es una suscripción activa a 0 $, con su vencimiento | Claude; confirmada por Daniel, 12 oct. |
 | 17 | ¿Se congela el precio del que entra? | **Sí:** cada colegio conserva su precio por alumno y su mínimo, y subirlos toca solo a los que entran después. Hoy ya se congela `precio_mensual` | Claude; confirmada por Daniel, 12 oct. |
-| 18 | ¿Cómo se ajusta el precio? | Si cuatro de los primeros cinco colegios a los que se les cotiza aceptan sin discutir el precio, los siguientes entran a 0,40 | Claude; confirmada por Daniel, 12 oct. |
+| 18 | ¿Cómo se ajusta el precio? | Si cuatro de los primeros cinco colegios a los que se les cotiza aceptan sin discutir el precio, los siguientes entran a 0,40. ⚠️ Ese 0,40 era ANTES de meter el IVA en el precio (decisión 28): con la misma cuenta serían 0,46, y hay que volver a decidirlo | Claude; confirmada por Daniel, 12 oct. |
 | 19 | ¿Qué pasa con el formulario de demostración? | **Sale de la portada;** su dirección lleva a la portada, y `/siga/solicitudes` se queda como historia | Claude; confirmada por Daniel, 12 oct. |
 | 20 | ¿Dónde está el botón de WhatsApp, y de dónde sale el número? | **En la portada, el registro y «Suscripción».** Hoy vive solo en el formulario de demostración, que sale con la decisión 19. **El número es un ajuste que Daniel cambia desde `/siga`,** sin tocar el servidor; reemplaza a la variable `SIGA_WHATSAPP` | Daniel, 12 oct. |
 | 21 | ¿Y los datos para pagar —Pago Móvil, Binance—? | **En el mismo ajuste de `/siga`,** por la misma razón: cambiar de cuenta no puede exigir un despliegue | Claude, por la misma razón que la 20 |
 | 22 | ¿Quién valida pagos y cambia los ajustes? | **El fundador**, como ya pasa con tocar suscripciones (`SigaStaff#puede_dar_de_alta_colegios?`); operaciones los ve | Claude, siguiendo el código |
 | 23 | ¿Se le avisa al colegio cuando su pago se valida? | **Sí, por correo, a quien lo reportó.** El spec pedía solo el del rechazo; sin el otro, el colegio tiene que entrar a mirar o escribir a preguntar si ya puede calificar | Claude, tanda 2 · **por confirmar** |
 | 24 | ¿Y si el colegio reportó mal? | **Retira su reporte mientras nadie lo ha mirado, y reporta de nuevo.** Solo cabe uno en revisión: sin esto quedaría esperando a que se lo rechacen | Claude, tanda 2 · **por confirmar** |
-| 25 | ¿Con qué cuenta se cobra: la del día que reporta o la del día que se valida? | **La del día que REPORTA.** El reporte guarda lo que el colegio vio —alumnos, precio, mínimo e IVA— y validar activa con eso, aunque después inscriba más alumnos o suba el precio | Claude, tanda 2 · **por confirmar** |
+| 25 | ¿Con qué cuenta se cobra: la del día que reporta o la del día que se valida? | **La del día que REPORTA.** El reporte guarda lo que el colegio vio —alumnos, precio, mínimo y monto— y validar activa con eso, aunque después inscriba más alumnos o suba el precio | Claude, tanda 2 · **por confirmar** |
 | 26 | «Pagó tarde», ¿se mide por el reporte o por la validación? | **Por el reporte.** La demora en validar es de SIGA y no puede moverle el mes al colegio (§ 5.7) | Claude, tanda 2 · **por confirmar** |
 | 27 | ¿Se puede deshacer una validación? | **No, por ahora.** Por eso validar pide confirmación, y un pago ya revisado no se vuelve a decidir. Deshacerla exigiría guardar cómo estaba la suscripción antes | Claude, tanda 2 · **por confirmar** |
+| 28 | ¿Y el IVA? | **Va DENTRO del precio: 0,35 $ por alumno al mes, y ninguna pantalla dice «más IVA».** *«No podemos cobrar IVA en dólares, eso no es correcto… vamos a incrementarle el IVA al costo, es decir, 0,30 × 1,16 = 0,348, poco menos de 0,35. Pongámoslo de una vez como el costo.»* Lo que se lee es lo que se paga: 360 alumnos, 126,00 $ | Daniel, 12 oct. |
+| 29 | ¿Y el mínimo? | **45 $,** por la misma cuenta: 39 × 1,16 = 45,24. Daniel dijo el precio por alumno y no el mínimo; dejarlo en 39 le habría bajado la cuenta al colegio chico de 45,24 a 39. Cubre hasta 128 alumnos | Claude · **por confirmar** |
 
 ## 4 · El dominio
 
@@ -220,9 +226,9 @@ deja de ser un riesgo de un empleado identificable y pasa a ser de cualquiera.
 
 ### 4.4 · El dinero
 
-- Precio en dólares, más IVA (16 %). Un colegio de 360 alumnos:
-  108,00 + 17,28 = **125,28 $ al mes.** Uno de 100: el mínimo,
-  39,00 + 6,24 = **45,24 $.**
+- Precio en dólares, y final: lleva el IVA adentro (decisión 28). Un colegio de
+  360 alumnos: 360 × 0,35 = **126,00 $ al mes.** Uno de 100: el mínimo,
+  **45,00 $.** Ninguna pantalla desglosa un IVA ni dice «más IVA».
 - En bolívares se paga a la tasa BCV del día. SIGA no guarda tasas: la cuenta la
   hace quien paga y Daniel la revisa al validar, igual que en los pagos de las
   familias (`payment_reports` no tiene columna de tasa).
@@ -244,7 +250,7 @@ deja de ser un riesgo de un empleado identificable y pasa a ser de cualquiera.
                                                    («Entrar» queda en la barra de arriba)
 
    «04 — La suscripción»                           «04 — La suscripción»
-   Inicial 39 · Estándar 79 · Grande 119           0,30 $ por alumno al mes + IVA · mínimo 39 $
+   Inicial 39 · Estándar 79 · Grande 119           0,35 $ por alumno al mes · mínimo 45 $
    · A convenir                                    cargar su colegio es gratis
 ```
 
@@ -258,7 +264,7 @@ sección «La suscripción», que es donde lo busca quien quiere saberlo.
    En un solo paso queda su cuenta y su colegio, con sus grados, sus áreas de
    aprendizaje y sus años escolares ya cargados.
    Cargar su colegio es gratis y no vence. Calificar, pasar lista y emitir:      ← nueva
-   0,30 $ por alumno al mes + IVA.
+   0,35 $ por alumno al mes.
 ```
 
 ### 5.3 · La pantalla «Suscripción»
@@ -273,9 +279,7 @@ Para la dirección y finanzas de un colegio de 360 alumnos que todavía no paga:
    │  al validarse el pago.                                                 │
    │                                                                        │
    │  EL PRECIO                                                             │
-   │  360 alumnos inscritos × 0,30 $                         108,00 $       │
-   │  IVA 16 %                                                17,28 $       │
-   │  Al mes                                                 125,28 $       │
+   │  360 alumnos inscritos × 0,35 $, al mes                 126,00 $       │
    │                                                                        │
    │  CÓMO PAGAR                                                            │
    │  Pago Móvil o transferencia    en bolívares, a la tasa BCV del día     │
@@ -312,7 +316,7 @@ Lo de arriba cambia según el estado:
 
    EL MURO, HOY                                  DESPUÉS
    vuelve atrás con «Calificar, pasar lista      «Calificar se activa con la suscripción:
-    y emitir documentos se activan con un plan.    125,28 $ al mes por 360 alumnos.
+    y emitir documentos se activan con un plan.    126,00 $ al mes por 360 alumnos.
     Cargar … es libre y no vence.»                 Ver cómo activarla →»
    sin precio y sin enlace
 ```
@@ -357,14 +361,14 @@ pide lo da el medio:
 ```
 
 El reporte guarda la cuenta con que se hizo (decisión 25): los alumnos, el
-precio por alumno, el mínimo, el monto y el IVA de ese día.
+precio por alumno, el mínimo y el monto de ese día.
 
 ### 5.6 · Validar, en /siga
 
 ```
    ┌─ Cartera · Pagos por validar ─────────────────────────────────────────────────┐
    │  U.E. COLEGIO SAN JOSÉ    Pago Móvil    Bs 109.586,17    ref. 0012345   9 oct │
-   │  le toca: 125,28 $  (360 alumnos × 0,30 + IVA)        [ Validar ] [ Rechazar ] │
+   │  le toca: 126,00 $  (360 alumnos × 0,35)              [ Validar ] [ Rechazar ] │
    └───────────────────────────────────────────────────────────────────────────────┘
 
    Validar   ──►  la suscripción queda activa por un mes (§ 5.7) y se abre todo, en el momento
@@ -450,11 +454,12 @@ del registro— y los ajustes de `/siga` —el WhatsApp ya sale de ahí y está 
 
 **El precio**
 
-- [ ] El precio por alumno, el mínimo y el IVA viven en un solo lugar del código.
+- [ ] El precio por alumno y el mínimo viven en un solo lugar del código.
       Cambiarlos cambia la portada, el registro, la ficha para buscadores, la
       pantalla «Suscripción», el muro y la Cartera; lo cuida una versión nueva
       de `los_precios_de_un_solo_lugar_test`.
-- [x] Con 360 alumnos: 108,00 + 17,28 = 125,28 $. Con 100: 39,00 + 6,24 = 45,24 $.
+- [x] Con 360 alumnos: 126,00 $. Con 100: el mínimo, 45,00 $.
+- [x] Ninguna pantalla ni correo dice «IVA»: el precio es final (decisión 28).
 - [x] Al activarse, la suscripción congela su precio por alumno y su mínimo:
       cambiar la constante no le cambia el precio a un colegio que ya entró.
 - [x] El monto de cada mes se calcula con la matrícula del día de la renovación.
@@ -463,8 +468,8 @@ del registro— y los ajustes de `/siga` —el WhatsApp ya sale de ahí y está 
 **El salto**
 
 - [x] Dirección y finanzas ven «Suscripción» en el menú; académico, no.
-- [x] La pantalla dice el estado, la matrícula que se usó, el precio con su IVA y
-      cómo pagar por los tres medios.
+- [x] La pantalla dice el estado, la matrícula que se usó, el precio y cómo
+      pagar por los tres medios.
 - [ ] Desde `/siga`, el fundador cambia el número de WhatsApp y los datos para
       pagar (Pago Móvil y Binance); la portada, el registro y «Suscripción» los
       usan en el momento, sin reiniciar nada. Operaciones los ve y no los
@@ -505,8 +510,8 @@ del registro— y los ajustes de `/siga` —el WhatsApp ya sale de ahí y está 
   tocaría…»), `db/seeds/07_dia_a_dia.rb` y cinco tests: `suscripciones_test`
   —«los cortes del contrato»—, `portada_publica_test`, `seo_test`,
   `los_precios_de_un_solo_lugar_test` y `plan_gratis_test`.
-- **`subscriptions.precio_mensual` es entero.** 0,30 por alumno da centavos
-  (347 alumnos: 104,10 $): pasa a decimal, como `payment_reports.monto`
+- **`subscriptions.precio_mensual` es entero.** Un precio por alumno da centavos
+  (347 alumnos a 0,35: 121,45 $): pasa a decimal, como `payment_reports.monto`
   (`numeric(10,2)`).
 - **El `CHECK` de `plan` admite de 0 a 4.** Cambiar los valores lo cambia. En
   producción no hay suscripciones; en la base local sí, sembradas por bandas.

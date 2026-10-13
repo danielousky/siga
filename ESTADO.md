@@ -8,7 +8,7 @@ spec está **congelado**: `docs/specs/del-registro-al-cobro.md`, en la rama
 
 ```
    LO DECIDIDO                                          EN EL CÓDIGO
-   0,30 $ por alumno al mes + IVA, mínimo 39 $          ✔ tanda 1, en local
+   0,35 $ por alumno al mes, mínimo 45 $, sin IVA aparte ✔ en local (cambió el 12 oct, ver abajo)
    un solo plan, sin nombres                            ✔ tanda 1, en local
    todo colegio nace en gratis; solo cargar es libre    ✔ tanda 1, en local
    «Suscripción» → reporte → validación en /siga        ✔ tanda 2, en local
@@ -28,6 +28,28 @@ unifican todos al terminar (§ 9 del spec). Daniel: *«No quiero que en el futur
 otra sesión mire lo que tú miraste y se confunda o me proponga cosas basada en
 información obsoleta.»*
 
+### El precio lleva el IVA adentro — hecho en local, el mismo 12 de octubre
+
+Rama `feat/el-precio-con-el-iva-adentro`, encima de la tanda 2. Daniel, con la
+pantalla «Suscripción» delante: *«se ve muy incómodo, además no podemos cobrar
+IVA en dólares, eso no es correcto. Vamos a incrementarle el IVA al costo:
+0,30 × 1,16 = 0,348, poco menos de 0,35. Pongámoslo de una vez como el costo.»*
+
+```
+   ANTES                                        AHORA
+   0,30 $ por alumno al mes + IVA               0,35 $ por alumno al mes
+   mínimo 39 $ + IVA (45,24)                    mínimo 45 $            ← lo deduje yo
+   360 alumnos: 108,00 + 17,28 = 125,28         360 alumnos: 126,00
+   «Suscripción»: monto · IVA · total           un solo renglón
+   «más IVA» en portada, muro, correos…         en ninguna parte: lo cuida un test
+```
+
+⚠️ **El mínimo de 45 está por confirmar.** Daniel dijo el precio por alumno;
+el mínimo es la misma cuenta (39 × 1,16 = 45,24), y dejarlo en 39 le habría
+bajado la mensualidad al colegio chico. Es `Subscription::MINIMO_MENSUAL`.
+⚠️ **Y la regla del 0,40** (decisión 18) era antes de meter el IVA: con la
+misma cuenta serían 0,46. Hay que volver a decidirla.
+
 ### La tanda 2, «pagar sin consola» — hecha en local, esperando la revisión de Daniel
 
 Rama `feat/pagar-sin-consola`, que sale de la tanda 1. Versión **1.15.0**.
@@ -36,7 +58,7 @@ Rama `feat/pagar-sin-consola`, que sale de la tanda 1. Versión **1.15.0**.
    EL COLEGIO (dirección y finanzas)             SIGA (/siga)
    ─────────────────────────────────             ────────────
    Finanzas ▸ Suscripción                        Cartera ▸ «Pagos por validar»
-     en qué está · el precio con su IVA            [Validar]  activa un mes, en el momento
+     en qué está · el precio                       [Validar]  activa un mes, en el momento
      cómo pagar · lo reportado                     [Rechazar…] con motivo
    [Reportar el pago]  ──► «en revisión»  ──►     Ajustes: el WhatsApp y los datos para pagar
      correo a SIGA                                 (los cambia el fundador; operaciones los ve)
@@ -77,7 +99,7 @@ por el día del reporte, y que una validación no se deshace.
 ### La tanda 1, «las reglas» — hecha en local, esperando la revisión de Daniel
 
 ```
-   el precio            0,30 $ por alumno + IVA, mínimo 39: `Subscription::PRECIO_POR_ALUMNO`
+   el precio            por alumno, con un mínimo: `Subscription::PRECIO_POR_ALUMNO`
                         y `MINIMO_MENSUAL`; adiós a `PLANES`, a las bandas y a sus nombres
    la frontera          cada controlador del colegio en una de cuatro listas de
                         `RespetaLaSuscripcion`, y `frontera_de_lo_gratis_test` lo exige:
@@ -116,6 +138,7 @@ activarlo sin pasar por el reporte y la validación.
    ramas abiertas             feat/del-registro-al-cobro, local: el spec del cobro
                               y la tanda 1
                               feat/pagar-sin-consola, local: la tanda 2, encima
+                              feat/el-precio-con-el-iva-adentro, local: encima de esa
 ```
 
 ⚠️ **De la 1.11.0 a la 1.13.0 están cerradas**: mezcladas y desplegadas el 5 de

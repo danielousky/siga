@@ -27,9 +27,9 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 - **La suscripción se paga desde SIGA, sin llamar a nadie.** En el menú de la
   dirección y de finanzas hay una pantalla nueva, «Suscripción», que dice en qué
-  está el colegio, cuánto le toca este mes —con su matrícula de hoy y el IVA
-  aparte— y cómo pagar: Pago Móvil o transferencia en bolívares a la tasa BCV
-  del día, Binance (USDT) o efectivo en dólares.
+  está el colegio, cuánto le toca este mes —con su matrícula de hoy— y cómo
+  pagar: Pago Móvil o transferencia en bolívares a la tasa BCV del día, Binance
+  (USDT) o efectivo en dólares.
 
   ```
      «Suscripción»  ──►  Reportar el pago  ──►  SIGA lo valida  ──►  activa por un mes
@@ -56,14 +56,14 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ## 1.14.0 — 12 de octubre de 2026
 
-- **SIGA se paga por alumno: 0,30 $ al mes por alumno inscrito, más IVA, con un
-  mínimo de 39 $.** Se acaban los tres planes y el salto del alumno 151, que
-  duplicaba la factura: cada alumno cuesta lo mismo, y todos los colegios tienen
-  el sistema completo.
+- **SIGA se paga por alumno: 0,35 $ al mes por alumno inscrito, con un mínimo
+  de 45 $.** Se acaban los tres planes y el salto del alumno 151, que duplicaba
+  la factura: cada alumno cuesta lo mismo, y todos los colegios tienen el
+  sistema completo. El precio es final: no se le suma nada.
 
   ```
-     alumnos       130    150    250    360    800
-     al mes         39     45     75    108    240     más IVA
+     alumnos       100      150      250      360      800
+     al mes         45    52,50    87,50      126      280     dólares
   ```
 
 - **Cargar el colegio sigue siendo gratis**, sin tope y sin fecha: alumnos,

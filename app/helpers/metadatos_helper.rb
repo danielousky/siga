@@ -50,7 +50,7 @@ module MetadatosHelper
 
     "Notas, boletines y constancias desde el teléfono. " \
       "Un sistema pensado para el colegio que hoy lleva todo en Word. " \
-      "Cargar su colegio es gratis; calificar y emitir, #{precio} $ por alumno al mes + IVA."
+      "Cargar su colegio es gratis; calificar y emitir, #{precio} $ por alumno al mes."
   end
 
   # Cada vista puede poner lo suyo con `content_for :titulo` / `:descripcion`.
@@ -118,7 +118,8 @@ module MetadatosHelper
   # mentir.
   #
   # ⚠️ UNA oferta, con el precio por unidad: `referenceQuantity` dice que los
-  # 0,30 son por alumno, y `valueAddedTaxIncluded: false` que el IVA va aparte.
+  # 0,35 son por alumno. Del IVA no se afirma nada: el precio es final y SIGA
+  # no lo desglosa (decisión 28 del spec `del-registro-al-cobro`).
   # En el esquema el número va con PUNTO —es un dato, no un texto en español—.
   #
   # ⚠️ Va en `<script type="application/ld+json">`, que NO es JavaScript: es un
@@ -155,13 +156,12 @@ module MetadatosHelper
       "name" => "Suscripción",
       "price" => precio,
       "priceCurrency" => "USD",
-      "description" => "Por alumno inscrito, al mes, más IVA, con un mínimo de #{minimo} USD al mes. " \
+      "description" => "Por alumno inscrito, al mes, con un mínimo de #{minimo} USD al mes. " \
                        "Cargar el colegio es gratis.",
       "priceSpecification" => {
         "@type" => "UnitPriceSpecification",
         "price" => precio,
         "priceCurrency" => "USD",
-        "valueAddedTaxIncluded" => false,
         "referenceQuantity" => { "@type" => "QuantitativeValue", "value" => 1, "unitText" => "alumno" },
         "billingIncrement" => 1,
         "unitCode" => "MON"

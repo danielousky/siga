@@ -121,7 +121,10 @@ class SeoTest < ActionDispatch::IntegrationTest
     assert_equal 1, ofertas.size, "un solo plan, una sola oferta"
     assert_equal format("%.2f", Subscription::PRECIO_POR_ALUMNO), ofertas.first["price"]
     assert_equal "alumno", ofertas.first.dig("priceSpecification", "referenceQuantity", "unitText")
-    assert_equal false, ofertas.first.dig("priceSpecification", "valueAddedTaxIncluded")
+    # ⚠️ Del IVA la ficha no afirma nada: el precio es final y no se desglosa
+    # (decisión 28 del spec). Decía `valueAddedTaxIncluded: false`.
+    assert_not ofertas.first["priceSpecification"].key?("valueAddedTaxIncluded")
+    assert_no_match(/IVA/, ofertas.first["description"])
   end
 
   # ⚠️ UNA sola: repetirla en cada pantalla pública le dice a un buscador que

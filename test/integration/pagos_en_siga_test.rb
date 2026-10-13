@@ -36,7 +36,7 @@ class PagosEnSigaTest < ActionDispatch::IntegrationTest
       assert_select ".siga-pago-datos", text: /Pago Móvil o transferencia/
       assert_select ".siga-pago-datos", text: /18\.250,50 Bs/
       assert_select ".siga-pago-datos", text: /0012345678/
-      assert_select ".siga-pago-datos", text: /45,24 \$/
+      assert_select ".siga-pago-datos", text: /45,00 \$/
       assert_select "a", text: /Ver el comprobante/
       assert_select "form[action=?]", validar_siga_pago_path(@pago)
       assert_select "form[action=?] input[name=motivo][required]", rechazar_siga_pago_path(@pago)
@@ -283,7 +283,7 @@ class PagosEnSigaTest < ActionDispatch::IntegrationTest
 
     assert_difference -> { cantidad(SubscriptionPayment) }, 1 do
       post suscripcion_pagos_path,
-           params: { subscription_payment: { medio: "efectivo", monto: "45.24", pagado_el: Date.current.to_s } }
+           params: { subscription_payment: { medio: "efectivo", monto: "45", pagado_el: Date.current.to_s } }
     end
     pago = Current.sin_aislamiento { SubscriptionPayment.order(:id).last }
     assert_equal @b.colegio.id, pago.school_id, "el pago es del colegio visitado, no de otro"

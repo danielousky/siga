@@ -49,7 +49,10 @@ class PortadaPublicaTest < ActionDispatch::IntegrationTest
     precio = ApplicationController.helpers.cifra(Subscription::PRECIO_POR_ALUMNO)
     assert_select "span.portada-plan-monto", text: precio, count: 1,
                   message: "falta el precio por alumno, #{precio}"
-    assert_select "p.portada-plan-cupo", text: /más IVA/
+    # ⚠️ El precio es final: la portada no dice «más IVA» (decisión 28 del spec).
+    minimo = ApplicationController.helpers.numero_en_dolares(Subscription::MINIMO_MENSUAL)
+    assert_select "p.portada-plan-cupo", text: /con un mínimo de #{Regexp.escape(minimo)} al mes/
+    assert_select "p.portada-plan-cupo", text: /IVA/, count: 0
   end
 
   # ⚠️ La portada tenía DOS salidas —pedir una demostración y entrar— y ninguna
