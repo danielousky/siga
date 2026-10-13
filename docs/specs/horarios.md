@@ -1,11 +1,12 @@
 # Los horarios de clase
 
-> **Estado:** en discusión desde el 13 de octubre de 2026 · **sin preguntas abiertas: falta que Daniel lo congele**
+> **Estado:** **congelado** el 13 de octubre de 2026 · en construcción: tanda 1
 > **PR:** — (rama `docs/spec-horarios`; el issue de Linear está sin crear: el conector no estaba autenticado)
 
 Las 18 decisiones están tomadas (§ 3): las 11 a 18 las propuso Claude y las
-confirmó Daniel el mismo 13 de octubre. Se congela cuando Daniel lo diga, y con
-eso arranca la tanda 1.
+confirmó Daniel el mismo 13 de octubre. Con todas contestadas dio la orden de
+seguir —*«Continúa»*—, y desde ahí está congelado: si algo cambia, se cambia
+aquí primero.
 
 ---
 
