@@ -53,6 +53,32 @@ class OrdenDeBorradoTest < ActiveSupport::TestCase
                  "la cola de trabajos es maquinaria de la plataforma, no datos de un colegio"
   end
 
+  # ⚠️ Los ajustes de la plataforma —el WhatsApp de SIGA y las cuentas con que
+  # cobra— no son de la demo: limpiarla no se los puede llevar. Y para que
+  # borrar a las personas no choque con quién los cambió, esa clave foránea se
+  # pone en nulo sola.
+  test "los ajustes de la plataforma quedan afuera, y sobreviven a que se borre quien los cambió" do
+    assert_not_includes OrdenDeBorrado.calcular, "siga_settings"
+
+    persona = User.create!(first_name: "Quien", last_name: "Cambia", email: "cambia@siga.test", password: "123123",
+                           document: "V-19000111", document_type: :cedula_v)
+    SigaSetting.delete_all
+    SigaSetting.create!(whatsapp: "0414-1234567", actualizado_por: persona)
+
+    persona.delete
+
+    assert_equal "0414-1234567", SigaSetting.actuales.whatsapp
+    assert_nil SigaSetting.actuales.actualizado_por_id
+  end
+
+  # Los pagos de la suscripción sí son del colegio: se van con él.
+  test "los pagos de la suscripción se borran antes que el colegio y que las personas" do
+    orden = OrdenDeBorrado.calcular
+
+    assert_operator orden.index("subscription_payments"), :<, orden.index("schools")
+    assert_operator orden.index("subscription_payments"), :<, orden.index("users")
+  end
+
   # El orden tiene que ser estable: dos corridas dan la misma lista, o el diff
   # de una revisión no significa nada.
   test "el orden es el mismo en cada corrida" do

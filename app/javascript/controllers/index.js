@@ -25,6 +25,9 @@ application.register("peso-deslizante", PesoDeslizanteController)
 import SeDesvaneceController from "controllers/se_desvanece_controller"
 application.register("se-desvanece", SeDesvaneceController)
 
+import MedioDePagoController from "controllers/medio_de_pago_controller"
+application.register("medio-de-pago", MedioDePagoController)
+
 import AsistenciaController from "controllers/asistencia_controller"
 import AreaController from "controllers/area_controller"
 import AutoEnvioController from "controllers/auto_envio_controller"

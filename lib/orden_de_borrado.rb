@@ -19,10 +19,19 @@
 #
 # `solid_queue_*` es la cola de trabajos y `schema_migrations` es de Rails.
 # Borrarlas no limpia una demo: rompe la instalación.
+#
+# ## ⚠️ Y los ajustes de la plataforma tampoco
+#
+# `siga_settings` guarda el WhatsApp de SIGA y las cuentas con que cobra (spec
+# `del-registro-al-cobro`, decisiones 20 y 21). No es de la demo ni de ningún
+# colegio: limpiar una demo y quedarse sin a dónde pagar sería borrar la caja
+# registradora junto con la mercancía de muestra. Su única clave foránea —quién
+# los cambió— se pone en nulo sola al borrarse esa persona.
 module OrdenDeBorrado
   NO_SE_TOCAN = %w[
     ar_internal_metadata schema_migrations
     active_storage_attachments active_storage_blobs active_storage_variant_records
+    siga_settings
   ].freeze
 
   PREFIJOS_DE_MAQUINARIA = %w[solid_queue_ solid_cache_ solid_cable_].freeze

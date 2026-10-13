@@ -17,7 +17,7 @@ namespace :modelo do
   RUTA = Rails.root.join("db/structure.sql")
 
   # Todo lo que las dos tareas necesitan saber de `structure.sql`, leído UNA vez.
-  Esquema = Struct.new(:tablas, :pks, :fks, :uniq, :rls, :force, :dominio,
+  Esquema = Struct.new(:tablas, :pks, :fks, :uniq, :condicionados, :rls, :force, :dominio,
                        :solid, :storage, keyword_init: true)
 
   def self.leer_el_esquema
@@ -46,16 +46,30 @@ namespace :modelo do
     sql.scan(/ALTER TABLE ONLY public\.(\w+)\s+ADD CONSTRAINT \w+ FOREIGN KEY \((\w+)\) REFERENCES public\.(\w+)/m)
        .each { |t, col, dest| fks[t] << [ col, dest ] }
 
+    # ⚠️ Un único PARCIAL con una condición de negocio NO es una clave.
+    #
+    # «Una fila por colegio MIENTRAS esté en revisión» (`subscription_payments`)
+    # no dice que el colegio tenga un solo pago: tiene uno por mes. Leído como
+    # clave, el diagrama dibujaba un 1:1 que no existe. Lo que sí sigue siendo
+    # clave es el parcial de «si no es nulo» —el correo, el RIF, el código DEA—:
+    # ahí la condición solo dice que el dato es opcional.
     uniq = Hash.new { |h, k| h[k] = [] }
-    sql.scan(/CREATE UNIQUE INDEX \w+ ON public\.(\w+) USING btree \(([^)]+)\)/)
-       .each { |t, cols| uniq[t] << cols }
+    condicionados = Hash.new { |h, k| h[k] = [] }
+    sql.scan(/CREATE UNIQUE INDEX \w+ ON public\.(\w+) USING btree \(([^)]+)\)(?: WHERE (.+))?;/)
+       .each do |t, cols, condicion|
+         if condicion.nil? || condicion.match?(/\A\(\w+ IS NOT NULL\)\z/)
+           uniq[t] << cols
+         else
+           condicionados[t] << [ cols, condicion ]
+         end
+       end
 
     solid    = tablas.keys.grep(/\Asolid_/)
     internas = %w[ar_internal_metadata schema_migrations]
     storage  = tablas.keys.grep(/\Aactive_storage_/)
     dominio  = (tablas.keys - solid - internas - storage).sort
 
-    Esquema.new(tablas:, pks:, fks:, uniq:, rls:, force:, dominio:, solid:, storage:)
+    Esquema.new(tablas:, pks:, fks:, uniq:, condicionados:, rls:, force:, dominio:, solid:, storage:)
   end
 
   desc "Mapa del modelo de datos, en Markdown, desde structure.sql"
@@ -105,6 +119,11 @@ namespace :modelo do
         puts "**Únicos:** " + uniq[t].map { |c| "`(#{c})`" }.join(" · ")
         puts
       end
+      unless e.condicionados[t].empty?
+        puts "**Únicos, con condición:** " +
+             e.condicionados[t].map { |c, condicion| "`(#{c})` si `#{condicion}`" }.join(" · ")
+        puts
+      end
     end
   end
 
@@ -121,7 +140,7 @@ namespace :modelo do
   # Sí se dibujan las de `schools` a lo que cuelga de él ESTRUCTURALMENTE —el año
   # escolar, los grados, las materias— porque ahí la relación es real.
   ESTRUCTURALES_DE_SCHOOL = %w[
-    academic_periods grades departments subjects subscriptions
+    academic_periods grades departments subjects subscriptions subscription_payments
     importaciones activity_logs
   ].freeze
 
@@ -146,7 +165,7 @@ namespace :modelo do
   ORDEN = %w[
     users students teachers admins representatives siga_staffs addresses
     student_representatives
-    schools subscriptions
+    schools subscriptions subscription_payments
     academic_periods grades sections departments subjects grade_subjects
     enrollments teacher_sections
     evaluation_moments competencies indicators
@@ -155,7 +174,7 @@ namespace :modelo do
     attendances report_cards section_closures constancias informes
     fees charges payment_reports
     importaciones mensajes mensaje_eventos mensajes_entrantes
-    activity_logs demo_requests
+    activity_logs demo_requests siga_settings
     planteles_oficiales
   ].freeze
 
@@ -201,7 +220,16 @@ namespace :modelo do
     "attendances.status"             => "presente · ausente · tarde",
     "report_cards.code"              => "el que verifica el QR",
     "report_cards.snapshot"          => "CONGELADO al emitir",
-    "subscriptions.plan"             => "gratis · inicial · estándar · grande",
+    "subscriptions.plan"             => "gratis · por_alumno — un solo plan, sin nombres",
+    "subscriptions.precio_por_alumno" => "CONGELADO al activarse — el que entró a 0,30 sigue a 0,30",
+    "subscriptions.vigente_hasta"    => "el día que vence; de ahí, 15 de gracia y solo lectura",
+    "subscription_payments.medio"    => "pago_movil · binance · efectivo — da la unidad del monto",
+    "subscription_payments.monto"    => "lo que dice el comprobante: Bs o dólares, según el medio",
+    "subscription_payments.precio_mensual" => "la cuenta con que se REPORTÓ, congelada",
+    "subscription_payments.estado"   => "en_revision · validado · rechazado — uno en revisión a la vez",
+    "subscription_payments.cubre_desde" => "el mes que pagó, escrito al validar",
+    "siga_settings.whatsapp"         => "el de SIGA; sin él no hay botón ni efectivo",
+    "siga_settings.cuenta"           => "veinte dígitos; el banco, los cuatro primeros",
     "importaciones.tipo"             => "matrícula · pensum · historial",
     "mensajes.correo"                => "CONGELADO — a dónde fue de verdad",
     "mensaje_eventos.tipo"           => "enviado · abierto · rebotó",

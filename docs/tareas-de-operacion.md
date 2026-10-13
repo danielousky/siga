@@ -159,10 +159,39 @@ sin worker la cola se acumula.
 
 ---
 
+## Cobrar · no es una tarea: es una pantalla
+
+Desde la 1.15.0 un colegio pasa de gratis a pagar sin que nadie abra una
+terminal (spec `docs/specs/del-registro-al-cobro.md`).
+
+```
+   el colegio      Finanzas ▸ Suscripción ▸ Reportar el pago
+   SIGA            /siga/cartera   «Pagos por validar»: Validar, o Rechazar con motivo
+                   /siga/ajustes   el WhatsApp y los datos para pagar
+```
+
+⚠️ **Lo primero, en una instalación nueva, es cargar los ajustes.** Sin datos
+para pagar, «Suscripción» le dice al colegio que todavía no hay medios
+cargados, y sin WhatsApp no aparece el botón en ninguna pantalla.
+
+⚠️ **Validar y cambiar los ajustes es de `fundador`**; `operaciones` los ve.
+
+⚠️ **`demo:limpiar` NO se lleva los ajustes**: son de la plataforma, no de la
+demo.
+
+`prueba:activar_plan` sigue existiendo como atajo, y solo para el colegio de
+prueba.
+
+---
+
 ## Lo que NO tiene tarea todavía
 
-- **Cambiar el plan de un colegio.** Hoy se hace con `prueba:activar_plan`, que
-  solo sirve para el colegio de prueba. Un colegio real que quiera pasar de
-  gratis a pago no tiene por dónde.
+- **Dar una cortesía o un piloto.** Es una suscripción activa a 0 $ con su
+  vencimiento, y no hay pantalla que la abra: hoy un colegio se activa solo
+  validándole un pago. Mientras tanto, el rodeo sin terminal es entrar al
+  colegio desde `/siga/colegios` («Entrar al colegio»), reportar un pago en
+  efectivo desde «Suscripción» y validarlo en la Cartera: queda activo un mes,
+  con el precio de ese día anotado aunque nadie lo haya cobrado.
+- **Deshacer una validación.** Si se validó el pago equivocado, no hay botón.
 - **Definir lo que el colegio cobra.** Los conceptos existen en la base y solo
   los crea `pagos:demo`.

@@ -62,6 +62,59 @@ class CorreosConIdentidadTest < ActionMailer::TestCase
     assert_no_match(/Enviado con/, html)
   end
 
+  # ── Los del cobro de la suscripción: de SIGA ──────────────────────────────
+  #
+  # SIGA le escribe a su cliente —o a su propio equipo— sobre lo que el colegio
+  # le paga (spec `del-registro-al-cobro`). Ninguno sale con el escudo del
+  # colegio: el colegio no se escribe a sí mismo.
+
+  test "los tres del cobro son de SIGA, aunque hablen de un colegio" do
+    correos_del_cobro.each do |cual, correo|
+      html = html_de(correo)
+
+      assert_equal "SIGA", correo[:from].display_names.first, "#{cual}: el remitente no es SIGA"
+      assert_match(/Sistema Integrado de Gestión Académica/, html, "#{cual}: falta la cabecera de SIGA")
+      assert_includes html, @colegio.name, "#{cual}: no dice de qué colegio habla"
+      assert_no_match(/Enviado con/, html, "#{cual}: salió con el pie de un colegio")
+    end
+  end
+
+  test "el aviso del pago le llega a SIGA; la respuesta, a quien lo reportó" do
+    assert_equal [ "avisos@siga.test" ], correos_del_cobro["pago por validar"].to
+    assert_equal [ @a.director.email ], correos_del_cobro["pago validado"].to
+    assert_equal [ @a.director.email ], correos_del_cobro["pago rechazado"].to
+  end
+
+  # Sin a quién avisarle, el aviso no sale y no falla: un aviso interno que no
+  # sale no puede tumbar el reporte de un cliente.
+  test "sin dirección de avisos, el del pago por validar no sale" do
+    pago = pago_reportado(@b)
+
+    correo = con_la_variable("SIGA_AVISOS_EMAIL", nil) do
+      con_el_colegio(@b.colegio) { PlataformaMailer.pago_reportado(pago).tap(&:message) }
+    end
+
+    assert_nil correo.to
+  end
+
+  # ⚠️ El motivo es lo único que el colegio necesita para corregir: va entero.
+  test "el del rechazo trae el motivo, a dónde volver y el WhatsApp" do
+    correo = correos_del_cobro["pago rechazado"]
+
+    assert_includes html_de(correo), "La referencia no aparece en el banco"
+    assert_includes texto_de(correo), "La referencia no aparece en el banco"
+    assert_includes html_de(correo), "/suscripcion"
+    assert_includes html_de(correo), "https://wa.me/584141234567"
+  end
+
+  test "el de la validación dice hasta cuándo queda activa" do
+    correo = correos_del_cobro["pago validado"]
+    hasta  = I18n.l(Date.current + 1.month, format: :long)
+
+    assert_includes correo.subject, hasta
+    assert_includes texto_de(correo), hasta
+  end
+
   # ── Los de la contraseña: del colegio, si es uno solo ─────────────────────
   #
   # Decisión de Daniel. Quien pide recuperar su contraseña no tiene sesión, así
@@ -149,7 +202,7 @@ class CorreosConIdentidadTest < ActionMailer::TestCase
 
   # ── Lo que tienen todos ───────────────────────────────────────────────────
 
-  test "los ocho correos traen HTML y texto" do
+  test "todos los correos traen HTML y texto" do
     todos.each do |cual, correo|
       assert_equal %w[text/plain text/html], correo.parts.map { |parte| parte.content_type.split(";").first },
                    "#{cual}: le falta una de las dos versiones"

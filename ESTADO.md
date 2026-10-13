@@ -7,23 +7,72 @@ spec está **congelado**: `docs/specs/del-registro-al-cobro.md`, en la rama
 `feat/del-registro-al-cobro` (local, sin subir).
 
 ```
-   LO QUE HACE EL CÓDIGO HOY                    LO DECIDIDO
-   bandas: 39 · 79 · 119 $ al mes               0,30 $ por alumno al mes + IVA, mínimo 39 $
-   Inicial · Estándar · Grande                  un solo plan, sin nombres
-   «sin suscripción» = todo, sin fecha          todo colegio nace en gratis
-   gratis: cargar, con ocho huecos              gratis: solo cargar, sin huecos
-   pagar: por consola                           «Suscripción» → reporte → validación en /siga
-   la escalera, solo al abrir la Cartera        un trabajo diario: 5 días antes · 15 de gracia
-                                                · solo lectura
-   la puerta: el formulario de demostración     el registro + WhatsApp + colegio de muestra aparte
+   LO DECIDIDO                                          EN EL CÓDIGO
+   0,30 $ por alumno al mes + IVA, mínimo 39 $          ✔ tanda 1, en local
+   un solo plan, sin nombres                            ✔ tanda 1, en local
+   todo colegio nace en gratis; solo cargar es libre    ✔ tanda 1, en local
+   «Suscripción» → reporte → validación en /siga        ✔ tanda 2, en local
+   el WhatsApp y los datos para pagar, en /siga/ajustes ✔ tanda 2, en local
+   el colegio de muestra, en su instancia aparte        falta (tanda 5)
+   la puerta: registro + WhatsApp + colegio de muestra  falta (tanda 4) — hoy sigue
+                                                        el formulario de demostración
+   un trabajo diario: 5 días antes · gracia · solo      falta (tanda 3) — hoy la escalera
+   lectura, con sus correos                             se mueve al abrir la Cartera
 ```
 
-⚠️ **Mientras tanto, `CLAUDE.md`, el manual, los PDF de `SIGA/DOCs`, el
-contrato, los videos y Linear dicen lo viejo.** No proponer nada de precios, del
-plan gratis ni de la puerta de entrada a partir de ellos: manda el spec. Se
+⚠️ **Mientras tanto, el manual, los PDF de `SIGA/DOCs`, el contrato, los videos
+y Linear dicen lo viejo**, y en `CLAUDE.md` quedan restos —«Contexto de
+mercado» todavía dice que no hay nada que cobre—. No proponer nada de precios,
+del plan gratis ni de la puerta de entrada a partir de ellos: manda el spec. Se
 unifican todos al terminar (§ 9 del spec). Daniel: *«No quiero que en el futuro
 otra sesión mire lo que tú miraste y se confunda o me proponga cosas basada en
 información obsoleta.»*
+
+### La tanda 2, «pagar sin consola» — hecha en local, esperando la revisión de Daniel
+
+Rama `feat/pagar-sin-consola`, que sale de la tanda 1. Versión **1.15.0**.
+
+```
+   EL COLEGIO (dirección y finanzas)             SIGA (/siga)
+   ─────────────────────────────────             ────────────
+   Finanzas ▸ Suscripción                        Cartera ▸ «Pagos por validar»
+     en qué está · el precio con su IVA            [Validar]  activa un mes, en el momento
+     cómo pagar · lo reportado                     [Rechazar…] con motivo
+   [Reportar el pago]  ──► «en revisión»  ──►     Ajustes: el WhatsApp y los datos para pagar
+     correo a SIGA                                 (los cambia el fundador; operaciones los ve)
+```
+
+```
+   lo que se le suma al cobro     validar congela el precio que el colegio vio al reportar
+                                  el mes cuenta desde que vencía (a tiempo o en la gracia)
+                                  o desde que se valida (primer pago, o ya en solo lectura)
+                                  nada baja de estado mientras un pago espera
+   los tres correos               pago por validar (a SIGA) · validado y rechazado (al colegio)
+   las dos salidas                el muro de lo gratis y el de la solo lectura enlazan a
+                                  «Suscripción», y ninguno de los dos la cierra
+   cinco días antes               la dirección ve «vence el…» arriba (el correo, en la tanda 3)
+```
+
+⚠️ **Cinco decisiones mías, por confirmar** (23 a 27 del spec): el correo al
+validar, retirar un reporte, el precio congelado al reportar, lo tarde medido
+por el día del reporte, y que una validación no se deshace.
+
+**Para probarla en local**, en este orden:
+
+```
+   1 · desarrollador@siga.edu      /siga/ajustes   cargar el WhatsApp y los datos para pagar
+                                                   (sin eso, «Suscripción» no ofrece medios)
+   2 · un colegio en gratis        el que se registró en /registrarse, o `prueba:campo`
+                                   Finanzas ▸ Suscripción ▸ Reportar el pago
+   3 · desarrollador@siga.edu      /siga/cartera   Validar — o Rechazar, y mirar el motivo
+                                                   en la pantalla del colegio
+   4 · director.bolivar@siga.edu   Bolívar vence el 12 de octubre: ve el aviso de arriba;
+                                   reportando y validando, renueva desde ese día
+       finanzas.bolivar@siga.edu   también ve «Suscripción»; coord.bolivar@siga.edu, no
+   5 · director.bello@siga.edu     Bello está vencido: solo lectura, y aun así puede reportar
+   operaciones@siga.app            ve la Cartera y los ajustes, sin botones
+   los correos                     /rails/mailers/correos_de_siga (los tres nuevos, al final)
+```
 
 ### La tanda 1, «las reglas» — hecha en local, esperando la revisión de Daniel
 
@@ -42,11 +91,10 @@ información obsoleta.»*
    versión              1.14.0
 ```
 
-⚠️ Lo que la tanda 1 NO trae: no hay todavía dónde reportar un pago ni dónde
-validarlo (tanda 2). En local, Bolívar queda pagando y Bello vencido, como los
-siembra `07_dia_a_dia`; para ver lo gratis, un colegio registrado en
-`/registrarse` o el de `bin/rails prueba:campo`, que se activa con
-`bin/rails prueba:activar_plan`.
+En local, Bolívar queda pagando y Bello vencido, como los siembra
+`07_dia_a_dia`; para ver lo gratis, un colegio registrado en `/registrarse` o el
+de `bin/rails prueba:campo`. `bin/rails prueba:activar_plan` es el atajo para
+activarlo sin pasar por el reporte y la validación.
 
 ```
    las tandas    1 las reglas → 2 pagar sin consola → 5 la muestra → 4 la puerta
@@ -67,6 +115,7 @@ siembra `07_dia_a_dia`; para ver lo gratis, un colegio registrado en
                               producto ni hay que desplegarlos
    ramas abiertas             feat/del-registro-al-cobro, local: el spec del cobro
                               y la tanda 1
+                              feat/pagar-sin-consola, local: la tanda 2, encima
 ```
 
 ⚠️ **De la 1.11.0 a la 1.13.0 están cerradas**: mezcladas y desplegadas el 5 de
@@ -206,6 +255,23 @@ detalle —y cómo se encontró, con una caja negra dentro del navegador— est�
 ⚠️ Lo que NO está probado: que no quede otro test intermitente. Éste apareció
 recién cuando se corrigió el anterior, y los dos estaban tapados por el humo.
 Si GitHub vuelve a salir en rojo, ahora sube la captura del test que falló.
+
+⚠️ **Y quedaba otro, sin arreglar** (12 de octubre). `nivel_en_la_barra_test`,
+«la pastilla dice el año y el nivel de un vistazo»: se toca la pastilla y el
+panel no abre. Salió en rojo en una de dos corridas de `bin/ci` de la tanda 2,
+y no es de esa tanda:
+
+```
+   con el procesador saturado, ocho corridas del archivo
+   el código de la tanda 1 (sin nada de la 2)     1 falla de 8
+   el código de la tanda 2                        3 fallas de 8
+   solo, sin carga                                0 de 6
+```
+
+Con ocho corridas no se distingue 1 de 3: lo que sí dicen es que ya fallaba
+antes. Falta encontrarle la causa —la captura muestra la página bien cargada y
+el panel cerrado— y va en su propio PR. Mientras tanto, si `bin/ci` sale en rojo
+SOLO por ese test, se vuelve a correr `bin/rails test:system`.
 
 Y el CI sube también las capturas de los tests de sistema que fallen.
 

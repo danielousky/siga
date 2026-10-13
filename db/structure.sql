@@ -1459,6 +1459,44 @@ ALTER SEQUENCE public.sections_id_seq OWNED BY public.sections.id;
 
 
 --
+-- Name: siga_settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.siga_settings (
+    id bigint NOT NULL,
+    whatsapp character varying,
+    titular character varying,
+    documento character varying,
+    pago_movil_banco character varying,
+    pago_movil_telefono character varying,
+    cuenta character varying,
+    binance character varying,
+    actualizado_por_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: siga_settings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.siga_settings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: siga_settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.siga_settings_id_seq OWNED BY public.siga_settings.id;
+
+
+--
 -- Name: siga_staffs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1990,6 +2028,59 @@ ALTER SEQUENCE public.subjects_id_seq OWNED BY public.subjects.id;
 
 
 --
+-- Name: subscription_payments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.subscription_payments (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    reportado_por_id bigint NOT NULL,
+    medio character varying NOT NULL,
+    monto numeric(14,2) NOT NULL,
+    referencia character varying,
+    pagado_el date NOT NULL,
+    nota text,
+    alumnos integer NOT NULL,
+    precio_por_alumno numeric(6,2) NOT NULL,
+    minimo_mensual numeric(8,2) NOT NULL,
+    precio_mensual numeric(10,2) NOT NULL,
+    iva numeric(10,2) NOT NULL,
+    estado character varying DEFAULT 'en_revision'::character varying NOT NULL,
+    revisado_por_id bigint,
+    revisado_el timestamp(6) without time zone,
+    motivo text,
+    cubre_desde date,
+    cubre_hasta date,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    CONSTRAINT subscription_payments_estado_valido CHECK (((estado)::text = ANY ((ARRAY['en_revision'::character varying, 'validado'::character varying, 'rechazado'::character varying])::text[]))),
+    CONSTRAINT subscription_payments_medio_valido CHECK (((medio)::text = ANY ((ARRAY['pago_movil'::character varying, 'binance'::character varying, 'efectivo'::character varying])::text[]))),
+    CONSTRAINT subscription_payments_monto_positivo CHECK ((monto > (0)::numeric))
+);
+
+ALTER TABLE ONLY public.subscription_payments FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: subscription_payments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.subscription_payments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: subscription_payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.subscription_payments_id_seq OWNED BY public.subscription_payments.id;
+
+
+--
 -- Name: subscriptions; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2438,6 +2529,13 @@ ALTER TABLE ONLY public.sections ALTER COLUMN id SET DEFAULT nextval('public.sec
 
 
 --
+-- Name: siga_settings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.siga_settings ALTER COLUMN id SET DEFAULT nextval('public.siga_settings_id_seq'::regclass);
+
+
+--
 -- Name: siga_staffs id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2547,6 +2645,13 @@ ALTER TABLE ONLY public.students ALTER COLUMN id SET DEFAULT nextval('public.stu
 --
 
 ALTER TABLE ONLY public.subjects ALTER COLUMN id SET DEFAULT nextval('public.subjects_id_seq'::regclass);
+
+
+--
+-- Name: subscription_payments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.subscription_payments ALTER COLUMN id SET DEFAULT nextval('public.subscription_payments_id_seq'::regclass);
 
 
 --
@@ -2897,6 +3002,14 @@ ALTER TABLE ONLY public.sections
 
 
 --
+-- Name: siga_settings siga_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.siga_settings
+    ADD CONSTRAINT siga_settings_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: siga_staffs siga_staffs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3014,6 +3127,14 @@ ALTER TABLE ONLY public.students
 
 ALTER TABLE ONLY public.subjects
     ADD CONSTRAINT subjects_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: subscription_payments subscription_payments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.subscription_payments
+    ADD CONSTRAINT subscription_payments_pkey PRIMARY KEY (id);
 
 
 --
@@ -4029,6 +4150,20 @@ CREATE INDEX index_sections_on_school_id ON public.sections USING btree (school_
 
 
 --
+-- Name: index_siga_settings_on_actualizado_por_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_siga_settings_on_actualizado_por_id ON public.siga_settings USING btree (actualizado_por_id);
+
+
+--
+-- Name: index_siga_settings_una_sola_fila; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_siga_settings_una_sola_fila ON public.siga_settings USING btree ((true));
+
+
+--
 -- Name: index_siga_staffs_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4285,6 +4420,48 @@ CREATE INDEX index_subjects_on_school_id ON public.subjects USING btree (school_
 --
 
 CREATE UNIQUE INDEX index_subjects_on_school_id_and_code ON public.subjects USING btree (school_id, code);
+
+
+--
+-- Name: index_subscription_payments_on_estado_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_subscription_payments_on_estado_and_created_at ON public.subscription_payments USING btree (estado, created_at);
+
+
+--
+-- Name: index_subscription_payments_on_reportado_por_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_subscription_payments_on_reportado_por_id ON public.subscription_payments USING btree (reportado_por_id);
+
+
+--
+-- Name: index_subscription_payments_on_revisado_por_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_subscription_payments_on_revisado_por_id ON public.subscription_payments USING btree (revisado_por_id);
+
+
+--
+-- Name: index_subscription_payments_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_subscription_payments_on_school_id ON public.subscription_payments USING btree (school_id);
+
+
+--
+-- Name: index_subscription_payments_sin_repetir; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_subscription_payments_sin_repetir ON public.subscription_payments USING btree (school_id, referencia) WHERE ((referencia IS NOT NULL) AND ((estado)::text <> 'rechazado'::text));
+
+
+--
+-- Name: index_subscription_payments_uno_en_revision; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_subscription_payments_uno_en_revision ON public.subscription_payments USING btree (school_id) WHERE ((estado)::text = 'en_revision'::text);
 
 
 --
@@ -4763,6 +4940,14 @@ ALTER TABLE ONLY public.mensajes_entrantes
 
 
 --
+-- Name: subscription_payments fk_rails_6017ba1d2e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.subscription_payments
+    ADD CONSTRAINT fk_rails_6017ba1d2e FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
 -- Name: sections fk_rails_61d9612b47; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4923,6 +5108,14 @@ ALTER TABLE ONLY public.siga_staffs
 
 
 --
+-- Name: subscription_payments fk_rails_92951bb0f4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.subscription_payments
+    ADD CONSTRAINT fk_rails_92951bb0f4 FOREIGN KEY (revisado_por_id) REFERENCES public.users(id);
+
+
+--
 -- Name: competencies fk_rails_97d95ad371; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4976,6 +5169,14 @@ ALTER TABLE ONLY public.solid_queue_claimed_executions
 
 ALTER TABLE ONLY public.activity_grades
     ADD CONSTRAINT fk_rails_9e041c690a FOREIGN KEY (student_id) REFERENCES public.students(id);
+
+
+--
+-- Name: siga_settings fk_rails_a0147fcae4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.siga_settings
+    ADD CONSTRAINT fk_rails_a0147fcae4 FOREIGN KEY (actualizado_por_id) REFERENCES public.users(id) ON DELETE SET NULL;
 
 
 --
@@ -5200,6 +5401,14 @@ ALTER TABLE ONLY public.informes
 
 ALTER TABLE ONLY public.competencies
     ADD CONSTRAINT fk_rails_dfae0806ca FOREIGN KEY (section_id) REFERENCES public.sections(id);
+
+
+--
+-- Name: subscription_payments fk_rails_dfb1e0833e; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.subscription_payments
+    ADD CONSTRAINT fk_rails_dfb1e0833e FOREIGN KEY (reportado_por_id) REFERENCES public.users(id);
 
 
 --
@@ -5528,6 +5737,13 @@ CREATE POLICY aislamiento_por_colegio ON public.subjects USING (((current_settin
 
 
 --
+-- Name: subscription_payments aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.subscription_payments USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
 -- Name: subscriptions aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
 --
 
@@ -5717,6 +5933,12 @@ ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: subscription_payments; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.subscription_payments ENABLE ROW LEVEL SECURITY;
+
+--
 -- Name: subscriptions; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
@@ -5741,6 +5963,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261012150000'),
 ('20261012120000'),
 ('20260919010000'),
 ('20260917093000'),

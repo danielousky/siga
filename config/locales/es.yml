@@ -243,6 +243,20 @@ es:
     vence_el: Vence el
     monto: Monto
     voucher: Comprobante
+
+    # ⚠️ Lo que el colegio le paga a SIGA, y los ajustes con que se cobra (spec
+    # `del-registro-al-cobro`). Sin esto, un reporte incompleto dice «Medio no
+    # está incluido en la lista» en vez de decirlo en español del dominio.
+    medio: Medio
+    comprobante: Comprobante
+    motivo: Motivo
+    whatsapp: WhatsApp
+    titular: Titular
+    documento: Cédula o RIF
+    pago_movil_banco: Banco del Pago Móvil
+    pago_movil_telefono: Teléfono del Pago Móvil
+    cuenta: Número de cuenta
+    binance: Binance Pay
     leader_teacher: Profesor guía
     coordinator_teacher: Coordinador del grado
     user: Usuario

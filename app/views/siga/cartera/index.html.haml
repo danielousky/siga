@@ -14,6 +14,97 @@
     %span.siga-cifra-numero= @sin_suscripcion
     %span.siga-cifra-que sin suscripción
 
+-# ⚠️ Lo que ESPERA va arriba de todo (§ 5.6 del spec `del-registro-al-cobro`):
+-# es lo único de esta pantalla que tiene a un colegio esperando, con la
+-# planilla de notas cerrada hasta que alguien lo mire.
+-#
+-# ⚠️ Los dos números, separados y SIN compararlos: lo que le toca está en
+-# dólares y lo que pagó, en la unidad de su medio. El puente —la tasa BCV del
+-# día— lo hace quien valida, con el comprobante delante (§ 4.4).
+%section.siga-bloque
+  .siga-bloque-cab
+    %h2 Pagos por validar
+  - if @por_validar.empty?
+    %p.siga-vacio Ningún pago espera validación.
+  - else
+    - @por_validar.each do |pago|
+      .siga-pago
+        .siga-pago-cab
+          = link_to pago.school.name, siga_colegio_path(pago.school), class: "siga-pago-colegio"
+          %span.apagado= "· reportó #{pago.reportado_por.nombre_completo}, hace #{distance_of_time_in_words_to_now(pago.created_at)}"
+        .siga-pago-datos
+          %span
+            %span.apagado Medio
+            = pago.nombre_del_medio
+          %span
+            %span.apagado Pagó
+            %strong= importe_del_pago(pago)
+          %span
+            %span.apagado Referencia
+            %span.mono= pago.referencia.presence || "—"
+          %span
+            %span.apagado Fecha
+            = l(pago.pagado_el, format: :long)
+        .siga-pago-datos
+          %span
+            %span.apagado Le toca
+            %strong= numero_en_dolares(pago.cotizacion.total)
+            %span.apagado= "(#{contar(pago.alumnos, 'alumno', 'alumnos')}, #{pago.cotizacion.en_el_minimo? ? 'el mínimo' : "a #{numero_en_dolares(pago.precio_por_alumno)}"}, más IVA)"
+          - if pago.comprobante.attached?
+            = link_to "Ver el comprobante ↗", url_for(pago.comprobante), target: "_blank", rel: "noopener"
+          - else
+            %span.apagado Sin comprobante
+        - if pago.nota.present?
+          %p.siga-nota= "Agregó: #{pago.nota}"
+        - if siga_staff.maneja_el_cobro?
+          .siga-pago-acciones
+            -# Validar abre el sistema al colegio en el momento: un diálogo de
+            -# confirmación por pago no es trabajo de más — no hay botón para
+            -# deshacerlo.
+            = button_to "Validar", validar_siga_pago_path(pago), method: :patch, class: "btn btn-guardar",
+                        data: { turbo_confirm: "#{pago.school.name} queda activo por un mes desde hoy o desde que vencía. ¿Validamos?" }
+            -# ⚠️ El motivo es obligatorio: el colegio lo lee en su pantalla y en
+            -# su correo. Va plegado para que rechazar sea una decisión, no el
+            -# botón de al lado de «Validar».
+            %details.siga-rechazo
+              %summary Rechazar…
+              = form_with url: rechazar_siga_pago_path(pago), method: :patch, class: "siga-form-inline" do
+                = text_field_tag :motivo, nil, class: "form-control", required: true,
+                                 placeholder: "Por qué: el colegio lo va a leer",
+                                 id: "motivo_#{pago.id}", "aria-label": "Motivo del rechazo"
+                = submit_tag "Rechazar", class: "btn btn-danger"
+        - else
+          %p.siga-nota Valida el fundador.
+
+- if @revisados.any?
+  %section.siga-bloque
+    .siga-bloque-cab
+      %h2 Lo último que se revisó
+    .siga-tabla-envoltura
+      %table.siga-tabla
+        %thead
+          %tr
+            %th= School.model_name.human
+            %th Pagó
+            %th Situación
+            %th Revisó
+        %tbody
+          - @revisados.each do |pago|
+            %tr
+              %td= link_to pago.school.name, siga_colegio_path(pago.school)
+              %td= "#{importe_del_pago(pago)} · #{pago.nombre_del_medio}"
+              %td
+                - if pago.validado?
+                  %span.siga-estado.siga-estado--activa Validado
+                  - if pago.cubre_desde
+                    %span.apagado= "del #{l(pago.cubre_desde, format: :short)} al #{l(pago.cubre_hasta, format: :short)}"
+                - else
+                  %span.siga-estado.siga-estado--cancelada Rechazado
+                  %span.apagado= pago.motivo
+              %td.apagado
+                = pago.revisado_por&.first_name
+                = l(pago.revisado_el.to_date, format: :short) if pago.revisado_el
+
 %p.siga-nota
   Al vencer, un colegio pasa a
   %strong solo lectura

@@ -9,10 +9,22 @@ module Siga
   # ⚠️ Ya no tiene «Dar de alta». Servía para el colegio SIN suscripción, y
   # desde el cobro por alumno ninguno queda sin ella: todo colegio nace en
   # gratis (decisión 16 del spec `del-registro-al-cobro`). Activar una
-  # suscripción es validar un pago, y eso llega con la tanda 2 de ese spec.
+  # suscripción es VALIDAR UN PAGO, y lo que espera validación está arriba de
+  # todo (§ 5.6): es lo único de esta pantalla que tiene a alguien esperando.
   class CarteraController < BaseController
+    # ⚠️ `update` no tiene pantalla, y por eso mismo se cierra: era una puerta
+    # para cambiarle el plan o el vencimiento a cualquier colegio, abierta a
+    # todo el equipo de SIGA. Tocar una suscripción es del fundador (decisión 22).
+    before_action :exigir_que_maneje_el_cobro!, only: :update
+
     def index
       Subscription.actualizar_todas!
+
+      # Lo más viejo primero: es el colegio que lleva más días esperando.
+      @por_validar = SubscriptionPayment.esperando
+                                        .includes(:school, :reportado_por, comprobante_attachment: :blob).to_a
+      @revisados   = SubscriptionPayment.revisados.includes(:school, :revisado_por)
+                                        .order(revisado_el: :desc).limit(15).to_a
 
       @colegios = School.order(:name).to_a
       @suscripciones = Subscription.all.index_by(&:school_id)

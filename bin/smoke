@@ -191,6 +191,9 @@ if login "director.bolivar@siga.edu" "123123" "$JAR"; then
   check "auditoría"        "/dashboards/actividad"  200 "$JAR"
   check "alta de alumno"   "/alumnos/new"              200 "$JAR"
   check "alta de sección"  "/secciones/new"            200 "$JAR"
+  # Lo que el colegio le paga a SIGA (spec `del-registro-al-cobro`): es la
+  # salida del muro de lo gratis y de la solo lectura, así que tiene que abrir.
+  check "suscripción"      "/suscripcion"              200 "$JAR"
 
   # El selector de año escolar de la barra (MOR-165). Es un POST y devuelve un
   # redirect: comprobarlo acá es comprobar que el pivote de TODA la app existe
@@ -221,6 +224,9 @@ if login "desarrollador@siga.edu" "123123" "$JAR"; then
   check "colegios"            "/siga/colegios"          200 "$JAR"
   check "alta de colegio"     "/siga/colegios/new"      200 "$JAR"
   check "pipeline comercial"  "/siga/solicitudes"       200 "$JAR"
+  # Donde se validan los pagos de los colegios, y los datos con que se cobra.
+  check "cartera"             "/siga/cartera"           200 "$JAR"
+  check "ajustes"             "/siga/ajustes"           200 "$JAR"
 fi
 
 echo

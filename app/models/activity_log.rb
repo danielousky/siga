@@ -80,6 +80,14 @@ class ActivityLog < ApplicationRecord
     # equivocó de reporte, no el colegio limpiando. Quien lea la bitácora tiene
     # que poder distinguirlo de un rechazo.
     "reporte_destroyed"    => "Pago retirado por la familia",
+    # ⚠️ Lo que el COLEGIO le paga a SIGA, que no es lo que la familia le paga
+    # al colegio (spec `del-registro-al-cobro`). Validar y rechazar los hace
+    # SIGA, y quedan en el historial del colegio para que el colegio los vea:
+    # es quien preguntará «¿quién nos activó, y cuándo?».
+    "suscripcion_pago_reportado"  => "Pago de la suscripción reportado",
+    "suscripcion_pago_retirado"   => "Pago de la suscripción retirado",
+    "suscripcion_pago_validado"   => "Pago de la suscripción validado por SIGA",
+    "suscripcion_pago_rechazado"  => "Pago de la suscripción rechazado por SIGA",
     "enrollment_destroyed" => "Inscripción anulada",
     "teacher_assigned"     => "Profesor asignado",
     "teacher_removed"      => "Profesor removido",

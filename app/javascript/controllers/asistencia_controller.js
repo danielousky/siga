@@ -22,7 +22,7 @@ const CICLO = { presente: "ausente", ausente: "tarde", tarde: "presente" }
 const ETIQUETAS = { presente: "Presente", ausente: "Ausente", tarde: "Tarde" }
 
 export default class extends Controller {
-  static targets = ["alumno", "etiqueta", "resumen", "guardar", "aviso", "avisoTexto"]
+  static targets = ["alumno", "etiqueta", "resumen", "guardar", "aviso", "avisoTexto", "avisoEnlace"]
   static values  = { url: String, dia: String, total: Number }
 
   connect() {
@@ -71,7 +71,7 @@ export default class extends Controller {
       const datos = await respuesta.json()
 
       if (!respuesta.ok) {
-        this.#fallar(datos.mensaje || "No se pudo guardar.")
+        this.#fallar(datos.mensaje || "No se pudo guardar.", datos.enlace)
         return
       }
 
@@ -87,9 +87,22 @@ export default class extends Controller {
     }
   }
 
-  #fallar(mensaje) {
+  // ⚠️ El enlace viene del muro de la suscripción: a quien la paga, el servidor
+  // le dice adónde ir («Ver cómo activarla →»). Sin él, el aviso dice que no se
+  // puede y deja a la persona sin salida. Se ESCRIBE en un `<a>` que ya está en
+  // la página, y no se arma con `innerHTML`: el texto viene del servidor y así
+  // nunca se interpreta como marcado.
+  #fallar(mensaje, enlace = null) {
     this.avisoTextoTarget.textContent = mensaje
     this.avisoTarget.hidden = false
+
+    if (!this.hasAvisoEnlaceTarget) return
+    const hay = Boolean(enlace && enlace.url)
+    this.avisoEnlaceTarget.hidden = !hay
+    if (!hay) return
+
+    this.avisoEnlaceTarget.href = enlace.url
+    this.avisoEnlaceTarget.textContent = `${enlace.texto} →`
   }
 
   // El resumen es la verificación del profesor: mira el número y sabe si marcó

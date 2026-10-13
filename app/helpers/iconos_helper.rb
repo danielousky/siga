@@ -100,6 +100,9 @@ module IconosHelper
     desplegar: '<path d="m6 9 6 6 6-6"/>',
     filtrar: '<path d="M4 6h16M7 12h10M10 18h4"/>',
     correo: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+    # Un globo de conversación: escribirle a SIGA por WhatsApp. El sobre de
+    # `correo` diría «le mandamos un correo», que es otro canal.
+    conversar: '<path d="M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 21l2-5.6A8.4 8.4 0 1 1 21 11.5Z"/>',
     llave: '<circle cx="8" cy="15" r="4"/><path d="m11 12 8-8 2 2-2 2 2 2-3 3-2-2-2 2"/>',
     salir: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/>',
 

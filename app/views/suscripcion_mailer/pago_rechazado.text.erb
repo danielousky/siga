@@ -1,0 +1,12 @@
+No pudimos validar su pago
+
+Revisamos el pago de <%= importe_del_pago(@pago) %> que reportó el <%= l(@pago.created_at.to_date, format: :long) %> para <%= @colegio.name %>, y no lo pudimos validar:
+
+  <%= @pago.motivo %>
+
+Corrija lo que haga falta y repórtelo de nuevo desde «Suscripción»:
+<%= @url %>
+<% if @whatsapp -%>
+
+Si algo no está claro, escríbanos por WhatsApp: <%= @whatsapp %>
+<% end -%>

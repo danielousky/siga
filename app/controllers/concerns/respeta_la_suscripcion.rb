@@ -55,7 +55,12 @@ module RespetaLaSuscripcion
     # GET. Sin esta línea, el colegio endeudado perdía por la pestaña nueva un
     # papel que por la ficha sigue sacando — el mismo certificado, del mismo
     # alumno, según por qué puerta se pida.
-    ["certificados", "create"]
+    ["certificados", "create"],
+    # ⚠️ Y la salida: reportar el pago. Bloquear por verbo cerraba también la
+    # única puerta para dejar de estar vencido — el colegio que quería pagar no
+    # tenía cómo decirlo (spec `del-registro-al-cobro`, § 5.5).
+    ["pagos_de_la_suscripcion", "create"],
+    ["pagos_de_la_suscripcion", "destroy"]
   ].freeze
 
   VERBOS_QUE_ESCRIBEN = %w[POST PATCH PUT DELETE].freeze
@@ -84,9 +89,14 @@ module RespetaLaSuscripcion
   # el CI, y si llegara a producción sin ella, en gratis queda CERRADO.
 
   # Lo que no es del colegio: lo público, la sesión y la cuenta. Nunca se toca.
+  #
+  # ⚠️ Y la suscripción misma —verla y reportar su pago—, que es la salida de lo
+  # gratis: cerrarla con el muro dejaría al colegio que quiere pagar sin dónde
+  # hacerlo.
   SIEMPRE_ABIERTO = %w[
     activaciones demo_requests devise/passwords devise/registrations devise/sessions
-    directorio inicio manual planteles registros salud verificaciones
+    directorio inicio manual pagos_de_la_suscripcion planteles registros salud
+    suscripcion verificaciones
   ].freeze
 
   # Cargar. Libre en gratis —es lo que hace que un colegio llegue a necesitar el
@@ -124,6 +134,11 @@ module RespetaLaSuscripcion
   # que la función existe y no está activa, sin precios que no les corresponden.
   MURO_SIN_PRECIO = "Calificar, pasar lista y emitir todavía no están activos en el " \
                     "colegio: se activan con la suscripción, que lleva la dirección.".freeze
+
+  # Lo que ve todo el mundo cuando el colegio ya reportó su pago y falta que
+  # SIGA lo valide: nadie tiene nada más que hacer que esperar.
+  MURO_CON_EL_PAGO_REPORTADO = "El colegio ya reportó el pago de la suscripción. Calificar, pasar lista " \
+                               "y emitir se activan apenas se valide.".freeze
 
   included do
     before_action :exigir_suscripcion_al_dia!
@@ -168,11 +183,41 @@ module RespetaLaSuscripcion
       return render("shared/sin_suscripcion", status: :payment_required)
     end
 
+    contestar_con_el_muro(mensaje_del_muro,
+                          enlace_a_la_suscripcion(pago_esperando_validacion? ? "Ver la suscripción" : "Ver cómo activarla"))
+  end
+
+  # El muro, en el formato que haya pedido quien tocó: un aviso y la vuelta
+  # atrás en una pantalla, un JSON en una planilla que se guarda sola.
+  #
+  # ⚠️ Con su ENLACE a «Suscripción» (§ 5.4 del spec), y en las dos formas: sin
+  # él, «se activa con la suscripción» es un callejón — el director sabe que no
+  # puede y no sabe adónde ir. La planilla de asistencia pinta el enlace del
+  # JSON; la pantalla, el de `flash[:enlace]` (`shared/_flash`).
+  def contestar_con_el_muro(mensaje, enlace)
     respond_to do |formato|
-      formato.html { redirect_back fallback_location: dashboard_path_for_user, alert: mensaje_del_muro }
-      formato.json { render json: { estado: "error", mensaje: mensaje_del_muro }, status: :payment_required }
-      formato.any  { head :payment_required }
+      formato.html do
+        redirect_back fallback_location: dashboard_path_for_user, alert: mensaje,
+                      flash: { enlace: enlace }.compact
+      end
+      formato.json do
+        render json: { estado: "error", mensaje: mensaje, enlace: enlace }.compact, status: :payment_required
+      end
+      formato.any { head :payment_required }
     end
+  end
+
+  # A dónde ir desde el muro: a «Suscripción», y solo para quien la paga
+  # (decisión 14). Un profesor no tiene nada que hacer ahí, y un enlace que
+  # rebota es peor que ninguno.
+  #
+  # ⚠️ Con claves de TEXTO: el flash viaja en la cookie como JSON, y una clave
+  # de símbolo vuelve convertida en texto. Escrito así, se lee igual antes y
+  # después del viaje.
+  def enlace_a_la_suscripcion(texto)
+    return nil unless puede?(:pagar_la_suscripcion)
+
+    { "texto" => texto, "url" => suscripcion_path }
   end
 
   def requiere_suscripcion?
@@ -194,7 +239,12 @@ module RespetaLaSuscripcion
   # El muro dice el precio a quien lo paga (decisión 14: dirección y finanzas).
   # Con eso, «se activa con la suscripción» deja de ser un callejón: el director
   # sabe cuánto le cuesta lo que acaba de tocar, sin buscarlo.
+  #
+  # ⚠️ Y con el pago ya reportado, dice ESO. El director que pagó ayer y hoy
+  # toca «Guardar asistencia» no puede leer otra vez lo que cuesta: creería que
+  # su reporte se perdió, y pagaría o reportaría dos veces.
   def mensaje_del_muro
+    return MURO_CON_EL_PAGO_REPORTADO if pago_esperando_validacion?
     return MURO_SIN_PRECIO unless puede?(:pagar_la_suscripcion)
 
     cotizacion = (suscripcion_del_colegio || Subscription.new(school_id: Current.school_id)).cotizacion
@@ -216,13 +266,14 @@ module RespetaLaSuscripcion
     return if SIEMPRE_PERMITIDO.include?([controller_path, action_name])
     return unless colegio_en_solo_lectura?
 
-    mensaje = "La suscripción del colegio está vencida. Puedes seguir consultando " \
-              "y descargando todo, pero no cargar información nueva hasta regularizar el pago."
+    # ⚠️ De usted, como las pantallas del colegio. Decía «Puedes seguir
+    # consultando»: tuteaba a un director.
+    mensaje = "La suscripción del colegio está vencida. Se puede seguir consultando y " \
+              "descargando todo, pero no cargar información nueva hasta que se valide el pago."
 
-    respond_to do |formato|
-      formato.html { redirect_back fallback_location: dashboard_path_for_user, alert: mensaje }
-      formato.json { render json: { estado: "error", mensaje: mensaje }, status: :payment_required }
-      formato.any  { head :payment_required }
-    end
+    contestar_con_el_muro(mensaje,
+                          enlace_a_la_suscripcion(pago_esperando_validacion? ? "Ver la suscripción" : "Ver cómo pagar"))
   end
+
+  def pago_esperando_validacion? = suscripcion_del_colegio&.pago_en_revision.present?
 end

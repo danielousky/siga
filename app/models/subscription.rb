@@ -136,6 +136,32 @@ class Subscription < ApplicationRecord
     (vigente_hasta - Date.current).to_i
   end
 
+  # Cuántos días antes del vencimiento se avisa (§ 5.7 del spec): el colegio
+  # que paga por transferencia necesita unos días, y el aviso del mismo día
+  # llega tarde.
+  DIAS_DE_AVISO = 5
+
+  def por_vencer?
+    activa? && (dias = dias_para_vencer) && dias.between?(0, DIAS_DE_AVISO)
+  end
+
+  # Lo que le queda de gracia a una suscripción vencida, antes de la solo
+  # lectura. Es una cuenta y no un campo: la gracia empieza al día siguiente
+  # del vencimiento.
+  def dias_de_gracia_restantes
+    return nil if vigente_hasta.blank?
+
+    [ (vigente_hasta + dias_de_gracia - Date.current).to_i, 0 ].max
+  end
+
+  # El reporte que el colegio mandó y todavía nadie validó, si hay uno: solo
+  # cabe uno a la vez (§ 5.5).
+  def pago_en_revision
+    return @pago_en_revision if defined?(@pago_en_revision)
+
+    @pago_en_revision = SubscriptionPayment.where(school_id: school_id).esperando.first
+  end
+
   # Lo que le toca este mes, con la matrícula de hoy.
   #
   # ⚠️ Con SU precio si ya lo tiene congelado, y con el de hoy si todavía está
@@ -201,6 +227,11 @@ class Subscription < ApplicationRecord
 
   # Mueve el estado según la fecha. Idempotente: correrlo dos veces el mismo día
   # no cambia nada, que es lo que necesita una tarea programada.
+  #
+  # ⚠️ Pero NO BAJA mientras un pago espera validación (§ 5.7). El colegio que
+  # pagó a tiempo no puede quedar en solo lectura porque el fundador no alcanzó
+  # a mirar el comprobante: la demora sería nuestra y el castigo, suyo. Subir sí
+  # sube: lo que no se permite es caer.
   def actualizar_estado!
     return if cancelada? || vigente_hasta.blank?
 
@@ -210,10 +241,61 @@ class Subscription < ApplicationRecord
       else :vencida
       end
 
-    update!(status: nuevo) unless status.to_sym == nuevo
+    return if status.to_sym == nuevo
+    return if bajaria_a?(nuevo) && pago_en_revision.present?
+
+    update!(status: nuevo)
   end
 
   def self.actualizar_todas!
     Current.sin_aislamiento { unscoped.find_each(&:actualizar_estado!) }
+  end
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # Un pago validado
+  # ══════════════════════════════════════════════════════════════════════════
+
+  # Activa el mes que cubre un pago ya validado (`SubscriptionPayment#validar!`).
+  #
+  # ⚠️ El precio sale del PAGO, no de la constante: es lo que el colegio vio al
+  # reportar. Y queda congelado en la suscripción (decisión 17), así el que
+  # entró a 0,30 sigue a 0,30 aunque el precio suba.
+  def activar_con!(pago)
+    update!(plan: :por_alumno, status: :activa,
+            precio_por_alumno: pago.precio_por_alumno, minimo_mensual: pago.minimo_mensual,
+            precio_mensual: pago.precio_mensual, matricula_facturada: pago.alumnos,
+            vigente_desde: pago.cubre_desde, vigente_hasta: pago.cubre_hasta)
+
+    # Si el mes pagado ya pasó —un pago a tiempo que se validó muy tarde—, el
+    # estado lo dice la fecha, no el entusiasmo de haber validado.
+    actualizar_estado!
+  end
+
+  # Desde cuándo cuenta el mes que se paga (§ 5.7 del spec):
+  #
+  #     primer pago               desde que se valida
+  #     a tiempo o en la gracia   desde el día que vencía     sin huecos ni días encimados:
+  #                                                           los días de gracia se pagan
+  #     ya en solo lectura        desde que se valida         lo de solo lectura no se cobra
+  #
+  # ⚠️ Lo tarde se mide por cuándo REPORTÓ, no por cuándo se validó. El colegio
+  # que pagó el día 14 de la gracia pagó en la gracia, aunque el fundador lo
+  # mire el 20: la demora de la validación no puede moverle el mes a nadie.
+  #
+  # Sin la fila del medio, un colegio que paga siempre el día 14 de la gracia
+  # usaría casi cuatro meses gratis al año.
+  def inicio_del_mes_pagado(reportado_el:, hoy: Date.current)
+    return hoy if gratis? || cancelada? || vigente_hasta.blank?
+    return hoy if reportado_el > vigente_hasta + dias_de_gracia
+
+    vigente_hasta
+  end
+
+  private
+
+  ORDEN_DE_ESTADOS = %i[activa en_gracia vencida].freeze
+
+  def bajaria_a?(nuevo)
+    ORDEN_DE_ESTADOS.index(nuevo).to_i > ORDEN_DE_ESTADOS.index(status.to_sym).to_i
   end
 end

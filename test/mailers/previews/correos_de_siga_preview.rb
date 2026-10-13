@@ -1,4 +1,4 @@
-# Los ocho correos de SIGA, para MIRARLOS antes de mandarlos.
+# Los correos de SIGA, para MIRARLOS antes de mandarlos.
 #
 #     /rails/mailers/correos_de_siga      (con el servidor de desarrollo)
 #
@@ -77,7 +77,41 @@ class CorreosDeSigaPreview < ActionMailer::Preview
     ENV["SIGA_AVISOS_EMAIL"] = anterior
   end
 
+  # ── El cobro de la suscripción (spec `del-registro-al-cobro`) ─────────────
+
+  # El aviso que le llega al equipo de SIGA cuando un colegio reporta su pago.
+  def pago_por_validar
+    anterior = ENV["SIGA_AVISOS_EMAIL"]
+    ENV["SIGA_AVISOS_EMAIL"] ||= "avisos@sigaeducando.com"
+
+    armado { PlataformaMailer.pago_reportado(pago_de_muestra) }
+  ensure
+    ENV["SIGA_AVISOS_EMAIL"] = anterior
+  end
+
+  def pago_validado
+    armado { SuscripcionMailer.pago_validado(pago_de_muestra) }
+  end
+
+  def pago_rechazado
+    armado { SuscripcionMailer.pago_rechazado(pago_de_muestra) }
+  end
+
   private
+
+  # Un pago sin guardar: la vista previa no escribe en la base.
+  def pago_de_muestra
+    armado_sin_mensaje do
+      SubscriptionPayment.nuevo_para(
+        Subscription.find_by!(school_id: colegio.id), por: director,
+        medio: "pago_movil", monto: 109_586.17, referencia: "0012345678", pagado_el: Date.current,
+        created_at: Time.current, cubre_desde: Date.current, cubre_hasta: Date.current + 1.month,
+        motivo: "La referencia no aparece en el estado de cuenta. Revise el número y repórtelo de nuevo."
+      )
+    end
+  end
+
+  def armado_sin_mensaje(&) = Current.en_el_colegio(colegio, &)
 
   def colegio  = @colegio  ||= School.find_by!(name: "U.E. SIMÓN BOLÍVAR")
   def director = @director ||= User.find_by!(email: "director.bolivar@siga.edu")

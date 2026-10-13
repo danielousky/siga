@@ -2,14 +2,14 @@ require "application_system_test_case"
 
 # Cómo se VEN los correos de SIGA, en el escritorio y en un teléfono.
 #
-# ⚠️ Un correo no se revisa leyendo su HTML. Este test abre los ocho en un
+# ⚠️ Un correo no se revisa leyendo su HTML. Este test los abre todos en un
 # navegador de verdad, a 600 px y a 380 px —el ancho de un teléfono, que es por
 # donde la mitad de las familias los va a abrir— y comprueba que ninguno se
 # corra de lado.
 #
 # Nació con el de bienvenida (MOR-206), cuando era el único con diseño. Desde
-# el 5 de octubre de 2026 los ocho comparten plantilla, así que los ocho se
-# miran.
+# el 5 de octubre de 2026 todos comparten plantilla, así que se miran todos —
+# también los tres del cobro de la suscripción, que nacieron después.
 #
 # ⚠️ Las imágenes acá NO cargan: apuntan a un servidor que en el test no
 # existe. No es un defecto del test — es el caso de Outlook de escritorio, que
@@ -19,7 +19,7 @@ class CorreosEnElTelefonoTest < ApplicationSystemTestCase
 
   setup { preparar_los_correos }
 
-  test "ninguno de los ocho se corre de lado, ni en el escritorio ni en el teléfono" do
+  test "ninguno se corre de lado, ni en el escritorio ni en el teléfono" do
     todos_los_correos.each do |cual, correo|
       abrir(correo) do |ancho|
         sobra = page.evaluate_script(

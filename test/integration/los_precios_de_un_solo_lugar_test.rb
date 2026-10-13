@@ -21,6 +21,8 @@ require "test_helper"
 # Por eso acá el precio se cambia por uno que no existe y se exige que cada
 # pantalla diga ESE, y ninguno de los de verdad.
 class LosPreciosDeUnSoloLugarTest < ActionDispatch::IntegrationTest
+  include CobroDeLaSuscripcion
+
   POR_ALUMNO_DE_MENTIRA = BigDecimal("0.47")
   MINIMO_DE_MENTIRA     = BigDecimal("53")
 
@@ -76,6 +78,44 @@ class LosPreciosDeUnSoloLugarTest < ActionDispatch::IntegrationTest
 
       assert_includes flash[:alert], "61,48 $ al mes"
       assert_includes flash[:alert], "53,00 $"
+    end
+  end
+
+  # Lo que el colegio lee cuando va a pagar: «Suscripción» y el formulario del
+  # reporte. Son las dos pantallas donde un precio viejo cuesta dinero de
+  # verdad — el colegio transfiere lo que ahí dice.
+  test "«Suscripción» y el reporte del pago, también" do
+    a, _b = dos_colegios_completos(suscripcion: :gratis)
+    cargar_los_ajustes_de_siga
+    sign_in a.director
+
+    con_precios_de_mentira do
+      get suscripcion_path
+
+      assert_select ".suscripcion-cuenta td", text: "53,00 $"
+      assert_select ".suscripcion-cuenta-total td", text: "61,48 $"
+      assert_select "p.nota-ayuda", text: /0,47 \$ por alumno al mes, con un mínimo de 53,00 \$/
+      assert_ningun_precio_de_verdad
+
+      get new_suscripcion_pago_path
+
+      assert_select ".reporte-de-pago-cuenta", text: /61,48 \$ al mes/
+      assert_ningun_precio_de_verdad
+    end
+  end
+
+  # La Cartera dice lo que le toca a cada colegio: es el número que se le dice
+  # por teléfono, y con el que se compara lo que pagó.
+  test "y la Cartera de SIGA" do
+    dos_colegios_completos(suscripcion: :gratis)
+    sign_in equipo_de_siga
+
+    con_precios_de_mentira do
+      get siga_cartera_index_path
+
+      assert_response :success
+      assert_select "table.siga-tabla td.num", text: "61,48 $", minimum: 1
+      assert_ningun_precio_de_verdad
     end
   end
 

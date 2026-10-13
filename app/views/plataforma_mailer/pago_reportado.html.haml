@@ -1,0 +1,59 @@
+-# El aviso interno de un pago por validar (spec `del-registro-al-cobro`, § 5.5).
+-#
+-# Lo lee el equipo de SIGA: van los datos para buscar el pago en el banco o en
+-# Binance antes de abrir la Cartera. Sale con la cabecera de SIGA —es un correo
+-# SOBRE un colegio— y por eso no llama `a_nombre_de`.
+-#
+-# ⚠️ Los dos números, separados y sin compararlos: lo que le toca está en
+-# dólares y lo que pagó, en la unidad de su medio. El puente lo hace quien
+-# valida (§ 4.4).
+- etiqueta = "padding: 6px 14px 6px 0; color: #555; vertical-align: top; white-space: nowrap;"
+- valor    = "padding: 6px 0; color: #111; overflow-wrap: anywhere; word-break: break-word;"
+- cotizacion = @pago.cotizacion
+
+- content_for :adelanto, "#{@colegio.name} reportó #{importe_del_pago(@pago)} por #{@pago.nombre_del_medio}."
+
+= titulo_de_correo "Pago por validar"
+
+%div{style: "color: #111; line-height: 1.5;"}
+  %p{style: "margin: 0 0 20px; color: #555;"}
+    = "#{@pago.reportado_por.nombre_completo} reportó el pago de la suscripción de #{@colegio.name} el #{l(@pago.created_at.to_date, format: :long)}."
+
+  %table{cellpadding: 0, cellspacing: 0, border: 0, style: "border-collapse: collapse; margin: 0 0 20px;"}
+    %tr
+      %td{style: etiqueta}
+        %strong Medio
+      %td{style: valor}= @pago.nombre_del_medio
+    %tr
+      %td{style: etiqueta}
+        %strong Pagó
+      %td{style: valor}= importe_del_pago(@pago)
+    %tr
+      %td{style: etiqueta}
+        %strong Referencia
+      %td{style: valor}= @pago.referencia.presence || "en efectivo, sin referencia"
+    %tr
+      %td{style: etiqueta}
+        %strong Fecha del pago
+      %td{style: valor}= l(@pago.pagado_el, format: :long)
+    %tr
+      %td{style: etiqueta}
+        %strong Le toca
+      %td{style: valor}
+        = numero_en_dolares(cotizacion.total)
+        = "(#{contar(cotizacion.alumnos, 'alumno', 'alumnos')}, IVA incluido)"
+    %tr
+      %td{style: etiqueta}
+        %strong Comprobante
+      %td{style: valor}= @pago.comprobante.attached? ? "adjunto, en la Cartera" : "no adjuntó"
+    - if @pago.nota.present?
+      %tr
+        %td{style: etiqueta}
+          %strong Agregó
+        %td{style: valor}= @pago.nota
+
+= boton_de_correo "Validar en la Cartera", siga_cartera_index_url
+
+= nota_de_correo do
+  Mientras espera validación, el colegio no baja de estado: si estaba por
+  pasar a solo lectura, no pasa.

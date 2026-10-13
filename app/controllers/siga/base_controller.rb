@@ -90,5 +90,14 @@ module Siga
     def siga_seccion_activa
       controller_name
     end
+
+    # Validar pagos, tocar suscripciones y cambiar los ajustes es del fundador
+    # (decisión 22 del spec `del-registro-al-cobro`). Operaciones VE las mismas
+    # pantallas: lo que no puede es apretar.
+    def exigir_que_maneje_el_cobro!
+      return if siga_staff.maneja_el_cobro?
+
+      redirect_back fallback_location: siga_root_path, alert: "Eso lo hace el fundador."
+    end
   end
 end

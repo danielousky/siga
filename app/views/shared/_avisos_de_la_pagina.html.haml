@@ -2,17 +2,36 @@
 -#
 -# ⚠️ Se leen UNA vez y se sigue de largo, así que fijos ocuparían para siempre
 -# el espacio de algo que ya se leyó. Van en el flujo, arriba del contenido.
--# La suscripción, cuando hay algo que decir (MOR-108).
+-# La suscripción, cuando hay algo que decir (MOR-108, y el spec
+-# `del-registro-al-cobro`, § 5.4).
 -#
--# Solo aparece si el colegio está en gracia o vencido. Un cartel permanente de
--# "estás al día" es ruido que se deja de ver, y el día que dice otra cosa
--# tampoco se ve.
+-# Solo aparece si hay algo que hacer. Un cartel permanente de "estás al día"
+-# es ruido que se deja de ver, y el día que dice otra cosa tampoco se ve.
+-#
+-# ⚠️ El enlace a «Suscripción» lo ve solo quien la paga —dirección y finanzas,
+-# decisión 14—: al profesor lo llevaría a una pantalla que lo rebota.
+-#
+-# ⚠️ Y con un pago esperando validación, el aviso lo DICE en vez de volver a
+-# pedirlo: el director que ya pagó y lee «ver cómo pagar» cree que su reporte
+-# se perdió, y reporta otra vez.
+-#
+-# ⚠️ El pago en revisión se pregunta DENTRO de cada rama, y no arriba: esto se
+-# dibuja en todas las páginas de todos los colegios, y el caso de siempre —al
+-# día, con tiempo de sobra— no muestra ningún aviso. Preguntarlo arriba sería
+-# una consulta por página para no decir nada.
+- suscripcion = suscripcion_del_colegio
+- quien_paga = puede?(:pagar_la_suscripcion)
 - if colegio_en_solo_lectura?
+  - pago = suscripcion.pago_en_revision
   .aviso-suscripcion.aviso-suscripcion--vencida
     .aviso-suscripcion-inner
       %strong Suscripción vencida.
-      Puedes seguir consultando y descargando todo —boletines, constancias,
-      notas— pero no cargar información nueva hasta regularizar el pago.
+      Se puede seguir consultando y descargando todo —boletines, constancias,
+      notas— pero no cargar información nueva hasta que se valide el pago.
+      - if pago
+        = "Recibimos el pago reportado el #{l(pago.created_at.to_date, format: :long)}: al validarlo, vuelve todo."
+      - elsif quien_paga
+        = link_to "Ver cómo pagar →", suscripcion_path, class: "aviso-suscripcion-enlace"
 - elsif colegio_en_plan_gratis?
   -# ⚠️ El aviso de lo gratis NO es una alerta: no hay nada vencido ni nada que
   -# corregir. Es información, y por eso va en el tono neutro y no en el rojo
@@ -23,18 +42,35 @@
   -#
   -# ⚠️ Sin nombre de plan (decisión 15 del spec `del-registro-al-cobro`): decía
   -# «Plan Inicial, gratis», y «Inicial» era a la vez este y el de 39 $.
+  - pago = suscripcion&.pago_en_revision
   .aviso-suscripcion
     .aviso-suscripcion-inner
-      %strong Sin suscripción activa.
-      Cargar alumnos, profesores, áreas de aprendizaje y secciones es libre y no vence.
-      Calificar, pasar lista y emitir se activan al validarse el pago.
-- elsif suscripcion_del_colegio&.en_gracia?
+      - if pago
+        %strong Recibimos su pago.
+        Calificar, pasar lista y emitir se activan apenas lo validemos.
+      - else
+        %strong Sin suscripción activa.
+        Cargar alumnos, profesores, áreas de aprendizaje y secciones es libre y no vence.
+        Calificar, pasar lista y emitir se activan al validarse el pago.
+        - if quien_paga
+          = link_to "Ver cómo →", suscripcion_path, class: "aviso-suscripcion-enlace"
+- elsif suscripcion&.en_gracia?
   .aviso-suscripcion
     .aviso-suscripcion-inner
       %strong La suscripción venció.
-      Quedan
-      = pluralize(suscripcion_del_colegio.dias_de_gracia + (suscripcion_del_colegio.dias_para_vencer || 0), "día")
-      de gracia antes de pasar a solo lectura.
+      - if suscripcion.pago_en_revision
+        Recibimos su pago: mientras lo validamos, nada se bloquea.
+      - else
+        = "Quedan #{contar(suscripcion.dias_de_gracia_restantes, 'día', 'días')} de gracia antes de pasar a solo lectura."
+        - if quien_paga
+          = link_to "Ver cómo pagar →", suscripcion_path, class: "aviso-suscripcion-enlace"
+- elsif suscripcion&.por_vencer? && quien_paga && suscripcion.pago_en_revision.nil?
+  -# Cinco días antes (§ 5.7), y solo a quien paga: al profesor un «vence el
+  -# 9» no le pide nada, y un cartel que no pide nada se deja de leer.
+  .aviso-suscripcion
+    .aviso-suscripcion-inner
+      %strong= "La suscripción vence el #{l(suscripcion.vigente_hasta, format: :long)}."
+      = link_to "Ver cómo pagar →", suscripcion_path, class: "aviso-suscripcion-enlace"
 
 -# El colegio VE que hay alguien de SIGA adentro.
 -#
