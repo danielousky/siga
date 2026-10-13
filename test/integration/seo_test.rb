@@ -49,9 +49,12 @@ class SeoTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_equal "application/xml", response.media_type
-    [ "/registrarse", "/demo_requests/new", "/verificar" ].each do |ruta|
+    [ "/registrarse", "/verificar" ].each do |ruta|
       assert_match %r{<loc>https?://[^<]+#{Regexp.escape(ruta)}</loc>}, response.body
     end
+    # El formulario de demostración salió: su dirección lleva a la portada, y
+    # un mapa no anuncia una página que redirige.
+    assert_no_match %r{demo_requests}, response.body
     # ⚠️ Un sitemap con el panel adentro le regala a cualquiera el mapa exacto
     # de la aplicación, aunque cada pantalla pida login.
     %w[/alumnos /boletines /importaciones /siga].each do |privada|

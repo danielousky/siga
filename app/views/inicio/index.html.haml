@@ -54,36 +54,25 @@
         SIGA reúne notas, boletines, constancias y asistencia en un solo lugar.
         Simple para el equipo del colegio. Claro para las familias.
 
-      .portada-acciones
-        = link_to new_demo_request_path, class: "portada-cta portada-cta--principal" do
-          Agende una demostración de 20 min
-          %span{"aria-hidden": "true"} ↗
-        = link_to new_user_session_path, class: "portada-cta portada-cta--fantasma" do
-          Entrar al sistema
-          %span{"aria-hidden": "true"} →
-
+      -# ⚠️ LA PUERTA ES EL REGISTRO (spec `del-registro-al-cobro`, decisión 1).
+      -#
+      -# Daniel, 8 de octubre de 2026: *«No está claramente definido si la puerta
+      -# de entrada es una solicitud demo (en cuyo caso no lo tenemos) o un
+      -# registro»*. El botón grande decía «Agende una demostración de 20 min» y
+      -# llevaba a un formulario cuyas solicitudes no le avisaban a nadie; el
+      -# registro, que es lo que sí funciona solo, era un enlace discreto abajo.
+      -#
+      -#     [Registre su colegio →]        el principal: entra y carga, gratis
+      -#     [Escríbanos por WhatsApp]      quien prefiere conversar primero
+      -#     [Vea un colegio funcionando]   quien quiere mirar antes de registrarse
+      -#
+      -# «Entrar» queda en la barra de arriba: quien ya tiene cuenta lo busca ahí.
+      -#
       -# ⚠️ ACÁ VIVÍA EL PRECIO, y Daniel lo sacó: *«creo que puede causar un
       -# efecto contrario… se ve como antipático, como que si le estoy cobrando
-      -# antes de sentarse»*.
-      -#
-      -# No se esconde: sigue completo en «04 — La suscripción», con los tres
-      -# planes, y esa sección se llama así en la barra de arriba. La diferencia
-      -# es QUIÉN pregunta. En el hero el precio contesta algo que nadie preguntó
-      -# todavía; en la sección lo contesta quien fue a buscarlo.
-      -#
-      -# En su lugar va la puerta que faltaba. La portada tenía dos salidas
-      -# —pedir una demostración y entrar— y ninguna para el colegio que quiere
-      -# empezar solo, que es justamente el que busca lo gratis: cargar su
-      -# colegio sin costo, sin vendedor de por medio y sin esperar una llamada.
-      -#
-      -# ⚠️ Enlace y no botón, a propósito. Un tercer botón le quita fuerza a la
-      -# demostración, que es la conversión que se quiere. Daniel: «evidente pero
-      -# discreto».
-      %p.portada-alta
-        ¿Todavía no tiene cuenta?
-        = link_to registrarse_path, class: "portada-alta-enlace" do
-          Registre su colegio
-          %span{"aria-hidden": "true"} →
+      -# antes de sentarse»*. Sigue completo en «04 — La suscripción», y el
+      -# registro lo dice en una línea (decisión 10).
+      = render "inicio/puertas"
 
     -# ⚠️ TODO lo que se ve dentro de esta maqueta es un EJEMPLO: cifras
     -# inventadas para mostrar la forma de la pantalla. Va `aria-hidden` con su
@@ -213,9 +202,7 @@
           %p.portada-pieza-detalle
             Entero del 1 al 20, anual sin ponderar, la reparación manda sobre el
             anual: como lo pide el Reglamento General de la LOE.
-          = link_to new_demo_request_path, class: "portada-pieza-mas" do
-            Verlo en la demostración
-            %span{"aria-hidden": "true"} ↗
+          = render "inicio/verlo"
 
         %article.portada-pieza.portada-pieza--2
           .portada-pieza-cab
@@ -236,9 +223,7 @@
           %p.portada-pieza-detalle
             Cada emisión guarda las notas tal como se imprimieron: reemitir en
             marzo no cambia lo que decía el papel de diciembre.
-          = link_to new_demo_request_path, class: "portada-pieza-mas" do
-            Verlo en la demostración
-            %span{"aria-hidden": "true"} ↗
+          = render "inicio/verlo"
 
         %article.portada-pieza.portada-pieza--3
           .portada-pieza-cab
@@ -282,9 +267,7 @@
           %p.portada-pieza-detalle
             Todos empiezan presentes y se tocan las excepciones, que casi
             siempre son dos o tres.
-          = link_to new_demo_request_path, class: "portada-pieza-mas" do
-            Verlo en la demostración
-            %span{"aria-hidden": "true"} ↗
+          = render "inicio/verlo"
 
   %section.portada-seccion
     .portada-inner
@@ -381,25 +364,16 @@
   %section.portada-cierre
     .portada-inner
       %h2.portada-cierre-titulo
-        ¿Le mostramos cómo se vería
-        %em su colegio?
+        Empiece hoy,
+        %em con su colegio.
+      -# ⚠️ Aquí SÍ se dice qué cuesta y qué no, en una frase: quien leyó hasta
+      -# el final ya pasó por «La suscripción», y lo que le falta saber es que
+      -# registrarse no lo compromete a nada.
       %p.portada-cierre-texto
-        Veinte minutos, por WhatsApp o por llamada. Cuéntenos cómo trabajan hoy
-        y le mostramos exactamente en qué cambia. Si no le sirve, quedamos como
-        amigos.
-      .portada-acciones
-        = link_to new_demo_request_path, class: "portada-cta portada-cta--principal" do
-          Agende una demostración
-          %span{"aria-hidden": "true"} ↗
-        = link_to new_user_session_path, class: "portada-cta portada-cta--fantasma" do
-          Entrar al sistema
-          %span{"aria-hidden": "true"} →
-      -# Quien leyó hasta acá y se decidió no tiene por qué volver arriba.
-      %p.portada-alta
-        ¿Prefiere empezar por su cuenta?
-        = link_to registrarse_path, class: "portada-alta-enlace" do
-          Registre su colegio
-          %span{"aria-hidden": "true"} →
+        Registrarse toma un minuto. Cargar sus alumnos, sus profesores y sus
+        secciones es gratis y no vence; calificar, pasar lista y emitir se
+        activan con la suscripción.
+      = render "inicio/puertas"
 
   %footer.portada-pie
     .portada-inner
@@ -417,8 +391,9 @@
           -# enseña a la visitante a no confiar en los demás.
           %ul
             %li= link_to "La suscripción", "#planes"
-            %li= link_to "Pedir una demostración", new_demo_request_path
             %li= link_to "Registrar un colegio", registrarse_path
+            - if Muestra.direccion
+              %li= link_to "Ver un colegio funcionando", muestra_path
             %li= link_to "Directorio de colegios", directorio_path
             %li= link_to "Manual del sistema", manual_path
             %li= link_to "Entrar al sistema", new_user_session_path

@@ -3853,34 +3853,10 @@ body:has(.portada) .barra-superior { display: none; }
 .portada-cta--fantasma:hover { background: rgba(255, 255, 255, 0.10); color: #fff; }
 
 /* ---- La puerta para registrarse ------------------------------------------
-   Reemplaza al sello del precio, que Daniel sacó del hero: «se ve como
-   antipático, como que si le estoy cobrando antes de sentarse».
-
-   ⚠️ Es texto, no un botón, y esa es toda la decisión de diseño. Un tercer
-   botón le compite a «Agende una demostración», que es la conversión que se
-   busca; un enlace subrayado se ve, se entiende y no pelea. Daniel: «evidente
-   pero discreto».
-
-   Vive sobre los DOS fondos oscuros de la portada —el hero y el cierre— así
-   que el color sale de la misma familia translúcida que el resto. */
-.portada-alta {
-  margin: 0;
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.62);
-}
-.portada-alta-enlace {
-  color: #fff;
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  text-decoration-color: rgba(255, 255, 255, 0.32);
-  transition: text-decoration-color var(--transition-fast), color var(--transition-fast);
-}
-.portada-alta-enlace:hover,
-.portada-alta-enlace:focus-visible {
-  color: var(--cielo);
-  text-decoration-color: var(--cielo);
-}
+   Aquí vivía un enlace de texto bajo los botones —«¿Todavía no tiene cuenta?
+   Registre su colegio»—, de cuando el botón principal pedía una demostración.
+   Desde la tanda 4 del spec `del-registro-al-cobro` el registro ES el botón
+   principal (`inicio/_puertas`), y el enlace se fue con sus dos reglas. */
 
 /* ---- La maqueta del panel, ladeada --------------------------------------
    Daniel: «eso me encanta, incluso ladeado, que tenga movimiento». La
@@ -12207,4 +12183,38 @@ a.subject-avance:hover { filter: brightness(0.9); }
   font-size: 14.5px;
   line-height: 1.6;
   color: var(--text-secondary);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   La puerta (spec `del-registro-al-cobro`, tanda 4)
+   ════════════════════════════════════════════════════════════════════════
+   El registro dice el precio en una línea, antes del primer campo: qué es
+   gratis y qué no. Un recuadro suave y no una alerta: no hay nada que corregir. */
+.registro-precio {
+  margin: var(--space-md) 0 var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
+  border-left: 3px solid var(--brand-primary);
+  border-radius: var(--radius-sm);
+  background: var(--brand-subtle);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.registro-precio strong { color: var(--text-primary); white-space: nowrap; }
+
+.registro-ayuda {
+  margin: var(--space-lg) 0 0;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.registro-ayuda a { font-weight: 600; white-space: nowrap; }
+
+/* Las tres puertas de la portada, en UN renglón. El bloque del banner mide lo
+   que mide su texto, y con tres botones el tercero caía solo a un segundo
+   renglón, centrado, como si fuera otra cosa. En pantalla ancha se les deja
+   salir un poco de esa columna; en el teléfono ya se apilan a todo el ancho. */
+@media (min-width: 960px) {
+  .portada-hero-inner .portada-puertas { margin-left: -72px; margin-right: -72px; }
 }

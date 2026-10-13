@@ -1,0 +1,13 @@
+-# El enlace al pie de cada función de la portada.
+-#
+-# Decía «Verlo en la demostración» y llevaba al formulario de demostración, que
+-# salió (decisión 19). Ahora lleva a donde de verdad se VE: el colegio de
+-# muestra. Y donde no hay muestra configurada, a probarlo con el propio.
+- if Muestra.direccion
+  = link_to muestra_path, class: "portada-pieza-mas" do
+    Verlo funcionando
+    %span{"aria-hidden": "true"} ↗
+- else
+  = link_to registrarse_path, class: "portada-pieza-mas" do
+    Probarlo en su colegio
+    %span{"aria-hidden": "true"} →

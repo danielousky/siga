@@ -1,0 +1,17 @@
+-# Las tres puertas de la portada (spec `del-registro-al-cobro`, § 5.1). Van dos
+-# veces —arriba y en el cierre— y por eso son un parcial: quien leyó hasta el
+-# final no tiene por qué volver arriba, y dos copias de tres botones se separan.
+-#
+-# ⚠️ WhatsApp y la muestra se dibujan SOLO si existen: un botón que abre un chat
+-# con nadie, o que lleva a una página que no hay, es peor que no tenerlo.
+.portada-acciones.portada-puertas
+  = link_to registrarse_path, class: "portada-cta portada-cta--principal" do
+    Registre su colegio
+    %span{"aria-hidden": "true"} →
+  - if whatsapp_configurado?
+    = link_to enlace_de_whatsapp, class: "portada-cta portada-cta--fantasma", target: "_blank", rel: "noopener" do
+      Escríbanos por WhatsApp
+  - if Muestra.direccion
+    = link_to muestra_path, class: "portada-cta portada-cta--fantasma" do
+      Vea un colegio funcionando
+      %span{"aria-hidden": "true"} ↗

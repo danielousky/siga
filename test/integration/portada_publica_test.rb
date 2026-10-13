@@ -55,15 +55,63 @@ class PortadaPublicaTest < ActionDispatch::IntegrationTest
     assert_select "p.portada-plan-cupo", text: /IVA/, count: 0
   end
 
-  # ⚠️ La portada tenía DOS salidas —pedir una demostración y entrar— y ninguna
-  # para el colegio que quiere empezar solo. Que es justamente al que apunta lo
-  # gratis: cargar sin costo, sin vendedor y sin esperar una llamada.
-  test "la portada ofrece registrar un colegio" do
+  # ── La puerta (spec `del-registro-al-cobro`, tanda 4) ─────────────────────
+  #
+  #     ANTES                                      AHORA
+  #     [Agende una demostración de 20 min]        [Registre su colegio →]
+  #     [Entrar al sistema]                        [Escríbanos por WhatsApp]
+  #     ¿Todavía no tiene cuenta? Registre…        [Vea un colegio funcionando]
+
+  # ⚠️ El registro es el botón PRINCIPAL, no un enlace discreto. Daniel, 8 de
+  # octubre de 2026: *«si la persona registra el colegio (cosa que no se induce
+  # por ningún lado)…»*.
+  test "el botón principal de la portada registra un colegio" do
     get root_path
 
-    assert_select "a[href=?]", registrarse_path, minimum: 1,
-                  message: "sin esta puerta, /registrarse solo se alcanza con el enlace a mano"
-    assert_select ".portada-alta-enlace", /Registre su colegio/
+    assert_select ".portada-hero .portada-cta--principal[href=?]", registrarse_path, text: /Registre su colegio/
+    assert_select ".portada-cierre .portada-cta--principal[href=?]", registrarse_path
+  end
+
+  # Las solicitudes de demostración no le avisaban a nadie: la puerta era un
+  # formulario que nadie leía.
+  test "la portada ya no ofrece pedir una demostración" do
+    get root_path
+
+    assert_select "a[href*='demo_requests']", 0
+    assert_no_match(/Agende una demostración|Pedir una demostración/i, response.body)
+  end
+
+  test "la portada lleva el WhatsApp de SIGA, arriba y en el cierre" do
+    SigaSetting.delete_all
+    SigaSetting.create!(whatsapp: "0414-1234567")
+
+    get root_path
+
+    assert_select ".portada-hero a[href^='https://wa.me/584141234567']", text: /WhatsApp/
+    assert_select ".portada-cierre a[href^='https://wa.me/584141234567']"
+  end
+
+  # La muestra vive en otra instancia: la portada la enlaza solo si se sabe dónde.
+  test "con la muestra configurada, la portada invita a ver un colegio funcionando" do
+    con_la_direccion_de_la_muestra("https://demo.sigaeducando.com") do
+      get root_path
+
+      assert_select ".portada-hero a[href=?]", muestra_path, text: /Vea un colegio funcionando/
+      assert_select ".portada-pieza-mas[href=?]", muestra_path, text: /Verlo funcionando/, count: 3
+
+      get muestra_path
+      assert_redirected_to "https://demo.sigaeducando.com"
+    end
+  end
+
+  # Un botón que lleva a un 404 le enseña a la visitante a no confiar en los demás.
+  test "sin la muestra configurada, no la ofrece: invita a probarlo en su colegio" do
+    con_la_direccion_de_la_muestra(nil) do
+      get root_path
+
+      assert_select "a[href=?]", muestra_path, count: 0
+      assert_select ".portada-pieza-mas[href=?]", registrarse_path, text: /Probarlo en su colegio/, count: 3
+    end
   end
 
   # ⚠️ El precio NO va en el hero. Daniel: *«se ve como antipático, como que si
@@ -100,5 +148,16 @@ class PortadaPublicaTest < ActionDispatch::IntegrationTest
     assert_select "meta[property='og:image']"
     assert_select "meta[property='og:description']"
     assert_select "title"
+  end
+
+  private
+
+  # Dónde vive la muestra, puesto y devuelto como estaba.
+  def con_la_direccion_de_la_muestra(direccion)
+    anterior = ENV["SIGA_MUESTRA_URL"]
+    ENV["SIGA_MUESTRA_URL"] = direccion
+    yield
+  ensure
+    ENV["SIGA_MUESTRA_URL"] = anterior
   end
 end

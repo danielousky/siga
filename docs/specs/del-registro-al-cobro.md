@@ -4,14 +4,15 @@
 > 8, 9 y 12 de octubre. Si algo cambia, se cambia aquí primero.
 > **Ramas:** `feat/del-registro-al-cobro` (este spec y la tanda 1) ·
 > `feat/pagar-sin-consola` (la tanda 2) · `feat/el-precio-con-el-iva-adentro` ·
-> `feat/la-muestra` (la tanda 5). Cada una sale de la anterior. Locales, sin PR.
+> `feat/la-muestra` (la tanda 5) · `feat/la-puerta` (la tanda 4). Cada una sale
+> de la anterior. Locales, sin PR.
 
 ```
    LAS TANDAS, en el orden que eligió Daniel («primero cobrar»)
    1 · las reglas           hecha     el precio por alumno y la frontera de lo gratis
    2 · pagar sin consola    hecha     «Suscripción», el reporte, validar en /siga y los ajustes
    5 · la muestra           hecha     el colegio de muestra, EN LÍNEA: demo.sigaeducando.com
-   4 · la puerta            falta     la portada, el registro con su precio y el WhatsApp
+   4 · la puerta            hecha     la portada, el registro con su precio y el WhatsApp
    3 · la escalera          falta     el trabajo diario y sus tres correos
    ─────────────────────────────────────────────────────────────────────────────
    «hecha» es en local y con `bin/ci` en verde. Las decisiones 23 a 27 nacieron
@@ -465,15 +466,18 @@ del registro— y los ajustes de `/siga` —el WhatsApp ya sale de ahí y está 
 
 **La puerta**
 
-- [ ] En la portada, el botón principal lleva a `/registrarse`; hay un botón de
+- [x] En la portada, el botón principal lleva a `/registrarse`; hay un botón de
       WhatsApp y uno al colegio de muestra.
-- [ ] El botón de WhatsApp está en la portada, en el registro y en
+- [x] El botón de WhatsApp está en la portada, en el registro y en
       «Suscripción». Si el número no está puesto, no aparece en ninguna: un
       botón que abre un chat con nadie es peor que no tener botón.
-- [ ] La portada ya no enlaza al formulario de demostración, y quien abre su
+- [x] La portada ya no enlaza al formulario de demostración, y quien abre su
       dirección vieja llega a la portada.
-- [ ] El registro muestra la línea del precio, leída de la constante y no
+- [x] El registro muestra la línea del precio, leída de la constante y no
       escrita a mano.
+- [x] El botón a la muestra se dibuja solo si se sabe dónde vive
+      (`SIGA_MUESTRA_URL`); sin ella, la portada invita a probarlo en el propio
+      colegio. ⚠️ Esa variable hay que ponérsela a PRODUCCIÓN al desplegar.
 
 **Lo gratis**
 
@@ -689,6 +693,18 @@ TODO; documentos, .md's, vistas, TODO.»*
                  SIGA/DOCs/SIGA - Aliados.pdf · SIGA/DOCs/SIGA - Qué hace hoy.pdf
                  los dos videos de SIGA/ · las tarjetas de Linear
 ```
+
+**Lo que enseñó la tanda 4**
+
+- **Tres botones no cabían en el renglón del banner.** Su bloque mide lo que
+  mide el texto, y el tercero caía solo a un segundo renglón, centrado, como si
+  fuera otra cosa. En pantalla ancha se les deja salir de esa columna.
+- **Una vez que alguien guarda los ajustes, `SIGA_WHATSAPP` deja de valer**
+  —es su valor inicial—. Sembrar los ajustes deja la fila creada: en la muestra
+  el número se pone con la variable ANTES de resembrar.
+- **El formulario de demostración dejó reglas de estilo sin dueño** (`.solicitud…`).
+  No se borraron: quitar un bloque de CSS a ciegas no falla, solo se ve feo.
+  Queda para una limpieza con las pantallas delante.
 
 **Lo que la tanda 5 dejó anotado, sin construir:**
 

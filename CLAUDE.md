@@ -1752,6 +1752,39 @@ levantar otra. Las órdenes están en `docs/tareas-de-operacion.md § La muestra
 - ⚠️ **`SIEMBRA_REDUCIDA=1` cambia el volumen, no el camino:** siete alumnos por
   sección. Es lo que usa el CI; la siembra entera tarda tres minutos.
 
+### 14. La puerta es el registro
+
+Tanda 4 del spec `del-registro-al-cobro` (decisiones 1, 10, 19 y 20).
+
+```
+   LA PORTADA                                       EL REGISTRO, antes del primer campo
+   [Registre su colegio →]        ← el principal    Cargar su colegio es gratis y no vence.
+   [Escríbanos por WhatsApp]                        Calificar, pasar lista y emitir:
+   [Vea un colegio funcionando ↗]                   0,35 $ por alumno al mes.
+```
+
+Hasta el 12 de octubre de 2026 el botón grande decía «Agende una demostración
+de 20 min» y llevaba a un formulario cuyas solicitudes no le avisaban a nadie;
+el registro —lo único que funciona solo— era un enlace discreto debajo.
+
+⚠️ **El formulario de demostración salió, y su dirección NO da 404:**
+`DemoRequestsController` quedó con tres redirecciones a la portada. Está en
+buscadores y en mensajes reenviados. El modelo `DemoRequest` y
+`/siga/solicitudes` se quedan: son historia del equipo.
+
+⚠️ **Los botones que dependen de algo de afuera se dibujan SOLO si existe:** el
+de WhatsApp, si hay número en `/siga/ajustes`; el de la muestra, si la instancia
+sabe dónde vive (`SIGA_MUESTRA_URL`). Sin la muestra, «verlo» pasa a «probarlo
+en su colegio». Un botón que abre un chat con nadie, o que lleva a un 404, le
+enseña a la visitante a no confiar en los demás.
+
+⚠️ **Las tres puertas van dos veces —arriba y en el cierre— y son UN parcial**
+(`inicio/_puertas`). Dos copias de tres botones se separan.
+
+⚠️ **El precio sigue fuera del bloque principal**, como lo dejó Daniel —*«se ve
+como antipático, como que si le estoy cobrando antes de sentarse»*—: lo dicen
+«La suscripción», el cierre y el registro. Los tres leen la constante.
+
 ## 🔢 La versión
 
 `Siga::VERSION` en `config/application.rb` es la del PRODUCTO, y **no** la del

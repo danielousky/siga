@@ -19,6 +19,19 @@
     En un solo paso queda su cuenta y su colegio, con sus grados, sus áreas de aprendizaje y
     sus años escolares ya cargados.
 
+  -# ⚠️ EL PRECIO, EN UNA LÍNEA (spec `del-registro-al-cobro`, decisión 10).
+  -#
+  -# Daniel, 8 de octubre de 2026: *«luego no se deja claro qué plan tiene o
+  -# cuánto le cuesta y cómo pagarlo»*. Quien se registra tiene que saber, antes
+  -# de dar su correo, qué es gratis y qué no: enterarse después —al tocar
+  -# «Calificar»— se siente como una trampa.
+  -#
+  -# Sale de la constante, como todo precio: lo cuida
+  -# `los_precios_de_un_solo_lugar_test`.
+  %p.registro-precio
+    Cargar su colegio es gratis y no vence. Calificar, pasar lista y emitir:
+    %strong= "#{numero_en_dolares(Subscription::PRECIO_POR_ALUMNO)} por alumno al mes."
+
   = form_with url: registrarse_path, class: "registro-form" do |f|
     = render "shared/errors", object: resource
     = render "shared/errors", object: @colegio
@@ -166,3 +179,12 @@
     .form-acciones
       = f.submit "Crear mi colegio", class: "btn btn-guardar"
       = link_to "Ya tengo cuenta", new_user_session_path, class: "btn btn-secondary"
+
+  -# El WhatsApp, también aquí (decisión 20): quien llegó hasta el formulario y
+  -# duda, tiene a quién preguntarle sin salir a buscar el número. Se dibuja solo
+  -# si hay número: un botón que abre un chat con nadie es peor que no tenerlo.
+  - if whatsapp_configurado?
+    %p.registro-ayuda
+      ¿Prefiere conversarlo antes?
+      = link_to "Escríbanos por WhatsApp →", enlace_de_whatsapp("Hola, quiero registrar mi colegio en SIGA y tengo una pregunta."),
+                target: "_blank", rel: "noopener"
