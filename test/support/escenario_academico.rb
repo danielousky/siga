@@ -60,7 +60,14 @@ module EscenarioAcademico
     secundaria: "1er Año",   media_tecnica: "6to Año"
   }.freeze
 
-  def escenario_academico(nombre: "U.E. de Prueba", pesos: [30, 30, 40], alumnos: 1, nivel: :secundaria)
+  # ⚠️ `suscripcion` es el plan con que nace el colegio, y por defecto PAGA.
+  # Todo colegio tiene su suscripción (decisión 16 del spec
+  # `del-registro-al-cobro`), y uno sin ella cuenta como gratis: no califica, no
+  # pasa lista, no emite. Casi toda la suite prueba a un colegio que opera, así
+  # que ese es el de por defecto; el que prueba lo gratis pide `:gratis`, y el
+  # que prueba la red de «sin fila», `nil`.
+  def escenario_academico(nombre: "U.E. de Prueba", pesos: [30, 30, 40], alumnos: 1, nivel: :secundaria,
+                          suscripcion: :por_alumno)
     n = EscenarioAcademico.siguiente
 
     colegio = Current.sin_aislamiento do
@@ -68,6 +75,8 @@ module EscenarioAcademico
     end
 
     con_el_colegio(colegio) do
+      abrir_la_suscripcion(colegio, suscripcion) if suscripcion
+
       periodo = AcademicPeriod.create!(
         school: colegio, name: "2025-2026", start_date: Date.new(2025, 9, 15), end_date: Date.new(2026, 7, 31)
       )
@@ -176,6 +185,24 @@ module EscenarioAcademico
 
   def nota(actividad, alumno, puntaje)
     ActivityGrade.create!(evaluation_activity: actividad, student: alumno, score: puntaje)
+  end
+
+  # La suscripción del colegio de prueba. La que paga, sin vencimiento: los
+  # tests que prueban la escalera ponen su propia fecha, y un vencimiento
+  # escrito acá haría fallar a cualquier test que viaje en el tiempo.
+  def abrir_la_suscripcion(colegio, plan)
+    return Subscription.abrir_gratis!(colegio) if plan.to_sym == :gratis
+
+    Subscription.create!(school: colegio, plan: plan, status: :activa,
+                         precio_por_alumno: Subscription::PRECIO_POR_ALUMNO,
+                         minimo_mensual: Subscription::MINIMO_MENSUAL,
+                         precio_mensual: Subscription::MINIMO_MENSUAL,
+                         vigente_desde: Date.new(2025, 9, 15))
+  end
+
+  # La suscripción que ya tiene el colegio, para cambiarla en un test.
+  def suscripcion_de(colegio)
+    Current.sin_aislamiento { Subscription.find_by!(school: colegio) }
   end
 
   # Cuenta filas sin depender del contexto de colegio que haya quedado puesto.

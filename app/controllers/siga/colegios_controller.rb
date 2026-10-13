@@ -48,6 +48,12 @@ module Siga
         # (`MOR-143`), y el código sale abajo.
         @usuario.save!
         Admin.create!(user: @usuario, school: @colegio, role: :director)
+
+        # ⚠️ Con su suscripción, como el que se registra (decisión 16 del spec
+        # `del-registro-al-cobro`). Este alta dejaba al colegio SIN fila, y sin
+        # fila era acceso completo y sin fecha: la puerta por la que se entraba a
+        # todo el producto, gratis y para siempre.
+        Subscription.abrir_gratis!(@colegio, nota: "Gratis: dado de alta desde /siga.")
       end
 
       codigo = @usuario.generar_codigo_de_acceso!

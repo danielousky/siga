@@ -30,6 +30,10 @@ module PagosHelper
   # migrar: la equivalencia siempre estuvo en el acto de validar.
   def importe_transferido(monto) = importe(monto, unidad: "Bs")
 
+  # El número solo, cuando la unidad va en su propia etiqueta: en la portada el
+  # precio se dibuja grande —«0,30»— y debajo, chico, «$ por alumno al mes».
+  def cifra(monto) = importe(monto, unidad: nil)
+
   private
 
   def importe(monto, unidad:)

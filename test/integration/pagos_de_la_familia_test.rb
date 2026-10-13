@@ -135,7 +135,10 @@ class PagosDeLaFamiliaTest < ActionDispatch::IntegrationTest
 
     get pagos_path
 
-    assert_no_match(/\d,\d\d\s*\$/, response.body,
+    # ⚠️ Lo que se VE, el `<body>`: la cabecera trae la descripción para
+    # buscadores, que desde el cobro por alumno dice el precio de SIGA
+    # —«0,30 $ por alumno»— y no es nada que la familia lea ni deba.
+    assert_no_match(/\d,\d\d\s*\$/, css_select("body").text,
                     "la pantalla de la familia no lleva el símbolo del dólar")
   end
 

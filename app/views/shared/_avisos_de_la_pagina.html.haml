@@ -14,18 +14,20 @@
       Puedes seguir consultando y descargando todo —boletines, constancias,
       notas— pero no cargar información nueva hasta regularizar el pago.
 - elsif colegio_en_plan_gratis?
-  -# ⚠️ El aviso del plan gratuito NO es una alerta: no hay nada vencido ni
-  -# nada que corregir. Es información, y por eso va en el tono neutro y no en
-  -# el rojo del vencimiento.
+  -# ⚠️ El aviso de lo gratis NO es una alerta: no hay nada vencido ni nada que
+  -# corregir. Es información, y por eso va en el tono neutro y no en el rojo
+  -# del vencimiento.
   -#
   -# Dice lo que SÍ funciona antes de lo que no: un colegio que lee primero una
   -# negativa cierra la pestaña.
+  -#
+  -# ⚠️ Sin nombre de plan (decisión 15 del spec `del-registro-al-cobro`): decía
+  -# «Plan Inicial, gratis», y «Inicial» era a la vez este y el de 39 $.
   .aviso-suscripcion
     .aviso-suscripcion-inner
-      %strong Plan Inicial, gratis.
+      %strong Sin suscripción activa.
       Cargar alumnos, profesores, áreas de aprendizaje y secciones es libre y no vence.
-      Calificar, pasar lista y emitir boletines y constancias se activan al
-      contratar un plan.
+      Calificar, pasar lista y emitir se activan al validarse el pago.
 - elsif suscripcion_del_colegio&.en_gracia?
   .aviso-suscripcion
     .aviso-suscripcion-inner

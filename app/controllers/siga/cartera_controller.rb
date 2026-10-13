@@ -5,6 +5,11 @@ module Siga
   # Vive acá y no en el panel del colegio por la misma razón que el pipeline
   # comercial: **es dato de SIGA**. Un colegio tiene derecho a saber si ÉL está
   # al día —eso se lo dice su propio panel— pero no a ver quién más debe.
+  #
+  # ⚠️ Ya no tiene «Dar de alta». Servía para el colegio SIN suscripción, y
+  # desde el cobro por alumno ninguno queda sin ella: todo colegio nace en
+  # gratis (decisión 16 del spec `del-registro-al-cobro`). Activar una
+  # suscripción es validar un pago, y eso llega con la tanda 2 de ese spec.
   class CarteraController < BaseController
     def index
       Subscription.actualizar_todas!
@@ -14,8 +19,14 @@ module Siga
 
       # Una consulta para todas las matrículas, no una por colegio.
       @matriculas = matriculas_por_colegio
+      @cotizaciones = @colegios.to_h do |colegio|
+        alumnos = @matriculas[colegio.id]
+        suscripcion = @suscripciones[colegio.id]
 
-      @facturacion = @suscripciones.values.select(&:permite_escribir?).sum { |s| s.precio_mensual.to_i }
+        [ colegio.id, suscripcion ? suscripcion.cotizacion(alumnos) : Subscription.cotizar(alumnos) ]
+      end
+
+      @facturacion = @suscripciones.values.select(&:permite_escribir?).sum { |s| s.precio_mensual.to_d }
       @con_problema = @suscripciones.values.count { |s| s.solo_lectura? }
       @sin_suscripcion = @colegios.count { |c| @suscripciones[c.id].nil? }
     end
@@ -28,29 +39,6 @@ module Siga
         redirect_to siga_cartera_index_path, notice: "Suscripción de #{@suscripcion.school.name} actualizada."
       else
         redirect_to siga_cartera_index_path, alert: @suscripcion.errors.full_messages.to_sentence
-      end
-    end
-
-    # Crear la suscripción de un colegio que todavía no la tiene, con el plan que
-    # le corresponde por su matrícula de hoy.
-    def create
-      colegio = School.find(params[:school_id])
-      alumnos = Subscription.matricula_de(colegio.id)
-
-      suscripcion = Subscription.new(
-        school: colegio,
-        plan: Subscription.plan_para(alumnos),
-        matricula_facturada: alumnos,
-        precio_mensual: Subscription.precio_para(alumnos),
-        vigente_desde: Date.current,
-        vigente_hasta: Date.current + 1.month,
-        status: :activa
-      )
-
-      if suscripcion.save
-        redirect_to siga_cartera_index_path, notice: "#{colegio.name} quedó con plan #{suscripcion.etiqueta_de_plan}."
-      else
-        redirect_to siga_cartera_index_path, alert: suscripcion.errors.full_messages.to_sentence
       end
     end
 

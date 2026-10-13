@@ -1,0 +1,19 @@
+-# Lo que ve quien abre un portal —el de la familia, el del alumno— o pide un
+-# documento del ministerio en un colegio que todavía no tiene la suscripción
+-# (spec `docs/specs/del-registro-al-cobro.md`, decisión 3).
+-#
+-# ⚠️ Es una PÁGINA y no un redirect con su aviso. El destino por defecto de una
+-# familia ES su portal: redirigirla a él la dejaría dando vueltas.
+-#
+-# ⚠️ Y no dice precios ni deudas. Quien la lee —una madre, un alumno— no tiene
+-# nada que pagar ni nada que hacer: solo saber que esto existe y que el colegio
+-# todavía no lo activó. Le habla de usted, como toda pantalla para la familia.
+.card-academic.al-dia
+  = render "shared/cabecera", titulo: "Todavía no está activo", nivel: 2
+
+  %p
+    El colegio todavía no activó esta parte de SIGA. Cuando lo haga, aquí verá
+    las notas, la asistencia y los boletines.
+
+  %p.nota-ayuda
+    No tiene que hacer nada: apenas el colegio la active, aparece sola.

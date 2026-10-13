@@ -46,12 +46,17 @@ repite acá porque este es el proyecto donde más pesa.
 
 SIGA (Sistema Integrado de Gestión Académica) es un SaaS de gestión académica para
 instituciones educativas de Venezuela (preescolar, primaria, secundaria), vendido por
-suscripción mensual según matrícula: **$39** (hasta 150 alumnos) / **$79** (151–400) /
-**$119** (401–800), desde el 5 de octubre de 2026 —antes 30/60/90, y antes de septiembre
-25/50/90—. Los planes se llaman **Inicial · Estándar · Grande** — «Básico» y
-«Premium» se cayeron en septiembre de 2026 con la subida de precio: son nombres de SaaS
-gringo, y «Premium» insinuaba funciones aparte que NO existen (entre planes no se recorta
-nada, lo único que cambia es la matrícula). La fuente única es `Subscription::PLANES`.
+suscripción mensual **por alumno**: **0,30 $ por alumno inscrito al mes, más IVA, con un
+mínimo de 39 $** — desde el 12 de octubre de 2026. Un solo plan y sin nombres: todo
+colegio tiene el sistema completo, y lo único que cambia es la matrícula. Cargar el
+colegio es gratis; calificar, pasar lista y emitir piden la suscripción. La fuente única es
+`Subscription::PRECIO_POR_ALUMNO` / `MINIMO_MENSUAL`.
+
+⚠️ **El recorrido entero —puerta, prueba, precio, pago y cobro— está decidido en
+[`docs/specs/del-registro-al-cobro.md`](docs/specs/del-registro-al-cobro.md)**, y se
+construye por tandas. Antes fueron bandas (25/50/90, 30/60/90 y 39/79/119, con los
+nombres Inicial · Estándar · Grande): si un documento, un PDF o un video dice eso, está
+atrasado y manda el spec.
 
 ⚠️ **Subir un precio es cambiar UN número, y nada más.** Tres veces se quedó atrás una
 copia escrita a mano —la descripción para buscadores, una segunda tabla en el panel de
@@ -1127,7 +1132,7 @@ hace vendible el producto barato.**
    mismo host                       host propio
    misma app                        subdominio propio dentro de SIGA
    mismo dominio                    —o incluso su propio dominio.com—
-   $39 · $79 · $119                 precio a convenir
+   0,30 $ por alumno + IVA          precio a convenir
 ```
 
 **Quien decide el paso al plan dedicado es el cliente, no nosotros.** Un colegio
@@ -1150,19 +1155,24 @@ frontera puesta para que ese día sea mover un namespace, no desenredar una app.
 > exacta del incidente de Canvas— y es el issue que hay que retomar cuando haya
 > colegios pagando.
 
-### 7. El plan Inicial es gratis, y el límite es por FUNCIÓN
+### 7. Cargar es gratis, y el límite es por FUNCIÓN
 
-Decisión de Daniel, 27 de agosto de 2026. El corte **no es por número de
+Decisión de Daniel, 27 de agosto de 2026, y ratificada el 9 de octubre —*«dejar
+libre la entrada pero limitar el procesamiento (calificar o asistencia) y la
+salida»*— en el spec `del-registro-al-cobro`. El corte **no es por número de
 registros ni por tiempo**:
 
 ```
-   LIBRE, SIN TOPE                    SE ACTIVA CON EL PLAN
-   ───────────────                    ─────────────────────
-   alumnos, representantes            calificar
-   profesores, materias               pasar lista
-   secciones, inscripciones           emitir boletines y constancias
-   el importador de planillas         los documentos del MPPE
-                                      el portal de los representantes
+   LIBRE, SIN TOPE NI FECHA           SE ACTIVA CON LA SUSCRIPCIÓN
+   ────────────────────────           ────────────────────────────
+   ENTRADA                            PROCESAMIENTO
+   alumnos, representantes            calificar, pasar lista, cerrar el lapso,
+   profesores, áreas                  reparaciones, valoraciones, informes,
+   secciones, inscripciones           la cobranza, los correos a las familias
+   el plan de evaluación              SALIDA
+   el importador y su plantilla       boletines, constancias, certificados,
+                                      documentos del MPPE, listas en Excel,
+                                      los portales de la familia y del alumno
 ```
 
 **Por registros rompe la importación a mitad de camino:** con matrícula promedio
@@ -1170,9 +1180,19 @@ de 360 y tope en 200, la fila 201 falla y el colegio queda con media matrícula 
 un problema de datos, justo cuando debía sentirse poderoso. **Por tiempo** empieza
 a correr en septiembre, que es cuando nadie en un colegio tiene un minuto.
 
-⚠️ **`gratis` es un plan que se elige, NO la ausencia de suscripción.** Un colegio
-sin fila en `subscriptions` tiene acceso completo a propósito: es el piloto o el
-primer mes. Confundirlos deja al piloto sin poder calificar.
+⚠️ **Cada controlador del colegio está en UNA de cuatro listas** de
+`RespetaLaSuscripcion` —siempre abierto, entrada, con suscripción, solo con
+suscripción—, y `frontera_de_lo_gratis_test` lo exige. La lista anterior nombraba
+lo que existía el 27 de agosto, y lo construido después quedó afuera: con un
+preescolar se operaba completo sin pagar. Un controlador nuevo sin lista no pasa
+el CI; y si llegara sin ella, en gratis queda cerrado.
+
+⚠️ **Un colegio SIN fila en `subscriptions` cuenta como gratis**, y ninguno queda
+sin ella: el registro y el alta desde `/siga` la abren con
+`Subscription.abrir_gratis!`. Hasta el 12 de octubre de 2026 era al revés —sin
+fila era acceso completo y sin fecha— y por esa puerta se entraba a todo el
+producto, gratis y para siempre. El colegio de los tests nace pagando
+(`escenario_academico`, `suscripcion: :por_alumno`).
 
 ⚠️ **Y no es lo mismo que `vencida`.** Un colegio endeudado TENÍA estas funciones:
 queda en solo lectura pero **sigue emitiendo constancias**, porque la deuda es del

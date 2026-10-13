@@ -11,7 +11,7 @@
 #     /mi-colegio    el colegio    un solo envío ──► persona
 #            ↓                                   ──► colegio
 #     8 pasos a mano               ──► rol de dirección
-#                                  ──► plan Inicial
+#                                  ──► suscripción gratis
 #                                  ──► andamiaje sembrado
 #
 # ## ⚠️ UNA transacción, y eso resuelve la objeción que separaba las pantallas
@@ -86,14 +86,13 @@ class AltaDeUnColegio
 
   private
 
-  # ⚠️ Nace en el plan GRATIS, explícito, no sin suscripción.
+  # ⚠️ Nace en GRATIS, con su fila: cargar es libre, y calificar, pasar lista y
+  # emitir se abren cuando se valida el pago (spec `del-registro-al-cobro`).
   #
-  # «Sin fila» significa otra cosa en este sistema —acceso completo, el piloto
-  # que alguien acompaña— y confundirlos le daría a cualquiera que se registre
-  # todo el producto.
+  # La abre `Subscription.abrir_gratis!`, la misma que usa el alta desde `/siga`:
+  # dos puertas que abrían dos productos distintos fueron justamente el
+  # problema que ese spec vino a resolver.
   def suscripcion_inicial(colegio)
-    Subscription.create!(school: colegio, plan: :gratis, status: :activa,
-                         precio_mensual: 0, vigente_desde: Date.current,
-                         notas: "Plan Inicial, creado al registrarse.")
+    Subscription.abrir_gratis!(colegio)
   end
 end

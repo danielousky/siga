@@ -74,7 +74,7 @@ class RegistroAbiertoTest < ActionDispatch::IntegrationTest
                  "el que se registró quedó con acceso a un colegio que ya existía"
   end
 
-  test "queda con su cargo y su plan Inicial" do
+  test "queda con su cargo, y en gratis" do
     registrarse(cargo: "otro")
 
     Current.en_el_colegio(nuevo_colegio) do
