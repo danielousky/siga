@@ -239,7 +239,7 @@ hay fechas; si no, en el último con evaluaciones. En la muestra: 18 secciones,
   representantes) se salen de la pantalla, porque se vuelven desplazables recién
   a 600 px. No lo toqué: cambia cómo se ven todas las tablas a ese ancho.
 
-## 📐 Horarios — el spec está escrito y falta congelarlo (13 de octubre)
+## 📐 Horarios — el spec está escrito y decidido; falta congelarlo (13 de octubre)
 
 Daniel pidió investigar «la mejor manera de gestionar los horarios» de Media.
 Con cuatro agentes —el código, Venezuela, el mundo y el diseño— y la foto de un
@@ -255,10 +255,16 @@ borrador**. Ni una línea de código todavía.
 ```
 
 ```
-   DECIDIDO POR DANIEL                          LO QUE FALTA, Y ES SUYO
-   una sección, un profesor, una hora           contestar las decisiones 11 a 18 del spec
-   el automático, después del armador           congelarlo → arranca la tanda 1 (turno y carga)
-   armar gratis; PDF y portales, con pago       el issue de Linear: el conector no estaba autenticado
+   DECIDIDO POR DANIEL                          Y CONFIRMADO EL MISMO DÍA (11 a 18)
+   una sección, un profesor, una hora           se llama «Turno» · la familia en mora SÍ lo ve
+   el automático, después del armador           borrador → «Publicar», por sección
+   armar gratis; PDF y portales, con pago       también Primaria · lunes a viernes · el automático,
+   el turno de su foto: horas de 40 min         con suscripción · arma quien administra secciones
+```
+
+```
+   LO QUE FALTA, Y ES SUYO     leerlo y congelarlo → arranca la tanda 1 (turno y carga)
+                               el issue de Linear: el conector no estaba autenticado
 ```
 
 ```

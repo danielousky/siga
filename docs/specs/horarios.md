@@ -1,9 +1,11 @@
 # Los horarios de clase
 
-> **Estado:** borrador · **en discusión** desde el 13 de octubre de 2026
+> **Estado:** en discusión desde el 13 de octubre de 2026 · **sin preguntas abiertas: falta que Daniel lo congele**
 > **PR:** — (rama `docs/spec-horarios`; el issue de Linear está sin crear: el conector no estaba autenticado)
 
-⚠️ **No se congela hasta que Daniel conteste las decisiones 11 a 18** (§ 3).
+Las 18 decisiones están tomadas (§ 3): las 11 a 18 las propuso Claude y las
+confirmó Daniel el mismo 13 de octubre. Se congela cuando Daniel lo diga, y con
+eso arranca la tanda 1.
 
 ---
 
@@ -78,14 +80,14 @@ Y hay una segunda mitad:
 | 8 | ¿Qué pasa si el profesor nuevo choca? | **La asignación se guarda siempre.** Lo que choca vuelve a «por ubicar» y se avisa. | Investigación |
 | 9 | ¿De dónde sale la carga horaria? | Del plan oficial de 2017, propuesto por NOMBRE del área; el colegio la corrige. | Investigación |
 | 10 | ¿Con qué se arma el automático? | En Ruby. La gema `or-tools` no trae binario para la imagen de producción. | Investigación |
-| 11 | ¿Cómo se llama el timbre? | **«Turno»** («Media · mañana»): es la palabra de la resolución y del colegio. | Claude · **POR CONFIRMAR** |
-| 12 | ¿La familia en mora ve el horario? | **Sí.** Es logística de la sección —está pegado en la puerta del salón—, no el expediente del hijo; esconderlo no presiona el pago y hace que el muchacho falte. | Claude · **POR CONFIRMAR** |
-| 13 | ¿Se publica? | **«Borrador → Publicado», por sección.** Profesor, familia y alumno ven solo lo publicado; quien administra, todo. | Claude · **POR CONFIRMAR** |
-| 14 | ¿Solo Media? | Sirve para toda sección con áreas —Primaria también, por los especialistas—; Inicial no. Se entrega pensado y sembrado para Media. | Claude · **POR CONFIRMAR** |
-| 15 | ¿Sábados? | Lunes a viernes. El sábado, cuando un colegio lo pida. | Claude · **POR CONFIRMAR** |
-| 16 | ¿Qué se bloquea? | Una sección con clases no cambia de turno sin vaciarse. Un año finalizado queda en solo lectura. | Claude · **POR CONFIRMAR** |
-| 17 | ¿El automático es gratis? | No: es procesamiento. Se ve y no se toca sin suscripción. | Claude · **POR CONFIRMAR** |
-| 18 | ¿Quién arma y quién publica? | Quien hoy administra secciones (`manage_sections`: dirección, coordinación y secretaría). El profesor mira. | Claude · **POR CONFIRMAR** |
+| 11 | ¿Cómo se llama el timbre? | **«Turno»** («Media · mañana»): es la palabra de la resolución y del colegio. | Claude · confirmó Daniel, 13 oct |
+| 12 | ¿La familia en mora ve el horario? | **Sí.** Es logística de la sección —está pegado en la puerta del salón—, no el expediente del hijo; esconderlo no presiona el pago y hace que el muchacho falte. | Claude · confirmó Daniel, 13 oct |
+| 13 | ¿Se publica? | **«Borrador → Publicado», por sección.** Profesor, familia y alumno ven solo lo publicado; quien administra, todo. | Claude · confirmó Daniel, 13 oct |
+| 14 | ¿Solo Media? | Sirve para toda sección con áreas —Primaria también, por los especialistas—; Inicial no. Se entrega pensado y sembrado para Media. | Claude · confirmó Daniel, 13 oct |
+| 15 | ¿Sábados? | Lunes a viernes. El sábado, cuando un colegio lo pida. | Claude · confirmó Daniel, 13 oct |
+| 16 | ¿Qué se bloquea? | Una sección con clases no cambia de turno sin vaciarse. Un año finalizado queda en solo lectura. | Claude · confirmó Daniel, 13 oct |
+| 17 | ¿El automático es gratis? | No: es procesamiento. Se ve y no se toca sin suscripción. | Claude · confirmó Daniel, 13 oct |
+| 18 | ¿Quién arma y quién publica? | Quien hoy administra secciones (`manage_sections`: dirección, coordinación y secretaría). El profesor mira. | Claude · confirmó Daniel, 13 oct |
 
 ## 4 · El dominio
 
