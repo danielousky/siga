@@ -91,6 +91,15 @@
               .detail-label Binance Pay
               .detail-value.suscripcion-dato-largo= @ajustes.binance
 
+      - if @ajustes.paypal?
+        .suscripcion-medio
+          .suscripcion-medio-nombre PayPal
+          .suscripcion-medio-nota En dólares, a este correo.
+          .detail-row
+            .detail-item
+              .detail-label Correo de PayPal
+              .detail-value.suscripcion-dato-largo= @ajustes.paypal
+
       - if @ajustes.efectivo?
         .suscripcion-medio
           .suscripcion-medio-nombre Efectivo en dólares

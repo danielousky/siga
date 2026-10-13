@@ -7,8 +7,8 @@ require "test_helper"
 #     /siga/ajustes  ──►  el fundador los cambia
 #                    ──►  los colegios los ven en la petición siguiente
 #
-#     setup          whatsapp · url_de_la_muestra    una fila por dato
-#     siga_settings  los datos para pagar            van juntos
+#     setup          whatsapp · url_de_la_muestra · binance · paypal    una fila por dato
+#     siga_settings  Pago Móvil y transferencia                         van juntos
 #
 # Cambiar de número, de cuenta o de dirección era entrar al servidor: el
 # WhatsApp y la muestra vivían en variables de entorno, leídas al arrancar.
@@ -32,6 +32,8 @@ class AjustesDeSigaTest < ActionDispatch::IntegrationTest
     assert_select "form[action=?] input[type=submit]", siga_ajustes_path
     assert_select "input[name='setup[whatsapp]']"
     assert_select "input[name='setup[url_de_la_muestra]']"
+    assert_select "input[name='setup[binance]']"
+    assert_select "input[type=email][name='setup[paypal]']"
   end
 
   test "el fundador guarda el WhatsApp, la dirección de la muestra y los datos para pagar" do
@@ -42,13 +44,15 @@ class AjustesDeSigaTest < ActionDispatch::IntegrationTest
     assert_redirected_to siga_ajustes_path
     assert_equal "0414-1234567", Setup.whatsapp
     assert_equal "https://demo.sigaeducando.com", Setup.url_de_la_muestra
+    assert_equal "112233445", Setup.binance
+    assert_equal "pagos@empresa-nueva.test", Setup.paypal, "el correo, en minúscula"
     assert_equal @fundador, Setup.fila("whatsapp").actualizado_por
 
     ajustes = SigaSetting.actuales
     assert ajustes.persisted?
     assert_equal "V-12345678", ajustes.documento
     assert_equal "01340000000000009999", ajustes.cuenta
-    assert_equal %w[pago_movil binance efectivo], ajustes.medios
+    assert_equal %w[pago_movil binance paypal efectivo], ajustes.medios
     assert_equal @fundador, ajustes.actualizado_por
   end
 
@@ -60,7 +64,7 @@ class AjustesDeSigaTest < ActionDispatch::IntegrationTest
     patch siga_ajustes_path, params: { siga_setting: datos, setup: datos_sueltos.merge(whatsapp: "0416-7778899") }
 
     assert_equal 1, SigaSetting.count
-    assert_equal 2, Setup.count
+    assert_equal Setup::CAMPOS.size, Setup.count
     assert_equal "0416-7778899", Setup.whatsapp
   end
 
@@ -87,6 +91,18 @@ class AjustesDeSigaTest < ActionDispatch::IntegrationTest
     assert_select "input.campo-con-error[name='setup[url_de_la_muestra]'][value='demo.sigaeducando.com']"
     assert_equal 0, SigaSetting.count
     assert_equal 0, Setup.count, "ni el WhatsApp, que venía bien escrito"
+  end
+
+  # PayPal se cobra a un correo: sin el dominio completo, el dinero no llega.
+  test "un PayPal que no es un correo no se guarda, y marca su campo" do
+    sign_in @fundador
+
+    patch siga_ajustes_path, params: { siga_setting: datos, setup: datos_sueltos.merge(paypal: "pagos@empresa") }
+
+    assert_response :unprocessable_entity
+    assert_match(/El PayPal se cobra a un correo/, response.body)
+    assert_select "input.campo-con-error[name='setup[paypal]']"
+    assert_equal 0, Setup.count
   end
 
   test "con la cuenta mal escrita no cambia tampoco el WhatsApp" do
@@ -121,14 +137,14 @@ class AjustesDeSigaTest < ActionDispatch::IntegrationTest
 
     get siga_ajustes_path
     assert_response :success
-    assert_select "fieldset[disabled]", 6
+    assert_select "fieldset[disabled]", 7
     assert_select "input[type=submit]", 0
-    assert_select "input[name='siga_setting[binance]'][value='987654321']"
+    assert_select "input[name='setup[binance]'][value='987654321']"
     assert_select "input[name='setup[whatsapp]'][value='0414-1234567']"
 
     patch siga_ajustes_path, params: { siga_setting: datos, setup: datos_sueltos.merge(whatsapp: "0416-7778899") }
     assert_match(/lo hace el fundador/, flash[:alert])
-    assert_equal "987654321", SigaSetting.actuales.binance
+    assert_equal "987654321", Setup.binance
     assert_equal "0414-1234567", Setup.whatsapp
   end
 
@@ -159,20 +175,21 @@ class AjustesDeSigaTest < ActionDispatch::IntegrationTest
 
     assert_select ".suscripcion-medios", text: /Banesco \(0134\)/
     assert_select ".suscripcion-medios", text: /0426-5554433/
+    assert_select ".suscripcion-medios", text: /pagos@empresa-nueva\.test/
     assert_select "a[href^='https://wa.me/584141234567']"
   end
 
   test "y vaciar un dato apaga su medio" do
     cargar_los_ajustes_de_siga
     sign_in @fundador
-    patch siga_ajustes_path, params: { siga_setting: { binance: "" } }
+    patch siga_ajustes_path, params: { setup: { binance: "" } }
     sign_out @fundador
 
     sign_in @a.director
     get suscripcion_path
 
     assert_select ".suscripcion-medios", text: /Binance/, count: 0
-    assert_select ".suscripcion-medio", 2
+    assert_select ".suscripcion-medio", 3
   end
 
   # ── El botón de WhatsApp sale de aquí ─────────────────────────────────────
@@ -265,10 +282,11 @@ class AjustesDeSigaTest < ActionDispatch::IntegrationTest
   def datos
     { titular: "Empresa Nueva, C.A.", documento: "v-12.345.678",
       pago_movil_banco: "0134", pago_movil_telefono: "0426-5554433",
-      cuenta: "0134-0000-00-0000009999", binance: "112233445" }
+      cuenta: "0134-0000-00-0000009999" }
   end
 
   def datos_sueltos
-    { whatsapp: "04141234567", url_de_la_muestra: "https://demo.sigaeducando.com/" }
+    { whatsapp: "04141234567", url_de_la_muestra: "https://demo.sigaeducando.com/",
+      binance: "112233445", paypal: " Pagos@Empresa-Nueva.test " }
   end
 end

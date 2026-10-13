@@ -4,10 +4,17 @@
 #     nombre               valor                           lo usa
 #     whatsapp             0414-1234567                    los botones de WhatsApp y el efectivo
 #     url_de_la_muestra    https://demo.sigaeducando.com   «Vea un colegio funcionando»
+#     binance              el ID o el correo               «Suscripción» · cómo pagar
+#     paypal               el correo                       «Suscripción» · cómo pagar
 #
 # Daniel, 12 de octubre de 2026: *«vamos a agregar una tabla que se llame setup
-# que sea nombre del campo, valor»*. Se cambian en `/siga/ajustes`, y los ven
-# los colegios en la petición siguiente: ni un despliegue ni entrar al servidor.
+# que sea nombre del campo, valor»*, y esa misma noche *«hay que agregar una
+# variable para los valores de Binance y Paypal»* (decisiones 35 y 36). Se
+# cambian en `/siga/ajustes` —o con `bin/rails ajustes:poner`—, y los ven los
+# colegios en la petición siguiente: ni un despliegue ni entrar al servidor.
+#
+# Un medio de pago de UN dato es una variable; Pago Móvil y transferencia, que
+# comparten titular y cédula y se validan juntos, viven en `SigaSetting`.
 #
 # ## ⚠️ Solo los nombres que el código conoce
 #
@@ -51,6 +58,26 @@ class Setup < ApplicationRecord
         "La dirección de la muestra tiene que ser completa, así: https://demo.sigaeducando.com" \
           unless Setup.direccion_web?(valor)
       end
+    ),
+    # Binance Pay recibe por el ID —un número— o por el correo de la cuenta.
+    # Si es un correo, se guarda en minúscula, como se compara.
+    Campo.new(
+      nombre: "binance",
+      limpiar: ->(valor) { Setup.cuenta_o_correo(valor) },
+      problema: lambda do |valor|
+        if valor.length > 120
+          "El Binance Pay es un ID o un correo, de hasta 120 caracteres."
+        elsif valor.include?("@") && !Setup.correo?(valor)
+          "El correo de Binance Pay no está completo, así: pagos@ejemplo.com"
+        end
+      end
+    ),
+    Campo.new(
+      nombre: "paypal",
+      limpiar: ->(valor) { valor.to_s.strip.downcase.presence },
+      problema: lambda do |valor|
+        "El PayPal se cobra a un correo, así: pagos@ejemplo.com" unless Setup.correo?(valor)
+      end
     )
   ].index_by(&:nombre).freeze
 
@@ -87,6 +114,10 @@ class Setup < ApplicationRecord
 
   def self.url_de_la_muestra = valor("url_de_la_muestra")
 
+  def self.binance = valor("binance")
+
+  def self.paypal = valor("paypal")
+
   # `584241234567` —el formato de `wa.me`, el de la variable— a `0424-1234567`.
   def self.whatsapp_del_entorno
     numero = telefono(ENV["SIGA_WHATSAPP"])
@@ -101,6 +132,17 @@ class Setup < ApplicationRecord
     uri.is_a?(URI::HTTP) && uri.host.present?
   rescue URI::InvalidURIError
     false
+  end
+
+  # Un correo con su arroba y su dominio. Es la regla con que entra cualquier
+  # persona a SIGA (`Devise.email_regexp`): no dice que exista, dice que está
+  # completo —«moros@gmail» sin el «.com» no pasa—.
+  def self.correo?(valor) = Devise.email_regexp.match?(valor.to_s)
+
+  # El ID de Binance Pay tal cual; el correo, en minúscula.
+  def self.cuenta_o_correo(valor)
+    limpio = valor.to_s.squish
+    (limpio.include?("@") ? limpio.downcase : limpio).presence
   end
 
   # Un celular venezolano escrito como sea —«04141234567», «0414 123 45 67»,

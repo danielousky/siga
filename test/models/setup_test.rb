@@ -1,10 +1,11 @@
 require "test_helper"
 
 # Los ajustes sueltos de la plataforma: una fila por dato, con su nombre y su
-# valor (spec `docs/specs/del-registro-al-cobro.md`, decisión 35).
+# valor (spec `docs/specs/del-registro-al-cobro.md`, decisiones 35 y 36).
 #
 #     whatsapp             0414-1234567                    los botones y el efectivo
 #     url_de_la_muestra    https://demo.sigaeducando.com   «Vea un colegio funcionando»
+#     binance · paypal     el ID o el correo               «Suscripción» · cómo pagar
 class SetupTest < ActiveSupport::TestCase
   include CobroDeLaSuscripcion
 
@@ -119,6 +120,32 @@ class SetupTest < ActiveSupport::TestCase
     Setup.create!(nombre: "url_de_la_muestra", valor: "")
 
     assert_nil Muestra.direccion
+  end
+
+  # ── Binance y PayPal (decisión 36) ────────────────────────────────────────
+
+  # Binance Pay recibe por el ID o por el correo de la cuenta.
+  test "Binance acepta el ID o el correo, y el correo lo guarda en minúscula" do
+    assert_equal "123456789", Setup.new(nombre: "binance", valor: " 123456789 ").tap(&:valid?).valor
+    assert_equal "pagos@ejemplo.com", Setup.new(nombre: "binance", valor: "Pagos@Ejemplo.com").tap(&:valid?).valor
+  end
+
+  test "un correo de Binance a medio escribir no se acepta" do
+    fila = Setup.new(nombre: "binance", valor: "pagos@ejemplo")
+
+    assert fila.invalid?
+    assert_match(/no está completo/, fila.errors.full_messages.to_sentence)
+  end
+
+  # PayPal se cobra a un correo. Sin el dominio completo, el dinero no llega.
+  test "PayPal es un correo, y se guarda en minúscula" do
+    fila = Setup.new(nombre: "paypal", valor: " Pagos@Ejemplo.COM ")
+
+    assert fila.valid?
+    assert_equal "pagos@ejemplo.com", fila.valor
+    [ "pagos@ejemplo", "pagos ejemplo.com", "123456789" ].each do |escrito|
+      assert Setup.new(nombre: "paypal", valor: escrito).invalid?, escrito
+    end
   end
 
   # ── Guardar desde el formulario ───────────────────────────────────────────

@@ -66,12 +66,12 @@ class OrdenDeBorradoTest < ActiveSupport::TestCase
     persona = User.create!(first_name: "Quien", last_name: "Cambia", email: "cambia@siga.test", password: "123123",
                            document: "V-19000111", document_type: :cedula_v)
     SigaSetting.delete_all
-    SigaSetting.create!(binance: "987654321", actualizado_por: persona)
+    SigaSetting.create!(cuenta: "01020000000000001234", actualizado_por: persona)
     Setup.create!(nombre: "whatsapp", valor: "0414-1234567", actualizado_por: persona)
 
     persona.delete
 
-    assert_equal "987654321", SigaSetting.actuales.binance
+    assert_equal "01020000000000001234", SigaSetting.actuales.cuenta
     assert_nil SigaSetting.actuales.actualizado_por_id
     assert_equal "0414-1234567", Setup.whatsapp
     assert_nil Setup.fila("whatsapp").actualizado_por_id

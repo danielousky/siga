@@ -1,13 +1,14 @@
 module Siga
   # Los ajustes de la plataforma (spec `del-registro-al-cobro`, decisiones 20 a
-  # 22 y 35).
+  # 22, 35 y 36).
   #
   #     GET   /siga/ajustes   los ve todo el equipo de SIGA
   #     PATCH /siga/ajustes   los cambia el fundador
   #
   #     el WhatsApp de SIGA          Setup        nombre y valor, una fila cada uno
   #     la dirección de la muestra   Setup
-  #     los datos para pagar         SigaSetting  van juntos: se validan entre sí
+  #     Binance y PayPal             Setup        un medio de un solo dato
+  #     Pago Móvil y transferencia   SigaSetting  comparten titular y cédula
   #
   # Lo que se guarda aquí lo usan en la petición siguiente los botones de
   # WhatsApp, la portada y la pantalla «Suscripción» de cada colegio: cambiar de
@@ -61,7 +62,7 @@ module Siga
 
     def datos_de_los_ajustes
       params.fetch(:siga_setting, {}).permit(:titular, :documento, :pago_movil_banco,
-                                             :pago_movil_telefono, :cuenta, :binance)
+                                             :pago_movil_telefono, :cuenta)
     end
 
     def datos_del_setup

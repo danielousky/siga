@@ -250,13 +250,11 @@ es:
     medio: Medio
     comprobante: Comprobante
     motivo: Motivo
-    whatsapp: WhatsApp
     titular: Titular
     documento: Cédula o RIF
     pago_movil_banco: Banco del Pago Móvil
     pago_movil_telefono: Teléfono del Pago Móvil
     cuenta: Número de cuenta
-    binance: Binance Pay
     leader_teacher: Profesor guía
     coordinator_teacher: Coordinador del grado
     user: Usuario

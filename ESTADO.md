@@ -13,6 +13,7 @@ spec está **congelado**: `docs/specs/del-registro-al-cobro.md`.
    «Suscripción» → reporte → validación en /siga        ✔ tanda 2, en local
    el WhatsApp y los datos para pagar, en /siga/ajustes ✔ tanda 2, en local
    el WhatsApp y la muestra, en la tabla setup           ✔ 12 oct, en local (decisión 35)
+   PayPal como cuarto medio; Binance y PayPal en setup   ✔ 13 oct, en local (decisión 36)
    el colegio de muestra, en su instancia aparte        ✔ tanda 5, EN LÍNEA: demo.sigaeducando.com
    la puerta: registro + WhatsApp + colegio de muestra  ✔ tanda 4, en local
    un trabajo diario: 5 días antes · gracia · solo      ✔ tanda 3, en local
@@ -67,6 +68,30 @@ manda el spec. Daniel: *«No quiero que en el futuro otra sesión mire lo que t�
 miraste y se confunda o me proponga cosas basada en información obsoleta.»*
 
 **Y después:** horarios —«sí o sí», sobre todo para Media—, que pide su spec.
+
+### Binance y PayPal — hechos en local el 13 de octubre
+
+Rama `feat/binance-y-paypal`, encima de la tabla `setup`. Versión **1.19.0**.
+Daniel: *«Hay que agregar una variable para los valores de Binance y Paypal,
+en ambos casos el correo es…»* —el tuyo, que no se escribe en el repositorio—.
+
+```
+   «Suscripción» · Cómo pagar                         /siga/ajustes
+   ┌ Pago Móvil o transferencia ┐  Bs                 ┌ Binance (USDT) ──────────┐
+   ┌ Binance (USDT) ────────────┐  $                  │ [ tu correo            ] │ ← setup
+   ┌ PayPal ───────── NUEVO ────┐  $                  ┌ PayPal ────────── NUEVO ─┐
+   │ Correo de PayPal  tu correo│                     │ [ tu correo            ] │ ← setup
+   ┌ Efectivo en dólares ───────┐  $                  └──────────────────────────┘
+```
+
+- **PayPal es el cuarto medio**: en dólares, con el número de la transacción
+  como referencia y su comprobante, como Binance.
+- **Binance se mudó a `setup`** y PayPal nació ahí: un medio de un solo dato es
+  una variable. En `siga_settings` quedan Pago Móvil y transferencia, que
+  comparten titular y cédula.
+- **`bin/rails ajustes:poner`** carga un ajuste desde la terminal, con las
+  mismas reglas que la pantalla (`docs/tareas-de-operacion.md`).
+- Tu base local ya tiene los dos con tu correo.
 
 ### La tabla `setup` — hecha en local el 12 de octubre
 

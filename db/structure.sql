@@ -1502,7 +1502,6 @@ CREATE TABLE public.siga_settings (
     pago_movil_banco character varying,
     pago_movil_telefono character varying,
     cuenta character varying,
-    binance character varying,
     actualizado_por_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL
@@ -2085,7 +2084,7 @@ CREATE TABLE public.subscription_payments (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     CONSTRAINT subscription_payments_estado_valido CHECK (((estado)::text = ANY ((ARRAY['en_revision'::character varying, 'validado'::character varying, 'rechazado'::character varying])::text[]))),
-    CONSTRAINT subscription_payments_medio_valido CHECK (((medio)::text = ANY ((ARRAY['pago_movil'::character varying, 'binance'::character varying, 'efectivo'::character varying])::text[]))),
+    CONSTRAINT subscription_payments_medio_valido CHECK (((medio)::text = ANY ((ARRAY['pago_movil'::character varying, 'binance'::character varying, 'paypal'::character varying, 'efectivo'::character varying])::text[]))),
     CONSTRAINT subscription_payments_monto_positivo CHECK ((monto > (0)::numeric))
 );
 
@@ -6034,6 +6033,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261013010000'),
 ('20261012230000'),
 ('20261012190000'),
 ('20261012170000'),

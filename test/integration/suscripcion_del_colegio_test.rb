@@ -140,13 +140,14 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
   test "muestra los datos de cada medio, tal como están en los ajustes de SIGA" do
     get suscripcion_path
 
-    assert_select ".suscripcion-medio", 3
+    assert_select ".suscripcion-medio", 4
     assert_select ".suscripcion-medios", text: /Banco de Venezuela \(0102\)/
     assert_select ".suscripcion-medios", text: /0424-7654321/
     assert_select ".suscripcion-medios", text: /J-12345678-9/
     assert_select ".suscripcion-medios", text: /01020000000000001234/
     assert_select ".suscripcion-medios", text: /Empresa de Prueba, C\.A\./
     assert_select ".suscripcion-medios", text: /987654321/
+    assert_select ".suscripcion-medios", text: /pagos@empresa-de-prueba\.test/
     assert_select ".suscripcion-medios", text: /Efectivo en dólares/
   end
 
@@ -156,7 +157,7 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
     cargar_los_ajustes_de_siga(binance: nil)
     get suscripcion_path
 
-    assert_select ".suscripcion-medio", 2
+    assert_select ".suscripcion-medio", 3
     assert_select ".suscripcion-medios", text: /Binance/, count: 0
   end
 
@@ -204,6 +205,23 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
       assert_equal "0012345678", pago.referencia
       assert pago.comprobante.attached?
       assert_equal BigDecimal("45"), pago.cotizacion.monto, "guarda la cuenta con que se reportó"
+    end
+  end
+
+  # PayPal (decisión 36): en dólares, con el número de la transacción como
+  # referencia y su comprobante, como Binance.
+  test "el colegio reporta un pago por PayPal, en dólares" do
+    assert_difference -> { cantidad(SubscriptionPayment) }, 1 do
+      post suscripcion_pagos_path, params: {
+        subscription_payment: datos_del_pago.merge(medio: "paypal", monto: "45", referencia: "8MC58572KX123456B")
+      }
+    end
+
+    Current.sin_aislamiento do
+      pago = SubscriptionPayment.last
+      assert_equal "paypal", pago.medio
+      assert_equal "$", pago.unidad
+      assert_equal "8MC58572KX123456B", pago.referencia
     end
   end
 
@@ -283,10 +301,11 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
     get new_suscripcion_pago_path
 
     assert_response :success
-    assert_select "input[type=radio][name='subscription_payment[medio]']", 2
+    assert_select "input[type=radio][name='subscription_payment[medio]']", 3
     assert_select "input[type=radio][value=binance]", 0
     # La unidad que el campo muestra sale del medio: nadie escribe «Bs» a mano.
     assert_select "input[type=radio][value=pago_movil][data-unidad=Bs]"
+    assert_select "input[type=radio][value=paypal][data-unidad='$']"
     assert_select "input[type=radio][value=efectivo][data-unidad='$']"
   end
 
