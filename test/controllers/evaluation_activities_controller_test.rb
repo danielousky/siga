@@ -181,14 +181,17 @@ class EvaluationActivitiesControllerTest < ActionDispatch::IntegrationTest
   # La dirección mira, no edita
   # ════════════════════════════════════════════════════════════════════════
 
-  test "el director ve las evaluaciones de TODO el colegio" do
+  # ⚠️ Desde el 13 de octubre de 2026 no lista las evaluaciones una por una: es
+  # un MAPA, una casilla por plan (`MapaDeEvaluaciones`). Lo que se cuida sigue
+  # siendo lo mismo: que la dirección vea los planes de LOS DOS profesores.
+  test "el director ve los planes de TODO el colegio" do
     entrar_como director
 
     get evaluation_activities_url
 
     assert_response :success
-    assert_match "Examen de Matemática", response.body
-    assert_match "Ensayo de Castellano", response.body
+    assert_select "a.mapa-marca[data-tooltip^='Matemática']", text: "40"
+    assert_select "a.mapa-marca[data-tooltip^='Castellano']", text: "50"
   end
 
   test "el director no puede crear ni editar la ponderación de un profesor" do
