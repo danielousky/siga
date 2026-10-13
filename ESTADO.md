@@ -25,9 +25,8 @@ spec está **congelado**: `docs/specs/del-registro-al-cobro.md`.
    1 · MIRAR      https://demo.sigaeducando.com     un clic por puerta: director, profesor,
                                                     representante —y siete «otras miradas»—
    2 · PROBAR     en local, la portada, el registro y los correos nuevos
-                  ⚠️ antes, resembrar: bin/rails db:seed:replant  (se lleva tu colegio de
-                  prueba y el catálogo de planteles; el catálogo vuelve con
-                  bin/rails catalogo:planteles)
+                  tu base local YA está resembrada (12 oct, 22:01, con tu visto bueno)
+                  y con el catálogo de vuelta: localhost:3000 enseña lo mismo que la muestra
    3 · DECIDIR    las decisiones POR CONFIRMAR del spec, abajo
    4 · SUBIR      las siete ramas, en orden —cada una sale de la anterior—:
                   feat/del-registro-al-cobro → feat/pagar-sin-consola →
@@ -185,16 +184,15 @@ muestra no entre nadie, y dos arreglos del portal de la familia.
 **⚠️ Lo que solo tú puedes poner:** el WhatsApp de SIGA en la muestra
 (`SIGA_WHATSAPP`): no conozco el número, y sin él no se dibuja el botón.
 
-**⚠️ Tu base de desarrollo quedó con los datos de antes.** No la toqué: tiene
-tu colegio de prueba (U E N LUIS HURTADO HIGUERA) y el catálogo de planteles.
-Con la siembra nueva, `bin/smoke` entra con `director.bolivar@mail.com`, así que
-`bin/ci` no pasa el humo hasta resembrarla:
+**Tu base de desarrollo, resembrada** (12 de octubre, 22:01, con tu visto bueno:
+*«no hay problema en borrar la data, eso es de prueba»*). Se fueron tu colegio
+de prueba (U E N LUIS HURTADO HIGUERA) y el catálogo; el catálogo volvió con
+`bin/rails catalogo:planteles` (15.954 planteles). `bin/ci` ya corre contra
+ella como siempre: `bin/smoke` entra con `director.bolivar@mail.com`.
 
-```bash
-bin/rails db:seed:replant          # ⚠️ se lleva tu colegio de prueba y el catálogo
-```
-
-Yo corrí `bin/ci` contra una base aparte (`SIGA_DB_NAME=siga_ci bin/ci`).
+⚠️ La siembra cuenta los días desde HOY en UTC, y desde las 8 p. m. de
+Venezuela eso ya es mañana: sembrada esta noche, la base cree que es 13 de
+octubre. Es la misma rareza de la zona horaria que anota el spec.
 
 **Los tres huecos que encontró la siembra, arreglados en esta rama:**
 
@@ -504,6 +502,28 @@ cuando el campo quedó vacío, vuelva a esperar a que la página oiga
 (`esperando_la_pagina`) y reintente durante un segundo y medio, no 150 ms. No
 toca el camino normal. Mientras tanto, la misma regla: si `bin/ci` sale rojo
 SOLO por uno de estos dos, se vuelve a correr `bin/rails test:system`.
+
+⚠️ **Y esa misma noche, con el Mac ocupado en otra cosa** (`mobileassetd` al
+95 % y Spotlight indexando lo que dejó la siembra), los de navegador fallaron
+mucho más, y casi todos de antes:
+
+```
+   plan_con_turbo_test, solo, alternando     el código de ANTES de hoy   5 fallas de 8
+                                             el código de ahora          3 fallas de 8
+   pestanas_de_la_seccion_test               una vez, en el bin/ci de las 22:08
+   colegio_de_muestra_test (el nuevo)        dos veces: era MÍO, y quedó corregido
+```
+
+El de la muestra tocaba con un clic a secas y después con `tocar_para_ir_a`,
+que en este recorrido NO sirve: el primer clic sí funcionaba, la pantalla
+tardaba más de tres segundos —son dos redirecciones— y el reintento buscaba el
+botón en una pantalla que ya se iba. Ahora espera a llegar y solo vuelve a
+tocar si el botón sigue ahí (`tocar_y_llegar`).
+
+⚠️ Lo que eso deja dicho de `tocar_para_ir_a`: si la pantalla de destino tarda
+más de tres segundos en llegar, el reintento corta la visita que iba en camino.
+Puede ser parte de lo que hace fallar a `plan_con_turbo_test` cuando la máquina
+está cargada; no está medido. Va con los otros, en su propio PR.
 
 Y el CI sube también las capturas de los tests de sistema que fallen.
 
