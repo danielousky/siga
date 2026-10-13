@@ -34,20 +34,17 @@ class ColegioDeMuestraEnElNavegadorTest < ApplicationSystemTestCase
       assert_selector ".muestra-puerta", count: Muestra::CUENTAS.size
       capturar "1-las-puertas"
 
-      tocando { click_button "Entrar como director" }
+      tocar_y_llegar("Entrar como director", dashboards_administrador_path)
 
-      assert_current_path dashboards_administrador_path
       assert_selector ".aviso-muestra", text: "Colegio de muestra"
       capturar "2-el-panel-del-director"
 
-      tocando { click_button "Cambiar de rol" }
+      tocar_y_llegar("Cambiar de rol", root_path)
 
-      assert_current_path root_path
       assert_selector ".muestra-puerta", count: Muestra::CUENTAS.size
 
-      tocando { click_button "Entrar como profesor" }
+      tocar_y_llegar("Entrar como profesor", dashboards_profesor_path)
 
-      assert_current_path dashboards_profesor_path
       assert_selector ".aviso-muestra"
       capturar "3-el-panel-del-profesor"
     end
@@ -67,6 +64,28 @@ class ColegioDeMuestraEnElNavegadorTest < ApplicationSystemTestCase
   end
 
   private
+
+  # Toca un botón que TIENE que llevar a otra pantalla, y espera a llegar.
+  #
+  # ⚠️ Cada botón de este recorrido es un formulario que termina en DOS
+  # redirecciones —entrar, la raíz, el panel—, así que con la máquina cargada
+  # llegar tarda más que un enlace. El 12 de octubre de 2026 falló dos veces
+  # seguidas, de dos maneras: con un clic a secas, «expected "/" to equal
+  # "/dashboards/administrador"»; con `tocar_para_ir_a`, «Unable to find button
+  # "Entrar como director"» — el primer clic SÍ había funcionado, y el
+  # reintento buscaba el botón en una pantalla que ya se estaba yendo.
+  #
+  # Así que: si el botón sigue ahí, el clic no se atendió y se vuelve a tocar;
+  # si ya no está, la pantalla se fue y solo falta esperar a que llegue.
+  def tocar_y_llegar(boton, destino)
+    3.times do
+      tocando { click_button boton }
+      return if page.has_current_path?(destino, wait: 5)
+      break unless page.has_button?(boton, wait: 0)
+    end
+
+    assert_current_path destino, wait: 15
+  end
 
   def capturar(nombre)
     carpeta = ENV["CAPTURAS"].presence or return
