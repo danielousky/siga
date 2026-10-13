@@ -27,15 +27,16 @@ class SubscriptionPayment < ApplicationRecord
   # como el voucher de la familia (`EncogeElVoucher`).
   has_one_attached :comprobante
 
-  # Los tres medios de la decisión 9. Zelle no.
+  # Los medios de la decisión 9, y PayPal desde la 36. Zelle no.
   #
   # ⚠️ La UNIDAD del monto la da el medio: Pago Móvil y transferencia se pagan
-  # en bolívares, a la tasa BCV del día; Binance y el efectivo, en dólares. SIGA
-  # no guarda tasas: la cuenta la hace quien paga, y el fundador la revisa al
-  # validar (§ 4.4).
+  # en bolívares, a la tasa BCV del día; Binance, PayPal y el efectivo, en
+  # dólares. SIGA no guarda tasas: la cuenta la hace quien paga, y el fundador
+  # la revisa al validar (§ 4.4).
   MEDIOS = {
     "pago_movil" => { nombre: "Pago Móvil o transferencia", unidad: "Bs" },
     "binance"    => { nombre: "Binance (USDT)",             unidad: "$" },
+    "paypal"     => { nombre: "PayPal",                     unidad: "$" },
     "efectivo"   => { nombre: "Efectivo en dólares",        unidad: "$" }
   }.freeze
 

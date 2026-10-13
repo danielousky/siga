@@ -71,7 +71,7 @@ class RestablecerLaMuestraTest < ActiveSupport::TestCase
   test "y se lleva también los ajustes de la plataforma" do
     montar_la_muestra(@a, @b)
     SigaSetting.delete_all
-    SigaSetting.create!(binance: "la-cuenta-que-puso-un-visitante")
+    SigaSetting.create!(titular: "La cuenta que puso un visitante")
 
     en_la_muestra { restablecer }
 

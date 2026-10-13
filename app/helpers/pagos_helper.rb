@@ -35,7 +35,7 @@ module PagosHelper
   def cifra(monto) = importe(monto, unidad: nil)
 
   # Lo que un colegio le pagó a SIGA, en la unidad de su MEDIO: Pago Móvil o
-  # transferencia en bolívares; Binance y efectivo en dólares
+  # transferencia en bolívares; Binance, PayPal y efectivo en dólares
   # (`SubscriptionPayment::MEDIOS`). Ni se convierte ni se compara con el
   # precio: el puente lo hace quien valida, como en los pagos de la familia.
   def importe_del_pago(pago) = importe(pago.monto, unidad: pago.unidad)

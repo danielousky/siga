@@ -10,8 +10,13 @@
 # Cambiar de cuenta no puede exigir un despliegue ni entrar al servidor.
 #
 # ⚠️ El WhatsApp vivía aquí, y desde el 12 de octubre de 2026 vive en `Setup`
-# —nombre y valor—, junto con la dirección de la muestra (decisión 35). Lo que
-# queda es lo que va JUNTO: los datos de cada medio se validan entre sí.
+# —nombre y valor—, junto con la dirección de la muestra (decisión 35). Binance
+# se mudó allá esa misma noche, y PayPal nació allá (decisión 36): un medio de
+# UN dato es una variable. Lo que queda es lo que va JUNTO: Pago Móvil y
+# transferencia comparten titular y cédula, y se validan entre sí.
+#
+# Esta clase sigue siendo la que contesta «cómo se le paga a SIGA»: lee sus
+# columnas y, de `Setup`, los medios de un solo dato.
 #
 # ## ⚠️ Es de la PLATAFORMA, no de un colegio
 #
@@ -33,7 +38,7 @@ class SigaSetting < ApplicationRecord
   # «V-12.345.678» y «v 12345678» son la misma cédula: se guarda una sola forma.
   normalizes :documento, with: ->(valor) { valor.to_s.upcase.gsub(/[\s.]/, "").sub(/\A([VEJGP])(\d)/, '\1-\2').presence }
   normalizes :cuenta, with: ->(valor) { valor.to_s.gsub(/\D/, "").presence }
-  normalizes :titular, :binance, with: ->(valor) { valor.to_s.squish.presence }
+  normalizes :titular, with: ->(valor) { valor.to_s.squish.presence }
 
   validate  :el_telefono_es_movil
   validates :pago_movil_banco, inclusion: { in: Banco::CODIGOS, message: "no está en la lista" }, allow_blank: true
@@ -41,7 +46,6 @@ class SigaSetting < ApplicationRecord
                                   message: "es una cédula o un RIF: V-12345678, J-12345678-9" }, allow_blank: true
   validates :cuenta, format: { with: FORMATO_DE_CUENTA, message: "son veinte dígitos" }, allow_blank: true
   validates :titular, length: { maximum: 120 }
-  validates :binance, length: { maximum: 120 }
 
   # Los ajustes de hoy. Si nadie los guardó todavía, unos en blanco, sin
   # escribir nada en la base.
@@ -55,7 +59,12 @@ class SigaSetting < ApplicationRecord
   # bolívares, a la tasa BCV del día—, pero cada uno pide sus datos.
   def pago_movil?    = [ pago_movil_banco, pago_movil_telefono, documento ].all?(&:present?)
   def transferencia? = [ cuenta, titular, documento ].all?(&:present?)
-  def binance?       = binance.present?
+
+  # Los medios de un solo dato viven en `Setup` (decisión 36).
+  def binance  = Setup.binance
+  def paypal   = Setup.paypal
+  def binance? = binance.present?
+  def paypal?  = paypal.present?
 
   # El efectivo no tiene datos: se coordina por WhatsApp. Sin WhatsApp no hay
   # con quién coordinarlo —y el número vive en `Setup`—.
@@ -67,6 +76,7 @@ class SigaSetting < ApplicationRecord
       case medio
       when "pago_movil" then pago_movil? || transferencia?
       when "binance"    then binance?
+      when "paypal"     then paypal?
       when "efectivo"   then efectivo?
       end
     end

@@ -6,9 +6,10 @@
 -# «Suscripción». Un medio sin todos sus datos no se ofrece, así que vaciar un
 -# campo es apagar su medio.
 -#
--# ⚠️ Son DOS tablas en un formulario: el WhatsApp y la dirección de la muestra
--# viven en `Setup` —una fila por dato—, y los datos para pagar en `SigaSetting`.
--# Se guardan juntos o no se guarda nada (`Siga::AjustesController#guardar`).
+-# ⚠️ Son DOS tablas en un formulario: el WhatsApp, la dirección de la muestra,
+-# Binance y PayPal viven en `Setup` —una fila por dato—, y Pago Móvil y
+-# transferencia, que comparten titular y cédula, en `SigaSetting`. Se guardan
+-# juntos o no se guarda nada (`Siga::AjustesController#guardar`).
 -#
 -# ⚠️ Operaciones ve el formulario, apagado: saber a qué cuenta pagan los
 -# colegios es parte de atenderlos; cambiarla, no (decisión 22).
@@ -92,11 +93,23 @@
         Veinte dígitos. El banco sale de los cuatro primeros; el titular y la
         cédula, de arriba.
 
+  - binance = fila.fetch("binance")
   %fieldset.siga-fieldset{ disabled: !puede }
     %legend Binance (USDT)
     .form-group
-      = f.label :binance, "Binance Pay: el ID o el correo", class: "form-label"
-      = f.text_field :binance, class: "form-control", placeholder: "123456789"
+      = label_tag "setup_binance", "Binance Pay: el ID o el correo", class: "form-label"
+      = text_field_tag "setup[binance]", binance.valor, id: "setup_binance",
+                       class: clase_de_campo(binance, :base), placeholder: "123456789"
+
+  -# ⚠️ Nació el 12 de octubre de 2026: *«hay que agregar una variable para los
+  -# valores de Binance y Paypal»* (decisión 36).
+  - paypal = fila.fetch("paypal")
+  %fieldset.siga-fieldset{ disabled: !puede }
+    %legend PayPal
+    .form-group
+      = label_tag "setup_paypal", "El correo de la cuenta", class: "form-label"
+      = email_field_tag "setup[paypal]", paypal.valor, id: "setup_paypal",
+                        class: clase_de_campo(paypal, :base), placeholder: "pagos@ejemplo.com"
 
   - if puede
     .form-acciones

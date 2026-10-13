@@ -242,7 +242,7 @@ terminal (spec `docs/specs/del-registro-al-cobro.md`).
 ```
    el colegio      Finanzas ▸ Suscripción ▸ Reportar el pago
    SIGA            /siga/cartera   «Pagos por validar»: Validar, o Rechazar con motivo
-                   /siga/ajustes   el WhatsApp y los datos para pagar
+                   /siga/ajustes   el WhatsApp, la muestra y los cuatro medios
 ```
 
 ⚠️ **Lo primero, en una instalación nueva, es cargar los ajustes.** Sin datos
@@ -270,6 +270,31 @@ bin/rails suscripciones:escalera    # correrla a mano: si el worker estuvo caíd
 
 ⚠️ **Los correos los despacha el worker.** Si la cola está parada, la escalera
 mueve los estados y anota los avisos, pero no sale nada hasta que arranque.
+
+### Los ajustes, desde la consola
+
+Lo normal es `/siga/ajustes`. Los ajustes sueltos —WhatsApp, dirección de la
+muestra, Binance y PayPal— también se cargan desde la terminal, y es la única
+manera en la muestra, donde nadie entra a `/siga`:
+
+```bash
+bin/rails ajustes:estado                                      # qué vale cada uno, sin tocar nada
+AJUSTE=paypal VALOR=pagos@ejemplo.com bin/rails ajustes:poner # pasa por las mismas reglas que la pantalla
+AJUSTE=paypal VALOR= bin/rails ajustes:poner                  # lo vacía: deja de ofrecerse
+```
+
+En el servidor las variables no van en la línea del `run` (el `env` del
+contenedor parte el valor en el primer espacio): se ponen, se corre, y se
+quitan.
+
+```bash
+ssh siga-deploy config:set --no-restart siga AJUSTE=paypal VALOR=pagos@ejemplo.com
+ssh siga-deploy run siga bin/rails ajustes:poner
+ssh siga-deploy config:unset --no-restart siga AJUSTE VALOR
+```
+
+⚠️ **Los correos de Binance y PayPal no se escriben en el repositorio**: son los
+de Daniel. Viven en la base de cada instancia.
 
 ---
 

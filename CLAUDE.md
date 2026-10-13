@@ -1239,7 +1239,8 @@ consola de producción. Tanda 2 del spec `del-registro-al-cobro`.
    Finanzas ▸ Suscripción                         Cartera ▸ «Pagos por validar»
    [Reportar el pago] ──► SubscriptionPayment ──►  [Validar]   activa un mes, en el momento
                           «en revisión»            [Rechazar…] con motivo
-                          + correo a SIGA          Ajustes: Setup (WhatsApp, muestra) · SigaSetting (pagos)
+                          + correo a SIGA          Ajustes: Setup (WhatsApp, muestra, Binance, PayPal)
+                                                            · SigaSetting (Pago Móvil y transferencia)
 ```
 
 ⚠️ **Reportar NO abre nada: abre la validación** (decisión 4). Sin esa
@@ -1280,13 +1281,18 @@ una condición de negocio no es una clave: `modelo:erd` lo leía como «un pago 
 colegio» y dibujaba un 1:1. Solo el parcial de «si no es nulo» cuenta como clave.
 
 ⚠️ **Los ajustes son de la plataforma, y son DOS tablas en un formulario**
-(decisión 35, de Daniel: *«una tabla que se llame setup que sea nombre del
-campo, valor»*):
+(decisiones 35 y 36, de Daniel: *«una tabla que se llame setup que sea nombre
+del campo, valor»*, y *«una variable para los valores de Binance y Paypal»*):
 
 ```
-   setup           una fila por dato: whatsapp · url_de_la_muestra
-   siga_settings   UNA fila con los datos para pagar, que se validan entre sí
+   setup           una fila por dato: whatsapp · url_de_la_muestra · binance · paypal
+   siga_settings   UNA fila: Pago Móvil y transferencia, que comparten titular y
+                   cédula y por eso se validan entre sí
 ```
+
+Un medio de pago de UN dato —un correo o un ID— es una variable de `setup`.
+Los medios son cuatro: Pago Móvil o transferencia (Bs), Binance, PayPal y
+efectivo (los tres en $). Zelle, no.
 
 Las dos sin `school_id` ni RLS, y fuera de `demo:limpiar`
 (`OrdenDeBorrado::NO_SE_TOCAN`): limpiar una demo no puede llevarse las cuentas
@@ -1297,6 +1303,12 @@ efectivo, solo si hay WhatsApp.
   limpiarse y de validarse— y su campo en `/siga/ajustes`, sin migración. Un
   nombre que no está ahí no se puede guardar: una fila que nadie lee es un
   ajuste que alguien cree haber cambiado.
+- **Desde la consola**: `bin/rails ajustes:estado` y
+  `AJUSTE=paypal VALOR=… bin/rails ajustes:poner`, que pasa por el mismo modelo
+  que la pantalla. Es la manera de cargarlos donde nadie entra a `/siga` —la
+  muestra— y al desplegar.
+- ⚠️ **Los correos de Binance y PayPal NO van en el repositorio**: son de
+  Daniel, como el WhatsApp. Se cargan en la base.
 - ⚠️ **O se guarda todo, o nada** (`Siga::AjustesController#guardar`): se
   validan las dos tablas antes y se guardan en una transacción. Un WhatsApp
   guardado con una cuenta rechazada al lado es una pantalla que dice «error» y
@@ -1307,9 +1319,10 @@ efectivo, solo si hay WhatsApp.
   viene): sería apagar el botón sin que nadie lo pidiera. Y la variable importa:
   en la muestra nadie entra a `/siga` (decisión 33), así que su WhatsApp sale de
   ahí.
-- ⚠️ **Restablecer la muestra borra `siga_settings` y deja `setup`**: los datos
-  para pagar de la muestra son de ejemplo y los reescriben los seeds; su
-  WhatsApp es el de verdad.
+- ⚠️ **Restablecer la muestra borra `siga_settings` y deja `setup`**: Pago Móvil
+  y transferencia de la muestra son de ejemplo y los reescriben los seeds; su
+  WhatsApp es el de verdad. La siembra pone en `setup` solo lo que falta —un
+  Binance y un PayPal de ejemplo, en `ejemplo.test`— y nunca pisa lo puesto.
 
 ⚠️ **El enlace del muro va aparte del texto**: `flash[:enlace]` en una pantalla
 y `enlace` en el JSON, con claves de TEXTO —el flash viaja como JSON—. Lo ve

@@ -1,7 +1,8 @@
 require "test_helper"
 
-# Los datos para pagarle a SIGA (spec `docs/specs/del-registro-al-cobro.md`,
-# decisiones 21 y 22). El WhatsApp vive en `Setup`: ver `setup_test`.
+# Cómo se le paga a SIGA (spec `docs/specs/del-registro-al-cobro.md`,
+# decisiones 21, 22 y 36). Pago Móvil y transferencia viven aquí; el WhatsApp,
+# Binance y PayPal, en `Setup`: ver `setup_test`.
 class SigaSettingTest < ActiveSupport::TestCase
   include CobroDeLaSuscripcion
 
@@ -11,8 +12,8 @@ class SigaSettingTest < ActiveSupport::TestCase
   # ofrecerlos deja al colegio con el teléfono en la mano y sin a dónde mandar
   # el dinero.
 
-  test "con todo cargado se ofrecen los tres medios" do
-    assert_equal %w[pago_movil binance efectivo], cargar_los_ajustes_de_siga.medios
+  test "con todo cargado se ofrecen los cuatro medios" do
+    assert_equal %w[pago_movil binance paypal efectivo], cargar_los_ajustes_de_siga.medios
   end
 
   test "sin nada cargado no se ofrece ninguno" do
@@ -44,6 +45,12 @@ class SigaSettingTest < ActiveSupport::TestCase
   # El efectivo no tiene datos: se coordina por WhatsApp.
   test "sin WhatsApp no hay con quién coordinar el efectivo" do
     assert_not_includes cargar_los_ajustes_de_siga(whatsapp: nil).medios, "efectivo"
+  end
+
+  # Binance y PayPal son un dato cada uno: sin él, no se ofrecen.
+  test "Binance y PayPal se ofrecen solo con su cuenta" do
+    assert_not_includes cargar_los_ajustes_de_siga(binance: nil).medios, "binance"
+    assert_not_includes cargar_los_ajustes_de_siga(paypal: nil).medios, "paypal"
   end
 
   # ⚠️ Y al revés: con WhatsApp hay efectivo aunque no haya NINGÚN dato para
@@ -95,7 +102,7 @@ class SigaSettingTest < ActiveSupport::TestCase
     cargar_los_ajustes_de_siga
 
     assert_raises(ActiveRecord::RecordNotUnique) do
-      SigaSetting.transaction(requires_new: true) { SigaSetting.create!(binance: "otra-cuenta") }
+      SigaSetting.transaction(requires_new: true) { SigaSetting.create!(titular: "Otra empresa") }
     end
   end
 end

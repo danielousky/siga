@@ -2,6 +2,7 @@
 -#
 -#     Medio         (•) Pago Móvil o transferencia
 -#                   ( ) Binance (USDT)
+-#                   ( ) PayPal
 -#                   ( ) Efectivo en dólares
 -#     Monto         [ 109.586,17 ] Bs     ← la unidad la da el medio
 -#     Fecha         [ 09/10/2026 ]
@@ -61,7 +62,7 @@
 
     -# ── 3 · el respaldo ────────────────────────────────────────────────────
     .form-group{ hidden: efectivo, data: { medio_de_pago_target: "conReferencia" } }
-      = con_pista("Es lo que buscamos en el banco o en Binance. Solo letras, números y guion.") { f.label :referencia, "Referencia", class: "form-label" }
+      = con_pista("Es lo que buscamos en el banco, en Binance o en PayPal. Solo letras, números y guion.") { f.label :referencia, "Referencia", class: "form-label" }
       -# Las tres capas de un campo con formato: filtra al escribir, `pattern`
       -# al enviar, y el modelo para lo que llegue por otra puerta.
       = f.text_field :referencia, class: "form-control campo-mayuscula", maxlength: 30,

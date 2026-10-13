@@ -426,23 +426,31 @@ if ajustes.new_record? || Muestra.activa?
   ajustes.update!(
     titular: "SIGA · datos de ejemplo", documento: "J-00000000-0",
     pago_movil_banco: "0102", pago_movil_telefono: "0414-0000000",
-    cuenta: "01020000000000000000", binance: "pagos@ejemplo.test"
+    cuenta: "01020000000000000000"
   )
-  puts "   ✓ cómo pagar: #{ajustes.medios.map { |m| SubscriptionPayment::MEDIOS.dig(m, :nombre) }.join(' · ')}"
 else
-  puts "   · ya había datos para pagar: no se tocan"
+  puts "   · ya había datos de Pago Móvil y transferencia: no se tocan"
 end
 
-# Los ajustes sueltos (`Setup`) NO son de ejemplo: son la configuración de
-# verdad, y por eso no se pisan nunca —ni aquí ni al restablecer la muestra—.
+# Los ajustes sueltos (`Setup`) se ponen SOLO si faltan, y nunca se pisan —ni
+# aquí ni al restablecer la muestra—: quien los cargó en `/siga/ajustes`, o con
+# `bin/rails ajustes:poner`, los encuentra donde los dejó.
 #
-# La dirección de la muestra es la real, para que la portada de desarrollo
-# ofrezca «Vea un colegio funcionando» como la de producción.
+#     url_de_la_muestra   la REAL, para que la portada de desarrollo ofrezca
+#                         «Vea un colegio funcionando» como la de producción
+#     binance · paypal    de EJEMPLO, por lo mismo que los datos de arriba:
+#                         `ejemplo.test` es un dominio que no existe
 #
 # ⚠️ El WhatsApp NO se inventa: un número falso abre un chat con un desconocido.
 # Sin fila, `Setup.whatsapp` lo toma de `SIGA_WHATSAPP` si la instancia lo
 # tiene; si no, no hay botón.
-Setup.find_or_create_by!(nombre: "url_de_la_muestra") { |fila| fila.valor = "https://demo.sigaeducando.com" }
+{
+  "url_de_la_muestra" => "https://demo.sigaeducando.com",
+  "binance"           => "pagos@ejemplo.test",
+  "paypal"            => "pagos@ejemplo.test"
+}.each { |nombre, valor| Setup.find_or_create_by!(nombre: nombre) { |fila| fila.valor = valor } }
+
+puts "   ✓ cómo pagar: #{SigaSetting.actuales.medios.map { |m| SubscriptionPayment::MEDIOS.dig(m, :nombre) }.join(' · ')}"
 puts "     WhatsApp: #{Setup.whatsapp || 'sin número (ni en /siga/ajustes ni en SIGA_WHATSAPP): no se dibuja el botón'}"
 puts "     la muestra: #{Setup.url_de_la_muestra || 'sin dirección: la portada no la ofrece'}"
 

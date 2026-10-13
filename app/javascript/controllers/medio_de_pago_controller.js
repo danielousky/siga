@@ -5,6 +5,7 @@ import { Controller } from "@hotwired/stimulus"
 //
 //     Pago Móvil o transferencia   monto en Bs   referencia   comprobante
 //     Binance (USDT)               monto en $    referencia   comprobante
+//     PayPal                       monto en $    referencia   comprobante
 //     Efectivo en dólares          monto en $    —            comprobante, si hay
 //
 // La unidad la da el medio: nadie escribe «Bs» o «$» a mano, y un monto sin

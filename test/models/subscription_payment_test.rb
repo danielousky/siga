@@ -46,9 +46,10 @@ class SubscriptionPaymentTest < ActiveSupport::TestCase
 
   # ── La unidad la da el medio ──────────────────────────────────────────────
 
-  test "Pago Móvil va en bolívares; Binance y efectivo, en dólares" do
+  test "Pago Móvil va en bolívares; Binance, PayPal y efectivo, en dólares" do
     assert_equal "Bs", SubscriptionPayment.new(medio: "pago_movil").unidad
     assert_equal "$",  SubscriptionPayment.new(medio: "binance").unidad
+    assert_equal "$",  SubscriptionPayment.new(medio: "paypal").unidad
     assert_equal "$",  SubscriptionPayment.new(medio: "efectivo").unidad
   end
 
@@ -66,6 +67,7 @@ class SubscriptionPaymentTest < ActiveSupport::TestCase
   test "la referencia hace falta, salvo en efectivo" do
     assert nuevo(medio: "pago_movil", referencia: nil).errors[:referencia].any?
     assert nuevo(medio: "binance", referencia: " ").errors[:referencia].any?
+    assert nuevo(medio: "paypal", referencia: nil).errors[:referencia].any?
     assert_empty nuevo(medio: "efectivo", referencia: nil).errors[:referencia]
   end
 

@@ -23,6 +23,15 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.19.0 — 13 de octubre de 2026
+
+- **La suscripción también se paga por PayPal.** «Suscripción» muestra el
+  correo al que se paga, y el reporte del pago lo ofrece junto con Pago Móvil o
+  transferencia, Binance y efectivo. Como Binance, va en dólares, con el número
+  de la transacción y su comprobante.
+
+---
+
 ## 1.18.1 — 12 de octubre de 2026
 
 - El WhatsApp de SIGA y la dirección del colegio de muestra se cambian desde el
