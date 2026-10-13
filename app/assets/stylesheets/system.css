@@ -2024,16 +2024,11 @@ nav.pagy a.gap {
 /* ============================================
    Medidor de ponderación
    --------------------------------------------
-   Cuánto del 100 % de un lapso está comprometido. Se usa en el listado (una
-   barra por grupo sección–materia–lapso) y dentro del formulario, donde además
-   muestra en otro tono lo que sumaría la evaluación que se está escribiendo.
+   Cuánto del 100 % de un lapso está comprometido, dentro del formulario de una
+   evaluación, donde además muestra en otro tono lo que sumaría la que se está
+   escribiendo. ⚠️ Ya no hay una barra por grupo en «Evaluaciones»: desde el
+   13 de octubre de 2026 eso es el mapa (`.mapa-de-evaluaciones`).
    ============================================ */
-
-.weight-meter-intro {
-  color: var(--text-secondary);
-  font-size: 14px;
-  margin: 0 0 var(--space-md);
-}
 
 .weight-meter {
   display: grid;
@@ -2045,15 +2040,6 @@ nav.pagy a.gap {
      deslizador es el CONTROL —cuánto vale esta— y el medidor es el ESTADO del
      lapso entero. */
   margin-top: var(--space-sm);
-}
-
-.weight-meter-label {
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.weight-meter-label strong {
-  color: var(--text-primary);
 }
 
 .weight-meter-bar {
@@ -2068,10 +2054,6 @@ nav.pagy a.gap {
 .weight-meter-fill {
   background: var(--brand-primary);
   transition: width 120ms ease-out;
-}
-
-.weight-meter-fill--completo {
-  background: var(--success-text);
 }
 
 .weight-meter-fill--nuevo {
@@ -2094,9 +2076,84 @@ nav.pagy a.gap {
   font-weight: 600;
 }
 
-.weight-meter-falta {
-  color: var(--warning-text);
+/* ============================================
+   El mapa de los planes de evaluación
+   --------------------------------------------
+   «Evaluaciones» de la dirección: una fila por sección, una casilla por área,
+   en un lapso (`MapaDeEvaluaciones`, 13 de octubre de 2026). Lo que falta se
+   ve porque rompe el patrón: casi todas son ✓ en verde apagado, y la que lleva
+   70 % o no tiene nada resalta sin que haya que leer.
+
+   ⚠️ Los colores son del DATO —el estado del plan—, no del control (regla de
+   color, MOR-135): la casilla es un enlace, pero lo que pinta es cómo está.
+   ============================================ */
+
+.mapa-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-lg);
+  list-style: none;
+  margin: 0 0 var(--space-lg);
+  padding: 0;
+  font-size: 13px;
+  color: var(--text-secondary);
 }
+.mapa-leyenda li { display: inline-flex; align-items: center; gap: var(--space-xs); }
+
+.mapa-grupo + .mapa-grupo { margin-top: var(--space-xl); }
+
+/* La tabla se desplaza DENTRO de su caja, no la página: con el menú abierto,
+   la Media no cabe a 1024 px. */
+.mapa-envoltura { overflow-x: auto; }
+
+/* Casillas angostas: la Media lleva una docena de áreas, y con el relleno de
+   una tabla normal no caben al lado del menú.
+
+   ⚠️ Con DOS clases en el selector: `.table-academic tbody td` pesa más que
+   `.mapa-de-evaluaciones td`, y con una sola las filas seguían midiendo 60 px
+   con el relleno de una tabla normal. */
+.table-academic.mapa-de-evaluaciones { width: auto; min-width: 100%; }
+.table-academic.mapa-de-evaluaciones thead th,
+.table-academic.mapa-de-evaluaciones tbody th,
+.table-academic.mapa-de-evaluaciones tbody td { padding: 4px 6px; text-align: center; }
+.table-academic.mapa-de-evaluaciones thead th:first-child,
+.table-academic.mapa-de-evaluaciones tbody .mapa-seccion {
+  text-align: left;
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+  white-space: nowrap;
+}
+.mapa-de-evaluaciones .mapa-seccion { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+
+.mapa-marca {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 1.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  border: 1px dashed var(--border-standard);
+  color: var(--text-muted);
+}
+a.mapa-marca:hover,
+a.mapa-marca:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 1px; }
+.mapa-marca--completa { border: 0; background: var(--success-bg); color: var(--success-text); }
+.mapa-marca--a-medias { border: 0; background: var(--warning-bg); color: var(--warning-text); }
+/* «Sin evaluaciones» es lo que MÁS falta, y por eso no puede ser lo más
+   tenue: un punto en una caja gris se perdía entre las verdes. */
+.mapa-marca--vacia    { border: 1px solid var(--warning-text); background: transparent; color: var(--warning-text); }
+
+.mapa-areas {
+  margin: var(--space-sm) 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-tertiary);
+}
+.mapa-areas strong { color: var(--text-secondary); font-weight: 600; }
 
 /* ============================================
    Planilla de carga de notas

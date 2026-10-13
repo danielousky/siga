@@ -23,6 +23,17 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.20.1 — 13 de octubre de 2026
+
+- **«Evaluaciones» es un mapa del colegio.** Una tabla por nivel, con una fila
+  por sección y una casilla por área: ✓ si su plan cerró en 100 %, el
+  porcentaje si va a medias y un punto si no tiene evaluaciones. Se mira un
+  lapso a la vez —abre en el que está corriendo— y cada casilla lleva al plan
+  de esa sección. Antes era una barra por cada sección, área y lapso, de todos
+  los años escolares juntos.
+
+---
+
 ## 1.20.0 — 13 de octubre de 2026
 
 - **La constancia y el boletín de un alumno, a un clic desde su ficha.** El

@@ -1,11 +1,15 @@
 # 🔖 Estado de avance — actualizado 13 de octubre de 2026
 
-## 🟡 Lo que vio Daniel en la muestra — 1.20.0, EN LOCAL (sin desplegar)
+## 🟡 Lo que vio Daniel en la muestra — 1.20.0 y 1.20.1, EN LOCAL (sin desplegar)
 
 El 12 y el 13 de octubre Daniel recorrió `demo.sigaeducando.com` y mandó ocho
-capturas marcadas. Siete quedaron hechas en la rama
-`fix/lo-que-vio-daniel-en-la-muestra`, con `bin/ci` en verde; **no está en
-GitHub ni desplegada**: espera su revisión.
+capturas marcadas. Las ocho están hechas, en dos ramas apiladas con `bin/ci` en
+verde; **no están en GitHub ni desplegadas**: esperan su revisión.
+
+```
+   fix/lo-que-vio-daniel-en-la-muestra   1.20.0   siete comentarios
+   feat/el-mapa-de-evaluaciones          1.20.1   /evaluaciones, sobre la anterior
+```
 
 ```
    LA SECCIÓN
@@ -28,14 +32,34 @@ GitHub ni desplegada**: espera su revisión.
 De paso: crear una sección sin abrir «Guía, cupo y aula» daba «Capacidad no
 puede estar en blanco» de un campo escondido. Ahora el cupo nace en 30.
 
+### `/evaluaciones` — 1.20.1: el mapa
+
+Daniel: *«debe haber una mejor manera de mostrarlo»*. Eran 588 barras —una por
+sección × área × lapso, de los DOS años— casi todas en 100 %. Entre tres dibujos
+eligió el mapa:
+
+```
+   Lapso  [1er Lapso] 2do Lapso 3er Lapso
+   EDUCACIÓN PRIMARIA  CNA COM CSO EDF EPT EST ING LEN MAT
+   1er Grado A          ✓       ✓  70      70   ✓   ✓   ✓     ✓ 100 %   70 a medias
+   2do Grado A          ✓       ✓   ✓       ✓   ·   ✓   ✓     · sin evaluaciones
+   …                                                          blanco: no se dicta ahí
+   ✓ cada casilla abre el plan de esa sección y esa área, en ese lapso
+```
+
+Del año de la sesión, sin Inicial (no planifica), y abre en el lapso de hoy si
+hay fechas; si no, en el último con evaluaciones. En la muestra: 18 secciones,
+162 planes en el 1er lapso, 23 sin cerrar.
+
 ### Lo que falta de esa ronda
 
-- **`/evaluaciones` de la dirección** (*«debe haber una mejor manera de
-  mostrarlo»*): una barra por cada sección × área × lapso, de los DOS años
-  escolares (no filtra por el año de la sesión). Es una decisión de diseño: le
-  mostré opciones dibujadas, y se construye cuando elija.
 - Las capturas del manual son de una siembra vieja, y los ids de
   `docs/manual/capturar.rb` ya no existen. El texto sí está al día.
+- **A 1024 px de ancho, toda pantalla se corre de lado unos 130 px**: el botón
+  «Cerrar sesión» de la barra de arriba se sale. Viene de antes; lo encontré
+  midiendo el mapa. El test del teléfono mide a 390 y 493 px, y ahí no pasa.
+- Unos 25 textos de la app tutean («Elige un alumno…», «No tienes permiso…»).
+  Pasarlos a usted es un PR aparte.
 
 ## ✅ Del registro al cobro — EN PRODUCCIÓN desde el 13 de octubre (1.19.1)
 

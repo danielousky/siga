@@ -29,19 +29,27 @@ class EvaluationActivitiesController < ApplicationController
   # ⚠️ A diferencia de `/competencias`, esta pantalla SÍ le sirve a la
   # dirección: es donde contesta «¿este profesor está al día?» sin abrir sus
   # cinco planillas. Por eso redirige solo al profesor.
+  #
+  # ⚠️ Y lo que ve la dirección es un MAPA de un lapso (`MapaDeEvaluaciones`):
+  # una fila por sección, una casilla por área. Eran una barra por sección ×
+  # área × lapso de TODOS los años —588 en la muestra— y una tabla paginada con
+  # cada evaluación del colegio. Daniel, el 13 de octubre de 2026, eligió el
+  # mapa entre tres dibujos. Cada casilla abre el plan de esa sección y esa
+  # área, que es donde están las evaluaciones.
+  #
+  # ⚠️ Del año de la SESIÓN, que la versión anterior no filtraba; con «Todos
+  # los años» elegido, del año con clases (`anio_de_trabajo`).
   def index
     return redirect_to(ruta_de_calificar_su_primera)  if profesor? && mis_asignaciones.any?
 
-    actividades = alcance
-      .includes(:subject, :evaluation_moment, section: :grade)
-      .order("sections.id", "subjects.name", "evaluation_activities.evaluation_moment_id", "evaluation_activities.date_scheduled")
+    @lapsos = anio_de_trabajo ? EvaluationMoment.where(academic_period_id: anio_de_trabajo.id).order(:id).to_a : []
+    @lapso  = @lapsos.find { |l| l.id.to_s == params[:lapso] } || MapaDeEvaluaciones.lapso_por_defecto(@lapsos)
+    return if @lapso.nil? || profesor?
 
-    @lapsos_disponibles = lapsos_del_alcance
-    @lapso_filtrado     = @lapsos_disponibles.find { |l| l.id.to_s == params[:lapso] }
-    actividades         = actividades.where(evaluation_moment_id: @lapso_filtrado.id) if @lapso_filtrado
-
-    @grupos = resumen_de_ponderacion(actividades)
-    @pagy, @evaluation_activities = pagy(actividades)
+    @mapa = MapaDeEvaluaciones.new(
+      lapso: @lapso,
+      secciones: Section.where(academic_period_id: @lapso.academic_period_id).del_nivel_de_la_sesion
+    )
   end
 
   def show
@@ -504,29 +512,6 @@ class EvaluationActivitiesController < ApplicationController
     primera = mis_asignaciones.min_by { |ts| [ ts.section.grade.orden || 99, ts.section.name ] }
 
     section_path(primera.section_id, area: primera.subject_id)
-  end
-
-  # Los lapsos de los años escolares que aparecen en el alcance del usuario.
-  def lapsos_del_alcance
-    periodos = if profesor?
-                 mis_asignaciones.map { |ts| ts.section.academic_period_id }.uniq
-               else
-                 Section.del_anio_de_la_sesion.distinct.pluck(:academic_period_id)
-               end
-
-    EvaluationMoment.where(academic_period_id: periodos).includes(:academic_period).order(:academic_period_id, :id)
-  end
-
-  # Cuánto lleva comprometido cada grupo sección–materia–lapso. Es lo que el
-  # profesor necesita ver de un vistazo: dónde le falta cerrar el 100 %.
-  def resumen_de_ponderacion(actividades)
-    actividades.group_by { |a| [a.section, a.subject, a.evaluation_moment] }
-               .map do |(seccion, materia, lapso), grupo|
-      {
-        seccion: seccion, materia: materia, lapso: lapso,
-        usado: grupo.sum(&:weight_percentage), cantidad: grupo.size
-      }
-    end
   end
 
   # El peso ya comprometido en cada grupo, para que el formulario lo muestre sin
