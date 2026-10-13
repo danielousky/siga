@@ -1,6 +1,6 @@
 # 🔖 Estado de avance — actualizado 13 de octubre de 2026
 
-## ✅ Del registro al cobro — EN PRODUCCIÓN desde el 13 de octubre (1.19.0)
+## ✅ Del registro al cobro — EN PRODUCCIÓN desde el 13 de octubre (1.19.1)
 
 Del 7 al 12 de octubre se redefinió cómo entra, prueba y paga un colegio. El
 spec está **congelado**: `docs/specs/del-registro-al-cobro.md`. El 13 de
@@ -41,25 +41,37 @@ octubre, a las 7:55 de la mañana, salió todo a producción.
 ### Lo que falta, y es tuyo
 
 ```
-   1 · EL WHATSAPP de producción   /siga/ajustes ▸ «El WhatsApp de SIGA».
-                                   Producción no tiene SIGA_WHATSAPP: hoy la portada
-                                   no dibuja el botón, y sin él no se ofrece el efectivo.
-                                   En tu base local hay uno cargado: si es ese, es copiarlo.
-   2 · PAGO MÓVIL Y TRANSFERENCIA  /siga/ajustes: titular, cédula, banco, teléfono, cuenta.
-                                   Hoy «Suscripción» ofrece Binance y PayPal.
-   3 · MIRAR                       https://sigaeducando.com y https://demo.sigaeducando.com
-   4 · DECIDIR                     las POR CONFIRMAR de abajo, y dos preguntas nuevas
+   1 · PAGO MÓVIL Y TRANSFERENCIA  /siga/ajustes: titular, cédula, banco, teléfono, cuenta.
+                                   ⚠️ El 13 de octubre se rechazó: la CUENTA llevaba 19
+                                   dígitos y son 20. Como esa pantalla guarda todo o nada,
+                                   tampoco quedó el WhatsApp —lo puse yo con
+                                   `ajustes:poner`, el mismo número que mandaste—.
+                                   Hoy «Suscripción» ofrece Binance, PayPal y efectivo.
+   2 · MIRAR                       https://sigaeducando.com y https://demo.sigaeducando.com
+   3 · DECIDIR                     las POR CONFIRMAR de abajo
 ```
 
-**Dos preguntas que dejó PayPal:**
+**PayPal:** la comisión la absorbe SIGA (decisión 37, tuya: *«déjalo así»*).
 
-- **¿Quién paga la comisión de PayPal?** Al que recibe le descuentan un
-  porcentaje: si el colegio manda 126 $, te llegan menos. Hoy SIGA no dice
-  nada, y validar es lo que decide si alcanza.
-- **Tu correo de PayPal y Binance es también tu usuario de `/siga` en
-  producción**, y lo va a ver todo colegio que se registre, en «Suscripción».
-  SIGA no tiene segundo factor: si te preocupa, conviene una clave larga o
-  que el equipo entre con otro correo.
+**Tu correo de PayPal y Binance es también tu usuario de `/siga` en
+producción**, y lo va a ver todo colegio que se registre, en «Suscripción».
+SIGA no tiene segundo factor: si te preocupa, conviene una clave larga o que el
+equipo entre con otro correo.
+
+### El WhatsApp fijo en la esquina — 1.19.1, 13 de octubre
+
+```
+   ┌─────────────────────── la portada ───────────────────────┐
+   │  [Registre su colegio →] [Escríbanos por WhatsApp] [Vea…]│
+   │                          …                               │
+   │                                                     ( ✆ )│ ← fijo, verde, abajo
+   └──────────────────────────────────────────────────────────┘     a la derecha
+```
+
+Daniel: *«Lo imagino como un ícono de WS fijo en la esquina inferior derecha»*
+(decisión 38). Solo en la portada y solo si hay número. Y de paso,
+`/siga/ajustes` dice **«No se guardó nada»** arriba y al lado del botón cuando
+algo está mal escrito.
 
 ⚠️ **La muestra: el restablecido a mano no terminó.** Lo lancé después de
 desplegarla, y a los 40 minutos seguía sin terminar (en el servidor tarda

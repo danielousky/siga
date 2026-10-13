@@ -90,6 +90,26 @@ class PortadaPublicaTest < ActionDispatch::IntegrationTest
     assert_select ".portada-cierre a[href^='https://wa.me/584141234567']"
   end
 
+  # Y fijo en la esquina (decisión 38): entre el de arriba y el del cierre hay
+  # seis secciones. Es solo un glifo, así que su nombre va en `aria-label`.
+  test "con número, la portada lleva el WhatsApp fijo en la esquina" do
+    Setup.create!(nombre: "whatsapp", valor: "0414-1234567")
+
+    get root_path
+
+    assert_select ".portada a.portada-whatsapp[href^='https://wa.me/584141234567']" \
+                  "[aria-label='Escríbanos por WhatsApp'][target=_blank][rel=noopener]", 1
+    assert_select "a.portada-whatsapp svg[aria-hidden=true]"
+  end
+
+  test "sin número, no hay WhatsApp en la esquina" do
+    Setup.create!(nombre: "whatsapp", valor: "")
+
+    get root_path
+
+    assert_select "a.portada-whatsapp", 0
+  end
+
   # La muestra vive en otra instancia: la portada la enlaza solo si se sabe dónde.
   test "con la muestra configurada, la portada invita a ver un colegio funcionando" do
     con_la_direccion_de_la_muestra("https://demo.sigaeducando.com") do

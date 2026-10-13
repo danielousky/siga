@@ -3633,6 +3633,9 @@ nav.pagy a.gap {
 .portada {
   --ink: #07142f;
   --cielo: #7cc0ff;
+  /* El verde de WhatsApp: es su marca, y es lo que hace que el botón de la
+     esquina se reconozca sin leerlo. Solo lo usa ese botón. */
+  --whatsapp: #25d366;
   --portada-serif: 'DM Serif Display', Georgia, 'Times New Roman', serif;
   --portada-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
@@ -4367,6 +4370,48 @@ body:has(.portada) .barra-superior { display: none; }
   .portada-emblema { opacity: 0.4; }
 }
 
+/* ---- El WhatsApp de la esquina (decisión 38) ------------------------------
+   Fijo abajo a la derecha, donde cualquiera lo busca, y no se pierde al bajar.
+   ⚠️ `env(safe-area-inset-*)`: en un iPhone con barra de gestos, 16 px desde el
+   borde quedan debajo de la barra y el botón no se puede tocar.
+   ⚠️ Mide 56 px: es el blanco cómodo para un dedo, y no tapa el texto de una
+   tarjeta en un teléfono de 360 px. */
+.portada-whatsapp {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--whatsapp);
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(7, 20, 47, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.portada-whatsapp:hover {
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(7, 20, 47, 0.34);
+}
+
+.portada-whatsapp:focus-visible {
+  outline: 3px solid var(--cielo);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portada-whatsapp,
+  .portada-whatsapp:hover { transition: none; transform: none; }
+}
+
+@media print {
+  .portada-whatsapp { display: none; }
+}
+
 /* ==========================================================================
    FICHA DEL ALUMNO (MOR-135)
    ==========================================================================
@@ -4731,6 +4776,15 @@ body:has(.portada) .barra-superior { display: none; }
 .siga-admin .form-control.campo-con-error:focus,
 .siga-admin .form-control.campo-con-error:focus-visible {
   outline-color: var(--siga-mal);
+}
+
+/* «No se guardó nada», al lado del botón de guardar: es donde mira quien lo
+   acaba de tocar, y el recuadro de errores quedó arriba, lejos. */
+.siga-no-se-guardo {
+  margin: 0;
+  color: var(--siga-mal);
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
 /* ==========================================================================
