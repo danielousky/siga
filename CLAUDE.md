@@ -478,6 +478,10 @@ y ahí escribir la URL en español ES la comprobación.
   alumno no: una inscripción ES «este alumno en esta sección», y cambiárselo no
   la corrige — la convierte en otra, con las notas, la asistencia y los boletines
   de la persona anterior colgando. La fecha tampoco: es un hecho.
+  ⚠️ Y la sección, solo entre las de SU grado y su año
+  (`Enrollment#secciones_hermanas`, con la validación en el modelo): editar es
+  cambiar de sección o retirar (Daniel, 13 de octubre de 2026). Otro grado u
+  otro año es otra inscripción.
   ⚠️ Cuidado con `user_id` vs `id`. El desplegable del alta mandaba `s.user_id`
   donde `enrollments.student_id` espera el del ALUMNO, y el conteo del panel
   comparaba igual: dos tablas, dos numeraciones, y ninguna coincidencia — en
@@ -1449,6 +1453,10 @@ Y el conteo del listado se calla el nivel ahí, o miente en el mismo renglón.
 sección de bachillerato abierta desde una sesión de primaria mostraría un
 desplegable sin su propio grado, y guardar lo borraría. Ahí es donde un filtro
 deja de ser preferencia y pasa a ser daño.
+⚠️ Y lo mismo un enlace que ELIGE: `Section.con_la_pedida`. El botón
+«Documentos oficiales» de una sección lleva a «Documentos» con su id, y si esa
+sección es de otro año, caer en la primera de la lista sin decirlo es emitir el
+papel de otra sección.
 
 ⚠️ **Y NO es permisología.** El día que un colegio pida «la coordinadora de
 primaria no puede ver bachillerato», eso vive en el ROL —como `Current.school`—

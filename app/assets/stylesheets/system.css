@@ -4162,14 +4162,22 @@ body:has(.portada) .barra-superior { display: none; }
    Daniel las sacó con la razón exacta: «ese dato es relevante para mí, que
    quiero vender SIGA; para mi cliente, el director, no». Un director ya sabe
    cómo está su colegio; lo que no sabe es cuánto le cuesta esto. Las tres de
-   ahora son del PRODUCTO y se calculan solas desde `Subscription::PLANES`. */
+   ahora son del PRODUCTO: hoy, un clic, un minuto.
+
+   ⚠️ TRES columnas o UNA, nunca dos. Las rayas entre cifras son el FONDO gris
+   que asoma por el `gap` de 1 px, así que con `auto-fit` la tercera caía sola
+   en una fila de dos y la casilla vacía de al lado quedaba como un bloque
+   gris en toda ventana mediana, desde agosto. */
 .portada-cifras {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
   background: var(--border-standard);
   border: 1px solid var(--border-standard);
   overflow: hidden;
+}
+@media (max-width: 760px) {
+  .portada-cifras { grid-template-columns: minmax(0, 1fr); }
 }
 .portada-cifra { background: var(--surface-elevated); padding: var(--space-xl) var(--space-lg); }
 .portada-seccion--papel .portada-cifra { background: var(--surface-canvas); }
@@ -4467,6 +4475,21 @@ body:has(.portada) .barra-superior { display: none; }
 
 .ficha-acciones { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
 
+/* ⚠️ Emitir un papel es un POST, y `button_to` envuelve su botón en un
+   `<form>`, que es `block`: sin esto la constancia caía debajo de «Editar» y
+   los botones del boletín, uno por renglón. */
+.ficha-acciones form,
+.acciones-de-cabecera form { display: contents; }
+
+/* Los papeles de la ficha, uno debajo del otro: la constancia, el boletín y
+   el del ministerio que le toque por su grado. */
+.ficha-documento + .ficha-documento {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-standard);
+}
+.ficha-documento > p:first-child { margin-top: 0; }
+
 /* ---- A quién llamar ---- */
 
 .ficha-responsables { list-style: none; margin: 0; padding: 0; }
@@ -4564,6 +4587,8 @@ body:has(.portada) .barra-superior { display: none; }
 .ficha-agregar { margin-top: var(--space-lg); }
 .ficha-agregar-fila { display: flex; gap: var(--space-sm); align-items: stretch; margin-top: 6px; }
 .ficha-agregar-fila .form-select { flex: 1; min-width: 0; }
+/* El identificador de una sección cabe en ocho caracteres: «A», «B», «U1». */
+.ficha-agregar-fila .ficha-agregar-identificador { flex: 0 0 7rem; text-align: center; }
 
 .ficha-secciones {
   list-style: none;
@@ -4588,6 +4613,8 @@ body:has(.portada) .barra-superior { display: none; }
 
 @media (max-width: 640px) {
   .ficha-agregar-fila { flex-direction: column; }
+  /* En columna, `flex-basis` sería la ALTURA: el campo mediría 7rem de alto. */
+  .ficha-agregar-fila .ficha-agregar-identificador { flex: none; }
 }
 
 /* La fila de acciones de un formulario: guardar y volver, juntos y al mismo

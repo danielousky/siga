@@ -15,7 +15,9 @@
       %p.ficha-situacion
         = @grade.level.humanize
         %span.ficha-punto ·
-        = contar(@grade.sections.size, "sección", "secciones")
+        = contar(@secciones.size, "sección", "secciones")
+        - if Current.academic_period
+          = "en #{Current.academic_period.name}"
 
     .ficha-acciones
       = boton "Editar", edit_grade_path(@grade), icono: :editar, tono: :secondary
@@ -92,23 +94,61 @@
             {}, class: "form-select"
           = f.submit "Agregar", class: "btn btn-guardar"
 
-  - if @grade.sections.any?
-    .card-academic
-      = render "shared/cabecera", titulo: "Secciones", nivel: 2
+  .card-academic
+    = render "shared/cabecera", titulo: "Secciones", nivel: 2
 
-      -# ⚠️ Cada sección con SU guía (MOR-209), que es lo que este listado no podía
-      -# mostrar cuando el guía colgaba del grado: era el mismo para todas.
-      -# Acá es donde el director ve de un vistazo cuál se quedó sin asignar.
+    -# ⚠️ Cada sección con SU guía (MOR-209), que es lo que este listado no podía
+    -# mostrar cuando el guía colgaba del grado: era el mismo para todas.
+    -# Aquí es donde el director ve de un vistazo cuál se quedó sin asignar.
+    -#
+    -# ⚠️ Solo las del año de la sesión (`GradesController#show`), y por eso el
+    -# año ya no se repite en cada una: lo dice la barra de arriba. Con «Todos»
+    -# elegido sí, porque ahí conviven varios.
+    - if @secciones.any?
       %ul.ficha-secciones
-        - @grade.sections.includes(:academic_period, leader_teacher: :user).each do |seccion|
+        - @secciones.each do |seccion|
           %li.ficha-seccion
             = link_to seccion.name, section_path(seccion), class: "ficha-seccion-nombre"
-            %span.ficha-seccion-periodo= seccion.academic_period.name
+            - unless Current.academic_period
+              %span.ficha-seccion-periodo= seccion.academic_period.name
             %span.ficha-seccion-periodo
               - if seccion.leader_teacher
                 = "guía: #{seccion.leader_teacher.user.apellidos_y_nombres}"
               - else
                 Sin profesor guía
+    - else
+      %p.nota-pendiente= "#{@grade.name} todavía no tiene secciones en #{Current.academic_period&.name || 'ningún año escolar'}."
+
+    -# ⚠️ Agregar una sección SIN salir del grado, y preguntando solo dos cosas.
+    -#
+    -# Daniel, 13 de octubre de 2026: *«permitir agregar una nueva sección
+    -# donde sólo preguntas el identificador de la sección y la lista de profes
+    -# para asociarle el profe guía»*. El grado es este, el año el de la sesión y
+    -# el cupo sale propuesto: lo demás se ajusta en la sección, si hace falta.
+    -#
+    -# El identificador se PROPONE —la letra que sigue a las de este grado en
+    -# este año, `Section.siguiente_letra`— y con las mismas tres capas del
+    -# formulario completo: filtrar al escribir, `pattern` y el modelo.
+    -#
+    -# ⚠️ Mirando «Todos los años» no hay año que deducir, y preguntarlo aquí
+    -# sería el tercer campo que Daniel no pidió: se dice qué falta.
+    - if can_manage_sections?
+      - if Current.academic_period
+        = form_with model: Section.new, url: grade_sections_path(@grade), class: "ficha-agregar" do |f|
+          %span.form-label Agregar una sección
+          .ficha-agregar-fila
+            = f.text_field :name, value: Section.siguiente_letra(grade: @grade, academic_period: Current.academic_period),
+                           class: "form-control campo-mayuscula ficha-agregar-identificador", required: true,
+                           maxlength: 8, autocapitalize: "characters", pattern: "[A-Za-z0-9]+",
+                           "aria-label": Section.human_attribute_name(:name), placeholder: "A",
+                           data: { tooltip: "El identificador: solo letras y números",
+                                   controller: "campo-filtrado", campo_filtrado_permite_value: "A-Za-z0-9",
+                                   campo_filtrado_mayuscula_value: true, action: "input->campo-filtrado#filtrar" }
+            = f.select :leader_teacher_id, @profesores.map { |t| [ t.user.apellidos_y_nombres, t.id ] },
+                       { include_blank: "Sin profesor guía" }, class: "form-select", "aria-label": "Profesor guía"
+            = f.submit "Agregar", class: "btn btn-guardar"
+      - else
+        %p.nota-ayuda Para agregar una sección, elija arriba el año escolar.
 
   %p.ficha-volver
     = link_to "← Volver a los grados", grades_path

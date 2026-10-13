@@ -37,7 +37,7 @@ class CertificadosController < ApplicationController
     # puesto y no filtra (`CLAUDE.md § 8.b`).
     @secciones = Section.del_anio_de_la_sesion.del_nivel_de_la_sesion
                         .includes(:grade, :academic_period).order("grades.name", :name)
-    @seccion   = @secciones.find { |s| s.id.to_s == params[:section_id] } || @secciones.first
+    @secciones, @seccion = Section.con_la_pedida(@secciones, params[:section_id])
     @certificados = CertificadosDeLaSeccion.new(seccion: @seccion) if @seccion
   end
 

@@ -48,7 +48,7 @@ class ReportCardsController < ApplicationController
 
   def index
     @secciones = Section.del_anio_de_la_sesion.includes(:grade, :academic_period).order("grades.name", :name)
-    @seccion   = @secciones.find { |s| s.id.to_s == params[:section_id] } || @secciones.first
+    @secciones, @seccion = Section.con_la_pedida(@secciones, params[:section_id])
     @lapsos    = @seccion ? EvaluationMoment.where(academic_period_id: @seccion.academic_period_id).order(:id) : []
     @alumnos   = @seccion ? inscripciones_de(@seccion) : []
     @recientes = ReportCard.del_anio_de_la_sesion
