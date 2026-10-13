@@ -239,6 +239,42 @@ hay fechas; si no, en el último con evaluaciones. En la muestra: 18 secciones,
   representantes) se salen de la pantalla, porque se vuelven desplazables recién
   a 600 px. No lo toqué: cambia cómo se ven todas las tablas a ese ancho.
 
+## 📐 Horarios — el spec está escrito y falta congelarlo (13 de octubre)
+
+Daniel pidió investigar «la mejor manera de gestionar los horarios» de Media.
+Con cuatro agentes —el código, Venezuela, el mundo y el diseño— y la foto de un
+horario real, quedó [`docs/specs/horarios.md`](docs/specs/horarios.md), **en
+borrador**. Ni una línea de código todavía.
+
+```
+   LO QUE YA SE SABE                            DE DÓNDE
+   es día × hora; los días no se agrupan        la Resolución DM-029/2022 y la foto de Daniel
+   horas de 40 min de dos en dos, un receso     la foto: 7:10 a 1:00, 38 horas a la semana
+   el choque lo rechaza la BASE, por reloj      11 de 18 profesores de Media dictan en Primaria
+   una clase es sección + área                  cambiar de profesor borra y crea la asignación
+```
+
+```
+   DECIDIDO POR DANIEL                          LO QUE FALTA, Y ES SUYO
+   una sección, un profesor, una hora           contestar las decisiones 11 a 18 del spec
+   el automático, después del armador           congelarlo → arranca la tanda 1 (turno y carga)
+   armar gratis; PDF y portales, con pago       el issue de Linear: el conector no estaba autenticado
+```
+
+```
+   las tandas   0 el spec → 1 turno y carga → 2 armar → 3 verlo → 4 la vida real → 5 el automático
+```
+
+**Producción, mirada en solo lectura:** PostgreSQL 18.4 en las dos instancias,
+`siga_app` es dueño de la base y puede crear `btree_gist` (1.8, sin instalar).
+No hace falta ningún paso a mano para desplegar.
+
+⚠️ **Vive en un worktree aparte**, `APPS/siga-horarios`, en la rama
+`docs/spec-horarios` (sin subir): este directorio lo estaba usando otra sesión
+con `fix/la-app-habla-de-usted`. Cuando arranque el código: `SIGA_DB_NAME` le
+da su propia base de desarrollo, pero la de los tests es `siga_test`, con el
+nombre fijo, y dos `bin/ci` a la vez se pisan.
+
 ## ✅ Del registro al cobro — EN PRODUCCIÓN desde el 13 de octubre (1.19.1)
 
 Del 7 al 12 de octubre se redefinió cómo entra, prueba y paga un colegio. El
@@ -354,7 +390,8 @@ unifiquen, no se propone nada de precios ni de la puerta a partir de ellos:
 manda el spec. Daniel: *«No quiero que en el futuro otra sesión mire lo que tú
 miraste y se confunda o me proponga cosas basada en información obsoleta.»*
 
-**Y después:** horarios —«sí o sí», sobre todo para Media—, que pide su spec.
+**Y después:** horarios —«sí o sí», sobre todo para Media—. Su spec ya está
+escrito, en borrador: ver arriba.
 
 ### Binance y PayPal — 1.19.0, 13 de octubre (en producción)
 
