@@ -23,6 +23,15 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.18.1 — 12 de octubre de 2026
+
+- El WhatsApp de SIGA y la dirección del colegio de muestra se cambian desde el
+  panel del equipo de SIGA, sin tocar el servidor. Para el colegio no cambia
+  nada: el botón de WhatsApp y el de «Vea un colegio funcionando» llevan a
+  donde llevaban.
+
+---
+
 ## 1.18.0 — 12 de octubre de 2026
 
 - **SIGA avisa antes de que la suscripción venza, y no hay que estar pendiente.**

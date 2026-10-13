@@ -1,6 +1,11 @@
-- if object.errors.any?
+-# Los errores de un registro —`object:`— o de varios que van en un mismo
+-# formulario —`objects:`—, en un solo recuadro: quien guarda ve todo lo que
+-# falta de una vez, y no un recuadro por tabla.
+- registros = local_assigns[:objects] || [ local_assigns[:object] ]
+- mensajes = registros.compact.flat_map { |registro| registro.errors.full_messages }
+- if mensajes.any?
   .alert.alert-danger
-    %h5= "#{object.errors.count} error(es) impiden guardar:"
+    %h5= "#{mensajes.size} error(es) impiden guardar:"
     %ul.lista-errores
-      - object.errors.full_messages.each do |message|
+      - mensajes.each do |message|
         %li= message

@@ -78,6 +78,17 @@ class RestablecerLaMuestraTest < ActiveSupport::TestCase
     assert_equal 0, SigaSetting.count
   end
 
+  # ⚠️ `setup` SÍ se queda: el WhatsApp de la muestra es el de verdad, y quien
+  # lo puso no tiene por qué volver a ponerlo cada mañana.
+  test "pero el WhatsApp de SIGA se queda" do
+    montar_la_muestra(@a, @b)
+    Setup.create!(nombre: "whatsapp", valor: "0414-1234567")
+
+    en_la_muestra { restablecer }
+
+    assert_equal "0414-1234567", Setup.whatsapp
+  end
+
   test "y los archivos de lo que borró" do
     montar_la_muestra(@a, @b)
     Current.sin_aislamiento do

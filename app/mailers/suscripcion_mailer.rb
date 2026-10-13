@@ -40,7 +40,7 @@ class SuscripcionMailer < ApplicationMailer
     @colegio  = pago.school
     @persona  = pago.reportado_por
     @url      = suscripcion_url
-    @whatsapp = SigaSetting.actuales.whatsapp_url("Hola, escribo por el pago de la suscripción de #{@colegio.name}.")
+    @whatsapp = Setup.whatsapp_url("Hola, escribo por el pago de la suscripción de #{@colegio.name}.")
 
     mail to: @persona.email, subject: "No pudimos validar el pago de su suscripción a SIGA"
   end
@@ -84,6 +84,6 @@ class SuscripcionMailer < ApplicationMailer
     @cotizacion    = suscripcion.cotizacion
     @destinatarios = suscripcion.correos_de_quienes_pagan
     @url           = suscripcion_url
-    @whatsapp      = SigaSetting.actuales.whatsapp_url("Hola, escribo por la suscripción de #{@colegio.name}.")
+    @whatsapp      = Setup.whatsapp_url("Hola, escribo por la suscripción de #{@colegio.name}.")
   end
 end

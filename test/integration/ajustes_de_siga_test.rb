@@ -1,13 +1,17 @@
 require "test_helper"
 
-# Los ajustes de `/siga`: el WhatsApp de SIGA y los datos para pagarle (spec
-# `docs/specs/del-registro-al-cobro.md`, decisiones 20 a 22).
+# Los ajustes de `/siga`: el WhatsApp de SIGA, la dirección de la muestra y
+# los datos para pagarle (spec `docs/specs/del-registro-al-cobro.md`,
+# decisiones 20 a 22 y 35).
 #
 #     /siga/ajustes  ──►  el fundador los cambia
 #                    ──►  los colegios los ven en la petición siguiente
 #
-# Cambiar de número o de cuenta era entrar al servidor: el WhatsApp vivía en una
-# variable de entorno, leída una vez al arrancar.
+#     setup          whatsapp · url_de_la_muestra    una fila por dato
+#     siga_settings  los datos para pagar            van juntos
+#
+# Cambiar de número, de cuenta o de dirección era entrar al servidor: el
+# WhatsApp y la muestra vivían en variables de entorno, leídas al arrancar.
 class AjustesDeSigaTest < ActionDispatch::IntegrationTest
   include CobroDeLaSuscripcion
 
@@ -26,42 +30,87 @@ class AjustesDeSigaTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "nav a[href=?]", siga_ajustes_path, text: "Ajustes"
     assert_select "form[action=?] input[type=submit]", siga_ajustes_path
+    assert_select "input[name='setup[whatsapp]']"
+    assert_select "input[name='setup[url_de_la_muestra]']"
   end
 
-  test "el fundador guarda el WhatsApp y los datos para pagar" do
+  test "el fundador guarda el WhatsApp, la dirección de la muestra y los datos para pagar" do
     sign_in @fundador
 
-    patch siga_ajustes_path, params: { siga_setting: datos }
+    patch siga_ajustes_path, params: { siga_setting: datos, setup: datos_sueltos }
 
     assert_redirected_to siga_ajustes_path
+    assert_equal "0414-1234567", Setup.whatsapp
+    assert_equal "https://demo.sigaeducando.com", Setup.url_de_la_muestra
+    assert_equal @fundador, Setup.fila("whatsapp").actualizado_por
+
     ajustes = SigaSetting.actuales
     assert ajustes.persisted?
-    assert_equal "0414-1234567", ajustes.whatsapp
     assert_equal "V-12345678", ajustes.documento
     assert_equal "01340000000000009999", ajustes.cuenta
     assert_equal %w[pago_movil binance efectivo], ajustes.medios
     assert_equal @fundador, ajustes.actualizado_por
   end
 
-  # La tabla admite una sola fila: guardar dos veces cambia la misma.
+  # Una fila por dato, y una sola de pagos: guardar dos veces cambia las mismas.
   test "guardar otra vez cambia los mismos ajustes, no crea otros" do
     sign_in @fundador
-    patch siga_ajustes_path, params: { siga_setting: datos }
+    patch siga_ajustes_path, params: { siga_setting: datos, setup: datos_sueltos }
 
-    patch siga_ajustes_path, params: { siga_setting: datos.merge(whatsapp: "0416-7778899") }
+    patch siga_ajustes_path, params: { siga_setting: datos, setup: datos_sueltos.merge(whatsapp: "0416-7778899") }
 
     assert_equal 1, SigaSetting.count
-    assert_equal "0416-7778899", SigaSetting.actuales.whatsapp
+    assert_equal 2, Setup.count
+    assert_equal "0416-7778899", Setup.whatsapp
   end
 
   test "un dato mal escrito no se guarda, y dice cuál" do
     sign_in @fundador
 
-    patch siga_ajustes_path, params: { siga_setting: datos.merge(cuenta: "0134-123") }
+    patch siga_ajustes_path, params: { siga_setting: datos.merge(cuenta: "0134-123"), setup: datos_sueltos }
 
     assert_response :unprocessable_entity
     assert_match(/Número de cuenta son veinte dígitos/, response.body)
     assert_equal 0, SigaSetting.count
+  end
+
+  # ⚠️ O todo o nada, en las DOS direcciones. Son dos tablas en un formulario:
+  # guardar una y rechazar la otra es una pantalla que dice «error» y que a
+  # medias sí cambió.
+  test "con la dirección mal escrita no se guardan tampoco los datos para pagar" do
+    sign_in @fundador
+
+    patch siga_ajustes_path, params: { siga_setting: datos, setup: datos_sueltos.merge(url_de_la_muestra: "demo.sigaeducando.com") }
+
+    assert_response :unprocessable_entity
+    assert_match(/tiene que ser completa/, response.body)
+    assert_select "input.campo-con-error[name='setup[url_de_la_muestra]'][value='demo.sigaeducando.com']"
+    assert_equal 0, SigaSetting.count
+    assert_equal 0, Setup.count, "ni el WhatsApp, que venía bien escrito"
+  end
+
+  test "con la cuenta mal escrita no cambia tampoco el WhatsApp" do
+    poner_el_whatsapp("0414-1234567")
+    sign_in @fundador
+
+    patch siga_ajustes_path, params: { siga_setting: datos.merge(cuenta: "0134-123"),
+                                       setup: datos_sueltos.merge(whatsapp: "0416-7778899") }
+
+    assert_response :unprocessable_entity
+    assert_equal "0414-1234567", Setup.whatsapp
+  end
+
+  # «Lo cambió por última vez» mira las dos tablas: cambiar solo el WhatsApp
+  # también es cambiar los ajustes.
+  test "dice quién cambió algo por última vez, en cualquiera de las dos tablas" do
+    cargar_los_ajustes_de_siga
+    SigaSetting.update_all(updated_at: 2.days.ago)
+    sign_in @fundador
+
+    patch siga_ajustes_path, params: { setup: { whatsapp: "0416-7778899" } }
+    follow_redirect!
+
+    assert_select ".siga-nota", text: /Lo cambió por última vez #{Regexp.escape(@fundador.nombre_completo)}/
   end
 
   # ⚠️ Operaciones ve el formulario, apagado: saber a qué cuenta pagan los
@@ -72,13 +121,15 @@ class AjustesDeSigaTest < ActionDispatch::IntegrationTest
 
     get siga_ajustes_path
     assert_response :success
-    assert_select "fieldset[disabled]", minimum: 4
+    assert_select "fieldset[disabled]", 6
     assert_select "input[type=submit]", 0
     assert_select "input[name='siga_setting[binance]'][value='987654321']"
+    assert_select "input[name='setup[whatsapp]'][value='0414-1234567']"
 
-    patch siga_ajustes_path, params: { siga_setting: datos }
+    patch siga_ajustes_path, params: { siga_setting: datos, setup: datos_sueltos.merge(whatsapp: "0416-7778899") }
     assert_match(/lo hace el fundador/, flash[:alert])
     assert_equal "987654321", SigaSetting.actuales.binance
+    assert_equal "0414-1234567", Setup.whatsapp
   end
 
   # Son de la plataforma: un colegio no llega ni a verlos.
@@ -88,9 +139,10 @@ class AjustesDeSigaTest < ActionDispatch::IntegrationTest
     get siga_ajustes_path
     assert_redirected_to root_path
 
-    patch siga_ajustes_path, params: { siga_setting: datos }
+    patch siga_ajustes_path, params: { siga_setting: datos, setup: datos_sueltos }
     assert_redirected_to root_path
     assert_equal 0, SigaSetting.count
+    assert_equal 0, Setup.count
   end
 
   # ── Los colegios lo ven en el momento ─────────────────────────────────────
@@ -99,7 +151,7 @@ class AjustesDeSigaTest < ActionDispatch::IntegrationTest
   # el momento, sin reiniciar nada».
   test "lo que se guarda aparece en «Suscripción» en la petición siguiente" do
     sign_in @fundador
-    patch siga_ajustes_path, params: { siga_setting: datos }
+    patch siga_ajustes_path, params: { siga_setting: datos, setup: datos_sueltos }
     sign_out @fundador
 
     sign_in @a.director
@@ -159,11 +211,64 @@ class AjustesDeSigaTest < ActionDispatch::IntegrationTest
     end
   end
 
+  # ⚠️ Y el formulario la MUESTRA: el fundador ve el número que hoy ven los
+  # colegios, y guardar por otra cosa lo deja escrito, no lo borra.
+  test "el formulario muestra el número de la variable mientras no haya otro" do
+    con_la_variable("SIGA_WHATSAPP", "584241234567") do
+      sign_in @fundador
+      get siga_ajustes_path
+
+      assert_select "input[name='setup[whatsapp]'][value='0424-1234567']"
+    end
+  end
+
+  # ⚠️ Una fila de WhatsApp vacía apaga la variable. Un envío que no trae el
+  # campo no puede crearla: sería apagar el botón sin que nadie lo pidiera.
+  test "guardar sin el campo del WhatsApp no apaga el de la variable" do
+    con_la_variable("SIGA_WHATSAPP", "584241234567") do
+      sign_in @fundador
+      patch siga_ajustes_path, params: { siga_setting: datos, setup: { url_de_la_muestra: "https://demo.sigaeducando.com" } }
+
+      assert_redirected_to siga_ajustes_path
+      assert_nil Setup.fila("whatsapp")
+      assert_equal "0424-1234567", Setup.whatsapp
+    end
+  end
+
+  # ── La muestra sale de aquí ───────────────────────────────────────────────
+
+  # Era la variable `SIGA_MUESTRA_URL`, que se ponía entrando al servidor.
+  test "la dirección de la muestra la usa la portada en la petición siguiente" do
+    sign_in @fundador
+    patch siga_ajustes_path, params: { setup: { url_de_la_muestra: "https://otra-muestra.sigaeducando.com" } }
+    sign_out @fundador
+
+    get root_path
+    assert_select ".portada-hero a[href=?]", muestra_path, text: /Vea un colegio funcionando/
+
+    get muestra_path
+    assert_redirected_to "https://otra-muestra.sigaeducando.com"
+  end
+
+  test "y vaciarla quita el botón de la portada" do
+    Setup.create!(nombre: "url_de_la_muestra", valor: "https://demo.sigaeducando.com")
+    sign_in @fundador
+    patch siga_ajustes_path, params: { setup: { url_de_la_muestra: "" } }
+    sign_out @fundador
+
+    get root_path
+    assert_select "a[href=?]", muestra_path, count: 0
+  end
+
   private
 
   def datos
-    { whatsapp: "04141234567", titular: "Empresa Nueva, C.A.", documento: "v-12.345.678",
+    { titular: "Empresa Nueva, C.A.", documento: "v-12.345.678",
       pago_movil_banco: "0134", pago_movil_telefono: "0426-5554433",
       cuenta: "0134-0000-00-0000009999", binance: "112233445" }
+  end
+
+  def datos_sueltos
+    { whatsapp: "04141234567", url_de_la_muestra: "https://demo.sigaeducando.com/" }
   end
 end

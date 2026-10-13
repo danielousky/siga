@@ -178,6 +178,7 @@ Y el criterio que ordena todo lo demás. Daniel, 9 de octubre:
 | 32 | ¿Qué fecha tiene el colegio de la muestra? | **La de HOY.** Los años escolares de la siembra se cuentan desde el día en que corre: el año pasado completo y cerrado, y el que corre, calificado y con asistencia hasta ayer. Como se resiembra cada noche, el colegio avanza solo. Antes eran años escritos, y la muestra abría en un año «finalizado» | Claude; por confirmar |
 | 33 | ¿Quién entra a `/siga` en la muestra? | **Nadie, por defecto.** El equipo de SIGA se siembra con una clave al azar: `/siga` guarda las cuentas a donde se paga, y con la clave pública cualquiera pondría la suya en «cómo pagar». Se abre poniendo `SIGA_SEED_STAFF_PASSWORD` | Claude; por confirmar |
 | 34 | En el portal, ¿qué ve la familia de un niño de Inicial, y qué boletines? | **La valoración que escribió la maestra** —leía «Pendiente» aunque estuviera escrita—, **y los boletines liberados de los años anteriores,** no solo los del que corre. Son dos arreglos del producto, no de la muestra: los dejó a la vista sembrar una familia con un hijo en cada nivel | Claude; por confirmar |
+| 35 | ¿Dónde viven el WhatsApp de SIGA y la dirección de la muestra? | **En una tabla `setup`: nombre del campo y valor, una fila por dato,** editable en `/siga/ajustes`. *«Pon SIGA_MUESTRA_URL como un campo de ajustes. De hecho, vamos a agregar una tabla que se llame setup que sea nombre del campo, valor; allí vamos a colocar estos 2 valores, el número telefónico de WhatsApp y la url de muestra.»* La variable `SIGA_MUESTRA_URL` deja de leerse, y el WhatsApp sale de `siga_settings`, que se queda con los datos para pagar. `SIGA_WHATSAPP` sigue de valor inicial mientras no haya fila: en la muestra nadie entra a `/siga` (33) | Daniel, 12 oct. (la tabla y sus dos datos) · Claude (que el WhatsApp se MUDE y no se copie: dos lugares para el mismo número son dos números; y que restablecer la muestra no lo borre) |
 
 ## 4 · El dominio
 
@@ -476,8 +477,10 @@ del registro— y los ajustes de `/siga` —el WhatsApp ya sale de ahí y está 
 - [x] El registro muestra la línea del precio, leída de la constante y no
       escrita a mano.
 - [x] El botón a la muestra se dibuja solo si se sabe dónde vive
-      (`SIGA_MUESTRA_URL`); sin ella, la portada invita a probarlo en el propio
-      colegio. ⚠️ Esa variable hay que ponérsela a PRODUCCIÓN al desplegar.
+      (`url_de_la_muestra`, en `/siga/ajustes`; hasta la decisión 35 fue la
+      variable `SIGA_MUESTRA_URL`); sin ella, la portada invita a probarlo en
+      el propio colegio. ⚠️ Esa dirección hay que escribirla en el
+      `/siga/ajustes` de PRODUCCIÓN al desplegar.
 
 **Lo gratis**
 
@@ -547,8 +550,8 @@ del registro— y los ajustes de `/siga` —el WhatsApp ya sale de ahí y está 
       profesor o representante; la clave de los tres es `123123`.
 - [x] Ahí no sale ningún correo, y cada noche vuelve a su estado sembrado.
 - [x] Fuera de la muestra, entrar sin clave no existe: responde 404.
-- [ ] La portada del sitio de verdad enlaza a la muestra (es de la tanda 4:
-      `SIGA_MUESTRA_URL` ya hace que `/muestra` mande allá).
+- [x] La portada del sitio de verdad enlaza a la muestra (tanda 4; `/muestra`
+      manda a la dirección de `/siga/ajustes`, decisión 35).
 
 ## 7 · Lo que se puede romper
 
@@ -638,7 +641,8 @@ del registro— y los ajustes de `/siga` —el WhatsApp ya sale de ahí y está 
   petición siempre lo hay; en un test o una consola, hay que ponerlo.
 - **Los ajustes no son de la demo.** `demo:limpiar` borra a todas las personas y
   no puede llevarse el WhatsApp ni las cuentas con que SIGA cobra: `siga_settings`
-  queda fuera del borrado, y su única clave foránea se pone en nulo sola.
+  —y desde la decisión 35, `setup`— quedan fuera del borrado, y su única clave
+  foránea se pone en nulo sola.
 - **`prueba:borrar` lleva su lista a mano**, y un colegio de prueba que reportó
   un pago no se dejaba borrar: hubo que sumarle los pagos y sus comprobantes.
 
@@ -702,8 +706,9 @@ TODO; documentos, .md's, vistas, TODO.»*
   mide el texto, y el tercero caía solo a un segundo renglón, centrado, como si
   fuera otra cosa. En pantalla ancha se les deja salir de esa columna.
 - **Una vez que alguien guarda los ajustes, `SIGA_WHATSAPP` deja de valer**
-  —es su valor inicial—. Sembrar los ajustes deja la fila creada: en la muestra
-  el número se pone con la variable ANTES de resembrar.
+  —es su valor inicial—. Sembrar los ajustes dejaba la fila creada, y con ella
+  la variable muerta. Desde la decisión 35 la siembra no escribe el WhatsApp:
+  la variable vale mientras nadie lo guarde en `/siga/ajustes`.
 - **El formulario de demostración dejó reglas de estilo sin dueño** (`.solicitud…`).
   No se borraron: quitar un bloque de CSS a ciegas no falla, solo se ve feo.
   Queda para una limpieza con las pantallas delante.
@@ -725,6 +730,28 @@ TODO; documentos, .md's, vistas, TODO.»*
 - **Los tres correos dicen primero lo que SIGUE funcionando.** Quien lee
   «venció» sin más cree que perdió el sistema, y llama.
 
+**Lo que enseñó la tabla `setup`** (decisión 35, rama `feat/la-tabla-setup`)
+
+- **Una fila vacía no es lo mismo que ninguna.** Sin fila de WhatsApp vale
+  `SIGA_WHATSAPP`; con una fila vacía, el botón está APAGADO a propósito. La
+  primera versión preparaba una fila por cada dato aunque el envío no trajera
+  su campo: guardar solo la dirección de la muestra apagaba el WhatsApp sin que
+  nadie lo pidiera. Ahora se prepara solo lo que viene.
+- **Dos tablas en un formulario se guardan juntas o no se guardan.** Se validan
+  las dos antes de escribir: un WhatsApp guardado al lado de una cuenta
+  rechazada es una pantalla que dice «error» y que a medias sí cambió.
+- **Una dirección que va a un enlace público se valida como dirección.** Sin
+  `https://` es un enlace relativo —llevaría a
+  `sigaeducando.com/demo.sigaeducando.com`—, y un `javascript:` en la portada
+  sería un agujero. Solo pasa lo que un navegador abre como página.
+- **«Lo cambió por última vez» se lee de la base**, no del formulario: al
+  volver con un error, lo que está en pantalla no se guardó.
+- **Pasar algo de una variable a la base cambia lo que la siembra deja
+  puesto.** El humo daba por hecho que en desarrollo nadie decía dónde vive la
+  muestra —nadie ponía la variable— y exigía un 404 en `/muestra`; con la
+  dirección sembrada contestó la muestra real, en internet. Ahora mira lo que
+  importa: que no dibuje las puertas, y que entrar sin clave dé 404.
+
 **Lo que se unificó dentro del repo** (12 de octubre, rama `docs/unificar-el-cobro`):
 
 ```
@@ -732,7 +759,7 @@ TODO; documentos, .md's, vistas, TODO.»*
                       § 14 la puerta, § 15 la escalera, y que ya hay con qué mostrar SIGA
    ESTADO.md          las cinco tandas, cómo revisar cada una
    CHANGELOG.md       1.14.0 a 1.18.0, con el precio final
-   tareas-de-op…      la muestra, la escalera y SIGA_MUESTRA_URL
+   tareas-de-op…      la muestra, la escalera y SIGA_MUESTRA_URL (desde la 35, un ajuste)
    el manual          la portada y el registro nuevos (dos capturas y su texto) y
                       «al guardar notas dice que se activan con la suscripción»
    DESPLIEGUE.md      un aviso arriba: describe el despliegue de agosto

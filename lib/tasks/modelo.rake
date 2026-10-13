@@ -174,7 +174,7 @@ namespace :modelo do
     attendances report_cards section_closures constancias informes
     fees charges payment_reports
     importaciones mensajes mensaje_eventos mensajes_entrantes
-    activity_logs demo_requests siga_settings
+    activity_logs demo_requests siga_settings setup
     planteles_oficiales
   ].freeze
 
@@ -228,7 +228,8 @@ namespace :modelo do
     "subscription_payments.precio_mensual" => "la cuenta con que se REPORTÓ, congelada",
     "subscription_payments.estado"   => "en_revision · validado · rechazado — uno en revisión a la vez",
     "subscription_payments.cubre_desde" => "el mes que pagó, escrito al validar",
-    "siga_settings.whatsapp"         => "el de SIGA; sin él no hay botón ni efectivo",
+    "setup.nombre"                   => "whatsapp · url_de_la_muestra — solo los que el código conoce",
+    "setup.valor"                    => "vacío es «no hay»: sin WhatsApp no hay botón ni efectivo",
     "siga_settings.cuenta"           => "veinte dígitos; el banco, los cuatro primeros",
     "importaciones.tipo"             => "matrícula · pensum · historial",
     "mensajes.correo"                => "CONGELADO — a dónde fue de verdad",

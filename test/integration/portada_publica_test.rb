@@ -82,8 +82,7 @@ class PortadaPublicaTest < ActionDispatch::IntegrationTest
   end
 
   test "la portada lleva el WhatsApp de SIGA, arriba y en el cierre" do
-    SigaSetting.delete_all
-    SigaSetting.create!(whatsapp: "0414-1234567")
+    Setup.create!(nombre: "whatsapp", valor: "0414-1234567")
 
     get root_path
 
@@ -152,12 +151,11 @@ class PortadaPublicaTest < ActionDispatch::IntegrationTest
 
   private
 
-  # Dónde vive la muestra, puesto y devuelto como estaba.
+  # Dónde vive la muestra: un ajuste de `/siga` (`Setup`). Lo deshace la
+  # transacción del test.
   def con_la_direccion_de_la_muestra(direccion)
-    anterior = ENV["SIGA_MUESTRA_URL"]
-    ENV["SIGA_MUESTRA_URL"] = direccion
+    Setup.where(nombre: "url_de_la_muestra").delete_all
+    Setup.create!(nombre: "url_de_la_muestra", valor: direccion) if direccion
     yield
-  ensure
-    ENV["SIGA_MUESTRA_URL"] = anterior
   end
 end

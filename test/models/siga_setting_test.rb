@@ -1,7 +1,7 @@
 require "test_helper"
 
-# Los ajustes de la plataforma: el WhatsApp de SIGA y los datos para pagarle
-# (spec `docs/specs/del-registro-al-cobro.md`, decisiones 20 a 22).
+# Los datos para pagarle a SIGA (spec `docs/specs/del-registro-al-cobro.md`,
+# decisiones 21 y 22). El WhatsApp vive en `Setup`: ver `setup_test`.
 class SigaSettingTest < ActiveSupport::TestCase
   include CobroDeLaSuscripcion
 
@@ -16,7 +16,9 @@ class SigaSettingTest < ActiveSupport::TestCase
   end
 
   test "sin nada cargado no se ofrece ninguno" do
-    assert_empty SigaSetting.new.medios
+    sin_medios_de_pago
+
+    assert_empty SigaSetting.actuales.medios
   end
 
   test "al Pago Móvil le hacen falta el banco, el teléfono y la cédula" do
@@ -44,28 +46,25 @@ class SigaSettingTest < ActiveSupport::TestCase
     assert_not_includes cargar_los_ajustes_de_siga(whatsapp: nil).medios, "efectivo"
   end
 
+  # ⚠️ Y al revés: con WhatsApp hay efectivo aunque no haya NINGÚN dato para
+  # pagar. El número vive en otra tabla, y vaciar esta no lo apaga.
+  test "con WhatsApp hay efectivo, aunque no haya datos para pagar" do
+    poner_el_whatsapp("0414-1234567")
+    SigaSetting.delete_all
+
+    assert_equal %w[efectivo], SigaSetting.actuales.medios
+  end
+
   # ── Los datos se guardan en UNA forma ─────────────────────────────────────
 
-  test "los teléfonos se guardan con su guion, como los escribe el campo" do
-    ajustes = cargar_los_ajustes_de_siga(whatsapp: "0414 123 45 67", pago_movil_telefono: "04247654321")
-
-    assert_equal "0414-1234567", ajustes.whatsapp
-    assert_equal "0424-7654321", ajustes.pago_movil_telefono
+  test "el teléfono del Pago Móvil se guarda con su guion, como lo escribe el campo" do
+    assert_equal "0424-7654321", cargar_los_ajustes_de_siga(pago_movil_telefono: "04247654321").pago_movil_telefono
   end
 
-  # ⚠️ «58» + «0414…» es un número que no existe, y WhatsApp abre igual con un
-  # chat hacia nadie: al número se le quita el cero antes del país.
-  test "el enlace de WhatsApp lleva el país y no lleva el cero" do
-    url = cargar_los_ajustes_de_siga(whatsapp: "0414-1234567").whatsapp_url("Hola")
-
-    assert_equal "https://wa.me/584141234567?text=Hola", url
-  end
-
-  test "un fijo no sirve de WhatsApp ni de Pago Móvil" do
-    ajustes = SigaSetting.new(whatsapp: "0212-5551234", pago_movil_telefono: "0212-5551234")
+  test "un fijo no sirve de Pago Móvil" do
+    ajustes = SigaSetting.new(pago_movil_telefono: "0212-5551234")
 
     assert_not ajustes.valid?
-    assert ajustes.errors[:whatsapp].any?
     assert ajustes.errors[:pago_movil_telefono].any?
   end
 
@@ -90,47 +89,13 @@ class SigaSettingTest < ActiveSupport::TestCase
 
   # ── Una sola fila ─────────────────────────────────────────────────────────
 
-  # Dos filas de ajustes son dos números de WhatsApp, y nadie sabe cuál está en
-  # la portada.
+  # Dos filas de ajustes son dos cuentas a donde pagar, y nadie sabe cuál ve el
+  # colegio.
   test "la base no admite una segunda fila de ajustes" do
     cargar_los_ajustes_de_siga
 
     assert_raises(ActiveRecord::RecordNotUnique) do
-      SigaSetting.transaction(requires_new: true) { SigaSetting.create!(whatsapp: "0416-0000000") }
-    end
-  end
-
-  # ── De dónde sale el WhatsApp mientras nadie lo guardó ────────────────────
-
-  # ⚠️ La variable `SIGA_WHATSAPP` sirve de valor INICIAL: si está puesta en
-  # producción, el botón no desaparece el día en que el número pasa a la base.
-  test "sin ajustes guardados, el WhatsApp es el de la variable de entorno" do
-    con_la_variable("SIGA_WHATSAPP", "584241234567") do
-      assert_equal "0424-1234567", SigaSetting.actuales.whatsapp
-      assert_not SigaSetting.actuales.persisted?, "leer los ajustes no puede escribir en la base"
-    end
-  end
-
-  test "y con ajustes guardados manda la base" do
-    cargar_los_ajustes_de_siga(whatsapp: "0416-1112233")
-
-    con_la_variable("SIGA_WHATSAPP", "584241234567") do
-      assert_equal "0416-1112233", SigaSetting.actuales.whatsapp
-    end
-  end
-
-  # Quien apagó el WhatsApp a propósito no lo ve volver por la variable.
-  test "tampoco vuelve la variable si el número se dejó en blanco a propósito" do
-    cargar_los_ajustes_de_siga(whatsapp: nil)
-
-    con_la_variable("SIGA_WHATSAPP", "584241234567") do
-      assert_nil SigaSetting.actuales.whatsapp
-    end
-  end
-
-  test "una variable que no es un celular venezolano no se usa" do
-    con_la_variable("SIGA_WHATSAPP", "12125551234") do
-      assert_nil SigaSetting.actuales.whatsapp
+      SigaSetting.transaction(requires_new: true) { SigaSetting.create!(binance: "otra-cuenta") }
     end
   end
 end

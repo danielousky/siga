@@ -1459,12 +1459,44 @@ ALTER SEQUENCE public.sections_id_seq OWNED BY public.sections.id;
 
 
 --
+-- Name: setup; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.setup (
+    id bigint NOT NULL,
+    nombre character varying NOT NULL,
+    valor text,
+    actualizado_por_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: setup_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.setup_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: setup_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.setup_id_seq OWNED BY public.setup.id;
+
+
+--
 -- Name: siga_settings; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.siga_settings (
     id bigint NOT NULL,
-    whatsapp character varying,
     titular character varying,
     documento character varying,
     pago_movil_banco character varying,
@@ -2531,6 +2563,13 @@ ALTER TABLE ONLY public.sections ALTER COLUMN id SET DEFAULT nextval('public.sec
 
 
 --
+-- Name: setup id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.setup ALTER COLUMN id SET DEFAULT nextval('public.setup_id_seq'::regclass);
+
+
+--
 -- Name: siga_settings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3001,6 +3040,14 @@ ALTER TABLE ONLY public.section_closures
 
 ALTER TABLE ONLY public.sections
     ADD CONSTRAINT sections_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: setup setup_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.setup
+    ADD CONSTRAINT setup_pkey PRIMARY KEY (id);
 
 
 --
@@ -4152,6 +4199,20 @@ CREATE INDEX index_sections_on_school_id ON public.sections USING btree (school_
 
 
 --
+-- Name: index_setup_on_actualizado_por_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_setup_on_actualizado_por_id ON public.setup USING btree (actualizado_por_id);
+
+
+--
+-- Name: index_setup_on_nombre; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_setup_on_nombre ON public.setup USING btree (nombre);
+
+
+--
 -- Name: index_siga_settings_on_actualizado_por_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4675,6 +4736,14 @@ ALTER TABLE ONLY public.representatives
 
 ALTER TABLE ONLY public.fees
     ADD CONSTRAINT fk_rails_1afff34592 FOREIGN KEY (academic_period_id) REFERENCES public.academic_periods(id);
+
+
+--
+-- Name: setup fk_rails_1d689b782b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.setup
+    ADD CONSTRAINT fk_rails_1d689b782b FOREIGN KEY (actualizado_por_id) REFERENCES public.users(id) ON DELETE SET NULL;
 
 
 --
@@ -5965,6 +6034,7 @@ ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261012230000'),
 ('20261012190000'),
 ('20261012170000'),
 ('20261012150000'),

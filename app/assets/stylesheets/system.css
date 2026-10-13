@@ -4714,6 +4714,25 @@ body:has(.portada) .barra-superior { display: none; }
 .siga-admin .alert-danger  { border-left-color: var(--siga-mal); }
 .siga-admin .alert-warning { border-left-color: var(--siga-alerta); }
 
+/* El título del resumen de errores («1 error(es) impiden guardar:») heredaba
+   el color de los títulos del colegio —oscuro— y sobre el panel oscuro no se
+   leía: se veía la lista de errores sin la frase que dice que NO se guardó. */
+.siga-admin .alert h5 { color: var(--siga-texto); }
+
+/* El campo que falló, en el panel (MOR-196). `.siga-admin .form-control` pesa
+   más que `.campo-con-error` y le pisaba el borde: el campo culpable se veía
+   igual que los otros. Solo el borde: el fondo rosado del colegio sería aquí
+   un rectángulo claro en medio de la pantalla oscura. */
+.siga-admin .form-control.campo-con-error,
+.siga-admin .form-control.campo-con-error:hover {
+  border-color: var(--siga-mal);
+}
+
+.siga-admin .form-control.campo-con-error:focus,
+.siga-admin .form-control.campo-con-error:focus-visible {
+  outline-color: var(--siga-mal);
+}
+
 /* ==========================================================================
    PANTALLAS DE ACCESO (MOR-135)
    ==========================================================================

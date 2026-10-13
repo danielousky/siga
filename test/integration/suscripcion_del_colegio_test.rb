@@ -176,7 +176,7 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
   end
 
   test "sin ningún medio cargado lo dice, y no ofrece reportar" do
-    SigaSetting.delete_all
+    sin_medios_de_pago
     get suscripcion_path
 
     assert_response :success
@@ -298,7 +298,7 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
   end
 
   test "sin medios cargados no hay formulario: vuelve a «Suscripción»" do
-    SigaSetting.delete_all
+    sin_medios_de_pago
 
     get new_suscripcion_pago_path
 

@@ -1,15 +1,17 @@
-# Los ajustes de la plataforma: el WhatsApp de SIGA y los datos para pagarle
-# (spec `docs/specs/del-registro-al-cobro.md`, decisiones 20 a 22).
+# Los datos para pagarle a SIGA (spec `docs/specs/del-registro-al-cobro.md`,
+# decisiones 21 y 22).
 #
 #     /siga/ajustes  ──►  el fundador los cambia
-#                    ──►  «Suscripción» y los botones de WhatsApp los usan en la
-#                         petición siguiente, sin reiniciar nada
+#                    ──►  «Suscripción» los usa en la petición siguiente,
+#                         sin reiniciar nada
 #
 # ## Por qué una tabla y no variables de entorno
 #
-# Cambiar de número o de cuenta no puede exigir un despliegue ni entrar al
-# servidor. El número de WhatsApp era la variable `SIGA_WHATSAPP`, leída una vez
-# al arrancar: cambiarlo era reiniciar la app.
+# Cambiar de cuenta no puede exigir un despliegue ni entrar al servidor.
+#
+# ⚠️ El WhatsApp vivía aquí, y desde el 12 de octubre de 2026 vive en `Setup`
+# —nombre y valor—, junto con la dirección de la muestra (decisión 35). Lo que
+# queda es lo que va JUNTO: los datos de cada medio se validan entre sí.
 #
 # ## ⚠️ Es de la PLATAFORMA, no de un colegio
 #
@@ -27,13 +29,13 @@ class SigaSetting < ApplicationRecord
   FORMATO_DE_DOCUMENTO = /\A[VEJGP]-\d{5,9}(-\d)?\z/
   FORMATO_DE_CUENTA    = /\A\d{20}\z/
 
-  normalizes :whatsapp, :pago_movil_telefono, with: ->(valor) { telefono_con_guion(valor) }
+  normalizes :pago_movil_telefono, with: ->(valor) { Setup.telefono(valor) }
   # «V-12.345.678» y «v 12345678» son la misma cédula: se guarda una sola forma.
   normalizes :documento, with: ->(valor) { valor.to_s.upcase.gsub(/[\s.]/, "").sub(/\A([VEJGP])(\d)/, '\1-\2').presence }
   normalizes :cuenta, with: ->(valor) { valor.to_s.gsub(/\D/, "").presence }
   normalizes :titular, :binance, with: ->(valor) { valor.to_s.squish.presence }
 
-  validate  :los_telefonos_son_moviles
+  validate  :el_telefono_es_movil
   validates :pago_movil_banco, inclusion: { in: Banco::CODIGOS, message: "no está en la lista" }, allow_blank: true
   validates :documento, format: { with: FORMATO_DE_DOCUMENTO,
                                   message: "es una cédula o un RIF: V-12345678, J-12345678-9" }, allow_blank: true
@@ -41,36 +43,13 @@ class SigaSetting < ApplicationRecord
   validates :titular, length: { maximum: 120 }
   validates :binance, length: { maximum: 120 }
 
-  # Los ajustes de hoy. Si nadie los guardó todavía, unos en blanco —con el
-  # WhatsApp de la variable, si está puesta—, sin escribir nada en la base.
-  #
-  # ⚠️ `SIGA_WHATSAPP` sirve de valor INICIAL, y nada más (§ 7 del spec): si
-  # está puesta en producción, el botón no desaparece el día del cambio. Desde
-  # que el fundador guarda los ajustes, manda la base.
+  # Los ajustes de hoy. Si nadie los guardó todavía, unos en blanco, sin
+  # escribir nada en la base.
   def self.actuales
-    first || new(whatsapp: whatsapp_del_entorno)
-  end
-
-  # `584241234567` —el formato de `wa.me`, el de la variable— a `0424-1234567`.
-  def self.whatsapp_del_entorno
-    digitos = ENV["SIGA_WHATSAPP"].to_s.gsub(/\D/, "")
-    digitos = "0#{digitos.delete_prefix(Contacto::PAIS)}" if digitos.length == 12 && digitos.start_with?(Contacto::PAIS)
-
-    telefono_con_guion(digitos) if Contacto.movil?(digitos)
-  end
-
-  def self.telefono_con_guion(valor)
-    digitos = valor.to_s.gsub(/\D/, "")
-    return nil if digitos.blank?
-
-    digitos.length == 11 ? "#{digitos[0, 4]}-#{digitos[4..]}" : digitos
+    first || new
   end
 
   # ── Qué se ofrece ─────────────────────────────────────────────────────────
-
-  def whatsapp? = whatsapp.present?
-
-  def whatsapp_url(texto = nil) = Contacto.whatsapp_url(whatsapp, texto)
 
   # Pago Móvil y transferencia son el mismo medio para el colegio —en
   # bolívares, a la tasa BCV del día—, pero cada uno pide sus datos.
@@ -79,8 +58,8 @@ class SigaSetting < ApplicationRecord
   def binance?       = binance.present?
 
   # El efectivo no tiene datos: se coordina por WhatsApp. Sin WhatsApp no hay
-  # con quién coordinarlo.
-  def efectivo? = whatsapp?
+  # con quién coordinarlo —y el número vive en `Setup`—.
+  def efectivo? = Setup.whatsapp?
 
   # Los medios que «Suscripción» ofrece, en el orden de `SubscriptionPayment::MEDIOS`.
   def medios
@@ -98,11 +77,9 @@ class SigaSetting < ApplicationRecord
 
   private
 
-  def los_telefonos_son_moviles
-    { whatsapp: whatsapp, pago_movil_telefono: pago_movil_telefono }.each do |campo, valor|
-      next if valor.blank? || Contacto.movil?(valor)
+  def el_telefono_es_movil
+    return if pago_movil_telefono.blank? || Contacto.movil?(pago_movil_telefono)
 
-      errors.add(campo, "tiene que ser un celular: 0412, 0414, 0416, 0424 o 0426")
-    end
+    errors.add(:pago_movil_telefono, "tiene que ser un celular: 0412, 0414, 0416, 0424 o 0426")
   end
 end

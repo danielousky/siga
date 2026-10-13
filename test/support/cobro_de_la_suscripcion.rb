@@ -8,15 +8,36 @@ module CobroDeLaSuscripcion
   # Los ajustes de la plataforma, con TODOS los medios cargados. Un test que
   # prueba qué pasa cuando falta un dato lo pide en blanco: `binance: nil`.
   #
+  # Son dos tablas, como en `/siga/ajustes`: el WhatsApp va a `Setup` y lo
+  # demás a `SigaSetting`. Quien llama no tiene por qué saberlo:
+  # `whatsapp: nil` lo apaga igual que antes.
+  #
   # ⚠️ Se reemplaza la fila si ya hay una: la tabla admite una sola
   # (`index_siga_settings_una_sola_fila`), y dos llamadas en el mismo test
   # reventarían contra ese índice en vez de probar lo que querían.
   def cargar_los_ajustes_de_siga(**cambios)
+    poner_el_whatsapp(cambios.fetch(:whatsapp, "0414-1234567"))
+
     SigaSetting.delete_all
-    SigaSetting.create!({ whatsapp: "0414-1234567", titular: "Empresa de Prueba, C.A.",
+    SigaSetting.create!({ titular: "Empresa de Prueba, C.A.",
                           documento: "J-12345678-9", pago_movil_banco: "0102",
                           pago_movil_telefono: "0424-7654321", cuenta: "01020000000000001234",
-                          binance: "987654321" }.merge(cambios))
+                          binance: "987654321" }.merge(cambios.except(:whatsapp)))
+  end
+
+  # El WhatsApp de SIGA (`Setup`). `nil` lo APAGA con una fila vacía, y no lo
+  # borra: sin fila valdría `SIGA_WHATSAPP`, y el test dependería de si la
+  # máquina que lo corre la tiene puesta.
+  def poner_el_whatsapp(numero)
+    Setup.where(nombre: "whatsapp").delete_all
+    Setup.create!(nombre: "whatsapp", valor: numero)
+  end
+
+  # Ningún medio: ni datos para pagar ni WhatsApp, que es por donde se
+  # coordina el efectivo.
+  def sin_medios_de_pago
+    SigaSetting.delete_all
+    poner_el_whatsapp(nil)
   end
 
   # Una imagen de verdad, para adjuntar: el modelo exige foto o PDF.
