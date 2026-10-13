@@ -33,6 +33,10 @@ octubre, a las 7:55 de la mañana, salió todo a producción.
    07:55  producción en 1.19.0: seis migraciones y `rls:verificar` en verde
    07:57  ajustes cargados con `bin/rails ajustes:poner`:
           la dirección de la muestra, Binance y PayPal (tu correo)
+   08:40  el WhatsApp, con `ajustes:poner` —el que mandaste y se rechazó junto
+          con la cuenta de 19 dígitos—
+   09:16  1.19.1 en producción y en la muestra: el WhatsApp fijo en la esquina
+          (PR #67, tag v1.19.1)
 ```
 
 ⚠️ **Producción no tenía colegios**: la migración que abre una suscripción
@@ -72,6 +76,12 @@ Daniel: *«Lo imagino como un ícono de WS fijo en la esquina inferior derecha»
 (decisión 38). Solo en la portada y solo si hay número. Y de paso,
 `/siga/ajustes` dice **«No se guardó nada»** arriba y al lado del botón cuando
 algo está mal escrito.
+
+⚠️ **Un test de navegador más, intermitente en GitHub:**
+`formulario_enviable_test` («un correo ya tomado lo dice»). Falló una vez en el
+PR #67 y pasó al relanzarlo. La captura muestra el aviso del navegador —«ese
+correo ya tiene una cuenta», que sale al salir del campo— y ningún error del
+servidor: el aviso le gana la carrera al envío. No es de lo que cambió ese PR.
 
 ⚠️ **La muestra: el restablecido a mano no terminó.** Lo lancé después de
 desplegarla, y a los 40 minutos seguía sin terminar (en el servidor tarda
