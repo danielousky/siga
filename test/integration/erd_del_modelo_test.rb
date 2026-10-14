@@ -82,4 +82,19 @@ class ErdDelModeloTest < ActiveSupport::TestCase
     assert_empty sin_ubicar,
                  "tablas nuevas sin lugar en `ORDEN` de modelo.rake: #{sin_ubicar.join(', ')}"
   end
+
+  # ⚠️ El diagrama del REPO está al día con el esquema (13 de octubre de 2026).
+  #
+  # Daniel, sobre los diagramas ER de febrero que vivían en la carpeta madre:
+  # *«el diagrama ER, actualizarlo siempre»*. Generarlo bien no alcanzaba —eso
+  # ya lo cuidan los tests de arriba—: nadie lo corría. Ahora vive escrito en
+  # `docs/modelo/`, y una migración que no lo regenera pone el CI en rojo.
+  test "docs/modelo/diagrama-er.md es el diagrama de hoy" do
+    escrito = Rails.root.join("docs/modelo/diagrama-er.md")
+
+    assert escrito.exist?, "falta docs/modelo/diagrama-er.md: corra `bin/rails modelo:documentos`"
+    assert_equal erd, escrito.read,
+                 "el esquema cambió y el diagrama no: corra `bin/rails modelo:documentos`, que " \
+                 "regenera docs/modelo/ y el PDF, y súbalos con la migración"
+  end
 end

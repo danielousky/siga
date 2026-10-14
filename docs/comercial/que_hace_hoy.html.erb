@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title><%= titulo %></title>
+<style><%= estilo %></style>
+</head>
+<body>
+<%#
+  Lo que SIGA hace hoy, por quién lo usa: una hoja para dejarle a un director.
+
+  ⚠️ La lista sigue al MANUAL (docs/manual), que es la referencia de cada
+  función con su captura. Si una función entra al manual, entra aquí; si este
+  papel dice algo que el manual no, el que manda es el manual.
+
+  Se rehízo el 13 de octubre de 2026: el de septiembre daba por «en
+  construcción» la rúbrica, las listas en Excel y el plan de evaluación —ya
+  estaban—, decía «materias» donde el MPPE dice «áreas de aprendizaje» y hablaba
+  de un «plan Inicial gratis» que ya no existe.
+-%>
+<div class="membrete">
+  <span class="membrete-marca">SIGA</span>
+  <span class="membrete-dato">Qué hace hoy · actualizado el <%= hoy %></span>
+</div>
+
+<h1>El colegio que usted imagina, en orden.</h1>
+<p class="bajada">
+  Sistema Integrado de Gestión Académica para colegios de Venezuela. Esto es lo que
+  el sistema hace hoy, agrupado por quién lo usa.
+</p>
+
+<p class="rotulo">Dirección y personal administrativo</p>
+<h2>Director, coordinación, secretaría y finanzas</h2>
+<div class="funciones">
+  <div class="funcion"><strong>El colegio armado en una tarde</strong><span>Los pasos de arranque dicen qué falta y a dónde ir: identidad, niveles y grados, áreas de aprendizaje, año escolar y lapsos, secciones.</span></div>
+  <div class="funcion"><strong>Grados que fija la ley</strong><span>Se marcan los niveles que dicta el colegio y quedan creados sus grados, de Educación Inicial a Técnica Media.</span></div>
+  <div class="funcion"><strong>Alumnos, representantes, profesores y administradores</strong><span>Una persona con el mismo rol en varios colegios sigue siendo una sola persona. Cada rol ve lo suyo.</span></div>
+  <div class="funcion"><strong>Importar o pegar planillas</strong><span>Matrícula, pensum e historial de notas desde el Excel que el colegio ya tiene. Muestra qué entendió antes de escribir nada.</span></div>
+  <div class="funcion"><strong>Inscribir</strong><span>Se elige la sección, se busca por apellido y se inscribe. Editar una inscripción es cambiar de sección o retirar.</span></div>
+  <div class="funcion"><strong>Activar el acceso</strong><span>Un código de un solo uso, por correo y en pantalla. Nadie le elige la contraseña a nadie.</span></div>
+  <div class="funcion"><strong>Clonar el año y promover</strong><span>Las secciones y quién dicta qué pasan al año nuevo; las notas deciden quién pasa, quién repite y quién egresa, y se ve antes de confirmar.</span></div>
+  <div class="funcion"><strong>El mapa de evaluaciones</strong><span>Una fila por sección y una casilla por área: qué plan cerró en 100 % y cuál falta, en un lapso.</span></div>
+  <div class="funcion"><strong>Quién no cargó notas</strong><span>Qué profesor está atrasado y en qué, antes del cierre del lapso, no después.</span></div>
+  <div class="funcion"><strong>El cierre del lapso</strong><span>Control de estudio revisa los boletines y cierra: las familias los ven y se les avisa por correo.</span></div>
+  <div class="funcion"><strong>Reparaciones</strong><span>La segunda oportunidad del artículo 112: la nota obtenida es la definitiva.</span></div>
+  <div class="funcion"><strong>Boletines, constancias y certificados</strong><span>En PDF, un alumno o la sección entera. Desde la ficha del alumno, la constancia y el boletín salen con un clic.</span></div>
+  <div class="funcion"><strong>Los documentos del ministerio</strong><span>Certificación 31059, certificados y constancias de prosecución, y el Resumen Final de la sección.</span></div>
+  <div class="funcion"><strong>Verificación pública</strong><span>Cada boletín y cada constancia llevan su código y su QR: cualquiera comprueba en línea que el papel es real.</span></div>
+  <div class="funcion"><strong>Listas en Excel</strong><span>Cualquier sección, de cualquier nivel, se baja como una lista bien hecha.</span></div>
+  <div class="funcion"><strong>La rúbrica</strong><span>Los niveles de logro de primaria, con los nombres que el colegio quiera.</span></div>
+  <div class="funcion"><strong>La cobranza de la familia</strong><span>Las cuotas del año; la familia reporta su pago —uno solo para varios hijos— y finanzas lo valida.</span></div>
+  <div class="funcion"><strong>Mensajes a la familia</strong><span>WhatsApp con el número puesto y correo desde el sistema, con registro de qué se envió y cuándo.</span></div>
+  <div class="funcion"><strong>La auditoría</strong><span>Quién hizo qué y cuándo. Sirve para responderle a una familia que pregunta por un cambio de nota.</span></div>
+  <div class="funcion"><strong>Buscar</strong><span>Cualquier alumno, profesor o representante desde cualquier pantalla, sin acentos y palabra por palabra.</span></div>
+</div>
+
+<p class="rotulo">Profesores</p>
+<h2>Desde el teléfono, en el aula</h2>
+<div class="funciones">
+  <div class="funcion"><strong>Su panel</strong><span>Las secciones y áreas que dicta, y lo que tiene pendiente.</span></div>
+  <div class="funcion"><strong>Pasar lista</strong><span>Un toque por alumno: todos empiezan presentes y se marca la excepción.</span></div>
+  <div class="funcion"><strong>El plan de evaluación</strong><span>Evaluaciones con su peso; en primaria, colgadas de las competencias que miden y con sus indicadores. Se copia a la sección hermana o se trae del año pasado.</span></div>
+  <div class="funcion"><strong>La libreta</strong><span>Todos los alumnos y todas las evaluaciones en una tabla, con el promedio al día.</span></div>
+  <div class="funcion"><strong>Cargar notas</strong><span>Pensado para una mano y una conexión mala: cada nota se guarda sola.</span></div>
+  <div class="funcion"><strong>Promedios calculados solos</strong><span>Como lo manda el Reglamento: notas del 1 al 20, promedio simple entre lapsos y el redondeo del artículo 108.</span></div>
+  <div class="funcion"><strong>Educación Inicial</strong><span>Sin notas: una valoración escrita por área y por niño.</span></div>
+  <div class="funcion"><strong>Informes descriptivos</strong><span>Los escribe el profesor guía, en una planilla de toda la sección, y salen en el boletín.</span></div>
+</div>
+
+<p class="rotulo">La familia</p>
+<h2>Desde su teléfono</h2>
+<div class="funciones">
+  <div class="funcion"><strong>El portal del representante</strong><span>Las notas y la asistencia de cada hijo el mismo día, y la comparación con la sección.</span></div>
+  <div class="funcion"><strong>Una sola cuenta para varios hijos</strong><span>Incluso si estudian en colegios distintos: se entra una vez y se elige.</span></div>
+  <div class="funcion"><strong>Boletines</strong><span>Se descargan cuando el colegio cierra el lapso, sin pedirlos en secretaría.</span></div>
+  <div class="funcion"><strong>Reportar un pago</strong><span>Con su referencia y su comprobante, para que el colegio lo valide.</span></div>
+  <div class="funcion"><strong>El portal del alumno</strong><span>Si el colegio le dio correo, el alumno ve sus propias notas.</span></div>
+  <div class="funcion"><strong>Recuperar la contraseña</strong><span>Sin llamar al colegio, para todos los roles.</span></div>
+</div>
+
+<p class="rotulo">Para todos</p>
+<h2>Lo que no se ve y lo hace posible</h2>
+<div class="funciones">
+  <div class="funcion"><strong>Cada colegio, aislado</strong><span>Los datos de un colegio son invisibles para los demás, y eso lo garantiza la base de datos, no la buena fe del programa.</span></div>
+  <div class="funcion"><strong>El año y el nivel de trabajo</strong><span>Arriba se elige el año escolar y el nivel, y todo el sistema muestra solo eso.</span></div>
+  <div class="funcion"><strong>El colegio de muestra</strong><span>demo.sigaeducando.com: un colegio completo, con datos inventados, para conocer SIGA con un clic.</span></div>
+  <div class="funcion"><strong>El manual</strong><span>sigaeducando.com/manual, con una captura por función.</span></div>
+</div>
+
+<div class="cuadro">
+  <strong>Cuánto cuesta.</strong> Registrarse y cargar el colegio es gratis y no
+  vence: alumnos, representantes, profesores, áreas y secciones, sin tope de
+  cantidad ni de tiempo. Calificar, pasar lista y emitir se activan con la
+  suscripción: <strong><%= precio %> $ por alumno inscrito al mes</strong>, con un
+  mínimo de <%= minimo %> $, y con el IVA adentro. Un colegio con la suscripción
+  vencida queda en solo lectura, pero sigue emitiendo constancias: la deuda es del
+  colegio y el perjuicio no puede ser del alumno.
+</div>
+
+<p class="pie">SIGA · Gestión académica para colegios de Venezuela · sigaeducando.com</p>
+</body>
+</html>

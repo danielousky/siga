@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title><%= titulo %></title>
+<style><%= estilo %></style>
+</head>
+<body>
+<%#
+  El contrato modelo de SIGA. Los campos entre corchetes se llenan con cada
+  colegio. El precio y los plazos NO van escritos: salen de `Subscription`.
+
+  Cambió el 13 de octubre de 2026, con las decisiones de Daniel:
+    · mes a mes y sin permanencia, como se paga en «Suscripción»
+    · sin cuota de activación: registrarse y cargar es gratis
+    · el precio por alumno, con el IVA adentro
+    · la escalera —aviso, gracia, solo lectura— en vez de «la mora suspende»
+%>
+<div class="membrete">
+  <span class="membrete-marca">SIGA</span>
+  <span class="membrete-dato">Sistema Integrado de Gestión Académica · sigaeducando.com</span>
+</div>
+
+<h1>Contrato de prestación de servicios</h1>
+
+<p>
+  Entre, por una parte, [NOMBRE DE LA EMPRESA / REGISTRO MERCANTIL], inscrita bajo
+  el RIF [RIF], representada en este acto por [NOMBRE DEL REPRESENTANTE], en adelante
+  «EL PROVEEDOR»; y por la otra, la institución educativa [NOMBRE DEL COLEGIO],
+  inscrita en el MPPE bajo el código DEA [CÓDIGO DEA] y el RIF [RIF DEL COLEGIO],
+  representada por [NOMBRE DEL DIRECTOR O DE LA DIRECTORA], en adelante «LA
+  INSTITUCIÓN», se conviene el siguiente contrato:
+</p>
+
+<div class="clausula">
+  <h2>Primera: objeto</h2>
+  <p>
+    EL PROVEEDOR otorga a LA INSTITUCIÓN una licencia de uso no exclusiva e
+    intransferible, bajo la modalidad de suscripción, del sistema de gestión
+    académica SIGA (Sistema Integrado de Gestión Académica), alojado en internet y
+    accesible desde una computadora o un teléfono. SIGA permite llevar la
+    matrícula, las secciones y el pensum; pasar lista; planificar y calificar
+    según el Reglamento General de la Ley Orgánica de Educación; emitir boletines,
+    constancias y los documentos del MPPE; y dar a las familias acceso a las notas
+    y a la asistencia de sus representados.
+  </p>
+</div>
+
+<div class="clausula">
+  <h2>Segunda: duración</h2>
+  <p>
+    El servicio se contrata mes a mes. Cada pago validado activa el servicio por
+    un mes, y el servicio continúa con el pago del mes siguiente. No hay
+    permanencia mínima: LA INSTITUCIÓN puede dejar de pagar en cualquier momento,
+    con los efectos que describe la cláusula cuarta.
+  </p>
+</div>
+
+<div class="clausula">
+  <h2>Tercera: precio y forma de pago</h2>
+  <ol>
+    <li>
+      <strong>Precio.</strong> El servicio cuesta <%= precio %> dólares de los
+      Estados Unidos (USD) por alumno inscrito al mes, con un mínimo de <%= minimo %>
+      USD mensuales. El precio es final: incluye el Impuesto al Valor Agregado (IVA).
+    </li>
+    <li>
+      <strong>Los alumnos que se cuentan.</strong> Los inscritos en el año escolar
+      en curso el día en que LA INSTITUCIÓN reporta el pago.
+    </li>
+    <li>
+      <strong>Lo que es gratis.</strong> Registrarse y cargar la información del
+      colegio —alumnos, representantes, profesores, áreas de aprendizaje,
+      secciones e inscripciones— no tiene costo ni vencimiento. Calificar, pasar
+      lista, emitir documentos y el acceso de las familias se activan con la
+      suscripción.
+    </li>
+    <li>
+      <strong>Sin cuota de activación.</strong> No se cobra ningún pago inicial, de
+      configuración ni de puesta en marcha.
+    </li>
+    <li>
+      <strong>Medios de pago.</strong> Pago Móvil o transferencia bancaria en
+      bolívares, a la tasa oficial del Banco Central de Venezuela (BCV) del día del
+      pago; o Binance, PayPal o efectivo, en dólares. LA INSTITUCIÓN reporta cada
+      pago desde el sistema, en «Finanzas ▸ Suscripción», y EL PROVEEDOR lo valida.
+    </li>
+    <li>
+      <strong>Precio de cada mes.</strong> Queda fijado al validarse su pago: un
+      cambio posterior del precio no altera los meses ya pagados.
+    </li>
+  </ol>
+</div>
+
+<div class="clausula">
+  <h2>Cuarta: vencimiento y falta de pago</h2>
+  <ol>
+    <li>
+      <%= dias_de_aviso %> días antes del vencimiento, el sistema le avisa a LA
+      INSTITUCIÓN por correo y en pantalla.
+    </li>
+    <li>
+      Al vencer, el servicio sigue funcionando completo durante <%= dias_de_gracia %>
+      días de gracia.
+    </li>
+    <li>
+      Pasados los días de gracia sin un pago, el sistema queda en solo lectura: LA
+      INSTITUCIÓN puede entrar, consultar y descargar toda su información, y seguir
+      emitiendo constancias de estudio, pero no puede cargar información nueva hasta
+      que se valide un pago.
+    </li>
+    <li>Ningún dato se borra por falta de pago.</li>
+  </ol>
+</div>
+
+<div class="clausula">
+  <h2>Quinta: obligaciones de EL PROVEEDOR</h2>
+  <ol>
+    <li>Mantener el sistema en funcionamiento el 99 % del tiempo.</li>
+    <li>Garantizar la seguridad y el respaldo de los datos cargados.</li>
+    <li>
+      Brindar soporte técnico remoto ante fallas del sistema en un plazo no mayor a
+      cuarenta y ocho (48) horas hábiles.
+    </li>
+    <li>
+      Actualizar el sistema conforme a los lineamientos del Ministerio del Poder
+      Popular para la Educación (MPPE), cuando corresponda.
+    </li>
+  </ol>
+</div>
+
+<div class="clausula">
+  <h2>Sexta: propiedad y privacidad de los datos</h2>
+  <p>
+    LA INSTITUCIÓN es la única propietaria de la información que carga: los datos
+    de sus alumnos, representantes y personal, y sus calificaciones. EL PROVEEDOR
+    se compromete a no compartirla, venderla ni usarla para fines ajenos al
+    servicio. La información de cada institución está aislada de la de las demás
+    instituciones que usan SIGA. El manejo de los datos personales se rige por los
+    principios de confidencialidad y de protección de niños, niñas y adolescentes.
+  </p>
+</div>
+
+<div class="clausula">
+  <h2>Séptima: terminación</h2>
+  <p>
+    Cualquiera de las partes puede dar por terminado el contrato en caso de
+    incumplimiento de las cláusulas aquí descritas, y LA INSTITUCIÓN puede además
+    terminarlo dejando de pagar, según la cláusula segunda. En caso de terminación,
+    EL PROVEEDOR entregará a LA INSTITUCIÓN un respaldo en formato Excel o CSV con
+    toda la información que esta haya cargado.
+  </p>
+</div>
+
+<p style="margin-top: 18pt;">
+  En señal de conformidad, se firman dos (02) ejemplares de un mismo tenor y a un
+  solo efecto, en la ciudad de [CIUDAD], a los [DÍA] días del mes de [MES] de [AÑO].
+</p>
+
+<div class="firmas">
+  <div>EL PROVEEDOR</div>
+  <div>LA INSTITUCIÓN</div>
+</div>
+</body>
+</html>

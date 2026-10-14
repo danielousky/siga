@@ -77,9 +77,38 @@ número a mano que hoy coincide pasa en verde.
 ⚠️ Y subirlo **no le cambia la factura a nadie**: cada suscripción guarda su
 `precio_mensual` el día que se abre.
 
-Documentación de referencia (PDF/PNG del proyecto, contrato y diagramas ER) en `references/`
-— ese directorio está en `.gitignore`, los originales `.pages` viven en el directorio padre
-`SIGA/`.
+### 📄 Una única verdad: lo que se entrega sale del repo
+
+Daniel, el 13 de octubre de 2026: *«debemos tener una única verdad de todo»*, y
+sobre el manual y el diagrama ER, *«actualizarlo siempre»*. Hasta ese día el
+contrato, «Aliados», «Qué hace hoy», una copia del manual y los diagramas ER
+vivían en la carpeta madre `SIGA/`, sin nada que los mirara, y los cinco se
+quedaron en los precios, las funciones y el modelo de otros meses.
+
+```
+   EN EL REPO (la fuente)                 SE COPIA A SIGA/ (lo que se entrega)      LO CUIDA
+   docs/comercial/contrato.html.erb       CONTRATO DE PRESTACIÓN DE SERVICIOS.pdf   documentos_comerciales_test
+   docs/comercial/aliados.html.erb        DOCs/SIGA - Aliados.pdf                   ídem
+   docs/comercial/que_hace_hoy.html.erb   DOCs/SIGA - Qué hace hoy.pdf              ídem
+   docs/manual/ (m1…m4)                   DOCs/Manual de SIGA.pdf                   —
+   docs/modelo/ (generado del esquema)    SIGA - Modelo de datos.pdf                erd_del_modelo_test
+```
+
+- `bin/rails comercial:documentos` imprime los tres PDF a `docs/comercial/publicado/`
+  y los copia a la carpeta madre con el nombre que tenían allá.
+  `docs/manual/a_pdf.sh` hace lo mismo con el manual, y
+  `bin/rails modelo:documentos` con el diagrama.
+- ⚠️ **El precio y los plazos no se escriben en las plantillas**: salen de
+  `Subscription`, como en la portada. El test los cambia por unos que no existen
+  y exige que los documentos digan ESOS.
+- ⚠️ **Una migración sin `bin/rails modelo:documentos` pone el CI en rojo**:
+  `docs/modelo/diagrama-er.md` tiene que ser el diagrama de hoy. En GitHub se ve
+  dibujado.
+- La carpeta madre recibe COPIAS. Un `.pages` o un PDF editado allá es una
+  segunda verdad que se va a quedar atrás.
+
+En `references/` (ignorado por git) quedan el planteamiento original del negocio,
+de enero —historia: ya no describe SIGA—, y las notas privadas del servidor.
 
 ## Common Commands
 
@@ -1955,5 +1984,6 @@ texto. Por eso cada cosa que haya que hacer allá se escribe como tarea.
 `env` del contenedor parte el valor en el primer espacio. Se ponen con
 `config:set --no-restart`, se corre, y se quitan.
 
-Backlog completo en `BACKLOG.md`. Diagrama del modelo actual y objetivo:
-https://claude.ai/code/artifact/0e167ba9-8e21-4264-ac29-f7a2d9fe5523
+Backlog completo en `BACKLOG.md`. El diagrama del modelo, al día con el esquema:
+`docs/modelo/diagrama-er.md` (y su PDF). El artifact que estaba enlazado aquí es
+de agosto y quedó como historia.

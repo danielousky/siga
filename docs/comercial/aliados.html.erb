@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title><%= titulo %></title>
+<style><%= estilo %></style>
+</head>
+<body>
+<%#
+  El programa de aliados: profesores y personal de colegio que presentan SIGA y
+  cobran una comisión. Las reglas —25, 30 o 35 % durante doce mensualidades— son
+  las de Daniel (2 de septiembre de 2026); los montos salen del precio de hoy.
+
+  Cambió el 13 de octubre de 2026: el precio pasó a ser por alumno —ya no hay
+  planes Inicial, Estándar y Grande—, la demostración es el colegio de muestra,
+  el registro no tiene un «código de aliado», y el documento habla de usted,
+  como la app (decisión de Daniel).
+-%>
+<% alumnos_promedio = 360 -%>
+<div class="membrete">
+  <span class="membrete-marca">SIGA</span>
+  <span class="membrete-dato">Programa de aliados · actualizado el <%= hoy %></span>
+</div>
+
+<h1>Presente SIGA a un colegio y cobre doce mensualidades.</h1>
+<p class="bajada">
+  Un programa para profesores y personal administrativo que conocen los colegios
+  por dentro y saben exactamente lo que cuesta cerrar un lapso a mano.
+</p>
+
+<p class="rotulo">Qué es SIGA</p>
+<h2>El sistema de gestión académica que el colegio abre desde el teléfono</h2>
+<p>
+  Matrícula, secciones, pensum, asistencia y notas del 1 al 20, con los tres
+  lapsos y el cálculo del anual como lo manda el Reglamento de la LOE. El profesor
+  carga sus notas desde su casa, la familia las consulta el mismo día, y el
+  boletín sale en un clic en vez de en tres días de secretaría.
+</p>
+<p>
+  La mayoría de los colegios privados del país sigue con un programa instalado en
+  una computadora de la oficina —o con hojas de cálculo—. SIGA es lo mismo que ya
+  hacen, pero accesible desde donde estén.
+</p>
+
+<p class="rotulo">Por qué usted</p>
+<h2>Una presentación suya vale más que cualquier anuncio</h2>
+<p>
+  A un director no lo convence una publicidad: lo convence alguien que ya vivió
+  el cierre de un año escolar y le dice que esto funciona. Usted tiene lo que
+  nosotros no tenemos: la conversación, la confianza y el argumento en el idioma
+  correcto.
+</p>
+<div class="cuadro">
+  «Cuénteme cómo cerró el último lapso» abre más puertas que cualquier folleto.
+  Si lo que sigue es una queja, ahí hay un colegio para SIGA.
+</div>
+
+<p class="rotulo">Su comisión</p>
+<h2>El 25, 30 o 35 % de lo que paga cada colegio, durante doce mensualidades</h2>
+<p>
+  El porcentaje depende del tamaño de su cartera, y sube para todos sus colegios
+  activos en el momento en que alcanza el siguiente nivel, no solo para los que
+  traiga después.
+</p>
+<table>
+  <tr><th>Colegios activos</th><th class="numero">Comisión</th><th></th></tr>
+  <tr><td>1 o 2</td><td class="numero">25 %</td><td>El primer colegio ya paga.</td></tr>
+  <tr><td>3 a 5</td><td class="numero">30 %</td><td>Deja de ser casualidad.</td></tr>
+  <tr><td>6 o más</td><td class="numero">35 %</td><td>Y conversamos algo más grande.</td></tr>
+</table>
+<p>
+  Los doce meses se cuentan por mensualidades efectivamente pagadas por el
+  colegio. Si el colegio se atrasa un mes, usted no pierde ese mes: se corre.
+</p>
+<div class="cuadro cuadro--verde">
+  Con tres colegios de <%= alumnos_promedio %> alumnos —el colegio venezolano
+  promedio—, cada uno paga <%= cifra(mensualidad(alumnos_promedio)) %> $ al mes. Al
+  30 %, usted cobra
+  <strong><%= cifra(comision(alumnos_promedio, 30) * 3) %> $ cada mes</strong> y
+  <strong><%= cifra(comision(alumnos_promedio, 30) * 3 * 12) %> $ en los doce meses</strong>.
+  Se le paga en bolívares.
+</div>
+
+<p class="rotulo">Sobre qué cobra</p>
+<h2>El colegio paga por alumno</h2>
+<p>
+  SIGA cuesta <%= precio %> $ por alumno inscrito al mes, con un mínimo de
+  <%= minimo %> $, y con el IVA adentro: lo que se lee es lo que se paga. Su
+  comisión sale de esa mensualidad, sin descontarle nada al colegio.
+</p>
+<table>
+  <tr>
+    <th>Alumnos inscritos</th><th class="numero">El colegio paga al mes</th>
+    <th class="numero">25 %</th><th class="numero">30 %</th><th class="numero">35 %</th>
+  </tr>
+  <% [ 100, 200, alumnos_promedio, 600, 800 ].each do |alumnos| -%>
+  <tr>
+    <td><%= alumnos %></td>
+    <td class="numero"><%= cifra(mensualidad(alumnos)) %> $</td>
+    <% [ 25, 30, 35 ].each do |porcentaje| -%>
+    <td class="numero"><%= cifra(comision(alumnos, porcentaje)) %> $</td>
+    <% end -%>
+  </tr>
+  <% end -%>
+  <tr><td>Más de 800, o una red de colegios</td><td colspan="4">Se acuerda caso por caso.</td></tr>
+</table>
+<p>
+  Un colegio que solo carga su información —registrarse y cargar es gratis—
+  todavía no paga, así que todavía no genera comisión. El reloj arranca con su
+  primera mensualidad.
+</p>
+
+<p class="rotulo">Cómo funciona</p>
+<h2>Cuatro pasos, y ninguno le cuesta un bolívar</h2>
+<ol>
+  <li>
+    <strong>Nos avisa a qué colegio va.</strong> Un mensaje con el nombre del
+    colegio y su contacto, antes de la presentación. Eso reserva ese colegio a su
+    nombre por 90 días.
+  </li>
+  <li>
+    <strong>Presenta SIGA.</strong> Con el colegio de muestra,
+    demo.sigaeducando.com: un colegio completo, con datos inventados, al que se
+    entra con un clic como director, profesor o representante. Si prefiere, la
+    reunión la hacemos juntos.
+  </li>
+  <li>
+    <strong>El colegio se registra.</strong> En sigaeducando.com, solo y en un
+    minuto. Nosotros lo acompañamos en la carga de la matrícula, el entrenamiento
+    y el soporte.
+  </li>
+  <li>
+    <strong>Usted cobra todos los meses.</strong> Desde la primera mensualidad que
+    el colegio pague, y por doce. Le enviamos un resumen con sus colegios, lo que
+    pagó cada uno y lo que le corresponde.
+  </li>
+</ol>
+
+<p class="rotulo">Las reglas, claras</p>
+<h2>Lo que acordamos por escrito</h2>
+<h3>Cómo se sabe que el colegio es suyo</h3>
+<p>Por el aviso previo. Si dos aliados presentan el mismo colegio, vale el primer aviso, y se lo decimos a los dos.</p>
+<h3>Cuándo empieza a correr</h3>
+<p>Con la primera mensualidad pagada, no con el registro. Un colegio que se registra y nunca paga no genera comisión para nadie.</p>
+<h3>Si el colegio se va antes de los doce meses</h3>
+<p>
+  La comisión termina ahí. Usted cobra las mensualidades que el colegio alcanzó a
+  pagar y nada más: no hay nada que devolver, pero tampoco sigue corriendo. Por
+  eso conviene presentar SIGA a colegios a los que de verdad les sirva.
+</p>
+<h3>Si el colegio crece</h3>
+<p>La comisión se calcula sobre lo que pague ese mes: con más alumnos inscritos, el colegio paga más y usted cobra más.</p>
+<h3>Cómo le pagamos</h3>
+<p>Mensualmente, dentro de los primeros cinco días del mes siguiente, por transferencia o Pago Móvil, en bolívares, a la tasa BCV del día en que se hace el pago.</p>
+<h3>Cuándo termina el acuerdo</h3>
+<p>La comisión de cada colegio dura doce mensualidades. El acuerdo entre nosotros no vence: si trae otro colegio el año que viene, arranca otro ciclo de doce.</p>
+
+<p class="rotulo">Lo que no es</p>
+<h2>Para que nadie se lleve una sorpresa</h2>
+<ul>
+  <li>No es un empleo ni una relación laboral. No tiene metas, ni horario, ni jefe.</li>
+  <li>
+    No habla en nombre de SIGA: no puede comprometer precios, plazos ni funciones
+    que no existan. Si un colegio le pregunta algo que no sabe, usted nos pregunta y
+    le respondemos.
+  </li>
+  <li>
+    No ve los datos de ningún colegio. Cada institución está aislada dentro del
+    sistema, y eso incluye a los aliados. Su resumen dice qué colegio pagó y cuánto
+    le toca, nada más.
+  </li>
+  <li>No hay que comprar nada, ni pagar una inscripción, ni cumplir un mínimo para empezar.</li>
+</ul>
+
+<p class="rotulo">Cómo empezar</p>
+<h2>Con una conversación de veinte minutos</h2>
+<p>
+  Le mostramos el sistema completo con el colegio de muestra, y usted decide si le
+  interesa. No hay que firmar nada para ver.
+</p>
+
+<p class="pie">SIGA · Sistema Integrado de Gestión Académica · sigaeducando.com</p>
+</body>
+</html>
