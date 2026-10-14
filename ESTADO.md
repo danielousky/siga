@@ -1,5 +1,62 @@
 # 🔖 Estado de avance — actualizado 14 de octubre de 2026
 
+## ✅ SIGA habla de usted, lo que se entrega sale del repo, y la barra cabe — 1.20.3, EN PRODUCCIÓN desde el 14 de octubre
+
+Lo pidió Daniel el 13 de octubre, después de la 1.20.1: el usted en TODOS los
+textos, y «una única verdad» para lo que se entrega. La barra salió de paso,
+midiendo el mapa de evaluaciones a 1.024 px. El «despliega» lo dio el 14.
+
+```
+   11:47  respaldo de producción, abierto y contado    0 colegios · 2 personas · 15.954 planteles
+          → SIGA/respaldos/siga-prod-20261014-1147.dump
+   11:49  PRs #72 (1.20.2), #73 (los documentos) y #74 (1.20.3)
+   12:04  #72 en verde; #73 y #74 en rojo por dos fallas intermitentes (abajo): relanzados
+   12:08  #72 mezclado; tag v1.20.2
+   12:22  #73 y #74 en verde y mezclados; tag v1.20.3
+   12:30  la muestra en 1.20.3
+   12:32  producción en 1.20.3 — sin migraciones; `rls:verificar` en verde
+   12:38  el CI de `main`, sobre el árbol final, en verde
+```
+
+```
+   1.20.2   un centenar de textos que tuteaban, y `la_app_habla_de_usted_test`
+   (#73)    el contrato, «Aliados» y «Qué hace hoy» en docs/comercial/; el diagrama
+            ER en docs/modelo/; el manual con capturas de hoy; todo copiado a SIGA/
+   1.20.3   la barra cabe de 641 a 1.350 px; el botón «Buscar ⌘K» se ve (era blanco
+            sobre blanco); lo que queda en su icono lleva globo y nombre para el
+            lector de pantalla
+```
+
+Lo que decidió Daniel para los documentos: el contrato es **mes a mes** y **sin
+cuota de activación**; «Aliados» habla de **usted**, como la app; «borrar» quería
+decir **actualizar**: el manual y el diagrama ER, siempre al día.
+
+Lo reemplazado se mandó a la Papelera de macOS (los PDF de septiembre, el `.pages`
+del contrato, la copia v1 del manual, los diagramas ER de febrero). **Siguen
+viejos en la carpeta madre, y son de Daniel:**
+
+- Los **cuatro videos** del 12 de septiembre: muestran las bandas de 30/60/90 $,
+  la portada vieja y texto en inglés colado. No se pueden actualizar desde aquí.
+- ⚠️ El contrato promete **«garantizar el respaldo de los datos»** y no hay un
+  respaldo automático (`MOR-106`): solo los que se hacen a mano antes de cada
+  despliegue. Daniel, el 14 de octubre: el automático, **«más adelante»**.
+- `DOCs/matricula-u-e-n-luis-hurtado-higuera.xlsx`: la matrícula de un colegio
+  real, con datos de alumnos.
+
+### Dos fallas intermitentes del CI de GitHub (14 de octubre)
+
+Ninguna en lo que cambiaron esos PRs: las dos pasaron al relanzarlas, y cada
+una pasó en las otras corridas con el mismo código.
+
+- `formulario_enviable_test` (el registro) no llegó a `/arranque/listo` en 20 s.
+  Pasó en el #72, en el #73 y en tres `bin/ci` locales.
+- **El humo del #73**: 1 de los 51 trabajos que deja la siembra de desarrollo
+  —`ActiveStorage::AnalyzeJob`— falló con `FileNotFoundError`. En el #72, los 51
+  sin falla. Sin causa encontrada: la siembra adjunta cada archivo una sola vez
+  y no borra ni reemplaza ninguno, y nada en el CI toca `storage/`. Producción y
+  la muestra tenían 0 fallidos. Si vuelve, `SolidQueue::FailedExecution` guarda
+  los argumentos: mirar qué blob era y quién lo creó.
+
 ## ✅ Lo que vio Daniel en la muestra — 1.20.1, EN PRODUCCIÓN desde el 13 de octubre
 
 El 12 y el 13 de octubre Daniel recorrió `demo.sigaeducando.com` y mandó ocho
@@ -57,48 +114,13 @@ hay fechas; si no, en el último con evaluaciones. En la muestra: 18 secciones,
 ### Lo que falta de esa ronda
 
 - ~~Las capturas del manual son de una siembra vieja~~ → rehechas las 54 el 14
-  de octubre, en `docs/una-unica-verdad`: `capturar.rb` ya no lleva ids
-  escritos, los busca por nombre (`docs/manual/ids.rb`).
+  de octubre (#73): `capturar.rb` ya no lleva ids escritos, los busca por
+  nombre (`docs/manual/ids.rb`).
 - ~~A 1024 px de ancho, toda pantalla se corre de lado~~ → arreglado en la
-  1.20.3 (rama `fix/la-barra-a-1024`, en local): la barra cede en escalones
-  hasta 1.350 px, y de paso el botón «Buscar ⌘K» —blanco sobre blanco desde
-  MOR-184— se ve. `desborde_en_el_telefono_test` mide ahora también a 1.024.
+  1.20.3, en producción desde el 14 (arriba).
 - Queda, y viene de antes: **entre 601 y 900 px, las tablas anchas** (profesores,
   representantes) se salen de la pantalla, porque se vuelven desplazables recién
   a 600 px. No lo toqué: cambia cómo se ven todas las tablas a ese ancho.
-
-## 🟡 SIGA habla de usted, y lo que se entrega sale del repo — EN LOCAL
-
-Lo pidió Daniel el 13 de octubre, después del despliegue de la 1.20.1. Son tres
-ramas apiladas sobre `main`, en este orden y con `bin/ci` en verde. **No están en
-GitHub ni desplegadas.**
-
-```
-   fix/la-app-habla-de-usted   1.20.2   un centenar de textos que tuteaban, y el test
-                                         `la_app_habla_de_usted_test` para que no vuelvan
-   docs/una-unica-verdad       —        el contrato, «Aliados» y «Qué hace hoy» en
-                                         docs/comercial/; el diagrama ER en docs/modelo/;
-                                         el manual con capturas de hoy; el manual y el ER
-                                         copiados a la carpeta madre
-   fix/la-barra-a-1024         1.20.3   la barra cabe de 641 a 1.350 px, y el botón
-                                         «Buscar ⌘K» se ve (era blanco sobre blanco)
-```
-
-Lo que decidió Daniel para los documentos: el contrato es **mes a mes** y **sin
-cuota de activación**; «Aliados» habla de **usted**, como la app; «borrar» quería
-decir **actualizar**: el manual y el diagrama ER, siempre al día.
-
-Lo reemplazado se mandó a la Papelera de macOS (los PDF de septiembre, el `.pages`
-del contrato, la copia v1 del manual, los diagramas ER de febrero). **Siguen
-viejos en la carpeta madre, y son de Daniel:**
-
-- Los **cuatro videos** del 12 de septiembre: muestran las bandas de 30/60/90 $,
-  la portada vieja y texto en inglés colado. No se pueden actualizar desde aquí.
-- ⚠️ El contrato promete **«garantizar el respaldo de los datos»** y no hay un
-  respaldo automático (`MOR-106`): solo los que se hacen a mano antes de cada
-  despliegue.
-- `DOCs/matricula-u-e-n-luis-hurtado-higuera.xlsx`: la matrícula de un colegio
-  real, con datos de alumnos.
 
 ## ✅ Del registro al cobro — EN PRODUCCIÓN desde el 13 de octubre (1.19.1)
 
