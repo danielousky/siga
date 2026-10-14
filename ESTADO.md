@@ -61,8 +61,36 @@ hay fechas; si no, en el último con evaluaciones. En la muestra: 18 secciones,
 - **A 1024 px de ancho, toda pantalla se corre de lado unos 130 px**: el botón
   «Cerrar sesión» de la barra de arriba se sale. Viene de antes; lo encontré
   midiendo el mapa. El test del teléfono mide a 390 y 493 px, y ahí no pasa.
-- Unos 25 textos de la app tutean («Elige un alumno…», «No tienes permiso…»).
-  Pasarlos a usted es un PR aparte.
+
+## 🟡 SIGA habla de usted, y lo que se entrega sale del repo — EN LOCAL
+
+Lo pidió Daniel el 13 de octubre, después del despliegue de la 1.20.1. Son dos
+ramas apiladas sobre `main`, con los tests en verde. **No están en GitHub ni
+desplegadas.**
+
+```
+   fix/la-app-habla-de-usted   1.20.2   un centenar de textos que tuteaban, y el test
+                                         `la_app_habla_de_usted_test` para que no vuelvan
+   docs/una-unica-verdad       —        el contrato, «Aliados» y «Qué hace hoy» en
+                                         docs/comercial/; el diagrama ER en docs/modelo/;
+                                         el manual y el ER copiados a la carpeta madre
+```
+
+Lo que decidió Daniel para los documentos: el contrato es **mes a mes** y **sin
+cuota de activación**; «Aliados» habla de **usted**, como la app; «borrar» quería
+decir **actualizar**: el manual y el diagrama ER, siempre al día.
+
+Lo reemplazado se mandó a la Papelera de macOS (los PDF de septiembre, el `.pages`
+del contrato, la copia v1 del manual, los diagramas ER de febrero). **Siguen
+viejos en la carpeta madre, y son de Daniel:**
+
+- Los **cuatro videos** del 12 de septiembre: muestran las bandas de 30/60/90 $,
+  la portada vieja y texto en inglés colado. No se pueden actualizar desde aquí.
+- ⚠️ El contrato promete **«garantizar el respaldo de los datos»** y no hay un
+  respaldo automático (`MOR-106`): solo los que se hacen a mano antes de cada
+  despliegue.
+- `DOCs/matricula-u-e-n-luis-hurtado-higuera.xlsx`: la matrícula de un colegio
+  real, con datos de alumnos.
 
 ## ✅ Del registro al cobro — EN PRODUCCIÓN desde el 13 de octubre (1.19.1)
 

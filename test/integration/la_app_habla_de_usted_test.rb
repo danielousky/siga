@@ -19,15 +19,7 @@ require "test_helper"
 # puede ser «la madre toca» y «Entra con su correo», «el profesor entra»: esas
 # no las puede juzgar una expresión regular, y por eso no están en la lista.
 class LaAppHablaDeUstedTest < ActiveSupport::TestCase
-  TUTEO = /
-    \b(?:tú|tu|tus|te|ti|contigo|tuyo|tuya|tuyos|tuyas)\b
-    | \b(?:tienes|puedes|quieres|debes|estás|eres|vas|haces|sabes|necesitas|hayas|podrás|tendrás|verás|
-           recibirás|puedas|tengas|estés|seas|dictas|escribes|crees|imaginas|digas|elegiste|escribiste|
-           olvidaste|marcaste|entraste|iniciaste|copiaste|dictaste|has\ (?:iniciado|sido|llegado|actualizado))\b
-    | \b(?:pídele|escríbenos|comunícate|regístrate|asegúrate|fíjate|notificarte|avisarte|contactarte|
-           ayudarte|verte|dime|dinos)\b
-    | (?:^\s*|[.:¿¡"'>«]\s*|%[\w.\#-]+\s+)(?:Elige|Revisa|Agrega|Contacta|Recuerda|Escoge|Selecciona|Ingresa|Introduce|Verifica)\b
-  /xi
+  TUTEO = Tuteo::PATRON
 
   test "ninguna pantalla tutea" do
     assert_sin_tuteo(Dir[Rails.root.join("app/views/**/*.{haml,erb}")]) { |archivo| texto_de_la_vista(archivo) }

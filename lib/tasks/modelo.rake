@@ -303,4 +303,59 @@ namespace :modelo do
 
     puts "```"
   end
+
+  # Los documentos del modelo, ESCRITOS en el repo y no solo impresos en la
+  # consola (13 de octubre de 2026). Daniel, sobre los diagramas ER de febrero
+  # que vivían en la carpeta madre: *«el diagrama ER, actualizarlo siempre»*.
+  #
+  #     docs/modelo/diagrama-er.md    el Mermaid, que GitHub dibuja al abrirlo
+  #     docs/modelo/mapa.md           el inventario, columna por columna
+  #     docs/modelo/diagrama-er.pdf   el mismo diagrama, para mirarlo o mandarlo
+  #
+  # ⚠️ «Siempre» lo cuida `erd_del_modelo_test`: si cambia `structure.sql` y
+  # `diagrama-er.md` no se regenera, el CI se pone en rojo y dice cómo
+  # arreglarlo. El PDF se copia además a la carpeta madre de SIGA, donde estaban
+  # los de febrero, si esa carpeta existe.
+  desc "Regenera docs/modelo/ —el diagrama, el mapa y el PDF— desde structure.sql"
+  task documentos: :environment do
+    carpeta = Rails.root.join("docs/modelo")
+    FileUtils.mkdir_p(carpeta)
+
+    salida_de = lambda do |tarea|
+      captura = StringIO.new
+      $stdout = captura
+      Rake::Task[tarea].reenable
+      Rake::Task[tarea].invoke
+      captura.string
+    ensure
+      $stdout = STDOUT
+    end
+
+    diagrama = salida_de.call("modelo:erd")
+    File.write(carpeta.join("diagrama-er.md"), diagrama)
+    File.write(carpeta.join("mapa.md"), salida_de.call("modelo:mapa"))
+    puts "✓ docs/modelo/diagrama-er.md y mapa.md"
+
+    pdf = DocumentoImpreso.desde_html(<<~HTML, carpeta.join("diagrama-er.pdf"), espera: 20_000)
+      <!doctype html><html lang="es"><head><meta charset="utf-8">
+      <title>SIGA · Modelo de datos</title>
+      <style>
+        @page { size: 1189mm 560mm; margin: 12mm; }
+        body { font-family: -apple-system, "Segoe UI", sans-serif; color: #2c2c2c; margin: 0; }
+        h1 { font-size: 28px; margin: 0 0 4px; }
+        p { margin: 0 0 18px; color: #5a5a5a; font-size: 15px; }
+        .mermaid svg { max-width: 100% !important; height: auto; }
+      </style></head><body>
+      <h1>SIGA · Modelo de datos</h1>
+      <p>Generado desde <code>db/structure.sql</code> con <code>bin/rails modelo:documentos</code>, el #{I18n.l(Date.current, format: :long)}.</p>
+      <pre class="mermaid">#{CGI.escapeHTML(diagrama[/```mermaid\n(.*)\n```/m, 1])}</pre>
+      <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+      <script>mermaid.initialize({ startOnLoad: true, theme: "neutral", er: { useMaxWidth: true } });</script>
+      </body></html>
+    HTML
+    puts "✓ #{pdf.relative_path_from(Rails.root)}"
+
+    copia = DocumentoImpreso.copiar_a_la_carpeta_madre(pdf, "SIGA - Modelo de datos.pdf")
+    puts "✓ copiado a #{copia}" if copia
+  end
 end

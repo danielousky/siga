@@ -70,5 +70,8 @@ lo registró y no por el nombre del colegio: el nombre sale impreso en tres
 capturas, así que tiene que parecer real — y un nombre creíble puede ser el de
 alguien.
 
-⚠️ **Los ids de `capturar.rb` son los de los seeds** —`PRIM, INI, MED, ACT, INS,
-ALU, REP`— y cambian con cada `db:seed`. Si una captura sale en blanco, es eso.
+⚠️ **Los ids de las capturas se buscan por NOMBRE en la siembra de hoy**
+(`ids.rb`, que `capturar.rb` corre al empezar). Estuvieron escritos a mano y
+cambiaban con cada `db:seed`: el 13 de octubre de 2026 no existía ninguno, y el
+manual seguía mostrando una siembra de septiembre. Los personajes son los de la
+muestra: el director, García y Andreína Suárez.

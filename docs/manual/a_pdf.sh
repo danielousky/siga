@@ -16,3 +16,15 @@ test -x "$CHROME" || { echo "No está Chrome en $CHROME"; exit 1; }
   "file://$PWD/manual_de_siga.html" 2>/dev/null
 
 ls -lh manual_de_siga.pdf | awk '{print "✓ " $9 " · " $5}'
+
+# ⚠️ Y el PDF sale a los DOS lugares donde se lee, en el mismo paso. Se copiaba a
+# mano a `publicado/`, y en la carpeta madre vivía una copia del 12 de
+# septiembre que nadie actualizaba. Daniel, el 13 de octubre de 2026: *«el
+# manual… actualizarlo siempre»*.
+cp manual_de_siga.pdf publicado/manual-de-siga.pdf
+echo "✓ publicado/manual-de-siga.pdf"
+MADRE="../../../../DOCs"
+if [ -d "$MADRE" ]; then
+  cp manual_de_siga.pdf "$MADRE/Manual de SIGA.pdf"
+  echo "✓ SIGA/DOCs/Manual de SIGA.pdf"
+fi

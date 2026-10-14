@@ -1,5 +1,5 @@
 # Captura las pantallas de SIGA para el manual.
-require "capybara"; require "capybara/dsl"; require "selenium-webdriver"; require "fileutils"
+require "capybara"; require "capybara/dsl"; require "selenium-webdriver"; require "fileutils"; require "json"
 
 # Las PNG crudas. `optimizar.sh` las pasa a JPEG en opt/, que es de donde lee armar.py.
 M = File.expand_path("png", __dir__)
@@ -60,10 +60,18 @@ ensure
   page.driver.browser.manage.window.resize_to(1280, ALTO_NORMAL) if alto != ALTO_NORMAL
 end
 
-PRIM, INI, MED, ACT, INS, ALU, REP = 76, 73, 85, 571, 717, 675, 11
-ANIO_NUEVO = 107   # 2026-2027 — el año al que se COPIA y al que se promueve
-SIN_PLAN   = 80    # 3er Grado A · Ciencias Naturales, todavía sin competencias
-PROF, PROFINI = "maestra.ochoa@bolivar.edu", "maestra.colmenares@bolivar.edu"
+# ⚠️ Los ids salen de la siembra de HOY (`ids.rb`, por nombre). Estuvieron
+# escritos a mano —`PRIM, INI, MED = 76, 73, 85`— y cambiaban con cada `db:seed`:
+# el 13 de octubre de 2026 ya no existía ninguno.
+# ⚠️ Con un arreglo y no con comillas invertidas: la ruta del proyecto tiene un
+# espacio («Personal Info») y la shell la partía en dos.
+IDS = JSON.parse(IO.popen([ File.expand_path("../../bin/rails", __dir__), "runner",
+                            File.expand_path("ids.rb", __dir__) ], &:read).lines.last)
+PRIM, INI, MED, ACT, INS, ALU, REP = IDS.values_at("prim", "inicial", "media", "actividad", "inscripcion", "alumno", "representante")
+AREA, ANIO, LAPSO_VACIO = IDS.values_at("area", "anio", "lapso_vacio")
+# García, la puerta del profesor en la muestra: guía de la sección y además
+# dicta su Matemática, así que sale en «Soy guía de» y en «Dicto».
+PROF, PROFINI = "profesor.bolivar@mail.com", IDS["profesora_de_inicial"]
 
 puts "── público"
 foto("registro", "/registrarse")
@@ -145,8 +153,8 @@ foto("rubrica", "/rubrica")
 foto("auditoria", "/dashboards/actividad")
 foto("cuenta", "/cuenta")
 foto("buscar", "/alumnos?q=lopez")
-foto("copiar_estructura", "/academic_periods/#{ANIO_NUEVO}/copiar")
-foto("promover", "/academic_periods/#{ANIO_NUEVO}/promover")
+foto("copiar_estructura", "/academic_periods/#{ANIO}/copiar")
+foto("promover", "/academic_periods/#{ANIO}/promover")
 foto("asistencia_reporte", "/asistencia/reporte")
 foto("carga_de_notas", "/carga-de-notas")
 foto("informes", "/secciones/#{PRIM}/informes")
@@ -156,19 +164,19 @@ foto("resumen_final", "/secciones/#{MED}/alumnos")
 puts "── profesor"
 entrar(PROF)
 foto("profe_panel", "/dashboards/profesor")
-foto("profe_libreta", "/secciones/#{PRIM}?area=241")
-foto("profe_planificar", "/secciones/#{PRIM}/planificar?area=241")
+foto("profe_libreta", "/secciones/#{PRIM}?area=#{AREA}")
+foto("profe_planificar", "/secciones/#{PRIM}/planificar?area=#{AREA}")
 foto("profe_notas", "/evaluaciones/#{ACT}/notas")
 foto("profe_asistencia", "/secciones/#{PRIM}/asistencia")
 foto("profe_ficha_alumno", "/secciones/#{PRIM}/alumnos/#{INS}")
 
 # El plan entero no cabe en 900 px: la competencia, sus indicadores y las
 # evaluaciones que la miden son lo que hay que enseñar, y quedaban cortadas.
-foto("plan_competencias", "/secciones/#{PRIM}/planificar?area=241", alto: 1150)
+foto("plan_competencias", "/secciones/#{PRIM}/planificar?area=#{AREA}", alto: 1150)
 
-# Una sección SIN plan: el estado vacío explica qué es una competencia y qué es
-# un indicador, que es justo lo que hay que enseñar.
-foto("plan_vacio", "/secciones/#{SIN_PLAN}/planificar?area=241")
+# Un lapso SIN plan —el que todavía no empieza—: el estado vacío explica qué es
+# una competencia y qué es un indicador, que es justo lo que hay que enseñar.
+foto("plan_vacio", "/secciones/#{PRIM}/planificar?area=#{AREA}&lapso=#{LAPSO_VACIO}")
 
 puts "── Educación Inicial"
 entrar(PROFINI)
