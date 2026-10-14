@@ -26,7 +26,12 @@ require "application_system_test_case"
 # la página entera se arrastra de lado. Eso es lo que se mide.
 class DesbordeEnElTelefonoTest < ApplicationSystemTestCase
   # 390 px es un iPhone; 493 es el ancho exacto donde Daniel lo vio.
-  ANCHOS = [ 390, 493 ].freeze
+  #
+  # ⚠️ Y 1.024, una laptop chica o una tableta acostada (14 de octubre de 2026).
+  # Entre el teléfono —las reglas empiezan a 640— y la pantalla grande, la barra
+  # no cedía nada: de 641 a 1.350 px TODAS las pantallas se corrían de lado,
+  # hasta 500 px, y este test no lo veía porque solo medía teléfonos.
+  ANCHOS = [ 390, 493, 1024 ].freeze
 
   # ⚠️ La ventana se DEVUELVE al terminar, y no es limpieza de cortesía.
   #
@@ -90,10 +95,17 @@ class DesbordeEnElTelefonoTest < ApplicationSystemTestCase
           }
           return false
         }
+        // ⚠️ Dice QUÉ se sale, no solo cuánto (14 de octubre de 2026): «se pasa
+        // 15px» en una sola corrida del CI no alcanzaba para saber si era la
+        // barra o una tabla.
+        const quien = e => e.tagName.toLowerCase() + (e.className && e.className.baseVal === undefined
+          ? "." + String(e.className).trim().split(/\\s+/).slice(0, 2).join(".") : "")
         const fuera = [...document.querySelectorAll("*")]
           .filter(e => e.getBoundingClientRect().right > limite + 1 && !dentroDeUnScroll(e))
-          .map(e => Math.round(e.getBoundingClientRect().right - limite))
-        return fuera.length ? Math.max(...fuera) : 0
+          .map(e => [Math.round(e.getBoundingClientRect().right - limite), quien(e)])
+        if (!fuera.length) return 0
+        const peor = fuera.reduce((a, b) => (b[0] > a[0] ? b : a))
+        return `${peor[0]}px (${peor[1]})`
       })()
     JS
   end
@@ -142,7 +154,7 @@ class DesbordeEnElTelefonoTest < ApplicationSystemTestCase
       PANTALLAS.filter_map do |helper|
         ruta = send(helper)
         sobra = desborde_en(ruta, ancho)
-        "#{ruta} a #{ancho}px se pasa #{sobra}px" if sobra.to_i > 0
+        "#{ruta} a #{ancho}px se pasa #{sobra}" if sobra.to_i > 0
       end
     end
 

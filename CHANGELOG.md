@@ -23,6 +23,19 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.20.3 — 14 de octubre de 2026
+
+- **El botón «Buscar» de la barra de arriba se ve.** Tenía letra blanca sobre
+  fondo blanco: funcionaba, pero no se veía. Ahora se ve en todas las pantallas,
+  con su atajo ⌘K.
+- **En una laptop o una tableta, la pantalla ya no se corre de lado.** Entre
+  los anchos de un teléfono y de una pantalla grande, la barra de arriba era más
+  ancha que la ventana. Ahora va guardando lo que menos se extraña —el municipio
+  del colegio, la palabra «Cerrar sesión», el nombre de quien entró— hasta que
+  cabe.
+
+---
+
 ## 1.20.2 — 13 de octubre de 2026
 
 - **SIGA le habla de usted en todas sus pantallas.** Quedaban un centenar de
