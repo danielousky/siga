@@ -62,7 +62,14 @@
       -# la inicial conserva lo único que ese enlace hace falta que haga, que es
       -# llevar al perfil. Los 50 px se los lleva «Cerrar sesión», que sí hay que
       -# poder encontrar.
-      = link_to edit_user_registration_path, class: "user-info" do
+      -#
+      -# ⚠️ Con `aria-label` y `data-tooltip` (14 de octubre de 2026): desde que
+      -# la barra cede en una laptop, la inicial sola también se ve con ratón, y
+      -# con el nombre escondido el enlace se quedaba sin nombre para el lector
+      -# de pantalla. El globo solo aparece cuando queda la inicial (system.css).
+      = link_to edit_user_registration_path, class: "user-info",
+                aria: { label: current_user.first_name },
+                data: { tooltip: "Mi cuenta", tooltip_izquierda: true } do
         %span.user-info-nombre= current_user.first_name
         %span.user-info-inicial{ "aria-hidden": true }= current_user.first_name.first
       -# ⚠️ El icono SIEMPRE, y el texto solo cuando hay ancho (MOR-223).
@@ -70,8 +77,10 @@
       -# En el teléfono el botón se reducía a nada y quedaba solo el nombre, que
       -# enlaza al perfil: había que entrar a la propia ficha para encontrar la
       -# salida. Daniel: *«en el mobile display no se visualiza el cerrar
-      -# sesión»*. Ahora se encoge a su icono, como el buscador.
-      = link_to destroy_user_session_path, data: { turbo_method: :delete },
+      -# sesión»*. Ahora se encoge a su icono, como el buscador — y el icono solo
+      -# lleva su nombre en un globo, que en una laptop se ve al pasar el ratón.
+      = link_to destroy_user_session_path, data: { turbo_method: :delete, tooltip: "Cerrar sesión",
+                                                   tooltip_izquierda: true },
                 class: "btn btn-outline-light btn-sm", aria: { label: "Cerrar sesión" } do
         = icono(:salir, tamano: 16)
         %span.salir-texto Cerrar sesión

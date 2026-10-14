@@ -32,7 +32,7 @@ mensaje del commit, que es donde vive el detalle técnico.
   los anchos de un teléfono y de una pantalla grande, la barra de arriba era más
   ancha que la ventana. Ahora va guardando lo que menos se extraña —el municipio
   del colegio, la palabra «Cerrar sesión», el nombre de quien entró— hasta que
-  cabe.
+  cabe. Lo que queda en su icono dice qué es al pasar el ratón.
 
 ---
 

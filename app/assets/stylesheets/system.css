@@ -1272,6 +1272,25 @@ textarea.form-control {
   .contexto-colegio { max-width: 8ch; }
 }
 
+/* El globo con el nombre, SOLO cuando el control quedó en su icono: con el
+   texto a la vista, repetirlo al pasar el ratón es ruido. Antes de esta barra
+   el icono solo existía en el teléfono, donde no hay ratón; en una laptop sí.
+
+   ⚠️ Los dos del borde llevan `data-tooltip-izquierda`. Un globo centrado
+   asoma por fuera de la ventana, y escondido igual ocupa lugar: la página se
+   volvería a correr de lado, por un globo que nadie ve. */
+@media (min-width: 1081px) {
+  .barra-superior .buscador-disparador[data-tooltip]::after,
+  .barra-superior .buscador-disparador[data-tooltip]::before,
+  .barra-superior .user-info[data-tooltip]::after,
+  .barra-superior .user-info[data-tooltip]::before { display: none; }
+}
+
+@media (min-width: 1241px) {
+  .barra-superior .session-menu .btn[data-tooltip]::after,
+  .barra-superior .session-menu .btn[data-tooltip]::before { display: none; }
+}
+
 /* La barra en un teléfono (MOR-194).
    ─────────────────────────────────
    Daniel, abriendo /secciones a 493 px: «mira cómo se ve desde el teléfono:

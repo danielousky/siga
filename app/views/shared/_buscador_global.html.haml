@@ -5,7 +5,11 @@
 %div{"data-controller": "busqueda", "data-busqueda-url-value": busqueda_path}
   -# El disparador visible. Sin él, el buscador solo existiría para quien ya
   -# sabe que existe — y quien más lo necesita es justamente quien no lo sabe.
-  %button.buscador-disparador{type: "button", "data-action": "busqueda#abrir"}
+  -# ⚠️ `aria-label` y `data-tooltip` (14 de octubre de 2026): reducido a la
+  -# lupa —en el teléfono y, desde que la barra cede, en una laptop— el botón no
+  -# tenía nombre. El globo solo aparece cuando queda la lupa (system.css).
+  %button.buscador-disparador{type: "button", "data-action": "busqueda#abrir",
+                              "aria-label": "Buscar", "data-tooltip": "Buscar · ⌘K"}
     = icono(:buscar, tamano: 15)
     %span.buscador-disparador-texto Buscar
     %kbd.buscador-tecla ⌘K

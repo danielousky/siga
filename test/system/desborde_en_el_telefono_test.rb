@@ -103,6 +103,20 @@ class DesbordeEnElTelefonoTest < ApplicationSystemTestCase
         const fuera = [...document.querySelectorAll("*")]
           .filter(e => e.getBoundingClientRect().right > limite + 1 && !dentroDeUnScroll(e))
           .map(e => [Math.round(e.getBoundingClientRect().right - limite), quien(e)])
+
+        // ⚠️ Y los globos de `data-tooltip`, que no son elementos —el recorrido
+        // de arriba no los ve— y ESCONDIDOS igual ocupan lugar: uno centrado
+        // en el botón del borde corría la página 6 px, sin que nadie lo viera
+        // nunca. Se mide la página con los globos y sin ellos.
+        const d = document.documentElement
+        const conGlobos = d.scrollWidth
+        const apagados = document.createElement("style")
+        apagados.textContent = "[data-tooltip]::after, [data-tooltip]::before { display: none !important }"
+        document.head.appendChild(apagados)
+        const globos = conGlobos - d.scrollWidth
+        apagados.remove()
+        if (globos > 1) fuera.push([globos, "un globo de data-tooltip"])
+
         if (!fuera.length) return 0
         const peor = fuera.reduce((a, b) => (b[0] > a[0] ? b : a))
         return `${peor[0]}px (${peor[1]})`
