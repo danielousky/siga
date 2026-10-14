@@ -74,6 +74,9 @@ module IconosHelper
     grados: '<path d="M4 20V9l8-5 8 5v11"/><path d="M9 20v-6h6v6"/>',
     lapsos: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
     calendario: '<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/>',
+    # Una rejilla de días por horas. No el reloj de `:lapsos` ni el calendario:
+    # un horario no es una fecha, es una semana que se repite.
+    horario: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9.5h18M3 14.5h18M9 4v16M15 4v16"/>',
     colegio: '<path d="M3 10 12 3l9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
     auditoria: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><circle cx="12" cy="12" r="4.5"/>',
     # Un engranaje de cuatro dientes, no de doce: a 18 px los doce se ven como

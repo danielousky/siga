@@ -424,7 +424,8 @@ class SectionsController < ApplicationController
   # los años» y no hay nada que deducir — y ahí lo valida el `belongs_to` contra
   # el `default_scope`, no un `if`.
   def section_params
-    permitidos = params.require(:section).permit(:name, :grade_id, :capacity, :classroom, :leader_teacher_id)
+    permitidos = params.require(:section).permit(:name, :grade_id, :capacity, :classroom, :leader_teacher_id,
+                                                 :bell_schedule_id)
     return permitidos if @section&.persisted?
 
     # Desde la ficha del grado, el grado es el de la URL.

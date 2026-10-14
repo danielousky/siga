@@ -17,7 +17,18 @@ class Section < ApplicationRecord
   llega_al_anio_por
   llega_al_nivel_por :grade
   derives_school_from :grade
-  validates_same_school :academic_period, :leader_teacher
+  validates_same_school :academic_period, :leader_teacher, :bell_schedule
+
+  # El TURNO: a qué hora suena el timbre de esta sección (spec `horarios`).
+  #
+  # Opcional: una sección existe antes de que alguien arme el horario, y un
+  # colegio que no usa horarios nunca lo necesita.
+  #
+  # ⚠️ Tiene que ser de SU año. Los turnos son del año escolar, como las
+  # secciones: el de 2025-2026 puede haber sonado a otra hora, y una sección de
+  # este año colgada de aquel leería un timbre que ya no existe.
+  belongs_to :bell_schedule, optional: true
+  validate :el_turno_es_de_su_anio
 
   has_many :enrollments, dependent: :restrict_with_error
   has_many :students, through: :enrollments
@@ -139,5 +150,13 @@ class Section < ApplicationRecord
     Subject.where(id: teacher_sections.select(:subject_id))
            .or(Subject.where(id: EvaluationActivity.where(section_id: id).select(:subject_id)))
            .order(:name)
+  end
+
+  private
+
+  def el_turno_es_de_su_anio
+    return if bell_schedule.nil? || bell_schedule.academic_period_id == academic_period_id
+
+    errors.add(:bell_schedule, "es de otro año escolar")
   end
 end

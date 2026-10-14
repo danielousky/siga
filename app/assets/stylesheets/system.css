@@ -2261,6 +2261,131 @@ a.mapa-marca:focus-visible { outline: 2px solid var(--brand-primary); outline-of
 .mapa-areas strong { color: var(--text-secondary); font-weight: 600; }
 
 /* ============================================
+   Horarios — turnos y carga horaria (spec `horarios`, tanda 1)
+   --------------------------------------------
+   El turno se registra con cuatro números y el timbre se ve al lado, en
+   «Así queda». La carga horaria es el mismo dibujo que el mapa de
+   evaluaciones: el colegio entero en una pantalla.
+   ============================================ */
+
+/* «Receso [tras la 4ta hora] de [30] minutos», en un solo renglón. */
+.turno-receso {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+.turno-receso .form-select { flex: 1 1 10rem; min-width: 0; }
+.turno-receso-minutos { width: 5.5rem; flex: 0 0 auto; }
+.turno-receso-de { margin: 0; font-size: 14px; color: var(--text-secondary); }
+
+/* El timbre que saldría. En dos columnas cuando hay ancho: ocho horas en un
+   solo renglón vertical obligan a desplazarse para ver el receso. */
+.asi-queda {
+  margin: var(--space-md) 0;
+  padding: var(--space-md);
+  border: 1px dashed var(--border-standard);
+  border-radius: var(--radius-md);
+}
+.asi-queda-titulo { margin: 0 0 var(--space-sm); font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.asi-queda-horas {
+  list-style: none;
+  margin: 0 0 var(--space-sm);
+  padding: 0;
+  font-variant-numeric: tabular-nums;
+}
+.asi-queda-horas li { padding: 2px 0; break-inside: avoid; }
+@media (min-width: 600px) {
+  .asi-queda-horas { columns: 2; column-gap: var(--space-xl); }
+}
+.asi-queda-numero { display: inline-block; min-width: 2.75rem; font-weight: 600; color: var(--text-secondary); }
+.asi-queda-receso { color: var(--text-tertiary); font-style: italic; }
+
+/* Las horas de un turno: cada fila es su propio formulario. */
+.horas-del-turno td { vertical-align: middle; }
+.hora-del-receso td:first-child { color: var(--text-tertiary); font-style: italic; }
+.hora-en-fila,
+.hora-nueva {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin: 0;
+}
+.hora-en-fila .form-control,
+.hora-nueva .form-control { width: 8rem; flex: 0 0 auto; }
+.hora-nueva { margin-top: var(--space-md); }
+.hora-nueva .form-select { width: auto; flex: 0 0 auto; }
+.hora-nueva .form-label { margin: 0; }
+.hora-en-fila-guion { color: var(--text-tertiary); }
+
+/* Las secciones que usan el turno, agrupadas por nivel. */
+.turno-secciones {
+  margin: 0 0 var(--space-md);
+  padding: 0;
+  border: 0;
+}
+.turno-secciones-nivel {
+  margin: 0 0 var(--space-xs);
+  padding: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.turno-secciones-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: var(--space-xs) var(--space-md);
+}
+.turno-seccion {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+/* La carga horaria: casillas angostas, como las del mapa, y con DOS clases en
+   el selector por la misma razón que allá. */
+.table-academic.carga-horaria { width: auto; min-width: 100%; }
+.table-academic.carga-horaria thead th,
+.table-academic.carga-horaria tbody td,
+.table-academic.carga-horaria tfoot td { padding: 4px 6px; text-align: center; white-space: nowrap; }
+.table-academic.carga-horaria thead th:first-child,
+.table-academic.carga-horaria tbody th,
+.table-academic.carga-horaria tfoot th {
+  text-align: left;
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.table-academic.carga-horaria tfoot td,
+.table-academic.carga-horaria tfoot th { border-top: 1px solid var(--border-standard); font-variant-numeric: tabular-nums; }
+.carga-horaria-total td { font-weight: 600; color: var(--text-primary); }
+.carga-horaria-campo {
+  width: 4.5rem;
+  margin: 0 auto;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.carga-horaria-no-se-cursa { color: var(--text-muted); font-weight: 600; }
+/* La muestra de «en blanco» de la leyenda: una casilla vacía de verdad. */
+.carga-horaria-vacia {
+  display: inline-block;
+  width: 2rem;
+  height: 1.5rem;
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  background: var(--surface-input);
+}
+
+/* ============================================
    Planilla de carga de notas
    --------------------------------------------
    Móvil primero: una fila por alumno, en vertical. Una grilla de 30 × N en un

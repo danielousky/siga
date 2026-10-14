@@ -620,6 +620,12 @@ module MenuHelper
       enlaces << Enlace.new(nombre: "Inscripciones", icono: :inscripciones, ruta: enrollments_path)
     end
     enlaces << Enlace.new(nombre: Vocabulario::AREAS, icono: :materias, ruta: subjects_path)
+    # Los horarios (spec `horarios`). Abre en «Turnos», el primer paso: en la
+    # tanda 3 abrirá en los horarios mismos.
+    if can_manage_sections?
+      enlaces << Enlace.new(nombre: "Horarios", icono: :horario, ruta: bell_schedules_path,
+                            tambien_en: %w[time_slots carga_horaria])
+    end
     # ⚠️ «Planes de evaluación» se retiró del menú (etapa ③).
     #
     # Apuntaba a `/competencias`, que dejó de ser una pantalla: su escalera se

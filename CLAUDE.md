@@ -144,6 +144,9 @@ bin/rails test test/models/user_test.rb:10     # Run single test by line
 # Verificación completa — lo mismo que corre el CI (MOR-105)
 bin/ci                             # RLS + estilo + tests + seeds + humo, ~3,5 min
 bin/smoke                          # solo el humo: web Y worker, y el recorrido HTTP por los cuatro roles
+
+# Otra copia del código a la vez (un worktree por rama): bases propias, o se pisan
+SIGA_DB_NAME=siga_x SIGA_TEST_DB_NAME=siga_x_test PORT=3019 bin/ci
 ```
 
 `bin/ci` arranca comprobando que el rol de la base **no** pueda saltarse el RLS, y no
@@ -1981,6 +1984,48 @@ amenaza: en ningún escalón se pierde nada de lo cargado.
 A mano: `bin/rails suscripciones:estado` (en qué está cada colegio y qué aviso
 le toca, sin tocar nada) y `bin/rails suscripciones:escalera` (si el worker
 estuvo caído).
+
+### 16. Los horarios — tanda 1: el turno y la carga horaria
+
+Spec: [`docs/specs/horarios.md`](docs/specs/horarios.md), congelado el 13 de
+octubre de 2026. Cinco tandas; esta es la primera.
+
+```
+   bell_schedules   «Turno»   Media · mañana            del AÑO escolar
+   time_slots       «hora»    1ra 7:10–7:50 … Receso    en MINUTOS desde la medianoche
+   sections.bell_schedule_id            el turno de la sección (solo de su año)
+   grade_subjects.weekly_hours          la carga horaria: vacía es «nadie lo dijo»
+```
+
+- **El turno se registra con cuatro números** (`HorasDelTurno`): entrada,
+  minutos por hora, horas al día y tras cuál va el receso. Con 7:10 · 40 · 8 ·
+  tras la 4ta sale el horario real que mandó Daniel. El «Así queda» del alta lo
+  calcula el SERVIDOR, con la misma clase que guarda: `auto-envio` pide `new`
+  por GET con el botón «Ver cómo queda» y Turbo cambia solo el marco.
+- ⚠️ **La hora va en minutos, no en una columna `time`**: la app corre en UTC, y
+  el choque se mide por reloj —Primaria y Media no comparten timbre—.
+- ⚠️ **`btree_gist` es la primera extensión del proyecto.** Es de confianza: la
+  crea `siga_app` desde la migración (se miró en producción: PostgreSQL 18.4, y
+  `siga_app` es dueño de la base). `structure.sql` se vuelca `--no-comments`
+  (`config/initializers/volcado_del_esquema.rb`): un `COMMENT ON EXTENSION`
+  solo lo puede escribir el dueño de la extensión.
+- ⚠️ **Dos horas de un turno no se pisan, y lo dice la BASE**
+  (`time_slots_no_se_pisan`, un `EXCLUDE` diferible). La validación lo explica
+  con palabras; la restricción es para dos personas guardando a la vez. Cada
+  escritura que puede chocar va en su `SAVEPOINT` y rescata
+  `ActiveRecord::ExclusionViolation`: sin eso, la violación aborta la
+  transacción de la petición entera.
+- ⚠️ **La carga oficial se reconoce por el NOMBRE del área**
+  (`CargaHorariaOficial`), nunca por su código: los códigos de un colegio no son
+  los del plan —en la siembra, Castellano es `LEN`—. Solo llena casillas vacías,
+  y lo que el plan no cubre lo dice («escríbalas a mano»).
+- ⚠️ **Dos trampas que costaron un rato en los tests:**
+  - un `update_columns` fuera de `con_el_colegio` no falla: el RLS lo deja en
+    cero filas, en silencio, y el test sigue con el dato viejo;
+  - `sign_in` lo consume la PRIMERA petición siguiente, y si esa petición
+    termina en 404 el cambio de sesión se pierde: la siguiente entra como el
+    usuario anterior. Parece una fuga entre colegios y es el test. El 404 va
+    después de lo que se quiere mirar.
 
 ## 🔢 La versión
 

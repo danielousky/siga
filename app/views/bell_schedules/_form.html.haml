@@ -1,0 +1,62 @@
+-# El turno se registra con cuatro números, y el timbre sale solo
+-# (`HorasDelTurno`).
+-#
+-# ## ⚠️ El «Así queda» lo calcula el SERVIDOR, con la misma cuenta que guarda
+-#
+-# Al cambiar un número, el formulario se vuelve a pedir por GET a `new` —con el
+-# botón «Ver cómo queda»— y Turbo reemplaza solo el marco `asi-queda`. Así el
+-# foco se queda en el campo y la vista previa no puede decir algo distinto de lo
+-# que después se guarda: es la misma clase la que hace las dos cosas. Una copia
+-# de la cuenta en JavaScript sería una segunda verdad que se despareja el día
+-# que una de las dos cambie.
+-#
+-# Sin JavaScript, el botón hace lo mismo a mano.
+= form_with model: turno, url: bell_schedules_path, data: { controller: "auto-envio" } do |f|
+  = render "shared/errors", objects: [ turno, timbre ]
+
+  .form-group
+    = f.label :name, class: "form-label"
+    = f.text_field :name, class: "form-control", required: true, placeholder: "Media · mañana",
+                   data: { tooltip: "Un nombre que diga de quién es: «Media · mañana», «Primaria»" }
+
+  = fields_for :timbre, timbre do |t|
+    .form-row
+      .form-group
+        = t.label :entrada, class: "form-label"
+        = t.time_field :entrada, value: HoraDelDia.del_campo(HoraDelDia.a_minutos(timbre.entrada)),
+                       class: "form-control", required: true,
+                       data: { action: "change->auto-envio#enviar" }
+
+      .form-group
+        = t.label :minutos_por_hora, "Cada hora dura (minutos)", class: "form-label"
+        = t.number_field :minutos_por_hora, class: "form-control", required: true,
+                         min: HorasDelTurno::MINUTOS_POSIBLES.first, max: HorasDelTurno::MINUTOS_POSIBLES.last,
+                         data: { action: "change->auto-envio#enviar" }
+
+    .form-row
+      .form-group
+        = t.label :horas_al_dia, "Horas al día", class: "form-label"
+        = t.number_field :horas_al_dia, class: "form-control", required: true,
+                         min: HorasDelTurno::HORAS_POSIBLES.first, max: HorasDelTurno::HORAS_POSIBLES.last,
+                         data: { action: "change->auto-envio#enviar" }
+
+      .form-group
+        = t.label :receso_tras, "Receso", class: "form-label"
+        .turno-receso
+          = t.select :receso_tras, opciones_del_receso, {}, class: "form-select",
+                     data: { action: "change->auto-envio#enviar" }
+          = t.label :receso_minutos, "de", class: "turno-receso-de"
+          = t.number_field :receso_minutos, class: "form-control turno-receso-minutos",
+                           min: HorasDelTurno::RECESO_POSIBLE.first, max: HorasDelTurno::RECESO_POSIBLE.last,
+                           data: { action: "change->auto-envio#enviar" }
+          %span.turno-receso-de minutos
+
+  = render "bell_schedules/asi_queda", timbre: timbre
+
+  .form-acciones
+    = f.submit class: "btn btn-guardar"
+    %button.btn.btn-ver{ type: "submit", formmethod: "get", formaction: new_bell_schedule_path, formnovalidate: true,
+                         data: { turbo_frame: "asi-queda", auto_envio_target: "con" } }
+      Ver cómo queda
+    - if local_assigns[:volver]
+      = boton "Volver", volver, icono: :volver, tono: :secondary

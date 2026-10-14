@@ -100,6 +100,14 @@ es:
       final_grade_book:
         one: Nota final
         other: Notas finales
+      # Los horarios (spec `horarios`): `BellSchedule` se lee «Turno» y
+      # `TimeSlot`, «hora» —la 1ra hora, la 2da…—.
+      bell_schedule:
+        one: Turno
+        other: Turnos
+      time_slot:
+        one: Hora
+        other: Horas
 
     attributes:
       # ⚠️ La identidad de una persona faltaba ENTERA, y no era cosmético: las
@@ -186,6 +194,8 @@ es:
       # primer año en el turno de la mañana», y el rótulo es lo que lo dice.
       section:
         name: Identificador
+        bell_schedule: Turno
+        bell_schedule_id: Turno
 
   # Fallback global: atributos que significan lo mismo en todos los modelos.
   # Va DENTRO de `es:` y FUERA de `activerecord:` — Rails lo busca como
@@ -216,6 +226,20 @@ es:
         teacher_sections: Asignaciones de profesor
       teacher:
         teacher_sections: Asignaciones de sección
+
+      # ── Los horarios (spec `horarios`) ─────────────────────────────────────
+      bell_schedule:
+        name: Nombre
+        # Lo que impide borrar un turno: las secciones que lo usan.
+        sections: Secciones
+      time_slot:
+        starts_min: La hora de inicio
+        ends_min: La hora de fin
+        desde: Desde
+        hasta: Hasta
+        kind: Tipo
+      grade_subject:
+        weekly_hours: Horas a la semana
   attributes:
     school: Colegio
     grade: Grado

@@ -167,6 +167,7 @@ namespace :modelo do
     student_representatives
     schools subscriptions subscription_payments
     academic_periods grades sections departments subjects grade_subjects
+    bell_schedules time_slots
     enrollments teacher_sections
     evaluation_moments competencies indicators
     evaluation_activities activity_competencies activity_grades

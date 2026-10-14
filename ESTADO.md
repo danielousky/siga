@@ -239,47 +239,69 @@ hay fechas; si no, en el último con evaluaciones. En la muestra: 18 secciones,
   representantes) se salen de la pantalla, porque se vuelven desplazables recién
   a 600 px. No lo toqué: cambia cómo se ven todas las tablas a ese ancho.
 
-## 📐 Horarios — el spec está escrito y decidido; falta congelarlo (13 de octubre)
+## 📐 Horarios — tanda 1 hecha (1.21.0), esperando tu prueba (14 de octubre)
 
-Daniel pidió investigar «la mejor manera de gestionar los horarios» de Media.
-Con cuatro agentes —el código, Venezuela, el mundo y el diseño— y la foto de un
-horario real, quedó [`docs/specs/horarios.md`](docs/specs/horarios.md), **en
-borrador**. Ni una línea de código todavía.
-
-```
-   LO QUE YA SE SABE                            DE DÓNDE
-   es día × hora; los días no se agrupan        la Resolución DM-029/2022 y la foto de Daniel
-   horas de 40 min de dos en dos, un receso     la foto: 7:10 a 1:00, 38 horas a la semana
-   el choque lo rechaza la BASE, por reloj      11 de 18 profesores de Media dictan en Primaria
-   una clase es sección + área                  cambiar de profesor borra y crea la asignación
-```
+El spec [`docs/specs/horarios.md`](docs/specs/horarios.md) quedó **congelado** el
+13 —con las 18 decisiones tomadas, Daniel dio la orden: *«Continúa»*— y el 14
+se construyó la primera de las cinco tandas: el turno y la carga horaria.
 
 ```
-   DECIDIDO POR DANIEL                          Y CONFIRMADO EL MISMO DÍA (11 a 18)
-   una sección, un profesor, una hora           se llama «Turno» · la familia en mora SÍ lo ve
-   el automático, después del armador           borrador → «Publicar», por sección
-   armar gratis; PDF y portales, con pago       también Primaria · lunes a viernes · el automático,
-   el turno de su foto: horas de 40 min         con suscripción · arma quien administra secciones
+   Académico ▸ Horarios          [ Turnos | Carga horaria ]
+
+   Registrar turno                                   Así queda
+   Entrada [7:10]  Cada hora dura [40]               1ra  7:10 – 7:50    5ta 10:20 – 11:00
+   Horas al día [8]  Receso [tras la 4ta] de [30]    …                   …
+                                                     Receso 9:50 – 10:20
+   [Crear] [Ver cómo queda]                          8 horas de clase al día: 40 de lunes a viernes
 ```
 
 ```
-   LO QUE FALTA, Y ES SUYO     leerlo y congelarlo → arranca la tanda 1 (turno y carga)
-                               el issue de Linear: el conector no estaba autenticado
+   Carga horaria                               [Proponer las del plan oficial]
+   EDUCACIÓN MEDIA GENERAL   1er Año  2do Año  …
+   Castellano y Literatura   [ 4 ]    [ 4 ]
+   Física                      ·        ·      ← no se cursa en ese grado
+   Total                       44       44
+   La semana tiene             40       40
+                            sobran 4  sobran 4  ← ámbar: avisa, no bloquea
 ```
 
+- **Lo que hay:** turnos con su timbre (cuatro números, y el «Así queda» se
+  rehace al escribir), cada hora corregible en su fila, las secciones de cada
+  turno, la ficha de la sección con su turno, y la carga horaria con la
+  propuesta del plan oficial de 2017. Armar es gratis (decisión 3).
+- **Lo que verifiqué:** `bin/ci` con bases propias. Tests 2.146 y 0 fallos, y el
+  humo pasa por las tres pantallas nuevas. Los de navegador sacaron 5 rojos con
+  la máquina a carga 11–66 (otras sesiones corriendo): uno era mío —esperaba
+  poco a que llegara la ficha— y quedó corregido; los otros cuatro son los
+  intermitentes de siempre y pasan al repetirlos.
+- **Lo que NO pude verificar:** que se vea y se sienta bien en tus manos —
+  sobre todo el «Así queda» mientras escribes y la carga en un teléfono—.
+
+**Para probarla** (vive en el worktree, con su propia base sembrada):
+
 ```
-   las tandas   0 el spec → 1 turno y carga → 2 armar → 3 verlo → 4 la vida real → 5 el automático
+   cd "/Volumes/Personal Info/Documentos/Desarrollo/SIGA/APPS/siga-horarios"
+   SIGA_DB_NAME=siga_horarios bin/rails server -p 3001
+   → http://localhost:3001 · director.bolivar@mail.com · 123123
+
+   1 · Académico ▸ Horarios ▸ [+] Registrar turno: 7:10 · 40 · 8 · tras la 4ta · 30
+   2 · en la ficha del turno: corregir una hora para que pise a la siguiente (lo dice)
+       y marcar las secciones de Media
+   3 · Carga horaria: «Proponer las del plan oficial» y mirar el «sobran»
 ```
 
-**Producción, mirada en solo lectura:** PostgreSQL 18.4 en las dos instancias,
-`siga_app` es dueño de la base y puede crear `btree_gist` (1.8, sin instalar).
-No hace falta ningún paso a mano para desplegar.
+⚠️ **Ramas, sin subir:** `docs/spec-horarios` (el spec) y encima
+`feat/horarios-turno-y-carga` (la tanda 1). La 1.20.2 viene en otra rama
+(`fix/la-app-habla-de-usted`): al juntarlas chocan solo la versión y el
+CHANGELOG.
 
-⚠️ **Vive en un worktree aparte**, `APPS/siga-horarios`, en la rama
-`docs/spec-horarios` (sin subir): este directorio lo estaba usando otra sesión
-con `fix/la-app-habla-de-usted`. Cuando arranque el código: `SIGA_DB_NAME` le
-da su propia base de desarrollo, pero la de los tests es `siga_test`, con el
-nombre fijo, y dos `bin/ci` a la vez se pisan.
+⚠️ **La 1.21.0 trae una migración** con la primera extensión del proyecto,
+`btree_gist`. Producción y la muestra se miraron en solo lectura: PostgreSQL
+18.4, y `siga_app` la puede crear sin ningún paso a mano.
+
+```
+   las tandas   0 el spec ✓ → 1 turno y carga ✓ → 2 armar → 3 verlo → 4 la vida real → 5 el automático
+```
 
 ## ✅ Del registro al cobro — EN PRODUCCIÓN desde el 13 de octubre (1.19.1)
 

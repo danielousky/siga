@@ -1,0 +1,25 @@
+-# El timbre que saldría con los números escritos. Es un `turbo_frame` porque el
+-# formulario lo vuelve a pedir solo a él (ver `_form`).
+= turbo_frame_tag "asi-queda" do
+  .asi-queda
+    %h3.asi-queda-titulo Así queda
+    - if timbre.valid?
+      - numero = 0
+      %ol.asi-queda-horas
+        - timbre.filas.each do |fila|
+          - if fila.kind == "receso"
+            %li.asi-queda-receso= "Receso #{HoraDelDia.rango(fila.starts_min, fila.ends_min)}"
+          - else
+            - numero += 1
+            %li
+              %span.asi-queda-numero= TimeSlot::ORDINALES[numero - 1]
+              = HoraDelDia.rango(fila.starts_min, fila.ends_min)
+      %p.nota-ayuda
+        = "#{contar(numero, 'hora', 'horas')} de clase al día:"
+        %strong= contar(numero * BellSchedule::DIAS.size, "hora", "horas")
+        de lunes a viernes. Después, cada hora se corrige en su fila.
+    - else
+      %p.nota-ayuda Con esos números todavía no sale un timbre:
+      %ul.lista-errores
+        - timbre.errors.full_messages.each do |mensaje|
+          %li= mensaje

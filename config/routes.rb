@@ -491,6 +491,23 @@ Rails.application.routes.draw do
     end
   end
   resources :departments, path: "departamentos", except: [ :show ]
+
+  # Los horarios, tanda 1 (spec `horarios`): el timbre y la carga horaria.
+  #
+  # `BellSchedule` se lee «Turno» y `TimeSlot` «hora», así que la barra de
+  # direcciones dice `/turnos` y `/turnos/3/horas`.
+  #
+  # ⚠️ Sin `edit`: un turno se corrige en su propia ficha —el nombre, cada hora
+  # en su fila y las secciones que lo usan—, no en una pantalla aparte.
+  resources :bell_schedules, path: "turnos", except: [ :edit ] do
+    resources :time_slots, path: "horas", only: [ :create, :update, :destroy ]
+  end
+
+  # La carga horaria NO es un recurso: es UNA pantalla, la matriz de áreas por
+  # grado, que se guarda entera. Lo que hay debajo es `grade_subjects.weekly_hours`.
+  get   "carga-horaria",          to: "carga_horaria#show",     as: :carga_horaria
+  patch "carga-horaria",          to: "carga_horaria#update"
+  post  "carga-horaria/proponer", to: "carga_horaria#proponer", as: :proponer_carga_horaria
   resources :subjects, path: "materias"
   # ⚠️ Esta queda en INGLÉS, y es la excepción que confirma el criterio.
   #

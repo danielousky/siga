@@ -192,6 +192,10 @@ namespace :prueba do
       Enrollment.unscoped.where(ids).delete_all
       TeacherSection.unscoped.where(ids).delete_all
       Section.unscoped.where(ids).delete_all
+      # Los turnos DESPUÉS de las secciones, que los apuntan; sus horas, antes
+      # que ellos.
+      TimeSlot.unscoped.where(ids).delete_all
+      BellSchedule.unscoped.where(ids).delete_all
       EvaluationMoment.unscoped.where(ids).delete_all
       GradeSubject.unscoped.where(ids).delete_all
       Grade.unscoped.where(ids).delete_all

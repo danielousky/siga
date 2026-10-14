@@ -1,0 +1,85 @@
+-# La ficha de un turno: su nombre, sus horas y las secciones que lo usan.
+-#
+-# Las tres cosas se corrigen AQUÍ, cada una con su propio botón: son cambios
+-# distintos que se hacen en momentos distintos —el timbre en agosto, las
+-# secciones cuando se abren—, y un solo «Guardar» no diría cuál guardó.
+.card-academic
+  = render layout: "shared/cabecera",
+           locals: { titulo: @bell_schedule.name, detalle: "Turno de #{@bell_schedule.academic_period.name}" } do
+    = boton "Volver", bell_schedules_path, icono: :volver, tono: :secondary
+  = render "shared/pestanas", pestanas: pestanas_de_horarios(activa: :turnos), etiqueta: "Partes del horario"
+  %p.dato-secundario= resumen_del_turno(@bell_schedule)
+
+.card-academic
+  = render "shared/cabecera", titulo: "Las horas", nivel: 2
+
+  - if @horas.any?
+    %table.table-academic.horas-del-turno
+      %thead
+        %tr
+          %th Hora
+          %th De – a
+          %th.columna-acciones
+      %tbody
+        - @horas.each do |hora, nombre|
+          %tr{ id: dom_id(hora), class: ("hora-del-receso" if hora.receso?) }
+            %td= nombre
+            %td
+              = form_with model: hora, url: bell_schedule_time_slot_path(@bell_schedule, hora), class: "hora-en-fila" do |f|
+                = f.time_field :desde, value: hora.desde, class: "form-control", required: true,
+                               aria: { label: "#{nombre}: desde" }
+                %span.hora-en-fila-guion –
+                = f.time_field :hasta, value: hora.hasta, class: "form-control", required: true,
+                               aria: { label: "#{nombre}: hasta" }
+                = f.submit "Guardar", class: "btn btn-guardar btn-sm"
+            %td.columna-acciones
+              = button_to bell_schedule_time_slot_path(@bell_schedule, hora), method: :delete,
+                          class: "btn btn-danger btn-sm btn-solo-icono",
+                          form: { data: { turbo_confirm: "¿Eliminar #{nombre.downcase} (#{hora.rango})?" } },
+                          data: { tooltip: "Eliminar #{nombre.downcase}" },
+                          aria: { label: "Eliminar #{nombre.downcase}" } do
+                = icono(:borrar, tamano: 15)
+  - else
+    %p.nota-ayuda Este turno todavía no tiene horas.
+
+  -# Agregar una hora suelta: un segundo receso, una hora más los viernes… Lo
+  -# normal es no necesitarlo: el timbre ya salió armado.
+  = form_with model: TimeSlot.new, url: bell_schedule_time_slots_path(@bell_schedule), class: "hora-nueva" do |f|
+    %span.form-label Agregar
+    = f.select :kind, [ [ "Hora de clase", "clase" ], [ "Receso", "receso" ] ], {}, class: "form-select",
+               aria: { label: "Qué se agrega" }
+    = f.time_field :desde, class: "form-control", required: true, aria: { label: "Desde" }
+    %span.hora-en-fila-guion –
+    = f.time_field :hasta, class: "form-control", required: true, aria: { label: "Hasta" }
+    = f.submit "Agregar", class: "btn btn-guardar btn-sm"
+
+.card-academic
+  = render "shared/cabecera", titulo: "Las secciones que lo usan", nivel: 2
+
+  - if @secciones.empty?
+    %p.nota-ayuda
+      = "#{@bell_schedule.academic_period.name} todavía no tiene secciones."
+      = link_to "Ir a las secciones", sections_path
+  - else
+    = form_with model: @bell_schedule, method: :patch do |f|
+      -# El vacío va primero: sin ninguna marcada, el navegador no manda la lista,
+      -# y «quitarlas todas» llegaría como «no tocar nada».
+      = hidden_field_tag "bell_schedule[section_ids][]", "", id: nil
+      - @secciones.group_by { |seccion| seccion.grade.level.to_sym }.sort_by { |nivel, _| GradoOficial::NIVELES.index(nivel) || 99 }.each do |nivel, secciones|
+        %fieldset.turno-secciones
+          %legend.turno-secciones-nivel= GradoOficial.etiqueta(nivel)
+          .turno-secciones-lista
+            - secciones.each do |seccion|
+              %label.turno-seccion
+                = check_box_tag "bell_schedule[section_ids][]", seccion.id, seccion.bell_schedule_id == @bell_schedule.id,
+                                id: dom_id(seccion, :turno)
+                = "#{seccion.grade.name} #{seccion.name}"
+                - if seccion.bell_schedule && seccion.bell_schedule_id != @bell_schedule.id
+                  %span.dato-secundario= "hoy en «#{seccion.bell_schedule.name}»"
+      .form-acciones
+        = f.submit "Guardar las secciones", class: "btn btn-guardar"
+
+.card-academic
+  = render "shared/borrar", registro: @bell_schedule,
+           aviso: "El turno desaparece, con sus horas.",
+           alternativa: "Primero quítele las secciones: una sección sin turno se queda sin timbre, pero no pierde nada más."
