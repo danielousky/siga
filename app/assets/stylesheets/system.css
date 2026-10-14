@@ -1205,6 +1205,92 @@ textarea.form-control {
    una regla huérfana no falla, simplemente deja de aplicar — y es exactamente
    así como esta barra se quedó sin reglas de teléfono en MOR-194. */
 
+/* La barra ENTRE el teléfono y la pantalla grande (14 de octubre de 2026).
+   ─────────────────────────────────────────────────────────────────────────
+   Las reglas de teléfono empiezan a 640 px, y la barra más ancha —con un nivel
+   elegido, en una pantalla donde el nivel «acá no aplica»— mide unos 1.350: de
+   641 a 1.350 px —una laptop, una tableta acostada, una ventana a media
+   pantalla— la página se corría de lado hasta 500 px, en TODAS las pantallas.
+   Lo encontré midiendo el mapa de evaluaciones a 1.024 px; el test del teléfono
+   medía a 390 y 493, y ahí no pasa.
+
+   Se cae en escalones, en el mismo orden que en el teléfono —lo que menos se
+   extraña primero— y solo cuando hace falta:
+
+       ≤ 1.350  el lugar del colegio          «Libertador, Distrito Capital»
+       ≤ 1.240  «Cerrar sesión» queda en icono, y «SIGA» queda en logo
+       ≤ 1.080  el buscador queda en su lupa, quien entró en su inicial y
+                «en curso» se va de la pastilla
+       ≤   900  la nota «acá no aplica» queda en su icono (ya era así)
+       ≤   760  el nombre del colegio se recorta antes, y más a ≤ 700
+
+   ⚠️ Los escalones salen de MEDIR cada 15 px de 641 a 1.366, no de calcular, y
+   en la barra MÁS ANCHA. Medida en /secciones sin nivel, quedaban seis franjas
+   que todavía se corrían en las pantallas donde el nivel no aplica. */
+@media (max-width: 1350px) {
+  .contexto-colegio-lugar { display: none; }
+}
+
+@media (max-width: 1240px) {
+  .navbar-brand-text { display: none; }
+
+  /* El texto sigue ahí para el lector de pantalla, igual que en el teléfono. */
+  .barra-superior .session-menu .btn .salir-texto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+@media (max-width: 1080px) {
+  .barra-superior .session-menu .user-info-nombre { display: none; }
+  .barra-superior .session-menu .user-info-inicial { display: inline; }
+
+  /* ⚠️ Con `.barra-superior` delante: el `min-width: 220px` del buscador está
+     escrito MÁS ABAJO en esta hoja, y a igual peso gana el último. Sin el
+     prefijo, esta regla no hacía nada. */
+  .barra-superior .buscador-disparador { min-width: 0; }
+  .barra-superior .buscador-disparador-texto,
+  .barra-superior .buscador-disparador .buscador-tecla { display: none; }
+
+  /* ⚠️ «en curso» se va acá y no a 900: con un nivel elegido, en una pantalla
+     donde el nivel no aplica, a 1.024 px faltaban 15. Lo encontró el test. */
+  .barra-superior .contexto-valor-situacion { display: none; }
+}
+
+@media (max-width: 760px) {
+  .contexto-colegio { max-width: 14ch; }
+}
+
+@media (max-width: 700px) {
+  .contexto-colegio { max-width: 8ch; }
+}
+
+/* El globo con el nombre, SOLO cuando el control quedó en su icono: con el
+   texto a la vista, repetirlo al pasar el ratón es ruido. Antes de esta barra
+   el icono solo existía en el teléfono, donde no hay ratón; en una laptop sí.
+
+   ⚠️ Los dos del borde llevan `data-tooltip-izquierda`. Un globo centrado
+   asoma por fuera de la ventana, y escondido igual ocupa lugar: la página se
+   volvería a correr de lado, por un globo que nadie ve. */
+@media (min-width: 1081px) {
+  .barra-superior .buscador-disparador[data-tooltip]::after,
+  .barra-superior .buscador-disparador[data-tooltip]::before,
+  .barra-superior .user-info[data-tooltip]::after,
+  .barra-superior .user-info[data-tooltip]::before { display: none; }
+}
+
+@media (min-width: 1241px) {
+  .barra-superior .session-menu .btn[data-tooltip]::after,
+  .barra-superior .session-menu .btn[data-tooltip]::before { display: none; }
+}
+
 /* La barra en un teléfono (MOR-194).
    ─────────────────────────────────
    Daniel, abriendo /secciones a 493 px: «mira cómo se ve desde el teléfono:
@@ -6091,7 +6177,13 @@ img.avatar {
    
    ⚠️ Existe porque un atajo invisible solo sirve a quien ya sabe que existe —
    y quien más lo necesita es justamente quien no lo sabe. El botón enseña el
-   atajo mostrándolo escrito al lado.                                         */
+   atajo mostrándolo escrito al lado.
+
+   ⚠️ Y el propio botón fue invisible, desde que la barra pasó a ser clara
+   (MOR-184) hasta el 14 de octubre de 2026: sus colores eran los de la barra
+   oscura de antes —blanco translúcido— sobre un fondo blanco. Estaba ahí,
+   funcionaba, y no se veía. Ahora usa los tonos del sistema, que son los que
+   cambian con la barra.                                                      */
 
 .buscador-disparador {
   display: flex;
@@ -6101,10 +6193,10 @@ img.avatar {
   margin-right: var(--space-md);
   padding: 6px var(--space-sm);
   min-width: 220px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: var(--surface-canvas);
+  border: 1px solid var(--border-standard);
   border-radius: var(--radius-sm);
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--text-secondary);
   font-family: var(--font-sans);
   font-size: 13px;
   cursor: pointer;
@@ -6112,8 +6204,9 @@ img.avatar {
 }
 
 .buscador-disparador:hover {
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
 }
 
 .buscador-disparador-texto { flex: 1; text-align: left; }

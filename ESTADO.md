@@ -1,4 +1,4 @@
-# 🔖 Estado de avance — actualizado 13 de octubre de 2026
+# 🔖 Estado de avance — actualizado 14 de octubre de 2026
 
 ## ✅ Lo que vio Daniel en la muestra — 1.20.1, EN PRODUCCIÓN desde el 13 de octubre
 
@@ -56,24 +56,32 @@ hay fechas; si no, en el último con evaluaciones. En la muestra: 18 secciones,
 
 ### Lo que falta de esa ronda
 
-- Las capturas del manual son de una siembra vieja, y los ids de
-  `docs/manual/capturar.rb` ya no existen. El texto sí está al día.
-- **A 1024 px de ancho, toda pantalla se corre de lado unos 130 px**: el botón
-  «Cerrar sesión» de la barra de arriba se sale. Viene de antes; lo encontré
-  midiendo el mapa. El test del teléfono mide a 390 y 493 px, y ahí no pasa.
+- ~~Las capturas del manual son de una siembra vieja~~ → rehechas las 54 el 14
+  de octubre, en `docs/una-unica-verdad`: `capturar.rb` ya no lleva ids
+  escritos, los busca por nombre (`docs/manual/ids.rb`).
+- ~~A 1024 px de ancho, toda pantalla se corre de lado~~ → arreglado en la
+  1.20.3 (rama `fix/la-barra-a-1024`, en local): la barra cede en escalones
+  hasta 1.350 px, y de paso el botón «Buscar ⌘K» —blanco sobre blanco desde
+  MOR-184— se ve. `desborde_en_el_telefono_test` mide ahora también a 1.024.
+- Queda, y viene de antes: **entre 601 y 900 px, las tablas anchas** (profesores,
+  representantes) se salen de la pantalla, porque se vuelven desplazables recién
+  a 600 px. No lo toqué: cambia cómo se ven todas las tablas a ese ancho.
 
 ## 🟡 SIGA habla de usted, y lo que se entrega sale del repo — EN LOCAL
 
-Lo pidió Daniel el 13 de octubre, después del despliegue de la 1.20.1. Son dos
-ramas apiladas sobre `main`, con los tests en verde. **No están en GitHub ni
-desplegadas.**
+Lo pidió Daniel el 13 de octubre, después del despliegue de la 1.20.1. Son tres
+ramas apiladas sobre `main`, en este orden y con `bin/ci` en verde. **No están en
+GitHub ni desplegadas.**
 
 ```
    fix/la-app-habla-de-usted   1.20.2   un centenar de textos que tuteaban, y el test
                                          `la_app_habla_de_usted_test` para que no vuelvan
    docs/una-unica-verdad       —        el contrato, «Aliados» y «Qué hace hoy» en
                                          docs/comercial/; el diagrama ER en docs/modelo/;
-                                         el manual y el ER copiados a la carpeta madre
+                                         el manual con capturas de hoy; el manual y el ER
+                                         copiados a la carpeta madre
+   fix/la-barra-a-1024         1.20.3   la barra cabe de 641 a 1.350 px, y el botón
+                                         «Buscar ⌘K» se ve (era blanco sobre blanco)
 ```
 
 Lo que decidió Daniel para los documentos: el contrato es **mes a mes** y **sin

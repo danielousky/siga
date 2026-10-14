@@ -25,6 +25,7 @@ Current.sin_aislamiento do
 
   colegios = School.where(registrado_por_id: registrador.id)
   abort("#{correo} no registró ningún colegio.") if colegios.empty?
+  marcas = [ "gid://siga/User/#{registrador.id}", *colegios.map { |c| "gid://siga/School/#{c.id}" } ]
 
   colegios.each do |colegio|
     ActiveRecord::Base.transaction do
@@ -49,6 +50,18 @@ Current.sin_aislamiento do
     end
     puts "  ✓ «#{colegio.name}» borrado"
   end
+
+  # ⚠️ Y los correos que el registro dejó en la cola (14 de octubre de 2026).
+  # Registrarse encola dos —la bienvenida y el aviso a SIGA— y en desarrollo
+  # no suele haber worker que los mande: quedaban esperando a una persona que
+  # ya no existe, y el primer worker que arrancaba —el del humo de `bin/ci`—
+  # los contaba como fallidos, con un `DeserializationError` que no decía de
+  # dónde venían.
+  pendientes = SolidQueue::Job.where(finished_at: nil).select do |trabajo|
+    marcas.any? { |marca| trabajo.arguments.to_s.include?(marca) }
+  end
+  pendientes.each(&:destroy)
+  puts "  ✓ #{pendientes.size} correos del registro, fuera de la cola" if pendientes.any?
 
   User.unscoped.where(email: correo).delete_all
 end
