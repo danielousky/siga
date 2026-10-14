@@ -112,7 +112,7 @@ class CompetenciesController < ApplicationController
   # lapsos tenemos que estar cargando competencias e indicadores… es de verdad
   # una pérdida de tiempo muy grande»*.
   def sugerido
-    return redirect_to(plan_path, alert: "Elige tu sección y el lapso.") if asignacion.nil? || lapso.nil?
+    return redirect_to(plan_path, alert: "Elija su sección y el lapso.") if asignacion.nil? || lapso.nil?
 
     origen = origen_del_ano_pasado
     return redirect_to(plan_path, alert: "No hay un plan del año pasado que traer.") if origen.nil?
@@ -155,7 +155,7 @@ class CompetenciesController < ApplicationController
   # las competencias dejaba la mitad del trabajo: un profesor con tres secciones
   # hermanas escribía las mismas cuatro evaluaciones doce veces.
   def copiar
-    return redirect_to(plan_path, alert: "Elige tu sección y el lapso.") if asignacion.nil? || lapso.nil?
+    return redirect_to(plan_path, alert: "Elija su sección y el lapso.") if asignacion.nil? || lapso.nil?
 
     resultados = otras_secciones.map do |destino|
       ReplicarLaPlanificacion.para(desde: asignacion, hacia: destino, lapso: lapso)
@@ -422,7 +422,7 @@ class CompetenciesController < ApplicationController
     # ⚠️ El cierre cambia según haya venido o no la ponderación: sin
     # evaluaciones, «revisa las fechas» habla de algo que no llegó, y lo que
     # sigue es otra cosa — armarlas.
-    cierre = hecho.evaluaciones.positive? ? "Revisa las fechas y ajusta lo que haga falta." : "Ahora arma tus evaluaciones sobre ese plan."
+    cierre = hecho.evaluaciones.positive? ? "Revise las fechas y ajuste lo que haga falta." : "Ahora arme sus evaluaciones sobre ese plan."
     "Se trajo #{partes.join(' y ')} del año pasado. #{cierre}"
   end
 

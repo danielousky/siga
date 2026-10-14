@@ -21,7 +21,7 @@ module Siga
       end
 
       redirect_to main_app.root_path,
-                  notice: "Estás dentro de #{colegio.name}. El colegio ve que entraste."
+                  notice: "Está dentro de #{colegio.name}. El colegio ve que usted entró."
     end
 
     def destroy

@@ -74,15 +74,15 @@
       = f.label :asignacion, Section.model_name.human, class: "form-label"
       = f.select :asignacion,
         mis_secciones_del_area.map { |ts| [ "#{ts.section.grade.name} – #{ts.section.name}", "#{ts.section_id}:#{ts.subject_id}" ] },
-        { include_blank: "Elige una de tus secciones...", selected: ("#{evaluation_activity.section_id}:#{evaluation_activity.subject_id}" if evaluation_activity.section_id) },
+        { include_blank: "Elija una de sus secciones...", selected: ("#{evaluation_activity.section_id}:#{evaluation_activity.subject_id}" if evaluation_activity.section_id) },
         class: "form-select", data: { ponderacion_target: "asignacion", que_evalua_target: "asignacion",
                                       area_target: "seccion",
                                       action: "change->ponderacion#asignacionCambio change->que-evalua#actualizar" }
 
     .form-group
-      = con_pista "Solo aparecen los lapsos del año escolar de la sección que elegiste arriba." do
+      = con_pista "Solo aparecen los lapsos del año escolar de la sección que eligió arriba." do
         = f.label :evaluation_moment_id, class: "form-label"
-      = f.select :evaluation_moment_id, [], { include_blank: "Elige el lapso..." },
+      = f.select :evaluation_moment_id, [], { include_blank: "Elija el lapso..." },
         class: "form-select", data: { ponderacion_target: "lapso", que_evalua_target: "lapso",
                                       action: "change->ponderacion#lapsoCambio change->que-evalua#actualizar" }
 

@@ -78,7 +78,7 @@ class EvaluationActivitiesController < ApplicationController
     @evaluation_activity = EvaluationActivity.new(evaluation_activity_params)
 
     if asignacion_elegida.nil?
-      @evaluation_activity.errors.add(:base, "Elige una de tus secciones.")
+      @evaluation_activity.errors.add(:base, "Elija una de sus secciones.")
       return render :new, status: :unprocessable_entity
     end
 
@@ -495,7 +495,7 @@ class EvaluationActivitiesController < ApplicationController
     return false unless @evaluation_activity.por_competencias?
     return false if competencias_pedidas_del_plan.any?
 
-    @evaluation_activity.errors.add(:base, "Marca la competencia que mide: sin eso no puede salir en la boleta.")
+    @evaluation_activity.errors.add(:base, "Marque la competencia que mide: sin eso no puede salir en la boleta.")
     true
   end
 

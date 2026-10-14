@@ -80,7 +80,7 @@ export default class extends Controller {
       this.resumenTarget.textContent = datos.mensaje
     } catch {
       // Sin red. Lo marcado sigue en pantalla: se reintenta con el mismo botón.
-      this.#fallar("Sin conexión. Lo que marcaste sigue aquí — toca otra vez para reintentar.")
+      this.#fallar("Sin conexión. Lo que marcó sigue aquí: toque otra vez para reintentar.")
     } finally {
       this.guardarTarget.disabled = false
       if (!this.guardado) this.guardarTarget.textContent = "Guardar asistencia"

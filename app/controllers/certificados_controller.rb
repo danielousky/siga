@@ -72,7 +72,7 @@ class CertificadosController < ApplicationController
   def por_que_no_hay(certificados)
     return "Esa sección no tiene alumnos inscritos." if certificados.inscripciones.empty?
 
-    "Ningún alumno de esa sección entra en «toda la sección». Elige al alumno para emitir el suyo."
+    "Ningún alumno de esa sección entra en «toda la sección». Elija al alumno para emitir el suyo."
   end
 
   # Quien firma es el director del colegio de la sesión. Sin uno cargado, las

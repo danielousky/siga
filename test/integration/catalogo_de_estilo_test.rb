@@ -32,7 +32,7 @@ class CatalogoDeEstiloTest < ActionDispatch::IntegrationTest
     get siga_estilo_path
 
     assert_redirected_to root_path
-    assert_equal "No tienes acceso a esta sección.", flash[:alert]
+    assert_equal "No tiene acceso a esta sección.", flash[:alert]
   end
 
   test "un profesor tampoco" do

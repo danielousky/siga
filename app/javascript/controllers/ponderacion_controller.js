@@ -40,7 +40,7 @@ export default class extends Controller {
     const elegido = conservarLapso ? this.lapsoTarget.value : ""
 
     this.lapsoTarget.innerHTML = ""
-    this.lapsoTarget.appendChild(new Option("Elige el lapso...", ""))
+    this.lapsoTarget.appendChild(new Option("Elija el lapso...", ""))
 
     if (datos) {
       datos.lapsos.forEach(({ id, nombre }) => {
@@ -188,7 +188,7 @@ export default class extends Controller {
     const n = (v) => (Number.isInteger(v) ? v : v.toFixed(2))
 
     if (total > 100) {
-      return `Ya hay ${n(usado)} % comprometido: quedan ${n(libre)} % y estás pidiendo ${n(nuevo)} %.`
+      return `Ya hay ${n(usado)} % comprometido: quedan ${n(libre)} % y está pidiendo ${n(nuevo)} %.`
     }
     if (total === 100) {
       return `Con esta evaluación el lapso cierra en 100 %.`

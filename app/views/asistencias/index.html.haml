@@ -10,12 +10,12 @@
     .empty-state
       %h3 Sin secciones a cargo
       %p
-        La asistencia la toma el profesor guía de cada sección. Si te
-        corresponde y no aparece aquí, pídele a la dirección que te asigne como
-        guía de tu sección.
+        La asistencia la toma el profesor guía de cada sección. Si le
+        corresponde y no aparece aquí, pídale a la dirección que le asigne su
+        sección como guía.
 
   - else
-    %p.nota-ayuda Elige la sección para tomar la asistencia de hoy.
+    %p.nota-ayuda Elija la sección para tomar la asistencia de hoy.
 
     .asistencia-secciones
       - @secciones.each do |seccion|

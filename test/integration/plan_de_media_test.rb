@@ -30,7 +30,7 @@ class PlanDeMediaTest < ActionDispatch::IntegrationTest
     assert_select "a", { text: "Ir a calificar", count: 0 },
                   "las dos pestañas se mandaban la una a la otra"
     # Y el vacío enseña por dónde empezar EN MEDIA: por las evaluaciones.
-    assert_select ".empty-state p", /Empieza por las evaluaciones/
+    assert_select ".empty-state p", /Empiece por las evaluaciones/
   end
 
   test "se puede agregar una evaluación desde Planificar" do

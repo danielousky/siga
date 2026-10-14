@@ -23,6 +23,16 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.20.2 — 13 de octubre de 2026
+
+- **SIGA le habla de usted en todas sus pantallas.** Quedaban un centenar de
+  textos que tuteaban —«Elige un alumno», «No tienes permiso», los avisos al
+  iniciar sesión, el título de la portada— y ahora todos dicen «Elija», «No
+  tiene permiso», «Inicie sesión»: al director, a la secretaria, al profesor y
+  a la familia por igual.
+
+---
+
 ## 1.20.1 — 13 de octubre de 2026
 
 - **«Evaluaciones» es un mapa del colegio.** Una tabla por nivel, con una fila

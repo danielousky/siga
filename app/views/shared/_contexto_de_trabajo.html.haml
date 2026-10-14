@@ -74,8 +74,8 @@
     -# EN EL TELÉFONO NO EXISTE.
     -# `data-tooltip-arriba` no: la barra está pegada al techo de la ventana, así
     -# que el tooltip va debajo — que es el valor por defecto.
-    %summary.contexto-pastilla{ data: { tooltip: "Sobre qué estás trabajando" },
-                                "aria-label": "Sobre qué estás trabajando" }
+    %summary.contexto-pastilla{ data: { tooltip: "Sobre qué está trabajando" },
+                                "aria-label": "Sobre qué está trabajando" }
       %span.contexto-pastilla-texto
         - if anio_de_la_sesion
           %span.contexto-valor-anio= anio_de_la_sesion.name
@@ -121,7 +121,7 @@
       = icono(:desplegar, tamano: 14, clase: "contexto-pastilla-flecha")
 
     .contexto-panel{ data: { contexto_target: "panel" } }
-      %p.contexto-panel-titulo Sobre qué estás trabajando
+      %p.contexto-panel-titulo Sobre qué está trabajando
 
       - if hay_anios
         %section.contexto-grupo

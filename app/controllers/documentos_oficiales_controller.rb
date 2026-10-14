@@ -167,6 +167,6 @@ class DocumentosOficialesController < ApplicationController
   def require_emisor!
     return if can_manage_students?
 
-    redirect_to dashboard_path_for_user, alert: "No tienes permiso para emitir documentos oficiales."
+    redirect_to dashboard_path_for_user, alert: "No tiene permiso para emitir documentos oficiales."
   end
 end

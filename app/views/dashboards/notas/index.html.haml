@@ -3,7 +3,7 @@
     = render "shared/cabecera", titulo: "Mis notas"
     .empty-state
       %h3 Sin inscripción activa
-      %p No tienes una inscripción vigente. Comunícate con la secretaría del colegio.
+      %p No tiene una inscripción vigente. Comuníquese con la secretaría del colegio.
 
 - else
   .card-academic
@@ -121,7 +121,7 @@
           El profesor no cargó evaluaciones de estas áreas para
           = succeed "." do
             = @lapso&.name&.downcase
-          No es que estés sin nota: todavía no hay nada que calificar.
+          No es que esté sin nota: todavía no hay nada que calificar.
         .section-subjects
           - @sin_evaluaciones.each do |materia|
             .subject-tag
