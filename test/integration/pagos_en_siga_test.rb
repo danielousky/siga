@@ -36,7 +36,7 @@ class PagosEnSigaTest < ActionDispatch::IntegrationTest
       assert_select ".siga-pago-datos", text: /Pago Móvil o transferencia/
       assert_select ".siga-pago-datos", text: /18\.250,50 Bs/
       assert_select ".siga-pago-datos", text: /0012345678/
-      assert_select ".siga-pago-datos", text: /45,00 \$/
+      assert_select ".siga-pago-datos", text: /39,00 \$/
       assert_select "a", text: /Ver el comprobante/
       assert_select "form[action=?]", validar_siga_pago_path(@pago)
       assert_select "form[action=?] input[name=motivo][required]", rechazar_siga_pago_path(@pago)

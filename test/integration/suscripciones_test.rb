@@ -173,9 +173,9 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
   # mínimo. Los números son los del spec: si alguien sube el precio, este test
   # le recuerda que también cambia lo que se le dijo a Daniel.
   test "el precio sale por alumno, con su mínimo y sin escalones" do
-    assert_equal BigDecimal("45"),     Subscription.cotizar(0).monto
-    assert_equal BigDecimal("45"),     Subscription.cotizar(128).monto
-    assert_equal BigDecimal("45.15"),  Subscription.cotizar(129).monto
+    assert_equal BigDecimal("39"),     Subscription.cotizar(0).monto
+    assert_equal BigDecimal("39"),     Subscription.cotizar(111).monto
+    assert_equal BigDecimal("39.20"),  Subscription.cotizar(112).monto
     assert_equal BigDecimal("52.50"),  Subscription.cotizar(150).monto
     assert_equal BigDecimal("52.85"),  Subscription.cotizar(151).monto,
                  "el alumno 151 cuesta lo mismo que el 150"
@@ -196,9 +196,10 @@ class SuscripcionesTest < ActionDispatch::IntegrationTest
     assert_not_respond_to cotizacion, :total
     assert_not Subscription.const_defined?(:IVA), "el IVA volvió a ser una constante: alguien lo va a sumar aparte"
 
-    # 0,30 × 1,16 = 0,348, «poco menos de 0,35»; y 39 × 1,16 = 45,24.
+    # 0,30 × 1,16 = 0,348, «poco menos de 0,35». El mínimo NO lleva esa cuenta:
+    # salió en 45 (39 × 1,16) y Daniel lo dejó en 39 el 14 de octubre de 2026.
     assert_equal BigDecimal("0.35"), Subscription::PRECIO_POR_ALUMNO
-    assert_equal BigDecimal("45"),   Subscription::MINIMO_MENSUAL
+    assert_equal BigDecimal("39"),   Subscription::MINIMO_MENSUAL
   end
 
   # ⚠️ Decisión 17: subir el precio toca a los que entran después. El colegio

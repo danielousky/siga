@@ -40,7 +40,7 @@ module DocumentosComerciales
   end
 
   # Lo que las plantillas pueden pedir. Los montos con el formato de la app:
-  # «0,35», «45,00» y «126,00».
+  # «0,35», «39,00» y «126,00».
   class Contexto
     include ERB::Util
 
@@ -62,7 +62,10 @@ module DocumentosComerciales
 
     def cifra(monto) = helpers.cifra(monto)
     def estilo = CARPETA.join("estilo.css").read
-    def hoy = I18n.l(Date.current, format: :long)
+    # ⚠️ El día de Venezuela, no el de la app. La app corre en UTC, y desde las
+    # 8 p. m. de Caracas su «hoy» ya es mañana: impreso de noche, el contrato
+    # decía «actualizado el 15 de octubre» un 14.
+    def hoy = I18n.l(Time.current.in_time_zone("Caracas").to_date, format: :long)
 
     private
 

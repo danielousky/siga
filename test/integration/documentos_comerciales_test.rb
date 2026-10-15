@@ -21,7 +21,7 @@ class DocumentosComercialesTest < ActiveSupport::TestCase
 
       assert_includes texto, "0,47", "#{nombre} no dice el precio por alumno de la constante"
       assert_includes texto, "53,00", "#{nombre} no dice el mínimo de la constante"
-      assert_no_match(/0,35|45,00/, texto, "#{nombre} tiene un precio escrito a mano")
+      assert_no_match(/0,35|39,00/, texto, "#{nombre} tiene un precio escrito a mano")
     end
 
     test "#{nombre}: le habla de usted al lector y dice «área de aprendizaje»" do
@@ -50,12 +50,15 @@ class DocumentosComercialesTest < ActiveSupport::TestCase
   end
 
   # Las bandas viejas, en cualquiera de sus dos formas.
+  #
+  # ⚠️ Sin el 39: fue la banda «Inicial» hasta el 12 de octubre de 2026, y
+  # desde el 14 es el mínimo de verdad, que los documentos tienen que decir.
   test "ningún documento habla de planes por tamaño" do
     DocumentosComerciales::DOCUMENTOS.each_key do |nombre|
       texto = texto_de(nombre)
 
       assert_no_match(/\bplan(es)? (Inicial|Estándar|Grande|Básico|Premium)\b|PLAN BÁSICO|plan seleccionado/i, texto, nombre)
-      assert_no_match(/(\$\s?(30|60|90|39|79|119)\b)|(\b(30|60|90|39|79|119)(,00)?\s?\$)/, texto, nombre)
+      assert_no_match(/(\$\s?(30|60|90|79|119)\b)|(\b(30|60|90|79|119)(,00)?\s?\$)/, texto, nombre)
     end
   end
 

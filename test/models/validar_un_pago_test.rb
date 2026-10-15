@@ -45,7 +45,7 @@ class ValidarUnPagoTest < ActiveSupport::TestCase
     suscripcion = suscripcion_de(@a.colegio)
     assert_equal Subscription::PRECIO_POR_ALUMNO, suscripcion.precio_por_alumno
     assert_equal Subscription::MINIMO_MENSUAL, suscripcion.minimo_mensual
-    assert_equal BigDecimal("45"), suscripcion.precio_mensual
+    assert_equal BigDecimal("39"), suscripcion.precio_mensual
     assert_equal 2, suscripcion.matricula_facturada
   end
 
@@ -60,7 +60,7 @@ class ValidarUnPagoTest < ActiveSupport::TestCase
 
     suscripcion = suscripcion_de(@a.colegio)
     assert_equal BigDecimal("0.35"), suscripcion.precio_por_alumno
-    assert_equal BigDecimal("45"), suscripcion.precio_mensual
+    assert_equal BigDecimal("39"), suscripcion.precio_mensual
   end
 
   test "el pago queda validado, con quién lo miró y qué mes cubre" do

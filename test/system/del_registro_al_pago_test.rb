@@ -45,8 +45,8 @@ class DelRegistroAlPagoTest < ApplicationSystemTestCase
     esperando_la_pagina
     tocando { click_button "Guardar asistencia" }
 
-    # Un alumno: le toca el mínimo, 45 $. El precio es final, sin IVA aparte.
-    assert_text "se activan con la suscripción: 45,00 $ al mes"
+    # Un alumno: le toca el mínimo, 39 $. El precio es final, sin IVA aparte.
+    assert_text "se activan con la suscripción: 39,00 $ al mes"
     assert_no_text "IVA"
     capturar "1-el-muro"
     tocando { click_link "Ver cómo activarla" }
@@ -54,7 +54,7 @@ class DelRegistroAlPagoTest < ApplicationSystemTestCase
     # ── 4 · «Suscripción»: en qué está, cuánto cuesta y cómo pagar ───────────
     assert_current_path suscripcion_path
     assert_text "Sin suscripción activa"
-    assert_text "45,00 $"
+    assert_text "39,00 $"
     assert_text "Banco de Venezuela (0102)"
     capturar "2-suscripcion-sin-activar"
     tocando { click_link "Reportar el pago" }

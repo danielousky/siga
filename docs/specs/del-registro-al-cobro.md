@@ -16,8 +16,10 @@
    3 · la escalera          hecha     el trabajo diario y sus tres correos
    ─────────────────────────────────────────────────────────────────────────────
    «hecha» es en local y con `bin/ci` en verde. Las decisiones 23 a 27 nacieron
-   en la tanda 2 y están POR CONFIRMAR, y la 29 también. Las 30 a 34 nacieron
-   en la tanda 5 —con Daniel ausente— y están POR CONFIRMAR.
+   en la tanda 2, y las 30 a 34 en la tanda 5, con Daniel ausente: las
+   CONFIRMÓ el 14 de octubre, en bloque. Ese día decidió también la 29 —el
+   mínimo, 39 $— y volvió a decidir la 18: el precio se queda en 0,35, y se
+   evalúa con 5 colegios.
 
    ⚠️ LA TANDA 5 SÍ SALIÓ, y es la única: la muestra vive en su propia app del
    servidor (`siga-demo`, con su base). Producción no se tocó.
@@ -26,6 +28,9 @@
    que nada saliera: de «0,30 $ + IVA, mínimo 39» a **0,35 $, mínimo 45, sin
    IVA aparte** (decisiones 28 y 29). Donde este spec decía lo primero, ya dice
    lo segundo; las decisiones 7 y 8 quedan tachadas, como historia.
+
+   ⚠️ Y EL MÍNIMO BAJÓ el 14 de octubre: de 45 a **39 $** (decisión 29, de
+   Daniel). El 45 era la cuenta del IVA aplicada al mínimo, y esa la deduje yo.
 ```
 
 Un colegio entra a SIGA, carga lo suyo, ve cuánto le cuesta operar, paga, y SIGA
@@ -161,23 +166,23 @@ Y el criterio que ordena todo lo demás. Daniel, 9 de octubre:
 | 15 | ¿Qué pasa con los nombres Inicial, Estándar y Grande? | **Desaparecen.** Con un solo plan, el colegio tiene la suscripción activa o no la tiene. De paso se acaba el choque de hoy: «Inicial» es a la vez el plan gratis y el de 39 $ | Claude; confirmada por Daniel, 12 oct. |
 | 16 | ¿Puede un colegio quedarse SIN suscripción? | **No.** Hoy «sin fila» es acceso completo y sin fecha: es la puerta A. Todo colegio nace en `gratis`, y una cortesía o un piloto es una suscripción activa a 0 $, con su vencimiento | Claude; confirmada por Daniel, 12 oct. |
 | 17 | ¿Se congela el precio del que entra? | **Sí:** cada colegio conserva su precio por alumno y su mínimo, y subirlos toca solo a los que entran después. Hoy ya se congela `precio_mensual` | Claude; confirmada por Daniel, 12 oct. |
-| 18 | ¿Cómo se ajusta el precio? | Si cuatro de los primeros cinco colegios a los que se les cotiza aceptan sin discutir el precio, los siguientes entran a 0,40. ⚠️ Ese 0,40 era ANTES de meter el IVA en el precio (decisión 28): con la misma cuenta serían 0,46, y hay que volver a decidirlo | Claude; confirmada por Daniel, 12 oct. |
+| 18 | ¿Cómo se ajusta el precio? | ~~Si cuatro de los primeros cinco colegios a los que se les cotiza aceptan sin discutir el precio, los siguientes entran a 0,40.~~ **Se queda en 0,35, y con 5 colegios se evalúa** —*«después que tengamos 5 colegios evaluamos»*—. La regla automática se cae: el 0,40 era de antes del IVA (decisión 28) | Claude, 9 oct.; Daniel la cambió el 14 oct. |
 | 19 | ¿Qué pasa con el formulario de demostración? | **Sale de la portada;** su dirección lleva a la portada, y `/siga/solicitudes` se queda como historia | Claude; confirmada por Daniel, 12 oct. |
 | 20 | ¿Dónde está el botón de WhatsApp, y de dónde sale el número? | **En la portada, el registro y «Suscripción».** Hoy vive solo en el formulario de demostración, que sale con la decisión 19. **El número es un ajuste que Daniel cambia desde `/siga`,** sin tocar el servidor; reemplaza a la variable `SIGA_WHATSAPP` | Daniel, 12 oct. |
 | 21 | ¿Y los datos para pagar —Pago Móvil, Binance—? | **En el mismo ajuste de `/siga`,** por la misma razón: cambiar de cuenta no puede exigir un despliegue | Claude, por la misma razón que la 20 |
 | 22 | ¿Quién valida pagos y cambia los ajustes? | **El fundador**, como ya pasa con tocar suscripciones (`SigaStaff#puede_dar_de_alta_colegios?`); operaciones los ve | Claude, siguiendo el código |
-| 23 | ¿Se le avisa al colegio cuando su pago se valida? | **Sí, por correo, a quien lo reportó.** El spec pedía solo el del rechazo; sin el otro, el colegio tiene que entrar a mirar o escribir a preguntar si ya puede calificar | Claude, tanda 2 · **por confirmar** |
-| 24 | ¿Y si el colegio reportó mal? | **Retira su reporte mientras nadie lo ha mirado, y reporta de nuevo.** Solo cabe uno en revisión: sin esto quedaría esperando a que se lo rechacen | Claude, tanda 2 · **por confirmar** |
-| 25 | ¿Con qué cuenta se cobra: la del día que reporta o la del día que se valida? | **La del día que REPORTA.** El reporte guarda lo que el colegio vio —alumnos, precio, mínimo y monto— y validar activa con eso, aunque después inscriba más alumnos o suba el precio | Claude, tanda 2 · **por confirmar** |
-| 26 | «Pagó tarde», ¿se mide por el reporte o por la validación? | **Por el reporte.** La demora en validar es de SIGA y no puede moverle el mes al colegio (§ 5.7) | Claude, tanda 2 · **por confirmar** |
-| 27 | ¿Se puede deshacer una validación? | **No, por ahora.** Por eso validar pide confirmación, y un pago ya revisado no se vuelve a decidir. Deshacerla exigiría guardar cómo estaba la suscripción antes | Claude, tanda 2 · **por confirmar** |
+| 23 | ¿Se le avisa al colegio cuando su pago se valida? | **Sí, por correo, a quien lo reportó.** El spec pedía solo el del rechazo; sin el otro, el colegio tiene que entrar a mirar o escribir a preguntar si ya puede calificar | Claude, tanda 2 · confirmada por Daniel, 14 oct. |
+| 24 | ¿Y si el colegio reportó mal? | **Retira su reporte mientras nadie lo ha mirado, y reporta de nuevo.** Solo cabe uno en revisión: sin esto quedaría esperando a que se lo rechacen | Claude, tanda 2 · confirmada por Daniel, 14 oct. |
+| 25 | ¿Con qué cuenta se cobra: la del día que reporta o la del día que se valida? | **La del día que REPORTA.** El reporte guarda lo que el colegio vio —alumnos, precio, mínimo y monto— y validar activa con eso, aunque después inscriba más alumnos o suba el precio | Claude, tanda 2 · confirmada por Daniel, 14 oct. |
+| 26 | «Pagó tarde», ¿se mide por el reporte o por la validación? | **Por el reporte.** La demora en validar es de SIGA y no puede moverle el mes al colegio (§ 5.7) | Claude, tanda 2 · confirmada por Daniel, 14 oct. |
+| 27 | ¿Se puede deshacer una validación? | **No, por ahora.** Por eso validar pide confirmación, y un pago ya revisado no se vuelve a decidir. Deshacerla exigiría guardar cómo estaba la suscripción antes | Claude, tanda 2 · confirmada por Daniel, 14 oct. |
 | 28 | ¿Y el IVA? | **Va DENTRO del precio: 0,35 $ por alumno al mes, y ninguna pantalla dice «más IVA».** *«No podemos cobrar IVA en dólares, eso no es correcto… vamos a incrementarle el IVA al costo, es decir, 0,30 × 1,16 = 0,348, poco menos de 0,35. Pongámoslo de una vez como el costo.»* Lo que se lee es lo que se paga: 360 alumnos, 126,00 $ | Daniel, 12 oct. |
-| 29 | ¿Y el mínimo? | **45 $,** por la misma cuenta: 39 × 1,16 = 45,24. Daniel dijo el precio por alumno y no el mínimo; dejarlo en 39 le habría bajado la cuenta al colegio chico de 45,24 a 39. Cubre hasta 128 alumnos | Claude · **por confirmar** |
-| 30 | ¿Con qué cuentas se entra a la muestra? | **`director.bolivar@mail.com`, `profesor.bolivar@mail.com` y `representante.bolivar@mail.com`, clave `123123`.** La primera la fijó Daniel —*«pongámosles director.bolivar@mail.com»*—; las otras dos siguen su forma. Son las mismas en desarrollo: reemplazan a `director.bolivar@siga.edu` y `prof.garcia@bolivar.edu` | Daniel (la primera) · Claude, por confirmar (las otras dos), 12 oct. |
-| 31 | ¿Solo tres puertas? | **Tres grandes y siete chicas.** Debajo van «Otras miradas» —coordinación, secretaría, finanzas, una maestra de primaria, un alumno, una representante con hijos en dos colegios y el colegio que dejó de pagar—: no venden, pero dejan recorrer lo que las tres no enseñan | Claude; por confirmar |
-| 32 | ¿Qué fecha tiene el colegio de la muestra? | **La de HOY.** Los años escolares de la siembra se cuentan desde el día en que corre: el año pasado completo y cerrado, y el que corre, calificado y con asistencia hasta ayer. Como se resiembra cada noche, el colegio avanza solo. Antes eran años escritos, y la muestra abría en un año «finalizado» | Claude; por confirmar |
-| 33 | ¿Quién entra a `/siga` en la muestra? | **Nadie, por defecto.** El equipo de SIGA se siembra con una clave al azar: `/siga` guarda las cuentas a donde se paga, y con la clave pública cualquiera pondría la suya en «cómo pagar». Se abre poniendo `SIGA_SEED_STAFF_PASSWORD` | Claude; por confirmar |
-| 34 | En el portal, ¿qué ve la familia de un niño de Inicial, y qué boletines? | **La valoración que escribió la maestra** —leía «Pendiente» aunque estuviera escrita—, **y los boletines liberados de los años anteriores,** no solo los del que corre. Son dos arreglos del producto, no de la muestra: los dejó a la vista sembrar una familia con un hijo en cada nivel | Claude; por confirmar |
+| 29 | ¿Y el mínimo? | **39 $** —*Daniel, 14 oct.*—. Salió en ~~45 $, por la misma cuenta del precio: 39 × 1,16 = 45,24~~, que deduje yo. Con 39, el mínimo lo pagan los colegios de hasta 111 alumnos (con 45 eran 128) | Claude, 12 oct.; Daniel lo dejó en 39 el 14 oct. |
+| 30 | ¿Con qué cuentas se entra a la muestra? | **`director.bolivar@mail.com`, `profesor.bolivar@mail.com` y `representante.bolivar@mail.com`, clave `123123`.** La primera la fijó Daniel —*«pongámosles director.bolivar@mail.com»*—; las otras dos siguen su forma. Son las mismas en desarrollo: reemplazan a `director.bolivar@siga.edu` y `prof.garcia@bolivar.edu` | Daniel (la primera, 12 oct.) · Claude (las otras dos), confirmadas por Daniel, 14 oct. |
+| 31 | ¿Solo tres puertas? | **Tres grandes y siete chicas.** Debajo van «Otras miradas» —coordinación, secretaría, finanzas, una maestra de primaria, un alumno, una representante con hijos en dos colegios y el colegio que dejó de pagar—: no venden, pero dejan recorrer lo que las tres no enseñan | Claude; confirmada por Daniel, 14 oct. |
+| 32 | ¿Qué fecha tiene el colegio de la muestra? | **La de HOY.** Los años escolares de la siembra se cuentan desde el día en que corre: el año pasado completo y cerrado, y el que corre, calificado y con asistencia hasta ayer. Como se resiembra cada noche, el colegio avanza solo. Antes eran años escritos, y la muestra abría en un año «finalizado» | Claude; confirmada por Daniel, 14 oct. |
+| 33 | ¿Quién entra a `/siga` en la muestra? | **Nadie, por defecto.** El equipo de SIGA se siembra con una clave al azar: `/siga` guarda las cuentas a donde se paga, y con la clave pública cualquiera pondría la suya en «cómo pagar». Se abre poniendo `SIGA_SEED_STAFF_PASSWORD` | Claude; confirmada por Daniel, 14 oct. |
+| 34 | En el portal, ¿qué ve la familia de un niño de Inicial, y qué boletines? | **La valoración que escribió la maestra** —leía «Pendiente» aunque estuviera escrita—, **y los boletines liberados de los años anteriores,** no solo los del que corre. Son dos arreglos del producto, no de la muestra: los dejó a la vista sembrar una familia con un hijo en cada nivel | Claude; confirmada por Daniel, 14 oct. |
 | 35 | ¿Dónde viven el WhatsApp de SIGA y la dirección de la muestra? | **En una tabla `setup`: nombre del campo y valor, una fila por dato,** editable en `/siga/ajustes`. *«Pon SIGA_MUESTRA_URL como un campo de ajustes. De hecho, vamos a agregar una tabla que se llame setup que sea nombre del campo, valor; allí vamos a colocar estos 2 valores, el número telefónico de WhatsApp y la url de muestra.»* La variable `SIGA_MUESTRA_URL` deja de leerse, y el WhatsApp sale de `siga_settings`, que se queda con los datos para pagar. `SIGA_WHATSAPP` sigue de valor inicial mientras no haya fila: en la muestra nadie entra a `/siga` (33) | Daniel, 12 oct. (la tabla y sus dos datos) · Claude (que el WhatsApp se MUDE y no se copie: dos lugares para el mismo número son dos números; y que restablecer la muestra no lo borre) |
 | 36 | ¿Se paga por PayPal? ¿Y dónde viven Binance y PayPal? | **Sí: PayPal entra como cuarto medio,** en dólares, con el número de la transacción como referencia y su comprobante, como Binance. **Binance y PayPal son «variables» de `setup`**, una fila cada uno: un medio de UN dato —un correo o un ID— no se valida con nada, y por eso no va con Pago Móvil y transferencia, que comparten titular y cédula. *«Hay que agregar una variable para los valores de Binance y Paypal; en ambos casos el correo es…»* —el suyo, que no se escribe en el repositorio: se carga en `/siga/ajustes` o con `bin/rails ajustes:poner` | Daniel, 12 oct. (PayPal, y que sean variables con su correo) · Claude (que Binance se MUDE de `siga_settings`, que PayPal pida referencia y comprobante, y la tarea `ajustes:poner`) |
 | 37 | ¿Quién paga la comisión de PayPal? | **SIGA.** El colegio paga el precio y nada más, como en los otros medios: el precio es final (decisión 28). *«La comisión de PayPal la absorbe SIGA, déjalo así.»* | Daniel, 13 oct. |
@@ -273,7 +278,8 @@ deja de ser un riesgo de un empleado identificable y pasa a ser de cualquiera.
 
 - Precio en dólares, y final: lleva el IVA adentro (decisión 28). Un colegio de
   360 alumnos: 360 × 0,35 = **126,00 $ al mes.** Uno de 100: el mínimo,
-  **45,00 $.** Ninguna pantalla desglosa un IVA ni dice «más IVA».
+  **39,00 $** (hasta el 14 de octubre, 45,00). Ninguna pantalla desglosa un IVA
+  ni dice «más IVA».
 - En bolívares se paga a la tasa BCV del día. SIGA no guarda tasas: la cuenta la
   hace quien paga y Daniel la revisa al validar, igual que en los pagos de las
   familias (`payment_reports` no tiene columna de tasa).
@@ -295,7 +301,7 @@ deja de ser un riesgo de un empleado identificable y pasa a ser de cualquiera.
                                                    («Entrar» queda en la barra de arriba)
 
    «04 — La suscripción»                           «04 — La suscripción»
-   Inicial 39 · Estándar 79 · Grande 119           0,35 $ por alumno al mes · mínimo 45 $
+   Inicial 39 · Estándar 79 · Grande 119           0,35 $ por alumno al mes · mínimo 39 $
    · A convenir                                    cargar su colegio es gratis
 ```
 
@@ -508,7 +514,7 @@ del registro— y los ajustes de `/siga` —el WhatsApp ya sale de ahí y está 
       Cambiarlos cambia la portada, el registro, la ficha para buscadores, la
       pantalla «Suscripción», el muro y la Cartera; lo cuida una versión nueva
       de `los_precios_de_un_solo_lugar_test`.
-- [x] Con 360 alumnos: 126,00 $. Con 100: el mínimo, 45,00 $.
+- [x] Con 360 alumnos: 126,00 $. Con 100: el mínimo, 39,00 $ (45,00 hasta el 14 de octubre).
 - [x] Ninguna pantalla ni correo dice «IVA»: el precio es final (decisión 28).
 - [x] Al activarse, la suscripción congela su precio por alumno y su mínimo:
       cambiar la constante no le cambia el precio a un colegio que ya entró.

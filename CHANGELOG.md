@@ -23,6 +23,14 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.20.4 — 14 de octubre de 2026
+
+- **El mínimo de la suscripción baja a 39 $ al mes.** Lo paga el colegio de
+  hasta 111 alumnos; desde ahí, cada alumno suma 0,35 $, con el IVA adentro.
+  El contrato, «Aliados» y «Qué hace hoy» ya lo dicen.
+
+---
+
 ## 1.20.3 — 14 de octubre de 2026
 
 - **El botón «Buscar» de la barra de arriba se ve.** Tenía letra blanca sobre
