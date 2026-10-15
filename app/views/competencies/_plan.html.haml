@@ -151,7 +151,7 @@
             %span= "#{contar(evaluaciones_sueltas.size, 'evaluación', 'evaluaciones')} sin competencia"
           %p.nota-ayuda
             Cuentan para el promedio, pero no miden ninguna competencia del plan.
-            Engánchalas con el ⟨+⟩ de su fila.
+            Engánchelas con el ⟨+⟩ de su fila.
         - else
           %h5.plan-rotulo Evaluaciones
         %ul.plan-evaluaciones
@@ -220,4 +220,4 @@
             = icono(:ok, tamano: 15)
             %span
               = "#{pluralizar(otras_secciones.size, 'La otra sección', 'Las otras secciones')} de #{asignacion.section.grade.name} ya #{otras_secciones.one? ? 'tiene' : 'tienen'} su plan en este lapso."
-              Cámbialo desde su pestaña, arriba.
+              Cámbielo desde su pestaña, arriba.
