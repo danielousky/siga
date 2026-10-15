@@ -24,25 +24,26 @@
     .card-academic
       = render "shared/escala", total: @pagy.count, singular: "profesor", plural: "profesores"
 
-      %table.table-academic
-        %thead
-          %tr
-            -# ⚠️ Una sola columna para el nombre, como en Alumnos y
-            -# Representantes. Partirlo en «Nombre» y «Apellido» obliga a leer dos
-            -# celdas para saber a quién se está mirando, y desperdicia el ancho que
-            -# el correo sí necesita.
-            %th= Teacher.model_name.human
-            %th Cédula
-            %th Correo
-            %th Acceso
-        %tbody
-          - @teachers.each do |teacher|
+      .tabla-envoltura
+        %table.table-academic
+          %thead
             %tr
-              %td= link_to persona_con_avatar(teacher.user), teacher
-              %td= teacher.user.identificador || "—"
-              %td= teacher.user.email
-              %td
-                - if teacher.user.puede_entrar?
-                  %span.estado.estado--al-dia Activo
-                - else
-                  %span.estado.estado--inactivo Sin activar
+              -# ⚠️ Una sola columna para el nombre, como en Alumnos y
+              -# Representantes. Partirlo en «Nombre» y «Apellido» obliga a leer dos
+              -# celdas para saber a quién se está mirando, y desperdicia el ancho que
+              -# el correo sí necesita.
+              %th= Teacher.model_name.human
+              %th Cédula
+              %th Correo
+              %th Acceso
+          %tbody
+            - @teachers.each do |teacher|
+              %tr
+                %td= link_to persona_con_avatar(teacher.user), teacher
+                %td= teacher.user.identificador || "—"
+                %td= teacher.user.email
+                %td
+                  - if teacher.user.puede_entrar?
+                    %span.estado.estado--al-dia Activo
+                  - else
+                    %span.estado.estado--inactivo Sin activar

@@ -23,6 +23,18 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.20.5 — 14 de octubre de 2026
+
+- **En una tableta, las listas anchas ya no corren la pantalla de lado.**
+  Administradores, profesores, representantes, la auditoría y las
+  importaciones: la tabla se desliza dentro de su recuadro, como en el
+  teléfono.
+- **El formulario de competencias tiene sus botones en fila,** como el resto.
+- **Tres avisos del plan de evaluación ya hablan de usted:** se le habían
+  escapado a la 1.20.2.
+
+---
+
 ## 1.20.4 — 14 de octubre de 2026
 
 - **El mínimo de la suscripción baja a 39 $ al mes.** Lo paga el colegio de

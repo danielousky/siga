@@ -646,6 +646,25 @@ a:hover {
   font-weight: 500;
 }
 
+/* Una tabla de muchas columnas va dentro de `.tabla-envoltura`, que la desliza
+   de costado cuando no cabe (14 de octubre de 2026).
+
+   Entre 601 y 900 px —una tableta, una ventana a media pantalla— cinco
+   pantallas corrían la página entera de lado: administradores 245 px,
+   profesores 92, representantes 47, la auditoría 45 y las importaciones 40.
+   En el teléfono no pasa porque ahí la TABLA misma se desliza (a 600 px).
+
+   ⚠️ La caja va POR FUERA de la tabla, y no es gusto. Llevar la regla del
+   teléfono hasta 900 px —`display: block` sobre la tabla— también arreglaba
+   el desborde, pero una tabla angosta dejaba de llenar su caja: la fila de
+   lapsos quedaba al 53 % del ancho y la de grados al 76 %, con el borde
+   entero alrededor. La envoltura deja la tabla como está y solo desliza
+   cuando sobra.
+
+   ⚠️ La clase ya estaba en las importaciones, sin una sola regla: un `div`
+   escrito `.clase` se le escapaba a `clases_sin_estilo_test`. */
+.tabla-envoltura { overflow-x: auto; }
+
 /* ---- Forms ---- */
 
 .form-group {

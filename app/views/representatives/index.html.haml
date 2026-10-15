@@ -34,31 +34,32 @@
       = render "shared/escala", total: @pagy.count, singular: "representante", plural: "representantes",
                detalle: (params[:q].present? ? "de la búsqueda “#{params[:q].strip}”" : nil)
 
-      %table.table-academic
-        %thead
-          %tr
-            %th Nombre
-            %th Contacto
-            %th Representados
-        %tbody
-          - @representatives.each do |representante|
+      .tabla-envoltura
+        %table.table-academic
+          %thead
             %tr
-              %td= link_to persona_con_avatar(representante.user), representante
-              %td
-                -# Sin correo el representante no puede consultar nada, así que la
-                -# celda vacía no sirve: hay que poder VER a quién falta llamar
-                -# antes de que la mamá pregunte por qué no entra (MOR-142).
-                - if representante.user.email.present?
-                  = representante.user.email
-                - else
-                  %span.nota-pendiente Sin correo
-                - if representante.phone.present?
-                  %br
-                  %span.dato-secundario= representante.phone
-              %td
-                - if representante.students.any?
-                  = representante.students.map { |a| "#{a.user.nombre_completo}" }.join(" ·")
-                - else
-                  %span.nota-pendiente Sin alumnos vinculados
+              %th Nombre
+              %th Contacto
+              %th Representados
+          %tbody
+            - @representatives.each do |representante|
+              %tr
+                %td= link_to persona_con_avatar(representante.user), representante
+                %td
+                  -# Sin correo el representante no puede consultar nada, así que la
+                  -# celda vacía no sirve: hay que poder VER a quién falta llamar
+                  -# antes de que la mamá pregunte por qué no entra (MOR-142).
+                  - if representante.user.email.present?
+                    = representante.user.email
+                  - else
+                    %span.nota-pendiente Sin correo
+                  - if representante.phone.present?
+                    %br
+                    %span.dato-secundario= representante.phone
+                %td
+                  - if representante.students.any?
+                    = representante.students.map { |a| "#{a.user.nombre_completo}" }.join(" ·")
+                  - else
+                    %span.nota-pendiente Sin alumnos vinculados
       .pagy-nav
         != pagy_nav(@pagy)

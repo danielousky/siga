@@ -31,7 +31,11 @@ class DesbordeEnElTelefonoTest < ApplicationSystemTestCase
   # Entre el teléfono —las reglas empiezan a 640— y la pantalla grande, la barra
   # no cedía nada: de 641 a 1.350 px TODAS las pantallas se corrían de lado,
   # hasta 500 px, y este test no lo veía porque solo medía teléfonos.
-  ANCHOS = [ 390, 493, 1024 ].freeze
+  #
+  # ⚠️ Y 601, el primer ancho donde una tabla deja de deslizarse sola (la regla
+  # del teléfono llega a 600). Ahí cinco pantallas se corrían, la peor 245 px;
+  # una tabla ancha nueva va dentro de `.tabla-envoltura`.
+  ANCHOS = [ 390, 493, 601, 1024 ].freeze
 
   # ⚠️ La ventana se DEVUELVE al terminar, y no es limpieza de cortesía.
   #

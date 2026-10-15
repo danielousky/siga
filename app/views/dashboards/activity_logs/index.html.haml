@@ -40,25 +40,26 @@
       %span.role-badge= "#{@pagy.count} #{'registro'.then { |w| @pagy.count == 1 ? w : w + 's' }}"
 
     - if @logs.any?
-      %table.table-academic
-        %thead
-          %tr
-            %th Fecha y hora
-            %th= ActivityLog.human_attribute_name(:user)
-            %th Tipo
-            %th Descripción
-            %th IP
-        %tbody
-          - @logs.each do |log|
+      .tabla-envoltura
+        %table.table-academic
+          %thead
             %tr
-              %td.celda-fecha
-                = log.created_at.strftime("%d/%m/%Y %H:%M")
-              %td= log.user.apellidos_y_nombres
-              %td
-                %span.activity-badge{class: "activity-badge--#{log.action.split('_').last}"}
-                  = log.label
-              %td= log.message
-              %td.dato-menor= log.ip_address || "—"
+              %th Fecha y hora
+              %th= ActivityLog.human_attribute_name(:user)
+              %th Tipo
+              %th Descripción
+              %th IP
+          %tbody
+            - @logs.each do |log|
+              %tr
+                %td.celda-fecha
+                  = log.created_at.strftime("%d/%m/%Y %H:%M")
+                %td= log.user.apellidos_y_nombres
+                %td
+                  %span.activity-badge{class: "activity-badge--#{log.action.split('_').last}"}
+                    = log.label
+                %td= log.message
+                %td.dato-menor= log.ip_address || "—"
 
       .pagy-nav
         != pagy_nav(@pagy)
