@@ -1,4 +1,4 @@
-# 🔖 Estado de avance — actualizado 14 de octubre de 2026
+# 🔖 Estado de avance — actualizado 15 de octubre de 2026
 
 ## 📋 Lo pendiente, por prioridad — 14 de octubre
 
@@ -15,8 +15,22 @@
                                    cada indicador lee el nivel de la evaluación que lo midió
                                    (`PlanEvaluado`, CLAUDE.md § 2).
    —   LOS 4 VIDEOS VIEJOS          los revisa y los borra Daniel (14 oct).
-   —   CUATRO RAMAS EN LOCAL       abajo, con `bin/ci` en verde. Sin subir: esperan su
-                                   «despliega».
+```
+
+## ✅ El mínimo en 39 $ y las tablas en su caja — 1.20.5, EN PRODUCCIÓN desde el 15 de octubre
+
+```
+   06:51  respaldo de producción, abierto y contado    0 colegios · 2 personas · 15.954 planteles
+          → SIGA/respaldos/siga-prod-20261015-0651.dump
+          PRs #76 (ESTADO, mezclado al abrirlo), #77 (los videos), #78 (1.20.4) y #79 (1.20.5)
+          el CI de GitHub, en verde en los tres a la primera
+   08:27  otro respaldo antes de mezclar —la sesión se cortó entre medio—, igual de contado
+          → SIGA/respaldos/siga-prod-20261015-0827.dump
+   08:28  #77, #78 y #79 mezclados en orden; tags v1.20.4 y v1.20.5
+   08:35  la muestra en 1.20.5
+   08:38  producción en 1.20.5 — sin migraciones; `rls:verificar` en verde; la portada ya
+          dice «mínimo de 39,00 $ al mes»
+   08:43  el CI de `main`, sobre el árbol final, en verde
 ```
 
 **Lo que decidió Daniel el 14 de octubre**, sobre las siete que estaban abiertas:
@@ -33,7 +47,7 @@
 ```
 
 ```
-   EN LOCAL, apiladas sobre `main`, en este orden
+   LO QUE SALIÓ, en este orden
    docs/pendientes-por-prioridad    —       este ESTADO: lo pendiente, por prioridad
    docs/los-videos-de-30-segundos   —       los guiones y los prompts de los dos videos
    fix/el-minimo-en-39              1.20.4  el mínimo baja a 39 $; el spec, con las decisiones
