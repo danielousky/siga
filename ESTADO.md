@@ -1,5 +1,45 @@
 # 🔖 Estado de avance — actualizado 14 de octubre de 2026
 
+## 📋 Lo pendiente, por prioridad — 14 de octubre
+
+```
+   P1  EL VIDEO CON NOTEBOOKLM     Daniel, 14 oct: «necesitamos crear un video con Notebook…
+                                   ponlo con prioridad 1». Falta decidir CÓMO (decisión 1).
+                                   Lo investigado el 12 oct está en la memoria «del registro
+                                   al cobro»: no hay MCP oficial de Google, el más usado se
+                                   archivó en septiembre y el que sigue vivo usa endpoints no
+                                   documentados y pide una cuenta de Google aparte.
+   —   LA COMPETENCIA Y SUS        Daniel quiere revisarlo otra vez, por un comentario de
+       INDICADORES                 Cyndi. Hoy el nivel de la competencia es el promedio
+                                   PONDERADO DE SUS EVALUACIONES —no de sus indicadores—, y
+                                   cada indicador lee el nivel de la evaluación que lo midió
+                                   (`PlanEvaluado`, CLAUDE.md § 2).
+   —   LOS 4 VIDEOS VIEJOS          los revisa y los borra Daniel (14 oct).
+```
+
+**Las decisiones abiertas**, numeradas para contestarlas por número:
+
+```
+   #  QUÉ                          HOY                               OPCIONES                         PROPUESTA
+   1  el video con NotebookLM      —                                 A instalar el MCP no oficial     B
+                                                                     B prompts + instrucciones, en
+                                                                       la web de NotebookLM
+   2  tablas de 601 a 900 px       5 de 20 pantallas se corren:      A deslizarse dentro de su caja   A
+                                   administradores 245 px · profe-     hasta 900 px, como en el
+                                   sores 92 · representantes 47 ·      teléfono
+                                   actividad 45 · importaciones 40   B dejarlas
+                                   (a 601 px; a 900, ninguna)
+   3  la matrícula de DOCs/        plantilla del colegio de prueba   A borrarla  B guardarla          A
+                                   (ya borrado), con 3 alumnos
+   4  el mínimo (decisión 29)      45 $ = 39 × 1,16: cubre hasta     A 45 $   B 39 $ (hasta 111)      A
+                                   128 alumnos
+   5  subir a los siguientes si    era 0,40 ANTES del IVA            A 0,40 final (360 al.: 144 $)    B
+      4 de los primeros 5 aceptan                                    B 0,46 final (165,60 $)
+      sin discutir (decisión 18)                                     C quitar la regla
+   6  el cobro (decisiones 23–27)  en producción desde el 13         A confirmar las cinco            A
+   7  la muestra (decisiones 30–34) en línea desde el 12             A confirmar las cinco            A
+```
+
 ## ✅ SIGA habla de usted, lo que se entrega sale del repo, y la barra cabe — 1.20.3, EN PRODUCCIÓN desde el 14 de octubre
 
 Lo pidió Daniel el 13 de octubre, después de la 1.20.1: el usted en TODOS los
@@ -167,12 +207,10 @@ octubre, a las 7:55 de la mañana, salió todo a producción.
 ### Lo que falta, y es tuyo
 
 ```
-   1 · PAGO MÓVIL Y TRANSFERENCIA  /siga/ajustes: faltan el TITULAR y la CÉDULA o RIF.
-                                   Al mediodía del 13 quedaron el banco, el teléfono y la
-                                   cuenta (20 dígitos, bien), pero el Pago Móvil pide banco +
-                                   teléfono + cédula, y la transferencia, cuenta + titular +
-                                   cédula: sin la cédula, ninguno de los dos se ofrece. Hoy
-                                   «Suscripción» ofrece Binance, PayPal y efectivo.
+   1 · PAGO MÓVIL Y TRANSFERENCIA  ✔ Daniel, 14 de octubre: «listo» — el titular y la
+                                   cédula o RIF que faltaban (el 13 quedaron el banco, el
+                                   teléfono y la cuenta). Sin la cédula no se ofrecía ninguno
+                                   de los dos; «Suscripción» ofrecía Binance, PayPal y efectivo.
    2 · MIRAR                       https://sigaeducando.com y https://demo.sigaeducando.com
    3 · DECIDIR                     las POR CONFIRMAR de abajo
 ```
