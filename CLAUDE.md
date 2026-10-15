@@ -92,7 +92,14 @@ quedaron en los precios, las funciones y el modelo de otros meses.
    docs/comercial/que_hace_hoy.html.erb   DOCs/SIGA - Qué hace hoy.pdf              ídem
    docs/manual/ (m1…m4)                   DOCs/Manual de SIGA.pdf                   —
    docs/modelo/ (generado del esquema)    SIGA - Modelo de datos.pdf                erd_del_modelo_test
+   docs/comercial/videos.md               los dos videos de 30 s, hechos a mano     documentos_comerciales_test
+                                          en NotebookLM con esos guiones
 ```
+
+⚠️ **Los videos no dicen precios, a propósito** (14 de octubre de 2026): un
+video vive meses, y los de septiembre siguieron circulando con las bandas
+viejas. Dicen lo que no vence —qué hace SIGA, que cargar es gratis, dónde
+verlo— y el test exige que cada guion quepa en 30 segundos (75 palabras).
 
 - `bin/rails comercial:documentos` imprime los tres PDF a `docs/comercial/publicado/`
   y los copia a la carpeta madre con el nombre que tenían allá.
