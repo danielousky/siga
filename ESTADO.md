@@ -3,42 +3,54 @@
 ## 📋 Lo pendiente, por prioridad — 14 de octubre
 
 ```
-   P1  EL VIDEO CON NOTEBOOKLM     Daniel, 14 oct: «necesitamos crear un video con Notebook…
-                                   ponlo con prioridad 1». Falta decidir CÓMO (decisión 1).
-                                   Lo investigado el 12 oct está en la memoria «del registro
-                                   al cobro»: no hay MCP oficial de Google, el más usado se
-                                   archivó en septiembre y el que sigue vivo usa endpoints no
-                                   documentados y pide una cuenta de Google aparte.
+   P1  LOS DOS VIDEOS DE 30 s      Daniel, 14 oct: «necesitamos crear un video con Notebook…
+                                   ponlo con prioridad 1», y «los 2, deben ser de 30 segundos
+                                   cada uno». Eligió prompts + instrucciones, no el MCP. Están
+                                   en `docs/comercial/videos.md`: las fuentes, los pasos, los
+                                   dos guiones y sus prompts. FALTA: que Daniel los haga en
+                                   NotebookLM, y mirarlos antes de mandarlos.
    —   LA COMPETENCIA Y SUS        Daniel quiere revisarlo otra vez, por un comentario de
        INDICADORES                 Cyndi. Hoy el nivel de la competencia es el promedio
                                    PONDERADO DE SUS EVALUACIONES —no de sus indicadores—, y
                                    cada indicador lee el nivel de la evaluación que lo midió
                                    (`PlanEvaluado`, CLAUDE.md § 2).
    —   LOS 4 VIDEOS VIEJOS          los revisa y los borra Daniel (14 oct).
+   —   CUATRO RAMAS EN LOCAL       abajo, con `bin/ci` en verde. Sin subir: esperan su
+                                   «despliega».
 ```
 
-**Las decisiones abiertas**, numeradas para contestarlas por número:
+**Lo que decidió Daniel el 14 de octubre**, sobre las siete que estaban abiertas:
 
 ```
-   #  QUÉ                          HOY                               OPCIONES                         PROPUESTA
-   1  el video con NotebookLM      —                                 A instalar el MCP no oficial     B
-                                                                     B prompts + instrucciones, en
-                                                                       la web de NotebookLM
-   2  tablas de 601 a 900 px       5 de 20 pantallas se corren:      A deslizarse dentro de su caja   A
-                                   administradores 245 px · profe-     hasta 900 px, como en el
-                                   sores 92 · representantes 47 ·      teléfono
-                                   actividad 45 · importaciones 40   B dejarlas
-                                   (a 601 px; a 900, ninguna)
-   3  la matrícula de DOCs/        plantilla del colegio de prueba   A borrarla  B guardarla          A
-                                   (ya borrado), con 3 alumnos
-   4  el mínimo (decisión 29)      45 $ = 39 × 1,16: cubre hasta     A 45 $   B 39 $ (hasta 111)      A
-                                   128 alumnos
-   5  subir a los siguientes si    era 0,40 ANTES del IVA            A 0,40 final (360 al.: 144 $)    B
-      4 de los primeros 5 aceptan                                    B 0,46 final (165,60 $)
-      sin discutir (decisión 18)                                     C quitar la regla
-   6  el cobro (decisiones 23–27)  en producción desde el 13         A confirmar las cinco            A
-   7  la muestra (decisiones 30–34) en línea desde el 12             A confirmar las cinco            A
+   1  el video con NotebookLM      B: prompts + instrucciones; dos videos de 30 s
+   2  tablas de 601 a 900 px       A: se deslizan dentro de su caja      → 1.20.5
+   3  la matrícula de DOCs/        A: borrada (está en la Papelera)
+   4  el mínimo (decisión 29)      B: 39 $; lo pagan hasta 111 alumnos   → 1.20.4
+   5  subir el precio (dec. 18)    se queda en 0,35: «después que tengamos 5 colegios
+                                   evaluamos». La regla automática se cae.
+   6  el cobro (dec. 23–27)        confirmadas
+   7  la muestra (dec. 30–34)      confirmadas
 ```
+
+```
+   EN LOCAL, apiladas sobre `main`, en este orden
+   docs/pendientes-por-prioridad    —       este ESTADO: lo pendiente, por prioridad
+   docs/los-videos-de-30-segundos   —       los guiones y los prompts de los dos videos
+   fix/el-minimo-en-39              1.20.4  el mínimo baja a 39 $; el spec, con las decisiones
+                                            confirmadas; el contrato, «Aliados» y «Qué hace
+                                            hoy» reimpresos, con la fecha de Venezuela
+   fix/las-tablas-hasta-900         1.20.5  las cinco tablas anchas, en `.tabla-envoltura`;
+                                            el formulario de competencias con sus botones en
+                                            fila; tres tuteos que quedaban en el plan
+```
+
+⚠️ **Dos agujeros de `clases_sin_estilo_test`, cerrados en la 1.20.5.** El primero:
+no veía la primera clase de un `div` escrito `.clase`. Por ahí se escondían
+`.tabla-envoltura`, la caja que tenía que deslizar las tablas de las
+importaciones y no tenía una sola regla, y `.form-actions`, una errata de
+`.form-acciones`. El segundo: contaba como definida una clase nombrada en un
+COMENTARIO del CSS, así que borrar una regla bien explicada dejaba el test en
+verde.
 
 ## ✅ SIGA habla de usted, lo que se entrega sale del repo, y la barra cabe — 1.20.3, EN PRODUCCIÓN desde el 14 de octubre
 
