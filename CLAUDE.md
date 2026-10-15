@@ -47,9 +47,10 @@ repite acá porque este es el proyecto donde más pesa.
 SIGA (Sistema Integrado de Gestión Académica) es un SaaS de gestión académica para
 instituciones educativas de Venezuela (preescolar, primaria, secundaria), vendido por
 suscripción mensual **por alumno**: **0,35 $ por alumno inscrito al mes, con un mínimo de
-45 $** — desde el 12 de octubre de 2026. Un solo plan y sin nombres: todo colegio tiene el
-sistema completo, y lo único que cambia es la matrícula. Cargar el colegio es gratis;
-calificar, pasar lista y emitir piden la suscripción. La fuente única es
+39 $** — el precio desde el 12 de octubre de 2026, y el mínimo desde el 14. Un solo plan
+y sin nombres: todo colegio tiene el sistema completo, y lo único que cambia es la
+matrícula. Cargar el colegio es gratis; calificar, pasar lista y emitir piden la
+suscripción. La fuente única es
 `Subscription::PRECIO_POR_ALUMNO` / `MINIMO_MENSUAL`.
 
 ⚠️ **El precio es FINAL: lleva el IVA adentro, y ninguna pantalla ni correo dice «más
@@ -58,8 +59,9 @@ que saliera: *«no podemos cobrar IVA en dólares, eso no es correcto… vamos a
 el IVA al costo: 0,30 × 1,16 = 0,348, poco menos de 0,35»*. No existe `Subscription::IVA`
 ni un renglón de IVA en ninguna cuenta: lo que se lee es lo que se paga (360 alumnos,
 126,00 $). Lo cuida `los_precios_de_un_solo_lugar_test`, que lee todas las plantillas.
-⚠️ El mínimo de 45 es esa misma cuenta —39 × 1,16 = 45,24— y lo deduje yo: está por
-confirmar con Daniel.
+⚠️ El mínimo NO lleva esa cuenta. Salió en 45 —39 × 1,16, deducido por mí— y Daniel lo
+dejó en **39** el 14 de octubre: cubre hasta 111 alumnos. El precio se queda en 0,35 *«y
+después que tengamos 5 colegios evaluamos»* (decisión 18).
 
 ⚠️ **El recorrido entero —puerta, prueba, precio, pago y cobro— está decidido en
 [`docs/specs/del-registro-al-cobro.md`](docs/specs/del-registro-al-cobro.md)**, y se
@@ -1066,7 +1068,7 @@ problema que Solid Queue resuelve solo aparecería en producción.
 Vive en la **misma base**, sin `connects_to`. El generador asume una base aparte porque está
 pensado para volumen; SIGA tiene *un* job que corre ~1 segundo cuando un profesor cambia una
 ponderación. Una segunda base sería otra cadena de conexión que configurar, respaldar y
-monitorear — y con colegios que pagan 45 $ al mes, cada pieza que no hace falta es una que puede fallar.
+monitorear — y con colegios que pagan 39 $ al mes, cada pieza que no hace falta es una que puede fallar.
 
 Sus once tablas **no llevan RLS, a propósito**: no son datos de ningún colegio, son la maquinaria
 de la plataforma, igual que `SigaStaff`. El colegio de un job viaja en su payload y lo restablece

@@ -69,7 +69,7 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
   # Qué dice
   # ══════════════════════════════════════════════════════════════════════════
 
-  # El colegio de prueba tiene dos alumnos: le toca el mínimo, 45 $.
+  # El colegio de prueba tiene dos alumnos: le toca el mínimo, 39 $.
   #
   # ⚠️ UN renglón, y sin IVA aparte (decisión 28): lo que se lee es lo que se
   # paga. Tenía tres —monto, IVA y total— y Daniel lo vio «muy incómodo».
@@ -80,7 +80,7 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
     assert_select ".suscripcion-cuenta tr", 1
     assert_select ".suscripcion-cuenta-total" do
       assert_select "td", text: /2 alumnos inscritos · el mínimo, al mes/
-      assert_select "td", text: "45,00 $"
+      assert_select "td", text: "39,00 $"
     end
     assert_select ".suscripcion-cuenta", text: /IVA/, count: 0
   end
@@ -204,7 +204,7 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
       assert_equal BigDecimal("18250.50"), pago.monto
       assert_equal "0012345678", pago.referencia
       assert pago.comprobante.attached?
-      assert_equal BigDecimal("45"), pago.cotizacion.monto, "guarda la cuenta con que se reportó"
+      assert_equal BigDecimal("39"), pago.cotizacion.monto, "guarda la cuenta con que se reportó"
     end
   end
 
@@ -248,7 +248,7 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
     assert_equal [ "avisos@siga.test" ], correo.to
     assert_match(/Pago por validar: #{Regexp.escape(@a.colegio.name)} · 18\.250,50 Bs/, correo.subject)
     assert_includes correo.text_part.body.to_s, "0012345678"
-    assert_includes correo.text_part.body.to_s, "45,00 $"
+    assert_includes correo.text_part.body.to_s, "39,00 $"
     assert_includes correo.text_part.body.to_s, siga_cartera_index_path
   end
 
@@ -313,7 +313,7 @@ class SuscripcionDelColegioTest < ActionDispatch::IntegrationTest
   test "el formulario le recuerda cuánto le toca" do
     get new_suscripcion_pago_path
 
-    assert_select ".reporte-de-pago-cuenta", text: /45,00 \$ al mes/
+    assert_select ".reporte-de-pago-cuenta", text: /39,00 \$ al mes/
   end
 
   test "sin medios cargados no hay formulario: vuelve a «Suscripción»" do

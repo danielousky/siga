@@ -196,7 +196,7 @@ class LaEscaleraJobTest < ActiveJob::TestCase
 
       correo = ActionMailer::Base.deliveries.last
       assert_match(/9 de noviembre de 2026/, correo.html_part.body.to_s)
-      assert_match(/45,00 \$/, correo.html_part.body.to_s, "dos alumnos: le toca el mínimo")
+      assert_match(/39,00 \$/, correo.html_part.body.to_s, "dos alumnos: le toca el mínimo")
       assert_match(/#{Regexp.escape(@a.colegio.name)}/, correo.text_part.body.to_s)
     end
   end

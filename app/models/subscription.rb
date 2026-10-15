@@ -43,6 +43,7 @@ class Subscription < ApplicationRecord
   #     septiembre de 2026            bandas: 30 · 60 · 90
   #     5 de octubre de 2026          bandas: 39 · 79 · 119
   #     12 de octubre de 2026         0,35 $ por alumno al mes, mínimo 45 $
+  #     14 de octubre de 2026         el mínimo baja a 39 $ (Daniel)
   #
   # ⚠️ El precio es FINAL: lleva el IVA adentro. Ese mismo 12 de octubre nació
   # como «0,30 $ + IVA, mínimo 39», y Daniel lo corrigió antes de que saliera:
@@ -51,8 +52,9 @@ class Subscription < ApplicationRecord
   # Pongámoslo de una vez como el costo»*. Ninguna pantalla dice «más IVA» ni
   # lo calcula: lo que se lee es lo que se paga.
   #
-  # ⚠️ El mínimo, 45, es la misma cuenta —39 × 1,16 = 45,24— y lo deduje yo:
-  # Daniel dijo el precio por alumno, no el mínimo. Está por confirmar.
+  # ⚠️ El mínimo es 39 $, y NO lleva la cuenta del IVA. Salió en 45 —39 × 1,16,
+  # la misma cuenta del precio— porque lo deduje yo, y Daniel lo decidió el 14
+  # de octubre de 2026: 39. Cubre hasta 111 alumnos; antes, 128.
   #
   # Lo leen la portada, la descripción y la ficha para buscadores, el muro de
   # lo gratis y el panel de SIGA. Lo cuida `los_precios_de_un_solo_lugar_test`,
@@ -63,7 +65,7 @@ class Subscription < ApplicationRecord
   # precio por alumno y su mínimo el día que se activa (decisión 17). Subir el
   # precio toca solo a los colegios que entran después.
   PRECIO_POR_ALUMNO = BigDecimal("0.35")
-  MINIMO_MENSUAL    = BigDecimal("45")
+  MINIMO_MENSUAL    = BigDecimal("39")
 
   # Lo que cuesta un mes. Es UNA cuenta, y la hacen todos los que muestran un
   # precio: escrita dos veces, el muro diría un número y la Cartera otro.
