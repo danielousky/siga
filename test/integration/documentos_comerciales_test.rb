@@ -32,6 +32,23 @@ class DocumentosComercialesTest < ActiveSupport::TestCase
     end
   end
 
+  # ⚠️ Los guiones de los videos NO dicen precios (14 de octubre de 2026). Un
+  # video vive meses —los de septiembre siguieron circulando con las bandas de
+  # 30, 60 y 90 $— y el precio es un número de `Subscription` que un video no
+  # puede leer. Y caben en los 30 segundos que pidió Daniel: unas 75 palabras
+  # leídas sin apuro.
+  test "los guiones de los videos: sin precios, de usted, con «área» y en 30 segundos" do
+    guiones = Rails.root.join("docs/comercial/videos.md").read.scan(/```guion\n(.*?)```/m).flatten
+
+    assert_equal 2, guiones.size, "esperaba los guiones de los dos videos: Principal y Roles"
+    guiones.each do |guion|
+      assert_no_match(/\$|\d+,\d\d|dólar|bolívar|precio|cuesta/i, guion, "un guion dice un precio:\n#{guion}")
+      assert_no_match(Tuteo::PATRON, guion, "un guion tutea:\n#{guion}")
+      assert_no_match(/\bmaterias?\b/i, guion, "un guion dice «materia»:\n#{guion}")
+      assert_operator guion.split.size, :<=, 75, "un guion no cabe en 30 segundos:\n#{guion}"
+    end
+  end
+
   # Las bandas viejas, en cualquiera de sus dos formas.
   test "ningún documento habla de planes por tamaño" do
     DocumentosComerciales::DOCUMENTOS.each_key do |nombre|
