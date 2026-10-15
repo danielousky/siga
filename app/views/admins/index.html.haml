@@ -7,31 +7,32 @@
   -# y perdido entre las columnas de una tabla no se ve.
   = render "shared/codigo_generado"
 
-  %table.table-academic
-    %thead
-      %tr
-        %th Nombre
-        %th Apellido
-        %th Correo
-        %th= Admin.human_attribute_name(:role)
-        %th Acceso
-        %th
-    %tbody
-      - @admins.each do |admin|
+  .tabla-envoltura
+    %table.table-academic
+      %thead
         %tr
-          %td= link_to admin.user.first_name, edit_admin_path(admin)
-          %td= admin.user.apellidos
-          %td= admin.user.email
-          %td
-            %span.role-badge= admin.role.humanize
-          %td
-            - if admin.user.puede_entrar?
-              %span.estado.estado--al-dia Activo
-            - else
-              %span.estado.estado--inactivo Sin activar
-          %td
-            -# Un administrador no tiene ficha —se edita y se lista— así que el
-            -# botón vive acá. El código de acceso es el mismo para todos; lo que
-            -# cambia es desde dónde se pide.
-            = button_to (admin.user.puede_entrar? ? "Regenerar código" : "Generar código"),
-                        codigo_admin_path(admin), class: "btn btn-secondary"
+          %th Nombre
+          %th Apellido
+          %th Correo
+          %th= Admin.human_attribute_name(:role)
+          %th Acceso
+          %th
+      %tbody
+        - @admins.each do |admin|
+          %tr
+            %td= link_to admin.user.first_name, edit_admin_path(admin)
+            %td= admin.user.apellidos
+            %td= admin.user.email
+            %td
+              %span.role-badge= admin.role.humanize
+            %td
+              - if admin.user.puede_entrar?
+                %span.estado.estado--al-dia Activo
+              - else
+                %span.estado.estado--inactivo Sin activar
+            %td
+              -# Un administrador no tiene ficha —se edita y se lista— así que el
+              -# botón vive acá. El código de acceso es el mismo para todos; lo que
+              -# cambia es desde dónde se pide.
+              = button_to (admin.user.puede_entrar? ? "Regenerar código" : "Generar código"),
+                          codigo_admin_path(admin), class: "btn btn-secondary"

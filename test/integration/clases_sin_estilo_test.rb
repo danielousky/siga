@@ -39,9 +39,21 @@ class ClasesSinEstiloTest < ActiveSupport::TestCase
   #
   # La lista está aquí para CONGELAR esa deuda, no para tolerarla: lo que
   # importa es que no crezca, y lo que se limpie sale de acá y no vuelve.
+  #
+  # ⚠️ Y las de la segunda tanda (14 de octubre de 2026), que estaban desde
+  # antes pero este test no las veía: la primera clase de un `div` escrito
+  # `.clase`. Ahí se escondían `.tabla-envoltura` —la caja que tenía que
+  # deslizar las tablas de las importaciones, y no deslizaba nada— y
+  # `.form-actions`, una errata de `.form-acciones` que dejaba sin su fila los
+  # botones del formulario de competencias. Esas dos se arreglaron; estas son
+  # contenedores. Y `plan-evaluaciones`, que solo seguía viva en un comentario
+  # del CSS: su regla se retiró el 21 de septiembre, y queda el `<ul>` de las
+  # evaluaciones sin competencia.
   YA_ESTABAN = %w[
     arranque-listo atrasado-dato carga-rapida contexto-anio-gestionar
     lista lista-errores portal-competencia que-evalua siga-form
+    asistencia-marco dashboard-alumno dashboard-profesor identidad-campos
+    lista-filtrable plan-evaluaciones portada-pie-marca portal-hijo valoraciones-planilla
   ].freeze
 
   def clases_de_las_vistas
@@ -50,16 +62,24 @@ class ClasesSinEstiloTest < ActiveSupport::TestCase
       # ⚠️ Solo las clases ESCRITAS ENTERAS. Una interpolada —`btn-#{tono}`— no
       # se puede resolver leyendo el archivo, y darla por buena o por mala es
       # inventar: se salta.
+      #
+      # ⚠️ Y la PRIMERA clase de un `div` implícito (`.tabla-envoltura`): la
+      # segunda expresión solo ve las que siguen a la etiqueta —`%table.una`—
+      # y en `.una` el nombre se lo comía el `[\w-]*` del comienzo.
       texto.scan(/class: "([^"#]+)"/).flatten
            .flat_map(&:split)
            .concat(texto.scan(/^\s*[%.#][\w-]*((?:\.[\w-]+)+)/).flatten.flat_map { |c| c.split(".") })
+           .concat(texto.scan(/^\s*\.([\w-]+)/).flatten)
            .reject { |c| c.blank? || c.start_with?("-") }
            .map { |c| [ c, vista.relative_path_from(Rails.root).to_s ] }
     end
   end
 
+  # ⚠️ Sin los comentarios. Una clase NOMBRADA en un comentario —«va dentro de
+  # `.tabla-envoltura`»— contaba como definida: borrar su regla dejaba este
+  # test en verde, porque el comentario que la explicaba seguía ahí.
   def clases_del_css
-    @clases_del_css ||= HOJAS.flat_map { |h| h.read.scan(/\.([a-zA-Z][\w-]*)/).flatten }.to_set
+    @clases_del_css ||= HOJAS.flat_map { |h| h.read.gsub(%r{/\*.*?\*/}m, "").scan(/\.([a-zA-Z][\w-]*)/).flatten }.to_set
   end
 
   test "la lista no está vacía: si no, este test no prueba nada" do

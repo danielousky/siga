@@ -31,30 +31,31 @@
   - else
     = render "shared/escala", total: @pagy.count, singular: "importación", plural: "importaciones"
 
-    %table.table-academic
-      %thead
-        %tr
-          %th Archivo
-          %th Qué trae
-          %th Filas
-          %th= Importacion.human_attribute_name(:estado)
-          %th Subida por
-          %th Cuándo
-      %tbody
-        - @importaciones.each do |importacion|
+    .tabla-envoltura
+      %table.table-academic
+        %thead
           %tr
-            %td= link_to importacion.nombre_del_archivo, importacion
-            %td= importacion.etiqueta_de_tipo
-            %td= importacion.filas_leidas || "—"
-            %td
-              - if importacion.confirmada?
-                %span.estado.estado--al-dia= importacion.etiqueta_de_estado
-              - elsif importacion.descartada?
-                %span.estado.estado--inactivo= importacion.etiqueta_de_estado
-              - else
-                %span.estado.estado--atencion= importacion.etiqueta_de_estado
-            %td= importacion.subido_por.apellidos_y_nombres
-            %td= l(importacion.created_at.to_date, format: :long)
+            %th Archivo
+            %th Qué trae
+            %th Filas
+            %th= Importacion.human_attribute_name(:estado)
+            %th Subida por
+            %th Cuándo
+        %tbody
+          - @importaciones.each do |importacion|
+            %tr
+              %td= link_to importacion.nombre_del_archivo, importacion
+              %td= importacion.etiqueta_de_tipo
+              %td= importacion.filas_leidas || "—"
+              %td
+                - if importacion.confirmada?
+                  %span.estado.estado--al-dia= importacion.etiqueta_de_estado
+                - elsif importacion.descartada?
+                  %span.estado.estado--inactivo= importacion.etiqueta_de_estado
+                - else
+                  %span.estado.estado--atencion= importacion.etiqueta_de_estado
+              %td= importacion.subido_por.apellidos_y_nombres
+              %td= l(importacion.created_at.to_date, format: :long)
 
     .pagy-nav
       != pagy_nav(@pagy)

@@ -144,7 +144,7 @@
         -# para `disabled`, que ES booleano, pero ARIA exige el VALOR — sin él
         -# un lector de pantalla no lo anuncia y el botón se lee como normal.
         %button.btn.btn-danger.btn-sm.btn-solo-icono.btn--apagado{ type: "button", "aria-disabled": "true",
-                                                                   data: { tooltip: "No se puede borrar: tiene #{contar(notas, 'nota cargada', 'notas cargadas')}. Vacíalas desde su planilla." },
+                                                                   data: { tooltip: "No se puede borrar: tiene #{contar(notas, 'nota cargada', 'notas cargadas')}. Vacíelas desde su planilla." },
                                                                    "aria-label": "No se puede borrar: tiene #{contar(notas, 'nota cargada', 'notas cargadas')}" }
           = icono(:borrar, tamano: 14)
       - else
