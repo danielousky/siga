@@ -207,10 +207,14 @@
               - if su_anio.id != @inscripcion.section.academic_period_id
                 %span.dato-secundario= "· #{su_anio.name}"
             %span.portal-boletin-codigo= boletin.code
-            -# ⚠️ Descargarlo es el punto: hasta ahora la familia veía que el
+            -# ⚠️ Tenerlo es el punto: hasta ahora la familia veía que el
             -# boletín existía y tenía que pedirlo por la oficina.
+            -#
+            -# Se ABRE en otra pestaña, como todo documento (`EntregaDocumentos`):
+            -# en el teléfono, el visor ya trae compartir, guardar e imprimir.
             -#
             -# La pantalla ya está bloqueada si hay deuda, así que llegar acá
             -# significa estar al día: el botón no necesita volver a preguntarlo.
-            = boton "Descargar", boletin_path(boletin), icono: :descargar, tono: :documento,
-                    sm: true, tooltip: "Descargar el #{boletin.titulo} en PDF"
+            = boton "Ver", boletin_path(boletin), icono: :ver, tono: :documento,
+                    sm: true, target: "_blank", rel: "noopener",
+                    tooltip: "Abrir el #{boletin.titulo} en PDF"

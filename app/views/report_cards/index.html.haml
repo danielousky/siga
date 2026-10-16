@@ -22,7 +22,10 @@
         = label_tag :section_id, "Sección", class: "form-label"
         = select_tag :section_id, options_for_select(opciones_de_seccion, @seccion&.id), class: "form-select", data: { action: "change->auto-envio#enviar" }
 
-    = form_with url: report_cards_path, method: :post, data: { turbo: false } do |f|
+    -# ⚠️ En OTRA pestaña: el PDF se abre en el visor del navegador y esta
+    -# pantalla queda donde estaba (`EntregaDocumentos`). Va en `html:` porque
+    -# `form_with` descarta un `target` suelto.
+    = form_with url: report_cards_path, method: :post, html: { target: "_blank" }, data: { turbo: false } do |f|
       = hidden_field_tag :section_id, @seccion&.id
 
       .form-row
@@ -35,9 +38,10 @@
           = select_tag :enrollment_id, options_for_select(opciones_de_alumno), class: "form-select"
 
       %p.nota-ayuda
-        Sale un solo PDF con una página por alumno, listo para mandar a imprimir.
+        Sale un solo PDF con una página por alumno. Se abre en otra pestaña,
+        y desde ahí se imprime o se descarga.
 
-      = f.submit "Emitir y descargar", class: "btn btn-documento"
+      = f.submit "Emitir", class: "btn btn-documento"
 
 .card-academic
   = render "shared/cabecera", titulo: "Últimos boletines emitidos", nivel: 2

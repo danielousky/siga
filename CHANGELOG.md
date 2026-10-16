@@ -23,6 +23,24 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.20.6 — 16 de octubre de 2026
+
+- **Todos los documentos se abren igual: en otra pestaña, en el visor del
+  navegador**, y desde ahí se imprimen o se descargan. Hasta hoy unos se
+  descargaban y otros reemplazaban la pantalla de SIGA, según dónde se
+  pidieran. Boletines, constancias, certificados, la 31059, el Resumen Final
+  y el boletín del portal de la familia. El Excel se sigue descargando.
+- **Recargar la pestaña de un documento ya no emite otro.** Muestra el mismo,
+  con su código.
+- **La 31059 sale también en Excel desde Documentos ▸ Certificados**, de un
+  alumno o de toda la sección (un libro con una hoja por alumno). Hasta hoy
+  estaba solo en la ficha.
+- **La auditoría anota cada documento una vez.** Los de la ficha quedaban
+  anotados dos veces por clic, y a veces con solo pasar el mouse por encima
+  del botón.
+
+---
+
 ## 1.20.5 — 14 de octubre de 2026
 
 - **En una tableta, las listas anchas ya no corren la pantalla de lado.**

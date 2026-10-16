@@ -24,7 +24,8 @@
         = label_tag :section_id, "Sección", class: "form-label"
         = select_tag :section_id, options_for_select(opciones_de_seccion, @seccion&.id), class: "form-select", data: { action: "change->auto-envio#enviar" }
 
-    = form_with url: constancias_path, method: :post, data: { turbo: false } do |f|
+    -# En OTRA pestaña, como todo documento (`EntregaDocumentos`).
+    = form_with url: constancias_path, method: :post, html: { target: "_blank" }, data: { turbo: false } do |f|
       = hidden_field_tag :section_id, @seccion&.id
 
       .form-group
@@ -33,9 +34,10 @@
 
       %p.nota-ayuda
         Elija un alumno para una constancia, o deje «toda la sección» para que
-        salga un PDF con una página por alumno.
+        salga un PDF con una página por alumno. Se abre en otra pestaña, y desde
+        ahí se imprime o se descarga.
 
-      = f.submit "Emitir y descargar", class: "btn btn-documento"
+      = f.submit "Emitir", class: "btn btn-documento"
 
 -# ⚠️ Era una tarjeta entera con 375 caracteres de prosa, siempre abierta. Es
 -# una explicación buena y se lee UNA vez: quien emite la constancia número

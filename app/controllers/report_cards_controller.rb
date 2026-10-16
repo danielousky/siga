@@ -44,6 +44,8 @@
 #
 # Ver MOR-98.
 class ReportCardsController < ApplicationController
+  include EntregaDocumentos
+
   before_action :require_emisor!
 
   def index
@@ -84,10 +86,21 @@ class ReportCardsController < ApplicationController
       metadata: { codigos: boletines.map(&:code) }
     )
 
-    send_data ReportCardPdf.new(boletines).render,
-              filename: nombre_de_archivo(seccion, lapso, inscripciones),
-              type: "application/pdf",
-              disposition: "attachment"
+    abrir_la_impresion impresion_de_boletines_path(
+      firma: firmar_la_impresion("ids" => boletines.map(&:id),
+                                 "nombre" => nombre_de_archivo(seccion, lapso, inscripciones)),
+      format: :pdf
+    )
+  end
+
+  # Los boletines que se acaban de emitir, en la pestaña que abrió «Emitir».
+  #
+  # ⚠️ Recargarla dibuja los MISMOS —su foto de las notas, su código— y no
+  # emite otros. Ver `EntregaDocumentos`.
+  def impresion
+    boletines = en_el_orden_de_la_firma(ReportCard, la_impresion.fetch("ids"))
+
+    entregar_pdf ReportCardPdf.new(boletines), la_impresion.fetch("nombre")
   end
 
   private

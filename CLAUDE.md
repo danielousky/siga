@@ -394,6 +394,38 @@ Se MIRAN en `/rails/mailers/correos_de_siga`. Los cuidan
 un teléfono, cosa que nadie habría visto leyendo el HTML.
 Spec: [`correos-con-identidad.md`](docs/specs/correos-con-identidad.md).
 
+### 📄 Un documento se abre en otra pestaña
+
+Daniel, 16 de octubre de 2026: *«todos los documentos deberían tener una misma
+forma de salida… la previsualización (para que luego ellos decidan si la
+imprimen o la descargan) y en una pestaña aparte»*. Había cinco formas, según
+quién escribió cada pantalla. Ahora la regla vive en `EntregaDocumentos`:
+
+```
+   PDF     se ABRE (inline), en otra pestaña   el visor trae imprimir y descargar
+   Excel   se BAJA                             ningún navegador muestra una planilla
+
+   [Emitir] ──POST──► registra (código, auditoría) ──303──► GET …/impresion.pdf?firma=…
+```
+
+- ⚠️ **Lo que se EMITE no se contesta con el PDF.** Recargar la pestaña emitía
+  otro papel, con otro código, y el botón de descargar del visor de Chrome
+  re-pide un POST solo contra su caché. La dirección firmada se recarga y se
+  descarga sin emitir nada, y vence a las 12 horas: no es una puerta para sacar
+  papeles sin rastro.
+- ⚠️ **Esa dirección lleva `.pdf`.** La pared de la suscripción reconoce un
+  archivo por su formato, y en `CON_SUSCRIPCION` un GET sin él pasa en gratis.
+- ⚠️ **Un enlace a un PDF sin `target="_blank"` se lo queda Turbo**: lo pide,
+  recibe un PDF que no sabe pintar y lo vuelve a pedir — y Turbo 8 además lo
+  PRECARGA con solo pasar el mouse. Los papeles de la ficha se auditan al
+  dibujarse: una constancia quedó NUEVE veces en la auditoría de la muestra.
+  `no_se_dibuja_en_una_precarga` es la red.
+- `form_with` descarta un `target` suelto: va en `html: { target: "_blank" }`.
+  Y el botón del Excel, dentro de un formulario que abre otra pestaña, lleva
+  `formtarget="_self"`.
+- Lo cuida `los_documentos_se_abren_en_otra_pestana_test`, en las tres capas:
+  el servidor, la pantalla y la emisión.
+
 ### ⚠️ Inglés y español: dónde va cada uno (`MOR-162`)
 
 El criterio es uno y se dice en una línea: **inglés donde Rails DEDUCE un nombre

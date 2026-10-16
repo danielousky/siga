@@ -29,6 +29,9 @@ class ReportCardsControllerTest < ActionDispatch::IntegrationTest
     assert_difference -> { cantidad(ReportCard) }, 3 do
       post report_cards_url, params: { section_id: @esc.seccion.id, evaluation_moment_id: @esc.lapso(1).id }
     end
+    # El PDF está en la dirección de lo emitido (`EntregaDocumentos`).
+    assert_response :see_other
+    follow_redirect!
 
     assert_response :success
     assert_equal "application/pdf", response.media_type
@@ -46,6 +49,7 @@ class ReportCardsControllerTest < ActionDispatch::IntegrationTest
         enrollment_id: @esc.inscripcion(1).id
       }
     end
+    follow_redirect!
 
     assert_equal "application/pdf", response.media_type
   end

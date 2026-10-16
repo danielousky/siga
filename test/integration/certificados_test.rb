@@ -25,6 +25,7 @@ class CertificadosTest < ActionDispatch::IntegrationTest
     sign_in @a.director
 
     post certificados_path, params: { section_id: @a.seccion.id, enrollment_id: @uno.id }
+    follow_redirect!
 
     assert_response :success
     assert_equal "application/pdf", response.media_type
@@ -45,6 +46,7 @@ class CertificadosTest < ActionDispatch::IntegrationTest
     sign_in @a.director
 
     post certificados_path, params: { section_id: @a.seccion.id }
+    follow_redirect!
 
     assert_response :success
     assert_match(/certificado-primaria-6to-grado-a\.pdf/, response.headers["Content-Disposition"])
@@ -71,6 +73,7 @@ class CertificadosTest < ActionDispatch::IntegrationTest
     assert_select "strong", "Certificado de Educación Primaria"
 
     post certificados_path, params: { section_id: @a.seccion.id, enrollment_id: @uno.id }
+    follow_redirect!
 
     assert_includes paginas_de(response.body).first, "CERTIFICADO"
   end
@@ -84,6 +87,7 @@ class CertificadosTest < ActionDispatch::IntegrationTest
     assert_select "strong", "Constancia de Prosecución"
 
     post certificados_path, params: { section_id: @a.seccion.id, enrollment_id: @uno.id }
+    follow_redirect!
 
     assert_match(/prosecucion-primaria-prueba\.pdf/, response.headers["Content-Disposition"])
     assert_includes paginas_de(response.body).first, "CONSTANCIA DE PROSECUCIÓN"
@@ -105,6 +109,7 @@ class CertificadosTest < ActionDispatch::IntegrationTest
     assert_select "strong", "Certificación de Estudios de Educación Inicial"
 
     post certificados_path, params: { section_id: jardin.seccion.id }
+    follow_redirect!
 
     assert_response :success
     assert_match(/certificacion-inicial-3er-nivel-a\.pdf/, response.headers["Content-Disposition"])
@@ -128,6 +133,7 @@ class CertificadosTest < ActionDispatch::IntegrationTest
     assert_select "strong", "Certificación de Calificaciones (31059)"
 
     post certificados_path, params: { section_id: liceo.seccion.id }
+    follow_redirect!
 
     assert_response :success
     assert_match(/certificacion-31059-1er-ano-a\.pdf/, response.headers["Content-Disposition"])
@@ -160,6 +166,7 @@ class CertificadosTest < ActionDispatch::IntegrationTest
     assert_select ".plan-sin-evaluar", /repite, arrastra Matemática/
 
     post certificados_path, params: { section_id: @a.seccion.id }
+    follow_redirect!
 
     pagina, = paginas = paginas_de(response.body)
 
@@ -180,6 +187,7 @@ class CertificadosTest < ActionDispatch::IntegrationTest
     assert_select "select#enrollment_id option", text: "Prueba, Alumno2"
 
     post certificados_path, params: { section_id: @a.seccion.id, enrollment_id: @dos.id }
+    follow_redirect!
 
     assert_response :success
     assert_includes paginas_de(response.body).first, "Alumno2"
@@ -235,6 +243,7 @@ class CertificadosTest < ActionDispatch::IntegrationTest
     assert_select ".plan-sin-evaluar", /1 alumno no tiene calificación definitiva/
 
     post certificados_path, params: { section_id: @a.seccion.id }
+    follow_redirect!
 
     assert_equal 2, paginas_de(response.body).size
   end

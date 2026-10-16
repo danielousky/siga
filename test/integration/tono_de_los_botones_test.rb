@@ -35,7 +35,7 @@ class TonoDeLosBotonesTest < ActiveSupport::TestCase
   end
 
   # ⚠️ Los que llevan OTRO tono a propósito no entran: `btn-documento` para lo
-  # que sale —«Emitir y descargar»— y `btn-accion` para lo que hace mucho de una
+  # que sale —«Emitir»— y `btn-accion` para lo que hace mucho de una
   # vez —«Promover a 200 alumnos»—. Esa distinción es de `MOR-172` y es la que
   # hace que un botón diga qué hace; volverlos verdes la borraría.
   test "los submits con tono propio lo conservan" do
@@ -43,7 +43,7 @@ class TonoDeLosBotonesTest < ActiveSupport::TestCase
       vista.read.lines.filter_map { |l| l[/btn-(documento|accion)/, 0] if l.match?(/submit/) }
     end
 
-    assert_includes con_tono, "btn-documento", "«Emitir y descargar» es un documento, no un guardado"
+    assert_includes con_tono, "btn-documento", "«Emitir» es un documento, no un guardado"
     assert_includes con_tono, "btn-accion", "«Promover» hace mucho de una vez"
   end
 

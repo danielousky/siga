@@ -14,6 +14,8 @@
 # que las dos digan lo mismo cuando el alumno cambió de grado convertiría un
 # documento en un papel falso. Se dibuja de la base, a propósito.
 class ConstanciasController < ApplicationController
+  include EntregaDocumentos
+
   before_action :require_emisor!
 
   def index
@@ -41,9 +43,19 @@ class ConstanciasController < ApplicationController
     constancias = inscripciones.map { |i| Constancia.emitir!(i, por: current_user) }
     registrar(inscripciones, seccion)
 
-    send_data ConstanciaDeEstudiosPdf.new(constancias).render,
-              filename: nombre_del_archivo(seccion, inscripciones),
-              type: "application/pdf", disposition: "attachment"
+    abrir_la_impresion impresion_de_constancias_path(
+      firma: firmar_la_impresion("ids" => constancias.map(&:id),
+                                 "nombre" => nombre_del_archivo(seccion, inscripciones)),
+      format: :pdf
+    )
+  end
+
+  # Las constancias que se acaban de emitir, en la pestaña que abrió «Emitir».
+  # Recargarla no emite otras: son las mismas, con su código.
+  def impresion
+    constancias = en_el_orden_de_la_firma(Constancia, la_impresion.fetch("ids"))
+
+    entregar_pdf ConstanciaDeEstudiosPdf.new(constancias), la_impresion.fetch("nombre")
   end
 
   private

@@ -28,7 +28,7 @@ module Siga
   # ⚠️ Y no es la revisión de git. `/salud` devuelve las dos: `version` es esta
   # —qué producto es— y `revision` es el commit desplegado —qué build es—.
   # Confundirlas hace que «la 0.9.0» signifique cuarenta cosas distintas.
-  VERSION = "1.20.5".freeze
+  VERSION = "1.20.6".freeze
 
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.

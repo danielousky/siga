@@ -8,7 +8,7 @@
 -#     Alumno   [ Toda la sección (22 alumnos)       ▾ ]
 -#     ⚠ 2 alumnos no tienen calificación definitiva…
 -#     ⚠ Castro Díaz, Ana no sale con «toda la sección»…
--#              [ Emitir y descargar ]
+-#              [ Emitir ]                     ← en Media, además: [ En Excel ]
 -#
 -# ## ⚠️ La pantalla dice QUÉ va a salir antes del botón
 -#
@@ -62,7 +62,8 @@
       - opciones_de_alumno = lote.any? ? [["Toda la sección (#{contar(lote.size, 'alumno', 'alumnos')})", ""]] : []
       - opciones_de_alumno += todos.map { |i| [i.student.user.apellidos_y_nombres, i.id] }
 
-      = form_with url: certificados_path, method: :post, data: { turbo: false } do |f|
+      -# En OTRA pestaña, como todo documento (`EntregaDocumentos`).
+      = form_with url: certificados_path, method: :post, html: { target: "_blank" }, data: { turbo: false } do |f|
         -# `id: nil`: el desplegable de arriba ya se llama `section_id`, y dos
         -# elementos con el mismo id hacen que su `<label>` apunte a cualquiera.
         = hidden_field_tag :section_id, @seccion.id, id: nil
@@ -95,9 +96,24 @@
 
         %p.nota-ayuda
           Elija un alumno para emitir el suyo, o deje «toda la sección» para que
-          salga un solo PDF con una página por alumno.
+          salga un solo PDF con una página por alumno. Se abre en otra pestaña, y
+          desde ahí se imprime o se descarga.
 
-        = f.submit "Emitir y descargar", class: "btn btn-documento"
+        -# ⚠️ La 31059 sale también en Excel, como en la ficha: es el papel con
+        -# casillas que SIGA no llena. Hasta el 16 de octubre de 2026 el Excel
+        -# estaba solo allá, y Daniel lo buscó aquí.
+        -#
+        -# ⚠️ `formtarget="_self"` en el del Excel: el formulario abre OTRA
+        -# pestaña, y un Excel no tiene visor que la llene — se baja aquí mismo.
+        .form-acciones
+          = button_tag type: :submit, name: :formato, value: :pdf, class: "btn btn-documento" do
+            = icono(:ver, tamano: 16)
+            %span= @certificados.excel? ? "Emitir en PDF" : "Emitir"
+          - if @certificados.excel?
+            = button_tag type: :submit, name: :formato, value: :xlsx, formtarget: "_self",
+                         class: "btn btn-secondary", data: { tooltip: "El mismo papel, editable: para completar lo que SIGA no llena" } do
+              = icono(:descargar, tamano: 16)
+              %span En Excel
 
 = mas_detalle "Qué papel le toca a cada grado" do
   %p
@@ -119,5 +135,5 @@
       %strong Educación Media
       — Certificación de Calificaciones, forma 31059, con todos los años cursados.
   %p
-    El Excel de la 31059 y el documento de un solo alumno también están en su
-    ficha, en «Documentos oficiales».
+    El documento de un solo alumno también está en su ficha, en «Documentos
+    oficiales».

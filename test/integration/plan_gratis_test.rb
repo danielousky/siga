@@ -217,6 +217,7 @@ class PlanGratisTest < ActionDispatch::IntegrationTest
     Current.sin_aislamiento { @suscripcion.update!(plan: :por_alumno, status: :vencida) }
 
     post constancias_path, params: { section_id: @a.seccion.id, enrollment_id: @a.inscripcion.id }
+    follow_redirect!
 
     assert_response :success
     assert_equal "application/pdf", response.media_type
