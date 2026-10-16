@@ -2,7 +2,10 @@
   - if @usuario.puede_entrar?
     %h1.acceso-titulo Elija una contraseña nueva
   - else
-    %h1.acceso-titulo= "Bienvenido, #{@usuario.first_name}"
+    -# ⚠️ El nombre se guarda en MAYÚSCULA (`_datos_de_la_persona`): sin
+    -# `titulo` la bienvenida le gritaba «Bienvenido, RICARDO». El correo de
+    -# bienvenida ya lo escribía así.
+    %h1.acceso-titulo= "Bienvenido, #{Normaliza.titulo(@usuario.first_name)}"
 
   -# ⚠️ Decir DE QUIÉN es la cuenta no es decoración.
   -#

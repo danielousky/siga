@@ -14,15 +14,27 @@
 -# `usuario:` es opcional: en la ficha de una persona se comprueba que el código
 -# sea suyo —con dos pestañas abiertas, el de una no puede salir en la otra— y en
 -# un listado se muestra sin más, porque ahí no hay una sola persona.
+-#
+-# `telefono:` y `hijos:` son del representante, el único rol con teléfono: con
+-# un celular aparece [Enviar por WhatsApp], que abre el chat con el enlace ya
+-# escrito (`ContactoHelper#whatsapp_con_el_enlace`). Antes había que copiarlo,
+-# tocar [WhatsApp] junto al teléfono y pegarlo.
 - guardado = session[:codigo_a_la_vista]
 - de_quien = local_assigns[:usuario]
 - if guardado.present? && (de_quien.nil? || guardado["user_id"] == de_quien.id)
+  - enlace = activar_url(guardado["codigo"])
+  - whatsapp = whatsapp_con_el_enlace(local_assigns[:telefono], enlace, hijos: local_assigns.fetch(:hijos, [])) if local_assigns[:telefono]
   .codigo-de-acceso{ data: { controller: "copiar" } }
     %p.codigo-de-acceso-aviso
-      Este enlace sirve por 72 horas y para un solo uso. Queda a la vista hasta
-      que diga que ya lo copió.
-    %p.codigo-de-acceso-enlace{ data: { copiar_target: "fuente" } }= activar_url(guardado["codigo"])
+      = "Este enlace sirve por #{(User::ACTIVACION_VALIDA_POR / 1.hour).to_i} horas y para un solo uso."
+      Queda a la vista hasta que diga que ya lo copió.
+    %p.codigo-de-acceso-enlace{ data: { copiar_target: "fuente" } }= enlace
     .codigo-de-acceso-acciones
+      -# `target` y `rel` porque sale de la app: sin `noopener`, la pestaña que
+      -# abre WhatsApp Web podría reescribir la de SIGA.
+      - if whatsapp
+        = boton "Enviar por WhatsApp", whatsapp, icono: :conversar, tono: :documento,
+                target: "_blank", rel: "noopener"
       = button_tag "Copiar el enlace", type: "button", class: "btn btn-secondary",
                    data: { action: "copiar#copiar", copiar_target: "boton" }
       = button_to "Ya lo copié", codigo_a_la_vista_path, method: :delete,
