@@ -8,7 +8,8 @@
 -# Y no es un detalle de gusto: el código **se ve una sola vez**. Si se pierde de
 -# vista, la única salida es generar otro — que invalida el que se acaba de
 -# mandar por correo.
-= render "shared/codigo_generado", usuario: @representative.user
+= render "shared/codigo_generado", usuario: @representative.user, telefono: @representative.phone,
+         hijos: @vinculos.map { |vinculo| vinculo.student.user.first_name }
 
 .card-academic
   = render layout: "shared/cabecera", locals: { titulo: @representative.nombre_completo } do

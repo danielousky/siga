@@ -37,12 +37,17 @@ class Contacto
   end
 
   # La URL de wa.me, con el saludo ya escrito si se le pasa uno.
+  #
+  # ⚠️ `url_encode` y no `CGI.escape`: el segundo escribe los espacios como «+»,
+  # que es la regla de los formularios y no la de una dirección. WhatsApp
+  # documenta `%20`, y el mensaje del enlace de acceso lleva saltos de línea y
+  # una dirección adentro: no se apuesta a que cada versión de la app lea igual.
   def self.whatsapp_url(telefono, texto = nil)
     numero = whatsapp(telefono)
     return nil if numero.nil?
 
     url = "https://wa.me/#{numero}"
-    url += "?text=#{CGI.escape(texto)}" if texto.present?
+    url += "?text=#{ERB::Util.url_encode(texto)}" if texto.present?
     url
   end
 end

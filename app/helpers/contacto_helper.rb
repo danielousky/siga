@@ -27,4 +27,34 @@ module ContactoHelper
   end
 
   def whatsapp_configurado? = Setup.whatsapp?
+
+  # El enlace de acceso de una persona, mandado por WhatsApp de un toque.
+  #
+  # Hasta el 16 de octubre de 2026 la secretaria lo copiaba, tocaba [WhatsApp]
+  # junto al teléfono —que abría el chat con un saludo y SIN el enlace— y lo
+  # pegaba. Daniel lo eligió para el video de los representantes: *«generarle
+  # el enlace para enviárselo por WhatsApp… es algo novedoso y fácil»*.
+  #
+  # ⚠️ Nombra al colegio y a los hijos. Un enlace que llega de un número
+  # desconocido es lo que una mamá aprendió a no abrir; con el nombre de su hija,
+  # sabe de quién es.
+  #
+  # ⚠️ Los plazos salen de `User::ACTIVACION_VALIDA_POR`: escritos aquí a mano,
+  # el día que cambien el mensaje prometería horas que el enlace ya no tiene.
+  #
+  # `nil` si el teléfono no es un celular: un fijo no tiene WhatsApp.
+  def whatsapp_con_el_enlace(telefono, enlace, hijos: [])
+    nombres = hijos.filter_map { |nombre| Normaliza.titulo(nombre.to_s.split.first).presence }.uniq
+    de_quien = nombres.any? ? "las notas de #{nombres.to_sentence(two_words_connector: ' y ', last_word_connector: ' y ')}" : "las notas de su representado"
+    horas = (User::ACTIVACION_VALIDA_POR / 1.hour).to_i
+
+    Contacto.whatsapp_url(telefono, <<~TEXTO.strip)
+      Buenos días. Le escribimos de #{Current.school.name}.
+
+      Para consultar en SIGA #{de_quien}, abra este enlace:
+      #{enlace}
+
+      Sirve por #{horas} horas y una sola vez.
+    TEXTO
+  end
 end

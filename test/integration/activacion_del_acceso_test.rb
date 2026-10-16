@@ -319,7 +319,7 @@ class ActivacionDelAccesoTest < ActionDispatch::IntegrationTest
     sign_out @a.director
     get activar_path(codigo)
 
-    assert_select "h1", text: /Bienvenido/
+    assert_select "h1", text: "Le damos la bienvenida, Yolanda"
 
     sign_in @a.director
     @con_correo.user.update!(password: "clave-vieja")

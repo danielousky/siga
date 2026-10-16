@@ -1185,6 +1185,13 @@ colegio, y acá lo que se filtra no es una ficha, es una **llave**. El `set_teac
 aparecer en el log, no desaparecer— (`MOR-102`). El enlace se muestra igual en pantalla: el
 correo puede tardar, caer en spam o rebotar, y la secretaria tiene a la persona delante.
 
+**Y sale por WhatsApp con un toque** (16 de octubre de 2026, 1.21.0): con el código a la
+vista, [Enviar por WhatsApp] abre el chat con el mensaje entero —el colegio, los hijos, el
+enlace y sus 72 horas— (`ContactoHelper#whatsapp_con_el_enlace`). Antes había que copiarlo
+y pegarlo en el chat que abría el botón del teléfono, que traía un saludo y nada más.
+⚠️ Solo con un CELULAR, y solo el representante tiene teléfono. ⚠️ `wa.me` con `%20`
+(`ERB::Util.url_encode`), no el «+» de `CGI.escape`.
+
 ⚠️ Lo que **no** existe todavía es enterarse de un REBOTE (`MOR-145`). Hoy un correo que rebota
 se queda ahí y solo se sabe si el usuario lo reporta.
 
