@@ -1,21 +1,52 @@
-# 🔖 Estado de avance — actualizado 15 de octubre de 2026
+# 🔖 Estado de avance — actualizado 16 de octubre de 2026
 
-## 📋 Lo pendiente, por prioridad — 14 de octubre
+## 📋 Lo pendiente, por prioridad — 16 de octubre
 
 ```
-   P1  LOS DOS VIDEOS DE 30 s      Daniel, 14 oct: «necesitamos crear un video con Notebook…
-                                   ponlo con prioridad 1», y «los 2, deben ser de 30 segundos
-                                   cada uno». Eligió prompts + instrucciones, no el MCP. Están
-                                   en `docs/comercial/videos.md`: las fuentes, los pasos, los
-                                   dos guiones y sus prompts. FALTA: que Daniel los haga en
-                                   NotebookLM, y mirarlos antes de mandarlos.
+   P1  LOS VIDEOS, EN NOTEBOOKLM   Daniel, 16 oct: los hace ÉL, a mano, en NotebookLM. Lo
+                                   mío es, por video, UN PROMPT y LAS CAPTURAS. Siempre
+                                   vertical (teléfono) y de 1 minuto, salvo que diga otra
+                                   cosa; sin vender humo: las funciones, no «el mejor».
+                                   Los ocho que armé el 15 están en DOCs/Videos/Backlog:
+                                   «así no me sirven». Los suyos, en DOCs/Videos/Finales.
+       · 1 · El representante      registro → código → WhatsApp → primer ingreso. Las
+                                   capturas, en DOCs/Videos/Recursos/Representantes.
+                                   Pide el botón [Enviar por WhatsApp] (rama
+                                   feat/el-enlace-por-whatsapp, SIN subir): el video no
+                                   se publica antes de desplegarlo.
    —   LA COMPETENCIA Y SUS        Daniel quiere revisarlo otra vez, por un comentario de
        INDICADORES                 Cyndi. Hoy el nivel de la competencia es el promedio
                                    PONDERADO DE SUS EVALUACIONES —no de sus indicadores—, y
                                    cada indicador lee el nivel de la evaluación que lo midió
                                    (`PlanEvaluado`, CLAUDE.md § 2).
-   —   LOS 4 VIDEOS VIEJOS          los revisa y los borra Daniel (14 oct).
+   —   LAS CAPTURAS DEL MANUAL     el capítulo Documentos ya dice «Emitir»; sus capturas
+                                   todavía enseñan «Emitir y descargar» (docs/manual/capturar.rb).
+   —   LOS 4 VIDEOS VIEJOS         los de septiembre, en la carpeta madre: los borra Daniel.
 ```
+
+## ✅ Todo documento se abre en otra pestaña — 1.20.6, EN PRODUCCIÓN desde el 16 de octubre
+
+Daniel: *«todos los documentos deberían tener una misma forma de salida: la
+previsualización… y en una pestaña aparte»*, y *«la 31059… debería salir en
+PDF o Excel, no? no veo ningún enlace al Excel»*.
+
+```
+   13:35  respaldo de producción, abierto y contado     0 colegios · 2 personas · 61 tablas
+          → SIGA/respaldos/siga-prod-20261016-1335.dump
+   15:42  PR #81; el CI de GitHub, en verde a la primera (14 min 43 s)
+   15:58  #81 mezclado; tag v1.20.6
+   16:04  la muestra en 1.20.6
+   16:07  producción en 1.20.6 — sin migraciones; `rls:verificar` en verde; el manual
+          publicado ya dice «Todo documento se abre en otra pestaña»
+```
+
+- **Lo que encontró el arreglo, y era peor que la forma:** en la muestra, una
+  constancia de prosecución quedó **9 veces** en la auditoría en siete minutos.
+  Turbo pedía el papel, recibía un PDF y lo volvía a pedir; y lo precargaba con
+  solo pasar el mouse. Ver CLAUDE.md § «Un documento se abre en otra pestaña».
+- La 31059 sale ahora también en Excel desde Documentos ▸ Certificados: la
+  sección, en un libro con una hoja por alumno.
+
 
 ## ✅ El mínimo en 39 $ y las tablas en su caja — 1.20.5, EN PRODUCCIÓN desde el 15 de octubre
 
