@@ -9,11 +9,12 @@
                                    cosa; sin vender humo: las funciones, no «el mejor».
                                    Los ocho que armé el 15 están en DOCs/Videos/Backlog:
                                    «así no me sirven». Los suyos, en DOCs/Videos/Finales.
-       · 1 · El representante      registro → código → WhatsApp → primer ingreso. Las
-                                   capturas, en DOCs/Videos/Recursos/Representantes.
-                                   Pide el botón [Enviar por WhatsApp] (rama
-                                   feat/el-enlace-por-whatsapp, SIN subir): el video no
-                                   se publica antes de desplegarlo.
+       · 1 · El representante      registro → código → WhatsApp → primer ingreso. El
+                                   prompt y las capturas, en DOCs/Videos/Recursos/
+                                   Representantes. El botón [Enviar por WhatsApp] que
+                                   enseña ya está en producción (1.21.0).
+       ⚠️ Los videos son LOCALES. Daniel, 16 oct: «¿para qué hacer un PR de ellos? eso
+          es algo que queda aquí». Ni rama ni PR: todo vive en DOCs/Videos.
    —   LA COMPETENCIA Y SUS        Daniel quiere revisarlo otra vez, por un comentario de
        INDICADORES                 Cyndi. Hoy el nivel de la competencia es el promedio
                                    PONDERADO DE SUS EVALUACIONES —no de sus indicadores—, y
@@ -23,6 +24,25 @@
                                    todavía enseñan «Emitir y descargar» (docs/manual/capturar.rb).
    —   LOS 4 VIDEOS VIEJOS         los de septiembre, en la carpeta madre: los borra Daniel.
 ```
+
+## ✅ El enlace de acceso por WhatsApp — 1.21.0, EN PRODUCCIÓN desde el 16 de octubre
+
+Lo pidió el video del representante: *«generarle el enlace para enviárselo por
+WhatsApp… es algo novedoso y fácil»*, y no salía de un toque.
+
+```
+   17:05  respaldo de producción, abierto y contado     0 colegios · 2 personas · 61 tablas
+          → SIGA/respaldos/siga-prod-20261016-1705.dump
+   17:06  PR #83 mezclado (el CI de GitHub, en verde a la primera: 14 min 3 s); tag v1.21.0
+   17:09  la muestra en 1.21.0
+   17:11  producción en 1.21.0 — sin migraciones; `rls:verificar` en verde
+```
+
+- [Enviar por WhatsApp] abre el chat con el mensaje entero: el colegio, los
+  hijos, el enlace y sus 72 horas. Solo con un celular.
+- La bienvenida al activar dice «Le damos la bienvenida, Ricardo»: es neutra,
+  por decisión de Daniel, y el nombre ya no sale en mayúsculas.
+- ⚠️ La tanda 1 de horarios estaba numerada 1.21.0: al mezclarse pasa a 1.22.0.
 
 ## ✅ Todo documento se abre en otra pestaña — 1.20.6, EN PRODUCCIÓN desde el 16 de octubre
 
