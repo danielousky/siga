@@ -23,6 +23,18 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.21.0 — 16 de octubre de 2026
+
+- **El enlace de acceso de un representante sale por WhatsApp con un toque.**
+  Al generar su código, [Enviar por WhatsApp] abre el chat con el mensaje ya
+  escrito: el nombre del colegio, el de sus hijos, el enlace y cuánto dura.
+  Antes había que copiarlo y pegarlo. Aparece cuando el teléfono es un
+  celular.
+- **La bienvenida al activar el acceso dice «Le damos la bienvenida, Ricardo»**:
+  el nombre ya no sale en mayúsculas, y el saludo sirve igual para una madre.
+
+---
+
 ## 1.20.6 — 16 de octubre de 2026
 
 - **Todos los documentos se abren igual: en otra pestaña, en el visor del

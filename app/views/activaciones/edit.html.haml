@@ -3,9 +3,13 @@
     %h1.acceso-titulo Elija una contraseña nueva
   - else
     -# ⚠️ El nombre se guarda en MAYÚSCULA (`_datos_de_la_persona`): sin
-    -# `titulo` la bienvenida le gritaba «Bienvenido, RICARDO». El correo de
-    -# bienvenida ya lo escribía así.
-    %h1.acceso-titulo= "Bienvenido, #{Normaliza.titulo(@usuario.first_name)}"
+    -# `titulo` la bienvenida le gritaba «Bienvenido, RICARDO».
+    -#
+    -# ⚠️ Y NEUTRA: un representante no tiene el sexo cargado, y «Bienvenido»
+    -# saludaba igual a una madre. Daniel, 16 de octubre de 2026: «Le damos la
+    -# bienvenida». El correo al director que registra su colegio conserva el
+    -# «Bienvenido a SIGA» que él dictó (`BienvenidaMailer`).
+    %h1.acceso-titulo= "Le damos la bienvenida, #{Normaliza.titulo(@usuario.first_name)}"
 
   -# ⚠️ Decir DE QUIÉN es la cuenta no es decoración.
   -#
