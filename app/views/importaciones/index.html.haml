@@ -25,9 +25,9 @@
         secciones—, después la matrícula con alumnos y representantes, y por
         último las notas de años anteriores.
       .acciones-de-cabecera
-        = boton "Plantilla de áreas", plantilla_importaciones_path(tipo: :pensum), icono: :descargar, tono: :documento
-        = boton "Plantilla de matrícula", plantilla_importaciones_path(tipo: :matricula), icono: :descargar, tono: :documento
-        = boton "Plantilla de notas", plantilla_importaciones_path(tipo: :historial), icono: :descargar, tono: :documento
+        = boton "Plantilla de áreas", plantilla_importaciones_path(tipo: :pensum), icono: :descargar, tono: :documento, data: { turbo: false }
+        = boton "Plantilla de matrícula", plantilla_importaciones_path(tipo: :matricula), icono: :descargar, tono: :documento, data: { turbo: false }
+        = boton "Plantilla de notas", plantilla_importaciones_path(tipo: :historial), icono: :descargar, tono: :documento, data: { turbo: false }
   - else
     = render "shared/escala", total: @pagy.count, singular: "importación", plural: "importaciones"
 

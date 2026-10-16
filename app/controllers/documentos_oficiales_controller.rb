@@ -15,6 +15,12 @@
 #
 # Lo que sí queda es el rastro: cada emisión se audita.
 class DocumentosOficialesController < ApplicationController
+  include EntregaDocumentos
+
+  # ⚠️ Estos papeles se auditan al DIBUJARSE —no se guardan, así que dibujarlos
+  # es emitirlos— y una precarga de Turbo dejaba registros de papeles que nadie
+  # pidió. Ver `EntregaDocumentos`.
+  before_action :no_se_dibuja_en_una_precarga
   before_action :require_emisor!
 
   # La 31059, en PDF o en Excel.
@@ -37,8 +43,8 @@ class DocumentosOficialesController < ApplicationController
     registrar("certificacion_emitida", alumno, "Certificación de Calificaciones (31059)")
 
     case params[:format]
-    when "xlsx" then enviar_xlsx(CertificacionXlsx.new(datos))
-    else enviar_pdf(CertificacionPdf.new(datos), "certificacion-31059-#{apellido(alumno)}.pdf")
+    when "xlsx" then entregar_xlsx(CertificacionXlsx.new(datos))
+    else entregar_pdf(CertificacionPdf.new(datos), "certificacion-31059-#{apellido(alumno)}.pdf")
     end
   end
 
@@ -57,8 +63,8 @@ class DocumentosOficialesController < ApplicationController
     registrar("documento_de_primaria_emitido", inscripcion.student,
               DocumentoDePrimaria::NOMBRES.fetch(datos["tipo"]))
 
-    enviar_pdf(DocumentoDePrimariaPdf.new(datos),
-               "#{datos['tipo']}-primaria-#{apellido(inscripcion.student)}.pdf")
+    entregar_pdf(DocumentoDePrimariaPdf.new(datos),
+                 "#{datos['tipo']}-primaria-#{apellido(inscripcion.student)}.pdf")
   end
 
   # La certificación o la constancia de Educación Inicial, según el grupo.
@@ -80,8 +86,8 @@ class DocumentosOficialesController < ApplicationController
     registrar("documento_de_inicial_emitido", inscripcion.student,
               DocumentoDeInicial::NOMBRES.fetch(datos["tipo"]))
 
-    enviar_pdf(DocumentoDeInicialPdf.new(datos),
-               "#{datos['tipo']}-inicial-#{apellido(inscripcion.student)}.pdf")
+    entregar_pdf(DocumentoDeInicialPdf.new(datos),
+                 "#{datos['tipo']}-inicial-#{apellido(inscripcion.student)}.pdf")
   end
 
   # El Resumen Final del Rendimiento Estudiantil (`RR-DEA-04-03`), en PDF o en
@@ -109,27 +115,14 @@ class DocumentosOficialesController < ApplicationController
                       "Resumen Final del Rendimiento · #{seccion.grade.name} #{seccion.name}")
 
     if params[:format] == "xlsx"
-      enviar_xlsx(ResumenFinalXlsx.new(datos))
+      entregar_xlsx(ResumenFinalXlsx.new(datos))
     else
-      enviar_pdf(ResumenFinalPdf.new(datos),
-                 "resumen-final-#{seccion.grade.name.parameterize}-#{seccion.name.parameterize}.pdf")
+      entregar_pdf(ResumenFinalPdf.new(datos),
+                   "resumen-final-#{seccion.grade.name.parameterize}-#{seccion.name.parameterize}.pdf")
     end
   end
 
   private
-
-  def enviar_pdf(documento, nombre)
-    send_data documento.render, filename: nombre, type: "application/pdf", disposition: "inline"
-  end
-
-  # ⚠️ `type: :xlsx` y no el MIME escrito a mano: lo registra
-  # `config/initializers/mime_types.rb`, y esa cadena de setenta caracteres
-  # estaba copiada en tres controllers — con una letra distinta, el navegador
-  # ofrece «abrir con…» en vez de guardar, y nadie lo nota hasta que un colegio
-  # lo reporta.
-  def enviar_xlsx(documento)
-    send_data documento.to_stream.read, filename: documento.nombre_de_archivo, type: :xlsx
-  end
 
   def apellido(alumno) = alumno.user.apellidos.to_s.parameterize.presence || alumno.id.to_s
 

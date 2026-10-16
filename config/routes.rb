@@ -88,6 +88,14 @@ Rails.application.routes.draw do
   patch "boletines/cerrar",  to: "revision_de_boletines#cerrar",  as: :cerrar_lapso
   patch "boletines/reabrir", to: "revision_de_boletines#reabrir", as: :reabrir_lapso
 
+  # Lo que se acaba de emitir, en la pestaña que abrió «Emitir»: la dirección
+  # firmada de `EntregaDocumentos`. ⚠️ ANTES de `boletines/:id`: si no,
+  # «impresion» se lee como el id de un boletín y la atiende el controlador de
+  # la familia, que la rebota.
+  get "boletines/impresion",   to: "report_cards#impresion", as: :impresion_de_boletines
+  get "constancias/impresion", to: "constancias#impresion",  as: :impresion_de_constancias
+  get "certificados/impresion", to: "certificados#impresion", as: :impresion_de_certificados
+
   # ⚠️ La descarga de UN boletín, por su id. La usa la FAMILIA, así que el
   # controller comprueba las dos cosas: que sea de su representado y que esté
   # liberado. Un boletín emitido y sin revisar no es de nadie todavía.

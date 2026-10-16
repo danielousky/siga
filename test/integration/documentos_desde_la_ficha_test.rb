@@ -91,14 +91,16 @@ class DocumentosDesdeLaFichaTest < ActionDispatch::IntegrationTest
     get student_path(escuela.alumno)
     constancias = formularios_que_emiten(constancias_path)
 
-    assert_equal [ "Constancia", "Emitir y descargar" ], constancias.map { |f| f[:texto] },
+    assert_equal [ "Constancia", "Emitir" ], constancias.map { |f| f[:texto] },
                  "la de la cabecera y la de la tarjeta"
     constancias.each do |f|
       assert_equal escuela.inscripcion.id.to_s, f[:campos]["enrollment_id"]
       assert_equal "false", f[:turbo], "con Turbo, el PDF se queda en memoria y no baja"
+      assert_equal "_blank", f[:target], "el papel se abre en otra pestaña, y la ficha queda donde estaba"
     end
 
     post constancias_path, params: constancias.first[:campos]
+    follow_redirect!
 
     assert_response :success
     assert_equal "application/pdf", response.media_type
@@ -120,6 +122,7 @@ class DocumentosDesdeLaFichaTest < ActionDispatch::IntegrationTest
                  boletines.map { |f| f[:campos]["evaluation_moment_id"] }
 
     post report_cards_path, params: boletines.first[:campos]
+    follow_redirect!
 
     assert_response :success
     assert_equal "application/pdf", response.media_type
@@ -134,7 +137,7 @@ class DocumentosDesdeLaFichaTest < ActionDispatch::IntegrationTest
   # Turbo los deja en paz, y los campos que mandan.
   def formularios_que_emiten(accion)
     css_select("form[action='#{accion}']").map do |form|
-      { texto: form.css("button").text.squish, turbo: form["data-turbo"],
+      { texto: form.css("button").text.squish, turbo: form["data-turbo"], target: form["target"],
         campos: form.css("input[type=hidden]").to_h { |campo| [ campo["name"], campo["value"] ] }
                     .except("authenticity_token") }
     end

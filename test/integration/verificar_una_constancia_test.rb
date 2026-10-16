@@ -23,6 +23,7 @@ class VerificarUnaConstanciaTest < ActionDispatch::IntegrationTest
       post constancias_path, params: { section_id: @esc.seccion.id,
                                        enrollment_id: @esc.inscripcion.id }
     end
+    follow_redirect!
 
     assert_response :success
     assert_equal "application/pdf", response.media_type

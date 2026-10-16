@@ -21,13 +21,23 @@ class CertificacionXlsx
   COLUMNAS = 13
   SEPARADORA = 6
 
-  def initialize(datos)
-    @d = datos
+  # `datos` es UN alumno —la ficha— o VARIOS: «toda la sección» en Documentos ▸
+  # Certificados, y entonces cada uno va en su hoja del mismo libro.
+  #
+  # ⚠️ Cada dibujante lee `@d`, y `@d` cambia de hoja en hoja: aquí no se
+  # memoriza nada que salga de él, o la segunda hoja diría lo de la primera
+  # (la misma trampa de `UnDocumentoPorAlumno`, CLAUDE.md § 11).
+  def initialize(datos, nombre: nil)
+    @todos = datos.is_a?(Array) ? datos : [ datos ]
+    @d = @todos.first
+    @nombre = nombre
   end
 
   def to_stream = libro.to_stream
 
   def nombre_de_archivo
+    return @nombre if @nombre
+
     apellidos = @d.dig("estudiante", "apellidos").to_s.parameterize.presence || "estudiante"
 
     "certificacion-31059-#{apellidos}.xlsx"
@@ -39,19 +49,40 @@ class CertificacionXlsx
     Axlsx::Package.new do |paquete|
       estilos(paquete.workbook)
 
-      paquete.workbook.add_worksheet(name: "Certificación 31059") do |hoja|
-        @hoja = hoja
-        membrete
-        seccion_i
-        seccion_ii
-        seccion_iii
-        seccion_iv
-        seccion_v
-        seccion_vi
-        firmas
-        valor_fiscal
-        ajustar
+      @todos.zip(nombres_de_hoja).each do |datos, nombre|
+        @d = datos
+
+        paquete.workbook.add_worksheet(name: nombre) do |hoja|
+          @hoja = hoja
+          membrete
+          seccion_i
+          seccion_ii
+          seccion_iii
+          seccion_iv
+          seccion_v
+          seccion_vi
+          firmas
+          valor_fiscal
+          ajustar
+        end
       end
+    end
+  end
+
+  # ⚠️ Excel exige que el nombre de una hoja sea ÚNICO, de 31 caracteres como
+  # mucho y sin \ / ? * [ ] : — y Axlsx revienta si no. Dos hermanos con el
+  # mismo apellido y la misma inicial existen.
+  def nombres_de_hoja
+    return [ "Certificación 31059" ] if @todos.one?
+
+    vistos = Hash.new(0)
+    @todos.map do |d|
+      e = d["estudiante"] || {}
+      base = [ e["apellidos"], e["nombres"] ].compact_blank.join(", ")
+                                             .gsub(%r{[\\/?*\[\]:]}, " ").squish.presence || "Estudiante"
+      base = base[0, 27].strip
+      vistos[base.downcase] += 1
+      vistos[base.downcase] > 1 ? "#{base} #{vistos[base.downcase]}" : base
     end
   end
 

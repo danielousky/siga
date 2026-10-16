@@ -83,4 +83,5 @@
     No es obligatoria. Si su sistema actual ya exporta la matrícula, súbala tal
     como sale — en la pantalla siguiente se dice qué columna es cuál.
 
-  = boton "Descargar la plantilla", plantilla_importaciones_path(tipo: @importacion.tipo), icono: :descargar, tono: :documento
+  = boton "Descargar la plantilla", plantilla_importaciones_path(tipo: @importacion.tipo), icono: :descargar, tono: :documento,
+          data: { turbo: false }

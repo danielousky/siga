@@ -164,7 +164,7 @@
           \— dice que hoy cursa #{seccion.grade.name} – #{seccion.name}. Para el
           pasaporte, una beca, el seguro o una embajada.
         .acciones-de-cabecera
-          = render "students/emitir", texto: "Emitir y descargar", ruta: constancias_path,
+          = render "students/emitir", texto: "Emitir", ruta: constancias_path,
                    inscripcion: @inscripcion
 
       -# ⚠️ Un botón por lapso, y el anual: las mismas opciones que «Qué se
@@ -193,12 +193,12 @@
           El PDF es el documento terminado. El Excel es el mismo pero editable, para
           completar a mano lo que el sistema todavía no guarda.
         .acciones-de-cabecera
-          = link_to "Certificación en PDF",
-                    certificacion_de_calificaciones_path(student_id: @student, format: :pdf),
-                    class: "btn btn-documento"
-          = link_to "Certificación en Excel",
-                    certificacion_de_calificaciones_path(student_id: @student, format: :xlsx),
-                    class: "btn btn-secondary"
+          -# El PDF se ABRE en otra pestaña; el Excel se baja: ningún navegador
+          -# previsualiza una planilla (`EntregaDocumentos`).
+          = boton "Certificación en PDF", certificacion_de_calificaciones_path(student_id: @student, format: :pdf),
+                  icono: :ver, tono: :documento, target: "_blank", rel: "noopener"
+          = boton "Certificación en Excel", certificacion_de_calificaciones_path(student_id: @student, format: :xlsx),
+                  icono: :descargar, tono: :secondary, data: { turbo: false }
 
       - elsif @inscripcion&.section&.grade&.primaria?
         %p
@@ -209,12 +209,14 @@
           %strong Constancia de Prosecución
           \, según el grado que cursó. Certifica el literal del año.
         -# ⚠️ `documento` (petróleo), no el azul que tenía: de aquí SALE un papel,
-        -# igual que «Emitir y descargar» del boletín. Lo destapó la auditoría de
+        -# igual que «Emitir» del boletín. Lo destapó la auditoría de
         -# tonos del 8 de septiembre — era el único de los dieciséis que estaba en
         -# el tono equivocado, y llevaba así desde que existe.
-        = link_to "Emitir el documento",
-                  documento_de_primaria_path(enrollment_id: @inscripcion),
-                  class: "btn btn-documento"
+        -# ⚠️ En OTRA pestaña, y no por gusto: este papel se audita al dibujarse,
+        -# y como enlace de Turbo se pedía dos veces por clic —y una más al pasar
+        -# el mouse por encima— (`EntregaDocumentos`).
+        = boton "Emitir el documento", documento_de_primaria_path(enrollment_id: @inscripcion),
+                icono: :ver, tono: :documento, target: "_blank", rel: "noopener"
 
       - elsif @inscripcion&.section&.grade&.preescolar?
         %p
@@ -230,9 +232,8 @@
         %p.nota-ayuda
           En Educación Inicial no se certifica una calificación: el formato dice qué
           grupo cursó y en qué período escolar.
-        = link_to "Emitir el documento",
-                  documento_de_inicial_path(enrollment_id: @inscripcion),
-                  class: "btn btn-documento"
+        = boton "Emitir el documento", documento_de_inicial_path(enrollment_id: @inscripcion),
+                icono: :ver, tono: :documento, target: "_blank", rel: "noopener"
 
       - else
         %p.nota-pendiente

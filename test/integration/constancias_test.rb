@@ -14,6 +14,7 @@ class ConstanciasTest < ActionDispatch::IntegrationTest
     sign_in @a.director
 
     post constancias_path, params: { section_id: @a.seccion.id, enrollment_id: @a.inscripcion.id }
+    follow_redirect!
 
     assert_response :success
     assert_equal "application/pdf", response.media_type
@@ -25,6 +26,7 @@ class ConstanciasTest < ActionDispatch::IntegrationTest
     sign_in @a.director
 
     post constancias_path, params: { section_id: @a.seccion.id }
+    follow_redirect!
 
     assert_response :success
     assert_equal "application/pdf", response.media_type

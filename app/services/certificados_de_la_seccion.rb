@@ -121,16 +121,30 @@ class CertificadosDeLaSeccion
     when :primaria
       DocumentoDePrimariaPdf.new(inscripciones.map { |i| DocumentoDePrimaria.para(enrollment: i, firmante: @director) })
     when :media
-      CertificacionPdf.new(inscripciones.map { |i| CertificacionDeCalificaciones.para(student: i.student).merge("firmante" => firma) })
+      CertificacionPdf.new(datos_de_la_31059(inscripciones))
     end
   end
 
+  # ⚠️ El Excel es SOLO de la 31059: es el papel con casillas que SIGA no llena
+  # —el teléfono del plantel, el grupo de Participación— y que el colegio
+  # completa a mano (`CertificacionXlsx`). Hasta el 16 de octubre de 2026 salía
+  # únicamente desde la ficha, y Daniel lo buscó aquí: *«no veo ningún enlace
+  # al Excel, solo el PDF»*. Un alumno es un libro de una hoja; la sección, un
+  # libro con una hoja por alumno.
+  def xlsx_de(inscripciones)
+    raise ArgumentError, "El Excel es solo de la Certificación 31059" unless excel?
+
+    CertificacionXlsx.new(datos_de_la_31059(inscripciones), nombre: nombre_del_archivo(inscripciones, "xlsx"))
+  end
+
+  def excel? = nivel == :media
+
   # Con el mismo arranque que usa la ficha —«certificado-primaria-…»— para que
   # el archivo se llame igual venga de donde venga.
-  def nombre_del_archivo(inscripciones)
+  def nombre_del_archivo(inscripciones, extension = "pdf")
     de_quien = inscripciones.one? ? apellido_de(inscripciones.first) : "#{@grado.name.parameterize}-#{@seccion.name.parameterize}"
 
-    "#{arranque_del_archivo}-#{de_quien}.pdf"
+    "#{arranque_del_archivo}-#{de_quien}.#{extension}"
   end
 
   # Con qué acción queda en la auditoría: la MISMA de la ficha. Es el mismo
@@ -152,6 +166,12 @@ class CertificadosDeLaSeccion
 
   def veredictos
     @veredictos ||= PromocionDeAlumnos.veredictos(inscripciones, tope: @grado.school.tope_de_arrastre.to_i)
+  end
+
+  # Lo mismo para el PDF y para el Excel: los arma `CertificacionDeCalificaciones`
+  # y cada formato solo decide cómo se ven.
+  def datos_de_la_31059(inscripciones)
+    inscripciones.map { |i| CertificacionDeCalificaciones.para(student: i.student).merge("firmante" => firma) }
   end
 
   def apellido_de(inscripcion)

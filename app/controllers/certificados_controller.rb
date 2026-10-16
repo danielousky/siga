@@ -29,6 +29,8 @@
 # convertiría un error en un documento oficial permanente. Lo que queda es el
 # rastro de quién emitió qué.
 class CertificadosController < ApplicationController
+  include EntregaDocumentos
+
   before_action :require_emisor!
 
   def index
@@ -50,9 +52,29 @@ class CertificadosController < ApplicationController
 
     registrar(certificados, inscripciones)
 
-    send_data certificados.pdf_de(inscripciones).render,
-              filename: certificados.nombre_del_archivo(inscripciones),
-              type: "application/pdf", disposition: "attachment"
+    # ⚠️ El Excel se BAJA, en la misma pestaña (su botón lleva
+    # `formtarget="_self"`): no hay visor que lo muestre.
+    return entregar_xlsx(certificados.xlsx_de(inscripciones)) if params[:formato] == "xlsx" && certificados.excel?
+
+    abrir_la_impresion impresion_de_certificados_path(
+      firma: firmar_la_impresion("seccion" => seccion.id, "ids" => inscripciones.map(&:id),
+                                 "nombre" => certificados.nombre_del_archivo(inscripciones)),
+      format: :pdf
+    )
+  end
+
+  # Los certificados que se acaban de emitir, en la pestaña que abrió «Emitir».
+  #
+  # ⚠️ Se dibujan otra vez de la base, como siempre: certifican el expediente
+  # de HOY (ver arriba). Lo que no se repite es la auditoría — quedó al emitir,
+  # y recargar la pestaña no es emitir otro papel.
+  def impresion
+    seccion = Section.find(la_impresion.fetch("seccion"))
+    certificados = CertificadosDeLaSeccion.new(seccion: seccion, director: director)
+    inscripciones = en_el_orden_de_la_firma(seccion.enrollments.includes(student: :user),
+                                            la_impresion.fetch("ids"))
+
+    entregar_pdf certificados.pdf_de(inscripciones), la_impresion.fetch("nombre")
   end
 
   private

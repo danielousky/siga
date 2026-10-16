@@ -24,8 +24,9 @@
   -# modela —Plan de Estudio, Mención, Educación para el Trabajo— y el colegio
   -# las completa a mano.
   - if @section.grade.media? && can_manage_students?
+    -# El PDF se ABRE en otra pestaña; el Excel se baja (`EntregaDocumentos`).
     = boton "Resumen Final", resumen_final_path(@section, format: :pdf),
-            icono: :descargar, tono: :documento, data: { turbo: false },
+            icono: :ver, tono: :documento, target: "_blank", rel: "noopener",
             tooltip: "El acta de fin de año para la zona educativa"
     = boton "en Excel", resumen_final_path(@section, format: :xlsx),
             icono: :descargar, tono: :secondary, data: { turbo: false },

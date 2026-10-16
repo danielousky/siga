@@ -14,16 +14,18 @@
 # botón se muestra pero la URL se comparte, el bloqueo tiene que seguir de pie.
 class BoletinesController < ApplicationController
   include ExigeEstarAlDia
+  include EntregaDocumentos
 
+  before_action :no_se_dibuja_en_una_precarga
   before_action :require_representante!
   before_action :set_boletin
 
+  # ⚠️ Se ABRE, como todos los documentos (`EntregaDocumentos`): en el teléfono
+  # de la mamá, el visor del navegador ya trae compartir, guardar e imprimir.
   def show
     return if exigir_estar_al_dia!(@boletin.enrollment)
 
-    send_data ReportCardPdf.new([ @boletin ]).render,
-              filename: nombre_del_archivo,
-              type: "application/pdf", disposition: "attachment"
+    entregar_pdf ReportCardPdf.new([ @boletin ]), nombre_del_archivo
   end
 
   private
