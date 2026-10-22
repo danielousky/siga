@@ -28,6 +28,8 @@ class TimeSlot < ApplicationRecord
   ORDINALES = %w[1ra 2da 3ra 4ta 5ta 6ta 7ma 8va 9na 10ma 11ma 12ma 13ra 14ta].freeze
 
   belongs_to :bell_schedule, inverse_of: :time_slots
+  # Una hora con clases no se borra: el aviso dice cuántas tiene.
+  has_many :lessons, dependent: :restrict_with_error
   derives_school_from :bell_schedule
 
   enum :kind, { clase: 0, receso: 1 }

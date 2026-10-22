@@ -34,6 +34,8 @@ class Section < ApplicationRecord
   has_many :students, through: :enrollments
   has_many :evaluation_activities, dependent: :restrict_with_error
   has_many :teacher_sections, dependent: :destroy
+  # Las borra la base al borrar la sección (`lessons_de_su_seccion`, en cascada).
+  has_many :lessons
   has_many :teachers, through: :teacher_sections
 
   # ⚠️ El identificador es CORTO y alfanumérico: «A», «B», «U1» (MOR-170).

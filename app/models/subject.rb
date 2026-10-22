@@ -25,6 +25,7 @@ class Subject < ApplicationRecord
   has_many :moment_grades, dependent: :restrict_with_error
   has_many :final_grade_books, dependent: :restrict_with_error
   has_many :teacher_sections, dependent: :restrict_with_error
+  has_many :lessons, dependent: :restrict_with_error
 
   # El código es la nomenclatura interna del colegio: único dentro de él, no en
   # toda la plataforma. Un colegio que viene de otro sistema trae sus códigos ya

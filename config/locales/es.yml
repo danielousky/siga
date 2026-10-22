@@ -108,6 +108,10 @@ es:
       time_slot:
         one: Hora
         other: Horas
+      # Una casilla del horario: sección · área · día · hora.
+      lesson:
+        one: Clase
+        other: Clases
 
     attributes:
       # ⚠️ La identidad de una persona faltaba ENTERA, y no era cosmético: las
@@ -232,7 +236,15 @@ es:
         name: Nombre
         # Lo que impide borrar un turno: las secciones que lo usan.
         sections: Secciones
+      lesson:
+        section: La sección
+        subject: El área
+        teacher: El profesor
+        time_slot: La hora
+        day: El día
       time_slot:
+        # Lo que impide borrar una hora: sus clases.
+        lessons: Clases
         starts_min: La hora de inicio
         ends_min: La hora de fin
         desde: Desde
