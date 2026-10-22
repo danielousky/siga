@@ -1,9 +1,10 @@
 -# Los cinco días, con el de hoy marcado: en el teléfono la semana no cabe y se
 -# ve un día; y en «todos, un mismo día», es cuál.
 - hoy = HoraDeVenezuela.dia_de_clases
+- ruta = local_assigns[:ruta] || ->(dia) { ruta_del_horario(dia: dia) }
 %nav.horario-dias{ "aria-label": "Día" }
   - Lesson::DIAS.each.with_index(1) do |nombre, dia|
-    = link_to ruta_del_horario(dia: dia), class: class_names("horario-dia", activo: dia == dia_elegido),
+    = link_to ruta.call(dia), class: class_names("horario-dia", activo: dia == dia_elegido),
               "aria-current": ("true" if dia == dia_elegido), "aria-label": "#{nombre}#{', hoy' if dia == hoy}" do
       = nombre.first(3)
       - if dia == hoy

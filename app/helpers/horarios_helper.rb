@@ -52,6 +52,12 @@ module HorariosHelper
     texto
   end
 
+  # «la 1:00 p. m.» o «las 9:50 a. m.»: para «hasta las…» y «sale a las…».
+  def las(minutos)
+    hora = HoraDelDia.con_meridiano(minutos)
+    (minutos / 60) % 12 == 1 ? "la #{hora}" : "las #{hora}"
+  end
+
   # «A y B»: las secciones de un grado en el año.
   def letras_del_grado(seccion)
     Section.where(grade_id: seccion.grade_id, academic_period_id: seccion.academic_period_id)

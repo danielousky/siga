@@ -1,0 +1,32 @@
+-# «Ahora» y «Después» (spec `horarios`): la clase de este momento, con su
+-# atajo, y la que sigue. Con la hora de Venezuela (`MomentoDelProfesor`).
+- ahora = momento.ahora
+- despues = momento.despues
+.card-academic
+  = render "shared/cabecera", titulo: "Hoy", nivel: 2
+  .horario-momentos
+    .horario-momento.es-ahora
+      %span.horario-momento-rotulo Ahora
+      - if ahora
+        %p.horario-momento-grande= nombre_de_la_seccion(ahora.seccion)
+        %p.dato-secundario= "#{ahora.materia.name} · hasta #{las(ahora.hasta)}"
+        = boton "Ver la sección", section_path(ahora.seccion, area: ahora.materia.id), icono: :ver, tono: :ver, sm: true
+      - elsif !momento.habil?
+        %p.horario-momento-grande Fin de semana
+        %p.dato-secundario El lunes vuelve el horario.
+      - elsif !momento.clases_hoy?
+        %p.horario-momento-grande Sin clases hoy
+      - elsif momento.antes_de_empezar?
+        %p.horario-momento-grande Todavía no empieza
+      - elsif momento.terminado?
+        %p.horario-momento-grande Terminó el día
+      - else
+        %p.horario-momento-grande Libre
+        %p.dato-secundario No tiene clase a esta hora.
+    .horario-momento
+      %span.horario-momento-rotulo Después
+      - if despues
+        %p.horario-momento-grande= "#{HoraDelDia.texto(despues.desde)} · #{nombre_de_la_seccion(despues.seccion)}"
+        %p.dato-secundario= despues.materia.name
+      - else
+        %p.horario-momento-grande Nada más hoy

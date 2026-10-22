@@ -1,0 +1,11 @@
+-# El horario del hijo (spec `horarios`): solo el PUBLICADO (decisión 13), y
+-# también para la familia en mora (decisión 12): es logística de la sección
+-# —está pegado en la puerta del salón—, no el expediente del hijo.
+-#
+-# En el teléfono se ve un día, con los días arriba y la clase de ahora marcada.
+.card-academic
+  = render "shared/cabecera", titulo: "Horario", nivel: 2
+  - if horario[:rejilla]
+    = render "horarios/semana", rejilla: horario[:rejilla], ruta_del_dia: horario[:ruta_del_dia]
+  - else
+    %p.dato-secundario= "El horario de #{horario[:seccion]} todavía no está publicado. Cuando el colegio lo publique, aparece aquí."

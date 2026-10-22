@@ -33,9 +33,25 @@ class Dashboards::EstudianteController < ApplicationController
     @current_period = @enrollments.first&.section&.academic_period
 
     cargar_notas_del_lapso
+    cargar_el_horario
   end
 
   private
+
+  # El horario de su sección (spec `horarios`): solo el publicado (decisión 13).
+  def cargar_el_horario
+    seccion = @enrollments.first&.section
+    return unless seccion&.bell_schedule
+
+    @dia = (params[:dia].presence || HoraDeVenezuela.dia_de_clases).to_i.clamp(1, Lesson::DIAS.size)
+    nombre = "#{seccion.grade.name} #{seccion.name}"
+    @horario = if seccion.timetable_published_at
+      { seccion: nombre, rejilla: RejillaDeHorarios::DeLaSeccion.new(seccion, seccion.bell_schedule, solo_publicada: true),
+        ruta_del_dia: ->(dia) { dashboards_estudiante_path(dia: dia) } }
+    else
+      { seccion: nombre }
+    end
+  end
 
   # El lapso en curso de su inscripción principal. Se reutiliza `ReportCardData`,
   # que es el mismo servicio que arma el boletín: si el panel calculara aparte,

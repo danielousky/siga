@@ -7,6 +7,11 @@
         - if @led_sections.any?
           %span.role-badge Profesor guía
 
+  -# «Ahora · Después» (spec `horarios`): la clase de este momento y la que
+  -# sigue. Solo si tiene horario publicado.
+  - if @momento
+    = render "dashboards/profesor/ahora_y_despues", momento: @momento
+
   -# Lo primero: lo que le falta corregir, con el enlace a la planilla. El
   -# profesor entra a esto, no a mirar cuántas secciones tiene.
   - if @sin_corregir.any?
@@ -91,6 +96,11 @@
             -# `contar` y no interpolación a mano: `"alumno" + "s"` está bien,
             -# pero la misma pantalla ya se equivocó con "secciónes".
             %span.ficha-seccion-periodo= contar(seccion.enrollments.size, "alumno", "alumnos")
+
+  - if @semana
+    .card-academic
+      = render "shared/cabecera", titulo: "Mi semana", nivel: 2
+      = render "horarios/semana", rejilla: @semana, ruta_del_dia: ->(dia) { dashboards_profesor_path(dia: dia) }
 
   .stats-grid
     .stat-card

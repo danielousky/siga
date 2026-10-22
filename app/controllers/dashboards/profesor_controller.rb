@@ -35,9 +35,27 @@ class Dashboards::ProfesorController < ApplicationController
 
     @sin_corregir = evaluaciones_sin_corregir
     @avances = CargaDeNotas.avance_por_asignacion(@teacher_sections)
+    horario_del_profesor
   end
 
   private
+
+  # Su horario (spec `horarios`): «Ahora · Después» y «Mi semana», solo con lo
+  # PUBLICADO (decisión 13). Sin turno o sin clases publicadas, el panel no
+  # dice nada de horarios: una tarjeta vacía no le sirve a nadie.
+  def horario_del_profesor
+    anio = anio_de_trabajo
+    turno = TurnoDelAnio.de(anio)
+    return unless turno
+
+    clases = Lesson.where(teacher: @teacher, academic_period: anio).joins(:section)
+                   .where.not(sections: { timetable_published_at: nil }).includes(:subject, section: :grade).to_a
+    return if clases.empty?
+
+    @dia = (params[:dia].presence || HoraDeVenezuela.dia_de_clases).to_i.clamp(1, Lesson::DIAS.size)
+    @momento = MomentoDelProfesor.new(clases)
+    @semana = RejillaDeHorarios::DelProfesor.new(@teacher, turno, anio, solo_publicadas: true)
+  end
 
   # Las evaluaciones cuya fecha ya pasó y a las que les faltan notas.
   #

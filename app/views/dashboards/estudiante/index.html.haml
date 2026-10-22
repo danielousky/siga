@@ -33,6 +33,10 @@
           Promedio del lapso:
           %strong= EscalaLiteral.mostrar(@boletin["promedio"], escala: @inscripcion.section.grade.escala)
 
+  -# El horario de su sección (spec `horarios`), si el colegio lo publicó.
+  - if @horario
+    = render "representante/horario_del_hijo", horario: @horario
+
   - if @enrollments.any?
     .card-academic
       = render "shared/cabecera", titulo: pluralizar(@enrollments.size, "Mi sección", "Mis secciones"), nivel: 2

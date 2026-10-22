@@ -31,7 +31,7 @@
               %td{ class: class_names("horario-casilla", doble: unida), rowspan: (2 if unida) }
                 = render "horarios/celda", celda: rejilla.celda(dia, fila.numero), dia: dia, fila: fila
 .horario-lista-del-dia
-  = render "horarios/dias", dia_elegido: @dia
+  = render "horarios/dias", dia_elegido: @dia, ruta: local_assigns[:ruta_del_dia]
   %ol.horario-lista
     - rejilla.filas.each do |fila|
       - if fila.receso?
@@ -39,8 +39,12 @@
       - elsif !rejilla.tapada?(@dia, fila.numero)
         - unida = rejilla.unida?(@dia, fila.numero)
         - hasta = unida ? rejilla.horas[rejilla.pareja_de(fila.numero)].hora.ends_min : fila.hora.ends_min
-        %li{ class: class_names("horario-lista-fila", doble: unida) }
+        - es_ahora = @dia == hoy && fila_de_ahora.present? && (fila == fila_de_ahora || (unida && rejilla.horas[rejilla.pareja_de(fila.numero)] == fila_de_ahora))
+        %li{ class: class_names("horario-lista-fila", doble: unida, ahora: es_ahora) }
           .horario-lista-hora
             %b= HoraDelDia.texto(fila.hora.starts_min)
             %span= HoraDelDia.texto(hasta)
-          .horario-lista-celda= render "horarios/celda", celda: rejilla.celda(@dia, fila.numero), dia: @dia, fila: fila
+          .horario-lista-celda
+            = render "horarios/celda", celda: rejilla.celda(@dia, fila.numero), dia: @dia, fila: fila
+            - if es_ahora
+              %span.horario-ahora Ahora
