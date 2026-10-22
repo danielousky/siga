@@ -14,7 +14,7 @@
   = render "horarios/secciones_del_dia"
 - else
   = turbo_frame_tag "horario", data: { turbo_action: "advance" } do
-    .card-academic.horario
+    .card-academic
       = render "horarios/selector_de_secciones"
       .horario-cabeza
         %div

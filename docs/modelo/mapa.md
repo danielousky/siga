@@ -1,9 +1,9 @@
 # Modelo de datos de SIGA
 
 > **Generado desde `db/structure.sql`** con `bin/rails modelo:mapa`.
-> No editar a mano: se regenera. Última generación: 13 de octubre de 2026.
+> No editar a mano: se regenera. Última generación: 22 de octubre de 2026.
 
-45 tablas de dominio · 37 con RLS · 37 con `FORCE` · 11 de Solid Queue (sin RLS a propósito) · 3 de Active Storage
+48 tablas de dominio · 40 con RLS · 40 con `FORCE` · 11 de Solid Queue (sin RLS a propósito) · 3 de Active Storage
 
 ## Quién es de un colegio y quién no
 
@@ -16,8 +16,9 @@ planteles_oficiales                    activity_grades
 schools                                activity_logs
 setup                                  admins
 siga_settings                          attendances
-siga_staffs                            charges
-users                                  competencies
+siga_staffs                            bell_schedules
+users                                  charges
+                                       competencies
                                        constancias
                                        departments
                                        enrollments
@@ -30,6 +31,7 @@ users                                  competencies
                                        importaciones
                                        indicators
                                        informes
+                                       lessons
                                        mensaje_eventos
                                        mensajes
                                        mensajes_entrantes
@@ -47,6 +49,7 @@ users                                  competencies
                                        subscriptions
                                        teacher_sections
                                        teachers
+                                       time_slots
 ```
 
 ## Tablas
@@ -180,6 +183,23 @@ PK: `id` · RLS + FORCE
 **Apunta a:** `enrollment_id` → `enrollments` · `recorded_by_id` → `users` · `justificada_por_id` → `users` · `school_id` → `schools`
 
 **Únicos:** `(enrollment_id, date)`
+
+### 🔒 `bell_schedules`
+
+PK: `id` · RLS + FORCE
+
+| Columna | Tipo |
+| -- | -- |
+| `id` | int8 NOT NULL |
+| `school_id` | int8 NOT NULL |
+| `academic_period_id` | int8 NOT NULL |
+| `name` | texto NOT NULL |
+| `created_at` | fecha NOT NULL |
+| `updated_at` | fecha NOT NULL |
+
+**Apunta a:** `school_id` → `schools` · `academic_period_id` → `academic_periods`
+
+**Únicos:** `(academic_period_id, name)`
 
 ### 🔒 `charges`
 
@@ -389,6 +409,7 @@ PK: `id` · RLS + FORCE
 | `created_at` | fecha NOT NULL |
 | `updated_at` | fecha NOT NULL |
 | `school_id` | int8 NOT NULL |
+| `weekly_hours` | int |
 
 **Apunta a:** `grade_id` → `grades` · `subject_id` → `subjects` · `school_id` → `schools`
 
@@ -473,6 +494,27 @@ PK: `id` · RLS + FORCE
 **Apunta a:** `enrollment_id` → `enrollments` · `evaluation_moment_id` → `evaluation_moments` · `school_id` → `schools` · `escrito_por_id` → `users`
 
 **Únicos:** `(enrollment_id, evaluation_moment_id)`
+
+### 🔒 `lessons`
+
+PK: `id` · RLS + FORCE
+
+| Columna | Tipo |
+| -- | -- |
+| `id` | int8 NOT NULL |
+| `school_id` | int8 NOT NULL |
+| `academic_period_id` | int8 NOT NULL |
+| `section_id` | int8 NOT NULL |
+| `subject_id` | int8 NOT NULL |
+| `teacher_id` | int8 |
+| `time_slot_id` | int8 NOT NULL |
+| `day` | int NOT NULL |
+| `starts_min` | int NOT NULL |
+| `ends_min` | int NOT NULL |
+| `created_at` | fecha NOT NULL |
+| `updated_at` | fecha NOT NULL |
+
+**Apunta a:** `school_id` → `schools` · `academic_period_id` → `academic_periods` · `teacher_id` → `teachers` · `subject_id` → `subjects`
 
 ### 🔒 `mensaje_eventos`
 
@@ -718,10 +760,12 @@ PK: `id` · RLS + FORCE
 | `updated_at` | fecha NOT NULL |
 | `school_id` | int8 NOT NULL |
 | `leader_teacher_id` | int8 |
+| `bell_schedule_id` | int8 |
+| `timetable_published_at` | fecha |
 
-**Apunta a:** `leader_teacher_id` → `teachers` · `grade_id` → `grades` · `school_id` → `schools` · `academic_period_id` → `academic_periods`
+**Apunta a:** `leader_teacher_id` → `teachers` · `grade_id` → `grades` · `school_id` → `schools` · `bell_schedule_id` → `bell_schedules` · `academic_period_id` → `academic_periods`
 
-**Únicos:** `(grade_id, academic_period_id, name)`
+**Únicos:** `(id, academic_period_id)` · `(grade_id, academic_period_id, name)`
 
 ### 🌐 `setup`
 
@@ -903,7 +947,7 @@ PK: `id` · RLS + FORCE
 
 **Apunta a:** `school_id` → `schools` · `teacher_id` → `teachers` · `section_id` → `sections` · `subject_id` → `subjects`
 
-**Únicos:** `(section_id, subject_id)`
+**Únicos:** `(section_id, subject_id, teacher_id)` · `(section_id, subject_id)`
 
 ### 🔒 `teachers`
 
@@ -920,6 +964,25 @@ PK: `id` · RLS + FORCE
 **Apunta a:** `school_id` → `schools` · `user_id` → `users`
 
 **Únicos:** `(user_id, school_id)`
+
+### 🔒 `time_slots`
+
+PK: `id` · RLS + FORCE
+
+| Columna | Tipo |
+| -- | -- |
+| `id` | int8 NOT NULL |
+| `school_id` | int8 NOT NULL |
+| `bell_schedule_id` | int8 NOT NULL |
+| `starts_min` | int NOT NULL |
+| `ends_min` | int NOT NULL |
+| `kind` | int |
+| `created_at` | fecha NOT NULL |
+| `updated_at` | fecha NOT NULL |
+
+**Apunta a:** `bell_schedule_id` → `bell_schedules` · `school_id` → `schools`
+
+**Únicos:** `(id, starts_min, ends_min)`
 
 ### 🌐 `users`
 

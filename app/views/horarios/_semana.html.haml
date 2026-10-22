@@ -5,43 +5,42 @@
 -# ve un día, con los días arriba.
 - hoy = HoraDeVenezuela.dia_de_clases
 - fila_de_ahora = rejilla.fila_de(HoraDeVenezuela.minutos) if HoraDeVenezuela.dia_habil?
-.horario-semana
-  .horario-rejilla-marco
-    %table.table-academic.horario-rejilla
-      %thead
-        %tr
-          %th.horario-esquina{ scope: "col" }
-            %span.sr-only Hora
-          - rejilla.dias.each do |dia|
-            %th{ scope: "col", class: ("hoy" if dia == hoy) }
-              = Lesson::DIAS[dia - 1]
-              - if dia == hoy
-                %span.horario-hoy hoy
-      %tbody
-        - rejilla.filas.each do |fila|
-          - if fila.receso?
-            %tr.horario-fila-receso
-              %th{ scope: "row" }= render "horarios/rotulo_de_la_hora", fila: fila, ahora: fila == fila_de_ahora
-              %td{ colspan: rejilla.dias.size } Receso
-          - else
-            %tr
-              %th{ scope: "row" }= render "horarios/rotulo_de_la_hora", fila: fila, ahora: fila == fila_de_ahora
-              - rejilla.dias.each do |dia|
-                - next if rejilla.tapada?(dia, fila.numero)
-                - unida = rejilla.unida?(dia, fila.numero)
-                %td{ class: class_names("horario-casilla", doble: unida), rowspan: (2 if unida) }
-                  = render "horarios/celda", celda: rejilla.celda(dia, fila.numero), dia: dia, fila: fila
-  .horario-lista-del-dia
-    = render "horarios/dias", dia_elegido: @dia
-    %ol.horario-lista
+.horario-rejilla-marco
+  %table.table-academic.horario-rejilla
+    %thead
+      %tr
+        %th.horario-esquina{ scope: "col" }
+          %span.sr-only Hora
+        - rejilla.dias.each do |dia|
+          %th{ scope: "col", class: ("hoy" if dia == hoy) }
+            = Lesson::DIAS[dia - 1]
+            - if dia == hoy
+              %span.horario-hoy hoy
+    %tbody
       - rejilla.filas.each do |fila|
         - if fila.receso?
-          %li.horario-lista-receso= "Receso · #{fila.hora.rango}"
-        - elsif !rejilla.tapada?(@dia, fila.numero)
-          - unida = rejilla.unida?(@dia, fila.numero)
-          - hasta = unida ? rejilla.horas[rejilla.pareja_de(fila.numero)].hora.ends_min : fila.hora.ends_min
-          %li{ class: class_names("horario-lista-fila", doble: unida) }
-            .horario-lista-hora
-              %b= HoraDelDia.texto(fila.hora.starts_min)
-              %span= HoraDelDia.texto(hasta)
-            .horario-lista-celda= render "horarios/celda", celda: rejilla.celda(@dia, fila.numero), dia: @dia, fila: fila
+          %tr.horario-fila-receso
+            %th{ scope: "row" }= render "horarios/rotulo_de_la_hora", fila: fila, ahora: fila == fila_de_ahora
+            %td{ colspan: rejilla.dias.size } Receso
+        - else
+          %tr
+            %th{ scope: "row" }= render "horarios/rotulo_de_la_hora", fila: fila, ahora: fila == fila_de_ahora
+            - rejilla.dias.each do |dia|
+              - next if rejilla.tapada?(dia, fila.numero)
+              - unida = rejilla.unida?(dia, fila.numero)
+              %td{ class: class_names("horario-casilla", doble: unida), rowspan: (2 if unida) }
+                = render "horarios/celda", celda: rejilla.celda(dia, fila.numero), dia: dia, fila: fila
+.horario-lista-del-dia
+  = render "horarios/dias", dia_elegido: @dia
+  %ol.horario-lista
+    - rejilla.filas.each do |fila|
+      - if fila.receso?
+        %li.horario-lista-receso= "Receso · #{fila.hora.rango}"
+      - elsif !rejilla.tapada?(@dia, fila.numero)
+        - unida = rejilla.unida?(@dia, fila.numero)
+        - hasta = unida ? rejilla.horas[rejilla.pareja_de(fila.numero)].hora.ends_min : fila.hora.ends_min
+        %li{ class: class_names("horario-lista-fila", doble: unida) }
+          .horario-lista-hora
+            %b= HoraDelDia.texto(fila.hora.starts_min)
+            %span= HoraDelDia.texto(hasta)
+          .horario-lista-celda= render "horarios/celda", celda: rejilla.celda(@dia, fila.numero), dia: @dia, fila: fila

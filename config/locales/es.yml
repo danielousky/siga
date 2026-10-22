@@ -225,6 +225,8 @@ es:
         subjects: Áreas de aprendizaje
       subject:
         evaluation_activities: Evaluaciones
+        # Un área con clases en el horario no se borra.
+        lessons: Clases del horario
         final_grade_books: Notas definitivas
         moment_grades: Notas de lapso
         teacher_sections: Asignaciones de profesor

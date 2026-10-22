@@ -18,12 +18,18 @@ erDiagram
     schools ||--o{ grades : ""
     teachers ||--o{ sections : "leader_teacher"
     grades ||--o{ sections : ""
+    bell_schedules ||--o{ sections : ""
     academic_periods ||--o{ sections : ""
     schools ||--o{ departments : ""
     departments ||--o{ subjects : ""
     schools ||--o{ subjects : ""
     grades ||--o{ grade_subjects : ""
     subjects ||--o{ grade_subjects : ""
+    academic_periods ||--o{ bell_schedules : ""
+    bell_schedules ||--o{ time_slots : ""
+    academic_periods ||--o{ lessons : ""
+    teachers ||--o{ lessons : ""
+    subjects ||--o{ lessons : ""
     sections ||--o{ enrollments : ""
     students ||--o{ enrollments : ""
     teachers ||--o{ teacher_sections : ""
@@ -218,6 +224,8 @@ erDiagram
         texto classroom
         int8 school_id FK
         int8 leader_teacher_id FK "el profesor guía — SÍ pasa lista"
+        int8 bell_schedule_id FK
+        fecha timetable_published_at
     }
     departments {
         int8 id PK
@@ -237,6 +245,33 @@ erDiagram
         int8 grade_id FK
         int8 subject_id FK
         int8 school_id FK
+        int weekly_hours
+    }
+    bell_schedules {
+        int8 id PK
+        int8 school_id FK
+        int8 academic_period_id FK
+        texto name
+    }
+    time_slots {
+        int8 id PK
+        int8 school_id FK
+        int8 bell_schedule_id FK
+        int starts_min
+        int ends_min
+        int kind
+    }
+    lessons {
+        int8 id PK
+        int8 school_id FK
+        int8 academic_period_id FK
+        int8 section_id FK
+        int8 subject_id FK
+        int8 teacher_id FK
+        int8 time_slot_id FK
+        int day
+        int starts_min
+        int ends_min
     }
     enrollments {
         int8 id PK
