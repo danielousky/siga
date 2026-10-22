@@ -42,7 +42,7 @@ WhatsApp… es algo novedoso y fácil»*, y no salía de un toque.
   hijos, el enlace y sus 72 horas. Solo con un celular.
 - La bienvenida al activar dice «Le damos la bienvenida, Ricardo»: es neutra,
   por decisión de Daniel, y el nombre ya no sale en mayúsculas.
-- ⚠️ La tanda 1 de horarios estaba numerada 1.21.0: al mezclarse pasa a 1.22.0.
+- ⚠️ Los horarios salen en la 1.22.0: la 1.21.0 fue el enlace por WhatsApp.
 
 ## ✅ Todo documento se abre en otra pestaña — 1.20.6, EN PRODUCCIÓN desde el 16 de octubre
 
@@ -239,65 +239,58 @@ hay fechas; si no, en el último con evaluaciones. En la muestra: 18 secciones,
   representantes) se salen de la pantalla, porque se vuelven desplazables recién
   a 600 px. No lo toqué: cambia cómo se ven todas las tablas a ese ancho.
 
-## 📐 Horarios — tanda 1 hecha (1.21.0), esperando tu prueba (14 de octubre)
+## 📐 Horarios — la tanda 2 hecha (1.22.0), esperando tu prueba (22 de octubre)
 
-El spec [`docs/specs/horarios.md`](docs/specs/horarios.md) quedó **congelado** el
-13 —con las 18 decisiones tomadas, Daniel dio la orden: *«Continúa»*— y el 14
-se construyó la primera de las cinco tandas: el turno y la carga horaria.
-
-```
-   Académico ▸ Horarios          [ Turnos | Carga horaria ]
-
-   Registrar turno                                   Así queda
-   Entrada [7:10]  Cada hora dura [40]               1ra  7:10 – 7:50    5ta 10:20 – 11:00
-   Horas al día [8]  Receso [tras la 4ta] de [30]    …                   …
-                                                     Receso 9:50 – 10:20
-   [Crear] [Ver cómo queda]                          8 horas de clase al día: 40 de lunes a viernes
-```
+La tanda 1 —Turnos y Carga horaria, dos pantallas de configuración— **se
+devolvió** el 16 (*«eso no es el horario»*). El 20 se hizo una maqueta, el 22 la
+aprobaste con un pedido (que el mensaje resalte y brinque), el spec la recogió
+y se construyó la tanda 2 con la 3 adentro: el horario entero.
 
 ```
-   Carga horaria                               [Proponer las del plan oficial]
-   EDUCACIÓN MEDIA GENERAL   1er Año  2do Año  …
-   Castellano y Literatura   [ 4 ]    [ 4 ]
-   Física                      ·        ·      ← no se cursa en ese grado
-   Total                       44       44
-   La semana tiene             40       40
-                            sobran 4  sobran 4  ← ámbar: avisa, no bloquea
+   Académico ▸ Horarios        [Secciones] Profesores  Áreas  Alumnos
+   1er Año (●A)(○B) · 2do Año (●A)(●B) · …                         ○ = borrador
+   1er Año B  [Borrador] [faltan 6 h]                  [Listo] [Publicar]
+   ┌ POR UBICAR ───────────────── (●) En bloques de 2 horas ┐
+   │ [Inglés · Castillo · 2 de 4] [Arte · Moreno · 0 de 2] … │
+   └─────────────────────────────────────────────────────────┘
+   ║ (?) Martes a las 8:30 no se puede: Silva está en 2do Año A … ║  ← fijo, brinca
+   la rejilla: + libre · rayada con «?» · × quitar · ✎ corregir la hora
 ```
 
-- **Lo que hay:** turnos con su timbre (cuatro números, y el «Así queda» se
-  rehace al escribir), cada hora corregible en su fila, las secciones de cada
-  turno, la ficha de la sección con su turno, y la carga horaria con la
-  propuesta del plan oficial de 2017. Armar es gratis (decisión 3).
-- **Lo que verifiqué:** `bin/ci` con bases propias. Tests 2.146 y 0 fallos, y el
-  humo pasa por las tres pantallas nuevas. Los de navegador sacaron 5 rojos con
-  la máquina a carga 11–66 (otras sesiones corriendo): uno era mío —esperaba
-  poco a que llegara la ficha— y quedó corregido; los otros cuatro son los
-  intermitentes de siempre y pasan al repetirlos.
-- **Lo que NO pude verificar:** que se vea y se sienta bien en tus manos —
-  sobre todo el «Así queda» mientras escribes y la carga en un teléfono—.
+- **Lo que hay:** la semana de una sección (la puerta), Armar con «Por ubicar»,
+  el timbre y la carga dentro de la rejilla, todas un mismo día, por profesor,
+  por área y por alumno, publicar; el profesor con «Ahora · Después» y «Mi
+  semana»; la familia y el alumno en el teléfono (solo lo publicado; la familia
+  en mora también lo ve). La muestra amanece con Media armada: 272 clases, 7
+  secciones publicadas y 1er Año B en borrador con 6 horas por ubicar.
+- **Lo que verifiqué:** ver «Para probarla» y el reporte de la sesión.
+- **Lo que NO pude verificar:** que se sienta bien en tus manos, sobre todo
+  armar 1er Año B con el dedo en un teléfono.
 
 **Para probarla** (vive en el worktree, con su propia base sembrada):
 
 ```
    cd "/Volumes/Personal Info/Documentos/Desarrollo/SIGA/APPS/siga-horarios"
-   SIGA_DB_NAME=siga_horarios bin/rails server -p 3001
-   → http://localhost:3001 · director.bolivar@mail.com · 123123
+   SIGA_DB_NAME=siga_horarios bin/rails server -p 3002
+   → http://localhost:3002 · director.bolivar@mail.com · 123123
 
-   1 · Académico ▸ Horarios ▸ [+] Registrar turno: 7:10 · 40 · 8 · tras la 4ta · 30
-   2 · en la ficha del turno: corregir una hora para que pise a la siguiente (lo dice)
-       y marcar las secciones de Media
-   3 · Carga horaria: «Proponer las del plan oficial» y mirar el «sobran»
+   1 · Horarios: 1er Año A (publicado) · «Todas, un mismo día» · Profesores · Áreas
+   2 · 1er Año B ▸ [Armar]: elegir Inglés, tocar un +; tocar una rayada (dice por qué)
+   3 · con «Armar» abierto: tocar una hora de la izquierda y corregirla
+   4 · [Publicar] 1er Año B · y entrar como profesor.bolivar@mail.com («Ahora · Después»)
 ```
 
-⚠️ **Ramas, sin subir:** `docs/spec-horarios` (el spec) y encima
-`feat/horarios-turno-y-carga` (la tanda 1). La 1.20.2 viene en otra rama
-(`fix/la-app-habla-de-usted`): al juntarlas chocan solo la versión y el
-CHANGELOG.
+⚠️ **Ramas, sin subir:** `docs/spec-horarios` (el spec, revisado) y encima
+`feat/horarios` (la tanda 1 con la 2 adentro: decisión 26). Las dos ya están
+sobre `main` 1.21.0.
 
-⚠️ **La 1.21.0 trae una migración** con la primera extensión del proyecto,
-`btree_gist`. Producción y la muestra se miraron en solo lectura: PostgreSQL
-18.4, y `siga_app` la puede crear sin ningún paso a mano.
+⚠️ **Trae dos migraciones**: la de la tanda 1, con la primera extensión del
+proyecto (`btree_gist`), y la de las clases, con dos `EXCLUDE` y una llave con
+`SET NULL (teacher_id)` (PostgreSQL 15+). Producción y la muestra se miraron en
+solo lectura el 13: PostgreSQL 18.4, y `siga_app` crea la extensión sola.
+
+⚠️ **Al entrar a `main`**, correr `bin/rails modelo:documentos` para que el PDF
+del modelo llegue a la carpeta madre: desde la rama se regeneró sin copiarlo.
 
 ```
    las tandas   0 el spec ✓ → 1 turno y carga ✓ → 2 armar → 3 verlo → 4 la vida real → 5 el automático

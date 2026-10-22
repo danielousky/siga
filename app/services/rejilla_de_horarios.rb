@@ -115,12 +115,13 @@ class RejillaDeHorarios
     # Dónde dicta el profesor del área elegida, en las OTRAS secciones del año:
     # una sola consulta para toda la rejilla.
     def ocupaciones
-      @ocupaciones ||= if @profesor
-        Lesson.where(teacher_id: @profesor.id, academic_period_id: seccion.academic_period_id)
-              .where.not(section_id: seccion.id).includes(:subject, section: :grade).to_a
-      else
-        []
-      end
+      return @ocupaciones if defined?(@ocupaciones)
+
+      @ocupaciones = []
+      return @ocupaciones unless @profesor
+
+      @ocupaciones = Lesson.where(teacher_id: @profesor.id, academic_period_id: seccion.academic_period_id)
+                           .where.not(section_id: seccion.id).includes(:subject, section: :grade).to_a
     end
 
     private
@@ -203,12 +204,11 @@ class RejillaDeHorarios
   class DelArea < RejillaDeHorarios
     def initialize(materia, turno, anio)
       super(turno)
-      @clases = if turno.persisted?
-        Lesson.where(subject: materia, academic_period: anio).includes(teacher: :user, section: :grade)
-              .group_by { |clase| [ clase.day, clase.time_slot_id ] }
-      else
-        {}
-      end
+      @clases = {}
+      return unless turno.persisted?
+
+      @clases = Lesson.where(subject: materia, academic_period: anio).includes(teacher: :user, section: :grade)
+                      .group_by { |clase| [ clase.day, clase.time_slot_id ] }
     end
 
     private

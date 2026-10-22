@@ -71,16 +71,14 @@ class HorariosController < ApplicationController
     ubicadas = Lesson.where(subject_id: area.materia.id, section_id: hermanas.select(:id)).group(:section_id).count
     tope = ubicadas.values.max.to_i
 
-    flash[:horario] = if nuevas < [ tope, 1 ].max
+    if nuevas < [ tope, 1 ].max
       llena = hermanas.find(ubicadas.key(tope)) if tope.positive?
-      { "tipo" => "aviso",
-        "texto" => llena ? "No baja de #{tope}: #{nombre_de(llena)} ya tiene #{tope} horas de #{area.materia.name} " \
-                           "ubicadas. Quite una primero." : "Un área tiene al menos una hora a la semana." }
+      flash[:horario] = { "tipo" => "aviso", "texto" => no_baja(llena, tope, area.materia) }
     else
       area.grade_subject.update!(weekly_hours: [ nuevas, GradeSubject::HORAS_POSIBLES.last ].min)
-      { "tipo" => "ok",
-        "texto" => "#{area.materia.name}: #{area.grade_subject.weekly_hours} horas a la semana en " \
-                   "#{seccion.grade.name} #{hermanas.map(&:name).sort.to_sentence}." }
+      flash[:horario] = { "tipo" => "ok",
+                          "texto" => "#{area.materia.name}: #{area.grade_subject.weekly_hours} horas a la semana en " \
+                                     "#{seccion.grade.name} #{hermanas.map(&:name).sort.to_sentence}." }
     end
     redirect_to horarios_path(seccion: seccion.id, armar: 1, area: area.materia.id)
   end
@@ -162,6 +160,12 @@ class HorariosController < ApplicationController
   end
 
   def nombre_de(seccion) = "#{seccion.grade.name} #{seccion.name}"
+
+  def no_baja(llena, tope, materia)
+    return "Un área tiene al menos una hora a la semana." unless llena
+
+    "No baja de #{tope}: #{nombre_de(llena)} ya tiene #{tope} horas de #{materia.name} ubicadas. Quite una primero."
+  end
 
   # «2-5»: el martes, la 6ta hora. Es la casilla rayada que se acaba de tocar.
   def casilla_tocada

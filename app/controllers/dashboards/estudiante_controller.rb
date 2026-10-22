@@ -48,12 +48,11 @@ class Dashboards::EstudianteController < ApplicationController
 
     @dia = (params[:dia].presence || HoraDeVenezuela.dia_de_clases).to_i.clamp(1, Lesson::DIAS.size)
     nombre = "#{seccion.grade.name} #{seccion.name}"
-    @horario = if seccion.timetable_published_at
-      { seccion: nombre, rejilla: RejillaDeHorarios::DeLaSeccion.new(seccion, seccion.bell_schedule, solo_publicada: true),
-        ruta_del_dia: ->(dia) { dashboards_estudiante_path(dia: dia) } }
-    else
-      { seccion: nombre }
-    end
+    @horario = { seccion: nombre }
+    return unless seccion.timetable_published_at
+
+    @horario.merge!(rejilla: RejillaDeHorarios::DeLaSeccion.new(seccion, seccion.bell_schedule, solo_publicada: true),
+                    ruta_del_dia: ->(dia) { dashboards_estudiante_path(dia: dia) })
   end
 
   # El lapso en curso de su inscripción principal. Se reutiliza `ReportCardData`,

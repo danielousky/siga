@@ -1985,47 +1985,71 @@ A mano: `bin/rails suscripciones:estado` (en qué está cada colegio y qué avis
 le toca, sin tocar nada) y `bin/rails suscripciones:escalera` (si el worker
 estuvo caído).
 
-### 16. Los horarios — tanda 1: el turno y la carga horaria
+### 16. Los horarios de clase (1.22.0)
 
 Spec: [`docs/specs/horarios.md`](docs/specs/horarios.md), congelado el 13 de
-octubre de 2026. Cinco tandas; esta es la primera.
+octubre de 2026 y revisado el 22 con una maqueta. La tanda 1 —dos pantallas de
+configuración, «Turnos» y «Carga horaria»— **se devolvió**. Daniel, el 16: *«eso
+no es el horario… la interfaz es CERO intuición»*. La lección manda en todo lo
+que siguió:
 
 ```
-   bell_schedules   «Turno»   Media · mañana            del AÑO escolar
-   time_slots       «hora»    1ra 7:10–7:50 … Receso    en MINUTOS desde la medianoche
-   sections.bell_schedule_id            el turno de la sección (solo de su año)
-   grade_subjects.weekly_hours          la carga horaria: vacía es «nadie lo dijo»
+   ❌  primero se configura, después se ve       ✅  la puerta es el horario, ya con valores,
+       (turno → carga → rejilla)                     y lo demás se corrige DENTRO de él
 ```
 
-- **El turno se registra con cuatro números** (`HorasDelTurno`): entrada,
-  minutos por hora, horas al día y tras cuál va el receso. Con 7:10 · 40 · 8 ·
-  tras la 4ta sale el horario real que mandó Daniel. El «Así queda» del alta lo
-  calcula el SERVIDOR, con la misma clase que guarda: `auto-envio` pide `new`
-  por GET con el botón «Ver cómo queda» y Turbo cambia solo el marco.
-- ⚠️ **La hora va en minutos, no en una columna `time`**: la app corre en UTC, y
-  el choque se mide por reloj —Primaria y Media no comparten timbre—.
-- ⚠️ **`btree_gist` es la primera extensión del proyecto.** Es de confianza: la
-  crea `siga_app` desde la migración (se miró en producción: PostgreSQL 18.4, y
-  `siga_app` es dueño de la base). `structure.sql` se vuelca `--no-comments`
-  (`config/initializers/volcado_del_esquema.rb`): un `COMMENT ON EXTENSION`
-  solo lo puede escribir el dueño de la extensión.
-- ⚠️ **Dos horas de un turno no se pisan, y lo dice la BASE**
-  (`time_slots_no_se_pisan`, un `EXCLUDE` diferible). La validación lo explica
-  con palabras; la restricción es para dos personas guardando a la vez. Cada
-  escritura que puede chocar va en su `SAVEPOINT` y rescata
-  `ActiveRecord::ExclusionViolation`: sin eso, la violación aborta la
-  transacción de la petición entera.
-- ⚠️ **La carga oficial se reconoce por el NOMBRE del área**
-  (`CargaHorariaOficial`), nunca por su código: los códigos de un colegio no son
-  los del plan —en la siembra, Castellano es `LEN`—. Solo llena casillas vacías,
-  y lo que el plan no cubre lo dice («escríbalas a mano»).
-- ⚠️ **Dos trampas que costaron un rato en los tests:**
-  - un `update_columns` fuera de `con_el_colegio` no falla: el RLS lo deja en
-    cero filas, en silencio, y el test sigue con el dato viejo;
-  - `sign_in` lo consume la PRIMERA petición siguiente, y si esa petición
-    termina en 404 el cambio de sesión se pierde: la siguiente entra como el
-    usuario anterior. Parece una fuga entre colegios y es el test. El 404 va
-    después de lo que se quiere mirar.
+```
+   Académico ▸ Horarios ─┬─ Secciones   la semana de una (la hoja de la foto) · todas, un día
+                         ├─ Profesores  la semana de uno · todos, un día («libre» = un hueco)
+                         ├─ Áreas       quién la dicta, dónde y cuándo
+                         └─ Alumnos     su horario es el de su sección
+   [Armar] ──► «Por ubicar» ──► elegir el área ──► tocar la casilla ──► [Publicar]
+   el profesor: «Ahora · Después» y «Mi semana» · la familia y el alumno: en el teléfono
+```
+
+```
+   lessons          «clase»   UNA casilla: sección · área · día (1–5) · hora
+   bell_schedules   «Turno»   nace solo con el timbre de la foto, al tocar «Armar»
+   time_slots       «hora»    en MINUTOS desde la medianoche; se corrige en la rejilla
+   grade_subjects.weekly_hours     la carga: el − y + de «Por ubicar»
+   sections.timetable_published_at borrador → publicado (familia, alumno y profesor)
+```
+
+- ⚠️ **El choque es imposible en tres capas, con UN texto** (`ChoquesDeHorario`):
+  la casilla rayada, la validación y dos `EXCLUDE` en la base
+  (`lessons_una_clase_a_la_vez`, `lessons_un_profesor_en_un_sitio`). Se mide
+  por RELOJ: Primaria y Media no comparten timbre y once profesores de la
+  muestra dictan en las dos.
+- ⚠️ **La clase copia el año, los minutos y el profesor, y no los mantiene el
+  código**: tres llaves compuestas. Corregir una hora mueve sus clases; borrar
+  la asignación las deja «sin profesor» (`ON DELETE SET NULL (teacher_id)`,
+  PostgreSQL 15+). Hay seis sitios que crean o borran asignaciones —uno con
+  `delete_all`—: un callback se habría quedado atrás.
+- ⚠️ **Mirar no escribe.** Sin turno, la rejilla se dibuja con el de la foto sin
+  guardarlo (`TurnoDelAnio.de_la_foto`); nace con el POST de «Armar». Y la
+  carga del plan oficial se MUESTRA sin guardarse (`CargaDeLaSeccion`) hasta que
+  el colegio la toca.
+- ⚠️ **Armar vive en el `turbo_frame` «horario»**: todo lo de adentro vuelve a
+  `horarios_path`. El mensaje viaja en `flash[:horario]` —el `notice` de
+  siempre se dibuja FUERA del marco y no se vería— y brinca solo cuando viene
+  de tocar la rejilla.
+- ⚠️ **Cada clase se guarda en su `SAVEPOINT`** (`ArmadorDeLaSeccion`): un
+  `EXCLUDE` violado aborta la transacción de la petición entera.
+- **`ArmarElHorario` arma varias secciones a la vez** coloreando las aristas de
+  un grafo bipartito con cadenas de Kempe: la siembra de Media, 272 clases en
+  dos segundos. Lo que no cabe —un profesor con más horas que la semana— queda
+  «por ubicar». ⚠️ La siembra baja la carga del plan (44 a 46 horas) hasta 38:
+  con la del plan, cada sección amanecería con horas que no caben.
+- ⚠️ **`modelo:documentos` copia el PDF a la carpeta madre**: desde una rama,
+  eso pone en «lo que se entrega» tablas que todavía no están en `main`. En la
+  rama se regenera `docs/modelo` sin la copia; la copia, al entrar a `main`.
+- ⚠️ **Dos trampas de los tests:** un `update_columns` fuera de `con_el_colegio`
+  no falla —el RLS lo deja en cero filas, en silencio—; y `sign_in` lo consume
+  la PRIMERA petición, y si esa termina en 404 la siguiente entra como el
+  usuario anterior. El 404 va al final.
+- ⚠️ **`save!(validate: false)` se salta también los `before_validation`**: sin
+  el colegio, el RLS rechaza la fila antes que el `EXCLUDE`, y el test prueba
+  otra cosa. Un `valid?` antes.
 
 ## 🔢 La versión
 
