@@ -263,7 +263,13 @@ y se construyó la tanda 2 con la 3 adentro: el horario entero.
   semana»; la familia y el alumno en el teléfono (solo lo publicado; la familia
   en mora también lo ve). La muestra amanece con Media armada: 272 clases, 7
   secciones publicadas y 1er Año B en borrador con 6 horas por ubicar.
-- **Lo que verifiqué:** ver «Para probarla» y el reporte de la sesión.
+- **Lo que verifiqué:** `bin/ci` en verde paso por paso sobre el código final:
+  tests 2.186 y 0 fallos, los de navegador 97 —con `/horarios` en el recorrido
+  del teléfono—, la siembra como la muestra y el humo con las cuatro rutas de
+  horarios. Y miré las capturas de cada pantalla, en computadora y teléfono.
+  ⚠️ El humo entra con `desarrollador@siga.edu · 123123`: la base de desarrollo
+  se siembra con `db:seed:replant`, no como la muestra (allá el equipo de SIGA
+  lleva una clave al azar, y el humo falla).
 - **Lo que NO pude verificar:** que se sienta bien en tus manos, sobre todo
   armar 1er Año B con el dedo en un teléfono.
 
