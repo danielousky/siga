@@ -7,7 +7,9 @@ require "application_system_test_case"
 # correcto aunque Turbo no cambie el marco y la pantalla quede en blanco
 # («Content missing», la trampa de § «Dentro de un turbo_frame»).
 class ArmarElHorarioTest < ApplicationSystemTestCase
+  # Un lunes de clases del año de los escenarios: un año terminado no se arma.
   setup do
+    travel_to Time.zone.local(2026, 3, 2, 10, 0)
     @a, _b = dos_colegios_completos
     entrar_como(@a.director)
     visit horarios_path
@@ -15,7 +17,8 @@ class ArmarElHorarioTest < ApplicationSystemTestCase
 
   test "tocar una casilla libre ubica el bloque de 80 minutos, y la × lo devuelve a «por ubicar»" do
     click_on "Armar"
-    assert_selector ".horario-armar", text: "Por ubicar"
+    # El título va en mayúsculas por CSS, y el navegador lee lo que se VE.
+    assert_selector ".horario-armar-titulo", text: /por ubicar/i
 
     within(".horario-rejilla") { first(".horario-libre").click }
     assert_selector ".horario-mensaje--ok", text: "Listo: Matemática el lunes de 7:10 a 8:30. Van 2 de 4."

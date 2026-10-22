@@ -10,6 +10,7 @@ class LessonsController < ApplicationController
 
   before_action :solo_quien_arma
   before_action :set_seccion
+  before_action :el_anio_sigue_abierto
 
   def create
     materia = Subject.find(params[:subject_id])
@@ -33,6 +34,14 @@ class LessonsController < ApplicationController
 
   def set_seccion
     @seccion = Section.find(params[:section_id])
+  end
+
+  # Decisión 16: un año que terminó queda en solo lectura.
+  def el_anio_sigue_abierto
+    return unless @seccion.academic_period.situacion == :finalizado
+
+    volver ArmadorDeLaSeccion::Mensaje.new(texto: "#{@seccion.academic_period.name} ya terminó: su horario se ve, y ya no se arma.",
+                                           tipo: "aviso", area: nil)
   end
 
   def solo_quien_arma

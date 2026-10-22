@@ -29,6 +29,7 @@ class HorariosController < ApplicationController
   before_action :solo_la_administracion
   before_action :solo_quien_arma, only: [ :armar, :publicar, :carga ]
   before_action :exigir_un_anio
+  before_action :el_anio_sigue_abierto, only: [ :armar, :publicar, :carga ]
 
   def index
     @ver = params[:ver].presence_in(VISTAS) || "secciones"
@@ -98,7 +99,7 @@ class HorariosController < ApplicationController
       return
     end
 
-    @armando = params[:armar] == "1" && can_manage_sections? && @seccion.bell_schedule.present?
+    @armando = params[:armar] == "1" && can_manage_sections? && @seccion.bell_schedule.present? && !finalizado?(@anio)
     @rejilla = RejillaDeHorarios::DeLaSeccion.new(@seccion, @seccion.bell_schedule || @turno,
                                                   armando: @armando, elegida: params[:area], marcada: casilla_tocada)
     @hora_editada = @rejilla.turno.time_slots.find { |hora| hora.id == params[:hora].to_i } if @armando
@@ -212,6 +213,18 @@ class HorariosController < ApplicationController
     "#{area.materia.name} · #{profesor} · #{area.ubicadas} de #{area.horas} horas. Toque una casilla con +; " \
       "las rayadas no se pueden, y al tocarlas se ve por qué."
   end
+
+  # Decisión 16: un año que terminó queda en solo lectura. Su horario se ve tal
+  # como fue; cambiarlo ahora sería reescribir lo que pasó.
+  def el_anio_sigue_abierto
+    return unless finalizado?(@anio)
+
+    flash[:horario] = { "tipo" => "aviso", "texto" => "#{@anio.name} ya terminó: su horario se ve, y ya no se arma." }
+    redirect_to horarios_path(seccion: params[:seccion].presence)
+  end
+
+  def finalizado?(anio) = anio.situacion == :finalizado
+  helper_method :finalizado?
 
   def exigir_un_anio
     @anio = anio_de_trabajo

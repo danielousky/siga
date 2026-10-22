@@ -29,6 +29,9 @@ class Section < ApplicationRecord
   # este año colgada de aquel leería un timbre que ya no existe.
   belongs_to :bell_schedule, optional: true
   validate :el_turno_es_de_su_anio
+  # Decisión 16 del spec `horarios`: sus clases cuelgan de las horas de ESTE
+  # turno, y moverlas a otro timbre sin vaciarla las dejaría colgando.
+  validate :no_cambia_de_turno_con_clases, if: :will_save_change_to_bell_schedule_id?
 
   has_many :enrollments, dependent: :restrict_with_error
   has_many :students, through: :enrollments
@@ -155,6 +158,12 @@ class Section < ApplicationRecord
   end
 
   private
+
+  def no_cambia_de_turno_con_clases
+    return unless bell_schedule_id_in_database && lessons.exists?
+
+    errors.add(:bell_schedule, "no se cambia con clases en el horario: primero hay que vaciarlo")
+  end
 
   def el_turno_es_de_su_anio
     return if bell_schedule.nil? || bell_schedule.academic_period_id == academic_period_id

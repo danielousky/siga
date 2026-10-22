@@ -8,6 +8,11 @@ require "test_helper"
 # guarda la sesión: la siguiente correría como el usuario anterior. Por eso, en
 # cada test, lo que da 404 va al final.
 class HorariosTest < ActionDispatch::IntegrationTest
+  # ⚠️ Un lunes de clases del año de los escenarios (2025-2026). Sin esto, desde
+  # agosto de 2026 ese año ya terminó, y un año terminado no se arma
+  # (decisión 16): todos los tests leerían «ya terminó».
+  setup { travel_to Time.zone.local(2026, 3, 2, 10, 0) }
+
   setup do
     @a, @b = dos_colegios_completos
     @seccion = @a.seccion
@@ -91,7 +96,7 @@ class HorariosTest < ActionDispatch::IntegrationTest
     get horarios_path(seccion: otra.id, armar: 1, area: @mat.id, porque: "1-0")
     assert_equal "Lunes a las 7:10 no se puede: #{apellido} está en 1er Año A dando Matemática.", mensaje
     assert_select ".horario-mensaje.horario-mensaje--aviso.horario-mensaje--brinca"
-    assert_select ".horario-bloqueada.marcada", 1
+    assert_select ".horario-rejilla .horario-bloqueada.marcada", 1
 
     ubicar(otra, dia: 1, hora: 1)
     assert_empty clases(otra)
@@ -161,6 +166,17 @@ class HorariosTest < ActionDispatch::IntegrationTest
     assert_select ".horario-resultado", text: /1er Año A/
     get horarios_path(ver: "alumnos", alumno: alumno.id)
     assert_select ".horario-rejilla .horario-clase b", text: "Matemática"
+  end
+
+  # Decisión 16: un año que terminó queda en solo lectura.
+  test "en un año que terminó, el horario se ve y ya no se arma" do
+    viejo = ano_escolar_viejo(@a.escenario)
+    seccion_vieja = en_a { Section.find_by!(academic_period: viejo, name: "A") }
+    sign_in @a.director
+
+    post section_lessons_path(seccion_vieja), params: { subject_id: @mat.id, dia: 1, time_slot_id: 0 }
+    assert_equal "#{viejo.name} ya terminó: su horario se ve, y ya no se arma.", flash[:horario]["texto"]
+    assert_equal 0, en_a { Lesson.count }
   end
 
   # ── Quién entra ──────────────────────────────────────────────────────────

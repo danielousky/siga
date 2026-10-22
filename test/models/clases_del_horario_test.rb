@@ -183,6 +183,20 @@ class ClasesDelHorarioTest < ActiveSupport::TestCase
     end
   end
 
+  # Sus clases cuelgan de las horas de ESTE turno (decisión 16).
+  test "una sección con clases no cambia de turno; vacía, sí" do
+    ubicar(@a, @mat, dia: 1, hora: 1)
+
+    con_el_colegio(@esc.colegio) do
+      otro = BellSchedule.create!(name: "Otro turno", academic_period: @esc.periodo)
+      refute @a.update(bell_schedule: otro)
+      assert_includes @a.errors.full_messages.to_sentence, "no se cambia con clases en el horario"
+
+      Lesson.where(section: @a).delete_all
+      assert @a.reload.update(bell_schedule: otro)
+    end
+  end
+
   # ── Cuando cambia el profesor (decisión 8) ─────────────────────────────────
 
   test "el profesor nuevo toma las clases donde está libre; donde choca, vuelven a «por ubicar»" do

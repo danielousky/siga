@@ -29,7 +29,7 @@
           %p.dato-secundario
             = "#{@rejilla.carga.ubicadas} de #{@rejilla.carga.total} horas ubicadas"
             = "· #{resumen_corto_del_turno(@rejilla.turno)}"
-        - if can_manage_sections?
+        - if can_manage_sections? && !finalizado?(@anio)
           .acciones-de-cabecera
             - if @armando
               = boton "Listo", ruta_del_horario(armar: nil, area: nil), icono: :ok, tono: :secondary
