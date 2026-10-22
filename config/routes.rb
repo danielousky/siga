@@ -492,22 +492,22 @@ Rails.application.routes.draw do
   end
   resources :departments, path: "departamentos", except: [ :show ]
 
-  # Los horarios, tanda 1 (spec `horarios`): el timbre y la carga horaria.
-  #
-  # `BellSchedule` se lee «Turno» y `TimeSlot` «hora», así que la barra de
-  # direcciones dice `/turnos` y `/turnos/3/horas`.
-  #
-  # ⚠️ Sin `edit`: un turno se corrige en su propia ficha —el nombre, cada hora
-  # en su fila y las secciones que lo usan—, no en una pantalla aparte.
-  resources :bell_schedules, path: "turnos", except: [ :edit ] do
-    resources :time_slots, path: "horas", only: [ :create, :update, :destroy ]
+  # Académico ▸ Horarios (spec `horarios`): la semana de cada sección y las
+  # otras miradas. El turno y la carga horaria NO tienen pantalla propia
+  # (decisiones 20 y 21): se corrigen dentro de la rejilla, con «Armar» abierto.
+  resources :horarios, only: [ :index ] do
+    collection do
+      post  :armar
+      patch :publicar
+      patch :carga
+    end
   end
 
-  # La carga horaria NO es un recurso: es UNA pantalla, la matriz de áreas por
-  # grado, que se guarda entera. Lo que hay debajo es `grade_subjects.weekly_hours`.
-  get   "carga-horaria",          to: "carga_horaria#show",     as: :carga_horaria
-  patch "carga-horaria",          to: "carga_horaria#update"
-  post  "carga-horaria/proponer", to: "carga_horaria#proponer", as: :proponer_carga_horaria
+  # Corregir una hora del timbre, desde la rejilla. `TimeSlot` se lee «hora»,
+  # así que la barra dice `/turnos/3/horas/12`.
+  resources :bell_schedules, path: "turnos", only: [] do
+    resources :time_slots, path: "horas", only: [ :update ]
+  end
   resources :subjects, path: "materias"
   # ⚠️ Esta queda en INGLÉS, y es la excepción que confirma el criterio.
   #
@@ -583,6 +583,9 @@ Rails.application.routes.draw do
     end
 
     resources :teacher_sections, path: "profesores", only: [:create, :destroy]
+    # Las clases del horario (spec `horarios`): se ubican y se quitan desde
+    # «Armar», en Académico ▸ Horarios.
+    resources :lessons, path: "clases", only: [ :create, :destroy ]
 
     # Los informes descriptivos del lapso (MOR-216). Cuelgan de la SECCIÓN
     # porque se escriben de a veinticinco, no de a uno: es una planilla, como

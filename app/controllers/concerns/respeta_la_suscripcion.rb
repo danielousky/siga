@@ -102,15 +102,15 @@ module RespetaLaSuscripcion
   # Cargar. Libre en gratis —es lo que hace que un colegio llegue a necesitar el
   # boletín—, salvo los archivos: una lista en Excel ya es SALIDA.
   #
-  # ⚠️ Los horarios entran acá —turnos, sus horas y la carga horaria— porque
-  # armarlos es CARGAR (decisión 3 del spec `horarios`). Lo que sale de ellos, el
-  # PDF y los portales, pide la suscripción como cualquier archivo.
+  # ⚠️ Los horarios entran acá —la rejilla, sus clases y las horas del timbre—
+  # porque armarlos es CARGAR (decisión 3 del spec `horarios`). Lo que sale de
+  # ellos, el PDF y los portales, pide la suscripción como cualquier archivo.
   LA_ENTRADA = %w[
-    academic_periods admins anio_escolar arranque bell_schedules buscadores busquedas
-    carga_de_notas carga_horaria codigos_a_la_vista colegio competencies copias_del_anio
+    academic_periods admins anio_escolar arranque buscadores busquedas
+    carga_de_notas codigos_a_la_vista colegio competencies copias_del_anio
     dashboards/activity_logs dashboards/administrador dashboards/profesor departments
-    enrollments evaluation_activities evaluation_moments grade_subjects grades
-    importaciones indicators nivel_escolar niveles promociones representatives rubrics
+    enrollments evaluation_activities evaluation_moments grade_subjects grades horarios
+    importaciones indicators lessons nivel_escolar niveles promociones representatives rubrics
     sections students subjects teacher_sections teachers time_slots
   ].freeze
 

@@ -2261,129 +2261,538 @@ a.mapa-marca:focus-visible { outline: 2px solid var(--brand-primary); outline-of
 .mapa-areas strong { color: var(--text-secondary); font-weight: 600; }
 
 /* ============================================
-   Horarios — turnos y carga horaria (spec `horarios`, tanda 1)
+   Horarios (spec `horarios`)
    --------------------------------------------
-   El turno se registra con cuatro números y el timbre se ve al lado, en
-   «Así queda». La carga horaria es el mismo dibujo que el mapa de
-   evaluaciones: el colegio entero en una pantalla.
+   La semana de una sección es la hoja de la foto: los días en columnas, las
+   horas en filas y el bloque de 80 minutos unido. Cada área lleva su tono en
+   `--area`, que pone la vista: el NOMBRE manda y el color acompaña.
+
+   ⚠️ Nada va en rojo, y el rayado de «no se puede» es neutro: el rojo es del
+   aplazado (`MOR-135`). El verde y el ámbar del mensaje del armador sí son
+   dato —lo que quedó guardado, por qué no se pudo—, no un control.
    ============================================ */
 
-/* «Receso [tras la 4ta hora] de [30] minutos», en un solo renglón. */
-.turno-receso {
-  display: flex;
-  align-items: center;
+.horario-segmento {
+  display: inline-flex;
   flex-wrap: wrap;
-  gap: var(--space-xs);
-}
-.turno-receso .form-select { flex: 1 1 10rem; min-width: 0; }
-.turno-receso-minutos { width: 5.5rem; flex: 0 0 auto; }
-.turno-receso-de { margin: 0; font-size: 14px; color: var(--text-secondary); }
-
-/* El timbre que saldría. En dos columnas cuando hay ancho: ocho horas en un
-   solo renglón vertical obligan a desplazarse para ver el receso. */
-.asi-queda {
-  margin: var(--space-md) 0;
-  padding: var(--space-md);
-  border: 1px dashed var(--border-standard);
+  margin-top: var(--space-md);
+  border: 1px solid var(--border-emphasis);
   border-radius: var(--radius-md);
+  overflow: hidden;
 }
-.asi-queda-titulo { margin: 0 0 var(--space-sm); font-size: 15px; font-weight: 600; color: var(--text-primary); }
-.asi-queda-horas {
-  list-style: none;
-  margin: 0 0 var(--space-sm);
-  padding: 0;
-  font-variant-numeric: tabular-nums;
-}
-.asi-queda-horas li { padding: 2px 0; break-inside: avoid; }
-@media (min-width: 600px) {
-  .asi-queda-horas { columns: 2; column-gap: var(--space-xl); }
-}
-.asi-queda-numero { display: inline-block; min-width: 2.75rem; font-weight: 600; color: var(--text-secondary); }
-.asi-queda-receso { color: var(--text-tertiary); font-style: italic; }
-
-/* Las horas de un turno: cada fila es su propio formulario. */
-.horas-del-turno td { vertical-align: middle; }
-.hora-del-receso td:first-child { color: var(--text-tertiary); font-style: italic; }
-.hora-en-fila,
-.hora-nueva {
-  display: flex;
+.horario-segmento-opcion {
+  display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-xs);
-  margin: 0;
+  min-height: 36px;
+  padding: 0 var(--space-md);
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
 }
-.hora-en-fila .form-control,
-.hora-nueva .form-control { width: 8rem; flex: 0 0 auto; }
-.hora-nueva { margin-top: var(--space-md); }
-.hora-nueva .form-select { width: auto; flex: 0 0 auto; }
-.hora-nueva .form-label { margin: 0; }
-.hora-en-fila-guion { color: var(--text-tertiary); }
+.horario-segmento-opcion + .horario-segmento-opcion { border-left: 1px solid var(--border-standard); }
+.horario-segmento-opcion:hover { color: var(--text-primary); background: var(--surface-hover); }
+.horario-segmento-opcion.activa { background: var(--brand-subtle); color: var(--brand-primary); }
 
-/* Las secciones que usan el turno, agrupadas por nivel. */
-.turno-secciones {
-  margin: 0 0 var(--space-md);
-  padding: 0;
-  border: 0;
-}
-.turno-secciones-nivel {
-  margin: 0 0 var(--space-xs);
-  padding: 0;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-}
-.turno-secciones-lista {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
-  gap: var(--space-xs) var(--space-md);
-}
-.turno-seccion {
+.horario-selector {
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
-  gap: var(--space-xs);
-  font-size: 14px;
+  gap: 10px 18px;
+  padding-bottom: var(--space-md);
+  margin-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.horario-selector-grupo { display: inline-flex; align-items: center; gap: 6px; }
+.horario-selector-rotulo { margin-right: 2px; font-size: 12px; color: var(--text-tertiary); white-space: nowrap; }
+.horario-pildora {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border-standard);
+  border-radius: 999px;
+  background: var(--surface-elevated);
   color: var(--text-primary);
+  font-size: 13.5px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.horario-pildora:hover { border-color: var(--border-strong); }
+.horario-pildora.activa { background: var(--brand-subtle); border-color: var(--brand-primary); color: var(--brand-primary); font-weight: 600; }
+.horario-pildora small { color: var(--text-tertiary); font-size: 12px; font-weight: 400; }
+.horario-punto-estado { flex: none; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--text-tertiary); }
+.horario-punto-estado.publicado { background: var(--brand-primary); border-color: var(--brand-primary); }
+
+.horario-cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-sm) var(--space-lg);
+  margin-bottom: var(--space-md);
+}
+.horario-cabeza > div:first-child { min-width: 0; }
+.horario-cabeza .dato-secundario { margin: 6px 0 0; }
+.horario-titulo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0; font: 400 24px/1.2 var(--font-serif); }
+
+/* La rejilla lleva `.table-academic` —el sistema de diseño la exige en toda
+   tabla— y se desarma: aquí cada casilla es una tarjeta, no un renglón. */
+.horario-rejilla-marco { overflow-x: auto; margin: 0 -4px; }
+.table-academic.horario-rejilla {
+  min-width: 700px;
+  table-layout: fixed;
+  border: 0;
+  border-spacing: 4px;
+  background: transparent;
+  overflow: visible;
+}
+.table-academic.horario-rejilla thead { background: transparent; }
+.table-academic.horario-rejilla thead th { padding: 2px 8px 6px; border: 0; font-size: 12px; letter-spacing: .06em; }
+.table-academic.horario-rejilla thead th.hoy { color: var(--brand-primary); }
+.table-academic.horario-rejilla tbody tr:hover { background: transparent; }
+.table-academic.horario-rejilla tbody th { padding: 0 8px 0 0; border: 0; text-align: left; vertical-align: middle; font-weight: 400; }
+.table-academic.horario-rejilla tbody td { padding: 0; border: 0; vertical-align: top; }
+.horario-esquina { width: 124px; }
+.horario-hoy {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--brand-subtle);
+  color: var(--brand-primary);
+  font-size: 10.5px;
+  letter-spacing: .02em;
+  text-transform: none;
+}
+.horario-hora { display: flex; flex-direction: column; line-height: 1.25; color: var(--text-primary); text-decoration: none; }
+.horario-hora-ord { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .05em; }
+.horario-hora-tiempo { font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.horario-hora.ahora .horario-hora-ord { color: var(--brand-primary); font-weight: 700; }
+.horario-hora.ahora .horario-hora-ord::after { content: " · ahora"; }
+.horario-hora--editable {
+  position: relative;
+  padding: 4px 22px 4px 8px;
+  border: 1px dashed var(--border-emphasis);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+}
+.horario-hora--editable:hover { border-color: var(--brand-primary); }
+.horario-hora--editable.editando { border-style: solid; border-color: var(--brand-primary); background: var(--brand-subtle); }
+.horario-hora--editable svg { position: absolute; top: 6px; right: 6px; color: var(--text-tertiary); }
+
+/* Alto FIJO: una casilla con dos renglones y otra con uno tienen que medir
+   igual, o la semana se tuerce. El bloque unido mide dos más el espacio. */
+.table-academic.horario-rejilla td.horario-casilla { height: 50px; }
+.horario-casilla > * { height: 50px; }
+.horario-casilla.doble > * { height: 104px; }
+
+.horario-clase {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--area) 20%, var(--surface-elevated));
+  border-left: 3px solid var(--area);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--area) 9%, var(--surface-elevated));
+  overflow: hidden;
+}
+.horario-clase b {
+  padding-right: 20px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--area) 78%, var(--text-primary));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.horario-clase small { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.horario-clase.elegida { box-shadow: 0 0 0 2px var(--area); }
+.horario-vacia { display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); background: var(--surface-canvas); }
+.horario-vacia span { font-size: 12px; color: var(--text-muted); }
+.horario-fila-receso th,
+.table-academic.horario-rejilla .horario-fila-receso td { height: 30px; }
+.table-academic.horario-rejilla .horario-fila-receso td,
+.horario-lista-receso {
+  border-radius: var(--radius-md);
+  background: repeating-linear-gradient(-45deg, var(--surface-input) 0 7px, var(--surface-hover) 7px 8px);
+  color: var(--text-tertiary);
+  font-size: 11px;
+  letter-spacing: .14em;
+  text-align: center;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+.horario-varias {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding: 5px 9px;
+  border-left: 3px solid var(--area);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--area) 8%, var(--surface-elevated));
+  color: var(--text-secondary);
+  font-size: 12px;
+  overflow: hidden;
+}
+.horario-varias span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.horario-varias b { color: color-mix(in srgb, var(--area) 78%, var(--text-primary)); font-weight: 600; }
+
+/* En el teléfono la semana no cabe: un día, con los días arriba. */
+.horario-lista-del-dia { display: none; }
+@media (max-width: 720px) {
+  .horario-rejilla-marco { display: none; }
+  .horario-lista-del-dia { display: block; }
+}
+.horario-dias { display: flex; gap: 6px; margin-bottom: var(--space-sm); overflow-x: auto; scrollbar-width: none; }
+.horario-dia {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border-standard);
+  border-radius: 999px;
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.horario-dia.activo { background: var(--brand-primary); border-color: var(--brand-primary); color: var(--surface-elevated); }
+.horario-dia-hoy { position: absolute; top: 5px; right: 6px; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.horario-lista { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.horario-lista-fila { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; }
+.horario-lista-hora { display: flex; flex-direction: column; justify-content: center; font-size: 13px; font-variant-numeric: tabular-nums; }
+.horario-lista-hora span { color: var(--text-tertiary); font-size: 12px; }
+.horario-lista-celda > * { min-height: 50px; height: 100%; }
+.horario-lista-fila.doble .horario-lista-celda > * { min-height: 64px; }
+.horario-lista-receso { padding: 6px; }
+
+/* «Armar»: «Por ubicar», la carga y las casillas que se tocan. */
+.horario-armar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-lg);
+  background: var(--surface-canvas);
+}
+.horario-armar-cabeza { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--space-xs); }
+.horario-armar-titulo { margin: 0; font: 600 12px/1.4 var(--font-sans); letter-spacing: .08em; text-transform: uppercase; color: var(--text-secondary); }
+.horario-sobran { margin: 0; color: var(--warning-text); font-size: 13px; }
+.horario-bandeja { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
+.horario-ficha {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-lg);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  text-align: left;
+  text-decoration: none;
+}
+.horario-ficha:hover { border-color: var(--border-strong); }
+.horario-ficha-punto { flex: none; width: 10px; height: 10px; border-radius: 3px; background: var(--area); }
+.horario-ficha-texto { display: flex; flex-direction: column; line-height: 1.2; }
+.horario-ficha-texto b { font-size: 13.5px; font-weight: 600; }
+.horario-ficha-texto small { font-size: 12px; color: var(--text-secondary); }
+.horario-ficha-cuenta {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-input);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.horario-ficha.completa { opacity: .6; }
+.horario-ficha.completa .horario-ficha-cuenta::after { content: " ✓"; }
+.horario-ficha[aria-pressed="true"] {
+  opacity: 1;
+  border-color: var(--area);
+  background: color-mix(in srgb, var(--area) 7%, var(--surface-elevated));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--area) 28%, transparent);
+}
+.horario-interruptor { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 13px; text-decoration: none; }
+.horario-interruptor-riel {
+  position: relative;
+  flex: none;
+  width: 32px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--border-strong);
+  transition: background var(--transition-base);
+}
+.horario-interruptor-riel::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--surface-elevated);
+  transition: transform var(--transition-base);
+}
+.horario-interruptor[aria-checked="true"] .horario-interruptor-riel { background: var(--brand-primary); }
+.horario-interruptor[aria-checked="true"] .horario-interruptor-riel::after { transform: translateX(14px); }
+.horario-carga { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs); color: var(--text-secondary); font-size: 13px; }
+.horario-carga b { min-width: 18px; color: var(--text-primary); font-size: 15px; text-align: center; font-variant-numeric: tabular-nums; }
+.horario-cuadro-form { display: inline; margin: 0; }
+.horario-cuadro {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--border-emphasis);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font-size: 16px;
+  line-height: 1;
   cursor: pointer;
 }
-
-/* La carga horaria: casillas angostas, como las del mapa, y con DOS clases en
-   el selector por la misma razón que allá. */
-.table-academic.carga-horaria { width: auto; min-width: 100%; }
-.table-academic.carga-horaria thead th,
-.table-academic.carga-horaria tbody td,
-.table-academic.carga-horaria tfoot td { padding: 4px 6px; text-align: center; white-space: nowrap; }
-.table-academic.carga-horaria thead th:first-child,
-.table-academic.carga-horaria tbody th,
-.table-academic.carga-horaria tfoot th {
-  text-align: left;
-  padding-left: var(--space-md);
-  padding-right: var(--space-md);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
+.horario-cuadro:hover { border-color: var(--brand-primary); color: var(--brand-primary); }
+.horario-propuesta { color: var(--text-tertiary); font-size: 12px; font-style: italic; }
+.horario-libre-form { height: 100%; margin: 0; }
+.horario-libre {
+  width: 100%;
+  height: 100%;
+  border: 1.5px dashed color-mix(in srgb, var(--area) 50%, var(--surface-elevated));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--area) 4%, var(--surface-elevated));
+  color: color-mix(in srgb, var(--area) 85%, var(--text-primary));
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
 }
-.table-academic.carga-horaria tfoot td,
-.table-academic.carga-horaria tfoot th { border-top: 1px solid var(--border-standard); font-variant-numeric: tabular-nums; }
-.carga-horaria-total td { font-weight: 600; color: var(--text-primary); }
-.carga-horaria-campo {
-  width: 4.5rem;
-  margin: 0 auto;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-.carga-horaria-no-se-cursa { color: var(--text-muted); font-weight: 600; }
-/* La muestra de «en blanco» de la leyenda: una casilla vacía de verdad. */
-.carga-horaria-vacia {
-  display: inline-block;
-  width: 2rem;
-  height: 1.5rem;
+.horario-libre:hover { border-style: solid; background: color-mix(in srgb, var(--area) 12%, var(--surface-elevated)); }
+.horario-bloqueada {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  padding: 4px 8px;
   border: 1px solid var(--border-standard);
-  border-radius: var(--radius-sm);
-  background: var(--surface-input);
+  border-radius: var(--radius-md);
+  background: repeating-linear-gradient(-45deg, var(--surface-input) 0 6px, var(--surface-hover) 6px 7px);
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  line-height: 1.25;
+  text-decoration: none;
+  overflow: hidden;
+  cursor: help;
 }
+.horario-bloqueada b { color: var(--text-primary); font-weight: 600; }
+.horario-por-que {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--border-emphasis);
+  border-radius: 50%;
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  font: 700 11px/16px var(--font-sans);
+  font-style: normal;
+  text-align: center;
+}
+.horario-bloqueada.marcada { outline: 2px solid var(--warning-text); outline-offset: 1px; }
+.horario-bloqueada.marcada .horario-por-que { background: var(--warning-text); border-color: var(--warning-text); color: var(--surface-elevated); }
+.horario-quitar-form { position: absolute; top: 4px; right: 4px; margin: 0; }
+.horario-quitar {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--border-emphasis);
+  border-radius: 50%;
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+.horario-quitar:hover { background: var(--text-primary); border-color: var(--text-primary); color: var(--surface-elevated); }
+.horario-editar-hora {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs) var(--space-sm);
+  padding: var(--space-sm) 14px;
+  border: 1px solid var(--brand-primary);
+  border-radius: var(--radius-md);
+  background: var(--brand-subtle);
+}
+.horario-editar-hora-campo { display: inline-flex; align-items: center; gap: 6px; margin: 0; color: var(--text-secondary); }
+.horario-editar-hora .form-control { width: 8.5rem; }
+.horario-editar-hora .dato-secundario { flex-basis: 100%; margin: 0; }
+
+/* El mensaje del armador (decisión 24): fijo sobre la rejilla, con su tipo en
+   el color y en el icono, y brinca al nacer. Daniel, al ver la maqueta:
+   «debería resaltar un poco más… que brinque cuando se haga clic en la tabla». */
+.horario-mensaje {
+  position: sticky;
+  top: var(--space-sm);
+  z-index: 6;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  margin: 0 0 14px;
+  padding: 12px 16px;
+  border: 1px solid;
+  border-radius: var(--radius-lg);
+  font-size: 14.5px;
+  line-height: 1.45;
+  box-shadow: 0 8px 22px rgba(30, 40, 60, .12);
+}
+.horario-mensaje p { margin: 0; padding-top: 1px; }
+.horario-mensaje-icono {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: var(--surface-elevated);
+  font: 700 14px/1 var(--font-sans);
+}
+.horario-mensaje--info { background: var(--brand-subtle); border-color: color-mix(in srgb, var(--brand-primary) 28%, var(--surface-elevated)); }
+.horario-mensaje--info .horario-mensaje-icono { background: var(--brand-primary); font-family: var(--font-serif); font-style: italic; }
+.horario-mensaje--ok { background: var(--success-bg); border-color: var(--success-border); }
+.horario-mensaje--ok .horario-mensaje-icono { background: var(--success-text); }
+.horario-mensaje--aviso { background: var(--warning-bg); border-color: var(--warning-border); }
+.horario-mensaje--aviso .horario-mensaje-icono { background: var(--warning-text); }
+.horario-mensaje--brinca { animation: horario-brinca .55s cubic-bezier(.28, 1.4, .5, 1); }
+.horario-mensaje--aviso.horario-mensaje--brinca {
+  animation: horario-brinca .55s cubic-bezier(.28, 1.4, .5, 1), horario-destello 1.4s ease-out;
+}
+@keyframes horario-brinca {
+  0%   { transform: translateY(0); }
+  30%  { transform: translateY(-7px); }
+  55%  { transform: translateY(0); }
+  75%  { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}
+@keyframes horario-destello {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--warning-text) 45%, transparent), 0 8px 22px rgba(30, 40, 60, .12); }
+  100% { box-shadow: 0 0 0 12px color-mix(in srgb, var(--warning-text) 0%, transparent), 0 8px 22px rgba(30, 40, 60, .12); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .horario-mensaje--brinca,
+  .horario-mensaje--aviso.horario-mensaje--brinca { animation: none; }
+}
+
+/* Quién dicta qué en la sección, y sus horas. */
+.horario-areas { margin-top: var(--space-lg); }
+.horario-areas-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  column-gap: var(--space-xl);
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.horario-areas-lista li {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.horario-areas-nombre { display: flex; flex-direction: column; min-width: 0; }
+.horario-areas-nombre b { font-size: 13.5px; font-weight: 600; }
+.horario-areas-nombre span { color: var(--text-secondary); font-size: 12.5px; }
+.horario-areas-horas { color: var(--text-secondary); font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.horario-areas-horas.incompleta { color: var(--warning-text); font-weight: 600; }
+
+/* «Todas, un mismo día»: una fila por sección o profesor, una columna por hora. */
+.horario-matriz-marco { overflow-x: auto; }
+.table-academic.horario-matriz { min-width: 880px; table-layout: fixed; }
+.table-academic.horario-matriz thead th { padding: 10px 6px; font-size: 11.5px; }
+.table-academic.horario-matriz thead th .horario-hora-ord { display: block; font-size: 10.5px; }
+.table-academic.horario-matriz .horario-matriz-cabeza { width: 190px; padding-left: 14px; }
+.table-academic.horario-matriz tbody th,
+.table-academic.horario-matriz tbody td { padding: 6px 4px; text-align: left; vertical-align: middle; font-weight: 400; }
+.table-academic.horario-matriz tbody th { padding-left: 14px; }
+.table-academic.horario-matriz .horario-matriz-receso {
+  width: 16px;
+  padding: 0;
+  background: repeating-linear-gradient(-45deg, var(--surface-input) 0 5px, var(--surface-hover) 5px 6px);
+}
+.table-academic.horario-matriz .horario-matriz-pie {
+  width: 76px;
+  padding-right: 14px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.horario-matriz-fila { display: flex; flex-direction: column; color: var(--text-primary); text-decoration: none; }
+.horario-matriz-fila b { font-size: 13.5px; font-weight: 600; }
+.horario-matriz-fila span { color: var(--text-tertiary); font-size: 12px; }
+.horario-matriz-fila:hover b { color: var(--brand-primary); text-decoration: underline; }
+.horario-matriz-clase {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 4px 8px;
+  border-left: 3px solid var(--area);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--area) 9%, var(--surface-elevated));
+  line-height: 1.25;
+}
+.horario-matriz-clase b {
+  color: color-mix(in srgb, var(--area) 78%, var(--text-primary));
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.horario-matriz-clase small { color: var(--text-secondary); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.horario-matriz-libre { display: block; color: var(--text-muted); font-size: 11.5px; text-align: center; }
+.horario-matriz-vacia { display: block; height: 36px; border-radius: 5px; background: var(--surface-canvas); }
+
+/* Alumnos: buscar, y su horario es el de su sección. */
+.horario-buscador { display: flex; flex-wrap: wrap; gap: var(--space-xs); max-width: 520px; }
+.horario-buscador .form-control { flex: 1 1 16rem; }
+.horario-resultados {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-xs);
+  margin: var(--space-md) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.horario-resultado {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.horario-resultado:hover { border-color: var(--border-strong); }
+.horario-resultado span { color: var(--text-secondary); font-size: 12.5px; }
+.horario-resultado.activo { border-color: var(--brand-primary); background: var(--brand-subtle); }
 
 /* ============================================
    Planilla de carga de notas

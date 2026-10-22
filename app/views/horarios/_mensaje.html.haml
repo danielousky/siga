@@ -1,0 +1,14 @@
+-# El mensaje del armador (decisión 24). Daniel, al ver la maqueta: *«debería
+-# resaltar un poco más… que brinque cuando se haga clic en la tabla»*.
+-#
+-#    info    azul    qué hacer
+-#    ok      verde   lo que quedó guardado
+-#    aviso   ámbar   por qué no se pudo
+-#
+-# Va fijo sobre la rejilla —al tocar una casilla de las 12:20 sigue a la vista—
+-# y brinca al nacer. El controlador le pone `brinca` SOLO cuando viene de tocar
+-# la rejilla: cambiar de área o de pestaña no lo mueve.
+- signo = { "ok" => "✓", "aviso" => "?" }.fetch(mensaje[:tipo], "i")
+.horario-mensaje{ class: class_names("horario-mensaje--#{mensaje[:tipo]}", "horario-mensaje--brinca": mensaje[:brinca]), role: "status" }
+  %span.horario-mensaje-icono{ "aria-hidden": "true" }= signo
+  %p= mensaje[:texto]

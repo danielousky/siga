@@ -1,0 +1,34 @@
+-# Un día de todo el colegio (`RejillaDeHorarios::DelDia`): una fila por
+-# sección o por profesor, una columna por hora, el receso marcado y el bloque
+-# de 80 minutos unido, ahora de lado.
+-#
+-# locals: matriz, rotulo, cabeza (bloque: el renglón → su encabezado), casilla
+-# (bloque: la clase → lo que se escribe)
+.horario-matriz-marco
+  %table.table-academic.horario-matriz
+    %thead
+      %tr
+        %th.horario-matriz-cabeza{ scope: "col" }= rotulo
+        - matriz.filas.each do |fila|
+          - if fila.receso?
+            %th.horario-matriz-receso{ scope: "col" }
+              %span.sr-only Receso
+          - else
+            %th{ scope: "col" }
+              %span.horario-hora-ord= TimeSlot::ORDINALES[fila.numero]
+              = HoraDelDia.texto(fila.hora.starts_min)
+        %th.horario-matriz-pie{ scope: "col" } Ese día
+    %tbody
+      - matriz.renglones.each do |renglon|
+        %tr
+          %th{ scope: "row" }= cabeza.call(renglon)
+          - renglon.casillas.each do |cas|
+            - if cas.receso?
+              %td.horario-matriz-receso
+            - else
+              %td{ colspan: (cas.ancho if cas.ancho > 1) }
+                - if cas.clase
+                  = casilla.call(cas.clase)
+                - else
+                  = vacia
+          %td.horario-matriz-pie= "#{renglon.horas} h"

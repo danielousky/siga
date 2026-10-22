@@ -1,0 +1,29 @@
+-# Un alumno: su horario es el de su sección. Se busca como en «Inscripciones»,
+-# palabra por palabra y sin acentos.
+.card-academic
+  = form_with url: horarios_path, method: :get, class: "horario-buscador" do
+    = hidden_field_tag :ver, "alumnos"
+    = label_tag :q, "Buscar un alumno", class: "sr-only"
+    = search_field_tag :q, @busqueda, class: "form-control", placeholder: "Nombre, apellido o cédula", autocomplete: "off"
+    = submit_tag "Buscar", class: "btn btn-ver", name: nil
+  - if @inscripciones.empty?
+    %p.dato-secundario Nadie con ese nombre en las secciones con horario.
+  - else
+    %ul.horario-resultados
+      - @inscripciones.each do |inscripcion|
+        - activo = inscripcion == @inscripcion
+        %li
+          = link_to ruta_del_horario(alumno: inscripcion.student_id), class: class_names("horario-resultado", activo: activo),
+                    "aria-current": ("page" if activo) do
+            %b= inscripcion.student.user.apellidos_y_nombres
+            %span= nombre_de_la_seccion(inscripcion.section)
+- if @inscripcion
+  .card-academic
+    .horario-cabeza
+      %div
+        %h2.horario-titulo= @inscripcion.student.user.apellidos_y_nombres
+        %p.dato-secundario
+          = "#{nombre_de_la_seccion(@inscripcion.section)} · su horario es el de su sección"
+          - unless @inscripcion.section.timetable_published_at
+            = "· sigue en borrador: su familia todavía no lo ve"
+    = render "horarios/semana", rejilla: @rejilla

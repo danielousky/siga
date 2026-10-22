@@ -225,10 +225,11 @@ if login "director.bolivar@mail.com" "123123" "$JAR"; then
   # Lo que el colegio le paga a SIGA (spec `del-registro-al-cobro`): es la
   # salida del muro de lo gratis y de la solo lectura, así que tiene que abrir.
   check "suscripción"      "/suscripcion"              200 "$JAR"
-  # Los horarios (spec `horarios`, tanda 1): el timbre y la carga horaria.
-  check "turnos"           "/turnos"                    200 "$JAR"
-  check "alta de turno"    "/turnos/new"                200 "$JAR"
-  check "carga horaria"    "/carga-horaria"             200 "$JAR"
+  # Los horarios (spec `horarios`): la puerta y las otras tres miradas.
+  check "horarios"         "/horarios"                  200 "$JAR"
+  check "horarios, un día" "/horarios?vista=dia"        200 "$JAR"
+  check "por profesor"     "/horarios?ver=profesores"   200 "$JAR"
+  check "por área"         "/horarios?ver=areas"        200 "$JAR"
 
   # El selector de año escolar de la barra (MOR-165). Es un POST y devuelve un
   # redirect: comprobarlo acá es comprobar que el pivote de TODA la app existe

@@ -1,0 +1,25 @@
+-# Un área en todo el colegio: quién la dicta, dónde y cuándo. Dos secciones
+-# en la misma casilla es la misma área con profesores distintos: ningún
+-# profesor está en dos sitios a la vez.
+- if @area.nil?
+  .card-academic
+    %p.dato-secundario= "#{@anio.name} todavía no tiene áreas en secciones con horario."
+- else
+  .card-academic
+    %nav.horario-selector{ "aria-label": "Área" }
+      - @areas.each do |area|
+        - activa = area == @area
+        = link_to ruta_del_horario(area: area.id), class: class_names("horario-pildora", activa: activa),
+                  "aria-current": ("page" if activa), style: "--area: #{color_del_area(area)}" do
+          %i.horario-ficha-punto
+          = area.name
+    - clases = Lesson.where(subject: @area, academic_period: @anio).includes(teacher: :user).to_a
+    - por_profesor = clases.group_by(&:teacher).map { |t, cs| "#{t ? apellido_del_profesor(t) : 'sin profesor'} #{cs.size} h" }
+    .horario-cabeza
+      %div
+        %h2.horario-titulo= @area.name
+        %p.dato-secundario
+          = "#{contar(clases.size, 'hora', 'horas')} a la semana en #{contar(clases.map(&:section_id).uniq.size, 'sección', 'secciones')}"
+          - if por_profesor.any?
+            = "· #{por_profesor.join(' · ')}"
+    = render "horarios/semana", rejilla: @rejilla

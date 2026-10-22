@@ -1,0 +1,17 @@
+-# Corregir una hora del timbre, desde la rejilla (decisión 20). El turno es
+-# de varias secciones: el aviso lo dice antes de guardar.
+- turno = hora.bell_schedule
+- cuantas = turno.sections.size
+= form_with model: hora, url: bell_schedule_time_slot_path(turno, hora), class: "horario-editar-hora" do |f|
+  = hidden_field_tag :seccion, @seccion.id
+  = hidden_field_tag :area, params[:area]
+  %b= "Corregir #{hora.receso? ? 'el receso' : "la #{turno.nombre_de(hora)}"}"
+  %label.horario-editar-hora-campo
+    de
+    = f.time_field :desde, value: hora.desde, class: "form-control", required: true
+  %label.horario-editar-hora-campo
+    a
+    = f.time_field :hasta, value: hora.hasta, class: "form-control", required: true
+  = f.submit "Guardar", class: "btn btn-guardar btn-sm"
+  = boton "Cancelar", ruta_del_horario(hora: nil), icono: :cerrar, tono: :secondary
+  %p.dato-secundario= "Este timbre lo usan #{contar(cuantas, 'sección', 'secciones')} del #{turno.name.downcase}: el cambio les llega a todas."

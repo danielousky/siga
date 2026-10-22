@@ -1,0 +1,13 @@
+-# El rótulo de una fila: «3ra · 8:30 – 9:10». Con «Armar» abierto es el lápiz
+-# del timbre (decisión 20): corregir la hora aquí cambia en todo el turno.
+- nombre = fila.receso? ? "Receso" : TimeSlot::ORDINALES[fila.numero]
+- if @armando && fila.hora.persisted?
+  = link_to ruta_del_horario(hora: fila.hora.id), class: class_names("horario-hora", "horario-hora--editable", editando: @hora_editada == fila.hora),
+            "aria-label": "Corregir #{fila.receso? ? 'el receso' : "la #{nombre} hora"}, #{fila.hora.rango}" do
+    %span.horario-hora-ord= nombre
+    %span.horario-hora-tiempo= fila.hora.rango
+    = icono(:editar, tamano: 13)
+- else
+  %span{ class: class_names("horario-hora", ahora: ahora) }
+    %span.horario-hora-ord= nombre
+    %span.horario-hora-tiempo= fila.hora.rango

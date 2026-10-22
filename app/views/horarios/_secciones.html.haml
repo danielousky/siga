@@ -1,0 +1,49 @@
+-# La semana de una sección: la puerta de «Horarios» (decisión 19).
+-#
+-# ## ⚠️ Armar vive dentro del marco «horario»
+-#
+-# Elegir un área, tocar una casilla o corregir una hora vuelve a esta misma
+-# pantalla, y Turbo cambia solo el marco: la página no salta arriba y el
+-# mensaje brinca al llegar. Todo lo que hay adentro apunta a `horarios_path`,
+-# que dibuja este marco —es la regla de «el frame sobrevive»—.
+- if @seccion.nil?
+  .card-academic
+    %p.dato-secundario= "#{@anio.name} todavía no tiene secciones con áreas."
+    = boton "Ir a las secciones", sections_path, icono: :secciones, tono: :ver
+- elsif @por_dia
+  = render "horarios/secciones_del_dia"
+- else
+  = turbo_frame_tag "horario", data: { turbo_action: "advance" } do
+    .card-academic.horario
+      = render "horarios/selector_de_secciones"
+      .horario-cabeza
+        %div
+          %h2.horario-titulo
+            = nombre_de_la_seccion(@seccion)
+            - if @seccion.timetable_published_at
+              %span.estado.estado--al-dia Publicado
+            - else
+              %span.estado.estado--inactivo Borrador
+            - if @rejilla.carga.faltan.positive?
+              %span.estado.estado--atencion= "faltan #{@rejilla.carga.faltan} h"
+          %p.dato-secundario
+            = "#{@rejilla.carga.ubicadas} de #{@rejilla.carga.total} horas ubicadas"
+            = "· #{resumen_corto_del_turno(@rejilla.turno)}"
+        - if can_manage_sections?
+          .acciones-de-cabecera
+            - if @armando
+              = boton "Listo", ruta_del_horario(armar: nil, area: nil), icono: :ok, tono: :secondary
+            - else
+              = button_to armar_horarios_path(seccion: @seccion.id), class: "btn btn-guardar" do
+                = icono(:editar, tamano: 16)
+                Armar
+            - unless @seccion.timetable_published_at
+              = button_to "Publicar", publicar_horarios_path(seccion: @seccion.id), method: :patch, class: "btn btn-accion",
+                          form: { data: { turbo_confirm: confirmacion_de_publicar(@seccion, @rejilla.carga) } }
+      - if @armando
+        = render "horarios/armar"
+      - if @mensaje
+        = render "horarios/mensaje", mensaje: @mensaje
+      = render "horarios/semana", rejilla: @rejilla
+      - unless @armando
+        = render "horarios/areas_y_profesores", carga: @rejilla.carga

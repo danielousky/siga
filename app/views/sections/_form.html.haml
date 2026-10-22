@@ -127,16 +127,6 @@
         = f.label :classroom, class: "form-label"
         = f.text_field :classroom, class: "form-control"
 
-    -# El turno: a qué hora suena el timbre de esta sección (spec `horarios`).
-    -# Solo los del año de la sección —el de la sesión, al registrarla—: un turno
-    -# de otro año es un timbre que ya no suena.
-    - anio_del_turno = section.academic_period_id || Current.academic_period_id
-    - turnos = anio_del_turno ? BellSchedule.where(academic_period_id: anio_del_turno).order(:name) : BellSchedule.none
-    - if turnos.any?
-      .form-group
-        = f.label :bell_schedule_id, class: "form-label"
-        = f.select :bell_schedule_id, turnos.map { |turno| [ turno.name, turno.id ] }, { include_blank: "Sin turno" }, class: "form-select"
-
   .form-acciones
     = f.submit class: "btn btn-guardar"
     - if local_assigns[:volver]

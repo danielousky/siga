@@ -1,0 +1,5 @@
+-# Dos maneras de mirar lo mismo: la semana de uno, o todos un mismo día.
+-# Son enlaces con su URL —como las pestañas—, no un interruptor de JavaScript.
+%nav.horario-segmento{ "aria-label": etiqueta }
+  - opciones.each do |texto, ruta, activa|
+    = link_to texto, ruta, class: class_names("horario-segmento-opcion", activa: activa), "aria-current": ("page" if activa)
