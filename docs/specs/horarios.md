@@ -1,12 +1,38 @@
 # Los horarios de clase
 
-> **Estado:** **congelado** el 13 de octubre de 2026 · en construcción: tanda 1
-> **PR:** — (rama `docs/spec-horarios`; el issue de Linear está sin crear: el conector no estaba autenticado)
+> **Estado:** **congelado de nuevo** el 22 de octubre de 2026, con la maqueta · las decisiones 26 a 29 van como las propuso Claude y se confirman en el QA de la tanda 2
+> **PR:** — (rama `docs/spec-horarios`, sin subir; el issue de Linear está sin crear: el conector no estaba autenticado)
 
-Las 18 decisiones están tomadas (§ 3): las 11 a 18 las propuso Claude y las
-confirmó Daniel el mismo 13 de octubre. Con todas contestadas dio la orden de
-seguir —*«Continúa»*—, y desde ahí está congelado: si algo cambia, se cambia
-aquí primero.
+Se congeló el 13 de octubre con 18 decisiones. La tanda 1 se construyó el 14, y
+Daniel la devolvió el 16:
+
+> *«Se supone que la idea era que se viera el horario por sección, por alumno,
+> por profes… No veo nada de eso. Lo que veo es el esquema general del horario y
+> el total de horas semanales por área: eso no es el horario.»* Y de la pantalla:
+> *«CERO intuición y poco acabado».*
+
+En vez de seguir programando, el 20 se hizo una **maqueta navegable**, y el 22
+la aprobó con un solo pedido: *«todo muy bien; el único comentario es que la
+sección de los mensajes debería resaltar un poco más… que brinque cuando se
+haga clic en la tabla»*. Esta revisión la recoge: las decisiones 19 a 29 (§ 3),
+las pantallas (§ 5), los criterios (§ 6) y las tandas (§ 10). Lo demás sigue
+como se congeló.
+
+Ese mismo 22 Daniel pidió pasarla al spec y seguir —*«aplica caffeinate por unas
+3 horas y avanza cuanto más puedas»*—: las decisiones 26 a 29 se tomaron como
+las propuso Claude, y se confirman en su QA de la tanda 2.
+
+```
+   13 DE OCTUBRE (congelado)                       22 DE OCTUBRE (esta revisión)
+   ① Turno ② Carga ③ Armar ④ Publicar ⑤ Verlo     una puerta: el horario de la sección
+   primero las pantallas de configuración          el timbre y la carga se corrigen DENTRO de él
+   armar (tanda 2) y verlo (tanda 3) por separado  juntas: lo próximo que se prueba es el horario
+   el PDF en la tanda 3                            en la tanda 4, con «otro turno»
+```
+
+La maqueta: https://claude.ai/artifact/MjKiTVWUbcvAH4toQRfuYX (privada, versión 2,
+con datos inventados). Si un día no abre, manda este documento: sus pantallas
+están en § 5.
 
 ---
 
@@ -81,7 +107,7 @@ Y hay una segunda mitad:
 | 8 | ¿Qué pasa si el profesor nuevo choca? | **La asignación se guarda siempre.** Lo que choca vuelve a «por ubicar» y se avisa. | Investigación |
 | 9 | ¿De dónde sale la carga horaria? | Del plan oficial de 2017, propuesto por NOMBRE del área; el colegio la corrige. | Investigación |
 | 10 | ¿Con qué se arma el automático? | En Ruby. La gema `or-tools` no trae binario para la imagen de producción. | Investigación |
-| 11 | ¿Cómo se llama el timbre? | **«Turno»** («Media · mañana»): es la palabra de la resolución y del colegio. | Claude · confirmó Daniel, 13 oct |
+| 11 | ¿Cómo se llama el timbre? | **«Turno»** («Turno de la mañana»): es la palabra de la resolución y del colegio. Desde el 22 no tiene pantalla propia (decisión 20). | Claude · confirmó Daniel, 13 oct |
 | 12 | ¿La familia en mora ve el horario? | **Sí.** Es logística de la sección —está pegado en la puerta del salón—, no el expediente del hijo; esconderlo no presiona el pago y hace que el muchacho falte. | Claude · confirmó Daniel, 13 oct |
 | 13 | ¿Se publica? | **«Borrador → Publicado», por sección.** Profesor, familia y alumno ven solo lo publicado; quien administra, todo. | Claude · confirmó Daniel, 13 oct |
 | 14 | ¿Solo Media? | Sirve para toda sección con áreas —Primaria también, por los especialistas—; Inicial no. Se entrega pensado y sembrado para Media. | Claude · confirmó Daniel, 13 oct |
@@ -89,6 +115,17 @@ Y hay una segunda mitad:
 | 16 | ¿Qué se bloquea? | Una sección con clases no cambia de turno sin vaciarse. Un año finalizado queda en solo lectura. | Claude · confirmó Daniel, 13 oct |
 | 17 | ¿El automático es gratis? | No: es procesamiento. Se ve y no se toca sin suscripción. | Claude · confirmó Daniel, 13 oct |
 | 18 | ¿Quién arma y quién publica? | Quien hoy administra secciones (`manage_sections`: dirección, coordinación y secretaría). El profesor mira. | Claude · confirmó Daniel, 13 oct |
+| 19 | ¿Por dónde se entra? | **Por el horario.** «Horarios» abre en la semana de una sección: la hoja de la foto. La tanda 1 entraba por «Turnos» y «Carga horaria», y se devolvió. | Daniel, 16 oct · maqueta aprobada el 22 |
+| 20 | ¿Cómo nace el turno? | **Solo, y ya puesto.** La primera vez que se abre «Horarios» en un año sin turnos nace «Turno de la mañana» con el timbre de la foto, y lo usan las secciones con áreas de ese año. Se corrige en la columna de las horas con «Armar» abierto, y avisa que el cambio llega a todas las secciones del turno. | Maqueta, 22 oct |
+| 21 | ¿Dónde vive la carga horaria? | **En «Por ubicar»**: «Inglés · López · 2 de 4». El 4 sube y baja con − y +, para el grado entero. El plan oficial se propone solo, donde está vacía, sin botón. Si la carga no cabe en la semana, lo dice ahí, en ámbar y sin bloquear. | Maqueta, 22 oct |
+| 22 | ¿Cómo se mira? | Cuatro pestañas: **Secciones · Profesores · Áreas · Alumnos**. En Secciones y en Profesores, «la semana de uno» o «todos, un mismo día». En el teléfono, un día, con los días arriba. | Maqueta, 22 oct |
+| 23 | ¿Cómo se arma? | Se elige el área en «Por ubicar» y se toca la casilla, en bloques de 2 horas, con un interruptor para ubicar una sola. Lo que no se puede va rayado y con «?»: al tocarlo, el mensaje dice por qué. | Maqueta, 22 oct |
+| 24 | ¿Cómo avisa el armador? | **Un mensaje fijo sobre la rejilla, que brinca** al tocar una casilla. Tres tipos: qué hacer (azul), lo que quedó guardado (verde) y por qué no se pudo (ámbar, con «?», y marca la casilla tocada). | Daniel, 22 oct |
+| 25 | ¿Las tandas 2 y 3? | **Juntas.** Lo próximo que se prueba es el horario entero: armarlo y verlo por todas sus puertas. | Daniel, 22 oct |
+| 26 | ¿Qué pasa con la tanda 1? | Su modelo se queda (§ 6). Sus dos pantallas se retiran, y no sube sola: va con el horario, en el mismo PR. | Claude · se confirma en el QA |
+| 27 | ¿Y el PDF? | Pasa a la tanda 4: la maqueta no lo cubrió y no hace falta para probar el horario. | Claude · se confirma en el QA |
+| 28 | ¿Un segundo turno (Primaria, tarde)? | En la tanda 4, desde la cabecera de la sección: «Cambiar de turno» ofrece los del año y «+ Otro turno», que abre el generador de la tanda 1. Hasta entonces, todas las secciones usan el turno del año. | Claude · se confirma en el QA |
+| 29 | ¿Una sola puerta? | **Dos, a la misma pantalla:** «Horarios ▸ Secciones» y la pestaña «Horario» de la sección. No es otra manera de armar: es el mismo armador. Y la ficha del alumno lleva al horario de su sección. | Claude · se confirma en el QA |
 
 ## 4 · El dominio
 
@@ -147,6 +184,12 @@ Y hay una segunda mitad:
 
 ### Lo que parece razonable y está mal
 
+- ⚠️ **«Primero se configura y después se ve.»** Así se armó la tanda 1 —turnos,
+  después carga, después la rejilla— y Daniel la devolvió: entró a «Horarios» y
+  no había ningún horario, y lo buscó en Secciones, en Grados y en
+  Inscripciones. Un colegio piensa en la hoja de la foto, no en «turno» ni en
+  «carga horaria». **La puerta es el horario, ya con valores puestos, y lo
+  demás se corrige dentro de él.**
 - ⚠️ **«El horario son los días de un área.»** No: «Matemática lunes y
   martes» son dos casillas. Agrupar días es el modelo de la universidad, y con
   él no se puede decir que el lunes va a las 8:30 y el martes a las 7:10 —que es
@@ -171,8 +214,8 @@ Y hay una segunda mitad:
    LO QUE HACEN                                    QUIÉN                 AQUÍ
    el choque es IMPOSIBLE, no un aviso             aSc · Untis           tres capas (tanda 2)
    tarjetas «por ubicar» + casillas válidas        aSc · Untis · Prime   el armador (tanda 2)
-   una fuente, muchas vistas, y el teléfono        WebUntis · EduPage    tanda 3
-   borrador → publicado                            GHC · OpenEduCat      tanda 3
+   una fuente, muchas vistas, y el teléfono        WebUntis · EduPage    las miradas (tanda 2)
+   borrador → publicado                            GHC · OpenEduCat      tanda 2
    disponibilidad del profesor por horas           aSc · GHC · Prime     tanda 4
    diagnóstico ANTES de armar                      aSc · Untis · GHC     tanda 4
    respetar lo puesto y «completar lo que falta»   aSc · Untis · FET     tanda 5
@@ -194,99 +237,185 @@ casilla que no se puede usar dice por qué**.
 
 ## 5 · Cómo se ve
 
+Las pantallas son las de la maqueta, con sus datos inventados: 7 secciones de
+Media, 12 profesores y 260 clases sin un choque.
+
 ### El recorrido
 
 ```
-   ① TURNO            ② CARGA HORARIA       ③ ARMAR              ④ PUBLICAR          ⑤ VERLO
-   a qué hora suena   cuántas horas a la    área por área,       cuando está listo   cada quien por
-   el timbre          semana tiene cada     casilla por casilla                      su puerta
-                      área
-   una vez al año     una vez (se hereda)   por sección          por sección         siempre
-   └──────────── GRATIS (es cargar) ────────────────────┘        └── PDF y portales: con suscripción ──┘
+   Académico ▸ Horarios
+        │
+        ▼
+   LA SEMANA DE UNA SECCIÓN ──► [Armar] ──► elegir el área ──► tocar la casilla ──► [Publicar]
+   ya con el timbre de la foto        │                                                  │
+   y la carga del plan oficial        └── el timbre y la carga se corrigen aquí mismo    ▼
+                                                                    la ven sus profesores, sus
+                                                                    alumnos y sus familias
+
+   las otras miradas, de la misma tabla:  Profesores · Áreas · Alumnos · «todos, un mismo día»
 ```
 
-### ① El turno — tanda 1
+### ① La semana de una sección — la puerta
 
 ```
-   Académico ▸ Horarios        [ Horarios | Turnos | Carga horaria ]
-   Turnos ▸ Registrar turno
-   ┌────────────────────────────────────────────────────────────────────┐
-   │ Nombre         [ Media · mañana          ]                         │
-   │ Entrada        [ 7:10 ]        Cada hora dura   [ 40 ] min         │
-   │ Horas al día   [ 8 ]           Receso de [ 30 ] min tras la [ 4ta ▾]│
-   │                                                                    │
-   │ Así queda                                                          │
-   │   1ra  7:10 – 7:50          5ta  10:20 – 11:00                     │
-   │   2da  7:50 – 8:30          6ta  11:00 – 11:40                     │
-   │   3ra  8:30 – 9:10          7ma  11:40 – 12:20                     │
-   │   4ta  9:10 – 9:50          8va  12:20 –  1:00                     │
-   │   ── Receso  9:50 – 10:20 ──                                       │
-   │                                                        [Crear]     │
-   └────────────────────────────────────────────────────────────────────┘
-   Después cada hora se corrige en su fila: otro receso, una hora más corta.
-   Un colegio con Primaria o con turno de tarde registra otro turno.
-
-   Y cada sección dice cuál usa:   1er Año A   Turno [ Media · mañana ▾ ]
+   Académico ▸ Horarios
+   ┌──────────────────────────────────────────────────────────────────────────────────────┐
+   │ Horarios  2026-2027                                                                  │
+   │ [Secciones]  Profesores   Áreas   Alumnos                                            │
+   │ [La semana de una sección]  Todas, un mismo día                                      │
+   └──────────────────────────────────────────────────────────────────────────────────────┘
+   ┌──────────────────────────────────────────────────────────────────────────────────────┐
+   │ 1er Año (●A)(○B) · 2do Año (●A)(●B) · 3er Año (●A) · 4to Año (●A) · 5to Año (●A)     │
+   │                                                            ● publicado   ○ borrador  │
+   │ 1er Año A  [Publicado]                                    [✎ Armar]  [⤓ Descargar]   │
+   │ 38 de 38 horas ubicadas · Turno de la mañana, de 7:10 a. m. a 1:00 p. m.             │
+   │                                                                                      │
+   │             LUNES hoy      MARTES         MIÉRCOLES      JUEVES         VIERNES      │
+   │ 1ra 7:10    ┃Arte          ┃Informática   ┃Dibujo        ┃Orientación   ┃…           │
+   │ 2da 7:50    ┃Colmenares    ┃Díaz          ┃Díaz          ┃Guzmán        ┃            │
+   │ 3ra · ahora ┃Matemática    ┃Grupos de C.  ┃C. Naturales  ┃Ed. Física    ┃            │
+   │ 4ta 9:10    ┃García        ┃Colmenares    ┃Castillo      ┃Moreno        ┃            │
+   │ Receso      ░░░░░░░░░░░░░░░░░░░░░░░░░░░░ RECESO ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░    │
+   │ 5ta 10:20   ┃GHC           ┃GHC           ┃Castellano    ┃C. Naturales  ┃            │
+   │ 6ta 11:00   ┃Herrera       ┃Herrera       ┃Rojas         ┃Castillo      ┃            │
+   │ …                                                                                    │
+   │                                                                                      │
+   │ ÁREAS Y PROFESORES DE 1ER AÑO A                                                      │
+   │ ▪ Castellano y Literatura   Rojas, Ana          4 de 4 h                             │
+   │ ▪ Matemática                García, Carlos      4 de 4 h      …                      │
+   └──────────────────────────────────────────────────────────────────────────────────────┘
+   cada clase es un bloque de 80 minutos: dos horas de 40, dibujadas unidas
+   cada área tiene su tono; el nombre manda, el color acompaña
 ```
 
-### ② La carga horaria — tanda 1
+### ② Armar
 
 ```
-   Carga horaria                                     [Proponer las del plan oficial]
-   horas a la semana       1er Año  2do Año  3er Año  4to Año  5to Año
-   Castellano               [ 4 ]    [ 4 ]    [ 4 ]    [ 4 ]    [ 4 ]
-   Matemáticas              [ 4 ]    [ 4 ]    [ 4 ]    [ 4 ]    [ 4 ]
-   Inglés                   [ 6 ]    [ 6 ]    [ 6 ]    [ 6 ]    [ 4 ]
-   Ciencias Naturales       [ 6 ]    [ 6 ]      ·        ·        ·
-   Física                     ·        ·      [ 4 ]    [ 4 ]    [ 4 ]
-   Informática              [   ]    [   ]    [   ]    [   ]    [   ]   ← del colegio: la escribe
-   …
-   ───────────────────────────────────────────────────────────────────
-   Total                      44       44       46       46       46
-   La semana tiene            40       40       40       40       40
-                              ⚠ sobran 4 horas: no caben en «Media · mañana»
+   1er Año B  [Borrador] [faltan 6 h]                            [Listo] [Publicar] [⤓ Descargar]
+   ┌ POR UBICAR · FALTAN 6 HORAS ─────────────────────── (●) En bloques de 2 horas (80 min) ┐
+   │ [Castellano Rojas 4 de 4 ✓] [Matemática García 4 de 4 ✓] [▣ Inglés López 2 de 4]       │
+   │ [Arte Colmenares 0 de 2] [Dibujo sin profesor 0 de 2] …                                 │
+   │ Inglés: [−] 4 [+] horas a la semana en 1er Año A y B        ← la carga horaria, aquí    │
+   └─────────────────────────────────────────────────────────────────────────────────────────┘
+   ╔═════════════════════════════════════════════════════════════════════════════════════════╗
+   ║ (?) Miércoles a las 8:30 no se puede: López está en 2do Año A dando Inglés.             ║ ← fijo y
+   ╚═════════════════════════════════════════════════════════════════════════════════════════╝   brinca
+                    LUNES          MARTES         MIÉRCOLES         JUEVES          VIERNES
+   [1ra 7:10   ✎]  Ed. Física  ×  Ed. Física  ×  Castellano     ×  Matemática   ×  Informática ×
+   [2da 7:50   ✎]  Moreno         Moreno         Rojas              García          Díaz
+   [3ra 8:30   ✎]  GHC         ×  Inglés      ×  ┏López en 2do A ?┓ C. Naturales ×  C. Naturales ×
+   [4ta 9:10   ✎]  Herrera        López          ░López en 2do A ?░ Castillo        Castillo
+   [Receso     ✎]  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ RECESO ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+   [5ta 10:20  ✎]  Grupos de C. × Orientación ×  Matemática     ×  [ + Inglés ]    Grupos de C. ×
+   [6ta 11:00  ✎]  Colmenares     Guzmán         García             [ + Inglés ]    Colmenares
+   [7ma 11:40  ✎]  Castellano  ×  GHC         ×  C. Naturales   ×  ░López en 2do B ?░ [ + Inglés ]
+   [8va 12:20  ✎]  Rojas          Herrera        Castillo           ░López en 2do B ?░ [ + Inglés ]
+
+   [ + Inglés ]  libre: tocarla la ubica          ░ … ? ░  no se puede: tocarla dice por qué
+   ×  quitar: el bloque vuelve a «Por ubicar»     ✎  corregir la hora (cambia en todo el turno)
 ```
 
-El punto dice «esa área no se cursa en ese grado». El aviso es ámbar —un dato
-que pide atención— y no bloquea nada.
-
-### ③ Armar — tanda 2
-
-```
-   1er Año · Sección A
-   Asistencia │ Calificar │ Plan de Evaluación │ Informes │ Alumnos │ Áreas y profesores │ Horario
-   ─────────────────────────────────────────────────────────────────────────────────────────────
-   Turno  Media · mañana            26 de 38 horas ubicadas   «Borrador»          [⤓ Descargar]
-
-   POR UBICAR   toque un área y después la casilla
-   (•) MAT García 2 de 4   ( ) CAS Rojas 2 de 4   ( ) ING López 0 de 4   ( ) TEC Díaz 0 de 2   ( ) ORI sin profesor 0 de 2
-   [✓] Ubicar en bloque de 2 horas
-
-   ▸ García está en 2do Año B el miércoles a esa hora                    ← el porqué, en letras
-
-                 Lunes        Martes       Miércoles    Jueves       Viernes
-   7:10–7:50     CAS          [   +   ]    GHC          CN           EF
-   7:50–8:30     Rojas   ×    [   +   ]    Herrera ×    Castillo ×   Moreno ×
-   8:30–9:10     MAT          INF          ░░░░░░░░░    GHC          ART
-   9:10–9:50     García  ×    Díaz    ×    ░░░░░░░░░    Herrera ×    Suárez ×
-   9:50–10:20    ───────────────────── R E C E S O ─────────────────────
-   10:20–11:00   EF           CN           [   +   ]    [   +   ]    DIB
-   11:00–11:40   Moreno  ×    Castillo ×   [   +   ]    [   +   ]    Rojas  ×
-   11:40–12:20   ART          DIB          [   +   ]    [   +   ]    [   +   ]
-   12:20–1:00    Suárez  ×    Rojas   ×    [   +   ]    [   +   ]    [   +   ]
-
-   [ + ] libre para Matemáticas     ░░░ no se puede: García está ocupado     × quitar
-```
-
-- Elegida el área, la rejilla se reparte en **libre** y **no se puede**. Tocar
-  una casilla tramada escribe el motivo arriba: el tooltip solo no alcanza,
-  porque en el teléfono tocar no lo dispara.
-- Tocar una libre **guarda en el momento** y el contador pasa a «4 de 4».
-- La trama es neutra, sin rojo ni ámbar: el rojo sigue siendo del aplazado.
-- En la casilla manda el CÓDIGO del área; el color acompaña y no reemplaza (son
-  8 tonos para 14 áreas).
+- Tocar una casilla libre **guarda en el momento** y el contador sube.
+- Con «en bloques de 2 horas» se ubica también la otra hora del bloque. Si esa
+  no se puede, se ubica una sola y el mensaje dice por qué.
+- Al completar un área, el armador pasa solo a la siguiente que falta.
+- La trama es neutra y nada va en rojo: el rojo sigue siendo del aplazado.
 - Sin arrastrar: tocar y tocar sirve con el dedo y con el teclado. Mover e
   intercambiar llegan en la tanda 4.
+
+### El mensaje del armador (decisión 24)
+
+```
+   (i)  azul    qué hacer              «Elija un área de arriba y toque una casilla con +»
+   (✓)  verde   lo que quedó guardado  «Listo: Inglés el jueves de 10:20 a 11:40. Van 4 de 4.
+                                         Sigue Arte (0 de 2).»
+   (?)  ámbar   por qué no se pudo     «Miércoles a las 8:30 no se puede: López está en
+                                         2do Año A dando Inglés.»  — y marca la casilla tocada
+```
+
+Va fijo sobre la rejilla: al tocar una casilla de las 12:20, el mensaje sigue a
+la vista. Brinca una vez cuando cambia, y el ámbar deja además un halo que se
+apaga. Con «reducir movimiento» no se mueve: quedan el color y el «?».
+
+### Corregir una hora del timbre
+
+```
+   ┌ Corregir la 2da hora   de [ 07:50 ]  a [ 08:30 ]   [Guardar] [Cancelar] ───────────────┐
+   │ Este timbre lo usan las 7 secciones del turno de la mañana: el cambio les llega a todas. │
+   └──────────────────────────────────────────────────────────────────────────────────────────┘
+   si se pisa con la de al lado:   «Se pisa con la 1ra hora (7:10 – 7:50).»
+```
+
+### ③ Todas, un mismo día
+
+```
+   Lunes, todas las secciones                                        [Lun] Mar Mié Jue Vie
+   SECCIÓN                1RA 7:10 · 2DA 7:50       3RA 8:30 · 4TA 9:10   ┊ 5TA 10:20 …   ESE DÍA
+   1er Año A              Arte · Colmenares         Matemática · García   ┊ GHC · Herrera   8 h
+   publicado
+   1er Año B              Ed. Física · Moreno       GHC · Herrera         ┊ …               8 h
+   borrador · faltan 6 h
+   …                      toque una sección para ver su semana
+```
+
+```
+   Lunes, todos los profesores
+   PROFESOR               1RA · 2DA                 3RA · 4TA             ┊ 5TA · 6TA …     ESE DÍA
+   García, Carlos         libre      libre          1er A · Matemática    ┊ …               6 h
+   López, María           2do B · Inglés            libre      libre      ┊ …               4 h
+                          «libre» es un hueco: sirve para cubrir una ausencia
+```
+
+### ④ Un área y un alumno
+
+```
+   Matemática · 28 horas a la semana en 7 secciones · García 20 h · Pérez 8 h
+                LUNES               MARTES              …
+   1ra 7:10     1er B · García      4to A · Pérez
+                5to A · Pérez
+   dos secciones a la misma hora = la misma área con profesores distintos
+```
+
+```
+   [ Buscar por nombre o apellido         ]
+   (Valentina Suárez · 1er Año A)  (Andrés Suárez · 1er Año B)  (Camila Ortega · 2do Año A) …
+   Valentina Suárez · 1er Año A · su horario es el de su sección
+   (la semana de 1er Año A)
+```
+
+### ⑤ El profesor, en su inicio
+
+```
+   Inicio · lunes, 8:40 a. m.
+   ┌ AHORA ─────────────────────────────┐  ┌ DESPUÉS ──────────────────────┐
+   │ 1er Año A                          │  │ 10:20 · 2do Año B             │
+   │ Matemática · hasta las 9:50        │  │ Matemática                    │
+   │ [Pasar lista] [Calificar]          │  └───────────────────────────────┘
+   └────────────────────────────────────┘
+   Mi semana   (su rejilla, sin botones)
+```
+
+### ⑥ La familia, en el teléfono
+
+```
+   ┌─────────────────────────────────┐
+   │ SIGA          U.E. Simón Bolívar │
+   │ Andreína Suárez                  │
+   │ [Valentina]      [Andrés]        │
+   │  1er Año A        1er Año B      │
+   │ Horario de Valentina             │
+   │ (Lun•)  Mar  Mié  Jue  Vie       │
+   │  7:10 ┃ Arte y Patrimonio        │
+   │  8:30 ┃ Prof. Colmenares         │
+   │  8:30 ┃ Matemática      [Ahora]  │
+   │  9:50 ┃ Prof. García             │
+   │ ░░░░ RECESO · 9:50 – 10:20 ░░░░░ │
+   │ 10:20 ┃ Geografía, Historia y…   │
+   │ …                                │
+   │      Sale a la 1:00 p. m.        │
+   └─────────────────────────────────┘
+   Andrés, con 1er Año B en borrador:  «El horario de 1er Año B todavía no está publicado.»
+```
 
 ### Cuando cambia el profesor — tanda 2
 
@@ -297,69 +426,16 @@ que pide atención— y no bloquea nada.
                                               y el aviso dice cuáles:  «miércoles 8:30 — Pérez está en 3er Año A»
 ```
 
-### ④–⑤ Las miradas — tanda 3
+### Otro turno — tanda 4 (decisión 28)
 
 ```
-   Académico ▸ Horarios
-   Ver por  [Secciones]  Profesores  Áreas       Día  [Lun] Mar Mié Jue Vie · Semana      Turno [Media · mañana ▾]
-
-   LUNES           7:10   7:50   8:30   9:10  ┊  10:20  11:00  11:40  12:20
-   1er Año A       CAS    CAS    MAT    MAT   ┊  EF     EF     ART    ART       publicado
-   1er Año B       MAT    MAT    CAS    CAS   ┊  ING    ING     ·      ·        borrador · faltan 6
-   2do Año A       GHC    GHC    ING    ING   ┊  MAT    MAT    CN     CN        publicado
-   …                                                            · = falta ubicar
-   cada casilla abre el horario de esa sección          [Publicar los 6 completos]
+   1er Grado A · Turno de la mañana, de 7:10 a. m. a 1:00 p. m.      [Cambiar de turno ▾]
+                                                                      ● Turno de la mañana
+                                                                      + Otro turno…
+                                                                         └─► el generador de la tanda 1:
+                                                                             entrada · minutos · horas ·
+                                                                             receso, con su «Así queda»
 ```
-
-```
-   Ver por Profesores (el mismo lunes)
-   García, Carlos     1B     1B     1A     1A   ┊  2A     2A     –      –        20 h
-   Herrera, José      2A     2A     –      –    ┊  –      –      3A     3A       32 h
-   Moreno, Sofía      –      –      –      –    ┊  1A     1A     –      –        12 h
-                                    – = libre: aquí se ven los huecos
-```
-
-```
-   Tocando una fila: la semana de UNO (sección, profesor, área o alumno)
-   Horario de García, Carlos · 20 horas                             [⤓ Descargar]
-                 Lunes       Martes      Miércoles   Jueves      Viernes
-   7:10–8:30     1er Año B   1er Año A               3er Año A
-                 MAT         MAT                     MAT
-   8:30–9:50     1er Año A               2do Año B   …
-                 MAT                     MAT
-```
-
-«Por alumno» es el horario de su sección, con enlace desde su ficha.
-
-```
-   EL PROFESOR, en su inicio
-   ┌ Ahora ─────────────────────────────┐  ┌ Después ───────────────────────┐
-   │ 1er Año A · Matemáticas            │  │ 10:20   2do Año A · Matemáticas │
-   │ hasta las 9:50        [Calificar]  │  │                                 │
-   └────────────────────────────────────┘  └─────────────────────────────────┘
-   Mi semana   (la rejilla de arriba, con sus secciones)
-```
-
-```
-   LA FAMILIA Y EL ALUMNO, en el teléfono: abre en HOY
-   ┌─────────────────────────────┐
-   │ Valentina · 1er Año A       │
-   │ Lun [Mar] Mié Jue Vie       │
-   │ ─────────────────────────── │
-   │  7:10  Matemáticas          │
-   │        Prof. García         │
-   │  8:30  Informática          │
-   │        Prof. Díaz           │
-   │  9:50  Receso               │
-   │ 10:20  Ciencias Naturales ◄ │  ← ahora
-   │        Prof. Castillo       │
-   │ 11:40  Dibujo               │
-   │        sale a la 1:00       │
-   └─────────────────────────────┘
-```
-
-El PDF —de una sección o de un profesor— es una hoja apaisada con el membrete
-del colegio.
 
 ### La vida real — tanda 4
 
@@ -371,6 +447,9 @@ del colegio.
               ░░ no está: dicta en otro colegio         cada renglón lleva a donde se arregla
 ```
 
+El PDF —de una sección o de un profesor— es una hoja apaisada con el membrete
+del colegio.
+
 ### El automático — tanda 5, con su propio spec
 
 ```
@@ -380,93 +459,153 @@ del colegio.
 
 ## 6 · Criterios de aceptación
 
-### Tanda 1 · Turno y carga
+### Lo que queda de la tanda 1 (hecha el 14 de octubre, devuelta el 16)
 
-- [ ] Dado un colegio sin turnos, cuando se registra «Media · mañana» con
-      entrada 7:10, horas de 40 minutos, 8 horas y un receso de 30 minutos tras
-      la 4ta, entonces quedan las nueve filas de la foto, de 7:10 a 1:00, con el
-      receso de 9:50 a 10:20.
-- [ ] Dos horas de un mismo turno no se pisan: ni por el formulario ni
-      saltándose la validación (lo rechaza la base).
-- [ ] Una hora se corrige en su fila. El receso no cuenta como hora de clase.
-- [ ] Un turno es del año escolar de la sesión, y el de otro colegio da 404.
-- [ ] Una sección elige su turno entre los de su año. Sin turno, su pestaña lo
-      dice —«Elija el turno de esta sección»— en vez de dibujar una rejilla vacía.
-- [ ] «Carga horaria» muestra una fila por área y una columna por grado de los
-      que el colegio dicta, con un punto donde el área no se cursa.
-- [ ] «Proponer las del plan oficial» llena SOLO las casillas vacías de las
-      áreas que reconoce por su nombre, no pisa lo escrito, y dice cuántas
-      propuso y cuáles no reconoció.
-- [ ] El total de un grado se compara con las horas de clase a la semana del
-      turno de sus secciones (si difieren, el más corto). Si sobra, avisa y no
-      bloquea.
-- [ ] Un colegio en gratis puede hacer todo lo anterior.
-- [ ] Un profesor no entra a «Turnos» ni a «Carga horaria».
+```
+   SE QUEDA                                           SE RETIRA
+   bell_schedules · time_slots · su EXCLUDE           la pantalla «Turnos»: lista, alta y ficha
+   sections.bell_schedule_id                          la pantalla «Carga horaria»: la planilla
+   grade_subjects.weekly_hours                        el turno en el formulario de la sección
+   HorasDelTurno (el timbre) · CargaHorariaOficial     sus tests de pantalla, el humo y el menú
+   HoraDelDia · los tests del modelo                  de esas dos pantallas
+```
 
-### Tanda 2 · Armar
+Con `bin/ci` en verde el 14 de octubre: dos horas de un turno no se pisan, ni
+saltándose la validación, y el turno de una sección es de su año.
 
-- [ ] La pestaña «Horario» es la última de la sección, para quien administra
-      secciones y para sus profesores (que la ven sin botones). Una sección de
-      Inicial no la tiene.
-- [ ] Dado «Matemáticas 0 de 4», al tocar el área y una casilla libre con
-      «bloque de 2 horas», quedan dos clases seguidas y el contador dice «2 de 4».
-- [ ] Un bloque no cruza el receso ni el final del día: ahí se ubica una sola hora.
-- [ ] Una sección no puede tener dos clases a la misma hora: la casilla ocupada
-      no se ofrece, y saltándose la validación lo rechaza la base.
-- [ ] Un profesor no puede estar en dos secciones a la misma hora: la casilla
-      sale tramada, al tocarla dice «García está en 2do Año B a esa hora», y
-      saltándose la validación lo rechaza la base.
+### Tanda 2 · El horario: armarlo y verlo
+
+**Entrar**
+
+- [ ] «Horarios» abre en la semana de una sección de Media del año de la sesión
+      —la última que se miró, o la primera—, con su estado (publicado o
+      borrador), sus horas ubicadas y su turno.
+- [ ] Un año sin turnos estrena «Turno de la mañana» con el timbre de la foto
+      —de 7:10 a 1:00, horas de 40 minutos, receso de 9:50 a 10:20— y lo usan
+      sus secciones con áreas. Inicial no tiene horario.
+- [ ] Un área sin carga recibe la del plan oficial si la reconoce por su
+      nombre; si no, sale «sin horas» y se le ponen con +. Nunca se pisa lo que
+      el colegio escribió.
+
+**Armar**
+
+- [ ] «Armar» muestra «Por ubicar»: cada área de la sección con su profesor
+      —o «sin profesor»— y «ubicadas de carga». Las completas, atenuadas y con ✓.
+- [ ] Elegida un área, cada casilla vacía es libre (`+ Inglés`) o rayada con
+      «?», con el apellido del profesor y la sección donde está.
+- [ ] Tocar una libre la guarda en el momento. En bloques de 2 horas ubica
+      también la pareja del bloque; si la pareja no se puede, ubica una sola y
+      dice por qué. Un bloque no cruza el receso ni el final del día.
+- [ ] Una sección no puede tener dos clases a la misma hora, ni un profesor
+      estar en dos secciones a la misma hora: la pantalla no lo ofrece, el
+      modelo lo rechaza con el mismo texto, y saltándose la validación lo
+      rechaza la base.
 - [ ] El choque se mide por reloj: para un mismo profesor, una clase de 8:30 a
-      9:10 en un turno choca con una de 8:45 a 9:30 en otro.
-- [ ] Dos horas contiguas no chocan (7:10–7:50 y 7:50–8:30).
-- [ ] Un área sin profesor se puede ubicar: su casilla dice «sin profesor» y no
-      choca con nadie.
+      9:10 en un turno choca con una de 8:45 a 9:30 en otro. Dos horas
+      contiguas (7:10–7:50 y 7:50–8:30) no chocan.
+- [ ] Un área sin profesor se ubica sin chocar con nadie y dice «sin profesor».
 - [ ] Dos guardados a la vez sobre la misma casilla: uno entra y el otro lee
       «Esa casilla ya está ocupada», sin error 500.
-- [ ] Quitar una clase la devuelve a «por ubicar».
+- [ ] El × de una clase la quita entera —las dos horas de su bloque— y la
+      devuelve a «Por ubicar».
+- [ ] Al completar un área, el armador pasa sola a la siguiente que falta.
+
+**El mensaje (decisión 24)**
+
+- [ ] Va fijo sobre la rejilla: al tocar una casilla de las 12:20 se sigue viendo.
+- [ ] Tres tipos, en color y en icono: qué hacer (azul, «i»), lo que quedó
+      guardado (verde, ✓) y por qué no se pudo (ámbar, «?»). Un «no se puede»
+      marca la casilla tocada.
+- [ ] Brinca una vez cuando una acción sobre la rejilla lo cambia; no al
+      cambiar de pestaña ni al volver a pintar. Con «reducir movimiento» no se
+      mueve.
+- [ ] Los textos de § 5 son el contrato: el día, la hora, el profesor, la
+      sección donde está y el área que dicta allá.
+
+**El timbre y la carga, dentro de la rejilla**
+
+- [ ] Con «Armar» abierto, cada hora de la columna izquierda se corrige ahí, y
+      el aviso dice que el cambio llega a las secciones del turno. Si se pisa
+      con la de al lado: «Se pisa con la 1ra hora (7:10 – 7:50).»
+- [ ] Corregir una hora mueve los minutos de sus clases en todas las secciones.
+      Si haría chocar a un profesor con otro turno, no se guarda y dice con quién.
+- [ ] Con un área elegida, su carga sube y baja con − y + para todo el grado
+      («en 1er Año A y B»). No baja de lo ya ubicado en ninguna sección del
+      grado: lo dice y no la cambia.
+- [ ] Si la carga del grado suma más que la semana, «Por ubicar» lo dice en
+      ámbar —«suma 44 horas y la semana tiene 40: sobran 4»— y no bloquea.
+
+**Cuando cambia el profesor**
+
 - [ ] Al borrar la asignación de un profesor, sus clases siguen en el horario
       «sin profesor» — también cuando se borra con `delete_all`.
 - [ ] Al asignar un profesor: toma las clases donde está libre; donde choca, la
-      clase vuelve a «por ubicar» y el aviso nombra el día, la hora y dónde
+      clase vuelve a «Por ubicar» y el aviso nombra el día, la hora y dónde
       está. La asignación se guarda siempre.
-- [ ] Corregir una hora del turno mueve los minutos de sus clases. Si el cambio
-      haría chocar a un profesor con otro turno, no se guarda y dice con quién.
-- [ ] Una sección con clases no cambia de turno: el aviso pide vaciar el horario.
+- [ ] Una sección con clases no cambia de turno: el aviso pide vaciarla.
 - [ ] Borrar una sección se lleva sus clases. Una hora con clases no se borra,
       y el aviso dice cuántas tiene.
+
+**Las miradas (decisión 22)**
+
+- [ ] Secciones, Profesores, Áreas y Alumnos salen de la misma tabla de clases
+      y dicen lo mismo.
+- [ ] «Todas, un mismo día» y «Todos, un mismo día»: una fila por sección o por
+      profesor, una columna por hora, el receso marcado y el bloque unido;
+      «libre» donde el profesor no tiene clase. Tocar una fila abre su semana.
+- [ ] La semana de un área muestra en cada casilla las secciones que la tienen
+      y con quién.
+- [ ] Alumnos busca por nombre o apellido, palabra por palabra y sin importar
+      los acentos (`MOR-179`, `MOR-183`); su horario es el de su sección.
+- [ ] La pestaña «Horario» de la sección es la misma pantalla (decisión 29), y
+      la ficha del alumno lleva al horario de su sección.
+- [ ] En el teléfono, cada semana se ve como un día, con los días arriba y el de
+      hoy marcado. A 380 px nada se corre de lado.
+
+**Publicar y las otras puertas**
+
+- [ ] «Publicar» pide confirmar y dice qué falta: «Faltan 6 horas por ubicar:
+      esas casillas saldrán vacías.»
+- [ ] Una sección publicada la ven sus profesores, sus alumnos y sus familias;
+      en borrador, solo quien administra (decisión 13). ⚠️ La maqueta le muestra
+      al profesor también lo que está en borrador: manda la decisión.
+- [ ] El profesor ve en su inicio «Ahora» y «Después» con la hora de
+      Venezuela —a las 8 de la noche de Caracas sigue siendo hoy— y «Mi
+      semana», sin botones.
+- [ ] La familia ve el horario de cada hijo en el teléfono: abre en el día de
+      hoy (el fin de semana, en el lunes), marca la clase de ahora y dice a qué
+      hora sale. Con la sección en borrador: «El horario de 1er Año B todavía no
+      está publicado.»
+- [ ] El alumno ve el de su sección. Una familia en mora lo ve (decisión 12).
+
+**Lo de siempre**
+
 - [ ] Otro colegio no ve ni toca nada (404), y las tablas nuevas tienen RLS con
       `FORCE`.
-- [ ] En gratis se arma. Con la suscripción vencida se ve y no se escribe.
+- [ ] En gratis se arma y se mira; los portales de la familia y del alumno
+      siguen pidiendo la suscripción. Con la suscripción vencida, se ve y no se
+      escribe.
 - [ ] En un año finalizado el horario se ve y no se edita.
-- [ ] La muestra amanece con las ocho secciones de Media del año en curso
-      armadas con el turno de la foto: al menos el 90 % de sus horas ubicadas, y
-      una sección con horas «por ubicar» a propósito.
+- [ ] El profesor no arma: ve su semana y la de sus secciones, sin botones.
+- [ ] Las pantallas de la tanda 1 ya no están: ni en el menú, ni en las rutas,
+      ni en el humo.
 
-### Tanda 3 · Verlo
+**La muestra**
 
-- [ ] «Horarios» muestra por secciones, por profesores o por áreas; un día o la
-      semana; de un turno. Cada casilla lleva a la semana de su fila.
-- [ ] La semana de una sección, de un profesor, de un área y de un alumno salen
-      de la misma tabla y dicen lo mismo.
-- [ ] Una sección publicada la ven su profesor, la familia y el alumno. En
-      borrador, solo quien administra. «Publicar los completos» publica las que
-      no tienen horas por ubicar.
-- [ ] El profesor ve «Ahora» y «Después» con la hora de Venezuela: a las 8:00 de
-      la noche de Caracas sigue siendo hoy.
-- [ ] El representante ve el horario de cada hijo, y abre en el día de hoy; el
-      fin de semana, en el lunes.
-- [ ] El alumno ve el de su sección.
-- [ ] Una familia en mora ve el horario (decisión 12).
-- [ ] En gratis los portales siguen cerrados y el PDF pide suscripción. Vencido,
-      se ve y se descarga, y no se edita.
-- [ ] El PDF de una sección y el de un profesor caben en una hoja apaisada y
-      dicen el colegio, el año, el turno y cada clase — leídos, no pesados.
-- [ ] A 380 px de ancho nada se corre de lado.
+- [ ] Amanece con las secciones de Media del año en curso armadas con el turno
+      de la foto y sin un choque, y 1er Año B con horas «por ubicar» a
+      propósito, como en la maqueta.
 
 ### Tanda 4 · La vida real
 
+- [ ] **Otro turno** (decisión 28): «Cambiar de turno» en la cabecera ofrece
+      los del año y «+ Otro turno», con el generador de la tanda 1 y su «Así
+      queda» en vivo. Una sección con clases no cambia (decisión 16).
+- [ ] **El PDF** (decisión 27) de una sección y el de un profesor caben en una
+      hoja apaisada y dicen el colegio, el año, el turno y cada clase — leídos,
+      no pesados. En gratis piden suscripción; vencido, se descargan.
 - [ ] Quien administra marca las horas en que un profesor no está. Esas casillas
-      salen tramadas con «Herrera no está disponible a esa hora» y no se ubican.
+      salen rayadas con «Herrera no está disponible a esa hora» y no se ubican.
 - [ ] Marcar «no disponible» sobre una hora que el profesor ya dicta no borra la
       clase: la señala en el diagnóstico.
 - [ ] El diagnóstico lista las áreas sin carga, las áreas sin profesor, el
@@ -478,7 +617,7 @@ del colegio.
 - [ ] Copiar la estructura al año siguiente trae los turnos, sus horas, el turno
       de cada sección y las clases. Una clase que no se puede copiar es un
       aviso, no un error.
-- [ ] El Excel trae una hoja por sección.
+- [ ] Publicar varias secciones de una vez. El Excel trae una hoja por sección.
 
 ### Tanda 5 · El automático
 
@@ -498,11 +637,29 @@ qué no caben las demás, no escribe nada sin confirmar, y pide suscripción.
   2da mientras se corre: las restricciones son diferibles, y se difieren y se
   vuelven a exigir DENTRO del `SAVEPOINT`. Sin lo segundo, el error saltaría al
   cerrar la petición, fuera del `rescue`.
+- **Retirar las pantallas de la tanda 1** cambia a propósito sus rutas
+  (`/turnos`, `/carga-horaria`), sus tres archivos de tests de pantalla, el
+  humo, el menú, las listas de `RespetaLaSuscripcion` y el formulario de la
+  sección. Lo que se queda —modelo y servicios— conserva sus tests.
+- **La versión.** `main` ya está en 1.21.0 (el enlace por WhatsApp): el horario
+  sube a **1.22.0**, y el commit de la tanda 1, que dice 1.21.0 en `VERSION` y
+  en el `CHANGELOG`, se corrige al rebasar sobre `main`.
+- **El brinco.** Una animación que corre en cada pintado brincaría también al
+  cambiar de pestaña: brinca solo el mensaje nuevo de una acción sobre la
+  rejilla, y `prefers-reduced-motion` la apaga.
+- **El mensaje fijo.** `position: sticky` deja de pegar si un ancestro tiene
+  `overflow`: la rejilla se desplaza de lado dentro de su propio marco, y el
+  mensaje va FUERA de ese marco.
+- **El color.** `regla_de_color_test` va a mirar el verde y el ámbar del
+  mensaje. Se defienden como dato —lo que quedó guardado, por qué no se pudo—
+  y no como control; si el test no lo admite, se habla antes de forzarlo. Un
+  choque en rojo lo rompe, y con razón.
 - **`pestanas_de_la_seccion_test` y `areas_y_profesores_test`** afirman la lista
   exacta de pestañas: cambian a propósito.
 - **`menu_del_profesor_test`** exige que el menú del profesor sea `["Dicto"]`:
   «Ahora · Después» va en su inicio, no en un grupo nuevo.
-- **`frontera_de_lo_gratis_test`**: cada controlador nuevo, en una lista.
+- **`frontera_de_lo_gratis_test`**: cada controlador nuevo, en una lista; los
+  dos que se van, fuera de todas.
 - **`aislamiento_estructural_test`**: las tablas nuevas, con `SchoolScoped`, RLS,
   `FORCE` y su política.
 - **`erd_del_modelo_test`** (`ORDEN` en `lib/tasks/modelo.rake`) y
@@ -511,7 +668,6 @@ qué no caben las demás, no escribe nada sin confirmar, y pide suscripción.
   las tablas nuevas. `OrdenDeBorrado` sí se calcula solo.
 - **La hora.** La app corre en UTC: desde las 8 de la noche «hoy» ya es mañana.
   «Ahora», «Después» y «hoy» salen de `HoraDeVenezuela`, no de `Date.current`.
-- **El color.** Un choque en rojo rompe `regla_de_color_test`, y con razón.
 - **Los códigos no coinciden.** La siembra usa `LEN`, `EDF`, `CNA`; el plan,
   `CAS`, `EF`, `CN`. Proponer la carga por código dejaría en blanco medio
   colegio: se empareja por nombre, como `Subject.area_del_31059`.
@@ -521,16 +677,14 @@ qué no caben las demás, no escribe nada sin confirmar, y pide suscripción.
 - **La muestra se resiembra en UNA transacción**: el horario no puede depender
   de un `after_commit`.
 - **El año y el nivel de la sesión.** Con «Todos los años» se cae en
-  `anio_de_trabajo`. «Turnos» declara `el_nivel_no_aplica`.
+  `anio_de_trabajo`. «Horarios» declara `el_nivel_no_aplica` donde no filtra.
 - **El importador de pensum.** Si reasigna y desubica clases, lo dice en su
   reporte.
 - **La carga no tiene año.** `weekly_hours` es del pensum: cambiarla en 2027
   mueve el «faltan» de 2026. Se acepta: es un aviso de planificación.
-- **Los tests y otra sesión.** Este trabajo vive en un worktree, y `siga_test` es
-  UNA base, con el nombre fijo en `config/database.yml`: dos `bin/ci` a la vez
-  se pisan. `SIGA_DB_NAME` separa la base de desarrollo —la siembra, el
-  servidor—, no la de los tests. O no se corren a la vez, o la tanda 1 le da
-  nombre por variable también a esa.
+- **Los tests y otra sesión.** `siga_test` es UNA base: dos `bin/ci` a la vez se
+  pisan. Resuelto en la tanda 1: `SIGA_TEST_DB_NAME` le da otro nombre al
+  worktree.
 
 ## 8 · Cómo se verifica
 
@@ -539,17 +693,20 @@ qué no caben las demás, no escribe nada sin confirmar, y pide suscripción.
 - **La base, sola**: tests que guardan saltándose la validación
   (`save(validate: false)`, en su `SAVEPOINT`) y esperan el rechazo.
 - **Las cascadas**: borrar la asignación, corregir una hora, borrar la sección.
-- **De sistema**: tocar área y casilla, leer el motivo de una tramada, a 380 px.
-- **El PDF**, leído con `LeePdf`.
+- **De sistema**: elegir un área y tocar una casilla, leer el porqué de una
+  rayada, a 380 px.
+- **Las capturas, antes de entregar**: cada pantalla nueva en escritorio y en
+  teléfono, mirada. Es la lección del 16 de octubre: los tests en verde no
+  vieron nueve botones «Guardar» ni las horas cortadas («07:00 a.n»).
 - **Daniel, en la muestra**, al cierre de cada tanda:
 
 ```
-   tanda 1   director      Turnos (el de la foto) · Carga horaria («no cabe»)
-   tanda 2   director      1er Año B ▸ Horario: ubicar lo que falta, tocar una tramada
+   tanda 2   director      Horarios: 1er Año A · Todas, un mismo día · García · Matemática · Valentina
+                           1er Año B ▸ Armar: ubicar Inglés, Arte y Dibujo; tocar una rayada;
+                           corregir una hora; subir y bajar una carga · Publicar
                            Áreas y profesores: cambiar a un profesor y leer el aviso
-   tanda 3   director      Horarios por secciones, por profesores y por áreas · publicar
              profesor      García: «Ahora · Después» y «Mi semana»
-             representante Valentina, en el teléfono
+             representante el teléfono: un hijo con la sección publicada y otro en borrador
 ```
 
 ---
@@ -559,19 +716,23 @@ qué no caben las demás, no escribe nada sin confirmar, y pide suscripción.
 ### Los nombres
 
 ```
-   SE LEE                    EN EL CÓDIGO                          URL
-   Turno                     BellSchedule · bell_schedules         /turnos
-   hora (1ra, 2da… Receso)   TimeSlot · time_slots                 /turnos/:id/horas
-   clase                     Lesson · lessons                      /secciones/:id/clases
-   carga horaria             grade_subjects.weekly_hours           /carga-horaria
-   el turno de la sección    sections.bell_schedule_id
-   publicado                 sections.timetable_published_at       (tanda 3)
-   no disponible             TeacherUnavailability                 (tanda 4)
+   SE LEE                     EN EL CÓDIGO                          DÓNDE
+   Horarios (las miradas)     HorariosController                    /horarios
+   la semana de una sección   la misma pantalla                     /horarios y la pestaña «Horario»
+                                                                    de la sección (decisión 29)
+   clase                      Lesson · lessons                      /secciones/:id/clases
+   Turno                      BellSchedule · bell_schedules         sin pantalla propia (decisión 20)
+   hora (1ra, 2da… Receso)    TimeSlot · time_slots                 se corrige desde la rejilla
+   carga horaria              grade_subjects.weekly_hours           el − y + de «Por ubicar»
+   el turno de la sección     sections.bell_schedule_id
+   publicado                  sections.timetable_published_at
+   no disponible              TeacherUnavailability                 (tanda 4)
 ```
 
-Servicios, en español: `HorasDelTurno` (genera el timbre), `CargaHorariaOficial`,
-`ChoquesDeHorario` (el motivo, en UN sitio), `HorarioDeLaSeccion`,
-`RejillaDeHorarios`, `ArmarElHorario`, `DiagnosticoDelHorario`,
+Servicios, en español: `HorasDelTurno` (el timbre: el del turno que nace solo y,
+en la tanda 4, el de «otro turno»), `CargaHorariaOficial` (la propuesta, ahora
+sin botón), `ChoquesDeHorario` (el porqué, en UN sitio), `HorarioDeLaSeccion`,
+`RejillaDeHorarios`, `ArmarElHorario` (la siembra), `DiagnosticoDelHorario`,
 `HoraDeVenezuela`, `HorarioPdf`, `HorariosXlsx`.
 
 ### Una clase es una casilla
@@ -640,36 +801,40 @@ PostgreSQL 15 o más: se cumple en los tres sitios.
 ### La suscripción
 
 ```
-   LA_ENTRADA             bell_schedules · time_slots · carga_horaria · lessons · horarios
-                          (el PDF y el Excel piden suscripción solos: son archivos)
-   ya estaban ahí         sections · grade_subjects · dashboards/profesor
+   LA_ENTRADA             horarios · lessons · time_slots (corregir una hora) · la carga (− y +)
+                          (el PDF y el Excel, tanda 4, piden suscripción solos: son archivos)
+   ya estaban ahí         sections · dashboards/profesor
    SOLO_CON_SUSCRIPCION   representante · dashboards/estudiante   (ya estaban)
    CON_SUSCRIPCION        el automático (tanda 5)
+   SE VAN                 bell_schedules · carga_horaria          (las pantallas de la tanda 1)
 ```
 
 ### El armador, sin librerías
 
-Un solo formulario: cada área «por ubicar» es un `radio`, cada casilla libre un
-botón, y la respuesta reemplaza el armador entero —son 40 casillas, y el estado
-sale siempre del servidor—. Sin JavaScript ya funciona. `horario_controller.js`
-(unas 40 líneas) solo pinta, al cambiar de área, qué casillas quedan libres, y
-escribe el motivo de una tramada en una línea con `role="status"`. Todo lo que
-bloquea a un área se calcula en UNA consulta por rejilla.
+Un solo formulario: cada área de «Por ubicar» es un `radio` y cada casilla libre
+un botón. La respuesta —un Turbo Stream— reemplaza el armador y el mensaje, así
+que el estado sale siempre del servidor, y sin JavaScript ya funciona.
+`horario_controller.js` solo pinta, al cambiar de área, qué casillas quedan
+libres, sin ir al servidor. Todo lo que bloquea a un área se calcula en UNA
+consulta por rejilla.
+
+El mensaje entra con una animación de CSS: brinca al nacer. El servidor le pone
+la clase solo en la respuesta a una acción sobre la rejilla, y por eso no brinca
+al cambiar de pestaña.
 
 ## 10 · Las tandas
 
 Una tanda, una rama, un PR. Se entrega una, se prueba, y sigue la próxima.
 
 ```
-   0 · EL SPEC            este documento · producción mirada · el issue de Linear
-   1 · TURNO Y CARGA      turnos + generador del timbre · carga horaria con la propuesta oficial
-                          el turno de cada sección · «no cabe en la semana»
-   2 · ARMAR              la pestaña «Horario» · las tres capas · cambiar de profesor
-                          la muestra con sus 8 secciones de Media armadas
-   3 · VERLO              Horarios por secciones / profesores / áreas · publicar
-                          «Ahora · Después» · familia y alumno · PDF
-   4 · LA VIDA REAL       disponibilidad del profesor · diagnóstico · mover e intercambiar
-                          copiar el horario al año siguiente · Excel
+   0 · EL SPEC            congelado el 13 · revisado el 22 con la maqueta
+   1 · TURNO Y CARGA      hecha el 14 y devuelta el 16: su modelo se queda, sus pantallas no
+   2 · EL HORARIO         (antes 2 y 3) armarlo y verlo: la rejilla como puerta, las cuatro
+                          miradas, publicar, el profesor y la familia, la muestra armada
+                          · lleva dentro la tanda 1 (decisión 26) · 1.22.0
+   3 · —                  se juntó con la 2 (decisión 25)
+   4 · LA VIDA REAL       otro turno · el PDF · disponibilidad · diagnóstico · mover e
+                          intercambiar · copiar al año siguiente · publicar varias · Excel
    5 · EL AUTOMÁTICO      «Completar lo que falta», con su propio spec
 ```
 
