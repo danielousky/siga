@@ -90,6 +90,9 @@ class RepresentanteController < ApplicationController
   def horario_del_hijo(inscripcion)
     seccion = inscripcion.section
     return unless seccion.bell_schedule
+    # Sin clases, el colegio no arma el horario de esa sección: un «todavía no
+    # está publicado» hablaría de algo que no existe.
+    return unless seccion.timetable_published_at || Lesson.where(section: seccion).exists?
 
     @dia = (params[:dia].presence || HoraDeVenezuela.dia_de_clases).to_i.clamp(1, Lesson::DIAS.size)
     nombre = "#{seccion.grade.name} #{seccion.name}"
