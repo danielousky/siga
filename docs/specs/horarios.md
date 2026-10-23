@@ -1,6 +1,6 @@
 # Los horarios de clase
 
-> **Estado:** **congelado de nuevo** el 22 de octubre de 2026, con la maqueta · las decisiones 26 a 29 van como las propuso Claude y se confirman en el QA de la tanda 2
+> **Estado:** **congelado de nuevo** el 22 de octubre de 2026, con la maqueta · el 23 Daniel confirmó las decisiones 26, 28 y 29, y adelantó el PDF a la tanda 2 (decisión 27)
 > **PR:** — (rama `docs/spec-horarios`, sin subir; el issue de Linear está sin crear: el conector no estaba autenticado)
 
 Se congeló el 13 de octubre con 18 decisiones. La tanda 1 se construyó el 14, y
@@ -22,12 +22,17 @@ Ese mismo 22 Daniel pidió pasarla al spec y seguir —*«aplica caffeinate por 
 3 horas y avanza cuanto más puedas»*—: las decisiones 26 a 29 se tomaron como
 las propuso Claude, y se confirman en su QA de la tanda 2.
 
+El 23, antes de probarla, Daniel las contestó: la tanda 1 va en el mismo PR
+(26), «otro turno» espera a la tanda 4 (28) y *«la pestaña horario va a la
+sección»* (29). El PDF, en cambio, lo quiso en esta tanda (27): la tanda 2
+vuelve a su prueba con él adentro.
+
 ```
    13 DE OCTUBRE (congelado)                       22 DE OCTUBRE (esta revisión)
    ① Turno ② Carga ③ Armar ④ Publicar ⑤ Verlo     una puerta: el horario de la sección
    primero las pantallas de configuración          el timbre y la carga se corrigen DENTRO de él
    armar (tanda 2) y verlo (tanda 3) por separado  juntas: lo próximo que se prueba es el horario
-   el PDF en la tanda 3                            en la tanda 4, con «otro turno»
+   el PDF en la tanda 3                            en la 2, con el horario (Daniel, el 23)
 ```
 
 La maqueta: https://claude.ai/artifact/MjKiTVWUbcvAH4toQRfuYX (privada, versión 2,
@@ -122,10 +127,10 @@ Y hay una segunda mitad:
 | 23 | ¿Cómo se arma? | Se elige el área en «Por ubicar» y se toca la casilla, en bloques de 2 horas, con un interruptor para ubicar una sola. Lo que no se puede va rayado y con «?»: al tocarlo, el mensaje dice por qué. | Maqueta, 22 oct |
 | 24 | ¿Cómo avisa el armador? | **Un mensaje fijo sobre la rejilla, que brinca** al tocar una casilla. Tres tipos: qué hacer (azul), lo que quedó guardado (verde) y por qué no se pudo (ámbar, con «?», y marca la casilla tocada). | Daniel, 22 oct |
 | 25 | ¿Las tandas 2 y 3? | **Juntas.** Lo próximo que se prueba es el horario entero: armarlo y verlo por todas sus puertas. | Daniel, 22 oct |
-| 26 | ¿Qué pasa con la tanda 1? | Su modelo se queda (§ 6). Sus dos pantallas se retiran, y no sube sola: va con el horario, en el mismo PR. | Claude · se confirma en el QA |
-| 27 | ¿Y el PDF? | Pasa a la tanda 4: la maqueta no lo cubrió y no hace falta para probar el horario. | Claude · se confirma en el QA |
-| 28 | ¿Un segundo turno (Primaria, tarde)? | En la tanda 4, desde la cabecera de la sección: «Cambiar de turno» ofrece los del año y «+ Otro turno», que abre el generador de la tanda 1. Hasta entonces, todas las secciones usan el turno del año. | Claude · se confirma en el QA |
-| 29 | ¿Una sola puerta? | **Dos, a la misma pantalla:** «Horarios ▸ Secciones» y la pestaña «Horario» de la sección. No es otra manera de armar: es el mismo armador. Y la ficha del alumno lleva al horario de su sección. | Claude · se confirma en el QA |
+| 26 | ¿Qué pasa con la tanda 1? | Su modelo se queda (§ 6). Sus dos pantallas se retiran, y no sube sola: va con el horario, en el mismo PR. | Claude · Daniel la confirmó el 23 oct |
+| 27 | ¿Y el PDF? | **En la tanda 2, con el horario.** Claude lo propuso para la 4 —la maqueta no lo cubrió— y Daniel lo quiso antes de subir. Una hoja carta acostada, con el membrete del colegio, de una sección o de un profesor, que se abre en otra pestaña (§ 5 ⑦). | Daniel, 23 oct |
+| 28 | ¿Un segundo turno (Primaria, tarde)? | En la tanda 4, desde la cabecera de la sección: «Cambiar de turno» ofrece los del año y «+ Otro turno», que abre el generador de la tanda 1. Hasta entonces, todas las secciones usan el turno del año. | Claude · Daniel la confirmó el 23 oct |
+| 29 | ¿Una sola puerta? | **Dos, a la misma pantalla:** «Horarios ▸ Secciones» y la pestaña «Horario» de la sección, la última. No es otra manera de armar: es el mismo armador, y lo que se arma desde la pestaña vuelve a la pestaña. El profesor la ve en las secciones donde dicta, publicada y sin botones; Inicial no la tiene. Y la ficha del alumno lleva al horario de su sección. | Claude · Daniel, 23 oct: *«la pestaña horario va a la sección»* |
 
 ## 4 · El dominio
 
@@ -417,6 +422,52 @@ apaga. Con «reducir movimiento» no se mueve: quedan el color y el «?».
    Andrés, con 1er Año B en borrador:  «El horario de 1er Año B todavía no está publicado.»
 ```
 
+### ⑦ La pestaña «Horario» de la sección (decisión 29)
+
+```
+   Secciones ▸ 1er Año A
+   ┌──────────────────────────────────────────────────────────────────────────────────────┐
+   │ ▌ 1er Año · Sección A   2025-2026 · guía Rojas, Ana              [Documentos oficiales] │
+   └──────────────────────────────────────────────────────────────────────────────────────┘
+   ┌──────────────────────────────────────────────────────────────────────────────────────┐
+   │ Asistencia │ Calificar │ Plan de Evaluación │ Informes │ Alumnos │ Áreas y prof. │[Horario]│
+   │ ──────────────────────────────────────────────────────────────────────────────────── │
+   │ Horario [Publicado]                         [✎ Armar] [Publicar] [Horario en PDF]    │
+   │ 38 de 38 horas ubicadas · Turno de la mañana, de 7:10 a. m. a 1:00 p. m.             │
+   │ (la rejilla de ①, y «Armar» adentro: lo que se toca aquí vuelve aquí)                │
+   └──────────────────────────────────────────────────────────────────────────────────────┘
+   el profesor que dicta ahí: la misma rejilla, sin botones, y solo si está publicada
+   la ficha del alumno: [Horario] ──► esta pestaña, la de su sección
+```
+
+### ⑧ El PDF (decisión 27)
+
+```
+   [Horario en PDF] ──► otra pestaña, en el visor del navegador (imprimir y descargar los pone él)
+   ┌──────────────────────────────────────────────────────────────────────────────────────┐
+   │ [escudo] U.E. SIMÓN BOLÍVAR                                       HORARIO DE CLASES  │
+   │          Caracas, Distrito Capital · Código DEA OD00000000                2025-2026  │
+   │ ──────────────────────────────────────────────────────────────────────────────────── │
+   │ 1er Año A                                           Publicado el 22 de octubre de 2026│
+   │ Turno de la mañana, de 7:10 a. m. a 1:00 p. m. · 38 horas a la semana · guía Rojas   │
+   │                                                                                      │
+   │             LUNES          MARTES         MIÉRCOLES      JUEVES         VIERNES      │
+   │ 1ra  7:10   ┃Arte          ┃Informática   ┃Dibujo        ┃Orientación   ┃Matemática  │
+   │ 2da  7:50   ┃Colmenares    ┃Díaz          ┃Díaz          ┃Guzmán        ┃García      │
+   │ 3ra  8:30   ┃Matemática    ┃Grupos de C.  ┃…                                         │
+   │ 4ta  9:10   ┃García        ┃Colmenares    ┃                                          │
+   │ ─────────────────────────────── RECESO · 9:50 – 10:20 ───────────────────────────── │
+   │ 5ta 10:20   …                                                                        │
+   │                                                                                      │
+   │ ÁREAS Y PROFESORES                                                                   │
+   │ ┃Arte y Patrimonio · Colmenares, Luis · 2 h   ┃Castellano · Rojas, Ana · 4 h   ┃…    │
+   │ Impreso desde SIGA el 23 de octubre de 2026                                          │
+   └──────────────────────────────────────────────────────────────────────────────────────┘
+   una hoja carta, acostada · el bloque de 80 minutos unido · el área, en una raya fina de su
+   color (poca tinta) · en borrador lo dice arriba y atravesado: no se confunde con el de la pared
+   el de un profesor: «García, Carlos · 20 horas», y en cada casilla la sección y el área
+```
+
 ### Cuando cambia el profesor — tanda 2
 
 ```
@@ -446,9 +497,6 @@ apaga. Con «reducir movimiento» no se mueve: quedan el color y el «?».
    8:30        ✓    ✓   ░░    ✓    ✓                    ⚠ 1er Año B: faltan 6 horas por ubicar
               ░░ no está: dicta en otro colegio         cada renglón lleva a donde se arregla
 ```
-
-El PDF —de una sección o de un profesor— es una hoja apaisada con el membrete
-del colegio.
 
 ### El automático — tanda 5, con su propio spec
 
@@ -557,8 +605,10 @@ saltándose la validación, y el turno de una sección es de su año.
       y con quién.
 - [ ] Alumnos busca por nombre o apellido, palabra por palabra y sin importar
       los acentos (`MOR-179`, `MOR-183`); su horario es el de su sección.
-- [ ] La pestaña «Horario» de la sección es la misma pantalla (decisión 29), y
-      la ficha del alumno lleva al horario de su sección.
+- [ ] La pestaña «Horario» de la sección —la última— es la misma pantalla
+      (decisión 29): armar desde ahí vuelve ahí. El profesor que dicta en la
+      sección la ve publicada y sin botones; Inicial no la tiene. La ficha del
+      alumno lleva al horario de su sección.
 - [ ] En el teléfono, cada semana se ve como un día, con los días arriba y el de
       hoy marcado. A 380 px nada se corre de lado.
 
@@ -577,6 +627,22 @@ saltándose la validación, y el turno de una sección es de su año.
       hora sale. Con la sección en borrador: «El horario de 1er Año B todavía no
       está publicado.»
 - [ ] El alumno ve el de su sección. Una familia en mora lo ve (decisión 12).
+
+**El PDF (decisión 27)**
+
+- [ ] «Horario en PDF» está en la cabecera de la semana de una sección —en las
+      dos puertas— y en la semana de un profesor. Se abre en otra pestaña, en el
+      visor del navegador.
+- [ ] Cabe en una hoja carta acostada y dice el colegio, el año escolar, el
+      turno y cada clase: el área y el profesor, o —en el de un profesor— la
+      sección y el área. Leído, no pesado.
+- [ ] El bloque de 80 minutos sale unido y el receso atravesado, como en la
+      pantalla.
+- [ ] En borrador lo dice arriba y atravesado: no se confunde con el que va a la
+      pared.
+- [ ] El profesor saca el de una sección suya solo si está publicado.
+- [ ] En gratis pide la suscripción (es un archivo); con la suscripción vencida,
+      sale.
 
 **Lo de siempre**
 
@@ -601,9 +667,6 @@ saltándose la validación, y el turno de una sección es de su año.
 - [ ] **Otro turno** (decisión 28): «Cambiar de turno» en la cabecera ofrece
       los del año y «+ Otro turno», con el generador de la tanda 1 y su «Así
       queda» en vivo. Una sección con clases no cambia (decisión 16).
-- [ ] **El PDF** (decisión 27) de una sección y el de un profesor caben en una
-      hoja apaisada y dicen el colegio, el año, el turno y cada clase — leídos,
-      no pesados. En gratis piden suscripción; vencido, se descargan.
 - [ ] Quien administra marca las horas en que un profesor no está. Esas casillas
       salen rayadas con «Herrera no está disponible a esa hora» y no se ubican.
 - [ ] Marcar «no disponible» sobre una hora que el profesor ya dicta no borra la
@@ -705,7 +768,10 @@ qué no caben las demás, no escribe nada sin confirmar, y pide suscripción.
                            1er Año B ▸ Armar: ubicar Inglés, Arte y Dibujo; tocar una rayada;
                            corregir una hora; subir y bajar una carga · Publicar
                            Áreas y profesores: cambiar a un profesor y leer el aviso
-             profesor      García: «Ahora · Después» y «Mi semana»
+                           Horario en PDF: el de 1er Año A, el de 1er Año B (borrador) y el de García
+                           Secciones ▸ 1er Año B ▸ Horario: armar desde la pestaña
+                           la ficha de un alumno ▸ [Horario]
+             profesor      García: «Ahora · Después» y «Mi semana» · la pestaña «Horario» de su sección
              representante el teléfono: un hijo con la sección publicada y otro en borrador
 ```
 
@@ -718,8 +784,11 @@ qué no caben las demás, no escribe nada sin confirmar, y pide suscripción.
 ```
    SE LEE                     EN EL CÓDIGO                          DÓNDE
    Horarios (las miradas)     HorariosController                    /horarios
-   la semana de una sección   la misma pantalla                     /horarios y la pestaña «Horario»
-                                                                    de la sección (decisión 29)
+   la semana de una sección   la misma pantalla: `MuestraElHorario` /horarios y la pestaña «Horario»
+                                                                    de la sección (decisión 29):
+                                                                    /secciones/:id/horario
+   el PDF                     HorarioPdf                            /secciones/:id/horario.pdf
+                                                                    /horarios.pdf?ver=profesores
    clase                      Lesson · lessons                      /secciones/:id/clases
    Turno                      BellSchedule · bell_schedules         sin pantalla propia (decisión 20)
    hora (1ra, 2da… Receso)    TimeSlot · time_slots                 se corrige desde la rejilla
@@ -802,7 +871,7 @@ PostgreSQL 15 o más: se cumple en los tres sitios.
 
 ```
    LA_ENTRADA             horarios · lessons · time_slots (corregir una hora) · la carga (− y +)
-                          (el PDF y el Excel, tanda 4, piden suscripción solos: son archivos)
+                          (el PDF —tanda 2— y el Excel —tanda 4— piden suscripción solos: son archivos)
    ya estaban ahí         sections · dashboards/profesor
    SOLO_CON_SUSCRIPCION   representante · dashboards/estudiante   (ya estaban)
    CON_SUSCRIPCION        el automático (tanda 5)
@@ -830,11 +899,12 @@ Una tanda, una rama, un PR. Se entrega una, se prueba, y sigue la próxima.
    0 · EL SPEC            congelado el 13 · revisado el 22 con la maqueta
    1 · TURNO Y CARGA      hecha el 14 y devuelta el 16: su modelo se queda, sus pantallas no
    2 · EL HORARIO         (antes 2 y 3) armarlo y verlo: la rejilla como puerta, las cuatro
-                          miradas, publicar, el profesor y la familia, la muestra armada
+                          miradas, publicar, el profesor y la familia, la muestra armada,
+                          la pestaña de la sección (29) y el PDF (27)
                           · lleva dentro la tanda 1 (decisión 26) · 1.22.0
    3 · —                  se juntó con la 2 (decisión 25)
-   4 · LA VIDA REAL       otro turno · el PDF · disponibilidad · diagnóstico · mover e
-                          intercambiar · copiar al año siguiente · publicar varias · Excel
+   4 · LA VIDA REAL       otro turno · disponibilidad · diagnóstico · mover e intercambiar
+                          · copiar al año siguiente · publicar varias · Excel
    5 · EL AUTOMÁTICO      «Completar lo que falta», con su propio spec
 ```
 
