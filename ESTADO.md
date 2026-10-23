@@ -239,12 +239,27 @@ hay fechas; si no, en el último con evaluaciones. En la muestra: 18 secciones,
   representantes) se salen de la pantalla, porque se vuelven desplazables recién
   a 600 px. No lo toqué: cambia cómo se ven todas las tablas a ese ancho.
 
-## 📐 Horarios — la tanda 2 hecha (1.22.0), esperando tu prueba (22 de octubre)
+## 📐 Horarios — la tanda 2, con la pestaña y el PDF (1.22.0), esperando tu prueba (23 de octubre)
 
 La tanda 1 —Turnos y Carga horaria, dos pantallas de configuración— **se
 devolvió** el 16 (*«eso no es el horario»*). El 20 se hizo una maqueta, el 22 la
 aprobaste con un pedido (que el mensaje resalte y brinque), el spec la recogió
 y se construyó la tanda 2 con la 3 adentro: el horario entero.
+
+El 23 contestaste las decisiones 26 a 29: la tanda 1 va en el mismo PR,
+«otro turno» espera a la tanda 4, *«la pestaña horario va a la sección»*… y el
+PDF, en esta tanda. Las dos cosas quedaron hechas ese día:
+
+```
+   Secciones ▸ 1er Año B ▸ [Horario]          la MISMA semana, con [Armar] adentro:
+                                               lo que se toca ahí, vuelve ahí
+   el profesor que dicta en la sección         la ve publicada, sin botones
+   la ficha del alumno ▸ [Horario]             la pestaña de su sección
+
+   [Horario en PDF] ──► otra pestaña: una hoja carta acostada con el membrete
+                        la de la sección (en las dos puertas) y la de un profesor
+                        en borrador lo dice arriba y atravesado
+```
 
 ```
    Académico ▸ Horarios        [Secciones] Profesores  Áreas  Alumnos
@@ -263,10 +278,15 @@ y se construyó la tanda 2 con la 3 adentro: el horario entero.
   semana»; la familia y el alumno en el teléfono (solo lo publicado; la familia
   en mora también lo ve). La muestra amanece con Media armada: 272 clases, 7
   secciones publicadas y 1er Año B en borrador con 6 horas por ubicar.
-- **Lo que verifiqué:** `bin/ci` en verde paso por paso sobre el código final:
-  tests 2.186 y 0 fallos, los de navegador 97 —con `/horarios` en el recorrido
-  del teléfono—, la siembra como la muestra y el humo con las cuatro rutas de
-  horarios. Y miré las capturas de cada pantalla, en computadora y teléfono.
+- **Lo que verifiqué:** `bin/ci` en verde de punta a punta el 23 (4 min 22 s):
+  tests 2.200 y 0 fallos, los de navegador 97 —con la pestaña «Horario» en el
+  recorrido del teléfono—, la siembra como la muestra y el humo, que ahora pide
+  también el PDF de un profesor. Los tests nuevos se probaron rompiendo lo que
+  cuidan. Miré las capturas de la pestaña (computadora, armando, profesor y
+  teléfono) y los tres PDF con Quick Look.
+  ⚠️ El humo entra con `desarrollador@siga.edu · 123123`: la base de desarrollo
+  se siembra con `db:seed:replant`, no como la muestra (allá el equipo de SIGA
+  lleva una clave al azar, y el humo falla).
   ⚠️ El humo entra con `desarrollador@siga.edu · 123123`: la base de desarrollo
   se siembra con `db:seed:replant`, no como la muestra (allá el equipo de SIGA
   lleva una clave al azar, y el humo falla).
@@ -283,12 +303,18 @@ y se construyó la tanda 2 con la 3 adentro: el horario entero.
    1 · Horarios: 1er Año A (publicado) · «Todas, un mismo día» · Profesores · Áreas
    2 · 1er Año B ▸ [Armar]: elegir Inglés, tocar un +; tocar una rayada (dice por qué)
    3 · con «Armar» abierto: tocar una hora de la izquierda y corregirla
-   4 · [Publicar] 1er Año B · y entrar como profesor.bolivar@mail.com («Ahora · Después»)
+   4 · [Horario en PDF]: el de 1er Año A, el de 1er Año B (borrador) y el de García
+   5 · Secciones ▸ 1er Año B ▸ pestaña «Horario»: armar desde ahí, sin salir de la sección
+   6 · [Publicar] 1er Año B · y entrar como profesor.bolivar@mail.com («Ahora · Después»
+       y la pestaña «Horario» de sus secciones)
 ```
 
-⚠️ **Ramas, sin subir:** `docs/spec-horarios` (el spec, revisado) y encima
-`feat/horarios` (la tanda 1 con la 2 adentro: decisión 26). Las dos ya están
-sobre `main` 1.21.0.
+⚠️ **Ramas, sin subir:** `docs/spec-horarios` (el spec, con las decisiones
+del 23) y encima `feat/horarios` (la tanda 1 con la 2 adentro: decisión 26). Las
+dos ya están sobre `main` 1.21.0.
+
+⚠️ **Falta antes de subir:** ni el manual (`docs/manual`) ni «Qué hace hoy»
+nombran los horarios. Son lo que se entrega (§ «Una única verdad»).
 
 ⚠️ **Trae dos migraciones**: la de la tanda 1, con la primera extensión del
 proyecto (`btree_gist`), y la de las clases, con dos `EXCLUDE` y una llave con
