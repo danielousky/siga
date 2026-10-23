@@ -2469,14 +2469,19 @@ a.mapa-marca:focus-visible { outline: 2px solid var(--brand-primary); outline-of
 .horario-lista-fila { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 10px; }
 .horario-lista-hora { display: flex; flex-direction: column; justify-content: center; font-size: 13px; font-variant-numeric: tabular-nums; }
 .horario-lista-hora span { color: var(--text-tertiary); font-size: 12px; }
-.horario-lista-celda > * { min-height: 50px; height: 100%; }
-.horario-lista-fila.doble .horario-lista-celda > * { min-height: 64px; }
+/* ⚠️ `:first-child`, la casilla: con `*` también se estiraba la pastilla
+   «Ahora», que vive al lado, y en clase se veía como una mancha azul. */
+.horario-lista-celda > :first-child { min-height: 50px; height: 100%; }
+.horario-lista-fila.doble .horario-lista-celda > :first-child { min-height: 64px; }
 .horario-lista-receso { padding: 6px; }
 /* La clase de AHORA, en el teléfono de la familia y del profesor. */
 .horario-lista-celda { position: relative; }
 /* En el teléfono hay renglones de sobra: el nombre del área se lee entero. */
 .horario-lista-celda .horario-clase b { white-space: normal; }
 .horario-lista-fila.ahora .horario-lista-celda > :first-child { box-shadow: 0 0 0 2px var(--brand-primary); }
+/* Lugar para la pastilla: un área larga —«Geografía, Historia y Ciudadanía»—
+   se partía por DEBAJO de ella. */
+.horario-lista-fila.ahora .horario-clase { padding-right: 76px; }
 .horario-ahora {
   position: absolute;
   top: 8px;
@@ -2716,9 +2721,11 @@ a.mapa-marca:focus-visible { outline: 2px solid var(--brand-primary); outline-of
 
 /* Quién dicta qué en la sección, y sus horas. */
 .horario-areas { margin-top: var(--space-lg); }
+/* ⚠️ `min(300px, 100%)`: dentro de la pestaña de la sección hay dos tarjetas
+   de por medio, y en el teléfono una columna de 300 px se salía de la suya. */
 .horario-areas-lista {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
   column-gap: var(--space-xl);
   margin: 10px 0 0;
   padding: 0;
@@ -2787,7 +2794,7 @@ a.mapa-marca:focus-visible { outline: 2px solid var(--brand-primary); outline-of
 .horario-matriz-vacia { display: block; height: 36px; border-radius: 5px; background: var(--surface-canvas); }
 
 /* El profesor, en su inicio: «Ahora» y «Después». */
-.horario-momentos { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-md); }
+.horario-momentos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: var(--space-md); }
 .horario-momento {
   display: flex;
   flex-direction: column;

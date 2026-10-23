@@ -29,10 +29,10 @@
   - if elegida
     .horario-carga
       %span= "#{elegida.materia.name}:"
-      = button_to "−", carga_horarios_path(seccion: @seccion.id, grade_subject_id: elegida.grade_subject.id, delta: -1),
+      = button_to "−", carga_horarios_path(seccion: @seccion.id, grade_subject_id: elegida.grade_subject.id, delta: -1, **desde_la_seccion),
                   method: :patch, class: "horario-cuadro", form_class: "horario-cuadro-form", "aria-label": "Una hora menos a la semana"
       %b= elegida.horas || 0
-      = button_to "+", carga_horarios_path(seccion: @seccion.id, grade_subject_id: elegida.grade_subject.id, delta: 1),
+      = button_to "+", carga_horarios_path(seccion: @seccion.id, grade_subject_id: elegida.grade_subject.id, delta: 1, **desde_la_seccion),
                   method: :patch, class: "horario-cuadro", form_class: "horario-cuadro-form", "aria-label": "Una hora más a la semana"
       %span= "horas a la semana en #{@seccion.grade.name} #{letras_del_grado(@seccion)}"
       - if elegida.propuesta

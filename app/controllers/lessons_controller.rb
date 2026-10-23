@@ -5,7 +5,12 @@
 # El porqué lo escribe `ArmadorDeLaSeccion`, y cada clase se guarda en su
 # SAVEPOINT: si dos llenan la misma casilla a la vez, la segunda lee un
 # mensaje y no un error 500.
+#
+# Vuelven por la puerta por donde se entró: «Horarios» o la pestaña «Horario»
+# de la sección (`MuestraElHorario#al_horario`).
 class LessonsController < ApplicationController
+  include MuestraElHorario
+
   el_nivel_no_aplica "el horario se arma sección por sección"
 
   before_action :solo_quien_arma
@@ -29,7 +34,7 @@ class LessonsController < ApplicationController
 
   def volver(mensaje)
     flash[:horario] = { "texto" => mensaje.texto, "tipo" => mensaje.tipo }
-    redirect_to horarios_path(seccion: @seccion.id, armar: 1, area: mensaje.area&.id)
+    redirect_to al_horario(@seccion.id, armar: 1, area: mensaje.area&.id)
   end
 
   def set_seccion
@@ -38,7 +43,7 @@ class LessonsController < ApplicationController
 
   # Decisión 16: un año que terminó queda en solo lectura.
   def el_anio_sigue_abierto
-    return unless @seccion.academic_period.situacion == :finalizado
+    return unless finalizado?(@seccion.academic_period)
 
     volver ArmadorDeLaSeccion::Mensaje.new(texto: "#{@seccion.academic_period.name} ya terminó: su horario se ve, y ya no se arma.",
                                            tipo: "aviso", area: nil)

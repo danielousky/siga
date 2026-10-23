@@ -1988,7 +1988,8 @@ estuvo caído).
 ### 16. Los horarios de clase (1.22.0)
 
 Spec: [`docs/specs/horarios.md`](docs/specs/horarios.md), congelado el 13 de
-octubre de 2026 y revisado el 22 con una maqueta. La tanda 1 —dos pantallas de
+octubre de 2026 y revisado el 22 con una maqueta; el 23 Daniel cerró las
+decisiones 26 a 29 y adelantó el PDF a esta tanda. La tanda 1 —dos pantallas de
 configuración, «Turnos» y «Carga horaria»— **se devolvió**. Daniel, el 16: *«eso
 no es el horario… la interfaz es CERO intuición»*. La lección manda en todo lo
 que siguió:
@@ -2003,8 +2004,12 @@ que siguió:
                          ├─ Profesores  la semana de uno · todos, un día («libre» = un hueco)
                          ├─ Áreas       quién la dicta, dónde y cuándo
                          └─ Alumnos     su horario es el de su sección
+   Secciones ▸ 1er Año A ▸ [Horario]   la MISMA semana, con «Armar» adentro (la última pestaña)
+   la ficha del alumno ▸ [Horario]      la pestaña de su sección
    [Armar] ──► «Por ubicar» ──► elegir el área ──► tocar la casilla ──► [Publicar]
-   el profesor: «Ahora · Después» y «Mi semana» · la familia y el alumno: en el teléfono
+   [Horario en PDF] ──► otra pestaña: hoja carta acostada, de la sección o del profesor
+   el profesor: «Ahora · Después», «Mi semana» y la pestaña de sus secciones, publicadas
+   la familia y el alumno: en el teléfono
 ```
 
 ```
@@ -2029,10 +2034,25 @@ que siguió:
   guardarlo (`TurnoDelAnio.de_la_foto`); nace con el POST de «Armar». Y la
   carga del plan oficial se MUESTRA sin guardarse (`CargaDeLaSeccion`) hasta que
   el colegio la toca.
-- ⚠️ **Armar vive en el `turbo_frame` «horario»**: todo lo de adentro vuelve a
-  `horarios_path`. El mensaje viaja en `flash[:horario]` —el `notice` de
-  siempre se dibuja FUERA del marco y no se vería— y brinca solo cuando viene
-  de tocar la rejilla.
+- ⚠️ **Armar vive en el `turbo_frame` «horario»**, y todo lo de adentro vuelve
+  a la PUERTA por donde se entró. El mensaje viaja en `flash[:horario]` —el
+  `notice` de siempre se dibuja FUERA del marco y no se vería— y brinca solo
+  cuando viene de tocar la rejilla.
+- ⚠️ **Dos puertas, una pantalla** (decisión 29): `/horarios` y la pestaña
+  `/secciones/:id/horario`. Las prepara `MuestraElHorario`, como `MuestraElPlan`
+  al plan. Desde la pestaña, los enlaces del marco salen de `ruta_del_horario`
+  y los formularios llevan `desde=seccion` (`desde_la_seccion`); los cinco
+  controladores que escriben vuelven con `al_horario`. Sin eso, ubicar una
+  clase desde la sección te sacaba a «Horarios», y Turbo pintaba en el marco la
+  otra puerta, con su selector de secciones adentro — sin un error en el log.
+- **El PDF** (decisión 27): `HorarioPdf` dibuja la MISMA `RejillaDeHorarios`
+  que la pantalla, en una hoja carta acostada. El de la sección sale de su
+  pestaña (`.pdf`) y el del profesor de `/horarios.pdf?ver=profesores`; la
+  pared de la suscripción los reconoce por el formato. Un borrador lo dice
+  arriba y atravesado. ⚠️ **`text_box` de Prawn NO lee `color:`** —lo descarta
+  sin avisar—: se pinta con el color de relleno (`con_color`). Y para mirarlo,
+  Quick Look (`qlmanage -t`): `pdftoppm` no encuentra Helvetica y dibuja la
+  negrita como normal.
 - ⚠️ **Cada clase se guarda en su `SAVEPOINT`** (`ArmadorDeLaSeccion`): un
   `EXCLUDE` violado aborta la transacción de la petición entera.
 - **`ArmarElHorario` arma varias secciones a la vez** coloreando las aristas de

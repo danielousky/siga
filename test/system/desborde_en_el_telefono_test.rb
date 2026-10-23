@@ -141,6 +141,11 @@ class DesbordeEnElTelefonoTest < ApplicationSystemTestCase
     competencies_path horarios_path
   ].freeze
 
+  # Las que cuelgan de una sección, medidas con la del escenario. La pestaña
+  # «Horario» es la más estrecha de todas: la rejilla va con dos tarjetas de
+  # por medio.
+  PANTALLAS_DE_LA_SECCION = %i[horario_section_path].freeze
+
   test "ninguna pantalla se corre de lado en un teléfono" do
     a, _b = dos_colegios_completos
 
@@ -168,9 +173,10 @@ class DesbordeEnElTelefonoTest < ApplicationSystemTestCase
       assert_selector ".contexto-pastilla", text: GradoOficial.etiqueta(:primaria, corto: true)
     end
 
+    rutas = PANTALLAS.map { |helper| send(helper) } +
+            PANTALLAS_DE_LA_SECCION.map { |helper| send(helper, a.seccion) }
     culpables = ANCHOS.flat_map do |ancho|
-      PANTALLAS.filter_map do |helper|
-        ruta = send(helper)
+      rutas.filter_map do |ruta|
         sobra = desborde_en(ruta, ancho)
         "#{ruta} a #{ancho}px se pasa #{sobra}" if sobra.to_i > 0
       end

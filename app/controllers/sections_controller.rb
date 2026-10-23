@@ -1,8 +1,10 @@
 class SectionsController < ApplicationController
   include PreparaLaAsistencia
   include MuestraElPlan
+  include EntregaDocumentos
+  include MuestraElHorario
 
-  PESTANAS = [ :show, :alumnos, :alumno, :asistencia, :planificar, :areas ].freeze
+  PESTANAS = [ :show, :alumnos, :alumno, :asistencia, :planificar, :areas, :horario ].freeze
 
   before_action :require_admin_access!, except: PESTANAS
   before_action :require_read_access!, only: PESTANAS
@@ -76,6 +78,37 @@ class SectionsController < ApplicationController
   # sus compañeros— pero es una lista que no usa.
   def areas
     redirect_to alumnos_section_path(@section, area: params[:area]) unless can_manage_sections?
+  end
+
+  # La pestaña «Horario»: la semana de la sección, la MISMA de Académico ▸
+  # Horarios (spec `horarios`, decisión 29). Daniel, el 23 de octubre de 2026:
+  # *«la pestaña horario va a la sección»*.
+  #
+  # Quien administra la arma desde aquí, y lo que toca vuelve aquí
+  # (`MuestraElHorario`). El profesor que dicta en la sección la ve publicada y
+  # sin botones (decisión 13). Inicial no tiene horario (decisión 14).
+  #
+  # ⚠️ Con `.pdf`, la hoja para imprimir (decisión 27): lo que se ve. La pared
+  # de la suscripción la reconoce por el formato —`sections` es ENTRADA, pero
+  # un archivo es salida—, y con la suscripción vencida sale igual: es un GET.
+  def horario
+    if @section.grade.preescolar?
+      return redirect_to(alumnos_section_path(@section), alert: "Educación Inicial no lleva horario de clases.")
+    end
+
+    @en_la_seccion = true
+    @anio = @section.academic_period
+    preparar_el_dia_y_los_bloques
+    preparar_la_semana_de(@section, @anio, solo_publicada: !administrador?)
+
+    respond_to do |formato|
+      formato.html
+      formato.pdf do
+        next head(:not_found) unless @rejilla.visible? && @rejilla.carga.ubicadas.positive?
+
+        entregar_el_horario(HorarioPdf::DeLaSeccion.new(@rejilla, colegio: Current.school))
+      end
+    end
   end
 
   # La ficha del alumno COMO LA VE SU PROFESOR (etapa ③).

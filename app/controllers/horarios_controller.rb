@@ -17,7 +17,19 @@
 # Tocar una casilla, elegir un área o corregir una hora vuelve a ESTA pantalla
 # y Turbo cambia solo el marco «horario»: la página no salta arriba, y el
 # mensaje —que viene en `flash[:horario]`— brinca al llegar (decisión 24).
+#
+# La semana de una sección es la misma que la de la pestaña «Horario» de la
+# sección (decisión 29): las dos la preparan con `MuestraElHorario`.
+#
+# ## El PDF (decisión 27)
+#
+# El de un profesor sale de aquí, con `.pdf`: es lo que se está viendo. El de
+# una sección sale de su pestaña (`/secciones/:id/horario.pdf`), y las dos
+# puertas lo enlazan ahí.
 class HorariosController < ApplicationController
+  include EntregaDocumentos
+  include MuestraElHorario
+
   el_nivel_no_aplica "el horario se mira sección por sección, de cualquier nivel"
 
   VISTAS = %w[secciones profesores areas alumnos].freeze
@@ -34,12 +46,15 @@ class HorariosController < ApplicationController
   def index
     @ver = params[:ver].presence_in(VISTAS) || "secciones"
     @por_dia = params[:vista] == "dia"
-    @dia = (params[:dia].presence || HoraDeVenezuela.dia_de_clases).to_i.clamp(1, Lesson::DIAS.size)
     @turno = TurnoDelAnio.de(@anio) || TurnoDelAnio.de_la_foto(@anio)
-    session[:horario_en_bloques] = params[:bloques] == "1" if params.key?(:bloques)
-    @en_bloques = session.fetch(:horario_en_bloques, true)
+    preparar_el_dia_y_los_bloques
 
     send("ver_#{@ver}")
+
+    respond_to do |formato|
+      formato.html
+      formato.pdf { el_pdf_del_profesor }
+    end
   end
 
   # El turno nace aquí, con la primera escritura (decisión 20).
@@ -47,7 +62,7 @@ class HorariosController < ApplicationController
     seccion = secciones.find(params[:seccion])
     TurnoDelAnio.asegurar!(@anio)
     pendiente = CargaDeLaSeccion.new(seccion.reload).primera_pendiente
-    redirect_to horarios_path(seccion: seccion.id, armar: 1, area: pendiente&.materia&.id)
+    redirect_to al_horario(seccion.id, armar: 1, area: pendiente&.materia&.id)
   end
 
   def publicar
@@ -57,7 +72,7 @@ class HorariosController < ApplicationController
                  message: "#{current_user.nombre_completo} publicó el horario de #{nombre_de(seccion)}")
     flash[:horario] = { "tipo" => "ok",
                         "texto" => "#{nombre_de(seccion)} quedó publicado. Ya lo ven sus profesores, sus alumnos y las familias." }
-    redirect_to horarios_path(seccion: seccion.id)
+    redirect_to al_horario(seccion.id)
   end
 
   # El − y el + de «Por ubicar»: la carga del área para el grado entero
@@ -81,7 +96,7 @@ class HorariosController < ApplicationController
                           "texto" => "#{area.materia.name}: #{area.grade_subject.weekly_hours} horas a la semana en " \
                                      "#{seccion.grade.name} #{hermanas.map(&:name).sort.to_sentence}." }
     end
-    redirect_to horarios_path(seccion: seccion.id, armar: 1, area: area.materia.id)
+    redirect_to al_horario(seccion.id, armar: 1, area: area.materia.id)
   end
 
   private
@@ -99,11 +114,7 @@ class HorariosController < ApplicationController
       return
     end
 
-    @armando = params[:armar] == "1" && can_manage_sections? && @seccion.bell_schedule.present? && !finalizado?(@anio)
-    @rejilla = RejillaDeHorarios::DeLaSeccion.new(@seccion, @seccion.bell_schedule || @turno,
-                                                  armando: @armando, elegida: params[:area], marcada: casilla_tocada)
-    @hora_editada = @rejilla.turno.time_slots.find { |hora| hora.id == params[:hora].to_i } if @armando
-    @mensaje = @armando ? mensaje_del_armador : mensaje_suelto
+    preparar_la_semana_de(@seccion, @anio)
   end
 
   def ver_profesores
@@ -168,50 +179,12 @@ class HorariosController < ApplicationController
     "No baja de #{tope}: #{nombre_de(llena)} ya tiene #{tope} horas de #{materia.name} ubicadas. Quite una primero."
   end
 
-  # «2-5»: el martes, la 6ta hora. Es la casilla rayada que se acaba de tocar.
-  def casilla_tocada
-    dia, numero = params[:porque].to_s.split("-").map(&:to_i)
-    [ dia, numero ] if dia&.between?(1, Lesson::DIAS.size) && numero
-  end
+  # La semana del profesor que se está viendo, impresa. Las otras miradas no
+  # tienen hoja: la de una sección sale de su pestaña.
+  def el_pdf_del_profesor
+    return head(:not_found) unless @ver == "profesores" && @profesor && !@por_dia
 
-  # Lo que dice la barra del armador. Brinca cuando viene de tocar la rejilla:
-  # de ubicar o quitar (`flash`) o de una casilla rayada (`porque`).
-  def mensaje_del_armador
-    if (flash_horario = flash[:horario])
-      return { texto: flash_horario["texto"], tipo: flash_horario["tipo"], brinca: true }
-    end
-
-    if (casilla = casilla_tocada)
-      celda = @rejilla.celda(*casilla)
-      if celda.tipo == :bloqueada
-        otra = celda.datos[:otra]
-        motivo = "#{ChoquesDeHorario.apellido_de(celda.datos[:profesor])} está en " \
-                 "#{ChoquesDeHorario.nombre_de(otra.section)} dando #{otra.subject.name}"
-        texto = ChoquesDeHorario.frase(dia: casilla.first, desde: @rejilla.horas[casilla.last].hora.starts_min, motivo:)
-        return { texto:, tipo: "aviso", brinca: true }
-      end
-    end
-
-    { texto: instruccion, tipo: "info", brinca: false }
-  end
-
-  # Fuera de «Armar», la barra aparece solo para contar algo que acaba de pasar
-  # —publicar—: el `notice` de siempre se dibuja fuera del marco y no se vería.
-  def mensaje_suelto
-    return unless (flash_horario = flash[:horario])
-
-    { texto: flash_horario["texto"], tipo: flash_horario["tipo"], brinca: true }
-  end
-
-  def instruccion
-    area = @rejilla.elegida
-    return "Elija un área de arriba y toque una casilla con +." if area.nil?
-    return "#{area.materia.name} todavía no tiene horas a la semana: súbalas con +." if area.sin_horas?
-    return "#{area.materia.name} ya tiene sus #{area.horas} horas. Para ponerle otra, súbale la carga con +." if area.completa?
-
-    profesor = area.profesor ? ChoquesDeHorario.apellido_de(area.profesor) : "sin profesor"
-    "#{area.materia.name} · #{profesor} · #{area.ubicadas} de #{area.horas} horas. Toque una casilla con +; " \
-      "las rayadas no se pueden, y al tocarlas se ve por qué."
+    entregar_el_horario(HorarioPdf::DelProfesor.new(@rejilla, profesor: @profesor, anio: @anio, colegio: Current.school))
   end
 
   # Decisión 16: un año que terminó queda en solo lectura. Su horario se ve tal
@@ -220,11 +193,8 @@ class HorariosController < ApplicationController
     return unless finalizado?(@anio)
 
     flash[:horario] = { "tipo" => "aviso", "texto" => "#{@anio.name} ya terminó: su horario se ve, y ya no se arma." }
-    redirect_to horarios_path(seccion: params[:seccion].presence)
+    redirect_to al_horario(params[:seccion].presence)
   end
-
-  def finalizado?(anio) = anio.situacion == :finalizado
-  helper_method :finalizado?
 
   def exigir_un_anio
     @anio = anio_de_trabajo

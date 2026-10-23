@@ -23,7 +23,7 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
-## 1.22.0 — 22 de octubre de 2026
+## 1.22.0 — 23 de octubre de 2026
 
 Los horarios de clase: armar el de cada sección sin que choquen los profesores
 ni las secciones, y que cada quien lo vea por su puerta.
@@ -44,6 +44,14 @@ ni las secciones, y que cada quien lo vea por su puerta.
 - **El mismo horario, por cuatro puertas**: por sección, por profesor —su
   semana, o todos un mismo día, donde se ven los huecos para cubrir una
   ausencia—, por área y por alumno.
+- **Cada sección tiene su pestaña «Horario»**, la última: la misma semana, y se
+  arma desde ahí sin salir de la sección. El profesor que dicta en ella la ve
+  cuando está publicada, y la ficha de cada alumno lleva al horario de su
+  sección.
+- **El horario sale en papel.** [Horario en PDF] abre en otra pestaña una hoja
+  carta acostada, con el membrete del colegio: la de la sección, para pegarla
+  en el salón, y la de cada profesor, con su semana. Una en borrador lo dice
+  atravesado, para que no se confunda con la definitiva.
 - **Se publica cuando está listo.** Hasta entonces es un borrador que solo ve
   la dirección. Publicado, lo ven el profesor en su inicio —con la clase de
   ahora y la que sigue—, la familia en el teléfono —también si está atrasada

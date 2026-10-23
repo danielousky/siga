@@ -5,6 +5,8 @@
 = form_with model: hora, url: bell_schedule_time_slot_path(turno, hora), class: "horario-editar-hora" do |f|
   = hidden_field_tag :seccion, @seccion.id
   = hidden_field_tag :area, params[:area]
+  - desde_la_seccion.each do |nombre, valor|
+    = hidden_field_tag nombre, valor
   %b= "Corregir #{hora.receso? ? 'el receso' : "la #{turno.nombre_de(hora)}"}"
   %label.horario-editar-hora-campo
     de

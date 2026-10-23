@@ -446,6 +446,15 @@ module MenuHelper
     if can_manage_sections?
       pestanas << [ "#{Vocabulario::AREAS_CORTAS} y profesores", areas_section_path(seccion, contexto), activa == :areas ]
     end
+
+    # ⚠️ El horario es de la sección entera, y la última pestaña (spec
+    # `horarios`, decisión 29): Daniel, el 23 de octubre de 2026, *«la pestaña
+    # horario va a la sección»*. La ve quien ve la sección —la dirección lo
+    # arma; el profesor lo mira publicado— salvo en Inicial, que no tiene
+    # horario (decisión 14).
+    unless seccion.grade.preescolar?
+      pestanas << [ "Horario", horario_section_path(seccion, contexto), activa == :horario ]
+    end
     pestanas
   end
 

@@ -569,6 +569,12 @@ Rails.application.routes.draw do
       # Alumnos»*. Es de la dirección: el profesor no la ve.
       get "areas"
 
+      # ⚠️ «Horario» es la pestaña de la sección y la MISMA pantalla que
+      # Académico ▸ Horarios (spec `horarios`, decisión 29): Daniel, el 23 de
+      # octubre de 2026, *«la pestaña horario va a la sección»*. Con `.pdf`, su
+      # hoja para imprimir.
+      get "horario"
+
       # ⚠️ La ficha del alumno DENTRO de la sección, y no `/alumnos/:id`.
       #
       # `StudentsController#show` es de la dirección: trae el boletín completo,
@@ -584,7 +590,7 @@ Rails.application.routes.draw do
 
     resources :teacher_sections, path: "profesores", only: [:create, :destroy]
     # Las clases del horario (spec `horarios`): se ubican y se quitan desde
-    # «Armar», en Académico ▸ Horarios.
+    # «Armar», en Académico ▸ Horarios o en la pestaña «Horario».
     resources :lessons, path: "clases", only: [ :create, :destroy ]
 
     # Los informes descriptivos del lapso (MOR-216). Cuelgan de la SECCIÓN

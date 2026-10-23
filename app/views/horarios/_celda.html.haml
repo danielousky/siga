@@ -14,7 +14,7 @@
     %b= clase.subject.name
     %small= clase.teacher ? apellido_del_profesor(clase.teacher) : "sin profesor"
     - if @armando
-      = button_to section_lesson_path(clase.section_id, clase), method: :delete, class: "horario-quitar",
+      = button_to section_lesson_path(clase.section_id, clase, **desde_la_seccion), method: :delete, class: "horario-quitar",
                   form_class: "horario-quitar-form", "aria-label": "Quitar #{clase.subject.name} #{cuando}" do
         ×
 - when :del_profesor
@@ -37,7 +37,7 @@
     %i.horario-por-que{ "aria-hidden": "true" } ?
 - when :libre
   - area = datos[:area]
-  = button_to section_lessons_path(@seccion), params: { subject_id: area.materia.id, dia: dia, time_slot_id: datos[:hora].id },
+  = button_to section_lessons_path(@seccion), params: { subject_id: area.materia.id, dia: dia, time_slot_id: datos[:hora].id, **desde_la_seccion },
               class: "horario-libre", form_class: "horario-libre-form", style: "--area: #{color_del_area(area.materia)}",
               "aria-label": "Ubicar #{area.materia.name} #{cuando}" do
     = "+ #{area.materia.name}"

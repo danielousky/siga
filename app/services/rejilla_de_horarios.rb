@@ -151,6 +151,9 @@ class RejillaDeHorarios
       @clases = por_casilla(clases)
     end
 
+    # Las de la semana: el PDF las cuenta por sección y área.
+    def clases = @clases.values
+
     private
 
     def calcular_celda(dia, numero)

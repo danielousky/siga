@@ -25,6 +25,11 @@
 
     .ficha-acciones
       = boton "Editar", edit_student_path(@student), icono: :editar, tono: :secondary
+      -# El horario de su sección (spec `horarios`, decisión 29): la pestaña
+      -# «Horario» de la sección, la semana que ven él y su familia.
+      - if @inscripcion && !@inscripcion.section.grade.preescolar?
+        = boton "Horario", horario_section_path(@inscripcion.section), icono: :horario, tono: :ver,
+                tooltip: "El horario de #{@inscripcion.section.grade.name} #{@inscripcion.section.name}, su sección"
       -# ⚠️ La constancia DE ESTE ALUMNO, y se descarga con el clic. Llevaba a
       -# «Documentos ▸ Constancias» con la sección puesta, donde había que volver
       -# a buscarlo entre treinta. Daniel, 13 de octubre de 2026: *«ese enlace

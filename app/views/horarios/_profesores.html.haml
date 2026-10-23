@@ -31,4 +31,10 @@
           - if clases.any?
             = "· #{clases.map { |c| c.subject.name }.uniq.sort.to_sentence}"
             = "· #{clases.map(&:section).uniq.sort_by { |s| [ s.grade.orden || 99, s.name ] }.map { |s| corto_de_la_seccion(s) }.join(', ')}"
+      -# Su semana en una hoja (decisión 27): lo que se ve, impreso.
+      - if clases.any?
+        .acciones-de-cabecera
+          = boton "Horario en PDF", horarios_path(ver: "profesores", profesor: @profesor.id, format: :pdf),
+                  icono: :ver, tono: :documento, target: "_blank", rel: "noopener",
+                  tooltip: "La hoja para imprimir: se abre en otra pestaña"
     = render "horarios/semana", rejilla: @rejilla

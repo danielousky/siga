@@ -28,13 +28,14 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
   test "el orden es el del ciclo, y las del guía solo aparecen para el guía" do
     visit section_path(@a.seccion, area: @area.id)
 
-    assert_equal [ "Calificar", "Plan de Evaluación", "Alumnos" ],
+    # «Horario» lo ve todo el que ve la sección (spec `horarios`, decisión 29).
+    assert_equal [ "Calificar", "Plan de Evaluación", "Alumnos", "Horario" ],
                  all(".pestana").map(&:text)
 
     con_el_colegio(@a.colegio) { @a.seccion.update!(leader_teacher: @a.registro_de_profesor) }
     visit section_path(@a.seccion, area: @area.id)
 
-    assert_equal [ "Asistencia", "Calificar", "Plan de Evaluación", "Informes", "Alumnos" ],
+    assert_equal [ "Asistencia", "Calificar", "Plan de Evaluación", "Informes", "Alumnos", "Horario" ],
                  all(".pestana").map(&:text)
   end
 
@@ -111,7 +112,9 @@ class PestanasDeLaSeccionTest < ApplicationSystemTestCase
       # que «Profesor guía» nunca coincide, aunque esté en el HTML.
       assert_selector ".detail-label", text: "PROFESOR GUÍA"
       assert_text @a.seccion.academic_period.name
-      assert_selector ".pestana", count: 3
+      # Calificar, Plan de Evaluación, Alumnos y Horario (spec `horarios`,
+      # decisión 29).
+      assert_selector ".pestana", count: 4
     end
   end
 

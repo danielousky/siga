@@ -13,6 +13,8 @@
 # entera—: sin el SAVEPOINT, el mensaje que viene después ya no se podría ni
 # escribir. Es la lección del doble clic de «pagar sin consola».
 class TimeSlotsController < ApplicationController
+  include MuestraElHorario
+
   el_nivel_no_aplica "un turno le sirve a secciones de cualquier nivel"
 
   before_action :require_admin_access!
@@ -40,8 +42,9 @@ class TimeSlotsController < ApplicationController
 
   def decir(tipo, texto) = flash[:horario] = { "tipo" => tipo, "texto" => texto }
 
+  # A la puerta por donde se entró: «Horarios» o la pestaña de la sección.
   def volver(**extra)
-    redirect_to horarios_path(seccion: params[:seccion].presence, armar: 1, area: params[:area].presence, **extra)
+    redirect_to al_horario(params[:seccion].presence, armar: 1, area: params[:area].presence, **extra)
   end
 
   def set_hora
