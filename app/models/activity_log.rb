@@ -112,6 +112,10 @@ class ActivityLog < ApplicationRecord
     "department_created"   => "Departamento creado",
     "department_updated"   => "Departamento actualizado",
     "department_destroyed" => "Departamento eliminado",
+    # Los horarios (spec `horarios`). Corregir una hora del timbre queda como
+    # «Turno editado»: lo que importa saber es quién tocó el timbre.
+    "bell_schedule_updated"   => "Turno editado",
+    "horario_publicado"       => "Horario publicado",
     "evaluation_moment_created"   => "Lapso creado",
     "evaluation_moment_updated"   => "Lapso actualizado",
     "evaluation_moment_destroyed" => "Lapso eliminado",

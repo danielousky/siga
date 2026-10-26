@@ -35,3 +35,7 @@
     = boton "Reportar un pago", new_pago_path(inscripcion: inscripcion&.id),
             icono: :agregar, tono: :guardar
     = boton "Ver mi tarjeta de pago", pagos_path, icono: :ver, tono: :ver
+
+-# El horario sí: la familia en mora lo ve (decisión 12 del spec `horarios`).
+- if @horario_del_hijo
+  = render "representante/horario_del_hijo", horario: @horario_del_hijo

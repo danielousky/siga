@@ -46,6 +46,10 @@ class RepresentanteController < ApplicationController
     @inscripcion = @hijo[:inscripcion]
     return if @inscripcion.nil?
 
+    # El horario va ANTES del corte: la familia en mora también lo ve
+    # (decisión 12 del spec `horarios`).
+    @horario_del_hijo = horario_del_hijo(@inscripcion)
+
     # ⚠️ Acá viven las TRES cosas que Daniel mandó bloquear —las notas, la
     # asistencia y los boletines— así que el corte va en una sola puerta.
     #
@@ -80,6 +84,24 @@ class RepresentanteController < ApplicationController
   end
 
   private
+
+  # El horario de la sección del hijo, si el colegio lo arma: solo el
+  # publicado (decisión 13). Sin turno, el portal no habla de horarios.
+  def horario_del_hijo(inscripcion)
+    seccion = inscripcion.section
+    return unless seccion.bell_schedule
+    # Sin clases, el colegio no arma el horario de esa sección: un «todavía no
+    # está publicado» hablaría de algo que no existe.
+    return unless seccion.timetable_published_at || Lesson.where(section: seccion).exists?
+
+    @dia = (params[:dia].presence || HoraDeVenezuela.dia_de_clases).to_i.clamp(1, Lesson::DIAS.size)
+    nombre = "#{seccion.grade.name} #{seccion.name}"
+    return { seccion: nombre } unless seccion.timetable_published_at
+
+    alumno = @hijo[:student]
+    { seccion: nombre, rejilla: RejillaDeHorarios::DeLaSeccion.new(seccion, seccion.bell_schedule, solo_publicada: true),
+      ruta_del_dia: ->(dia) { hijo_representante_path(alumno, dia: dia) } }
+  end
 
   def hijos_con_datos
     @hijos_con_datos ||= @representante.students.includes(:user).map do |alumno|

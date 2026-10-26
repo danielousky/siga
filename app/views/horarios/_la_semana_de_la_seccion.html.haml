@@ -1,0 +1,44 @@
+-# La semana de UNA sección, con «Armar» adentro (decisiones 19 a 24). Es la
+-# pantalla con dos puertas (decisión 29): Académico ▸ Horarios y la pestaña
+-# «Horario» de la sección. Cada una la dibuja dentro de su marco «horario», y
+-# todo lo que hay aquí vuelve a la puerta por donde se entró
+-# (`ruta_del_horario`, `desde_la_seccion`).
+-#
+-# «Horario en PDF» abre la hoja en otra pestaña (decisión 27): lo que se ve,
+-# impreso. Sale de la pestaña de la sección, también desde «Horarios».
+- titulo = local_assigns[:titulo] || nombre_de_la_seccion(@seccion)
+- carga = @rejilla.carga
+.horario-cabeza
+  %div
+    %h2.horario-titulo
+      = titulo
+      - if @seccion.timetable_published_at
+        %span.estado.estado--al-dia Publicado
+      - else
+        %span.estado.estado--inactivo Borrador
+      - if carga.faltan.positive?
+        %span.estado.estado--atencion= "faltan #{carga.faltan} h"
+    %p.dato-secundario
+      = "#{carga.ubicadas} de #{carga.total} horas ubicadas"
+      = "· #{resumen_corto_del_turno(@rejilla.turno)}"
+  .acciones-de-cabecera
+    - if can_manage_sections? && !finalizado?(@seccion.academic_period)
+      - if @armando
+        = boton "Listo", ruta_del_horario(armar: nil, area: nil), icono: :ok, tono: :secondary
+      - else
+        = button_to armar_horarios_path(seccion: @seccion.id, **desde_la_seccion), class: "btn btn-guardar" do
+          = icono(:editar, tamano: 16)
+          Armar
+      - unless @seccion.timetable_published_at
+        = button_to "Publicar", publicar_horarios_path(seccion: @seccion.id, **desde_la_seccion), method: :patch,
+                    class: "btn btn-accion", form: { data: { turbo_confirm: confirmacion_de_publicar(@seccion, carga) } }
+    - if carga.ubicadas.positive?
+      = boton "Horario en PDF", horario_section_path(@seccion, format: :pdf), icono: :ver, tono: :documento,
+              target: "_blank", rel: "noopener", tooltip: "La hoja para imprimir: se abre en otra pestaña"
+- if @armando
+  = render "horarios/armar"
+- if @mensaje
+  = render "horarios/mensaje", mensaje: @mensaje
+= render "horarios/semana", rejilla: @rejilla
+- unless @armando
+  = render "horarios/areas_y_profesores", carga: carga

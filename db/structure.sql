@@ -10,6 +10,13 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: btree_gist; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS btree_gist WITH SCHEMA public;
+
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -405,6 +412,41 @@ ALTER SEQUENCE public.attendances_id_seq OWNED BY public.attendances.id;
 
 
 --
+-- Name: bell_schedules; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bell_schedules (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    academic_period_id bigint NOT NULL,
+    name character varying NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+ALTER TABLE ONLY public.bell_schedules FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: bell_schedules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.bell_schedules_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: bell_schedules_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.bell_schedules_id_seq OWNED BY public.bell_schedules.id;
+
+
+--
 -- Name: charges; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -797,7 +839,9 @@ CREATE TABLE public.grade_subjects (
     subject_id bigint NOT NULL,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    school_id bigint NOT NULL
+    school_id bigint NOT NULL,
+    weekly_hours integer,
+    CONSTRAINT grade_subjects_horas_validas CHECK (((weekly_hours IS NULL) OR ((weekly_hours >= 1) AND (weekly_hours <= 60))))
 );
 
 ALTER TABLE ONLY public.grade_subjects FORCE ROW LEVEL SECURITY;
@@ -977,6 +1021,49 @@ CREATE SEQUENCE public.informes_id_seq
 --
 
 ALTER SEQUENCE public.informes_id_seq OWNED BY public.informes.id;
+
+
+--
+-- Name: lessons; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.lessons (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    academic_period_id bigint NOT NULL,
+    section_id bigint NOT NULL,
+    subject_id bigint NOT NULL,
+    teacher_id bigint,
+    time_slot_id bigint NOT NULL,
+    day integer NOT NULL,
+    starts_min integer NOT NULL,
+    ends_min integer NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    CONSTRAINT lessons_dia_valido CHECK (((day >= 1) AND (day <= 5))),
+    CONSTRAINT lessons_minutos_validos CHECK (((starts_min >= 0) AND (starts_min < ends_min) AND (ends_min <= 1440)))
+);
+
+ALTER TABLE ONLY public.lessons FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: lessons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.lessons_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: lessons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.lessons_id_seq OWNED BY public.lessons.id;
 
 
 --
@@ -1433,7 +1520,9 @@ CREATE TABLE public.sections (
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
     school_id bigint NOT NULL,
-    leader_teacher_id bigint
+    leader_teacher_id bigint,
+    bell_schedule_id bigint,
+    timetable_published_at timestamp(6) without time zone
 );
 
 ALTER TABLE ONLY public.sections FORCE ROW LEVEL SECURITY;
@@ -2083,8 +2172,8 @@ CREATE TABLE public.subscription_payments (
     cubre_hasta date,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    CONSTRAINT subscription_payments_estado_valido CHECK (((estado)::text = ANY ((ARRAY['en_revision'::character varying, 'validado'::character varying, 'rechazado'::character varying])::text[]))),
-    CONSTRAINT subscription_payments_medio_valido CHECK (((medio)::text = ANY ((ARRAY['pago_movil'::character varying, 'binance'::character varying, 'paypal'::character varying, 'efectivo'::character varying])::text[]))),
+    CONSTRAINT subscription_payments_estado_valido CHECK (((estado)::text = ANY (ARRAY[('en_revision'::character varying)::text, ('validado'::character varying)::text, ('rechazado'::character varying)::text]))),
+    CONSTRAINT subscription_payments_medio_valido CHECK (((medio)::text = ANY (ARRAY[('pago_movil'::character varying)::text, ('binance'::character varying)::text, ('paypal'::character varying)::text, ('efectivo'::character varying)::text]))),
     CONSTRAINT subscription_payments_monto_positivo CHECK ((monto > (0)::numeric))
 );
 
@@ -2248,6 +2337,45 @@ ALTER SEQUENCE public.teachers_user_id_seq OWNED BY public.teachers.user_id;
 
 
 --
+-- Name: time_slots; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.time_slots (
+    id bigint NOT NULL,
+    school_id bigint NOT NULL,
+    bell_schedule_id bigint NOT NULL,
+    starts_min integer NOT NULL,
+    ends_min integer NOT NULL,
+    kind integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL,
+    CONSTRAINT time_slots_kind_valido CHECK ((kind = ANY (ARRAY[0, 1]))),
+    CONSTRAINT time_slots_minutos_validos CHECK (((starts_min >= 0) AND (starts_min < ends_min) AND (ends_min <= 1440)))
+);
+
+ALTER TABLE ONLY public.time_slots FORCE ROW LEVEL SECURITY;
+
+
+--
+-- Name: time_slots_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.time_slots_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: time_slots_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.time_slots_id_seq OWNED BY public.time_slots.id;
+
+
+--
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2373,6 +2501,13 @@ ALTER TABLE ONLY public.attendances ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
+-- Name: bell_schedules id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bell_schedules ALTER COLUMN id SET DEFAULT nextval('public.bell_schedules_id_seq'::regclass);
+
+
+--
 -- Name: charges id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2475,6 +2610,13 @@ ALTER TABLE ONLY public.indicators ALTER COLUMN id SET DEFAULT nextval('public.i
 --
 
 ALTER TABLE ONLY public.informes ALTER COLUMN id SET DEFAULT nextval('public.informes_id_seq'::regclass);
+
+
+--
+-- Name: lessons id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lessons ALTER COLUMN id SET DEFAULT nextval('public.lessons_id_seq'::regclass);
 
 
 --
@@ -2723,6 +2865,13 @@ ALTER TABLE ONLY public.teachers ALTER COLUMN id SET DEFAULT nextval('public.tea
 
 
 --
+-- Name: time_slots id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.time_slots ALTER COLUMN id SET DEFAULT nextval('public.time_slots_id_seq'::regclass);
+
+
+--
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -2815,6 +2964,14 @@ ALTER TABLE ONLY public.ar_internal_metadata
 
 ALTER TABLE ONLY public.attendances
     ADD CONSTRAINT attendances_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: bell_schedules bell_schedules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bell_schedules
+    ADD CONSTRAINT bell_schedules_pkey PRIMARY KEY (id);
 
 
 --
@@ -2935,6 +3092,30 @@ ALTER TABLE ONLY public.indicators
 
 ALTER TABLE ONLY public.informes
     ADD CONSTRAINT informes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lessons lessons_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lessons
+    ADD CONSTRAINT lessons_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lessons lessons_un_profesor_en_un_sitio; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lessons
+    ADD CONSTRAINT lessons_un_profesor_en_un_sitio EXCLUDE USING gist (teacher_id WITH =, academic_period_id WITH =, day WITH =, int4range(starts_min, ends_min) WITH &&) DEFERRABLE;
+
+
+--
+-- Name: lessons lessons_una_clase_a_la_vez; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lessons
+    ADD CONSTRAINT lessons_una_clase_a_la_vez EXCLUDE USING gist (section_id WITH =, day WITH =, int4range(starts_min, ends_min) WITH &&) DEFERRABLE;
 
 
 --
@@ -3210,6 +3391,22 @@ ALTER TABLE ONLY public.teachers
 
 
 --
+-- Name: time_slots time_slots_no_se_pisan; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.time_slots
+    ADD CONSTRAINT time_slots_no_se_pisan EXCLUDE USING gist (bell_schedule_id WITH =, int4range(starts_min, ends_min) WITH &&) DEFERRABLE;
+
+
+--
+-- Name: time_slots time_slots_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.time_slots
+    ADD CONSTRAINT time_slots_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3397,6 +3594,27 @@ CREATE INDEX index_attendances_on_school_id ON public.attendances USING btree (s
 --
 
 CREATE INDEX index_attendances_on_school_id_and_date ON public.attendances USING btree (school_id, date);
+
+
+--
+-- Name: index_bell_schedules_on_academic_period_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bell_schedules_on_academic_period_id ON public.bell_schedules USING btree (academic_period_id);
+
+
+--
+-- Name: index_bell_schedules_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_bell_schedules_on_school_id ON public.bell_schedules USING btree (school_id);
+
+
+--
+-- Name: index_bell_schedules_sin_repetir; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_bell_schedules_sin_repetir ON public.bell_schedules USING btree (academic_period_id, name);
 
 
 --
@@ -3848,6 +4066,48 @@ CREATE UNIQUE INDEX index_informes_uno_por_alumno_y_lapso ON public.informes USI
 
 
 --
+-- Name: index_lessons_on_academic_period_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lessons_on_academic_period_id ON public.lessons USING btree (academic_period_id);
+
+
+--
+-- Name: index_lessons_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lessons_on_school_id ON public.lessons USING btree (school_id);
+
+
+--
+-- Name: index_lessons_on_section_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lessons_on_section_id ON public.lessons USING btree (section_id);
+
+
+--
+-- Name: index_lessons_on_subject_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lessons_on_subject_id ON public.lessons USING btree (subject_id);
+
+
+--
+-- Name: index_lessons_on_teacher_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lessons_on_teacher_id ON public.lessons USING btree (teacher_id);
+
+
+--
+-- Name: index_lessons_on_time_slot_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_lessons_on_time_slot_id ON public.lessons USING btree (time_slot_id);
+
+
+--
 -- Name: index_mensaje_eventos_on_mensaje_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4163,10 +4423,24 @@ CREATE UNIQUE INDEX index_section_closures_sin_repetir ON public.section_closure
 
 
 --
+-- Name: index_sections_con_su_anio; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_sections_con_su_anio ON public.sections USING btree (id, academic_period_id);
+
+
+--
 -- Name: index_sections_on_academic_period_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_sections_on_academic_period_id ON public.sections USING btree (academic_period_id);
+
+
+--
+-- Name: index_sections_on_bell_schedule_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_sections_on_bell_schedule_id ON public.sections USING btree (bell_schedule_id);
 
 
 --
@@ -4541,6 +4815,13 @@ CREATE INDEX index_subscriptions_on_status_and_vigente_hasta ON public.subscript
 
 
 --
+-- Name: index_teacher_sections_con_su_profesor; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_teacher_sections_con_su_profesor ON public.teacher_sections USING btree (section_id, subject_id, teacher_id);
+
+
+--
 -- Name: index_teacher_sections_on_school_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4580,6 +4861,27 @@ CREATE INDEX index_teachers_on_school_id ON public.teachers USING btree (school_
 --
 
 CREATE UNIQUE INDEX index_teachers_on_user_id_and_school_id ON public.teachers USING btree (user_id, school_id);
+
+
+--
+-- Name: index_time_slots_con_sus_minutos; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_time_slots_con_sus_minutos ON public.time_slots USING btree (id, starts_min, ends_min);
+
+
+--
+-- Name: index_time_slots_on_bell_schedule_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_time_slots_on_bell_schedule_id ON public.time_slots USING btree (bell_schedule_id);
+
+
+--
+-- Name: index_time_slots_on_school_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_time_slots_on_school_id ON public.time_slots USING btree (school_id);
 
 
 --
@@ -4639,6 +4941,14 @@ ALTER TABLE ONLY public.constancias
 
 ALTER TABLE ONLY public.student_representatives
     ADD CONSTRAINT fk_rails_08e2b9969f FOREIGN KEY (student_id) REFERENCES public.students(id);
+
+
+--
+-- Name: lessons fk_rails_09010f5a34; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lessons
+    ADD CONSTRAINT fk_rails_09010f5a34 FOREIGN KEY (school_id) REFERENCES public.schools(id);
 
 
 --
@@ -4954,6 +5264,14 @@ ALTER TABLE ONLY public.grades
 
 
 --
+-- Name: bell_schedules fk_rails_552894d4d1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bell_schedules
+    ADD CONSTRAINT fk_rails_552894d4d1 FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
 -- Name: indicators fk_rails_56ebcb73df; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5031,6 +5349,14 @@ ALTER TABLE ONLY public.sections
 
 ALTER TABLE ONLY public.mensajes
     ADD CONSTRAINT fk_rails_622a2754de FOREIGN KEY (destinatario_id) REFERENCES public.users(id);
+
+
+--
+-- Name: time_slots fk_rails_6716261a5f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.time_slots
+    ADD CONSTRAINT fk_rails_6716261a5f FOREIGN KEY (bell_schedule_id) REFERENCES public.bell_schedules(id);
 
 
 --
@@ -5258,6 +5584,22 @@ ALTER TABLE ONLY public.teacher_sections
 
 
 --
+-- Name: sections fk_rails_a603244174; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.sections
+    ADD CONSTRAINT fk_rails_a603244174 FOREIGN KEY (bell_schedule_id) REFERENCES public.bell_schedules(id);
+
+
+--
+-- Name: time_slots fk_rails_a6d1da1204; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.time_slots
+    ADD CONSTRAINT fk_rails_a6d1da1204 FOREIGN KEY (school_id) REFERENCES public.schools(id);
+
+
+--
 -- Name: teachers fk_rails_a8c1458420; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5303,6 +5645,14 @@ ALTER TABLE ONLY public.attendances
 
 ALTER TABLE ONLY public.teacher_sections
     ADD CONSTRAINT fk_rails_b2b858bbcc FOREIGN KEY (teacher_id) REFERENCES public.teachers(id);
+
+
+--
+-- Name: bell_schedules fk_rails_b2dd5d1641; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bell_schedules
+    ADD CONSTRAINT fk_rails_b2dd5d1641 FOREIGN KEY (academic_period_id) REFERENCES public.academic_periods(id);
 
 
 --
@@ -5482,6 +5832,14 @@ ALTER TABLE ONLY public.subscription_payments
 
 
 --
+-- Name: lessons fk_rails_e10d30a687; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lessons
+    ADD CONSTRAINT fk_rails_e10d30a687 FOREIGN KEY (academic_period_id) REFERENCES public.academic_periods(id);
+
+
+--
 -- Name: moment_grades fk_rails_e3ac358938; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5543,6 +5901,46 @@ ALTER TABLE ONLY public.student_representatives
 
 ALTER TABLE ONLY public.evaluation_activities
     ADD CONSTRAINT fk_rails_f8b76eb396 FOREIGN KEY (evaluation_moment_id) REFERENCES public.evaluation_moments(id);
+
+
+--
+-- Name: lessons fk_rails_fb4dfef9a4; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lessons
+    ADD CONSTRAINT fk_rails_fb4dfef9a4 FOREIGN KEY (teacher_id) REFERENCES public.teachers(id);
+
+
+--
+-- Name: lessons fk_rails_ffc4753ede; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lessons
+    ADD CONSTRAINT fk_rails_ffc4753ede FOREIGN KEY (subject_id) REFERENCES public.subjects(id);
+
+
+--
+-- Name: lessons lessons_con_su_profesor; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lessons
+    ADD CONSTRAINT lessons_con_su_profesor FOREIGN KEY (section_id, subject_id, teacher_id) REFERENCES public.teacher_sections(section_id, subject_id, teacher_id) ON UPDATE CASCADE ON DELETE SET NULL (teacher_id);
+
+
+--
+-- Name: lessons lessons_de_su_seccion; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lessons
+    ADD CONSTRAINT lessons_de_su_seccion FOREIGN KEY (section_id, academic_period_id) REFERENCES public.sections(id, academic_period_id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: lessons lessons_en_su_hora; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.lessons
+    ADD CONSTRAINT lessons_en_su_hora FOREIGN KEY (time_slot_id, starts_min, ends_min) REFERENCES public.time_slots(id, starts_min, ends_min) ON UPDATE CASCADE ON DELETE RESTRICT;
 
 
 --
@@ -5615,6 +6013,13 @@ CREATE POLICY aislamiento_por_colegio ON public.admins USING (((current_setting(
 --
 
 CREATE POLICY aislamiento_por_colegio ON public.attendances USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
+-- Name: bell_schedules aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.bell_schedules USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
 
 
 --
@@ -5713,6 +6118,13 @@ CREATE POLICY aislamiento_por_colegio ON public.indicators USING (((current_sett
 --
 
 CREATE POLICY aislamiento_por_colegio ON public.informes USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
+-- Name: lessons aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.lessons USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
 
 
 --
@@ -5835,10 +6247,23 @@ CREATE POLICY aislamiento_por_colegio ON public.teachers USING (((current_settin
 
 
 --
+-- Name: time_slots aislamiento_por_colegio; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY aislamiento_por_colegio ON public.time_slots USING (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint)))) WITH CHECK (((current_setting('siga.bypass_rls'::text, true) = 'on'::text) OR (NOT (school_id IS DISTINCT FROM (NULLIF(current_setting('siga.school_id'::text, true), ''::text))::bigint))));
+
+
+--
 -- Name: attendances; Type: ROW SECURITY; Schema: public; Owner: -
 --
 
 ALTER TABLE public.attendances ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: bell_schedules; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.bell_schedules ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: charges; Type: ROW SECURITY; Schema: public; Owner: -
@@ -5923,6 +6348,12 @@ ALTER TABLE public.indicators ENABLE ROW LEVEL SECURITY;
 --
 
 ALTER TABLE public.informes ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: lessons; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: mensaje_eventos; Type: ROW SECURITY; Schema: public; Owner: -
@@ -6027,12 +6458,20 @@ ALTER TABLE public.teacher_sections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
 
 --
+-- Name: time_slots; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.time_slots ENABLE ROW LEVEL SECURITY;
+
+--
 -- PostgreSQL database dump complete
 --
 
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261022180000'),
+('20261013233000'),
 ('20261013010000'),
 ('20261012230000'),
 ('20261012190000'),

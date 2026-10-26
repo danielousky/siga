@@ -1,0 +1,13 @@
+-# Quién dicta qué en la sección, y cuántas horas lleva cada área: es de
+-# donde salen las casillas.
+.horario-areas
+  %h3.horario-armar-titulo= "Áreas y profesores de #{nombre_de_la_seccion(@seccion)}"
+  %ul.horario-areas-lista
+    - carga.areas.each do |area|
+      %li{ style: "--area: #{color_del_area(area.materia)}" }
+        %i.horario-ficha-punto
+        %span.horario-areas-nombre
+          %b= area.materia.name
+          %span= area.profesor ? area.profesor.user.apellidos_y_nombres : "sin profesor"
+        %span{ class: class_names("horario-areas-horas", incompleta: !area.sin_horas? && !area.completa?) }
+          = area.sin_horas? ? "sin horas" : "#{area.ubicadas} de #{area.horas} h"

@@ -1,0 +1,12 @@
+-# «Todas, un mismo día»: las secciones del año, hora por hora. Es la misma
+-# tabla de clases que la semana de cada sección, puesta de lado.
+.card-academic
+  .horario-cabeza
+    %div
+      %h2.horario-titulo= "#{Lesson::DIAS[@dia - 1]}, todas las secciones"
+      %p.dato-secundario Toque una sección para ver su semana.
+    = render "horarios/dias", dia_elegido: @dia
+  = render "horarios/matriz", matriz: @matriz, rotulo: "Sección",
+           vacia: tag.span(class: "horario-matriz-vacia"),
+           cabeza: ->(renglon) { link_to(ruta_del_horario(vista: nil, seccion: renglon.de.id), class: "horario-matriz-fila") { safe_join([ tag.b(nombre_de_la_seccion(renglon.de)), tag.span(renglon.de.timetable_published_at ? "publicado" : "borrador") ]) } },
+           casilla: ->(clase) { tag.span(class: "horario-matriz-clase", style: "--area: #{color_del_area(clase.subject)}") { safe_join([ tag.b(clase.subject.name), tag.small(clase.teacher ? apellido_del_profesor(clase.teacher) : "sin profesor") ]) } }

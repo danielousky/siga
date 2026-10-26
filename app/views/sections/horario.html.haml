@@ -1,0 +1,20 @@
+-# HORARIO: la semana de la sección, la MISMA de Académico ▸ Horarios (spec
+-# `horarios`, decisión 29). Daniel, el 23 de octubre de 2026: *«la pestaña
+-# horario va a la sección»*.
+-#
+-# ⚠️ El marco «horario» va dentro de la pestaña, y lo que se toca en él vuelve
+-# AQUÍ (`ruta_del_horario`, `desde_la_seccion`): armar desde la sección no
+-# saca de la sección.
+-#
+-# El profesor que dicta aquí la ve publicada y sin botones (decisión 13).
+= render layout: "sections/marco",
+         locals: { seccion: @section, area: area_de_la_pestana, area_en_el_titulo: false, activa: :horario,
+                   inscritos: @enrollments.size } do
+  = turbo_frame_tag "horario", data: { turbo_action: "advance" } do
+    .card-academic
+      - if @rejilla.visible?
+        = render "horarios/la_semana_de_la_seccion", titulo: "Horario"
+      - else
+        .empty-state
+          %h3 Todavía sin publicar
+          %p= "El horario de #{nombre_de_la_seccion(@section)} lo está armando la dirección. Aparece aquí cuando lo publique."

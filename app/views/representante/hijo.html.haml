@@ -218,3 +218,6 @@
             = boton "Ver", boletin_path(boletin), icono: :ver, tono: :documento,
                     sm: true, target: "_blank", rel: "noopener",
                     tooltip: "Abrir el #{boletin.titulo} en PDF"
+
+  - if @horario_del_hijo
+    = render "representante/horario_del_hijo", horario: @horario_del_hijo

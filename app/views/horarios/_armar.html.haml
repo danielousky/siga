@@ -1,0 +1,39 @@
+-# «Por ubicar» (decisiones 21 y 23): cada área de la sección con su profesor y
+-# «ubicadas de carga». La carga horaria vive aquí: el − y el + cambian el
+-# grado entero, y el plan oficial ya viene propuesto donde está vacía.
+- carga = @rejilla.carga
+- elegida = @rejilla.elegida
+- semana = @rejilla.turno.horas_a_la_semana
+.horario-armar
+  .horario-armar-cabeza
+    %h3.horario-armar-titulo= "Por ubicar · faltan #{carga.faltan} horas"
+    = link_to ruta_del_horario(bloques: (@en_bloques ? 0 : 1)), class: "horario-interruptor",
+              role: "switch", "aria-checked": @en_bloques.to_s do
+      %span.horario-interruptor-riel
+      En bloques de 2 horas (80 min)
+  - if carga.total > semana
+    %p.horario-sobran
+      = "La carga de #{@seccion.grade.name} suma #{carga.total} horas y la semana tiene #{semana}:"
+      %strong= "sobran #{carga.total - semana}."
+  .horario-bandeja
+    - carga.areas.each do |area|
+      - es_la_elegida = elegida == area
+      = link_to ruta_del_horario(area: (area.materia.id unless es_la_elegida)),
+                class: class_names("horario-ficha", completa: area.completa?), "aria-pressed": es_la_elegida.to_s,
+                style: "--area: #{color_del_area(area.materia)}" do
+        %i.horario-ficha-punto
+        %span.horario-ficha-texto
+          %b= area.materia.name
+          %small= area.profesor ? apellido_del_profesor(area.profesor) : "sin profesor"
+        %span.horario-ficha-cuenta= area.sin_horas? ? "sin horas" : "#{area.ubicadas} de #{area.horas}"
+  - if elegida
+    .horario-carga
+      %span= "#{elegida.materia.name}:"
+      = button_to "−", carga_horarios_path(seccion: @seccion.id, grade_subject_id: elegida.grade_subject.id, delta: -1, **desde_la_seccion),
+                  method: :patch, class: "horario-cuadro", form_class: "horario-cuadro-form", "aria-label": "Una hora menos a la semana"
+      %b= elegida.horas || 0
+      = button_to "+", carga_horarios_path(seccion: @seccion.id, grade_subject_id: elegida.grade_subject.id, delta: 1, **desde_la_seccion),
+                  method: :patch, class: "horario-cuadro", form_class: "horario-cuadro-form", "aria-label": "Una hora más a la semana"
+      %span= "horas a la semana en #{@seccion.grade.name} #{letras_del_grado(@seccion)}"
+      - if elegida.propuesta
+        %span.horario-propuesta la del plan oficial

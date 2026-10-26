@@ -1,0 +1,18 @@
+-# Académico ▸ Horarios (spec `horarios`, decisiones 19 a 24).
+-#
+-# La puerta es la semana de UNA sección —la hoja de la foto—, y las otras
+-# pestañas son la misma tabla de clases leída por profesor, por área o por
+-# alumno. Por eso dicen siempre lo mismo.
+.card-academic
+  = render "shared/cabecera", titulo: "Horarios", detalle: @anio.name
+  = render "shared/pestanas", pestanas: pestanas_de_horarios(activa: @ver), etiqueta: "Ver el horario por"
+  - if @ver == "secciones"
+    = render "horarios/segmento", etiqueta: "Cómo ver las secciones",
+             opciones: [ [ "La semana de una sección", ruta_del_horario(vista: nil, armar: nil, area: nil), !@por_dia ],
+                         [ "Todas, un mismo día", ruta_del_horario(vista: "dia", armar: nil, area: nil), @por_dia ] ]
+  - elsif @ver == "profesores"
+    = render "horarios/segmento", etiqueta: "Cómo ver los profesores",
+             opciones: [ [ "La semana de un profesor", ruta_del_horario(vista: nil), !@por_dia ],
+                         [ "Todos, un mismo día", ruta_del_horario(vista: "dia"), @por_dia ] ]
+
+= render "horarios/#{@ver}"

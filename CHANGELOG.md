@@ -23,6 +23,45 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
+## 1.22.0 — 26 de octubre de 2026
+
+Los horarios de clase: armar el de cada sección sin que choquen los profesores
+ni las secciones, y que cada quien lo vea por su puerta.
+
+- **Académico ▸ Horarios abre en el horario de una sección**, como la hoja que
+  se pega en la puerta del salón: los días en columnas, las horas del timbre
+  en filas y cada clase con su profesor. Las clases de 80 minutos —dos horas
+  de 40— se ven unidas.
+- **Armar es tocar el área y tocar la casilla.** «Por ubicar» dice cuántas
+  horas lleva cada área y cuántas faltan. Donde el profesor ya está en otra
+  sección, la casilla sale rayada con un «?», y al tocarla dice dónde está:
+  «Martes a las 8:30 no se puede: Silva está en 2do Año A dando Castellano y
+  Literatura». Ningún horario puede chocar: ni una sección con dos clases a la
+  vez, ni un profesor en dos sitios, aunque dos personas guarden al mismo tiempo.
+- **El timbre y las horas de cada área se corrigen ahí mismo**: el lápiz de una
+  hora convierte su casilla en sus dos campos —el cambio llega a todas las
+  secciones del turno— y la carga sube y baja con − y +. SIGA propone las horas
+  del plan de estudio de 2017, y el colegio las ajusta.
+- **El mismo horario, por cuatro puertas**: por sección, por profesor —su
+  semana, o todos un mismo día, donde se ven los huecos para cubrir una
+  ausencia—, por área y por alumno.
+- **Cada sección tiene su pestaña «Horario»**, la última: la misma semana, y se
+  arma desde ahí sin salir de la sección. El profesor que dicta en ella la ve
+  cuando está publicada, y la ficha de cada alumno lleva al horario de su
+  sección.
+- **El horario sale en papel.** [Horario en PDF] abre en otra pestaña una hoja
+  carta acostada, con el membrete del colegio: la de la sección, para pegarla
+  en el salón, y la de cada profesor, con su semana. Una en borrador lo dice
+  atravesado, para que no se confunda con la definitiva.
+- **Se publica cuando está listo.** Hasta entonces es un borrador que solo ve
+  la dirección. Publicado, lo ven el profesor en su inicio —con la clase de
+  ahora y la que sigue—, la familia en el teléfono —también si está atrasada
+  en los pagos: es el horario del salón— y el alumno.
+- Cambiar el profesor de un área no rompe nada: el nuevo toma las clases donde
+  está libre, y las que chocan vuelven a «por ubicar», con su porqué.
+
+---
+
 ## 1.21.0 — 16 de octubre de 2026
 
 - **El enlace de acceso de un representante sale por WhatsApp con un toque.**

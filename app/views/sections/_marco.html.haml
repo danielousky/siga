@@ -28,8 +28,12 @@
     = boton "Documentos oficiales", report_cards_path(section_id: seccion.id),
             icono: :boletines, tono: :documento,
             tooltip: "Boletines, constancias y certificados de esta sección"
-= render "sections/encabezado", **{ seccion: seccion, area: area, inscritos: inscritos,
-                                    acciones: acciones }
+-# ⚠️ `area_en_el_titulo: false` en una pestaña de la sección ENTERA —el
+-# horario—: el área sigue viajando en los enlaces de las pestañas, pero el
+-# título no la dice. «1er Año · Sección B · Arte y Patrimonio» sobre la semana
+-# de todas sus áreas se lee como el horario de Arte.
+= render "sections/encabezado", **{ seccion: seccion, area: (area if local_assigns.fetch(:area_en_el_titulo, true)),
+                                    inscritos: inscritos, acciones: acciones }
 
 .card-academic
   = render "shared/pestanas", etiqueta: "Vistas de esta sección",

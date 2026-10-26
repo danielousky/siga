@@ -53,14 +53,38 @@
 # Sembrarle «Matemática» a un 2do Nivel sería un error de dominio, no un exceso
 # de celo. Por eso `PARA` no tiene entradas de preescolar.
 #
+# ## Las horas a la semana, que también son del plan
+#
+# La Resolución DM/0033 de 2017 (Gaceta 41.221) fija cuántas horas semanales
+# lleva cada área en cada año, y van al lado de los años en el mismo orden:
+# Inglés es `[ 6, 6, 6, 6, 4 ]` de 1er a 5to Año.
+#
+# ⚠️ Solo Media General las tiene. Primaria no trae horas por materia —la
+# maestra integral reparte su día—, y el plan de la Media Técnica depende de la
+# especialidad.
+#
+# ⚠️ Y suman 44 a 46, que es más de lo que cabe en una semana de turno de
+# mañana (40). No es un error de esta tabla: es la norma, y cada colegio la
+# ajusta. Por eso son una PROPUESTA (`CargaHorariaOficial`) y no un dato fijo.
+#
 # Fuentes: plan de estudio de Media General (MPPE, junio 2017) · Currículo
 # Nacional Bolivariano (2007) · Currículo de Educación Inicial (2007).
 class MateriaOficial
   # `grados` son los NOMBRES del catálogo de `GradoOficial`, no un rango: es lo
   # que permite escribir «3er Año a 5to Año» sin que nadie tenga que saber en
   # qué posición del catálogo cae cada uno.
-  Entrada = Data.define(:nombre, :codigo, :grados) do
+  #
+  # `horas` va emparejada con `grados`, posición por posición; vacía donde el
+  # plan no fija ninguna.
+  Entrada = Data.define(:nombre, :codigo, :grados, :horas) do
     def to_s = nombre
+
+    def horas_en(nombre_del_grado)
+      buscado = GradoOficial.normalizar(nombre_del_grado)
+      posicion = grados.index { |grado| GradoOficial.normalizar(grado) == buscado }
+
+      posicion && horas[posicion]
+    end
   end
 
   PRIMARIA = %w[1er\ Grado 2do\ Grado 3er\ Grado 4to\ Grado 5to\ Grado 6to\ Grado].freeze
@@ -81,23 +105,26 @@ class MateriaOficial
     [ "Educación Estética",    "EE",  PRIMARIA ],
 
     # ── Media General: las 14 áreas de formación, con su año ─────────────────
-    [ "Castellano",            "CAS", BACHILLERATO ],
-    [ "Matemáticas",           "MAT", BACHILLERATO ],
-    [ "Educación Física",      "EF",  BACHILLERATO ],
-    [ "Inglés y Otras Lenguas Extranjeras", "ING", BACHILLERATO ],
-    [ "Orientación y Convivencia",          "OYC", BACHILLERATO ],
-    [ "Geografía, Historia y Ciudadanía",   "GHC", BACHILLERATO ],
+    [ "Castellano",            "CAS", BACHILLERATO, [ 4, 4, 4, 4, 4 ] ],
+    [ "Matemáticas",           "MAT", BACHILLERATO, [ 4, 4, 4, 4, 4 ] ],
+    [ "Educación Física",      "EF",  BACHILLERATO, [ 6, 6, 6, 6, 6 ] ],
+    [ "Inglés y Otras Lenguas Extranjeras", "ING", BACHILLERATO, [ 6, 6, 6, 6, 4 ] ],
+    [ "Orientación y Convivencia",          "OYC", BACHILLERATO, [ 2, 2, 2, 2, 2 ] ],
+    [ "Geografía, Historia y Ciudadanía",   "GHC", BACHILLERATO, [ 6, 6, 6, 4, 4 ] ],
     [ "Participación en Grupos de Creación, Recreación y Producción",
-                               "PGC", BACHILLERATO ],
-    [ "Ciencias Naturales",    "CN",  %w[1er\ Año 2do\ Año] ],
-    [ "Arte y Patrimonio",     "ART", %w[1er\ Año 2do\ Año] ],
-    [ "Física",                "FIS", %w[3er\ Año 4to\ Año 5to\ Año] ],
-    [ "Química",               "QUI", %w[3er\ Año 4to\ Año 5to\ Año] ],
-    [ "Biología",              "BIO", %w[3er\ Año 4to\ Año 5to\ Año] ],
-    [ "Formación para la Soberanía Nacional", "FSN", %w[4to\ Año 5to\ Año] ],
-    [ "Ciencias de la Tierra", "CT",  %w[5to\ Año] ]
-  ].map { |nombre, codigo, grados| Entrada.new(nombre: nombre, codigo: codigo, grados: grados) }
+                               "PGC", BACHILLERATO, [ 6, 6, 6, 6, 6 ] ],
+    [ "Ciencias Naturales",    "CN",  %w[1er\ Año 2do\ Año], [ 6, 6 ] ],
+    [ "Arte y Patrimonio",     "ART", %w[1er\ Año 2do\ Año], [ 4, 4 ] ],
+    [ "Física",                "FIS", %w[3er\ Año 4to\ Año 5to\ Año], [ 4, 4, 4 ] ],
+    [ "Química",               "QUI", %w[3er\ Año 4to\ Año 5to\ Año], [ 4, 4, 4 ] ],
+    [ "Biología",              "BIO", %w[3er\ Año 4to\ Año 5to\ Año], [ 4, 4, 4 ] ],
+    [ "Formación para la Soberanía Nacional", "FSN", %w[4to\ Año 5to\ Año], [ 2, 2 ] ],
+    [ "Ciencias de la Tierra", "CT",  %w[5to\ Año], [ 2 ] ]
+  ].map { |nombre, codigo, grados, horas| Entrada.new(nombre: nombre, codigo: codigo, grados: grados, horas: horas || []) }
    .freeze
+
+  # Las áreas del plan que traen horas: las de Media General.
+  def self.con_horas = CATALOGO.select { |entrada| entrada.horas.any? }
 
   # Las materias que le tocan a un colegio según los grados que dicta.
   #

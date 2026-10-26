@@ -42,7 +42,7 @@ WhatsApp… es algo novedoso y fácil»*, y no salía de un toque.
   hijos, el enlace y sus 72 horas. Solo con un celular.
 - La bienvenida al activar dice «Le damos la bienvenida, Ricardo»: es neutra,
   por decisión de Daniel, y el nombre ya no sale en mayúsculas.
-- ⚠️ La tanda 1 de horarios estaba numerada 1.21.0: al mezclarse pasa a 1.22.0.
+- ⚠️ Los horarios salen en la 1.22.0: la 1.21.0 fue el enlace por WhatsApp.
 
 ## ✅ Todo documento se abre en otra pestaña — 1.20.6, EN PRODUCCIÓN desde el 16 de octubre
 
@@ -239,6 +239,108 @@ hay fechas; si no, en el último con evaluaciones. En la muestra: 18 secciones,
   representantes) se salen de la pantalla, porque se vuelven desplazables recién
   a 600 px. No lo toqué: cambia cómo se ven todas las tablas a ese ancho.
 
+## 📐 Horarios — la tanda 2 (1.22.0), en tu prueba desde el 26 de octubre
+
+La tanda 1 —Turnos y Carga horaria, dos pantallas de configuración— **se
+devolvió** el 16 (*«eso no es el horario»*). El 20 se hizo una maqueta, el 22 la
+aprobaste con un pedido (que el mensaje resalte y brinque), el spec la recogió
+y se construyó la tanda 2 con la 3 adentro: el horario entero.
+
+El 23 contestaste las decisiones 26 a 29: la tanda 1 va en el mismo PR,
+«otro turno» espera a la tanda 4, *«la pestaña horario va a la sección»*… y el
+PDF, en esta tanda. Las dos cosas quedaron hechas ese día:
+
+```
+   Secciones ▸ 1er Año B ▸ [Horario]          la MISMA semana, con [Armar] adentro:
+                                               lo que se toca ahí, vuelve ahí
+   el profesor que dicta en la sección         la ve publicada, sin botones
+   la ficha del alumno ▸ [Horario]             la pestaña de su sección
+
+   [Horario en PDF] ──► otra pestaña: una hoja carta acostada con el membrete
+                        la de la sección (en las dos puertas) y la de un profesor
+                        en borrador lo dice arriba y atravesado
+```
+
+El 26 empezaste a probarla. El PDF lo aprobaste (*«el diseño es perfecto»*), y
+salieron tres cosas, arregladas ese mismo día:
+
+```
+   LO QUE VISTE                                   LO QUE CAMBIÓ
+   tras ubicar, tocar una rayada seguía           el «Listo» se dice UNA vez: turbo-rails
+   diciendo «Listo» — y el lápiz, igual           guardaba el flash en cada clic del marco
+   corregir la hora abría un cuadro aparte        la casilla se vuelve sus dos campos, sin
+   con [Guardar] [Cancelar]                       botones: Enter · Escape · salir (dec. 30)
+   Alumnos se buscaba con un botón «Buscar»       mientras se escribe, como los listados (31)
+```
+
+De ahí salió tu regla para todo proyecto —*«formularios? Asíncronos (Stimulus)
+y que se modifiquen en el lugar tipo los textos de Linear»*—, que quedó en
+`CLAUDE.md` (§ «Una función, una sola manera de hacerla») y en tu `CLAUDE.md`
+global. En SIGA todavía no la cumplen el nombre de un departamento y el alta de
+una competencia: son de antes, y **se alinean después de horarios, en su propia
+rama** (lo decidiste el 26).
+
+```
+   Académico ▸ Horarios        [Secciones] Profesores  Áreas  Alumnos
+   1er Año (●A)(○B) · 2do Año (●A)(●B) · …                         ○ = borrador
+   1er Año B  [Borrador] [faltan 6 h]                  [Listo] [Publicar]
+   ┌ POR UBICAR ───────────────── (●) En bloques de 2 horas ┐
+   │ [Inglés · Castillo · 2 de 4] [Arte · Moreno · 0 de 2] … │
+   └─────────────────────────────────────────────────────────┘
+   ║ (?) Martes a las 8:30 no se puede: Silva está en 2do Año A … ║  ← fijo, brinca
+   la rejilla: + libre · rayada con «?» · × quitar · ✎ la hora, en su casilla
+```
+
+- **Lo que hay:** la semana de una sección (la puerta), Armar con «Por ubicar»,
+  el timbre y la carga dentro de la rejilla, todas un mismo día, por profesor,
+  por área y por alumno, publicar; el profesor con «Ahora · Después» y «Mi
+  semana»; la familia y el alumno en el teléfono (solo lo publicado; la familia
+  en mora también lo ve). La muestra amanece con Media armada: 272 clases, 7
+  secciones publicadas y 1er Año B en borrador con 6 horas por ubicar.
+- **Lo que verifiqué:** `bin/ci` en verde de punta a punta el 26 (4 min 50 s): tests 2.203 y 0 fallos, los de navegador 98 —con el nuevo, que corrige una hora con Escape, con Enter y saliendo de la casilla—, la siembra como la muestra y el humo. El test del «Listo» pegado pide como Turbo, con la cabecera del marco, y se probó rompiendo el arreglo: sin él, falla. Miré las capturas de la hora abierta (la 5ta y la 4ta, con el bloque de 80 minutos) y del buscador de alumnos, que filtra sin Enter (de 30 a 16 con «bastidas»).
+  ⚠️ El humo entra con `desarrollador@siga.edu · 123123`: la base de desarrollo
+  se siembra con `db:seed:replant`, no como la muestra (allá el equipo de SIGA
+  lleva una clave al azar, y el humo falla).
+- **Lo que NO pude verificar:** que se sienta bien en tus manos, sobre todo
+  armar 1er Año B con el dedo en un teléfono.
+
+**Para probarla** (vive en el worktree, con su propia base sembrada):
+
+```
+   cd "/Volumes/Personal Info/Documentos/Desarrollo/SIGA/APPS/siga-horarios"
+   SIGA_DB_NAME=siga_horarios bin/rails server -p 3002
+   → http://localhost:3002 · director.bolivar@mail.com · 123123
+
+   1 · Horarios: 1er Año A (publicado) · «Todas, un mismo día» · Profesores · Áreas
+       · Alumnos: escribir un apellido (los resultados salen solos)
+   2 · 1er Año B ▸ [Armar]: elegir Inglés, tocar un +; tocar una rayada (dice por qué)
+   3 · con «Armar» abierto: el lápiz de una hora la vuelve sus dos campos:
+       Enter guarda, Escape la deja, salir de la casilla guarda
+   4 · ✓ [Horario en PDF] — aprobado el 26
+   5 · Secciones ▸ 1er Año B ▸ pestaña «Horario»: armar desde ahí, sin salir de la sección
+   6 · [Publicar] 1er Año B · y entrar como profesor.bolivar@mail.com («Ahora · Después»
+       y la pestaña «Horario» de sus secciones)
+```
+
+⚠️ **Ramas, sin subir:** `docs/spec-horarios` (el spec, con las decisiones
+del 23 y del 26) y encima `feat/horarios` (la tanda 1 con la 2 adentro: decisión 26). Las
+dos ya están sobre `main` 1.21.0.
+
+⚠️ **Falta antes de subir:** ni el manual (`docs/manual`) ni «Qué hace hoy»
+nombran los horarios. Son lo que se entrega (§ «Una única verdad»).
+
+⚠️ **Trae dos migraciones**: la de la tanda 1, con la primera extensión del
+proyecto (`btree_gist`), y la de las clases, con dos `EXCLUDE` y una llave con
+`SET NULL (teacher_id)` (PostgreSQL 15+). Producción y la muestra se miraron en
+solo lectura el 13: PostgreSQL 18.4, y `siga_app` crea la extensión sola.
+
+⚠️ **Al entrar a `main`**, correr `bin/rails modelo:documentos` para que el PDF
+del modelo llegue a la carpeta madre: desde la rama se regeneró sin copiarlo.
+
+```
+   las tandas   0 el spec ✓ → 1 turno y carga ✓ → 2 armar → 3 verlo → 4 la vida real → 5 el automático
+```
+
 ## ✅ Del registro al cobro — EN PRODUCCIÓN desde el 13 de octubre (1.19.1)
 
 Del 7 al 12 de octubre se redefinió cómo entra, prueba y paga un colegio. El
@@ -354,7 +456,8 @@ unifiquen, no se propone nada de precios ni de la puerta a partir de ellos:
 manda el spec. Daniel: *«No quiero que en el futuro otra sesión mire lo que tú
 miraste y se confunda o me proponga cosas basada en información obsoleta.»*
 
-**Y después:** horarios —«sí o sí», sobre todo para Media—, que pide su spec.
+**Y después:** horarios —«sí o sí», sobre todo para Media—. Su spec ya está
+escrito, en borrador: ver arriba.
 
 ### Binance y PayPal — 1.19.0, 13 de octubre (en producción)
 

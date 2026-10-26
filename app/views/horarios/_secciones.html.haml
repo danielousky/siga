@@ -1,0 +1,20 @@
+-# La semana de una sección: la puerta de «Horarios» (decisión 19).
+-#
+-# ## ⚠️ Armar vive dentro del marco «horario»
+-#
+-# Elegir un área, tocar una casilla o corregir una hora vuelve a esta misma
+-# pantalla, y Turbo cambia solo el marco: la página no salta arriba y el
+-# mensaje brinca al llegar. Todo lo que hay adentro apunta a `horarios_path`,
+-# que dibuja este marco —es la regla de «el frame sobrevive»—. Lo de adentro
+-# es lo mismo que la pestaña «Horario» de la sección (decisión 29).
+- if @seccion.nil?
+  .card-academic
+    %p.dato-secundario= "#{@anio.name} todavía no tiene secciones con áreas."
+    = boton "Ir a las secciones", sections_path, icono: :secciones, tono: :ver
+- elsif @por_dia
+  = render "horarios/secciones_del_dia"
+- else
+  = turbo_frame_tag "horario", data: { turbo_action: "advance" } do
+    .card-academic
+      = render "horarios/selector_de_secciones"
+      = render "horarios/la_semana_de_la_seccion"

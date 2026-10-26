@@ -17,7 +17,8 @@ class AreasYProfesoresTest < ActionDispatch::IntegrationTest
     get alumnos_section_path(@a.seccion)
 
     pestanas = css_select(".pestana").map { |p| p.text.squish }
-    assert_equal [ "Alumnos", "Áreas y profesores" ], pestanas.last(2)
+    # «Horario» va al final: es de la sección entera (spec `horarios`, decisión 29).
+    assert_equal [ "Alumnos", "Áreas y profesores", "Horario" ], pestanas.last(3)
   end
 
   test "dice quién dicta cada área, y cuál se quedó sin nadie" do

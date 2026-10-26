@@ -1,0 +1,12 @@
+-# Las secciones del año, por grado: el punto lleno es «publicado».
+%nav.horario-selector{ "aria-label": "Sección" }
+  - @secciones.group_by(&:grade).each do |grado, secciones|
+    .horario-selector-grupo
+      %span.horario-selector-rotulo= grado.name
+      - secciones.each do |seccion|
+        - activa = seccion == @seccion
+        = link_to ruta_del_horario(seccion: seccion.id, area: nil), class: class_names("horario-pildora", activa: activa),
+                  "aria-current": ("page" if activa),
+                  "aria-label": "#{nombre_de_la_seccion(seccion)}, #{seccion.timetable_published_at ? 'publicado' : 'en borrador'}" do
+          %i{ class: class_names("horario-punto-estado", publicado: seccion.timetable_published_at.present?) }
+          = seccion.name

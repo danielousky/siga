@@ -101,13 +101,17 @@ module RespetaLaSuscripcion
 
   # Cargar. Libre en gratis —es lo que hace que un colegio llegue a necesitar el
   # boletín—, salvo los archivos: una lista en Excel ya es SALIDA.
+  #
+  # ⚠️ Los horarios entran acá —la rejilla, sus clases y las horas del timbre—
+  # porque armarlos es CARGAR (decisión 3 del spec `horarios`). Lo que sale de
+  # ellos, el PDF y los portales, pide la suscripción como cualquier archivo.
   LA_ENTRADA = %w[
-    academic_periods admins anio_escolar arranque buscadores busquedas carga_de_notas
-    codigos_a_la_vista colegio competencies copias_del_anio dashboards/activity_logs
-    dashboards/administrador dashboards/profesor departments enrollments
-    evaluation_activities evaluation_moments grade_subjects grades importaciones
-    indicators nivel_escolar niveles promociones representatives rubrics sections
-    students subjects teacher_sections teachers
+    academic_periods admins anio_escolar arranque buscadores busquedas
+    carga_de_notas codigos_a_la_vista colegio competencies copias_del_anio
+    dashboards/activity_logs dashboards/administrador dashboards/profesor departments
+    enrollments evaluation_activities evaluation_moments grade_subjects grades horarios
+    importaciones indicators lessons nivel_escolar niveles promociones representatives rubrics
+    sections students subjects teacher_sections teachers time_slots
   ].freeze
 
   # Operar. Las pantallas SE VEN —una pantalla escondida no vende nada; una que

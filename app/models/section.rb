@@ -17,12 +17,28 @@ class Section < ApplicationRecord
   llega_al_anio_por
   llega_al_nivel_por :grade
   derives_school_from :grade
-  validates_same_school :academic_period, :leader_teacher
+  validates_same_school :academic_period, :leader_teacher, :bell_schedule
+
+  # El TURNO: a qué hora suena el timbre de esta sección (spec `horarios`).
+  #
+  # Opcional: una sección existe antes de que alguien arme el horario, y un
+  # colegio que no usa horarios nunca lo necesita.
+  #
+  # ⚠️ Tiene que ser de SU año. Los turnos son del año escolar, como las
+  # secciones: el de 2025-2026 puede haber sonado a otra hora, y una sección de
+  # este año colgada de aquel leería un timbre que ya no existe.
+  belongs_to :bell_schedule, optional: true
+  validate :el_turno_es_de_su_anio
+  # Decisión 16 del spec `horarios`: sus clases cuelgan de las horas de ESTE
+  # turno, y moverlas a otro timbre sin vaciarla las dejaría colgando.
+  validate :no_cambia_de_turno_con_clases, if: :will_save_change_to_bell_schedule_id?
 
   has_many :enrollments, dependent: :restrict_with_error
   has_many :students, through: :enrollments
   has_many :evaluation_activities, dependent: :restrict_with_error
   has_many :teacher_sections, dependent: :destroy
+  # Las borra la base al borrar la sección (`lessons_de_su_seccion`, en cascada).
+  has_many :lessons
   has_many :teachers, through: :teacher_sections
 
   # ⚠️ El identificador es CORTO y alfanumérico: «A», «B», «U1» (MOR-170).
@@ -139,5 +155,19 @@ class Section < ApplicationRecord
     Subject.where(id: teacher_sections.select(:subject_id))
            .or(Subject.where(id: EvaluationActivity.where(section_id: id).select(:subject_id)))
            .order(:name)
+  end
+
+  private
+
+  def no_cambia_de_turno_con_clases
+    return unless bell_schedule_id_in_database && lessons.exists?
+
+    errors.add(:bell_schedule, "no se cambia con clases en el horario: primero hay que vaciarlo")
+  end
+
+  def el_turno_es_de_su_anio
+    return if bell_schedule.nil? || bell_schedule.academic_period_id == academic_period_id
+
+    errors.add(:bell_schedule, "es de otro año escolar")
   end
 end

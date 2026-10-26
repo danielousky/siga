@@ -1,0 +1,40 @@
+-# Los profesores: la semana de uno —en todas sus secciones— o todos un mismo
+-# día, donde se ven los huecos para cubrir una ausencia.
+- if @profesor.nil?
+  .card-academic
+    %p.dato-secundario= "#{@anio.name} todavía no tiene profesores asignados en secciones con horario."
+- elsif @por_dia
+  .card-academic
+    .horario-cabeza
+      %div
+        %h2.horario-titulo= "#{Lesson::DIAS[@dia - 1]}, todos los profesores"
+        %p.dato-secundario Dónde está cada uno, hora por hora. «Libre» es un hueco: sirve para cubrir una ausencia.
+      = render "horarios/dias", dia_elegido: @dia
+    = render "horarios/matriz", matriz: @matriz, rotulo: "Profesor",
+             vacia: tag.span("libre", class: "horario-matriz-libre"),
+             cabeza: ->(renglon) { link_to(ruta_del_horario(vista: nil, profesor: renglon.de.id), class: "horario-matriz-fila") { safe_join([ tag.b(renglon.de.user.apellidos_y_nombres), tag.span("#{@horas_por_profesor.fetch(renglon.de.id, 0)} h a la semana") ]) } },
+             casilla: ->(clase) { tag.span(class: "horario-matriz-clase", style: "--area: #{color_del_area(clase.subject)}") { safe_join([ tag.b(corto_de_la_seccion(clase.section)), tag.small(clase.subject.name) ]) } }
+- else
+  .card-academic
+    %nav.horario-selector{ "aria-label": "Profesor" }
+      - @profesores.each do |profesor|
+        - activo = profesor == @profesor
+        = link_to ruta_del_horario(profesor: profesor.id), class: class_names("horario-pildora", activa: activo), "aria-current": ("page" if activo) do
+          = apellido_del_profesor(profesor)
+          %small= "#{@horas_por_profesor.fetch(profesor.id, 0)} h"
+    - clases = Lesson.where(teacher: @profesor, academic_period: @anio).includes(:subject, section: :grade).to_a
+    .horario-cabeza
+      %div
+        %h2.horario-titulo= @profesor.user.apellidos_y_nombres
+        %p.dato-secundario
+          = "#{contar(clases.size, 'hora', 'horas')} a la semana"
+          - if clases.any?
+            = "· #{clases.map { |c| c.subject.name }.uniq.sort.to_sentence}"
+            = "· #{clases.map(&:section).uniq.sort_by { |s| [ s.grade.orden || 99, s.name ] }.map { |s| corto_de_la_seccion(s) }.join(', ')}"
+      -# Su semana en una hoja (decisión 27): lo que se ve, impreso.
+      - if clases.any?
+        .acciones-de-cabecera
+          = boton "Horario en PDF", horarios_path(ver: "profesores", profesor: @profesor.id, format: :pdf),
+                  icono: :ver, tono: :documento, target: "_blank", rel: "noopener",
+                  tooltip: "La hoja para imprimir: se abre en otra pestaña"
+    = render "horarios/semana", rejilla: @rejilla

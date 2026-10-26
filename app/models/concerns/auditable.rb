@@ -54,7 +54,8 @@ module Auditable
     "academic_period" => "el año escolar",
     "subject"         => "el área de aprendizaje",
     "grade"           => "el grado",
-    "department"      => "el departamento"
+    "department"      => "el departamento",
+    "bell_schedule"   => "el turno"
   }.freeze
 
   def registrar_cambio(que, registro, nombre, tipo: nil)

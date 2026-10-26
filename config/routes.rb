@@ -491,6 +491,23 @@ Rails.application.routes.draw do
     end
   end
   resources :departments, path: "departamentos", except: [ :show ]
+
+  # Académico ▸ Horarios (spec `horarios`): la semana de cada sección y las
+  # otras miradas. El turno y la carga horaria NO tienen pantalla propia
+  # (decisiones 20 y 21): se corrigen dentro de la rejilla, con «Armar» abierto.
+  resources :horarios, only: [ :index ] do
+    collection do
+      post  :armar
+      patch :publicar
+      patch :carga
+    end
+  end
+
+  # Corregir una hora del timbre, desde la rejilla. `TimeSlot` se lee «hora»,
+  # así que la barra dice `/turnos/3/horas/12`.
+  resources :bell_schedules, path: "turnos", only: [] do
+    resources :time_slots, path: "horas", only: [ :update ]
+  end
   resources :subjects, path: "materias"
   # ⚠️ Esta queda en INGLÉS, y es la excepción que confirma el criterio.
   #
@@ -552,6 +569,12 @@ Rails.application.routes.draw do
       # Alumnos»*. Es de la dirección: el profesor no la ve.
       get "areas"
 
+      # ⚠️ «Horario» es la pestaña de la sección y la MISMA pantalla que
+      # Académico ▸ Horarios (spec `horarios`, decisión 29): Daniel, el 23 de
+      # octubre de 2026, *«la pestaña horario va a la sección»*. Con `.pdf`, su
+      # hoja para imprimir.
+      get "horario"
+
       # ⚠️ La ficha del alumno DENTRO de la sección, y no `/alumnos/:id`.
       #
       # `StudentsController#show` es de la dirección: trae el boletín completo,
@@ -566,6 +589,9 @@ Rails.application.routes.draw do
     end
 
     resources :teacher_sections, path: "profesores", only: [:create, :destroy]
+    # Las clases del horario (spec `horarios`): se ubican y se quitan desde
+    # «Armar», en Académico ▸ Horarios o en la pestaña «Horario».
+    resources :lessons, path: "clases", only: [ :create, :destroy ]
 
     # Los informes descriptivos del lapso (MOR-216). Cuelgan de la SECCIÓN
     # porque se escriben de a veinticinco, no de a uno: es una planilla, como

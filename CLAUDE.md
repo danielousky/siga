@@ -144,6 +144,9 @@ bin/rails test test/models/user_test.rb:10     # Run single test by line
 # Verificación completa — lo mismo que corre el CI (MOR-105)
 bin/ci                             # RLS + estilo + tests + seeds + humo, ~3,5 min
 bin/smoke                          # solo el humo: web Y worker, y el recorrido HTTP por los cuatro roles
+
+# Otra copia del código a la vez (un worktree por rama): bases propias, o se pisan
+SIGA_DB_NAME=siga_x SIGA_TEST_DB_NAME=siga_x_test PORT=3019 bin/ci
 ```
 
 `bin/ci` arranca comprobando que el rol de la base **no** pueda saltarse el RLS, y no
@@ -343,6 +346,35 @@ es deliberadamente distinto al del colegio (`MOR-133`).
 
 Specs: [`sistema-de-diseno.md`](docs/specs/sistema-de-diseno.md) (①) y
 [`cabecera-unica.md`](docs/specs/cabecera-unica.md) (②).
+
+**Una función, una sola manera de hacerla** (Daniel, 26 de octubre de 2026):
+*«No puede ser que avanzamos con vistas asíncronas con Stimulus, diseños
+fabulosos y muy bien pensados y luego lanzo un form simple con botones de
+cancelar… Una regla pudiera ser: formularios? Asíncronos (Stimulus) y que se
+modifiquen en el lugar tipo los textos de Linear (cuando se pueda)»*. Lo dijo
+para SIGA y para cualquier otro proyecto.
+
+```
+   CORREGIR lo que existe   en su sitio y sin botones: Enter guarda, Escape lo
+                            deja como estaba, salir guarda si algo cambió
+                              un campo        edicion-en-linea   (el plan de evaluación)
+                              varios campos   en-su-sitio        (una hora del timbre)
+   AGREGAR                  la misma fila de la edición, punteada, con ✓ y ✗
+                            (la evaluación nueva del plan)
+   BUSCAR                   mientras se escribe, sin botón: el de shared/cabecera
+```
+
+⚠️ **El modelo es el plan de evaluación** —competencias, evaluaciones e
+indicadores—, y la pregunta antes de escribir un formulario es si se puede
+corregir donde se lee. Ese día se rompió la regla dos veces, las dos en
+horarios: la hora del timbre se corregía en un cuadro aparte con «Guardar» y
+«Cancelar» —y después con un ✓ y una ✗, que eran lo mismo con otro dibujo—, y
+el horario de un alumno se buscaba con un botón «Buscar», el único de la app.
+
+⚠️ **Todavía no la cumplen** el nombre de un departamento (`fila-en-edicion`,
+con «Guardar» y «Cancelar») ni el alta de una competencia (`alta-en-linea`,
+con «Agregar» y «Cancelar»). Son de antes de la regla, y se alinean después
+de horarios, en su propia rama (Daniel, el mismo 26 de octubre).
 
 ### ✉️ Los correos: una plantilla, y cada uno dice de quién es
 
@@ -681,6 +713,16 @@ blanca), o salir diciéndolo (`data-turbo-frame="_top"`).
 Lo cuida `el_frame_sobrevive_test`, que pide como pide Turbo, sigue los
 redirects **y recorre los enlaces de cada formulario** — el cuarto caso entró
 justamente por ahí, que era el hueco de la guarda anterior.
+
+⚠️ **Y el flash, dentro de un frame, no se va solo.** turbo-rails llama
+`flash.keep` en CADA petición que trae la cabecera `Turbo-Frame` —para que la
+página entera lo muestre después—, así que un mensaje que se dibuja DENTRO del
+frame se repite en cada clic hasta la próxima página entera. En el armador de
+horarios, después de ubicar una clase, tocar una casilla rayada seguía diciendo
+«Listo» en vez del porqué (Daniel, 26 de octubre de 2026). El que se muestra
+dentro del frame se lee con `flash.discard(:clave)`, que lo devuelve y lo gasta.
+⚠️ Y un test que no manda esa cabecera no lo ve: el del porqué pasaba en verde
+con el error adentro.
 
 ⚠️ Y una que no es de Turbo pero se paga igual: **Stimulus busca sus `target`
 DENTRO del elemento del controlador.** Con `data-controller` en la barra de
@@ -1981,6 +2023,92 @@ amenaza: en ningún escalón se pierde nada de lo cargado.
 A mano: `bin/rails suscripciones:estado` (en qué está cada colegio y qué aviso
 le toca, sin tocar nada) y `bin/rails suscripciones:escalera` (si el worker
 estuvo caído).
+
+### 16. Los horarios de clase (1.22.0)
+
+Spec: [`docs/specs/horarios.md`](docs/specs/horarios.md), congelado el 13 de
+octubre de 2026 y revisado el 22 con una maqueta; el 23 Daniel cerró las
+decisiones 26 a 29 y adelantó el PDF a esta tanda. La tanda 1 —dos pantallas de
+configuración, «Turnos» y «Carga horaria»— **se devolvió**. Daniel, el 16: *«eso
+no es el horario… la interfaz es CERO intuición»*. La lección manda en todo lo
+que siguió:
+
+```
+   ❌  primero se configura, después se ve       ✅  la puerta es el horario, ya con valores,
+       (turno → carga → rejilla)                     y lo demás se corrige DENTRO de él
+```
+
+```
+   Académico ▸ Horarios ─┬─ Secciones   la semana de una (la hoja de la foto) · todas, un día
+                         ├─ Profesores  la semana de uno · todos, un día («libre» = un hueco)
+                         ├─ Áreas       quién la dicta, dónde y cuándo
+                         └─ Alumnos     su horario es el de su sección
+   Secciones ▸ 1er Año A ▸ [Horario]   la MISMA semana, con «Armar» adentro (la última pestaña)
+   la ficha del alumno ▸ [Horario]      la pestaña de su sección
+   [Armar] ──► «Por ubicar» ──► elegir el área ──► tocar la casilla ──► [Publicar]
+   [Horario en PDF] ──► otra pestaña: hoja carta acostada, de la sección o del profesor
+   el profesor: «Ahora · Después», «Mi semana» y la pestaña de sus secciones, publicadas
+   la familia y el alumno: en el teléfono
+```
+
+```
+   lessons          «clase»   UNA casilla: sección · área · día (1–5) · hora
+   bell_schedules   «Turno»   nace solo con el timbre de la foto, al tocar «Armar»
+   time_slots       «hora»    en MINUTOS desde la medianoche; se corrige en la rejilla
+   grade_subjects.weekly_hours     la carga: el − y + de «Por ubicar»
+   sections.timetable_published_at borrador → publicado (familia, alumno y profesor)
+```
+
+- ⚠️ **El choque es imposible en tres capas, con UN texto** (`ChoquesDeHorario`):
+  la casilla rayada, la validación y dos `EXCLUDE` en la base
+  (`lessons_una_clase_a_la_vez`, `lessons_un_profesor_en_un_sitio`). Se mide
+  por RELOJ: Primaria y Media no comparten timbre y once profesores de la
+  muestra dictan en las dos.
+- ⚠️ **La clase copia el año, los minutos y el profesor, y no los mantiene el
+  código**: tres llaves compuestas. Corregir una hora mueve sus clases; borrar
+  la asignación las deja «sin profesor» (`ON DELETE SET NULL (teacher_id)`,
+  PostgreSQL 15+). Hay seis sitios que crean o borran asignaciones —uno con
+  `delete_all`—: un callback se habría quedado atrás.
+- ⚠️ **Mirar no escribe.** Sin turno, la rejilla se dibuja con el de la foto sin
+  guardarlo (`TurnoDelAnio.de_la_foto`); nace con el POST de «Armar». Y la
+  carga del plan oficial se MUESTRA sin guardarse (`CargaDeLaSeccion`) hasta que
+  el colegio la toca.
+- ⚠️ **Armar vive en el `turbo_frame` «horario»**, y todo lo de adentro vuelve
+  a la PUERTA por donde se entró. El mensaje viaja en `flash[:horario]` —el
+  `notice` de siempre se dibuja FUERA del marco y no se vería— y brinca solo
+  cuando viene de tocar la rejilla.
+- ⚠️ **Dos puertas, una pantalla** (decisión 29): `/horarios` y la pestaña
+  `/secciones/:id/horario`. Las prepara `MuestraElHorario`, como `MuestraElPlan`
+  al plan. Desde la pestaña, los enlaces del marco salen de `ruta_del_horario`
+  y los formularios llevan `desde=seccion` (`desde_la_seccion`); los cinco
+  controladores que escriben vuelven con `al_horario`. Sin eso, ubicar una
+  clase desde la sección te sacaba a «Horarios», y Turbo pintaba en el marco la
+  otra puerta, con su selector de secciones adentro — sin un error en el log.
+- **El PDF** (decisión 27): `HorarioPdf` dibuja la MISMA `RejillaDeHorarios`
+  que la pantalla, en una hoja carta acostada. El de la sección sale de su
+  pestaña (`.pdf`) y el del profesor de `/horarios.pdf?ver=profesores`; la
+  pared de la suscripción los reconoce por el formato. Un borrador lo dice
+  arriba y atravesado. ⚠️ **`text_box` de Prawn NO lee `color:`** —lo descarta
+  sin avisar—: se pinta con el color de relleno (`con_color`). Y para mirarlo,
+  Quick Look (`qlmanage -t`): `pdftoppm` no encuentra Helvetica y dibuja la
+  negrita como normal.
+- ⚠️ **Cada clase se guarda en su `SAVEPOINT`** (`ArmadorDeLaSeccion`): un
+  `EXCLUDE` violado aborta la transacción de la petición entera.
+- **`ArmarElHorario` arma varias secciones a la vez** coloreando las aristas de
+  un grafo bipartito con cadenas de Kempe: la siembra de Media, 272 clases en
+  dos segundos. Lo que no cabe —un profesor con más horas que la semana— queda
+  «por ubicar». ⚠️ La siembra baja la carga del plan (44 a 46 horas) hasta 38:
+  con la del plan, cada sección amanecería con horas que no caben.
+- ⚠️ **`modelo:documentos` copia el PDF a la carpeta madre**: desde una rama,
+  eso pone en «lo que se entrega» tablas que todavía no están en `main`. En la
+  rama se regenera `docs/modelo` sin la copia; la copia, al entrar a `main`.
+- ⚠️ **Dos trampas de los tests:** un `update_columns` fuera de `con_el_colegio`
+  no falla —el RLS lo deja en cero filas, en silencio—; y `sign_in` lo consume
+  la PRIMERA petición, y si esa termina en 404 la siguiente entra como el
+  usuario anterior. El 404 va al final.
+- ⚠️ **`save!(validate: false)` se salta también los `before_validation`**: sin
+  el colegio, el RLS rechaza la fila antes que el `EXCLUDE`, y el test prueba
+  otra cosa. Un `valid?` antes.
 
 ## 🔢 La versión
 

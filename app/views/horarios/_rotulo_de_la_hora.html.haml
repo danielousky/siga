@@ -1,0 +1,19 @@
+-# El rótulo de una fila: «3ra · 8:30 – 9:10». Con «Armar» abierto es el lápiz
+-# del timbre (decisión 20): corregir la hora aquí cambia en todo el turno.
+-#
+-# ⚠️ El lápiz convierte ESTA casilla en el formulario, sin un cuadro aparte
+-# arriba de la rejilla. Daniel, el 26 de octubre de 2026: *«cuando le dé al
+-# lápiz, ese mismo cuadro se convierta en el form para modificarlo»*.
+- nombre = fila.receso? ? "Receso" : TimeSlot::ORDINALES[fila.numero]
+- if @armando && fila.hora.persisted? && @hora_editada == fila.hora
+  = render "horarios/editar_hora", hora: fila.hora, nombre: nombre
+- elsif @armando && fila.hora.persisted?
+  = link_to ruta_del_horario(hora: fila.hora.id), class: "horario-hora horario-hora--editable",
+            "aria-label": "Corregir #{fila.receso? ? 'el receso' : "la #{nombre} hora"}, #{fila.hora.rango}" do
+    %span.horario-hora-ord= nombre
+    %span.horario-hora-tiempo= fila.hora.rango
+    = icono(:editar, tamano: 13)
+- else
+  %span{ class: class_names("horario-hora", ahora: ahora) }
+    %span.horario-hora-ord= nombre
+    %span.horario-hora-tiempo= fila.hora.rango

@@ -446,6 +446,15 @@ module MenuHelper
     if can_manage_sections?
       pestanas << [ "#{Vocabulario::AREAS_CORTAS} y profesores", areas_section_path(seccion, contexto), activa == :areas ]
     end
+
+    # ⚠️ El horario es de la sección entera, y la última pestaña (spec
+    # `horarios`, decisión 29): Daniel, el 23 de octubre de 2026, *«la pestaña
+    # horario va a la sección»*. La ve quien ve la sección —la dirección lo
+    # arma; el profesor lo mira publicado— salvo en Inicial, que no tiene
+    # horario (decisión 14).
+    unless seccion.grade.preescolar?
+      pestanas << [ "Horario", horario_section_path(seccion, contexto), activa == :horario ]
+    end
     pestanas
   end
 
@@ -620,6 +629,11 @@ module MenuHelper
       enlaces << Enlace.new(nombre: "Inscripciones", icono: :inscripciones, ruta: enrollments_path)
     end
     enlaces << Enlace.new(nombre: Vocabulario::AREAS, icono: :materias, ruta: subjects_path)
+    # Los horarios (spec `horarios`): abre en la semana de una sección, la hoja
+    # que el colegio reconoce (decisión 19). Lo ve toda la dirección; armarlo
+    # es de quien administra secciones.
+    enlaces << Enlace.new(nombre: "Horarios", icono: :horario, ruta: horarios_path,
+                          tambien_en: %w[time_slots lessons])
     # ⚠️ «Planes de evaluación» se retiró del menú (etapa ③).
     #
     # Apuntaba a `/competencias`, que dejó de ser una pantalla: su escalera se

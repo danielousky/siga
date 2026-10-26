@@ -82,7 +82,14 @@ development:
 # Do not set this db to the same as development or production.
 test:
   <<: *default
-  database: siga_test
+  # `SIGA_TEST_DB_NAME` es a los tests lo que `SIGA_DB_NAME` a desarrollo: deja
+  # correr la suite contra OTRA base. Hace falta cuando hay dos copias del
+  # código trabajando a la vez en la misma máquina —un worktree por rama—: con
+  # el nombre fijo, dos `bin/ci` a la vez se pisan, y ninguno dice por qué.
+  #
+  #     SIGA_TEST_DB_NAME=siga_horarios_test bin/rails db:test:prepare
+  #     SIGA_TEST_DB_NAME=siga_horarios_test bin/rails test
+  database: <%= ENV.fetch("SIGA_TEST_DB_NAME", "siga_test") %>
   username: <%= ENV.fetch("SIGA_DB_USER", "siga_app") %>
   host: <%= ENV["SIGA_DB_HOST"] %>
   password: <%= ENV["SIGA_DB_PASSWORD"] %>

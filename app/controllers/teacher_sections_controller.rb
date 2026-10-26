@@ -12,7 +12,7 @@ class TeacherSectionsController < ApplicationController
                  "#{@section.grade.name} – Sección #{@section.name}",
         subject: @teacher_section
       )
-      volver notice: "Profesor asignado exitosamente."
+      volver notice: ["Profesor asignado exitosamente.", desubicadas(@teacher_section)].compact.join(" ")
     else
       volver alert: @teacher_section.errors.full_messages.join(", ")
     end
@@ -33,6 +33,16 @@ class TeacherSectionsController < ApplicationController
   end
 
   private
+
+  # Las clases que el profesor nuevo no pudo tomar porque ya dicta en otra
+  # sección a esa hora: volvieron a «por ubicar» (spec `horarios`, decisión 8).
+  def desubicadas(asignacion)
+    clases = asignacion.clases_desubicadas
+    return if clases.empty?
+
+    "#{clases.size == 1 ? "Una clase volvió" : "#{clases.size} clases volvieron"} a «por ubicar» en el horario: " \
+      "#{clases.join("; ")}."
+  end
 
   # ⚠️ Vuelve a DONDE SE VINO, no siempre a la ficha de section (MOR-198).
   #
