@@ -1,6 +1,6 @@
 # Los horarios de clase
 
-> **Estado:** **congelado de nuevo** el 22 de octubre de 2026, con la maqueta · el 23 Daniel confirmó las decisiones 26, 28 y 29, y adelantó el PDF a la tanda 2 (decisión 27)
+> **Estado:** **congelado de nuevo** el 22 de octubre de 2026, con la maqueta · el 23 Daniel confirmó las decisiones 26, 28 y 29, y adelantó el PDF a la tanda 2 (decisión 27) · el 26, en su prueba, pidió corregir la hora en su casilla y buscar sin botón (decisiones 30 y 31)
 > **PR:** — (rama `docs/spec-horarios`, sin subir; el issue de Linear está sin crear: el conector no estaba autenticado)
 
 Se congeló el 13 de octubre con 18 decisiones. La tanda 1 se construyó el 14, y
@@ -131,6 +131,8 @@ Y hay una segunda mitad:
 | 27 | ¿Y el PDF? | **En la tanda 2, con el horario.** Claude lo propuso para la 4 —la maqueta no lo cubrió— y Daniel lo quiso antes de subir. Una hoja carta acostada, con el membrete del colegio, de una sección o de un profesor, que se abre en otra pestaña (§ 5 ⑦). | Daniel, 23 oct |
 | 28 | ¿Un segundo turno (Primaria, tarde)? | En la tanda 4, desde la cabecera de la sección: «Cambiar de turno» ofrece los del año y «+ Otro turno», que abre el generador de la tanda 1. Hasta entonces, todas las secciones usan el turno del año. | Claude · Daniel la confirmó el 23 oct |
 | 29 | ¿Una sola puerta? | **Dos, a la misma pantalla:** «Horarios ▸ Secciones» y la pestaña «Horario» de la sección, la última. No es otra manera de armar: es el mismo armador, y lo que se arma desde la pestaña vuelve a la pestaña. El profesor la ve en las secciones donde dicta, publicada y sin botones; Inicial no la tiene. Y la ficha del alumno lleva al horario de su sección. | Claude · Daniel, 23 oct: *«la pestaña horario va a la sección»* |
+| 30 | ¿Dónde se corrige una hora del timbre? | **En su casilla.** El lápiz convierte la casilla de la hora en su formulario, con el ✓ y la ✗ donde estaba el lápiz, como la fila nueva del plan de evaluación: Enter guarda y Escape cancela. A cuántas secciones les llega el cambio lo dice la barra del armador. Hasta el 26 abría un cuadro aparte, arriba de la rejilla: *«cuando le dé al lápiz, ese mismo cuadro se convierta en el form para modificarlo»*. Que se parezca al plan es lo que Daniel llamó identidad de diseño. | Daniel, 26 oct |
+| 31 | ¿Cómo se busca un alumno? | **Como en todos los listados:** los resultados salen mientras se escribe, con el buscador de la cabecera. Tenía su botón «Buscar»: *«¿cómo que en unos formularios para buscar tengo que darle "buscar" y en otros no?»* | Daniel, 26 oct |
 
 ## 4 · El dominio
 
@@ -342,14 +344,22 @@ Va fijo sobre la rejilla: al tocar una casilla de las 12:20, el mensaje sigue a
 la vista. Brinca una vez cuando cambia, y el ámbar deja además un halo que se
 apaga. Con «reducir movimiento» no se mueve: quedan el color y el «?».
 
-### Corregir una hora del timbre
+### Corregir una hora del timbre (decisión 30)
 
 ```
-   ┌ Corregir la 2da hora   de [ 07:50 ]  a [ 08:30 ]   [Guardar] [Cancelar] ───────────────┐
-   │ Este timbre lo usan las 7 secciones del turno de la mañana: el cambio les llega a todas. │
-   └──────────────────────────────────────────────────────────────────────────────────────────┘
-   si se pisa con la de al lado:   «Se pisa con la 1ra hora (7:10 – 7:50).»
+   con «Armar» abierto       el lápiz                  la barra del armador
+   ┌ 5TA           ✎ ┐       ┌ 5TA       [✓] [✗] ┐
+   │ 10:20 – 11:00    │  ──►  │ [10:20 a. m.  ⏱]  │    «Corrija la 5ta hora en su casilla, a la
+   └──────────────────┘       │ [11:00 a. m.  ⏱]  │     izquierda, y guarde con ✓. Este timbre lo
+                              └───────────────────┘     usan 7 secciones del turno de la mañana:
+                                                         el cambio les llega a todas.»
+   ✓ o Enter guarda · ✗ o Escape la deja como estaba
+   si se pisa con la de al lado:   «Se pisa con la 6ta hora (11:00 – 11:40)», y la casilla sigue abierta
 ```
+
+Mientras está abierta, su columna y su fila crecen lo que pide el formulario, y
+las clases de esa fila crecen con ella. Hasta el 26 de octubre era un cuadro
+aparte, arriba de la rejilla, con «Guardar» y «Cancelar».
 
 ### ③ Todas, un mismo día
 
@@ -382,7 +392,8 @@ apaga. Con «reducir movimiento» no se mueve: quedan el color y el «?».
 ```
 
 ```
-   [ Buscar por nombre o apellido         ]
+   El horario de un alumno
+   Buscar [ Nombre, apellido o cédula          ] ✗    los resultados salen mientras se escribe (decisión 31)
    (Valentina Suárez · 1er Año A)  (Andrés Suárez · 1er Año B)  (Camila Ortega · 2do Año A) …
    Valentina Suárez · 1er Año A · su horario es el de su sección
    (la semana de 1er Año A)
@@ -572,9 +583,11 @@ saltándose la validación, y el turno de una sección es de su año.
 
 **El timbre y la carga, dentro de la rejilla**
 
-- [ ] Con «Armar» abierto, cada hora de la columna izquierda se corrige ahí, y
-      el aviso dice que el cambio llega a las secciones del turno. Si se pisa
-      con la de al lado: «Se pisa con la 1ra hora (7:10 – 7:50).»
+- [ ] Con «Armar» abierto, el lápiz de cada hora convierte su casilla en el
+      formulario (decisión 30): ✓ o Enter guarda, ✗ o Escape la deja como
+      estaba, y la barra dice que el cambio llega a las secciones del turno. Si
+      se pisa con la de al lado: «Se pisa con la 1ra hora (7:10 – 7:50).», y la
+      casilla sigue abierta.
 - [ ] Corregir una hora mueve los minutos de sus clases en todas las secciones.
       Si haría chocar a un profesor con otro turno, no se guarda y dice con quién.
 - [ ] Con un área elegida, su carga sube y baja con − y + para todo el grado
@@ -603,7 +616,8 @@ saltándose la validación, y el turno de una sección es de su año.
       «libre» donde el profesor no tiene clase. Tocar una fila abre su semana.
 - [ ] La semana de un área muestra en cada casilla las secciones que la tienen
       y con quién.
-- [ ] Alumnos busca por nombre o apellido, palabra por palabra y sin importar
+- [ ] Alumnos busca como todos los listados —mientras se escribe, sin botón
+      (decisión 31)—, por nombre o apellido, palabra por palabra y sin importar
       los acentos (`MOR-179`, `MOR-183`); su horario es el de su sección.
 - [ ] La pestaña «Horario» de la sección —la última— es la misma pantalla
       (decisión 29): armar desde ahí vuelve ahí. El profesor que dicta en la
@@ -766,7 +780,7 @@ qué no caben las demás, no escribe nada sin confirmar, y pide suscripción.
 ```
    tanda 2   director      Horarios: 1er Año A · Todas, un mismo día · García · Matemática · Valentina
                            1er Año B ▸ Armar: ubicar Inglés, Arte y Dibujo; tocar una rayada;
-                           corregir una hora; subir y bajar una carga · Publicar
+                           corregir una hora en su casilla; subir y bajar una carga · Publicar
                            Áreas y profesores: cambiar a un profesor y leer el aviso
                            Horario en PDF: el de 1er Año A, el de 1er Año B (borrador) y el de García
                            Secciones ▸ 1er Año B ▸ Horario: armar desde la pestaña
