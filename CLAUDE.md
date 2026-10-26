@@ -347,6 +347,34 @@ es deliberadamente distinto al del colegio (`MOR-133`).
 Specs: [`sistema-de-diseno.md`](docs/specs/sistema-de-diseno.md) (①) y
 [`cabecera-unica.md`](docs/specs/cabecera-unica.md) (②).
 
+**Una función, una sola manera de hacerla** (Daniel, 26 de octubre de 2026):
+*«No puede ser que avanzamos con vistas asíncronas con Stimulus, diseños
+fabulosos y muy bien pensados y luego lanzo un form simple con botones de
+cancelar… Una regla pudiera ser: formularios? Asíncronos (Stimulus) y que se
+modifiquen en el lugar tipo los textos de Linear (cuando se pueda)»*. Lo dijo
+para SIGA y para cualquier otro proyecto.
+
+```
+   CORREGIR lo que existe   en su sitio y sin botones: Enter guarda, Escape lo
+                            deja como estaba, salir guarda si algo cambió
+                              un campo        edicion-en-linea   (el plan de evaluación)
+                              varios campos   en-su-sitio        (una hora del timbre)
+   AGREGAR                  la misma fila de la edición, punteada, con ✓ y ✗
+                            (la evaluación nueva del plan)
+   BUSCAR                   mientras se escribe, sin botón: el de shared/cabecera
+```
+
+⚠️ **El modelo es el plan de evaluación** —competencias, evaluaciones e
+indicadores—, y la pregunta antes de escribir un formulario es si se puede
+corregir donde se lee. Ese día se rompió la regla dos veces, las dos en
+horarios: la hora del timbre se corregía en un cuadro aparte con «Guardar» y
+«Cancelar» —y después con un ✓ y una ✗, que eran lo mismo con otro dibujo—, y
+el horario de un alumno se buscaba con un botón «Buscar», el único de la app.
+
+⚠️ **Todavía no la cumplen** el nombre de un departamento (`fila-en-edicion`,
+con «Guardar» y «Cancelar») ni el alta de una competencia (`alta-en-linea`,
+con «Agregar» y «Cancelar»). Son de antes de la regla, y no se tocaron.
+
 ### ✉️ Los correos: una plantilla, y cada uno dice de quién es
 
 Daniel, 5 de octubre de 2026, con el de «recuperar contraseña» abierto en Gmail:
@@ -684,6 +712,16 @@ blanca), o salir diciéndolo (`data-turbo-frame="_top"`).
 Lo cuida `el_frame_sobrevive_test`, que pide como pide Turbo, sigue los
 redirects **y recorre los enlaces de cada formulario** — el cuarto caso entró
 justamente por ahí, que era el hueco de la guarda anterior.
+
+⚠️ **Y el flash, dentro de un frame, no se va solo.** turbo-rails llama
+`flash.keep` en CADA petición que trae la cabecera `Turbo-Frame` —para que la
+página entera lo muestre después—, así que un mensaje que se dibuja DENTRO del
+frame se repite en cada clic hasta la próxima página entera. En el armador de
+horarios, después de ubicar una clase, tocar una casilla rayada seguía diciendo
+«Listo» en vez del porqué (Daniel, 26 de octubre de 2026). El que se muestra
+dentro del frame se lee con `flash.discard(:clave)`, que lo devuelve y lo gasta.
+⚠️ Y un test que no manda esa cabecera no lo ve: el del porqué pasaba en verde
+con el error adentro.
 
 ⚠️ Y una que no es de Turbo pero se paga igual: **Stimulus busca sus `target`
 DENTRO del elemento del controlador.** Con `data-controller` en la barra de

@@ -75,9 +75,10 @@ module MuestraElHorario
   # Lo que dice la barra del armador. Brinca cuando viene de tocar la rejilla:
   # de ubicar o quitar (`flash`) o de una casilla rayada (`porque`).
   def mensaje_del_armador
-    if (flash_horario = flash[:horario])
-      return { texto: flash_horario["texto"], tipo: flash_horario["tipo"], brinca: true }
+    if (escrito = mensaje_recien_escrito)
+      return escrito
     end
+    return { texto: correccion_de_la_hora, tipo: "info", brinca: true } if @hora_editada
 
     if (casilla = casilla_tocada)
       celda = @rejilla.celda(*casilla)
@@ -95,10 +96,38 @@ module MuestraElHorario
 
   # Fuera de «Armar», la barra aparece solo para contar algo que acaba de pasar
   # —publicar—: el `notice` de siempre se dibuja fuera del marco y no se vería.
-  def mensaje_suelto
-    return unless (flash_horario = flash[:horario])
+  def mensaje_suelto = mensaje_recien_escrito
 
-    { texto: flash_horario["texto"], tipo: flash_horario["tipo"], brinca: true }
+  # Lo que acaba de pasar —ubicar, quitar, la carga, el timbre, publicar—, que
+  # llega en `flash[:horario]`. Se dice UNA vez.
+  #
+  # ⚠️ Por eso se descarta al leerlo. turbo-rails guarda TODO el flash en cada
+  # petición de un marco (`flash.keep`, para que la página entera lo muestre
+  # después), y este mensaje se dibuja DENTRO del marco: sin descartarlo, el
+  # «Listo» se repetía —y brincaba— en cada clic, y tapaba el porqué de la
+  # casilla rayada. Daniel lo vio el 26 de octubre de 2026, y también al tocar
+  # el lápiz de una hora.
+  def mensaje_recien_escrito
+    return unless (escrito = flash.discard(:horario))
+
+    { texto: escrito["texto"], tipo: escrito["tipo"], brinca: true }
+  end
+
+  # Con una hora abierta en su casilla, la barra dice a quién alcanza el
+  # cambio: el timbre es del turno, no de la sección. Es una consecuencia, y por
+  # eso se ve (`MOR-161`). Vivía en el cuadro aparte, que ya no existe.
+  def correccion_de_la_hora
+    turno = @hora_editada.bell_schedule
+    cual = @hora_editada.receso? ? "el receso" : "la #{turno.nombre_de(@hora_editada)}"
+    "Corrija #{cual} en su casilla, a la izquierda: se guarda con Enter o al salir de ella, y Escape la deja " \
+      "como estaba. #{alcance_del_timbre(turno)}"
+  end
+
+  def alcance_del_timbre(turno)
+    cuantas = turno.sections.size
+    return "Este timbre es solo de esta sección." if cuantas == 1
+
+    "Este timbre lo usan #{cuantas} secciones del #{turno.name.downcase}: el cambio les llega a todas."
   end
 
   def instruccion

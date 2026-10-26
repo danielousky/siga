@@ -37,5 +37,3 @@
       %span= "horas a la semana en #{@seccion.grade.name} #{letras_del_grado(@seccion)}"
       - if elegida.propuesta
         %span.horario-propuesta la del plan oficial
-  - if @hora_editada
-    = render "horarios/editar_hora", hora: @hora_editada

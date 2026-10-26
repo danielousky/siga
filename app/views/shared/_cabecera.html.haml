@@ -51,6 +51,7 @@
 -#     importar            el tipo de planilla
 -#     alta_en_linea       para listas cortas: el campo va en la cabecera
 -#     campo               el parámetro de búsqueda (por defecto :q)
+-#     ocultos             lo que viaja con la búsqueda sin verse: { ver: "alumnos" }
 -#     ── y el bloque ────────────────────────────────────────────────────
 -#     yield               las acciones de la derecha
 -#
@@ -233,6 +234,12 @@
         = form_with url: ruta, method: :get, local: false, class: "cabecera-de-lista-filtros",
             data: { controller: "search-filter", turbo_frame: marco,
                     action: "submit->search-filter#hideSpinner" } do |f|
+
+          -# ⚠️ Una pantalla con pestañas en la dirección (Horarios ▸ Alumnos es
+          -# `?ver=alumnos`) las pierde al buscar: un GET REEMPLAZA la consulta de su
+          -# `action` por la del formulario, y caería en la pestaña de siempre.
+          - Hash(local_assigns[:ocultos]).each do |nombre, valor|
+            = hidden_field_tag nombre, valor, id: nil
 
           -# El campo y «Limpiar» son UN control: se pegan sin borde entre ellos, como
           -# la cédula con su V/E (`campo-compuesto`, MOR-178).

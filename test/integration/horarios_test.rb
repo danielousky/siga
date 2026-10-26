@@ -38,6 +38,10 @@ class HorariosTest < ActionDispatch::IntegrationTest
 
   def mensaje = css_select(".horario-mensaje p").first&.text.to_s.squish
 
+  # Como pide Turbo un clic dentro del armador: el marco «horario». Nuevo en
+  # cada llamada: `follow_redirect!` escribe en el que recibe.
+  def marco = { "Turbo-Frame" => "horario" }
+
   # ── La puerta ────────────────────────────────────────────────────────────
 
   test "abre en la semana de la sección, con el timbre de la foto aunque no haya turno, y sin guardar nada" do
@@ -103,6 +107,34 @@ class HorariosTest < ActionDispatch::IntegrationTest
     assert_match "#{apellido} está en 1er Año A dando Matemática", mensaje
   end
 
+  # Daniel, el 26 de octubre de 2026: después de ubicar, tocó una rayada y la
+  # barra brincó con el mismo «Listo», sin decir por qué; y lo mismo al tocar
+  # el lápiz de una hora. turbo-rails guarda todo el flash en cada petición de
+  # un marco (`flash.keep`). Por eso este test pide COMO TURBO, con la
+  # cabecera del marco: sin ella el «Listo» se gastaba solo, y el test de
+  # arriba pasaba en verde con el error adentro.
+  test "lo que acaba de pasar se dice una vez: el clic siguiente, dentro del marco, dice lo suyo" do
+    otra = en_a do
+      Section.create!(grade: @a.grado, academic_period: @a.periodo, name: "B", capacity: 30).tap do |b|
+        TeacherSection.create!(teacher: @garcia, section: b, subject: @mat)
+      end
+    end
+    armar
+    ubicar(@seccion, dia: 1, hora: 1)
+
+    post section_lessons_path(otra), params: { subject_id: @mat.id, dia: 2, time_slot_id: hora(1).id }, headers: marco
+    follow_redirect!(headers: marco)
+    assert_equal "Listo: Matemática el martes de 7:10 a 8:30. Van 2 de 4.", mensaje
+
+    get horarios_path(seccion: otra.id, armar: 1, area: @mat.id, porque: "1-0"), headers: marco
+    assert_equal "Lunes a las 7:10 no se puede: #{apellido} está en 1er Año A dando Matemática.", mensaje
+    assert_select ".horario-mensaje.horario-mensaje--aviso.horario-mensaje--brinca"
+
+    get horarios_path(seccion: otra.id, armar: 1, area: @mat.id, hora: hora(5).id), headers: marco
+    assert_match(/\ACorrija la 5ta hora en su casilla/, mensaje)
+    assert_select ".horario-mensaje.horario-mensaje--info"
+  end
+
   test "la carga sube y baja para el grado entero, y no baja de lo ya ubicado" do
     armar
     pensum = en_a { GradeSubject.find_by(grade: @a.grado, subject: @mat) }
@@ -117,6 +149,32 @@ class HorariosTest < ActionDispatch::IntegrationTest
     follow_redirect!
     assert_equal 2, en_a { pensum.reload.weekly_hours }
     assert_equal "No baja de 2: 1er Año A ya tiene 2 horas de Matemática ubicadas. Quite una primero.", mensaje
+  end
+
+  # Daniel, el 26 de octubre de 2026: *«cuando le dé al lápiz, ese mismo cuadro
+  # se convierta en el form para modificarlo»*. Antes el lápiz abría un cuadro
+  # aparte, arriba de la rejilla.
+  test "el lápiz convierte la casilla de la hora en su formulario, y la barra dice a quién le llega" do
+    armar
+    quinta = hora(5)
+    get horarios_path(seccion: @seccion.id, armar: 1, area: @mat.id, hora: quinta.id), headers: marco
+
+    assert_select "form.horario-hora--editando", 1
+    assert_select ".horario-rejilla tbody th form.horario-hora--editando[action=?][data-controller=en-su-sitio]",
+                  bell_schedule_time_slot_path(quinta.bell_schedule_id, quinta) do
+      assert_select "input[type=time][name='time_slot[desde]'][value='10:20']"
+      assert_select "input[type=time][name='time_slot[hasta]'][value='11:00']"
+      assert_select "input[type=hidden][name=seccion][value=?]", @seccion.id.to_s
+      # Sin «Guardar» ni «Cancelar», como en Linear (decisión 30).
+      assert_select "button, [type=submit]", 0
+      # Escape cierra por aquí: la rejilla, sin la hora abierta.
+      assert_select "a[hidden][data-en-su-sitio-target=cerrar][href=?]",
+                    horarios_path(area: @mat.id, armar: 1, seccion: @seccion.id)
+    end
+    # Las otras horas siguen siendo su lápiz: 9 del turno, menos la abierta.
+    assert_select ".horario-rejilla a.horario-hora--editable", 8
+    assert_equal "Corrija la 5ta hora en su casilla, a la izquierda: se guarda con Enter o al salir de ella, " \
+                 "y Escape la deja como estaba. Este timbre es solo de esta sección.", mensaje
   end
 
   test "corregir una hora del timbre mueve sus clases y lo dice; si se pisa, no se guarda" do
@@ -166,6 +224,23 @@ class HorariosTest < ActionDispatch::IntegrationTest
     assert_select ".horario-resultado", text: /1er Año A/
     get horarios_path(ver: "alumnos", alumno: alumno.id)
     assert_select ".horario-rejilla .horario-clase b", text: "Matemática"
+  end
+
+  # Daniel, el 26 de octubre de 2026: *«¿cómo que en unos formularios para
+  # buscar tengo que darle "buscar" y en otros no?»*. Es el buscador de la
+  # cabecera, el de todos los listados: sin botón, y la pestaña viaja con él.
+  test "buscar a un alumno es como en todos los listados: sin botón, y sin salir de la pestaña" do
+    sign_in @a.director
+    get horarios_path(ver: "alumnos")
+
+    assert_select "form[data-controller=search-filter][data-turbo-frame=horario-alumnos]" do
+      assert_select "input[type=hidden][name=ver][value=alumnos]"
+      assert_select "input[name=q][data-action*='search-filter#search']"
+      assert_select "[type=submit]", 0
+    end
+
+    get horarios_path(ver: "alumnos", q: @a.alumno.user.first_name), headers: { "Turbo-Frame" => "horario-alumnos" }
+    assert_select "turbo-frame#horario-alumnos .horario-resultado", text: /1er Año A/
   end
 
   # Decisión 16: un año que terminó queda en solo lectura.

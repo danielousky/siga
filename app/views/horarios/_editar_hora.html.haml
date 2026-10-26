@@ -1,19 +1,32 @@
--# Corregir una hora del timbre, desde la rejilla (decisión 20). El turno es
--# de varias secciones: el aviso lo dice antes de guardar.
+-# Corregir una hora del timbre EN SU CASILLA (decisión 20; en su casilla desde
+-# el 26 de octubre de 2026, decisión 30).
+-#
+-#     ┌ 5TA          ✎ ┐       ┌ 5TA              ┐
+-#     │ 10:20 – 11:00  │  ──►  │ [10:20 a. m.  ⏱] │     Enter guarda · Escape la deja
+-#     └────────────────┘       │ [11:00 a. m.  ⏱] │     salir de la casilla guarda,
+-#                              └──────────────────┘     si algo cambió
+-#
+-# Sin botones, como se corrige lo que ya existe en el plan de evaluación
+-# (`edicion-en-linea`) y como el texto de Linear. Daniel, el 26 de octubre:
+-# *«formularios? Asíncronos (Stimulus) y que se modifiquen en el lugar»*. Tuvo
+-# un ✓ y una ✗, y eran «guardar» y «cancelar» con otro dibujo.
+-#
+-# ⚠️ Cuántas secciones usan este timbre —una consecuencia, y por eso a la vista—
+-# lo dice la barra del armador (`MuestraElHorario#correccion_de_la_hora`): en
+-# una casilla de 150 píxeles no cabe una frase.
 - turno = hora.bell_schedule
-- cuantas = turno.sections.size
-= form_with model: hora, url: bell_schedule_time_slot_path(turno, hora), class: "horario-editar-hora" do |f|
+- cual = hora.receso? ? "el receso" : "la #{turno.nombre_de(hora)}"
+= form_with model: hora, url: bell_schedule_time_slot_path(turno, hora),
+            class: "horario-hora horario-hora--editando", tabindex: -1,
+            data: { controller: "en-su-sitio", action: "keydown->en-su-sitio#tecla focusout->en-su-sitio#salir" } do |f|
   = hidden_field_tag :seccion, @seccion.id
   = hidden_field_tag :area, params[:area]
-  - desde_la_seccion.each do |nombre, valor|
-    = hidden_field_tag nombre, valor
-  %b= "Corregir #{hora.receso? ? 'el receso' : "la #{turno.nombre_de(hora)}"}"
-  %label.horario-editar-hora-campo
-    de
-    = f.time_field :desde, value: hora.desde, class: "form-control", required: true
-  %label.horario-editar-hora-campo
-    a
-    = f.time_field :hasta, value: hora.hasta, class: "form-control", required: true
-  = f.submit "Guardar", class: "btn btn-guardar btn-sm"
-  = boton "Cancelar", ruta_del_horario(hora: nil), icono: :cerrar, tono: :secondary
-  %p.dato-secundario= "Este timbre lo usan #{contar(cuantas, 'sección', 'secciones')} del #{turno.name.downcase}: el cambio les llega a todas."
+  - desde_la_seccion.each do |clave, valor|
+    = hidden_field_tag clave, valor
+  %span.horario-hora-ord= nombre
+  = f.time_field :desde, value: hora.desde, class: "horario-hora-campo", required: true, autofocus: true,
+                 "aria-label": "#{cual.upcase_first}: empieza a las"
+  = f.time_field :hasta, value: hora.hasta, class: "horario-hora-campo", required: true,
+                 "aria-label": "#{cual.upcase_first}: termina a las"
+  = link_to "Dejar #{cual} como estaba", ruta_del_horario(hora: nil), hidden: true,
+            data: { en_su_sitio_target: "cerrar" }

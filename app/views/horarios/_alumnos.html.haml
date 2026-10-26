@@ -1,22 +1,26 @@
 -# Un alumno: su horario es el de su sección. Se busca como en «Inscripciones»,
 -# palabra por palabra y sin acentos.
+-#
+-# ⚠️ Con el buscador de la cabecera, el de todos los listados: los resultados
+-# salen mientras se escribe. Tuvo su botón «Buscar», y Daniel lo vio el 26 de
+-# octubre de 2026: *«¿cómo que en unos formularios para buscar tengo que darle
+-# "buscar" y en otros no?»*.
 .card-academic
-  = form_with url: horarios_path, method: :get, class: "horario-buscador" do
-    = hidden_field_tag :ver, "alumnos"
-    = label_tag :q, "Buscar un alumno", class: "sr-only"
-    = search_field_tag :q, @busqueda, class: "form-control", placeholder: "Nombre, apellido o cédula", autocomplete: "off"
-    = submit_tag "Buscar", class: "btn btn-ver", name: nil
-  - if @inscripciones.empty?
-    %p.dato-secundario Nadie con ese nombre en las secciones con horario.
-  - else
-    %ul.horario-resultados
-      - @inscripciones.each do |inscripcion|
-        - activo = inscripcion == @inscripcion
-        %li
-          = link_to ruta_del_horario(alumno: inscripcion.student_id), class: class_names("horario-resultado", activo: activo),
-                    "aria-current": ("page" if activo) do
-            %b= inscripcion.student.user.apellidos_y_nombres
-            %span= nombre_de_la_seccion(inscripcion.section)
+  = render "shared/cabecera", titulo: "El horario de un alumno", nivel: 2,
+           ruta: horarios_path(ver: "alumnos"), marco: "horario-alumnos",
+           pista: "Nombre, apellido o cédula", ocultos: { ver: "alumnos" }
+  = turbo_frame_tag "horario-alumnos", target: "_top" do
+    - if @inscripciones.empty?
+      %p.dato-secundario Nadie con ese nombre en las secciones con horario.
+    - else
+      %ul.horario-resultados
+        - @inscripciones.each do |inscripcion|
+          - activo = inscripcion == @inscripcion
+          %li
+            = link_to ruta_del_horario(alumno: inscripcion.student_id), class: class_names("horario-resultado", activo: activo),
+                      "aria-current": ("page" if activo) do
+              %b= inscripcion.student.user.apellidos_y_nombres
+              %span= nombre_de_la_seccion(inscripcion.section)
 - if @inscripcion
   .card-academic
     .horario-cabeza

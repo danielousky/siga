@@ -2377,8 +2377,44 @@ a.mapa-marca:focus-visible { outline: 2px solid var(--brand-primary); outline-of
   background: var(--surface-elevated);
 }
 .horario-hora--editable:hover { border-color: var(--brand-primary); }
-.horario-hora--editable.editando { border-style: solid; border-color: var(--brand-primary); background: var(--brand-subtle); }
 .horario-hora--editable svg { position: absolute; top: 6px; right: 6px; color: var(--text-tertiary); }
+
+/* La misma casilla, convertida en su formulario (26 de octubre de 2026): el
+   borde lleno del color de la marca dice «se está corrigiendo». Sin botones:
+   Enter guarda, Escape la deja y salir de ella guarda (`en-su-sitio`). */
+.horario-hora--editando {
+  gap: 4px;
+  margin: 0;
+  padding: 4px 6px 6px;
+  border: 1px solid var(--brand-primary);
+  border-radius: var(--radius-md);
+  background: var(--brand-subtle);
+}
+.horario-hora-campo {
+  width: 100%;
+  min-width: 0;
+  padding: 2px 4px;
+  border: 1px solid var(--border-standard);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.horario-hora-campo:focus {
+  outline: none;
+  border-color: var(--control-focus-border);
+  box-shadow: 0 0 0 3px var(--control-focus-ring);
+}
+.horario-hora--editando:focus { outline: none; }
+/* Mientras se corrige una hora, su columna crece lo que piden los dos campos
+   —con 124 píxeles, «10:20 a. m.» y su reloj no cabían y se cortaba la «m.»—,
+   y su fila, lo que pide el formulario. Las tarjetas de esa fila crecen con
+   ella: con su alto fijo dejaban un hueco blanco debajo, y el bloque de 80
+   minutos se veía partido. */
+.horario-rejilla:has(.horario-hora--editando) .horario-esquina { width: 150px; }
+.horario-rejilla:has(.horario-hora--editando) td.horario-casilla > * { height: 100%; min-height: 50px; }
 
 /* Alto FIJO: una casilla con dos renglones y otra con uno tienen que medir
    igual, o la semana se tuerce. El bloque unido mide dos más el espacio. */
@@ -2650,19 +2686,6 @@ a.mapa-marca:focus-visible { outline: 2px solid var(--brand-primary); outline-of
   cursor: pointer;
 }
 .horario-quitar:hover { background: var(--text-primary); border-color: var(--text-primary); color: var(--surface-elevated); }
-.horario-editar-hora {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-xs) var(--space-sm);
-  padding: var(--space-sm) 14px;
-  border: 1px solid var(--brand-primary);
-  border-radius: var(--radius-md);
-  background: var(--brand-subtle);
-}
-.horario-editar-hora-campo { display: inline-flex; align-items: center; gap: 6px; margin: 0; color: var(--text-secondary); }
-.horario-editar-hora .form-control { width: 8.5rem; }
-.horario-editar-hora .dato-secundario { flex-basis: 100%; margin: 0; }
 
 /* El mensaje del armador (decisión 24): fijo sobre la rejilla, con su tipo en
    el color y en el icono, y brinca al nacer. Daniel, al ver la maqueta:
@@ -2810,8 +2833,6 @@ a.mapa-marca:focus-visible { outline: 2px solid var(--brand-primary); outline-of
 .horario-momento .dato-secundario { margin: 0; }
 
 /* Alumnos: buscar, y su horario es el de su sección. */
-.horario-buscador { display: flex; flex-wrap: wrap; gap: var(--space-xs); max-width: 520px; }
-.horario-buscador .form-control { flex: 1 1 16rem; }
 .horario-resultados {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

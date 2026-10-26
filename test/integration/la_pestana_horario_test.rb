@@ -74,6 +74,10 @@ class LaPestanaHorarioTest < ActionDispatch::IntegrationTest
     assert_redirected_to horario_section_path(@seccion, armar: 1, area: @mat.id)
 
     primera = hora(1)
+    get horario_section_path(@seccion, armar: 1, area: @mat.id, hora: primera.id)
+    assert_select "form.horario-hora--editando input[name=desde][value=seccion]"
+    assert_select "form.horario-hora--editando a[href=?]", horario_section_path(@seccion, area: @mat.id, armar: 1)
+
     patch bell_schedule_time_slot_path(primera.bell_schedule_id, primera),
           params: { time_slot: { desde: "07:05", hasta: "07:50" }, seccion: @seccion.id, area: @mat.id, desde: "seccion" }
     assert_redirected_to horario_section_path(@seccion, armar: 1, area: @mat.id)

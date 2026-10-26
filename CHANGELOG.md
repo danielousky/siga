@@ -38,9 +38,10 @@ ni las secciones, y que cada quien lo vea por su puerta.
   «Martes a las 8:30 no se puede: Silva está en 2do Año A dando Castellano y
   Literatura». Ningún horario puede chocar: ni una sección con dos clases a la
   vez, ni un profesor en dos sitios, aunque dos personas guarden al mismo tiempo.
-- **El timbre y las horas de cada área se corrigen ahí mismo**: cada hora en su
-  columna —el cambio llega a todas las secciones del turno— y la carga con − y
-  +. SIGA propone las horas del plan de estudio de 2017, y el colegio las ajusta.
+- **El timbre y las horas de cada área se corrigen ahí mismo**: el lápiz de una
+  hora convierte su casilla en sus dos campos —el cambio llega a todas las
+  secciones del turno— y la carga sube y baja con − y +. SIGA propone las horas
+  del plan de estudio de 2017, y el colegio las ajusta.
 - **El mismo horario, por cuatro puertas**: por sección, por profesor —su
   semana, o todos un mismo día, donde se ven los huecos para cubrir una
   ausencia—, por área y por alumno.

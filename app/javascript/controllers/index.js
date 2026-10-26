@@ -44,6 +44,7 @@ import PonderacionController from "controllers/ponderacion_controller"
 import RepartoController from "controllers/reparto_controller"
 import MenuFlotanteController from "controllers/menu_flotante_controller"
 import EdicionEnLineaController from "controllers/edicion_en_linea_controller"
+import EnSuSitioController from "controllers/en_su_sitio_controller"
 import FotoDePerfilController from "controllers/foto_de_perfil_controller"
 import CatalogoDePlantelesController from "controllers/catalogo_de_planteles_controller"
 import IdentificadorController from "controllers/identificador_controller"
@@ -73,6 +74,7 @@ application.register("ponderacion", PonderacionController)
 application.register("reparto", RepartoController)
 application.register("menu-flotante", MenuFlotanteController)
 application.register("edicion-en-linea", EdicionEnLineaController)
+application.register("en-su-sitio", EnSuSitioController)
 application.register("foto-de-perfil", FotoDePerfilController)
 application.register("catalogo-de-planteles", CatalogoDePlantelesController)
 application.register("identificador", IdentificadorController)
