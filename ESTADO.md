@@ -239,7 +239,7 @@ hay fechas; si no, en el último con evaluaciones. En la muestra: 18 secciones,
   representantes) se salen de la pantalla, porque se vuelven desplazables recién
   a 600 px. No lo toqué: cambia cómo se ven todas las tablas a ese ancho.
 
-## 📐 Horarios — la tanda 2, con la pestaña y el PDF (1.22.0), esperando tu prueba (23 de octubre)
+## 📐 Horarios — la tanda 2 (1.22.0), en tu prueba desde el 26 de octubre
 
 La tanda 1 —Turnos y Carga horaria, dos pantallas de configuración— **se
 devolvió** el 16 (*«eso no es el horario»*). El 20 se hizo una maqueta, el 22 la
@@ -261,6 +261,25 @@ PDF, en esta tanda. Las dos cosas quedaron hechas ese día:
                         en borrador lo dice arriba y atravesado
 ```
 
+El 26 empezaste a probarla. El PDF lo aprobaste (*«el diseño es perfecto»*), y
+salieron tres cosas, arregladas ese mismo día:
+
+```
+   LO QUE VISTE                                   LO QUE CAMBIÓ
+   tras ubicar, tocar una rayada seguía           el «Listo» se dice UNA vez: turbo-rails
+   diciendo «Listo» — y el lápiz, igual           guardaba el flash en cada clic del marco
+   corregir la hora abría un cuadro aparte        la casilla se vuelve sus dos campos, sin
+   con [Guardar] [Cancelar]                       botones: Enter · Escape · salir (dec. 30)
+   Alumnos se buscaba con un botón «Buscar»       mientras se escribe, como los listados (31)
+```
+
+De ahí salió tu regla para todo proyecto —*«formularios? Asíncronos (Stimulus)
+y que se modifiquen en el lugar tipo los textos de Linear»*—, que quedó en
+`CLAUDE.md` (§ «Una función, una sola manera de hacerla») y en tu `CLAUDE.md`
+global. En SIGA todavía no la cumplen el nombre de un departamento y el alta de
+una competencia: son de antes, y **se alinean después de horarios, en su propia
+rama** (lo decidiste el 26).
+
 ```
    Académico ▸ Horarios        [Secciones] Profesores  Áreas  Alumnos
    1er Año (●A)(○B) · 2do Año (●A)(●B) · …                         ○ = borrador
@@ -269,7 +288,7 @@ PDF, en esta tanda. Las dos cosas quedaron hechas ese día:
    │ [Inglés · Castillo · 2 de 4] [Arte · Moreno · 0 de 2] … │
    └─────────────────────────────────────────────────────────┘
    ║ (?) Martes a las 8:30 no se puede: Silva está en 2do Año A … ║  ← fijo, brinca
-   la rejilla: + libre · rayada con «?» · × quitar · ✎ corregir la hora
+   la rejilla: + libre · rayada con «?» · × quitar · ✎ la hora, en su casilla
 ```
 
 - **Lo que hay:** la semana de una sección (la puerta), Armar con «Por ubicar»,
@@ -278,15 +297,7 @@ PDF, en esta tanda. Las dos cosas quedaron hechas ese día:
   semana»; la familia y el alumno en el teléfono (solo lo publicado; la familia
   en mora también lo ve). La muestra amanece con Media armada: 272 clases, 7
   secciones publicadas y 1er Año B en borrador con 6 horas por ubicar.
-- **Lo que verifiqué:** `bin/ci` en verde de punta a punta el 23 (4 min 22 s):
-  tests 2.200 y 0 fallos, los de navegador 97 —con la pestaña «Horario» en el
-  recorrido del teléfono—, la siembra como la muestra y el humo, que ahora pide
-  también el PDF de un profesor. Los tests nuevos se probaron rompiendo lo que
-  cuidan. Miré las capturas de la pestaña (computadora, armando, profesor y
-  teléfono) y los tres PDF con Quick Look.
-  ⚠️ El humo entra con `desarrollador@siga.edu · 123123`: la base de desarrollo
-  se siembra con `db:seed:replant`, no como la muestra (allá el equipo de SIGA
-  lleva una clave al azar, y el humo falla).
+- **Lo que verifiqué:** `bin/ci` en verde de punta a punta el 26 (4 min 50 s): tests 2.203 y 0 fallos, los de navegador 98 —con el nuevo, que corrige una hora con Escape, con Enter y saliendo de la casilla—, la siembra como la muestra y el humo. El test del «Listo» pegado pide como Turbo, con la cabecera del marco, y se probó rompiendo el arreglo: sin él, falla. Miré las capturas de la hora abierta (la 5ta y la 4ta, con el bloque de 80 minutos) y del buscador de alumnos, que filtra sin Enter (de 30 a 16 con «bastidas»).
   ⚠️ El humo entra con `desarrollador@siga.edu · 123123`: la base de desarrollo
   se siembra con `db:seed:replant`, no como la muestra (allá el equipo de SIGA
   lleva una clave al azar, y el humo falla).
@@ -301,16 +312,18 @@ PDF, en esta tanda. Las dos cosas quedaron hechas ese día:
    → http://localhost:3002 · director.bolivar@mail.com · 123123
 
    1 · Horarios: 1er Año A (publicado) · «Todas, un mismo día» · Profesores · Áreas
+       · Alumnos: escribir un apellido (los resultados salen solos)
    2 · 1er Año B ▸ [Armar]: elegir Inglés, tocar un +; tocar una rayada (dice por qué)
-   3 · con «Armar» abierto: tocar una hora de la izquierda y corregirla
-   4 · [Horario en PDF]: el de 1er Año A, el de 1er Año B (borrador) y el de García
+   3 · con «Armar» abierto: el lápiz de una hora la vuelve sus dos campos:
+       Enter guarda, Escape la deja, salir de la casilla guarda
+   4 · ✓ [Horario en PDF] — aprobado el 26
    5 · Secciones ▸ 1er Año B ▸ pestaña «Horario»: armar desde ahí, sin salir de la sección
    6 · [Publicar] 1er Año B · y entrar como profesor.bolivar@mail.com («Ahora · Después»
        y la pestaña «Horario» de sus secciones)
 ```
 
 ⚠️ **Ramas, sin subir:** `docs/spec-horarios` (el spec, con las decisiones
-del 23) y encima `feat/horarios` (la tanda 1 con la 2 adentro: decisión 26). Las
+del 23 y del 26) y encima `feat/horarios` (la tanda 1 con la 2 adentro: decisión 26). Las
 dos ya están sobre `main` 1.21.0.
 
 ⚠️ **Falta antes de subir:** ni el manual (`docs/manual`) ni «Qué hace hoy»

@@ -373,7 +373,8 @@ el horario de un alumno se buscaba con un botón «Buscar», el único de la app
 
 ⚠️ **Todavía no la cumplen** el nombre de un departamento (`fila-en-edicion`,
 con «Guardar» y «Cancelar») ni el alta de una competencia (`alta-en-linea`,
-con «Agregar» y «Cancelar»). Son de antes de la regla, y no se tocaron.
+con «Agregar» y «Cancelar»). Son de antes de la regla, y se alinean después
+de horarios, en su propia rama (Daniel, el mismo 26 de octubre).
 
 ### ✉️ Los correos: una plantilla, y cada uno dice de quién es
 
