@@ -23,7 +23,7 @@ mensaje del commit, que es donde vive el detalle técnico.
 
 ---
 
-## 1.22.0 — 23 de octubre de 2026
+## 1.22.0 — 26 de octubre de 2026
 
 Los horarios de clase: armar el de cada sección sin que choquen los profesores
 ni las secciones, y que cada quien lo vea por su puerta.
