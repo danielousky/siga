@@ -14,7 +14,7 @@ un VPS nuevo el día que haga falta.
                      (QEMU, x86)          variables.sh    las variables de Contabo, sin mostrarlas
    bajar-respaldo.sh la copia de cada     respaldar.sh    el de cada noche (lo instala montar.sh)
    (+ el .plist)     noche, a SIGA/       poner-ddns.sh   el dominio sigue a la IP de la casa
-                     respaldos
+                     respaldos            tailscale.sh    administrarla desde fuera de la casa
    el-cambio.md      la noche en que el dominio pasa a la casa, paso a paso, con su vuelta atrás
 ```
 
