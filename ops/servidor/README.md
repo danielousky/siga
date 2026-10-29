@@ -9,11 +9,13 @@ un VPS nuevo el día que haga falta.
    EN LA MAC                             EN LA MÁQUINA (root)
    hacer-el-usb.sh   el ISO que instala   montar.sh       Docker, Dokku, las dos apps, sus bases,
                      Debian sin preguntas                 el firewall, el respaldo de cada noche
-   bajar-respaldo.sh la copia de cada     restaurar.sh    un volcado en la base de una app, con las
-   (+ el .plist)     noche, a SIGA/                       tablas devueltas a siga_app
-                     respaldos            variables.sh    las variables de Contabo, sin mostrarlas
-                                          respaldar.sh    el de cada noche (lo instala montar.sh)
-                                          poner-ddns.sh   el dominio sigue a la IP de la casa
+   usb/probar.sh     ese ISO, en una PC   restaurar.sh    un volcado en la base de una app, con las
+                     vieja de mentira                     tablas devueltas a siga_app
+                     (QEMU, x86)          variables.sh    las variables de Contabo, sin mostrarlas
+   bajar-respaldo.sh la copia de cada     respaldar.sh    el de cada noche (lo instala montar.sh)
+   (+ el .plist)     noche, a SIGA/       poner-ddns.sh   el dominio sigue a la IP de la casa
+                     respaldos
+   el-cambio.md      la noche en que el dominio pasa a la casa, paso a paso, con su vuelta atrás
 ```
 
 ## El orden
@@ -74,6 +76,20 @@ limactl start --name siga-ensayo --cpus 2 --memory 4 --disk 40 --vm-type vz temp
 rsync -a -e "ssh -F ~/.lima/siga-ensayo/ssh.config" ops/servidor/ lima-siga-ensayo:siga-ops/
 ssh -F ~/.lima/siga-ensayo/ssh.config lima-siga-ensayo 'sudo siga-ops/montar.sh'
 # con ENSAYO=1, variables.sh deja afuera el correo: un ensayo no le escribe a nadie
+```
+
+## El USB, antes de la máquina de verdad
+
+`usb/probar.sh` enciende una PC vieja de mentira, con lo que hace difícil elegir
+el disco. Las teclas y las fotos de la pantalla van por el monitor de QEMU, y así
+se ve el menú tal como lo vería Daniel.
+
+```
+   BIOS clásico (SeaBIOS) · un x86-64 básico · tarjeta de red Intel e1000
+   disco IDE de 20 GB             aquí TIENE que instalar
+   el ISO en un pendrive          arranca desde ahí, como en la casa
+   un pendrive de 32 GB           más grande que el disco, y anunciado como disco fijo:
+                                  si elegir-disco.sh mirara solo el tamaño, borraría este
 ```
 
 ## Lo que se mira
