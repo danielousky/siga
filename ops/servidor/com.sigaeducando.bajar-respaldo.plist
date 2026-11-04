@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Baja cada día el respaldo de la máquina de la casa a SIGA/respaldos.
+     Se instala con: cp a ~/Library/LaunchAgents/ y launchctl load. Ver README. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.sigaeducando.bajar-respaldo</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-lc</string>
+    <string>"$HOME/.siga/bajar-respaldo.sh"</string>
+  </array>
+  <!-- A las 9 de la mañana; si la Mac estaba dormida, al despertar. -->
+  <key>StartCalendarInterval</key>
+  <dict><key>Hour</key><integer>9</integer><key>Minute</key><integer>0</integer></dict>
+  <key>StandardOutPath</key><string>/tmp/siga-bajar-respaldo.log</string>
+  <key>StandardErrorPath</key><string>/tmp/siga-bajar-respaldo.log</string>
+</dict>
+</plist>
