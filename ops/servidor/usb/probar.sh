@@ -58,10 +58,12 @@ case "${1:-}" in
   entrar|entrar-otra)
     rm -f "$MONITOR"
     usb=(-device "qemu-xhci,id=xhci")
+    # La bash de macOS (3.2) no expande un arreglo vacío con `set -u`: de ahí
+    # la forma ${usb[@]+…} de abajo.
     [ "$1" = entrar-otra ] && usb=()
     qemu-system-x86_64 -accel tcg,thread=multi -cpu qemu64 -smp 2 -m 2048 \
       -drive file="$PRUEBA/disco.qcow2",if=ide,index=0 \
-      "${usb[@]}" \
+      ${usb[@]+"${usb[@]}"} \
       -netdev user,id=red,hostfwd=tcp:127.0.0.1:2222-:22 -device e1000,netdev=red \
       -vga std -display none \
       -monitor unix:"$MONITOR",server,nowait \
