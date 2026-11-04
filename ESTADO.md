@@ -1,8 +1,21 @@
-# 🔖 Estado de avance — actualizado 16 de octubre de 2026
+# 🔖 Estado de avance — actualizado 4 de noviembre de 2026
 
-## 📋 Lo pendiente, por prioridad — 16 de octubre
+## 📋 Lo pendiente, por prioridad — 4 de noviembre
 
 ```
+   P1  SIGA EN CASA                Contabo cortó el servidor por una factura vencida y
+                                   Daniel la pagó un mes más (28 oct), «para dar el salto
+                                   o conseguir quién pague». El plan, aprobado el 29, está
+                                   en el doc «SIGA en casa — el plan»
+                                   (https://claude.ai/artifact/KuZRqezfBQCq1zZxn9PoyJ):
+                                   una máquina vieja de su casa, con Dokku, y el DNS se
+                                   queda en Namecheap.
+       · hecho el 29               la 1.22.0 en Contabo (tanda 0) · los scripts de
+                                   ops/servidor/, ensayados en una VM · el USB que
+                                   instala solo, probado en una PC emulada
+       · lo que sigue              tanda 1: Daniel entra al ONT de Inter con las claves
+                                   de su etiqueta, y se prueba si Inter deja entrar
+       ⚠️ Decidir antes del 18 de noviembre, cuando vence la próxima factura.
    P1  LOS VIDEOS, EN NOTEBOOKLM   Daniel, 16 oct: los hace ÉL, a mano, en NotebookLM. Lo
                                    mío es, por video, UN PROMPT y LAS CAPTURAS. Siempre
                                    vertical (teléfono) y de 1 minuto, salvo que diga otra
@@ -13,6 +26,9 @@
                                    prompt y las capturas, en DOCs/Videos/Recursos/
                                    Representantes. El botón [Enviar por WhatsApp] que
                                    enseña ya está en producción (1.21.0).
+       · 2 · Los horarios          el material, en DOCs/Videos/Recursos/Horarios. Ya
+                                   puede cerrar con «véalo en demo.sigaeducando.com»: la
+                                   muestra tiene horarios desde el 29.
        ⚠️ Los videos son LOCALES. Daniel, 16 oct: «¿para qué hacer un PR de ellos? eso
           es algo que queda aquí». Ni rama ni PR: todo vive en DOCs/Videos.
    —   LA COMPETENCIA Y SUS        Daniel quiere revisarlo otra vez, por un comentario de
@@ -23,7 +39,40 @@
    —   LAS CAPTURAS DEL MANUAL     el capítulo Documentos ya dice «Emitir»; sus capturas
                                    todavía enseñan «Emitir y descargar» (docs/manual/capturar.rb).
    —   LOS 4 VIDEOS VIEJOS         los de septiembre, en la carpeta madre: los borra Daniel.
+   ✅  LO QUE SE SUBE, HASTA      nginx de Contabo cortaba en 1 MB (el tope de fábrica), y la
+       50 MB (4 nov)               app acepta 2 MB por escudo o foto, y el comprobante del pago
+                                   tal como sale del teléfono (3–4 MB): recibían un 413 antes de
+                                   que la app dijera nada. Daniel: «súbelo a 50 MB». Quedó en
+                                   producción y en la muestra (`nginx:set … client-max-body-size
+                                   50m`): 49 MB pasan y 53 millones de bytes dan 413. En la casa,
+                                   igual (montar.sh).
 ```
+
+## ✅ Los horarios de clase — 1.22.0, EN PRODUCCIÓN desde el 29 de octubre
+
+Aprobada el 26 (*«quedó muy bien! Me encanta, súbelo»*), salió el 29: el
+servidor estaba caído.
+
+```
+   18:05  respaldo de producción, abierto y contado     0 colegios · 2 personas · 61 tablas
+          → SIGA/respaldos/siga-prod-20261029-1805.dump   (igual al del 16: no entró nadie)
+   18:16  PR #86: el CHANGELOG pasa al 29 de octubre (el CI de GitHub, en verde: 10 min 33 s)
+   18:18  la muestra en 1.22.0 — las dos migraciones de horarios; `rls:verificar` en verde
+   18:25  producción en 1.22.0 (0480143) — las mismas dos migraciones, con su RLS;
+          `rls:verificar` en verde; /, /users/sign_in y /manual dan 200
+   18:25  la muestra, a resembrar con horarios; desde ahí lo hace sola cada madrugada,
+          y el 4 de noviembre tiene 266 clases en 8 secciones
+```
+
+- ⚠️ **El servidor estuvo caído DIEZ días, no tres.** Su propio diario
+  (`journalctl --list-boots`) dice que Contabo lo cortó el **19 de octubre a las
+  04:38**, en seco, y que volvió el 29 a las 10:35. Se notó el 26 al intentar
+  desplegar: sin un monitor de afuera, una semana caída no la ve nadie.
+- El 18 de septiembre pasó lo mismo, a las 04:38 también, y volvió ese día. Los
+  dos cortes cayeron cerca del 18, que es cuando vence la factura.
+- El respaldo nocturno de Contabo se detuvo con el corte: el último es del 19.
+- De horarios queda: el manual, «Qué hace hoy» y los dos formularios viejos
+  (el nombre de un departamento y el alta de una competencia).
 
 ## ✅ El enlace de acceso por WhatsApp — 1.21.0, EN PRODUCCIÓN desde el 16 de octubre
 
@@ -239,7 +288,7 @@ hay fechas; si no, en el último con evaluaciones. En la muestra: 18 secciones,
   representantes) se salen de la pantalla, porque se vuelven desplazables recién
   a 600 px. No lo toqué: cambia cómo se ven todas las tablas a ese ancho.
 
-## 📐 Horarios — la tanda 2 (1.22.0), en tu prueba desde el 26 de octubre
+## 📐 Horarios — cómo se armó la 1.22.0 (aprobada el 26, en producción desde el 29 de octubre)
 
 La tanda 1 —Turnos y Carga horaria, dos pantallas de configuración— **se
 devolvió** el 16 (*«eso no es el horario»*). El 20 se hizo una maqueta, el 22 la
