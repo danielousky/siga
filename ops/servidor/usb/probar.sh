@@ -6,6 +6,9 @@
 #   ops/servidor/usb/probar.sh tecla down # mueve el menú (down, up, ret…)
 #   ops/servidor/usb/probar.sh foto       # captura la pantalla en $PRUEBA/pantalla.png
 #   ops/servidor/usb/probar.sh entrar     # arranca lo instalado, con SSH en el 2222
+#   ops/servidor/usb/probar.sh entrar-otra  # lo mismo, sin el controlador USB: la
+#                                         # tarjeta de red cambia de ranura PCI, y la
+#                                         # red tiene que levantar igual (eth0)
 #
 # La PC de mentira tiene lo que hace difícil elegir el disco:
 #
@@ -52,10 +55,13 @@ case "${1:-}" in
     sips -s format png /tmp/siga-pantalla.ppm --out "$PRUEBA/pantalla.png" >/dev/null
     echo "$PRUEBA/pantalla.png"
     ;;
-  entrar)
+  entrar|entrar-otra)
     rm -f "$MONITOR"
+    usb=(-device "qemu-xhci,id=xhci")
+    [ "$1" = entrar-otra ] && usb=()
     qemu-system-x86_64 -accel tcg,thread=multi -cpu qemu64 -smp 2 -m 2048 \
       -drive file="$PRUEBA/disco.qcow2",if=ide,index=0 \
+      "${usb[@]}" \
       -netdev user,id=red,hostfwd=tcp:127.0.0.1:2222-:22 -device e1000,netdev=red \
       -vga std -display none \
       -monitor unix:"$MONITOR",server,nowait \
