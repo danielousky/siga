@@ -169,12 +169,13 @@ for app in "${APPS[@]}"; do
   # HSTS lo emite SOLO Rails: el de nginx trae 182 días e includeSubdomains, y
   # dejaría inaccesible el subdominio de un colegio sin certificado propio.
   dokku nginx:set "$app" hsts false >/dev/null
-  # Contabo se quedó con el 1 MB de fábrica, y la app acepta 2 MB por foto o
-  # escudo, y el comprobante del pago tal como sale del teléfono (3–4 MB, que
-  # EncogeElVoucher achica después). Con 1 MB, nginx los rechazaba con un 413
-  # antes de que la app pudiera explicar nada.
-  dokku nginx:set "$app" client-max-body-size 10m >/dev/null
-  listo "dominios: ${DOMINIOS[$app]} · puerto 80 · subidas de hasta 10 MB"
+  # Contabo se quedó hasta el 4 de noviembre de 2026 con el 1 MB de fábrica, y
+  # la app acepta 2 MB por foto o escudo, y el comprobante del pago tal como sale
+  # del teléfono (3–4 MB, que EncogeElVoucher achica después). Con 1 MB, nginx
+  # los rechazaba con un 413 antes de que la app pudiera explicar nada. Daniel
+  # lo subió a 50 MB, allá y aquí: el tope de cada archivo lo pone la app.
+  dokku nginx:set "$app" client-max-body-size 50m >/dev/null
+  listo "dominios: ${DOMINIOS[$app]} · puerto 80 · subidas de hasta 50 MB"
 
   # Los adjuntos viven fuera del contenedor, o se irían con cada despliegue. El
   # contenedor corre como uid 1000 y Dokku crea el directorio como 32767.
