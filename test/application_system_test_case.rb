@@ -285,11 +285,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # bajo carga —dentro de `bin/ci`, después de los mil quinientos tests de
   # unidad— porque ahí la hidratación tarda más y la rendija se ensancha.
   def tocar_para_ir_a(destino, intentos: 3, &clic)
-    intentos.times do
-      tocando(&clic)
-      esperando_la_pagina
-      return if page.has_current_path?(destino, ignore_query: true, wait: 3)
-    end
+    return if tocar_hasta(-> { page.has_current_path?(destino, ignore_query: true, wait: 3) }, intentos:, &clic)
 
     # Que falle con el mensaje de Capybara, que dice a dónde se llegó.
     assert_current_path destino, ignore_query: true
@@ -307,15 +303,15 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   #
   # Costó encontrarlo porque el HTML era correcto: pidiendo el frame a mano, el
   # formulario llegaba entero. Lo que fallaba era el clic, y solo bajo carga.
-  def tocar_para_ver(selector, intentos: 3, &clic)
-    intentos.times do
-      tocando(&clic)
-      esperando_la_pagina
-      return if page.has_css?(selector, wait: 3)
-    end
+  #
+  # `opciones` va tal cual a Capybara (`text:`): cuando lo que se abre comparte
+  # la clase con algo que ya estaba, el selector solo lo daría por abierto
+  # antes del clic.
+  def tocar_para_ver(selector, intentos: 3, **opciones, &clic)
+    return if tocar_hasta(-> { page.has_css?(selector, wait: 3, **opciones) }, intentos:, &clic)
 
     # Que falle con el mensaje de Capybara, que dice qué había en la página.
-    assert_selector selector
+    assert_selector selector, **opciones
   end
 
   # Tocar algo que TIENE que cerrar un panel, y asegurarse de que cerró.
@@ -326,13 +322,92 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # «expected not to find .alta-en-linea», que se lee como «el cancelar no
   # funciona» cuando nunca se pulsó.
   def tocar_para_cerrar(selector, intentos: 3, &clic)
-    intentos.times do
-      tocando(&clic)
-      esperando_la_pagina
-      return if page.has_no_css?(selector, wait: 3)
-    end
+    return if tocar_hasta(-> { page.has_no_css?(selector, wait: 3) }, intentos:, &clic)
 
     assert_no_selector selector
+  end
+
+  # El bucle de los tres de arriba: tocar, y si no se logró, tocar otra vez.
+  #
+  # ⚠️ Un reintento puede llegar TARDE en vez de sobrar. Con el procesador
+  # ocupado, la respuesta del primer clic puede llegar después de los tres
+  # segundos de espera: el panel se cierra justo cuando la espera se rindió, y
+  # el reintento busca un botón que ya no está. «Unable to find…», y el test
+  # dice que falló lo que funcionó. Pasó el 16 de noviembre de 2026 en `bin/ci`:
+  # el alta de una evaluación cayó así, con la captura diciendo «Evaluación
+  # creada».
+  #
+  # Por eso, EN UN REINTENTO, que lo que había que tocar ya no esté no es el
+  # error: se vuelve a mirar si el trabajo quedó hecho, y si no, lo dice la
+  # aserción de quien llamó, con su mensaje. En el PRIMER clic sí es el error —
+  # ahí no hay ningún clic anterior que lo explique—.
+  #
+  # ## ⚠️ Lento no es perdido
+  #
+  # El reintento existe para el clic que Turbo se traga, y ése no deja rastro.
+  # El clic que LLEGÓ sí lo deja: mientras la petición viaja, Turbo marca con
+  # `aria-busy="true"` el `<html>` (una visita), el marco que se llena y el
+  # formulario que se envía (`markAsBusy`, en Turbo 8.0.13). Con eso a la
+  # vista, tocar otra vez no es reintentar: un marco que navega de nuevo
+  # CANCELA la petición anterior (`#currentFetchRequest?.cancel()`), y con el
+  # servidor tardando más de tres segundos cada reintento volvía a empezar la
+  # cuenta — tres clics, ningún panel. Un formulario, peor: lo enviaría dos
+  # veces.
+  #
+  # ⚠️ Que así cayera «una competencia nueva se agrega ahí mismo» el 16 de
+  # noviembre de 2026 —tres clics y ningún panel, con la máquina a carga 28
+  # en diez núcleos— es mi lectura del código de Turbo, no una medición: el
+  # registro de esa corrida no se guardó. Lo medido es el código: las dos
+  # líneas citadas están en el Turbo que trae la app.
+  def tocar_hasta(logrado, intentos:, &clic)
+    intentos.times do |vez|
+      begin
+        tocando(&clic)
+      rescue Capybara::ElementNotFound
+        raise if vez.zero?
+      end
+      esperando_la_pagina
+      return true if logrado_ya?(logrado)
+      next unless con_una_peticion_en_vuelo?
+
+      esperando_la_respuesta
+      esperando_la_pagina
+      return true if logrado_ya?(logrado)
+    end
+
+    false
+  end
+
+  # ⚠️ Mirar también puede llegar en mal momento. Si el panel se reemplaza
+  # justo cuando se acaba la espera, Capybara devuelve el último error en vez
+  # de un «no»: `has_no_css?` reventó con «stale element» el 16 de noviembre
+  # de 2026, con el panel cerrándose en ese instante. Un nodo que se cayó a
+  # mitad de la consulta es una respuesta «todavía no», y para eso está el
+  # resto del bucle.
+  def logrado_ya?(logrado)
+    logrado.call
+  rescue *ERRORES_DE_NAVEGACION
+    false
+  end
+
+  # Cuánto se espera una respuesta que se SABE en camino. Es un tope, no una
+  # pausa: se sale en cuanto Turbo quita la marca.
+  ESPERA_DE_UNA_RESPUESTA = 15
+
+  # ⚠️ Se pregunta con un script que devuelve un booleano, y no con
+  # `has_css?`: no retiene ningún nodo que Chrome pueda tirar a mitad de un
+  # cambio de documento (lo de `esperando_la_pagina`). Y si el navegador no
+  # contesta porque está cambiando de documento, es que algo viaja.
+  def con_una_peticion_en_vuelo?
+    page.evaluate_script(%(document.querySelector('[aria-busy="true"]') !== null))
+  rescue Selenium::WebDriver::Error::WebDriverError
+    true
+  end
+
+  # El reloj MONÓTONO, no `Time`: varios tests corren con `travel_to`.
+  def esperando_la_respuesta
+    limite = Process.clock_gettime(Process::CLOCK_MONOTONIC) + ESPERA_DE_UNA_RESPUESTA
+    sleep 0.1 while con_una_peticion_en_vuelo? && Process.clock_gettime(Process::CLOCK_MONOTONIC) < limite
   end
 
   # Entrar por el formulario, como una persona. Un test de sistema que se saltea

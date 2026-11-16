@@ -40,7 +40,7 @@ class AltaEnLineaSystemTest < ApplicationSystemTestCase
   def fila_nueva = find(".plan-evaluacion--naciendo")
 
   def abrir_el_alta
-    tocar_para_ver(".plan-evaluacion--naciendo") { all("a", text: "Agregar evaluación").first.click }
+    tocar_para_ver(".plan-evaluacion--naciendo") { first("a", text: "Agregar evaluación").click }
   end
 
   test "la fila nueva se despliega en el sitio, sin cambiar de página" do
