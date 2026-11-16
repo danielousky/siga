@@ -15,10 +15,29 @@ class ArmarElHorarioTest < ApplicationSystemTestCase
     visit horarios_path
   end
 
+  # ⚠️ «Armar» es un `button_to` DENTRO del marco «horario», y Turbo se traga
+  # el clic que cae mientras hidrata (`tocar_para_ver`). Reintentarlo no hace
+  # daño: el POST llama a `TurnoDelAnio.asegurar!`, que no duplica el turno.
+  #
+  # ⚠️ ABIERTO: no alcanza. El 16 de noviembre de 2026 este test falló una de
+  # cada diez corridas con el panel sin abrir, y el registro del servidor
+  # mostraba la página pedida y NINGÚN `POST /horarios/armar` — con tres
+  # clics, sin carga en la máquina. Eso no es la rendija de la hidratación,
+  # que se cierra en segundos: algo deja al botón sin enviar en esa página.
+  # Los otros clics de este archivo dentro del marco fallan igual, de a ratos.
+  # No está explicado; el próximo paso es la caja negra en el navegador
+  # (CLAUDE.md, «cómo se encontró»), anotando clic, `submit` y
+  # `turbo:before-fetch-request`.
+  #
+  # El `text:` no es adorno: «Áreas y profesores de 1er Año A» lleva la misma
+  # clase y ya está en la pantalla antes del clic. Y va en mayúsculas por CSS:
+  # el navegador lee lo que se VE.
+  def abrir_armar
+    tocar_para_ver(".horario-armar-titulo", text: /por ubicar/i) { click_on "Armar" }
+  end
+
   test "tocar una casilla libre ubica el bloque de 80 minutos, y la × lo devuelve a «por ubicar»" do
-    click_on "Armar"
-    # El título va en mayúsculas por CSS, y el navegador lee lo que se VE.
-    assert_selector ".horario-armar-titulo", text: /por ubicar/i
+    abrir_armar
 
     within(".horario-rejilla") { first(".horario-libre").click }
     assert_selector ".horario-mensaje--ok", text: "Listo: Matemática el lunes de 7:10 a 8:30. Van 2 de 4."
@@ -34,8 +53,7 @@ class ArmarElHorarioTest < ApplicationSystemTestCase
   # (decisión 30). El foco, las teclas y «salir» son del navegador: un test de
   # integración no ve ninguno.
   test "corregir una hora en su casilla: Escape la deja, Enter guarda, y salir de ella también" do
-    click_on "Armar"
-    assert_selector ".horario-armar-titulo", text: /por ubicar/i
+    abrir_armar
 
     find(".horario-hora--editable", text: "10:20 – 11:00").click
     assert_selector "form.horario-hora--editando", count: 1

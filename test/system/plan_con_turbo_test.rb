@@ -76,7 +76,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     lapso = @a.escenario.lapso(2)
     con_el_colegio(@a.colegio) { competencia_con(0, "Resuelve problemas", lapso: lapso) }
     visit planificar_section_path(@a.seccion, area: @area.id, lapso: lapso.id)
-    tocar_para_ver(".plan-evaluacion--naciendo") { all("a", text: "Agregar evaluación").first.click }
+    tocar_para_ver(".plan-evaluacion--naciendo") { first("a", text: "Agregar evaluación").click }
 
     # ⚠️ La fila nace SIN indicadores, y es a propósito: un indicador cuelga de
     # la evaluación que lo mide, y esa evaluación todavía no existe. Se agregan
@@ -142,7 +142,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
     visit planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
     # ⚠️ `all(...).first`: hay un «Agregar evaluación» por competencia y otro al
     # pie para las que no miden ninguna. Con el plan vacío había uno solo.
-    tocar_para_ver(".plan-evaluacion--naciendo") { all("a", text: "Agregar evaluación").first.click }
+    tocar_para_ver(".plan-evaluacion--naciendo") { first("a", text: "Agregar evaluación").click }
     assert_selector "input[name='evaluation_activity[description]']"
 
     tocar_para_cerrar(".plan-evaluacion--naciendo") do
@@ -159,7 +159,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
 
   test "cancelar el alta devuelve el plan" do
     visit planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
-    tocar_para_ver(".plan-evaluacion--naciendo") { all("a", text: "Agregar evaluación").first.click }
+    tocar_para_ver(".plan-evaluacion--naciendo") { first("a", text: "Agregar evaluación").click }
 
     tocar_para_cerrar(".plan-evaluacion--naciendo") do
       find(".plan-evaluacion--naciendo a[aria-label='Descartar']").click
@@ -174,8 +174,7 @@ class PlanConTurboSystemTest < ApplicationSystemTestCase
   # con su frame restaurado del snapshot, no recargado.
   test "el botón atrás del navegador deja la pantalla entera" do
     visit planificar_section_path(@a.seccion, area: @area.id, lapso: @lapso.id)
-    all("a", text: "Agregar evaluación").first.click
-    assert_selector "input[name='evaluation_activity[description]']"
+    tocar_para_ver("input[name='evaluation_activity[description]']") { first("a", text: "Agregar evaluación").click }
 
     page.go_back
 

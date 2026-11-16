@@ -65,7 +65,12 @@ class BorrarDesdeElPlanSystemTest < ApplicationSystemTestCase
     end
 
     assert_no_text "Content missing"
-    assert_selector ".plan-competencia--sin-evaluar"
+    # ⚠️ «Cerró» no quiere decir «el servidor contestó»: la fila se desvanece
+    # en cuanto SALE la petición (`se-desvanece`, en `turbo:submit-start`) y a
+    # opacidad 0 Selenium ya la da por invisible. La competencia vuelve a
+    # dibujarse con la RESPUESTA, que con el procesador ocupado tarda más que
+    # los 2 s de Capybara: así falló el 16 de noviembre de 2026 en `bin/ci`.
+    assert_selector ".plan-competencia--sin-evaluar", wait: 10
   end
 
   # ⚠️ CON NOTAS ya no hay botón que tocar: se apaga y dice por qué.
