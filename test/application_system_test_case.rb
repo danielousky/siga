@@ -505,4 +505,92 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 
     assert_no_current_path new_user_session_path, wait: 5
   end
+
+  # ── La caja negra (`SIGA_CAJA_NEGRA=1`) ───────────────────────────────────
+  #
+  # Para cuando un clic «no hace nada» y el registro del servidor no muestra
+  # ninguna petición: anota EN EL NAVEGADOR, con su hora, cada clic, cada
+  # `submit` —y si alguien lo previno— y cada evento de Turbo, y lo vuelca
+  # cuando un test falla. Es la técnica que encontró que las teclas no
+  # llegaban (CLAUDE.md, «cómo se encontró»), ahora escrita.
+  #
+  # ⚠️ Va por `Page.addScriptToEvaluateOnNewDocument`: se instala en cada
+  # documento ANTES que la app, así que ve también lo que pasa mientras la
+  # página hidrata, que es justo la rendija que se busca.
+  #
+  # ⚠️ Anota en MEMORIA y pasa a `sessionStorage` solo cuando el documento se
+  # va (`pagehide`). La primera versión serializaba la lista entera en cada
+  # evento —milisegundos, justo en la rendija que se busca— y la falla casi
+  # dejó de aparecer: una en cincuenta y nueve corridas, contra una en diez sin
+  # ella. Medir no puede cambiar lo que se mide.
+  CAJA_NEGRA = <<~JS.freeze
+    (() => {
+      if (window.__cajaNegra) return
+      window.__cajaNegra = []
+      const anotar = (tipo, detalle = "") => {
+        window.__cajaNegra.push([new Date().toISOString().slice(11, 23), location.pathname + location.search, tipo, detalle])
+      }
+      window.addEventListener("pagehide", () => {
+        try {
+          const antes = JSON.parse(sessionStorage.getItem("caja_negra") || "[]")
+          sessionStorage.setItem("caja_negra", JSON.stringify(antes.concat(window.__cajaNegra).slice(-400)))
+        } catch (_) {}
+      })
+      const quien = (el) => {
+        if (!el || !el.tagName) return String(el)
+        const clases = typeof el.className === "string" && el.className.trim() ? "." + el.className.trim().split(/\\s+/).join(".") : ""
+        const texto = (el.innerText || el.value || "").trim().replace(/\\s+/g, " ").slice(0, 30)
+        return `${el.tagName.toLowerCase()}${el.id ? "#" + el.id : ""}${clases} «${texto}»`
+      }
+      anotar("documento", document.readyState)
+      document.addEventListener("DOMContentLoaded", () => anotar("DOMContentLoaded"))
+      window.addEventListener("load", () => anotar("load"))
+      for (const tipo of ["pointerdown", "click"]) {
+        window.addEventListener(tipo, (e) => {
+          anotar(tipo, quien(e.target))
+          if (tipo === "click") setTimeout(() => anotar("click, al final", `prevenido=${e.defaultPrevented}`), 0)
+        }, true)
+      }
+      window.addEventListener("submit", (e) => {
+        anotar("submit", `${quien(e.target)} → ${e.target.action} · con ${quien(e.submitter)}`)
+        setTimeout(() => anotar("submit, al final", `prevenido=${e.defaultPrevented}`), 0)
+      }, true)
+      const deTurbo = ["turbo:click", "turbo:before-visit", "turbo:visit", "turbo:submit-start", "turbo:submit-end",
+        "turbo:before-fetch-request", "turbo:before-fetch-response", "turbo:fetch-request-error",
+        "turbo:frame-load", "turbo:frame-render", "turbo:frame-missing", "turbo:load", "turbo:render"]
+      for (const tipo of deTurbo) {
+        document.addEventListener(tipo, (e) => {
+          const d = e.detail || {}
+          const destino = d.url ? ` ${d.url}` : ""
+          const metodo = d.fetchOptions ? ` ${d.fetchOptions.method}` : ""
+          anotar(tipo, quien(e.target) + metodo + destino)
+        }, true)
+      }
+      window.addEventListener("error", (e) => anotar("ERROR", `${e.message} ${e.filename}:${e.lineno}`))
+      window.addEventListener("unhandledrejection", (e) => anotar("RECHAZO", String(e.reason && (e.reason.stack || e.reason))))
+    })()
+  JS
+
+  setup do
+    next unless ENV["SIGA_CAJA_NEGRA"]
+
+    page.driver.browser.execute_cdp("Page.addScriptToEvaluateOnNewDocument", source: CAJA_NEGRA)
+  end
+
+  # ⚠️ En `before_teardown`, junto a la captura de la falla, y no en un
+  # `teardown`: para entonces Capybara ya llevó la pestaña a `about:blank`, y
+  # ahí no hay `sessionStorage` que leer.
+  def before_teardown
+    caja_negra_volcar if ENV["SIGA_CAJA_NEGRA"] && !passed?
+    super
+  end
+
+  def caja_negra_volcar
+    lineas = JSON.parse(page.evaluate_script(<<~JS))
+      JSON.stringify(JSON.parse(sessionStorage.getItem("caja_negra") || "[]").concat(window.__cajaNegra || []))
+    JS
+    warn "\n[caja negra] #{name}\n" + lineas.last(150).map { |linea| "  #{linea.join(' · ')}" }.join("\n")
+  rescue StandardError => e
+    warn "[caja negra] no se pudo leer: #{e.class}: #{e.message}"
+  end
 end
