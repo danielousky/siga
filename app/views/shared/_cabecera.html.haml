@@ -262,8 +262,12 @@
                     class: "form-control",
                     data: { "search-filter-target": "input", action: "input->search-filter#search" }
                 %span.search-spinner.hidden{data: { "search-filter-target": "spinner" }}
+              -# ⚠️ `tooltip_izquierda`: la × termina el renglón —en el teléfono, el
+              -# segundo, pegada al borde—, y su globo centrado asomaba 6 px por fuera
+              -# de la ventana. Escondido igual ocupa lugar: la página se corría de lado.
               = link_to ruta, class: "btn btn-secondary campo-con-boton-final",
-                        data: { tooltip: "Limpiar la búsqueda" }, "aria-label": "Limpiar la búsqueda" do
+                        data: { tooltip: "Limpiar la búsqueda", tooltip_izquierda: true },
+                        "aria-label": "Limpiar la búsqueda" do
                 = icono(:cerrar, tamano: 15)
 
           - extras.each do |extra|

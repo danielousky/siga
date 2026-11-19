@@ -11638,14 +11638,20 @@ a.subject-avance:hover { filter: brightness(0.9); }
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.cabecera-de-lista-titular-simple > .cabecera-de-lista-titular { flex: 1 1 auto; min-width: 0; }
 .cabecera-de-lista-titular-simple .cabecera-de-lista-titulo { color: var(--text-primary); }
 
-/* El titular se come el sobrante para que los controles queden pegados a la
-   derecha aunque el título sea corto. */
-.cabecera-de-lista-franja > .cabecera-de-lista-titular { flex: 1 1 auto; min-width: 0; }
-.cabecera-de-lista-franja > .cabecera-de-lista-controles { flex: 0 1 auto; min-width: 0; }
-.cabecera-de-lista-titular-simple > .cabecera-de-lista-controles { flex: 0 1 auto; min-width: 0; }
+/* Los CONTROLES se llevan el sobrante, y no el titular (16 de noviembre de
+   2026). Con el sobrante en el título, el `flex: 1` del buscador (MOR-194)
+   repartía un espacio que no existía: el campo quedaba en su ancho de
+   fábrica, 122 px útiles en todas las listas, y ninguna pista cabía —la de
+   Alumnos mide 229—. Los controles siguen pegados a la derecha por su
+   `justify-content: flex-end`, y el título no se corta: no crece, pero si no
+   cabe junto a los controles la franja parte en dos renglones antes de
+   apretarlo. */
+.cabecera-de-lista-franja > .cabecera-de-lista-titular,
+.cabecera-de-lista-titular-simple > .cabecera-de-lista-titular { flex: 0 1 auto; min-width: 0; }
+.cabecera-de-lista-franja > .cabecera-de-lista-controles,
+.cabecera-de-lista-titular-simple > .cabecera-de-lista-controles { flex: 1 1 auto; min-width: 0; }
 
 .cabecera-de-lista-detalle {
   margin: 0;
@@ -11703,6 +11709,9 @@ a.subject-avance:hover { filter: brightness(0.9); }
   /* Se queda con el sobrante para que los filtros que envuelvan lo hagan
      DENTRO del formulario y no empujen al [+] a una tercera línea. */
   flex: 1;
+  /* Y lo que le sobra va a la IZQUIERDA: con el buscador en su tope de 720 px,
+     el hueco queda entre el título y el campo, no entre el campo y su [+]. */
+  justify-content: flex-end;
 }
 
 /* El buscador se COME el espacio que sobra (MOR-194).
@@ -11813,6 +11822,14 @@ a.subject-avance:hover { filter: brightness(0.9); }
     border-top-width: 0;
     margin-left: 0;
   }
+
+  /* ⚠️ Y el campo, con base PROPIA (16 de noviembre de 2026). Con `flex: 1`
+     su base es cero: con el rótulo ocupando el 100 % del renglón, un campo de
+     ancho cero todavía «cabe» a su lado, y ahí se quedaba —−32 px útiles en
+     todas las listas: no se podía escribir— mientras la × bajaba sola. Con
+     base `auto` no cabe junto al rótulo, baja al segundo renglón con su × y
+     crece hasta llenarlo. */
+  .cabecera-de-lista .campo-con-boton > .search-input-wrap { flex: 1 1 auto; }
   .cabecera-de-lista-select { width: 100%; }
 
   /* Con los controles apilados, el botón ya no va «al final de la fila»: es
@@ -12088,7 +12105,10 @@ a.subject-avance:hover { filter: brightness(0.9); }
    campo + botón— desbordaba un teléfono por 1 px con `0 0 auto`, y un píxel es
    scroll horizontal igual. */
 .cabecera-de-lista-alta {
-  flex: 1 1 auto;
+  /* No CRECE (16 de noviembre de 2026): desde que los controles se llevan el
+     sobrante de la franja, con `1 1 auto` el campo del nombre se estiraba
+     hasta 720 px, y aquí van dos palabras. Encoger sí, por lo de abajo. */
+  flex: 0 1 auto;
   min-width: 0;
   margin-left: auto;
 }
