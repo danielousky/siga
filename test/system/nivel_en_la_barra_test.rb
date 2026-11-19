@@ -50,8 +50,7 @@ class NivelEnLaBarraTest < ApplicationSystemTestCase
   # documento.
   test "el panel se cierra con Escape" do
     visit grades_path
-    tocando { find(".contexto-pastilla").click }
-    assert_selector ".contexto-panel", visible: true
+    abrir_el_panel
 
     # ⚠️ El Escape va al `<summary>`, no al `<body>`.
     #
@@ -89,9 +88,18 @@ class NivelEnLaBarraTest < ApplicationSystemTestCase
   # `assert_selector` con `visible: true` es lo que convierte «existe» en «se
   # puede tocar», y es la diferencia entre un test que prueba el panel y uno que
   # prueba el HTML.
+  # ⚠️ Abrir el panel se REINTENTA hasta verlo (`tocar_para_ver`): el clic en
+  # la pastilla se perdía a veces sin dejar rastro, como los de horarios
+  # (`armar_el_horario_test`), y el test fallaba con «expected to find visible
+  # css .contexto-panel» — el 16 de noviembre de 2026, en `bin/ci`. Abrir un
+  # `<summary>` es instantáneo y no pide nada al servidor: si a los tres
+  # segundos el panel no se ve, el clic no llegó, y tocar otra vez no lo cierra.
+  def abrir_el_panel
+    tocar_para_ver(".contexto-panel", visible: true) { find(".contexto-pastilla").click }
+  end
+
   def elegir_nivel(nombre)
-    tocando { find(".contexto-pastilla").click }
-    assert_selector ".contexto-panel", visible: true
+    abrir_el_panel
 
     # ⚠️ SIN `within`, y esa es la corrección que lo estabilizó.
     #

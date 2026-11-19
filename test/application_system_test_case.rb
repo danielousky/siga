@@ -247,11 +247,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # bajo carga —dentro de `bin/ci`, después de los mil quinientos tests de
   # unidad— porque ahí la hidratación tarda más y la rendija se ensancha.
   def tocar_para_ir_a(destino, intentos: 3, &clic)
-    intentos.times do
-      tocando(&clic)
-      esperando_la_pagina
-      return if page.has_current_path?(destino, ignore_query: true, wait: 3)
-    end
+    return if tocar_hasta(-> { page.has_current_path?(destino, ignore_query: true, wait: 3) }, intentos:, &clic)
 
     # Que falle con el mensaje de Capybara, que dice a dónde se llegó.
     assert_current_path destino, ignore_query: true
@@ -269,15 +265,15 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   #
   # Costó encontrarlo porque el HTML era correcto: pidiendo el frame a mano, el
   # formulario llegaba entero. Lo que fallaba era el clic, y solo bajo carga.
-  def tocar_para_ver(selector, intentos: 3, &clic)
-    intentos.times do
-      tocando(&clic)
-      esperando_la_pagina
-      return if page.has_css?(selector, wait: 3)
-    end
+  #
+  # `opciones` va tal cual a Capybara (`text:`): cuando lo que se abre comparte
+  # la clase con algo que ya estaba, el selector solo lo daría por abierto
+  # antes del clic.
+  def tocar_para_ver(selector, intentos: 3, **opciones, &clic)
+    return if tocar_hasta(-> { page.has_css?(selector, wait: 3, **opciones) }, intentos:, &clic)
 
     # Que falle con el mensaje de Capybara, que dice qué había en la página.
-    assert_selector selector
+    assert_selector selector, **opciones
   end
 
   # Tocar algo que TIENE que cerrar un panel, y asegurarse de que cerró.
@@ -288,13 +284,92 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # «expected not to find .alta-en-linea», que se lee como «el cancelar no
   # funciona» cuando nunca se pulsó.
   def tocar_para_cerrar(selector, intentos: 3, &clic)
-    intentos.times do
-      tocando(&clic)
-      esperando_la_pagina
-      return if page.has_no_css?(selector, wait: 3)
-    end
+    return if tocar_hasta(-> { page.has_no_css?(selector, wait: 3) }, intentos:, &clic)
 
     assert_no_selector selector
+  end
+
+  # El bucle de los tres de arriba: tocar, y si no se logró, tocar otra vez.
+  #
+  # ⚠️ Un reintento puede llegar TARDE en vez de sobrar. Con el procesador
+  # ocupado, la respuesta del primer clic puede llegar después de los tres
+  # segundos de espera: el panel se cierra justo cuando la espera se rindió, y
+  # el reintento busca un botón que ya no está. «Unable to find…», y el test
+  # dice que falló lo que funcionó. Pasó el 16 de noviembre de 2026 en `bin/ci`:
+  # el alta de una evaluación cayó así, con la captura diciendo «Evaluación
+  # creada».
+  #
+  # Por eso, EN UN REINTENTO, que lo que había que tocar ya no esté no es el
+  # error: se vuelve a mirar si el trabajo quedó hecho, y si no, lo dice la
+  # aserción de quien llamó, con su mensaje. En el PRIMER clic sí es el error —
+  # ahí no hay ningún clic anterior que lo explique—.
+  #
+  # ## ⚠️ Lento no es perdido
+  #
+  # El reintento existe para el clic que Turbo se traga, y ése no deja rastro.
+  # El clic que LLEGÓ sí lo deja: mientras la petición viaja, Turbo marca con
+  # `aria-busy="true"` el `<html>` (una visita), el marco que se llena y el
+  # formulario que se envía (`markAsBusy`, en Turbo 8.0.13). Con eso a la
+  # vista, tocar otra vez no es reintentar: un marco que navega de nuevo
+  # CANCELA la petición anterior (`#currentFetchRequest?.cancel()`), y con el
+  # servidor tardando más de tres segundos cada reintento volvía a empezar la
+  # cuenta — tres clics, ningún panel. Un formulario, peor: lo enviaría dos
+  # veces.
+  #
+  # ⚠️ Que así cayera «una competencia nueva se agrega ahí mismo» el 16 de
+  # noviembre de 2026 —tres clics y ningún panel, con la máquina a carga 28
+  # en diez núcleos— es mi lectura del código de Turbo, no una medición: el
+  # registro de esa corrida no se guardó. Lo medido es el código: las dos
+  # líneas citadas están en el Turbo que trae la app.
+  def tocar_hasta(logrado, intentos:, &clic)
+    intentos.times do |vez|
+      begin
+        tocando(&clic)
+      rescue Capybara::ElementNotFound
+        raise if vez.zero?
+      end
+      esperando_la_pagina
+      return true if logrado_ya?(logrado)
+      next unless con_una_peticion_en_vuelo?
+
+      esperando_la_respuesta
+      esperando_la_pagina
+      return true if logrado_ya?(logrado)
+    end
+
+    false
+  end
+
+  # ⚠️ Mirar también puede llegar en mal momento. Si el panel se reemplaza
+  # justo cuando se acaba la espera, Capybara devuelve el último error en vez
+  # de un «no»: `has_no_css?` reventó con «stale element» el 16 de noviembre
+  # de 2026, con el panel cerrándose en ese instante. Un nodo que se cayó a
+  # mitad de la consulta es una respuesta «todavía no», y para eso está el
+  # resto del bucle.
+  def logrado_ya?(logrado)
+    logrado.call
+  rescue *ERRORES_DE_NAVEGACION
+    false
+  end
+
+  # Cuánto se espera una respuesta que se SABE en camino. Es un tope, no una
+  # pausa: se sale en cuanto Turbo quita la marca.
+  ESPERA_DE_UNA_RESPUESTA = 15
+
+  # ⚠️ Se pregunta con un script que devuelve un booleano, y no con
+  # `has_css?`: no retiene ningún nodo que Chrome pueda tirar a mitad de un
+  # cambio de documento (lo de `esperando_la_pagina`). Y si el navegador no
+  # contesta porque está cambiando de documento, es que algo viaja.
+  def con_una_peticion_en_vuelo?
+    page.evaluate_script(%(document.querySelector('[aria-busy="true"]') !== null))
+  rescue Selenium::WebDriver::Error::WebDriverError
+    true
+  end
+
+  # El reloj MONÓTONO, no `Time`: varios tests corren con `travel_to`.
+  def esperando_la_respuesta
+    limite = Process.clock_gettime(Process::CLOCK_MONOTONIC) + ESPERA_DE_UNA_RESPUESTA
+    sleep 0.1 while con_una_peticion_en_vuelo? && Process.clock_gettime(Process::CLOCK_MONOTONIC) < limite
   end
 
   # Entrar por el formulario, como una persona. Un test de sistema que se saltea
@@ -391,5 +466,93 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     end
 
     assert_no_current_path new_user_session_path, wait: 5
+  end
+
+  # ── La caja negra (`SIGA_CAJA_NEGRA=1`) ───────────────────────────────────
+  #
+  # Para cuando un clic «no hace nada» y el registro del servidor no muestra
+  # ninguna petición: anota EN EL NAVEGADOR, con su hora, cada clic, cada
+  # `submit` —y si alguien lo previno— y cada evento de Turbo, y lo vuelca
+  # cuando un test falla. Es la técnica que encontró que las teclas no
+  # llegaban (CLAUDE.md, «cómo se encontró»), ahora escrita.
+  #
+  # ⚠️ Va por `Page.addScriptToEvaluateOnNewDocument`: se instala en cada
+  # documento ANTES que la app, así que ve también lo que pasa mientras la
+  # página hidrata, que es justo la rendija que se busca.
+  #
+  # ⚠️ Anota en MEMORIA y pasa a `sessionStorage` solo cuando el documento se
+  # va (`pagehide`). La primera versión serializaba la lista entera en cada
+  # evento —milisegundos, justo en la rendija que se busca— y la falla casi
+  # dejó de aparecer: una en cincuenta y nueve corridas, contra una en diez sin
+  # ella. Medir no puede cambiar lo que se mide.
+  CAJA_NEGRA = <<~JS.freeze
+    (() => {
+      if (window.__cajaNegra) return
+      window.__cajaNegra = []
+      const anotar = (tipo, detalle = "") => {
+        window.__cajaNegra.push([new Date().toISOString().slice(11, 23), location.pathname + location.search, tipo, detalle])
+      }
+      window.addEventListener("pagehide", () => {
+        try {
+          const antes = JSON.parse(sessionStorage.getItem("caja_negra") || "[]")
+          sessionStorage.setItem("caja_negra", JSON.stringify(antes.concat(window.__cajaNegra).slice(-400)))
+        } catch (_) {}
+      })
+      const quien = (el) => {
+        if (!el || !el.tagName) return String(el)
+        const clases = typeof el.className === "string" && el.className.trim() ? "." + el.className.trim().split(/\\s+/).join(".") : ""
+        const texto = (el.innerText || el.value || "").trim().replace(/\\s+/g, " ").slice(0, 30)
+        return `${el.tagName.toLowerCase()}${el.id ? "#" + el.id : ""}${clases} «${texto}»`
+      }
+      anotar("documento", document.readyState)
+      document.addEventListener("DOMContentLoaded", () => anotar("DOMContentLoaded"))
+      window.addEventListener("load", () => anotar("load"))
+      for (const tipo of ["pointerdown", "click"]) {
+        window.addEventListener(tipo, (e) => {
+          anotar(tipo, quien(e.target))
+          if (tipo === "click") setTimeout(() => anotar("click, al final", `prevenido=${e.defaultPrevented}`), 0)
+        }, true)
+      }
+      window.addEventListener("submit", (e) => {
+        anotar("submit", `${quien(e.target)} → ${e.target.action} · con ${quien(e.submitter)}`)
+        setTimeout(() => anotar("submit, al final", `prevenido=${e.defaultPrevented}`), 0)
+      }, true)
+      const deTurbo = ["turbo:click", "turbo:before-visit", "turbo:visit", "turbo:submit-start", "turbo:submit-end",
+        "turbo:before-fetch-request", "turbo:before-fetch-response", "turbo:fetch-request-error",
+        "turbo:frame-load", "turbo:frame-render", "turbo:frame-missing", "turbo:load", "turbo:render"]
+      for (const tipo of deTurbo) {
+        document.addEventListener(tipo, (e) => {
+          const d = e.detail || {}
+          const destino = d.url ? ` ${d.url}` : ""
+          const metodo = d.fetchOptions ? ` ${d.fetchOptions.method}` : ""
+          anotar(tipo, quien(e.target) + metodo + destino)
+        }, true)
+      }
+      window.addEventListener("error", (e) => anotar("ERROR", `${e.message} ${e.filename}:${e.lineno}`))
+      window.addEventListener("unhandledrejection", (e) => anotar("RECHAZO", String(e.reason && (e.reason.stack || e.reason))))
+    })()
+  JS
+
+  setup do
+    next unless ENV["SIGA_CAJA_NEGRA"]
+
+    page.driver.browser.execute_cdp("Page.addScriptToEvaluateOnNewDocument", source: CAJA_NEGRA)
+  end
+
+  # ⚠️ En `before_teardown`, junto a la captura de la falla, y no en un
+  # `teardown`: para entonces Capybara ya llevó la pestaña a `about:blank`, y
+  # ahí no hay `sessionStorage` que leer.
+  def before_teardown
+    caja_negra_volcar if ENV["SIGA_CAJA_NEGRA"] && !passed?
+    super
+  end
+
+  def caja_negra_volcar
+    lineas = JSON.parse(page.evaluate_script(<<~JS))
+      JSON.stringify(JSON.parse(sessionStorage.getItem("caja_negra") || "[]").concat(window.__cajaNegra || []))
+    JS
+    warn "\n[caja negra] #{name}\n" + lineas.last(150).map { |linea| "  #{linea.join(' · ')}" }.join("\n")
+  rescue StandardError => e
+    warn "[caja negra] no se pudo leer: #{e.class}: #{e.message}"
   end
 end
