@@ -67,7 +67,10 @@ class ArmarElHorarioTest < ApplicationSystemTestCase
     assert_selector "form.horario-hora--editando", count: 1
     assert_selector ".horario-mensaje--info", text: "Corrija la 5ta hora en su casilla"
     # El foco ya está en «desde»: se escribe sin ir a buscar el campo.
-    assert_equal "time_slot[desde]", page.evaluate_script("document.activeElement.name")
+    # ⚠️ Con una aserción que ESPERA. El foco lo pone Turbo por el `autofocus`,
+    # un cuadro DESPUÉS de dibujar el marco: leído enseguida, falló una vez
+    # bajo carga con «Expected: "time_slot[desde]", Actual: nil».
+    assert_selector "form.horario-hora--editando input[name='time_slot[desde]']:focus"
 
     find("form.horario-hora--editando input[name='time_slot[desde]']").send_keys(:escape)
     assert_no_selector "form.horario-hora--editando"

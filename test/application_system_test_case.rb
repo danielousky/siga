@@ -177,8 +177,9 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # segundos, y cortar antes es volver a escribir a ciegas.
   ESPERA_DE_LA_PAGINA = 10
 
-  def esperando_la_pagina
-    limite = ahora + ESPERA_DE_LA_PAGINA
+  # Devuelve si la página oyó: `visit` lo pregunta para saber si avisar.
+  def esperando_la_pagina(espera = ESPERA_DE_LA_PAGINA)
+    limite = ahora + espera
     errores = 0
 
     until (oye = la_pagina_oye? { errores += 1 }) || ahora > limite
@@ -190,7 +191,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
     warn "[esperando_la_pagina] #{oye ? 'oyó' : 'NO OYÓ'} · errores: #{errores} · #{name}" if ENV["SIGA_DIAG"] && (!oye || errores.positive?)
     # Si ni así oye, que siga: la aserción del test dirá qué pasó con un mensaje
     # mucho más útil que un timeout del helper.
-    nil
+    oye
   end
 
   # ⚠️ Un error al preguntar NO corta la espera: se vuelve a preguntar.
@@ -225,9 +226,70 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # `visit` + `fill_in` se lee correcto, pasa en una máquina libre y falla una
   # de cada tantas en GitHub. Con Turbo casi todo lo demás ocurre DENTRO del
   # mismo documento, que ya oye; la página nueva de verdad es la del `visit`.
+  #
+  # ## ⚠️ Y a veces la página no oye NUNCA, y todavía no se sabe por qué
+  #
+  # Esperar cura la página lenta, no la sorda. El 19 de noviembre de 2026 el CI
+  # del PR #89 de SIGA cayó en dos tests con cinco segundos de diferencia, y en
+  # el clon de la escuela de música, con el procesador saturado y la caja negra
+  # puesta, una página pasó cincuenta segundos sin recibir nada (segundos desde
+  # las 15:36):
+  #
+  #     18,98   load            el plan de evaluación, cargado
+  #     19–29   visit           la tecla muda, una y otra vez: no llega ninguna
+  #     29–68   tres clics      ni un pointerdown. Tampoco del clic mandado
+  #                             directo por el protocolo de Chrome, sin Selenium
+  #
+  # Con la pestaña visible, con el foco y con JavaScript contestando. No es una
+  # página lenta: bajo la misma carga, de 937 páginas sanas la más lenta oyó en
+  # 465 ms (la mediana, 36).
+  #
+  # Lo que se probó, y no la explica (23 de noviembre de 2026):
+  #
+  #     abrirla otra vez           en un `bin/ci` de SIGA, la misma página tres
+  #                                veces seguidas: las tres sordas
+  #     esperar                    cincuenta segundos, y no volvió a oír
+  #     congelar a propósito un    el navegador, la GPU, la red o la página,
+  #     proceso de Chrome          uno por uno y al azar: 104 aperturas, todas oyeron
+  #     --allow-pre-commit-input   chromedriver ya la pone, también en la página
+  #
+  # La única pista: las dos veces, el test SIGUIENTE —en el mismo Chrome— oyó.
+  # Entre medio pasaron tres cosas: la captura de la falla, que obliga a Chrome
+  # a dibujar un cuadro; la pestaña llevada a `about:blank`; y unos segundos.
+  # La primera encaja con lo de octubre: Chrome tira lo que se teclea hasta que
+  # la página PINTA, y una página que no dibuja no pinta nunca.
+  #
+  # Así que `visit`, si la página no oyó en 10 s, anota cómo está —¿dibuja
+  # cuadros?, ¿pintó algo?—, fuerza UN cuadro y vuelve a preguntar.
+  # ⚠️ Es una SONDA, no un arreglo: el aviso `[visit]` dice si el cuadro
+  # forzado la curó, y sale siempre, sin `SIGA_DIAG`, porque pasa una vez entre
+  # miles y es la única huella. Si dice «sigue sorda», la pista era otra.
   def visit(*)
     super
-    esperando_la_pagina
+    return if esperando_la_pagina
+
+    como_estaba = estado_de_la_pagina
+    page.driver.browser.execute_cdp("Page.captureScreenshot", format: "png", clip: { x: 0, y: 0, width: 10, height: 10, scale: 1 })
+    oye = esperando_la_pagina(3)
+    warn "[visit] la página no oyó en #{ESPERA_DE_LA_PAGINA} s · #{como_estaba} · " \
+         "con un cuadro forzado #{oye ? 'OYÓ' : "sigue sorda · #{estado_de_la_pagina}"} · #{name}"
+  end
+
+  # Lo que distingue una página que no dibuja de una que dibuja y no oye: si
+  # corre un `requestAnimationFrame` en un segundo, si pintó algo, si está
+  # visible y si tiene el foco.
+  def estado_de_la_pagina
+    page.evaluate_async_script(<<~JS)
+      const listo = arguments[0]
+      const resto = () => {
+        const pintado = performance.getEntriesByType("paint").map((e) => e.name + " a los " + Math.round(e.startTime) + " ms").join(", ") || "sin pintar"
+        return pintado + " · " + document.visibilityState + " · " + (document.hasFocus() ? "con foco" : "sin foco")
+      }
+      const plazo = setTimeout(() => listo("SIN cuadros en 1 s · " + resto()), 1000)
+      requestAnimationFrame(() => { clearTimeout(plazo); listo("dibuja cuadros · " + resto()) })
+    JS
+  rescue Selenium::WebDriver::Error::WebDriverError => e
+    "no se pudo mirar: #{e.class.name.demodulize}"
   end
 
   # Escribir en un campo, y comprobar que lo escrito QUEDÓ.
@@ -510,9 +572,13 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   #
   # Para cuando un clic «no hace nada» y el registro del servidor no muestra
   # ninguna petición: anota EN EL NAVEGADOR, con su hora, cada clic, cada
-  # `submit` —y si alguien lo previno— y cada evento de Turbo, y lo vuelca
-  # cuando un test falla. Es la técnica que encontró que las teclas no
-  # llegaban (CLAUDE.md, «cómo se encontró»), ahora escrita.
+  # tecla, cada `submit` —y si alguien lo previno—, cada evento de Turbo y si
+  # la ventana tiene el foco, y lo vuelca cuando un test falla. Es la técnica
+  # que encontró que las teclas no llegaban (CLAUDE.md, «cómo se encontró»),
+  # ahora escrita. Las teclas son las que mostraron la página sorda (`visit`):
+  # en la del login se ve llegar cada una; en la sorda, ni la tecla muda.
+  #
+  # ⚠️ De una contraseña no anota ni la tecla ni lo escrito: solo que hubo una.
   #
   # ⚠️ Va por `Page.addScriptToEvaluateOnNewDocument`: se instala en cada
   # documento ANTES que la app, así que ve también lo que pasa mientras la
@@ -539,7 +605,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
       const quien = (el) => {
         if (!el || !el.tagName) return String(el)
         const clases = typeof el.className === "string" && el.className.trim() ? "." + el.className.trim().split(/\\s+/).join(".") : ""
-        const texto = (el.innerText || el.value || "").trim().replace(/\\s+/g, " ").slice(0, 30)
+        const texto = el.type === "password" ? "•••" : (el.innerText || el.value || "").trim().replace(/\\s+/g, " ").slice(0, 30)
         return `${el.tagName.toLowerCase()}${el.id ? "#" + el.id : ""}${clases} «${texto}»`
       }
       anotar("documento", document.readyState)
@@ -551,6 +617,13 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
           if (tipo === "click") setTimeout(() => anotar("click, al final", `prevenido=${e.defaultPrevented}`), 0)
         }, true)
       }
+      window.addEventListener("keydown", (e) => {
+        const tecla = e.target && e.target.type === "password" ? "•" : e.key
+        anotar("keydown", `${tecla} en ${quien(e.target)}`)
+      }, true)
+      document.addEventListener("visibilitychange", () => anotar("visibilidad", document.visibilityState))
+      window.addEventListener("focus", () => anotar("ventana con foco"))
+      window.addEventListener("blur", () => anotar("ventana sin foco"))
       window.addEventListener("submit", (e) => {
         anotar("submit", `${quien(e.target)} → ${e.target.action} · con ${quien(e.submitter)}`)
         setTimeout(() => anotar("submit, al final", `prevenido=${e.defaultPrevented}`), 0)

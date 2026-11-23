@@ -696,6 +696,39 @@ y ahí escribir la URL en español ES la comprobación.
   ⚠️ Es probable que sea lo mismo que `tocando` y `tocar_para_*` vienen
   tapando con reintentos y atribuyendo a Turbo («se traga el clic»). No está
   demostrado para esos casos, así que los reintentos se quedan.
+  ⚠️ **Y a veces la página no oye NUNCA, y todavía no se sabe por qué** (19 a
+  23 de noviembre de 2026). Esperar cura la página lenta, no la sorda. El CI
+  del PR #89 cayó en el alta en línea y en el deslizador, a cinco segundos uno
+  del otro, y en el clon de la escuela de música se vio con la caja negra:
+  cincuenta segundos sin que llegara una tecla ni un clic —tampoco uno mandado
+  directo por el protocolo de Chrome—, con la pestaña visible, con el foco y
+  con JavaScript contestando.
+  Siempre en la primera página después de entrar.
+
+  ```
+     937 páginas sanas, con la máquina cargada    mediana 36 ms · la más lenta 465 ms
+     2.125 tests seguidos, con la máquina cargada  ninguna sorda: es rarísima
+
+     lo que NO la cura           abrirla otra vez: en un `bin/ci` de SIGA, la misma
+                                 página tres veces seguidas, las tres sordas
+                                 esperar: cincuenta segundos, y nada
+     lo que NO la provoca        congelar a propósito un proceso de Chrome —navegador,
+                                 GPU, red o página— mientras abre: 104 aperturas, todas oyeron
+     lo que NO es                `--allow-pre-commit-input`: chromedriver ya la pone
+     la única pista              el test SIGUIENTE, en el mismo Chrome, oyó; entre medio
+                                 hubo una captura (que obliga a dibujar un cuadro),
+                                 `about:blank` y unos segundos
+  ```
+
+  ⚠️ **Se llegó a abrir la página otra vez como «arreglo», y estaba mal.** La
+  versión del 19 lo justificaba con «se atasca el documento, no el navegador»,
+  deducido de que los tests siguientes pasaron; el `bin/ci` de SIGA la
+  desmintió el 23 con tres aperturas sordas seguidas. No se commiteó.
+
+  Así que `visit`, si la página no oyó en 10 s, anota cómo está —¿dibuja
+  cuadros?, ¿pintó algo?—, fuerza UN cuadro y vuelve a preguntar, y lo avisa
+  siempre con `[visit]`. ⚠️ Es una SONDA, no un arreglo: el aviso dice si el
+  cuadro forzado la curó. Si dice «sigue sorda», la pista era otra.
 
 ### ⚠️ Dentro de un turbo_frame, TODA salida tiene que devolver ese frame
 
