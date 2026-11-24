@@ -1,0 +1,111 @@
+# EXPERIMENTO DE UNA SOLA VEZ — rama `exp/pagina-sorda`, que NO va a main y se
+# borra al terminar.
+#
+# La página sorda (CLAUDE.md, «Y a veces la página no oye NUNCA») apareció en
+# este CI cuando GitHub pasó de Chrome 155 a 156: trece corridas verdes antes,
+# seis rojas de ocho después, todas en un test del plan que entra como profesor.
+# Playwright abre Chrome con dos cosas apagadas que acá están prendidas: la
+# caché del historial (BFCache) y PaintHolding, al que culpa de clics perdidos
+# (microsoft/playwright#28023).
+#
+# Tres maneras de abrir Chrome, en la MISMA máquina y alternando el orden, cuatro
+# vueltas de los tests de sistema cada una. Cada página sorda deja una línea de
+# la sonda, `[visit] la página no oyó`, y eso es lo que se cuenta.
+name: Experimento — la página sorda
+
+on:
+  push:
+    branches: [exp/pagina-sorda]
+
+jobs:
+  comparar:
+    name: Tres maneras de abrir Chrome
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      SIGA_DB_HOST: localhost
+      SIGA_DB_PASSWORD: postgres
+      SIGA_APP_PASSWORD: siga_app_ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Dependencias del sistema
+        run: sudo apt-get update && sudo apt-get install --yes libpq-dev libvips-tools
+
+      - name: Crear la base con el usuario privilegiado
+        env:
+          SIGA_DB_USER: postgres
+          SIGA_DB_PASSWORD: postgres
+        run: bin/rails db:create db:schema:load
+
+      - name: Crear el rol sin privilegios y traspasarle todo
+        env:
+          SIGA_DB_USER: postgres
+          SIGA_DB_PASSWORD: postgres
+        run: |
+          bin/rails rls:crear_rol
+          RAILS_ENV=test bin/rails rls:crear_rol
+
+      - name: Tres maneras de abrir Chrome, cuatro vueltas cada una
+        env:
+          SIGA_DB_PASSWORD: siga_app_ci
+        run: |
+          banderas() {
+            case "$1" in
+              normal) echo "" ;;
+              sin-bfcache) echo "--disable-back-forward-cache" ;;
+              sin-paint-holding) echo "--disable-features=PaintHolding" ;;
+            esac
+          }
+          ORDEN=(
+            "normal sin-bfcache sin-paint-holding"
+            "sin-bfcache sin-paint-holding normal"
+            "sin-paint-holding normal sin-bfcache"
+            "normal sin-bfcache sin-paint-holding"
+          )
+          mkdir -p tmp/experimento
+          {
+            echo "**$(google-chrome --version)** · $(nproc) núcleos"
+            echo
+            echo "| vuelta | Chrome | páginas sordas | resultado |"
+            echo "|---|---|---|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          for vuelta in 1 2 3 4; do
+            for brazo in ${ORDEN[$((vuelta - 1))]}; do
+              registro="tmp/experimento/$vuelta-$brazo.log"
+              CHROME_EXTRA="$(banderas "$brazo")" bin/rails test:system > "$registro" 2>&1 || true
+              sordas=$(grep -a -c "\[visit\] la página no oyó" "$registro" || true)
+              resultado=$(grep -a -oE "[0-9]+ runs, [0-9]+ assertions, [0-9]+ failures, [0-9]+ errors" "$registro" | tail -1)
+              echo "| $vuelta | $brazo | $sordas | $resultado |" | tee -a "$GITHUB_STEP_SUMMARY"
+            done
+          done
+
+      - name: Guardar los registros y las capturas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: experimento
+          path: |
+            tmp/experimento/
+            tmp/screenshots/
+          retention-days: 7

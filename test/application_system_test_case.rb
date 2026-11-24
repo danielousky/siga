@@ -43,7 +43,12 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # ventana real en cada corrida local es ruido.
   ESCRITORIO = [ 1400, 1400 ].freeze
 
-  driven_by :selenium, using: :headless_chrome, screen_size: ESCRITORIO
+  # EXPERIMENTO (rama exp/pagina-sorda, no va a main): banderas de Chrome
+  # que pone el workflow para comparar, en la misma máquina, tres maneras
+  # de abrirlo.
+  driven_by :selenium, using: :headless_chrome, screen_size: ESCRITORIO do |opciones|
+    ENV.fetch("CHROME_EXTRA", "").split.each { |bandera| opciones.add_argument(bandera) }
+  end
 
   # ⚠️ El tamaño se REPONE antes de cada test, y no es limpieza de cortesía.
   #
