@@ -1,4 +1,42 @@
 require "test_helper"
+require "capybara/selenium/driver"
+
+# ⚠️ Chrome 158 rechaza el comodín con que Capybara 3.40 limpia la sesión.
+#
+# Al terminar cada test, Capybara (`ChromeDriver#reset!`) le pide a Chrome que
+# borre las cookies y el localStorage de TODOS los orígenes, con
+# `Storage.clearDataForOrigin(origin: "*")`. Desde la 158 Chrome contesta
+#
+#     InvalidArgumentError: invalid argument: * is not a valid URL
+#
+# y CADA test de sistema termina en error, aunque sus aserciones pasen. Peor:
+# la limpieza no ocurre, y el siguiente arrancaría con la sesión del anterior.
+# Apareció el 23 de noviembre de 2026, el día que Chrome se actualizó solo en
+# esta máquina; GitHub seguía en la 157 (imagen 20261116) y le llega con la
+# próxima imagen.
+#
+# Capybara no lo ha publicado: es teamcapybara/capybara#2865, con dos arreglos
+# abiertos. Esto hace lo mismo que el #2868 —el comodín primero, y si Chrome
+# lo rechaza, todas las cookies y el localStorage del origen—, con una
+# diferencia: el origen es el del servidor de los tests, porque cuando llega
+# esta llamada la pestaña ya está en `about:blank`. Los tests no visitan otro.
+#
+# ⚠️ Lo ata a la 3.40.0 `el_parche_de_capybara_test`: una Capybara nueva puede
+# traer el arreglo, o cambiar `reset!` por debajo, y eso se mira al subirla.
+module ChromeSinComodin
+  def execute_cdp(cmd, params = {})
+    return super unless cmd == "Storage.clearDataForOrigin" && params[:origin] == "*"
+
+    begin
+      super
+    rescue Selenium::WebDriver::Error::InvalidArgumentError
+      super("Network.clearBrowserCookies")
+      origen = Capybara.current_session.server&.base_url
+      super(cmd, { origin: origen, storageTypes: "local_storage" }) if origen && params[:storageTypes].to_s.include?("local_storage")
+    end
+  end
+end
+Capybara::Selenium::Driver::ChromeDriver.prepend(ChromeSinComodin)
 
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   # ⚠️ `headless_chrome` y no `chrome`: en CI no hay pantalla, y abrir una

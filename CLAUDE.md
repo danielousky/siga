@@ -624,6 +624,15 @@ y ahí escribir la URL en español ES la comprobación.
 - **La ayuda va bajo demanda** (`MOR-161`): `etiqueta_con_pista` para lo que
   explica QUÉ es un campo; `.nota-ayuda` visible solo para CONSECUENCIAS;
   `placeholder` para el formato
+- **Chrome 158 rechaza el comodín con que Capybara 3.40 limpia la sesión**
+  (23 de noviembre de 2026). Al terminar cada test, Capybara pide
+  `Storage.clearDataForOrigin(origin: "*")`, la 158 contesta «* is not a valid
+  URL», y CADA test de sistema terminaba en error con sus aserciones en verde
+  —y sin limpiar: el siguiente arrancaba con la sesión del anterior—. Lo tapa
+  `ChromeSinComodin`, como el arreglo que Capybara todavía no publica
+  (teamcapybara/capybara#2865): todas las cookies y el localStorage del
+  servidor de los tests. ⚠️ `el_parche_de_capybara_test` lo ata a la 3.40.0:
+  al subir Capybara se mira si sobra, no se descubre años después.
 - **Un test de sistema no cuenta sin esperar**: `assert_selector …, count: n`,
   nunca `all(…).size`. `all` mira una sola vez y solo ve lo visible, y lo que
   entra con una animación arranca en `opacity: 0` (`plan-aparece`): contando en
