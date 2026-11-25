@@ -49,6 +49,7 @@ on:
       - "docs/investigacion/**"
       - "docs/specs/**"
       - "docs/tareas-de-operacion.md"
+      - "ops/**"
   pull_request:
     paths-ignore:
       - "BACKLOG.md"
@@ -60,6 +61,7 @@ on:
       - "docs/investigacion/**"
       - "docs/specs/**"
       - "docs/tareas-de-operacion.md"
+      - "ops/**"
 
 # ⚠️ El grupo de `main` es su propio commit, así que ahí no se cancela ni se
 # encola nada: cada mezcla se verifica entera. Con un grupo fijo para `main`,
